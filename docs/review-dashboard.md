@@ -11,6 +11,7 @@ npm run dashboard:build -- \
   --evidence-viewer artifacts/evidence-viewer/latest/evidence-viewer.json \
   --approval-queue artifacts/approval-queue/latest/approval-queue.json \
   --approval-decisions artifacts/approval-decisions/latest/approval-decision-result.json \
+  --law-firm-ldd-summary artifacts/law-firm-ldd-slice/latest/summary.json \
   --personal-dev-summary artifacts/personal-dev-slice/latest/summary.json \
   --out-dir artifacts/dashboard/latest
 ```
@@ -28,6 +29,7 @@ npm run dashboard:build -- \
 - Evidence Viewer의 evidence count, needs review, blocking gate 상태
 - Approval Queue의 priority별 pending item
 - Approval Decisions의 applied, pending, audit event, follow-up action
+- Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 
 ## Goal 내 위치

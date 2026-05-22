@@ -289,3 +289,26 @@
 - 생성 report의 각 issue 후보가 citation과 source span에 연결됨
 - `human_approval_gate`가 blocking pending 상태로 남음
 - `npm test`와 실제 `npm run law-firm:slice` 실행이 통과함
+
+## Phase 14: Law Firm Dashboard Integration
+
+목표: Law Firm LDD Slice 결과를 Review Dashboard/API의 stage, summary, action queue에 통합합니다.
+
+- `artifacts/law-firm-ldd-slice/latest/summary.json`을 dashboard source로 읽음
+- Law Firm LDD stage를 `law_firm_ldd_slice`로 표시
+- issue, RFI, citation count를 dashboard summary에 반영
+- attorney approval pending 상태를 `/api/actions` action queue에 추가
+- pending approval count에 Law Firm/Personal Dev slice approval blocker를 포함
+
+현재 구현:
+
+- `src/review-dashboard.mjs`
+- `schemas/review-dashboard.schema.json`
+- `docs/review-dashboard.md`
+
+완료 기준:
+
+- dashboard가 Law Firm LDD Slice source를 포함함
+- `law_firm_ldd_slice` stage와 action item이 생성됨
+- `/api/actions?source_stage=law_firm_ldd_slice`로 attorney approval action을 조회할 수 있음
+- `npm test`, `dashboard:build`, `api:smoke`가 통과함

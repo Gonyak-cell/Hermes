@@ -296,6 +296,7 @@ describe("matter harness", () => {
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
+        lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath,
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
@@ -304,7 +305,11 @@ describe("matter harness", () => {
       assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
       assert.equal(dashboard.summary.overall_status, "blocked");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
-      assert.equal(dashboard.summary.pending_approval_count, 0);
+      assert.equal(dashboard.summary.pending_approval_count, 2);
+      assert.equal(dashboard.summary.law_firm_issue_count, 1);
+      assert.equal(dashboard.summary.law_firm_citation_count, 1);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
+      assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
       assert.ok(dashboard.summary.action_item_count >= 1);
       assert.match(await readFile(path.join(outDir, "dashboard", "index.html"), "utf8"), /Hermes Review Dashboard/);
       assert.match(await readFile(path.join(outDir, "dashboard", "summary.md"), "utf8"), /Action Items/);

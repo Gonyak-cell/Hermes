@@ -263,3 +263,29 @@
 - Law Firm, Personal Dev, Creative Document pack이 Common pack에 의존함
 - pack capability가 capability manifest와 policy matrix 검증을 통과함
 - `npm run validate`가 pack registry 검증까지 포함함
+
+## Phase 13: Law Firm LDD Slice
+
+목표: 로펌용 Resource/Evidence를 입력으로 받아 LDD issue/RFI 후보, citation, gate, attorney approval, event ledger를 관통하는 얇은 vertical slice를 구현합니다.
+
+- `law_firm.ldd.issue_report` capability manifest를 Law Firm Pack에 등록
+- `resource-evidence.json` 또는 `resource-ingest.json` 입력 지원
+- evidence item과 source span을 fact, issue, citation으로 변환
+- markdown LDD issue report를 draft artifact로 생성
+- matter access, classification, evidence coverage, citation, human approval gate 생성
+- attorney approval 전에는 blocked/pending_review 상태 유지
+- event ledger와 run ledger 생성
+
+현재 구현:
+
+- `npm run law-firm:slice`
+- `src/law-firm-ldd-slice-runner.mjs`
+- `packs/law-firm/capabilities/ldd-issue-report.json`
+- `docs/law-firm-ldd-slice-runner.md`
+
+완료 기준:
+
+- LDD slice가 core vertical slice schema와 event ledger validation을 통과함
+- 생성 report의 각 issue 후보가 citation과 source span에 연결됨
+- `human_approval_gate`가 blocking pending 상태로 남음
+- `npm test`와 실제 `npm run law-firm:slice` 실행이 통과함

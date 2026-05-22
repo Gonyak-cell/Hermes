@@ -13,6 +13,11 @@
       "capability_id": "law_firm.ldd.vdr_inventory",
       "version": "0.1.0",
       "path": "../../examples/core/capabilities/law-firm-ldd-vdr-inventory.json"
+    },
+    {
+      "capability_id": "law_firm.ldd.issue_report",
+      "version": "0.1.0",
+      "path": "capabilities/ldd-issue-report.json"
     }
   ],
   "policies": [
@@ -32,6 +37,7 @@
   ],
   "workflows": [
     "workflow.law_firm.ldd.vdr_inventory.v1",
+    "workflow.law_firm.ldd.issue_report.v1",
     "workflow.law_firm.evidence_matrix.v1",
     "workflow.law_firm.contract_draft_review.v1"
   ],

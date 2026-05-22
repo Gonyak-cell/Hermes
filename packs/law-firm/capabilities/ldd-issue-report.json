@@ -1,0 +1,102 @@
+{
+  "schema_version": "capability-manifest.v1",
+  "capability_id": "law_firm.ldd.issue_report",
+  "version": "0.1.0",
+  "domain_pack": "law-firm",
+  "display_name": "LDD Issue Report",
+  "description": "Create an evidence-backed LDD issue and RFI candidate report from Resource/Evidence records.",
+  "input_contract": "resource-evidence.v1",
+  "output_contract": "governance-output.v1",
+  "required_resources": [
+    {
+      "resource_role": "resource",
+      "required": true,
+      "description": "Matter-scoped source documents from VDR, OneDrive, or local filesystem."
+    },
+    {
+      "resource_role": "evidence_item",
+      "required": true,
+      "description": "Evidence candidates promoted by Resource Ingest Gate."
+    },
+    {
+      "resource_role": "source_span",
+      "required": true,
+      "description": "Source spans that can be bound to report paragraphs and RFI candidates."
+    }
+  ],
+  "allowed_runtimes": ["harness", "local_script", "document_renderer", "manual"],
+  "required_tools": ["filesystem.read", "filesystem.write", "terminal.exec", "vector.retrieve"],
+  "required_gates": {
+    "pre_run": ["matter_access_gate", "classification_gate", "external_model_gate", "tool_permission_gate"],
+    "in_run": ["prompt_injection_gate"],
+    "post_run": ["evidence_coverage_gate", "citation_gate", "human_approval_gate"]
+  },
+  "data_policy": {
+    "max_input_classification": "P2_CLIENT_CONFIDENTIAL",
+    "external_model_policy": "approval_required",
+    "redaction_required": true,
+    "allowed_context_types": ["resource_metadata", "normalized_text", "source_span", "evidence_item", "fact", "issue"],
+    "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+  },
+  "approval_policy": {
+    "required": true,
+    "approval_type": "attorney_review",
+    "default_output_status": "pending_review"
+  },
+  "idempotency_policy": {
+    "key_fields": ["tenant_id", "matter_id", "resource_hashes", "capability_id", "version"]
+  },
+  "retry_policy": {
+    "max_attempts": 2,
+    "retryable_failures": ["timeout", "temporary_io_error", "renderer_timeout"]
+  },
+  "timeout_policy": {
+    "max_seconds": 1800
+  },
+  "cost_policy": {
+    "max_usd": 5,
+    "track_tokens": true
+  },
+  "observability_policy": {
+    "record_trace": true,
+    "record_prompt_hash": true,
+    "record_output_hash": true,
+    "record_cost": true
+  },
+  "output_artifacts": [
+    {
+      "artifact_type": "markdown",
+      "default_status": "pending_review",
+      "delivery_policy": "internal_only"
+    },
+    {
+      "artifact_type": "json",
+      "default_status": "draft",
+      "delivery_policy": "internal_only"
+    }
+  ],
+  "entrypoints": [
+    {
+      "entrypoint_type": "workflow",
+      "name": "workflow.law_firm.ldd.issue_report.v1"
+    },
+    {
+      "entrypoint_type": "script",
+      "name": "law_firm_ldd_slice_runner",
+      "path": "scripts/run-law-firm-ldd-slice.mjs"
+    }
+  ],
+  "dependencies": ["common.evidence.source_span", "common.document.rendering", "common.workflow.approval"],
+  "golden_cases": [
+    {
+      "case_id": "golden.law_firm.ldd.issue_report.simple",
+      "description": "Promoted evidence records produce issue candidates, RFI questions, citations, gates, and an attorney approval request.",
+      "input_ref": "artifacts/resource-ingest/latest/resource-evidence.json",
+      "expected_gate_results": ["matter_access_gate", "classification_gate", "evidence_coverage_gate", "citation_gate", "human_approval_gate"]
+    }
+  ],
+  "metadata": {
+    "draft_only": true,
+    "attorney_review_required": true
+  }
+}

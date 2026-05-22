@@ -15,6 +15,7 @@ import { runApprovalDecisions } from "../src/approval-decisions.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
+import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
@@ -259,6 +260,20 @@ describe("matter harness", () => {
       assert.equal(approvalResult.patched_resource_evidence.evidence_items[0].review_status, "approved");
       assert.match(await readFile(path.join(outDir, "approval-decisions", "summary.md"), "utf8"), /Approval Decision Result/);
 
+      const lddSlice = await runLawFirmLddSlice({
+        inputPath: path.join(outDir, "ingest", "resource-evidence.json"),
+        outDir: path.join(outDir, "law-firm-ldd"),
+        runAt: "2026-05-23T06:32:00.000Z",
+      });
+      assert.equal(lddSlice.validation.valid, true);
+      assert.equal(lddSlice.summary.status, "blocked");
+      assert.equal(lddSlice.summary.blocked_reason, "attorney_approval_pending");
+      assert.equal(lddSlice.summary.issue_count, 1);
+      assert.equal(lddSlice.law_firm_slice.governance_output.gate_results.at(-1).gate_id, "human_approval_gate");
+      assert.equal(lddSlice.law_firm_slice.governance_output.gate_results.at(-1).blocking, true);
+      assert.equal(lddSlice.law_firm_slice.resource_evidence.citations.length, 1);
+      assert.match(await readFile(path.join(outDir, "law-firm-ldd", "ldd-issue-report.md"), "utf8"), /LDD Issue Candidate Report/);
+
       const personalDevSummaryPath = path.join(outDir, "personal-dev-summary.json");
       await writeFile(
         personalDevSummaryPath,
@@ -392,11 +407,12 @@ describe("matter harness", () => {
       assert.deepEqual(validateAgainstSchema(registry, registrySchema, {}, "domain_pack_registry"), []);
       assert.equal(registry.validation.valid, true);
       assert.equal(registry.summary.pack_count, 4);
-      assert.equal(registry.summary.capability_count, 3);
+      assert.equal(registry.summary.capability_count, 4);
       assert.ok(registry.packs.some((pack) => pack.pack_id === "law-firm"));
       assert.ok(registry.packs.some((pack) => pack.pack_id === "personal-dev"));
       assert.ok(registry.packs.some((pack) => pack.pack_id === "creative-document"));
       assert.ok(registry.capabilities.some((capability) => capability.capability_id === "creative_document.pptx.design_system"));
+      assert.ok(registry.capabilities.some((capability) => capability.capability_id === "law_firm.ldd.issue_report"));
       assert.match(await readFile(path.join(outDir, "summary.md"), "utf8"), /Domain Pack Registry/);
     } finally {
       await rm(outDir, { recursive: true, force: true });

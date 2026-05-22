@@ -22,6 +22,7 @@
     "intake:kakao": "node scripts/intake-kakao.mjs examples/project-alpha-matter.json examples/kakaotalk-alpha-export.txt --source-id kakao-alpha",
     "intake:outlook": "node scripts/intake-outlook.mjs examples/project-alpha-matter.json examples/outlook-alpha-email.eml --source-id outlook-alpha",
     "intake:outlook-json": "node scripts/intake-outlook.mjs examples/project-alpha-matter.json examples/outlook-alpha-messages.json --source-id outlook-alpha-json",
+    "law-firm:slice": "node scripts/run-law-firm-ldd-slice.mjs",
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
     "packs:registry": "node scripts/domain-pack-registry.mjs",
     "packs:validate": "node scripts/domain-pack-registry.mjs --check",

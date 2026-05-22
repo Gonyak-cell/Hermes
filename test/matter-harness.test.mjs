@@ -23,6 +23,7 @@ import {
   validateAgainstSchema,
 } from "../src/core-contract-validator.mjs";
 import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
+import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
 import { runPersonalDevSlice } from "../src/personal-dev-slice-runner.mjs";
@@ -179,6 +180,23 @@ describe("matter harness", () => {
       assert.equal(second.summary.remaining_count, 0);
       assert.match(await readFile(path.join(outDir, "quarantine-queue.json"), "utf8"), /secret_or_credential_path/);
       assert.match(await readFile(path.join(outDir, "summary.md"), "utf8"), /Resource Expansion Summary/);
+
+      const ingest = await runResourceIngest({
+        inputPath: path.join(outDir, "resource-expansion-job.json"),
+        outDir: path.join(outDir, "ingest"),
+        runAt: "2026-05-23T06:10:00.000Z",
+      });
+      const schemas = await loadCoreSchemas();
+      assert.deepEqual(
+        validateAgainstSchema(ingest.resource_evidence, schemas["resource-evidence.schema.json"], schemas, "resource_evidence"),
+        [],
+      );
+      assert.equal(ingest.summary.promoted_resource_count, 1);
+      assert.equal(ingest.summary.promoted_evidence_count, 1);
+      assert.equal(ingest.summary.duplicate_count, 1);
+      assert.equal(ingest.summary.blocked_count, 1);
+      assert.equal(ingest.summary.gate_status, "blocked");
+      assert.match(await readFile(path.join(outDir, "ingest", "blocked-items.json"), "utf8"), /secret_or_credential_path/);
     } finally {
       await rm(root, { recursive: true, force: true });
       await rm(outDir, { recursive: true, force: true });

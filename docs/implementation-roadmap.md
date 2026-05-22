@@ -95,3 +95,25 @@
 - 중간 실패 후 같은 `--out-dir`로 다음 batch를 이어 처리 가능
 - quarantine queue를 사람이 검토할 수 있음
 - `npm test`에서 resumability, quarantine, duplicate handling이 검증됨
+
+## Phase 6: Resource Ingest Gate
+
+목표: Resource Expansion 결과 중 Evidence OS로 올릴 수 있는 항목만 core `resource-evidence.v1` 계약으로 승격합니다.
+
+- `extracted` 항목을 Resource, ResourceVersion, NormalizedText, SourceSpan, EvidenceItem 후보로 변환
+- `quarantined`와 `failed` 항목은 Evidence OS 승격 차단
+- `skipped_duplicate` 항목은 non-blocking duplicate report로 분리
+- 승격 결과를 `resource-evidence.json`으로 저장
+
+현재 구현:
+
+- `npm run resource:ingest`
+- `src/resource-ingest.mjs`
+- `docs/resource-ingest-gate.md`
+
+완료 기준:
+
+- `resource-expansion-job.json`에서 extracted 항목만 core Resource/Evidence 계약으로 승격됨
+- 승격된 `resource-evidence.json`이 `schemas/core/resource-evidence.schema.json`을 통과함
+- quarantine/failed 항목은 blocking gate로 남음
+- duplicate 항목은 별도 report에 남되 Evidence OS 후보에는 포함되지 않음

@@ -186,3 +186,26 @@
 - pending decision은 unapplied로 보존됨
 - audit event가 decision마다 생성됨
 - result schema validation이 통과함
+
+## Phase 10: Review Dashboard
+
+목표: Resource Expansion, Resource Ingest, Evidence Viewer, Approval Queue, Approval Decisions, Personal Dev Slice 산출물을 하나의 dashboard/API 계약으로 묶습니다.
+
+- 각 단계 산출물의 존재 여부와 schema version, generated_at, summary를 수집
+- 단계별 status를 `missing`, `blocked`, `attention`, `pending`, `passed`로 정규화
+- pending approval, blocking gate, blocked resource, follow-up action을 action queue로 표시
+- 정적 HTML, JSON dashboard, Markdown summary 생성
+
+현재 구현:
+
+- `npm run dashboard:build`
+- `src/review-dashboard.mjs`
+- `schemas/review-dashboard.schema.json`
+- `docs/review-dashboard.md`
+
+완료 기준:
+
+- 기존 review/approval 산출물을 읽어 `review-dashboard.json`을 생성함
+- dashboard schema validation이 통과함
+- `index.html`에서 단계별 상태와 action queue를 확인할 수 있음
+- `npm test`에서 approval decision 이후 dashboard 생성이 검증됨

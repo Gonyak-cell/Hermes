@@ -14,6 +14,7 @@ import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
 import { runApprovalDecisions } from "../src/approval-decisions.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
+import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
   validateCapabilityManifestFile,
   validateEventLedgerFile,
@@ -255,6 +256,41 @@ describe("matter harness", () => {
       assert.equal(approvalResult.audit_events.length, approvalQueue.summary.total_items);
       assert.equal(approvalResult.patched_resource_evidence.evidence_items[0].review_status, "approved");
       assert.match(await readFile(path.join(outDir, "approval-decisions", "summary.md"), "utf8"), /Approval Decision Result/);
+
+      const personalDevSummaryPath = path.join(outDir, "personal-dev-summary.json");
+      await writeFile(
+        personalDevSummaryPath,
+        JSON.stringify(
+          {
+            status: "blocked",
+            blocked_reason: "merge_approval_pending",
+            actual_isolation: "git_worktree",
+            approval_id: "approval.test.merge",
+            workflow_run_id: "workflow-run.test.personal_dev",
+          },
+          null,
+          2,
+        ),
+        "utf8",
+      );
+      const dashboard = await runReviewDashboard({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
+        approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
+        approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
+        personalDevSummaryPath,
+        outDir: path.join(outDir, "dashboard"),
+        runAt: "2026-05-23T06:35:00.000Z",
+      });
+      const dashboardSchema = JSON.parse(await readFile("schemas/review-dashboard.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
+      assert.equal(dashboard.summary.overall_status, "blocked");
+      assert.equal(dashboard.summary.evidence_approved_count, 1);
+      assert.equal(dashboard.summary.pending_approval_count, 0);
+      assert.ok(dashboard.summary.action_item_count >= 1);
+      assert.match(await readFile(path.join(outDir, "dashboard", "index.html"), "utf8"), /Hermes Review Dashboard/);
+      assert.match(await readFile(path.join(outDir, "dashboard", "summary.md"), "utf8"), /Action Items/);
     } finally {
       await rm(root, { recursive: true, force: true });
       await rm(outDir, { recursive: true, force: true });

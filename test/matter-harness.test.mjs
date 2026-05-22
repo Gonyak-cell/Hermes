@@ -11,6 +11,7 @@ import { parseKakaoTalkExport } from "../src/kakao-parser.mjs";
 import { buildLitigationMatrix, renderLitigationMatrix } from "../src/litigation-matrix.mjs";
 import { buildMatterBrief, readMatterFile, renderMatterBrief, validateMatter } from "../src/matter-harness.mjs";
 import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
+import { runApprovalDecisions } from "../src/approval-decisions.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import {
@@ -225,6 +226,35 @@ describe("matter harness", () => {
       assert.equal(approvalQueue.items[0].priority, "critical");
       assert.equal(approvalQueue.decision_template.decisions.length, approvalQueue.summary.total_items);
       assert.match(await readFile(path.join(outDir, "approval-queue", "summary.md"), "utf8"), /Approval Queue/);
+
+      const decisionsPath = path.join(outDir, "approval-decisions.json");
+      const decisions = {
+        ...approvalQueue.decision_template,
+        decisions: approvalQueue.items.map((item) => ({
+          queue_item_id: item.queue_item_id,
+          decision: item.item_type === "evidence_review" ? "approved" : "waived",
+          decided_by: "user.jws",
+          decided_at: "2026-05-23T06:25:00.000Z",
+          comment: "Test decision",
+          follow_up_action: item.item_type === "evidence_review" ? "" : "waived_for_test",
+        })),
+      };
+      await writeFile(decisionsPath, `${JSON.stringify(decisions, null, 2)}\n`, "utf8");
+      const approvalResult = await runApprovalDecisions({
+        queuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
+        decisionsPath,
+        resourceEvidencePath: path.join(outDir, "ingest", "resource-evidence.json"),
+        outDir: path.join(outDir, "approval-decisions"),
+        runAt: "2026-05-23T06:30:00.000Z",
+      });
+      const approvalResultSchema = JSON.parse(await readFile("schemas/approval-decision-result.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(approvalResult, approvalResultSchema, {}, "approval_decision_result"), []);
+      assert.equal(approvalResult.summary.applied_count, approvalQueue.summary.total_items);
+      assert.equal(approvalResult.summary.approved_count, 1);
+      assert.equal(approvalResult.summary.resolved_or_waived_count, 3);
+      assert.equal(approvalResult.audit_events.length, approvalQueue.summary.total_items);
+      assert.equal(approvalResult.patched_resource_evidence.evidence_items[0].review_status, "approved");
+      assert.match(await readFile(path.join(outDir, "approval-decisions", "summary.md"), "utf8"), /Approval Decision Result/);
     } finally {
       await rm(root, { recursive: true, force: true });
       await rm(outDir, { recursive: true, force: true });

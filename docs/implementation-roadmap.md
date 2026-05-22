@@ -162,3 +162,27 @@
 - blocking gate와 blocked resource가 evidence review보다 높은 priority로 정렬됨
 - queue schema validation이 통과함
 - decision template이 모든 queue item을 포함함
+
+## Phase 9: Approval Decision Applier
+
+목표: `decision-template.json`에 사람이 기록한 결정을 적용해 review status patch와 audit trail을 생성합니다.
+
+- `approval-queue.json`과 decision file을 조합
+- `pending`이 아닌 decision만 적용
+- evidence decision은 `resource-evidence.patched.json`의 `review_status`에 반영
+- gate/resource decision은 follow-up action과 audit event로 기록
+- 모든 decision은 `approval.decided` audit event를 남김
+
+현재 구현:
+
+- `npm run approval:apply`
+- `src/approval-decisions.mjs`
+- `schemas/approval-decision-result.schema.json`
+- `docs/approval-decisions.md`
+
+완료 기준:
+
+- approved/rejected/changes_requested decision이 evidence review status에 반영됨
+- pending decision은 unapplied로 보존됨
+- audit event가 decision마다 생성됨
+- result schema validation이 통과함

@@ -14,6 +14,7 @@ import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
 import { runApprovalDecisions } from "../src/approval-decisions.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
+import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
   validateCapabilityManifestFile,
@@ -291,6 +292,32 @@ describe("matter harness", () => {
       assert.ok(dashboard.summary.action_item_count >= 1);
       assert.match(await readFile(path.join(outDir, "dashboard", "index.html"), "utf8"), /Hermes Review Dashboard/);
       assert.match(await readFile(path.join(outDir, "dashboard", "summary.md"), "utf8"), /Action Items/);
+
+      const apiOptions = {
+        dashboardPath: path.join(outDir, "dashboard", "review-dashboard.json"),
+        indexPath: path.join(outDir, "dashboard", "index.html"),
+        summaryPath: path.join(outDir, "dashboard", "summary.md"),
+        runAt: "2026-05-23T06:40:00.000Z",
+      };
+      const routeIndexResponse = await buildReviewApiResponse("/api", apiOptions);
+      assert.equal(routeIndexResponse.status, 200);
+      const routeIndex = JSON.parse(routeIndexResponse.body);
+      const routeIndexSchema = JSON.parse(await readFile("schemas/review-api-index.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(routeIndex, routeIndexSchema, {}, "review_api_index"), []);
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
+
+      const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
+      assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
+      assert.equal(apiDashboard.summary.overall_status, "blocked");
+
+      const highActions = JSON.parse((await buildReviewApiResponse("/api/actions?priority=high", apiOptions)).body);
+      assert.equal(highActions.collection, "action_items");
+      assert.ok(highActions.items.length >= 1);
+      assert.ok(highActions.items.every((item) => item.priority === "high"));
+
+      const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
+      assert.equal(health.dashboard_available, true);
+      assert.equal(health.overall_status, "blocked");
     } finally {
       await rm(root, { recursive: true, force: true });
       await rm(outDir, { recursive: true, force: true });

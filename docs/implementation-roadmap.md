@@ -209,3 +209,28 @@
 - dashboard schema validation이 통과함
 - `index.html`에서 단계별 상태와 action queue를 확인할 수 있음
 - `npm test`에서 approval decision 이후 dashboard 생성이 검증됨
+
+## Phase 11: Review API
+
+목표: `review-dashboard.json`을 읽기 전용 HTTP API와 정적 HTML entrypoint로 노출합니다.
+
+- `GET /`에서 정적 dashboard HTML 제공
+- `GET /health`에서 dashboard artifact availability와 overall status 제공
+- `GET /api/dashboard`, `/api/summary`, `/api/stages`, `/api/actions`, `/api/sources` 제공
+- API route index를 `review-api-index.v1` 계약으로 제공
+- 쓰기성 protected action은 아직 실행하지 않고 read-only boundary 유지
+
+현재 구현:
+
+- `npm run api:serve`
+- `npm run api:smoke`
+- `src/review-api.mjs`
+- `schemas/review-api-index.schema.json`
+- `docs/review-api.md`
+
+완료 기준:
+
+- dashboard artifact를 API로 읽을 수 있음
+- route index schema validation이 통과함
+- smoke test가 임시 포트에서 API를 띄운 뒤 주요 route를 검증함
+- `npm test`에서 API 응답과 action filtering이 검증됨

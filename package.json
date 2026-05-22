@@ -25,6 +25,7 @@
     "intake:outlook-json": "node scripts/intake-outlook.mjs examples/project-alpha-matter.json examples/outlook-alpha-messages.json --source-id outlook-alpha-json",
     "law-firm:slice": "node scripts/run-law-firm-ldd-slice.mjs",
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
+    "observability:catalog": "node scripts/observability-catalog.mjs",
     "output:catalog": "node scripts/output-artifact-catalog.mjs",
     "packs:registry": "node scripts/domain-pack-registry.mjs",
     "packs:validate": "node scripts/domain-pack-registry.mjs --check",

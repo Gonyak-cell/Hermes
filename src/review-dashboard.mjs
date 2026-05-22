@@ -10,6 +10,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   approvalDecisionPath: "artifacts/approval-decisions/latest/approval-decision-result.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
+  observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -50,6 +51,11 @@ const SOURCE_DEFINITIONS = [
     option: "outputArtifactCatalogPath",
     source_id: "output_artifact_catalog",
     label: "Output Artifact Catalog",
+  },
+  {
+    option: "observabilityCatalogPath",
+    source_id: "observability_catalog",
+    label: "Observability Catalog",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -223,6 +229,20 @@ function summarizeSource(sourceId, data) {
       by_delivery_state: data.summary?.by_delivery_state ?? {},
     };
   }
+  if (sourceId === "observability_catalog") {
+    return {
+      workflow_run_count: data.summary?.workflow_run_count ?? 0,
+      event_count: data.summary?.event_count ?? 0,
+      agent_run_count: data.summary?.agent_run_count ?? 0,
+      pending_approval_count: data.summary?.pending_approval_count ?? 0,
+      blocking_gate_count: data.summary?.blocking_gate_count ?? 0,
+      total_runtime_seconds: data.summary?.total_runtime_seconds ?? 0,
+      error_record_count: data.summary?.error_record_count ?? 0,
+      blocked_run_count: data.summary?.blocked_run_count ?? 0,
+      by_runtime_id: data.summary?.by_runtime_id ?? {},
+      by_run_status: data.summary?.by_run_status ?? {},
+    };
+  }
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -266,6 +286,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApprovalDecisionStage(artifacts.approval_decisions, sourceById.get("approval_decisions")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
+    buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -426,6 +447,37 @@ function buildOutputArtifactCatalogStage(catalog, source) {
       approval_pending_count: pending,
       blocked_delivery_count: blockedDelivery,
       blocking_gate_count: summary.blocking_gate_count ?? 0,
+    },
+  };
+}
+
+function buildObservabilityCatalogStage(catalog, source) {
+  if (!catalog) return missingStage("observability_catalog", "Observability Catalog", source);
+  const summary = catalog.summary ?? {};
+  const errors = summary.error_record_count ?? 0;
+  const missingSources = summary.missing_source_count ?? 0;
+  const blockedRuns = summary.blocked_run_count ?? 0;
+  const pendingApprovals = summary.pending_approval_count ?? 0;
+  const status = errors > 0 || missingSources > 0
+    ? "attention"
+    : blockedRuns > 0 || pendingApprovals > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "observability_catalog",
+    label: "Observability Catalog",
+    status,
+    message: `${summary.workflow_run_count ?? 0} run(s), ${summary.event_count ?? 0} event(s), ${summary.total_runtime_seconds ?? 0}s runtime.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_run_count: summary.workflow_run_count ?? 0,
+      event_count: summary.event_count ?? 0,
+      agent_run_count: summary.agent_run_count ?? 0,
+      pending_approval_count: pendingApprovals,
+      blocking_gate_count: summary.blocking_gate_count ?? 0,
+      total_runtime_seconds: summary.total_runtime_seconds ?? 0,
+      error_record_count: errors,
+      blocked_run_count: blockedRuns,
     },
   };
 }
@@ -668,6 +720,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     output_artifact_count: artifacts.output_artifact_catalog?.summary?.artifact_count ?? 0,
     output_artifact_pending_approval_count: artifacts.output_artifact_catalog?.summary?.approval_pending_count ?? 0,
     output_artifact_blocked_delivery_count: artifacts.output_artifact_catalog?.summary?.blocked_delivery_count ?? 0,
+    observability_run_count: artifacts.observability_catalog?.summary?.workflow_run_count ?? 0,
+    observability_event_count: artifacts.observability_catalog?.summary?.event_count ?? 0,
+    observability_runtime_seconds: artifacts.observability_catalog?.summary?.total_runtime_seconds ?? 0,
+    observability_error_count: artifacts.observability_catalog?.summary?.error_record_count ?? 0,
     law_firm_issue_count: artifacts.law_firm_ldd_slice?.issue_count ?? 0,
     law_firm_rfi_count: artifacts.law_firm_ldd_slice?.rfi_count ?? 0,
     law_firm_citation_count: artifacts.law_firm_ldd_slice?.citation_count ?? 0,
@@ -744,6 +800,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Pending Approvals", dashboard.summary.pending_approval_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
+      ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
     </div>
@@ -778,6 +835,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
   lines.push(`- Output delivery blocked: ${dashboard.summary.output_artifact_blocked_delivery_count ?? 0}`);
+  lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
+  lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
+  lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
   lines.push(`- Law firm issues: ${dashboard.summary.law_firm_issue_count ?? 0}`);
   lines.push(`- Law firm citations: ${dashboard.summary.law_firm_citation_count ?? 0}`);
   lines.push(`- Creative slides: ${dashboard.summary.creative_slide_count ?? 0}`);
@@ -870,6 +930,8 @@ function parseArgs(argv) {
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
     else if (arg === "--no-output-catalog") parsed.outputArtifactCatalogPath = false;
+    else if (arg === "--observability-catalog") parsed.observabilityCatalogPath = argv[++index];
+    else if (arg === "--no-observability-catalog") parsed.observabilityCatalogPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -895,6 +957,8 @@ Options:
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.
   --no-output-catalog            Do not include Output Artifact Catalog status.
+  --observability-catalog <path> observability-catalog.json path.
+  --no-observability-catalog     Do not include Observability Catalog status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

@@ -395,3 +395,31 @@
 - dashboard가 output artifact count와 blocked delivery count를 표시함
 - `/api/artifacts?delivery_state=blocked_pending_approval`로 승인 대기 산출물을 조회할 수 있음
 - `npm test`, `output:catalog`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 18: Observability Catalog
+
+목표: 각 slice의 Event Ledger, Run Ledger, Workflow Runtime을 하나의 Observability/Cost Plane 카탈로그로 묶습니다.
+
+- slice JSON과 `event-ledger.json`을 함께 읽음
+- workflow run별 runtime, gate, approval, output, event, cost를 연결
+- event record와 cost record를 읽기 전용 collection으로 정규화
+- `observability-catalog.json`과 `summary.md` 생성
+- Review Dashboard에 `observability_catalog` stage와 run/event/runtime summary를 추가
+- Review API에서 `/api/runs`, `/api/events`, `/api/costs` 읽기 전용 route를 제공
+
+현재 구현:
+
+- `npm run observability:catalog`
+- `src/observability-catalog.mjs`
+- `schemas/observability-catalog.schema.json`
+- `docs/observability-catalog.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- catalog가 Law Firm, Personal Dev, Creative Document run ledger를 모두 포함함
+- pending approval, blocking gate, runtime seconds가 run별로 계산됨
+- dashboard가 observability run/event/runtime summary를 표시함
+- `/api/runs?runtime_id=codex`와 `/api/events?event_type=approval.requested`로 실행 기록을 조회할 수 있음
+- `npm test`, `observability:catalog`, `dashboard:build`, `api:smoke`가 통과함

@@ -135,6 +135,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/runs") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "observability_catalog");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("observability_catalog_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("run_records", catalogResult.artifact.run_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/events") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "observability_catalog");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("observability_catalog_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_records", catalogResult.artifact.event_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/costs") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "observability_catalog");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("observability_catalog_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("cost_records", catalogResult.artifact.cost_records ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -156,7 +189,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -177,6 +210,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/packs", "Domain pack registry packs"),
       route("GET", "/api/capabilities", "Domain pack capability contracts"),
       route("GET", "/api/artifacts", "Output artifact catalog"),
+      route("GET", "/api/runs", "Observability workflow run records"),
+      route("GET", "/api/events", "Observability event records"),
+      route("GET", "/api/costs", "Observability cost records"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -225,6 +261,11 @@ function filterItems(items, searchParams) {
     "domain_pack",
     "delivery_state",
     "approval_status",
+    "run_id",
+    "workflow_run_id",
+    "runtime_id",
+    "event_type",
+    "cost_type",
     "enabled",
     "valid",
   ];
@@ -233,6 +274,10 @@ function filterItems(items, searchParams) {
       if (!searchParams.has(key)) continue;
       const expected = searchParams.get(key);
       const actual = readFilterValue(item, key);
+      if (Array.isArray(actual)) {
+        if (!actual.map(String).includes(expected)) return false;
+        continue;
+      }
       if (String(actual) !== expected) return false;
     }
     return true;
@@ -241,6 +286,7 @@ function filterItems(items, searchParams) {
 
 function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
+  if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;
   return item[key];
 }
 

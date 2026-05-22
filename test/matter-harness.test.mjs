@@ -17,6 +17,7 @@ import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
+import { runObservabilityCatalog } from "../src/observability-catalog.mjs";
 import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
@@ -329,6 +330,40 @@ describe("matter harness", () => {
       assert.equal(outputCatalog.summary.approval_pending_count, 3);
       assert.equal(outputCatalog.summary.blocked_delivery_count, 5);
 
+      const observabilityCatalog = await runObservabilityCatalog({
+        sources: [
+          {
+            source_id: "law_firm_ldd_slice",
+            label: "Law Firm LDD Slice",
+            slice_path: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
+            event_ledger_path: path.join(outDir, "law-firm-ldd", "event-ledger.json"),
+          },
+          {
+            source_id: "personal_dev_slice",
+            label: "Personal Dev Slice",
+            slice_path: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+            event_ledger_path: path.join(outDir, "personal-dev", "event-ledger.json"),
+          },
+          {
+            source_id: "creative_document_slice",
+            label: "Creative Document Slice",
+            slice_path: path.join(outDir, "creative-document", "creative-document-slice.json"),
+            event_ledger_path: path.join(outDir, "creative-document", "event-ledger.json"),
+          },
+        ],
+        outDir: path.join(outDir, "observability"),
+        runAt: "2026-05-23T06:34:50.000Z",
+      });
+      const observabilityCatalogSchema = JSON.parse(await readFile("schemas/observability-catalog.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(observabilityCatalog, observabilityCatalogSchema, {}, "observability_catalog"), []);
+      assert.equal(observabilityCatalog.summary.workflow_run_count, 3);
+      assert.equal(observabilityCatalog.summary.event_count, 41);
+      assert.equal(observabilityCatalog.summary.agent_run_count, 6);
+      assert.equal(observabilityCatalog.summary.total_runtime_seconds, 16);
+      assert.equal(observabilityCatalog.summary.pending_approval_count, 3);
+      assert.equal(observabilityCatalog.summary.blocked_run_count, 3);
+      assert.equal(observabilityCatalog.summary.by_runtime_id.codex, 1);
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -337,6 +372,7 @@ describe("matter harness", () => {
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -354,12 +390,17 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.output_artifact_count, 5);
       assert.equal(dashboard.summary.output_artifact_pending_approval_count, 3);
       assert.equal(dashboard.summary.output_artifact_blocked_delivery_count, 5);
+      assert.equal(dashboard.summary.observability_run_count, 3);
+      assert.equal(dashboard.summary.observability_event_count, 41);
+      assert.equal(dashboard.summary.observability_runtime_seconds, 16);
+      assert.equal(dashboard.summary.observability_error_count, 0);
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
       assert.equal(dashboard.summary.creative_artifact_count, 3);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "domain_pack_registry"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "output_artifact_catalog"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "creative_document_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
@@ -383,6 +424,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/events"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/costs"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -406,6 +450,19 @@ describe("matter harness", () => {
       assert.equal(blockedArtifacts.collection, "output_artifacts");
       assert.equal(blockedArtifacts.count, 3);
       assert.ok(blockedArtifacts.items.some((artifact) => artifact.domain_pack === "creative-document"));
+
+      const codexRuns = JSON.parse((await buildReviewApiResponse("/api/runs?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexRuns.collection, "run_records");
+      assert.equal(codexRuns.count, 1);
+      assert.equal(codexRuns.items[0].capability_id, "personal_dev.codex.worktree_patch");
+
+      const approvalEvents = JSON.parse((await buildReviewApiResponse("/api/events?event_type=approval.requested", apiOptions)).body);
+      assert.equal(approvalEvents.collection, "event_records");
+      assert.equal(approvalEvents.count, 3);
+
+      const runtimeCosts = JSON.parse((await buildReviewApiResponse("/api/costs?cost_type=runtime_seconds", apiOptions)).body);
+      assert.equal(runtimeCosts.collection, "cost_records");
+      assert.equal(runtimeCosts.count, 3);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

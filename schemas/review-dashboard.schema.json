@@ -45,6 +45,10 @@
         "output_artifact_count",
         "output_artifact_pending_approval_count",
         "output_artifact_blocked_delivery_count",
+        "observability_run_count",
+        "observability_event_count",
+        "observability_runtime_seconds",
+        "observability_error_count",
         "law_firm_issue_count",
         "law_firm_rfi_count",
         "law_firm_citation_count",
@@ -144,6 +148,22 @@
           "minimum": 0
         },
         "output_artifact_blocked_delivery_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observability_run_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observability_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "observability_runtime_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "observability_error_count": {
           "type": "integer",
           "minimum": 0
         },

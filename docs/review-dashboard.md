@@ -13,6 +13,7 @@ npm run dashboard:build -- \
   --approval-decisions artifacts/approval-decisions/latest/approval-decision-result.json \
   --domain-pack-registry artifacts/domain-packs/latest/domain-pack-registry.json \
   --output-catalog artifacts/output-catalog/latest/output-catalog.json \
+  --observability-catalog artifacts/observability/latest/observability-catalog.json \
   --law-firm-ldd-summary artifacts/law-firm-ldd-slice/latest/summary.json \
   --personal-dev-summary artifacts/personal-dev-slice/latest/summary.json \
   --creative-document-summary artifacts/creative-document-slice/latest/summary.json \
@@ -34,6 +35,7 @@ npm run dashboard:build -- \
 - Approval Decisions의 applied, pending, audit event, follow-up action
 - Domain Pack Registry의 pack, capability, validation 상태
 - Output Artifact Catalog의 artifact, approval, delivery readiness 상태
+- Observability Catalog의 workflow run, event, runtime cost, blocked run 상태
 - Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 - Creative Document Slice의 slide, artifact, format validation, human approval 상태

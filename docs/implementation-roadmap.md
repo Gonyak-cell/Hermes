@@ -367,3 +367,31 @@
 - `format_validation_gate`가 passed, `human_approval_gate`가 blocking pending 상태로 남음
 - dashboard가 `creative_document_slice` stage와 action item을 포함함
 - `npm test`, `creative-document:slice`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 17: Output Artifact Catalog
+
+목표: Law Firm, Personal Dev, Creative Document slice의 산출물을 하나의 Output/Delivery Plane 카탈로그로 묶습니다.
+
+- 각 slice의 `governance_output.output_artifacts`를 수집
+- artifact별 capability, workflow, approval, blocking gate, citation count를 연결
+- `delivery_state`로 draft-only, approval blocked, gate blocked, ready, delivered 상태를 정규화
+- `output-catalog.json`과 `summary.md` 생성
+- Review Dashboard에 `output_artifact_catalog` stage와 output summary를 추가
+- Review API에서 `/api/artifacts` 읽기 전용 route를 제공
+
+현재 구현:
+
+- `npm run output:catalog`
+- `src/output-artifact-catalog.mjs`
+- `schemas/output-artifact-catalog.schema.json`
+- `docs/output-artifact-catalog.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- catalog가 Law Firm, Personal Dev, Creative Document 산출물을 모두 포함함
+- pending approval 때문에 delivery blocked 상태가 artifact별로 계산됨
+- dashboard가 output artifact count와 blocked delivery count를 표시함
+- `/api/artifacts?delivery_state=blocked_pending_approval`로 승인 대기 산출물을 조회할 수 있음
+- `npm test`, `output:catalog`, `dashboard:build`, `api:smoke`가 통과함

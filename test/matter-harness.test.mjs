@@ -17,6 +17,7 @@ import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
+import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
@@ -293,22 +294,41 @@ describe("matter harness", () => {
       assert.equal(creativeDocumentSlice.deck_manifest.slides.length, 5);
       assert.match(await readFile(path.join(outDir, "creative-document", "deck-outline.md"), "utf8"), /Hermes Harness Progress Report/);
 
-      const personalDevSummaryPath = path.join(outDir, "personal-dev-summary.json");
-      await writeFile(
-        personalDevSummaryPath,
-        JSON.stringify(
+      const personalDevSlice = await runPersonalDevSlice({
+        outDir: path.join(outDir, "personal-dev"),
+        runAt: "2026-05-23T06:34:30.000Z",
+        today: "2026-05-23",
+        createWorktree: false,
+      });
+      assert.equal(personalDevSlice.validation.valid, true);
+
+      const outputCatalog = await runOutputArtifactCatalog({
+        sources: [
           {
-            status: "blocked",
-            blocked_reason: "merge_approval_pending",
-            actual_isolation: "git_worktree",
-            approval_id: "approval.test.merge",
-            workflow_run_id: "workflow-run.test.personal_dev",
+            source_id: "law_firm_ldd_slice",
+            label: "Law Firm LDD Slice",
+            path: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
           },
-          null,
-          2,
-        ),
-        "utf8",
-      );
+          {
+            source_id: "personal_dev_slice",
+            label: "Personal Dev Slice",
+            path: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+          },
+          {
+            source_id: "creative_document_slice",
+            label: "Creative Document Slice",
+            path: path.join(outDir, "creative-document", "creative-document-slice.json"),
+          },
+        ],
+        outDir: path.join(outDir, "output-catalog"),
+        runAt: "2026-05-23T06:34:45.000Z",
+      });
+      const outputCatalogSchema = JSON.parse(await readFile("schemas/output-artifact-catalog.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(outputCatalog, outputCatalogSchema, {}, "output_artifact_catalog"), []);
+      assert.equal(outputCatalog.summary.artifact_count, 5);
+      assert.equal(outputCatalog.summary.approval_pending_count, 3);
+      assert.equal(outputCatalog.summary.blocked_delivery_count, 5);
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -316,8 +336,9 @@ describe("matter harness", () => {
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
-        personalDevSummaryPath,
+        personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
@@ -330,11 +351,15 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
       assert.equal(dashboard.summary.domain_pack_error_count, 0);
+      assert.equal(dashboard.summary.output_artifact_count, 5);
+      assert.equal(dashboard.summary.output_artifact_pending_approval_count, 3);
+      assert.equal(dashboard.summary.output_artifact_blocked_delivery_count, 5);
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
       assert.equal(dashboard.summary.creative_artifact_count, 3);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "domain_pack_registry"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "output_artifact_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "creative_document_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
@@ -357,6 +382,7 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -375,6 +401,11 @@ describe("matter harness", () => {
       const lawFirmCapabilities = JSON.parse((await buildReviewApiResponse("/api/capabilities?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmCapabilities.collection, "capabilities");
       assert.ok(lawFirmCapabilities.items.some((capability) => capability.capability_id === "law_firm.ldd.issue_report"));
+
+      const blockedArtifacts = JSON.parse((await buildReviewApiResponse("/api/artifacts?delivery_state=blocked_pending_approval", apiOptions)).body);
+      assert.equal(blockedArtifacts.collection, "output_artifacts");
+      assert.equal(blockedArtifacts.count, 3);
+      assert.ok(blockedArtifacts.items.some((artifact) => artifact.domain_pack === "creative-document"));
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

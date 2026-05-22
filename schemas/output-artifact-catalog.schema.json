@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/output-artifact-catalog.schema.json",
+  "title": "Hermes Output Artifact Catalog",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "summary", "sources", "artifacts"],
+  "properties": {
+    "schema_version": {
+      "const": "output-artifact-catalog.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "source_count",
+        "available_source_count",
+        "missing_source_count",
+        "artifact_count",
+        "draft_count",
+        "pending_review_count",
+        "approved_count",
+        "delivered_count",
+        "approval_pending_count",
+        "blocked_delivery_count",
+        "blocking_gate_count",
+        "by_artifact_type",
+        "by_domain_pack",
+        "by_delivery_state"
+      ],
+      "properties": {
+        "source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "available_source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "missing_source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "draft_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pending_review_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approved_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivered_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approval_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked_delivery_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocking_gate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_artifact_type": {
+          "type": "object"
+        },
+        "by_domain_pack": {
+          "type": "object"
+        },
+        "by_delivery_state": {
+          "type": "object"
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "label",
+          "path",
+          "available",
+          "schema_version",
+          "generated_at",
+          "artifact_count",
+          "error"
+        ],
+        "properties": {
+          "source_id": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          },
+          "schema_version": {
+            "type": ["string", "null"]
+          },
+          "generated_at": {
+            "type": ["string", "null"],
+            "format": "date-time"
+          },
+          "artifact_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "error": {
+            "type": ["string", "null"]
+          }
+        }
+      }
+    },
+    "artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "source_id",
+          "source_label",
+          "domain_pack",
+          "capability_id",
+          "workflow_run_id",
+          "tenant_id",
+          "matter_id",
+          "artifact_type",
+          "artifact_uri",
+          "content_hash",
+          "status",
+          "delivery_state",
+          "approval_id",
+          "approval_status",
+          "blocking_gate_count",
+          "blocking_gate_ids",
+          "citation_count",
+          "created_by_run_id",
+          "created_at",
+          "metadata"
+        ],
+        "properties": {
+          "artifact_id": {
+            "type": "string"
+          },
+          "source_id": {
+            "type": "string"
+          },
+          "source_label": {
+            "type": "string"
+          },
+          "domain_pack": {
+            "type": "string"
+          },
+          "capability_id": {
+            "type": ["string", "null"]
+          },
+          "workflow_run_id": {
+            "type": ["string", "null"]
+          },
+          "tenant_id": {
+            "type": "string"
+          },
+          "matter_id": {
+            "type": "string"
+          },
+          "artifact_type": {
+            "type": "string"
+          },
+          "artifact_uri": {
+            "type": "string"
+          },
+          "content_hash": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "delivery_state": {
+            "enum": [
+              "draft_only",
+              "blocked_pending_approval",
+              "blocked_by_gate",
+              "blocked_by_decision",
+              "ready_for_delivery",
+              "delivered"
+            ]
+          },
+          "approval_id": {
+            "type": ["string", "null"]
+          },
+          "approval_status": {
+            "type": ["string", "null"]
+          },
+          "blocking_gate_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "blocking_gate_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "citation_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "created_by_run_id": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

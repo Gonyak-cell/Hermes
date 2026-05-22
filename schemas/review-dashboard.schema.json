@@ -42,6 +42,9 @@
         "invalid_domain_pack_count",
         "invalid_domain_pack_capability_count",
         "domain_pack_error_count",
+        "output_artifact_count",
+        "output_artifact_pending_approval_count",
+        "output_artifact_blocked_delivery_count",
         "law_firm_issue_count",
         "law_firm_rfi_count",
         "law_firm_citation_count",
@@ -129,6 +132,18 @@
           "minimum": 0
         },
         "domain_pack_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_artifact_pending_approval_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "output_artifact_blocked_delivery_count": {
           "type": "integer",
           "minimum": 0
         },

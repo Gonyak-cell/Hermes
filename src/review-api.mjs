@@ -124,6 +124,17 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/artifacts") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "output_artifact_catalog");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("output_artifact_catalog_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("output_artifacts", catalogResult.artifact.artifacts ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -145,7 +156,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -165,6 +176,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/sources", "Dashboard source artifacts"),
       route("GET", "/api/packs", "Domain pack registry packs"),
       route("GET", "/api/capabilities", "Domain pack capability contracts"),
+      route("GET", "/api/artifacts", "Output artifact catalog"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -208,6 +220,11 @@ function filterItems(items, searchParams) {
     "available",
     "pack_id",
     "capability_id",
+    "artifact_id",
+    "artifact_type",
+    "domain_pack",
+    "delivery_state",
+    "approval_status",
     "enabled",
     "valid",
   ];

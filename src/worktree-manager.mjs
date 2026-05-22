@@ -79,6 +79,35 @@ export async function prepareAgentWorkspace(options = {}) {
 
   await mkdir(path.dirname(workspacePath), { recursive: true });
   const branchExists = await gitBranchExists(repoInfo.repo_root, branchName, commandLog);
+  if (branchExists) {
+    const existingWorktree = await findExistingWorktreeForBranch(repoInfo.repo_root, branchName, commandLog);
+    if (existingWorktree && path.resolve(existingWorktree.worktree) !== path.resolve(repoInfo.repo_root)) {
+      return {
+        ...manifestBase,
+        workspace_path: existingWorktree.worktree,
+        base_sha: existingWorktree.head || manifestBase.base_sha,
+        reused_existing_path: true,
+        branch_preexisted: true,
+        notes: ["branch is already checked out in an existing git worktree; reusing it"],
+      };
+    }
+
+    if (existingWorktree) {
+      return createFallbackManifest({
+        repoPath,
+        repoRoot: repoInfo.repo_root,
+        branchName,
+        fallbackWorkspacePath,
+        protectedPaths,
+        fallbackReason: "branch is checked out in the main repository worktree; refusing to use the main checkout for agent isolation",
+        commandLog,
+        create,
+        dirtyFiles: repoInfo.dirty_files,
+        baseSha: repoInfo.head_sha,
+      });
+    }
+  }
+
   const args = branchExists
     ? ["worktree", "add", workspacePath, branchName]
     : ["worktree", "add", "-b", branchName, workspacePath, options.baseRef ?? "HEAD"];
@@ -161,6 +190,26 @@ async function inspectGitRepository(repoPath, commandLog) {
 async function gitBranchExists(repoRoot, branchName, commandLog) {
   const result = await runGit(repoRoot, ["rev-parse", "--verify", "--quiet", `refs/heads/${branchName}`], commandLog);
   return result.exit_code === 0;
+}
+
+async function findExistingWorktreeForBranch(repoRoot, branchName, commandLog) {
+  const result = await runGit(repoRoot, ["worktree", "list", "--porcelain"], commandLog);
+  if (result.exit_code !== 0) return null;
+
+  const expectedBranch = `refs/heads/${branchName}`;
+  const records = result.stdout.split(/\n\s*\n/).map((record) => record.trim()).filter(Boolean);
+  for (const record of records) {
+    const worktree = {};
+    for (const line of record.split("\n")) {
+      const [key, ...rest] = line.split(" ");
+      if (key === "worktree") worktree.worktree = rest.join(" ");
+      else if (key === "HEAD") worktree.head = rest.join(" ");
+      else if (key === "branch") worktree.branch = rest.join(" ");
+    }
+    if (worktree.branch === expectedBranch && worktree.worktree) return worktree;
+  }
+
+  return null;
 }
 
 async function createFallbackManifest({

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { describe, it } from "node:test";
-import { mkdir, mkdtemp, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
@@ -321,6 +321,20 @@ describe("matter harness", () => {
       assert.equal(manifest.created, true);
       assert.equal(manifest.branch_name, "codex/wt-001-hermes");
       assert.match(await readFile(path.join(manifest.workspace_path, "README.md"), "utf8"), /Worktree Test/);
+
+      const reused = await prepareAgentWorkspace({
+        repoPath,
+        outDir: path.join(root, "out-reuse"),
+        worktreeRoot: path.join(root, "other-worktrees"),
+        projectId: "HERMES",
+        taskId: "WT-001",
+        branchName: "codex/wt-001-hermes",
+      });
+
+      assert.equal(reused.actual_isolation, "git_worktree");
+      assert.equal(reused.created, false);
+      assert.equal(reused.reused_existing_path, true);
+      assert.equal(await realpath(reused.workspace_path), await realpath(manifest.workspace_path));
     } finally {
       await rm(root, { recursive: true, force: true });
     }

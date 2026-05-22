@@ -8,6 +8,7 @@
     "hermes-law-brief": "./scripts/matter-brief.mjs"
   },
   "scripts": {
+    "approval:queue": "node scripts/approval-queue.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "deal": "node scripts/deal-control.mjs examples/project-alpha-matter.json",
     "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",

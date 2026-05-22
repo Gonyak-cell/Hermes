@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/approval-queue.schema.json",
+  "title": "Hermes Approval Queue",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "queue_id", "source_viewer", "summary", "items"],
+  "properties": {
+    "schema_version": {
+      "const": "approval-queue.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "queue_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_viewer": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total_items", "by_type", "by_priority", "by_status", "critical_or_high_count"],
+      "properties": {
+        "total_items": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_type": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_priority": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "by_status": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "critical_or_high_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "queue_item_id",
+          "item_type",
+          "priority",
+          "status",
+          "title",
+          "subject_ref",
+          "reason",
+          "recommended_actions",
+          "required_decision",
+          "created_at",
+          "sort_order"
+        ],
+        "properties": {
+          "queue_item_id": {
+            "type": "string"
+          },
+          "item_type": {
+            "enum": ["evidence_review", "blocking_gate_review", "blocked_resource_review"]
+          },
+          "priority": {
+            "enum": ["critical", "high", "medium", "low"]
+          },
+          "status": {
+            "enum": ["pending", "in_review", "decided", "cancelled"]
+          },
+          "title": {
+            "type": "string"
+          },
+          "subject_ref": {
+            "type": "object",
+            "required": ["subject_type", "subject_id"],
+            "properties": {
+              "subject_type": {
+                "type": "string"
+              },
+              "subject_id": {
+                "type": "string"
+              }
+            }
+          },
+          "matter_id": {
+            "type": ["string", "null"]
+          },
+          "classification": {
+            "type": ["string", "null"]
+          },
+          "source_uri": {
+            "type": ["string", "null"]
+          },
+          "reason": {
+            "type": "string"
+          },
+          "recommended_actions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_decision": {
+            "type": "string"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "sort_order": {
+            "type": "integer",
+            "minimum": 1
+          }
+        }
+      }
+    }
+  }
+}

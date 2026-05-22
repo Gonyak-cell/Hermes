@@ -138,3 +138,27 @@
 - 승격된 resource-evidence 항목이 evidence review queue로 표시됨
 - blocking gate와 blocked item이 viewer에 표시됨
 - `npm test`에서 viewer output HTML/JSON/Markdown 생성이 검증됨
+
+## Phase 8: Approval Queue
+
+목표: Evidence Viewer의 review packet을 사람이 처리할 수 있는 pending approval/review queue로 변환합니다.
+
+- `needs_review` evidence 후보를 `evidence_review` item으로 등록
+- blocking gate를 `blocking_gate_review` item으로 등록
+- quarantined/failed resource를 `blocked_resource_review` item으로 등록
+- priority, recommended action, required decision을 명시
+- 사람이 결정을 기록할 수 있는 `decision-template.json` 생성
+
+현재 구현:
+
+- `npm run approval:queue`
+- `src/approval-queue.mjs`
+- `schemas/approval-queue.schema.json`
+- `docs/approval-queue.md`
+
+완료 기준:
+
+- Evidence Viewer 산출물에서 pending queue가 생성됨
+- blocking gate와 blocked resource가 evidence review보다 높은 priority로 정렬됨
+- queue schema validation이 통과함
+- decision template이 모든 queue item을 포함함

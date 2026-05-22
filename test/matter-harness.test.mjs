@@ -11,6 +11,7 @@ import { parseKakaoTalkExport } from "../src/kakao-parser.mjs";
 import { buildLitigationMatrix, renderLitigationMatrix } from "../src/litigation-matrix.mjs";
 import { buildMatterBrief, readMatterFile, renderMatterBrief, validateMatter } from "../src/matter-harness.mjs";
 import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
+import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import {
   validateCapabilityManifestFile,
@@ -210,6 +211,20 @@ describe("matter harness", () => {
       assert.match(viewer.html, /Hermes Evidence Viewer/);
       assert.match(viewer.html, /secret_or_credential_path/);
       assert.match(await readFile(path.join(outDir, "viewer", "summary.md"), "utf8"), /Evidence Review Queue/);
+
+      const approvalQueue = await runApprovalQueue({
+        inputPath: path.join(outDir, "viewer", "evidence-viewer.json"),
+        outDir: path.join(outDir, "approval-queue"),
+        runAt: "2026-05-23T06:20:00.000Z",
+      });
+      const approvalQueueSchema = JSON.parse(await readFile("schemas/approval-queue.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(approvalQueue, approvalQueueSchema, {}, "approval_queue"), []);
+      assert.equal(approvalQueue.summary.by_type.evidence_review, 1);
+      assert.equal(approvalQueue.summary.by_type.blocking_gate_review, 2);
+      assert.equal(approvalQueue.summary.by_type.blocked_resource_review, 1);
+      assert.equal(approvalQueue.items[0].priority, "critical");
+      assert.equal(approvalQueue.decision_template.decisions.length, approvalQueue.summary.total_items);
+      assert.match(await readFile(path.join(outDir, "approval-queue", "summary.md"), "utf8"), /Approval Queue/);
     } finally {
       await rm(root, { recursive: true, force: true });
       await rm(outDir, { recursive: true, force: true });

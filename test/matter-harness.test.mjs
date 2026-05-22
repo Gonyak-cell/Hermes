@@ -20,7 +20,9 @@ import {
   validatePolicyMatrixFile,
   validateRuntimeAdapterRegistryFile,
   validateVerticalSliceFile,
+  validateAgainstSchema,
 } from "../src/core-contract-validator.mjs";
+import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
 import { extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
 import { runPersonalDevSlice } from "../src/personal-dev-slice-runner.mjs";
@@ -139,6 +141,48 @@ describe("matter harness", () => {
     assert.ok(signals.resource_roles.includes("skill_instruction"));
     assert.ok(signals.capability_ids.includes("law_firm.ldd_vdr_review"));
     assert.ok(signals.capability_ids.includes("platform.plugin_skill_registry"));
+  });
+
+  it("runs a resumable resource expansion job with quarantine and duplicate handling", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "hermes-resource-expansion-root-"));
+    const outDir = await mkdtemp(path.join(tmpdir(), "hermes-resource-expansion-out-"));
+    try {
+      await writeFile(path.join(root, "01-contract.md"), "# 계약 검토\n\nLDD VDR 계약서 전수검토\n", "utf8");
+      await writeFile(path.join(root, "02-contract-copy.md"), "# 계약 검토\n\nLDD VDR 계약서 전수검토\n", "utf8");
+      await writeFile(path.join(root, "03-token.env"), "API_TOKEN=secret\n", "utf8");
+
+      const first = await runResourceExpansionJob({
+        roots: [root],
+        outDir,
+        batchSize: 1,
+        runAt: "2026-05-23T06:00:00.000Z",
+        reset: true,
+      });
+      const schema = JSON.parse(await readFile("schemas/resource-expansion.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(first, schema, {}, "resource_expansion"), []);
+      assert.equal(first.batch.processed_count, 1);
+      assert.equal(first.summary.by_status.extracted, 1);
+      assert.equal(first.summary.by_status.queued, 1);
+      assert.equal(first.summary.by_status.quarantined, 1);
+
+      const second = await runResourceExpansionJob({
+        roots: [root],
+        outDir,
+        batchSize: 10,
+        runAt: "2026-05-23T06:05:00.000Z",
+      });
+      assert.deepEqual(validateAgainstSchema(second, schema, {}, "resource_expansion"), []);
+      assert.equal(second.resumability.loaded_previous_state, true);
+      assert.equal(second.summary.by_status.extracted, 1);
+      assert.equal(second.summary.by_status.skipped_duplicate, 1);
+      assert.equal(second.summary.by_status.quarantined, 1);
+      assert.equal(second.summary.remaining_count, 0);
+      assert.match(await readFile(path.join(outDir, "quarantine-queue.json"), "utf8"), /secret_or_credential_path/);
+      assert.match(await readFile(path.join(outDir, "summary.md"), "utf8"), /Resource Expansion Summary/);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+      await rm(outDir, { recursive: true, force: true });
+    }
   });
 
   it("loads core contract schemas and the vertical slice example", async () => {

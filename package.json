@@ -19,6 +19,7 @@
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
     "personal-dev:slice": "node scripts/run-personal-dev-slice.mjs",
     "resource:audit": "node scripts/resource-audit.mjs",
+    "resource:expand": "node scripts/resource-expansion.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "runtime:bindings": "node scripts/runtime-bindings.mjs",
     "runtime:invoke": "node scripts/runtime-invoker.mjs",

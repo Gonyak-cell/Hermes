@@ -71,3 +71,27 @@
 
 - 특정 matter의 모든 AI 산출물을 source와 reviewer 기준으로 재현 가능
 - 고객별 AI 사용 제한을 기술적으로 반영 가능
+
+## Phase 5: Resource Expansion Job
+
+목표: `02_Template`, `플러그인`, VDR, 로컬 폴더처럼 파일 수가 많은 source를 중단/재개 가능한 backfill job으로 처리합니다.
+
+- 파일별 `discovered`, `queued`, `ingested`, `classified`, `normalized`, `indexed`, `extracted`, `quarantined`, `failed`, `skipped_duplicate` 상태 기록
+- `resource-expansion-state.json` 기반 재개
+- content hash 기반 중복 감지
+- OneDrive dataless, secret 후보, unsupported type, 대용량 파일 quarantine
+- `resource_id`, `resource_version_id`, `raw_hash_sha256`, `text_hash_sha256`를 Evidence OS lineage root로 사용
+
+현재 구현:
+
+- `npm run resource:expand`
+- `src/resource-expansion.mjs`
+- `schemas/resource-expansion.schema.json`
+- `docs/resource-expansion-job.md`
+
+완료 기준:
+
+- 같은 job을 여러 번 실행해도 이미 terminal 상태인 파일은 재처리되지 않음
+- 중간 실패 후 같은 `--out-dir`로 다음 batch를 이어 처리 가능
+- quarantine queue를 사람이 검토할 수 있음
+- `npm test`에서 resumability, quarantine, duplicate handling이 검증됨

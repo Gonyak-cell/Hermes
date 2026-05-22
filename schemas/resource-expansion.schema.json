@@ -1,0 +1,257 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-expansion.schema.json",
+  "title": "Hermes Resource Expansion Job",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "job_id",
+    "source_id",
+    "source_roots",
+    "batch",
+    "cursor",
+    "resumability",
+    "summary",
+    "items"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "resource-expansion-job.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "job_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_roots": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "output_dir": {
+      "type": "string"
+    },
+    "policy_snapshot_id": {
+      "type": "string"
+    },
+    "batch": {
+      "type": "object",
+      "required": ["requested_batch_size", "processed_count", "remaining_count"],
+      "properties": {
+        "requested_batch_size": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "processed_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "cursor": {
+      "type": "object",
+      "required": ["queued_count", "next_item_id", "next_relative_path"],
+      "properties": {
+        "queued_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "next_item_id": {
+          "type": ["string", "null"]
+        },
+        "next_relative_path": {
+          "type": ["string", "null"]
+        }
+      }
+    },
+    "resumability": {
+      "type": "object",
+      "required": ["loaded_previous_state", "idempotency_strategy", "state_path"],
+      "properties": {
+        "loaded_previous_state": {
+          "type": "boolean"
+        },
+        "previous_generated_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "idempotency_strategy": {
+          "type": "string"
+        },
+        "state_path": {
+          "type": "string"
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "discovered_count",
+        "processed_this_run",
+        "remaining_count",
+        "terminal_count",
+        "failed_count",
+        "quarantine_count",
+        "skipped_duplicate_count",
+        "extracted_count",
+        "by_status"
+      ],
+      "properties": {
+        "discovered_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "processed_this_run": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "remaining_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "terminal_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "failed_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "quarantine_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "skipped_duplicate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "extracted_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_status": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "item_id",
+          "resource_id",
+          "idempotency_key",
+          "status",
+          "source_path",
+          "relative_path",
+          "data_classification",
+          "status_history"
+        ],
+        "properties": {
+          "item_id": {
+            "type": "string"
+          },
+          "resource_id": {
+            "type": "string"
+          },
+          "resource_version_id": {
+            "type": "string"
+          },
+          "idempotency_key": {
+            "type": "string"
+          },
+          "status": {
+            "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"]
+          },
+          "source_path": {
+            "type": "string"
+          },
+          "relative_path": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "modified_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "extension": {
+            "type": "string"
+          },
+          "candidate_domain": {
+            "type": "string"
+          },
+          "resource_type": {
+            "type": "string"
+          },
+          "extractor_family": {
+            "type": "string"
+          },
+          "matter_id": {
+            "type": ["string", "null"]
+          },
+          "data_classification": {
+            "enum": ["P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P5_SECRET"]
+          },
+          "quarantine_reason": {
+            "type": ["string", "null"]
+          },
+          "raw_hash_sha256": {
+            "type": ["string", "null"]
+          },
+          "text_hash_sha256": {
+            "type": ["string", "null"]
+          },
+          "duplicate_of": {
+            "type": ["string", "null"]
+          },
+          "extraction": {
+            "type": ["object", "null"]
+          },
+          "error": {
+            "type": ["object", "null"]
+          },
+          "status_history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["status", "at", "detail"],
+              "properties": {
+                "status": {
+                  "type": "string"
+                },
+                "at": {
+                  "type": "string",
+                  "format": "date-time"
+                },
+                "detail": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

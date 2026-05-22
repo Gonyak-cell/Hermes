@@ -1,0 +1,14 @@
+[
+  {
+    "id": "alpha-outlook-json-001",
+    "receivedDateTime": "2026-05-22T13:15:00+09:00",
+    "from": {
+      "emailAddress": {
+        "name": "Associate Park",
+        "address": "associate.park@example.local"
+      }
+    },
+    "subject": "Project Alpha VDR missing documents",
+    "bodyPreview": "The related-party transaction ledger is still missing. I will request client to send it by 2026-05-24."
+  }
+]

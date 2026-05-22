@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/policy-matrix.schema.json",
+  "title": "Hermes Policy Matrix",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "matrix_id",
+    "version",
+    "generated_at",
+    "classification_levels",
+    "runtime_rules",
+    "model_rules",
+    "tool_rules",
+    "output_rules",
+    "gate_rules"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "policy-matrix.v1"
+    },
+    "matrix_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/date_time"
+    },
+    "classification_levels": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/classification_level"
+      }
+    },
+    "runtime_rules": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/runtime_rule"
+      }
+    },
+    "model_rules": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "$ref": "#/$defs/model_rule"
+      }
+    },
+    "tool_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/tool_rule"
+      }
+    },
+    "output_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/output_rule"
+      }
+    },
+    "gate_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/gate_rule"
+      }
+    },
+    "metadata": {
+      "$ref": "common.schema.json#/$defs/metadata"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "classification_level": {
+      "type": "object",
+      "required": ["classification", "name", "description", "default_external_model_policy"],
+      "properties": {
+        "classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "default_external_model_policy": {
+          "enum": ["allowed", "allowed_with_audit", "approval_required", "redaction_required", "forbidden"]
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_rule": {
+      "type": "object",
+      "required": ["classification", "allowed_runtimes", "restricted_runtimes", "forbidden_runtimes", "required_gates"],
+      "properties": {
+        "classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "allowed_runtimes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runtime_id"
+          }
+        },
+        "restricted_runtimes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runtime_id"
+          }
+        },
+        "forbidden_runtimes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runtime_id"
+          }
+        },
+        "required_gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "model_rule": {
+      "type": "object",
+      "required": ["classification", "external_model_policy", "local_model_policy", "redaction_policy", "approval_required"],
+      "properties": {
+        "classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "external_model_policy": {
+          "enum": ["allowed", "allowed_with_audit", "approval_required", "redaction_required", "forbidden"]
+        },
+        "local_model_policy": {
+          "enum": ["allowed", "approval_required", "restricted", "forbidden"]
+        },
+        "redaction_policy": {
+          "enum": ["not_required", "recommended", "required", "not_applicable"]
+        },
+        "approval_required": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "tool_rule": {
+      "type": "object",
+      "required": ["tool_id", "description", "default_policy", "required_gates"],
+      "properties": {
+        "tool_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        },
+        "default_policy": {
+          "enum": ["allowed", "restricted", "approval_required", "draft_only", "forbidden"]
+        },
+        "required_gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_rule": {
+      "type": "object",
+      "required": ["artifact_type", "default_status", "required_gates", "delivery_policy"],
+      "properties": {
+        "artifact_type": {
+          "enum": ["markdown", "docx", "pptx", "pdf", "email_draft", "pr_draft", "json", "task_update", "erp_billing_draft", "public_content"]
+        },
+        "default_status": {
+          "enum": ["draft", "pending_review", "approved", "delivered", "rejected", "archived"]
+        },
+        "required_gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "delivery_policy": {
+          "enum": ["internal_only", "approval_required", "partner_approval_required", "test_gate_required", "forbidden"]
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "gate_rule": {
+      "type": "object",
+      "required": ["gate_id", "stage", "description", "blocking_by_default"],
+      "properties": {
+        "gate_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "stage": {
+          "enum": ["pre_run", "in_run", "post_run"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "blocking_by_default": {
+          "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_id": {
+      "enum": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "mcp_tool", "browser", "manual"]
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes/resource-registry.schema.json",
+  "title": "Hermes Resource Registry",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "resources"],
+  "properties": {
+    "schema_version": {
+      "const": "resource-registry.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resource"
+      }
+    }
+  },
+  "$defs": {
+    "resource": {
+      "type": "object",
+      "required": [
+        "resource_id",
+        "path",
+        "resource_type",
+        "candidate_domain",
+        "materialization_status",
+        "extractor_family"
+      ],
+      "properties": {
+        "resource_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "relative_path": {
+          "type": "string"
+        },
+        "resource_type": {
+          "enum": [
+            "archive",
+            "command",
+            "document",
+            "media",
+            "plugin-package",
+            "reference",
+            "script",
+            "skill",
+            "unknown"
+          ]
+        },
+        "candidate_domain": {
+          "enum": [
+            "agent-platform",
+            "creative",
+            "law-firm",
+            "personal-dev",
+            "unclassified"
+          ]
+        },
+        "practice_area": {
+          "type": "string"
+        },
+        "extension": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "materialization_status": {
+          "enum": [
+            "needs_materialization",
+            "materializing",
+            "readable",
+            "failed_timeout",
+            "failed_permission",
+            "unsupported_but_recorded",
+            "waived"
+          ]
+        },
+        "extractor_family": {
+          "type": "string"
+        },
+        "raw_file_hash_sha256": {
+          "type": ["string", "null"]
+        },
+        "extracted_text_hash_sha256": {
+          "type": ["string", "null"]
+        },
+        "sensitivity": {
+          "enum": [
+            "unknown",
+            "public",
+            "internal",
+            "client-confidential",
+            "privileged",
+            "restricted"
+          ]
+        },
+        "usable_as_training_sample": {
+          "type": "boolean"
+        },
+        "requires_human_review": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

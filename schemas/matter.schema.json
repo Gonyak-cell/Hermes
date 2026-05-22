@@ -1,0 +1,492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes-law-firm-harness/matter.schema.json",
+  "title": "Law Firm Matter",
+  "type": "object",
+  "required": [
+    "matter_id",
+    "title",
+    "client",
+    "practice_area",
+    "matter_profile",
+    "confidentiality",
+    "team",
+    "source_register",
+    "review_workflow",
+    "tasks",
+    "deadlines",
+    "communications",
+    "documents",
+    "risks",
+    "billing"
+  ],
+  "properties": {
+    "matter_id": {
+      "type": "string",
+      "pattern": "^[A-Z0-9][A-Z0-9._-]{2,64}$"
+    },
+    "title": {
+      "type": "string",
+      "minLength": 3
+    },
+    "client": {
+      "type": "string",
+      "minLength": 2
+    },
+    "practice_area": {
+      "type": "string",
+      "enum": [
+        "mna",
+        "litigation",
+        "shareholder-derivative",
+        "corporate-governance",
+        "general-corporate",
+        "regulatory",
+        "other"
+      ]
+    },
+    "matter_profile": {
+      "type": "object",
+      "required": [
+        "jurisdiction",
+        "responsible_partner",
+        "matter_stage",
+        "client_ai_consent",
+        "conflict_screen"
+      ],
+      "properties": {
+        "jurisdiction": {
+          "type": "string"
+        },
+        "responsible_partner": {
+          "type": "string"
+        },
+        "matter_stage": {
+          "type": "string"
+        },
+        "client_ai_consent": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "approved-with-restrictions",
+            "not-approved",
+            "unknown"
+          ]
+        },
+        "conflict_screen": {
+          "type": "string",
+          "enum": [
+            "cleared",
+            "pending",
+            "restricted",
+            "unknown"
+          ]
+        },
+        "external_output_policy": {
+          "type": "string"
+        }
+      }
+    },
+    "confidentiality": {
+      "type": "object",
+      "required": [
+        "level",
+        "human_approval_required",
+        "export_allowed"
+      ],
+      "properties": {
+        "level": {
+          "type": "string",
+          "enum": [
+            "public",
+            "internal",
+            "client-confidential",
+            "privileged",
+            "restricted"
+          ]
+        },
+        "human_approval_required": {
+          "type": "boolean"
+        },
+        "export_allowed": {
+          "type": "boolean"
+        },
+        "retention": {
+          "type": "string"
+        },
+        "allowed_systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prohibited_systems": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "team": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "name",
+          "role"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "partner",
+              "senior-associate",
+              "associate",
+              "paralegal",
+              "billing",
+              "knowledge-manager",
+              "client"
+            ]
+          }
+        }
+      }
+    },
+    "source_register": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "review_workflow": {
+      "type": "object",
+      "required": [
+        "default_reviewer",
+        "client_facing_requires_partner_approval",
+        "legal_conclusion_requires_citation"
+      ],
+      "properties": {
+        "default_reviewer": {
+          "type": "string"
+        },
+        "client_facing_requires_partner_approval": {
+          "type": "boolean"
+        },
+        "legal_conclusion_requires_citation": {
+          "type": "boolean"
+        },
+        "review_log": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/review_event"
+          }
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/task"
+      }
+    },
+    "deadlines": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/deadline"
+      }
+    },
+    "communications": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/communication"
+      }
+    },
+    "documents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/document"
+      }
+    },
+    "risks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/risk"
+      }
+    },
+    "billing": {
+      "type": "object",
+      "properties": {
+        "wip_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "non_billable_hours": {
+          "type": "number",
+          "minimum": 0
+        },
+        "billing_notes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "system",
+        "source_type",
+        "access_tier",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "system": {
+          "type": "string"
+        },
+        "source_type": {
+          "type": "string"
+        },
+        "access_tier": {
+          "type": "string",
+          "enum": [
+            "public",
+            "internal",
+            "client-confidential",
+            "privileged",
+            "restricted"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "active",
+            "paused",
+            "closed"
+          ]
+        },
+        "retention": {
+          "type": "string"
+        }
+      }
+    },
+    "review_event": {
+      "type": "object",
+      "required": [
+        "id",
+        "date",
+        "reviewer",
+        "artifact",
+        "decision"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "reviewer": {
+          "type": "string"
+        },
+        "artifact": {
+          "type": "string"
+        },
+        "decision": {
+          "type": "string",
+          "enum": [
+            "approved",
+            "approved-with-edits",
+            "rejected",
+            "needs-review"
+          ]
+        }
+      }
+    },
+    "task": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "owner",
+        "status",
+        "due"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "blocked",
+            "in-review",
+            "done"
+          ]
+        },
+        "due": {
+          "type": "string",
+          "format": "date"
+        },
+        "source": {
+          "type": "string"
+        },
+        "review_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "deadline": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "date",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "court",
+            "deal",
+            "client",
+            "internal",
+            "statutory"
+          ]
+        },
+        "owner": {
+          "type": "string"
+        }
+      }
+    },
+    "communication": {
+      "type": "object",
+      "required": [
+        "id",
+        "source",
+        "date",
+        "summary"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "pending_questions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "document": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "type",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "requested",
+            "received",
+            "in-review",
+            "approved",
+            "missing"
+          ]
+        },
+        "issue": {
+          "type": "string"
+        }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "severity",
+        "status"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "low",
+            "medium",
+            "high",
+            "critical"
+          ]
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "open",
+            "monitoring",
+            "mitigated",
+            "closed"
+          ]
+        },
+        "source": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

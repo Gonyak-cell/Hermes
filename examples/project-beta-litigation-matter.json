@@ -1,0 +1,197 @@
+{
+  "matter_id": "LIT-2026-BETA",
+  "title": "Project Beta Shareholder Derivative Action",
+  "client": "Namsan Technologies",
+  "practice_area": "shareholder-derivative",
+  "matter_profile": {
+    "jurisdiction": "Republic of Korea",
+    "responsible_partner": "Partner Kim",
+    "matter_stage": "pleadings",
+    "client_ai_consent": "approved-with-restrictions",
+    "conflict_screen": "cleared",
+    "external_output_policy": "Internal evidence matrix allowed. Court submissions require partner approval."
+  },
+  "confidentiality": {
+    "level": "privileged",
+    "human_approval_required": true,
+    "export_allowed": false,
+    "retention": "matter-close-plus-10-years",
+    "allowed_systems": [
+      "local-harness",
+      "hermes-local"
+    ],
+    "prohibited_systems": [
+      "unapproved-public-chatbot"
+    ]
+  },
+  "source_register": [
+    {
+      "id": "SRC-DMS-BETA",
+      "system": "dms",
+      "source_type": "litigation-folder",
+      "access_tier": "privileged",
+      "status": "active",
+      "retention": "matter-close-plus-10-years"
+    }
+  ],
+  "review_workflow": {
+    "default_reviewer": "Senior Lee",
+    "client_facing_requires_partner_approval": true,
+    "legal_conclusion_requires_citation": true,
+    "review_log": []
+  },
+  "team": [
+    {
+      "name": "Partner Kim",
+      "role": "partner"
+    },
+    {
+      "name": "Senior Lee",
+      "role": "senior-associate"
+    },
+    {
+      "name": "Associate Park",
+      "role": "associate"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-LIT-001",
+      "title": "Verify chronology against board minutes and travel records",
+      "owner": "Associate Park",
+      "status": "open",
+      "due": "2026-05-25",
+      "source": "SRC-DMS-BETA",
+      "review_required": true
+    }
+  ],
+  "deadlines": [
+    {
+      "id": "D-LIT-001",
+      "title": "Draft answer strategy memo",
+      "date": "2026-05-29",
+      "type": "internal",
+      "owner": "Senior Lee"
+    }
+  ],
+  "communications": [
+    {
+      "id": "C-LIT-001",
+      "source": "client-interview",
+      "date": "2026-05-21",
+      "summary": "Client noted possible inconsistency between board minutes and director travel records.",
+      "pending_questions": [
+        "Can client provide original travel authorization records?"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "E-001",
+      "title": "Board minutes dated 2024-03-12",
+      "type": "board-minutes",
+      "status": "received",
+      "issue": "attendance"
+    },
+    {
+      "id": "E-002",
+      "title": "Director A travel itinerary",
+      "type": "travel-record",
+      "status": "received",
+      "issue": "attendance"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-LIT-001",
+      "title": "Board minutes attendance may conflict with travel record",
+      "severity": "high",
+      "status": "open",
+      "source": "client-interview"
+    }
+  ],
+  "billing": {
+    "wip_hours": 18.2,
+    "non_billable_hours": 1,
+    "billing_notes": [
+      "Separate evidence review time from pleading drafting."
+    ]
+  },
+  "litigation_control": {
+    "forum": "Seoul Central District Court",
+    "procedural_stage": "pre-answer factual investigation",
+    "next_filing": "2026-05-29",
+    "claims": [
+      {
+        "id": "CL-001",
+        "title": "Director attendance at disputed board meeting",
+        "status": "open"
+      },
+      {
+        "id": "CL-002",
+        "title": "Causation between challenged resolution and alleged loss",
+        "status": "open"
+      }
+    ],
+    "chronology": [
+      {
+        "date": "2024-03-12",
+        "fact": "Board minutes record Director A as attending the meeting.",
+        "source": "E-001",
+        "verified": true
+      },
+      {
+        "date": "2024-03-12",
+        "fact": "Client interview says Director A may have been overseas.",
+        "source": "C-LIT-001",
+        "verified": false
+      },
+      {
+        "date": "2024-03-12",
+        "fact": "Travel itinerary places Director A outside Korea during meeting time.",
+        "source": "E-002",
+        "verified": true
+      }
+    ],
+    "evidence": [
+      {
+        "id": "E-001",
+        "title": "Board minutes dated 2024-03-12",
+        "type": "board-minutes",
+        "status": "received"
+      },
+      {
+        "id": "E-002",
+        "title": "Director A travel itinerary",
+        "type": "travel-record",
+        "status": "received"
+      }
+    ],
+    "claim_evidence": [
+      {
+        "claim_id": "CL-001",
+        "supporting_evidence": [
+          "E-002"
+        ],
+        "contrary_evidence": [
+          "E-001"
+        ],
+        "missing_evidence": [
+          "Original attendance sheet",
+          "Video conference access log"
+        ],
+        "owner": "Associate Park"
+      },
+      {
+        "claim_id": "CL-002",
+        "supporting_evidence": [],
+        "contrary_evidence": [],
+        "missing_evidence": [
+          "Damages calculation",
+          "Board reliance record"
+        ],
+        "owner": "Senior Lee"
+      }
+    ]
+  }
+}

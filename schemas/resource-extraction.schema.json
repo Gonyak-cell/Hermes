@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-extraction.schema.json",
+  "title": "Hermes Resource Extraction",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "source_queue", "input_count", "summary", "capability_signals", "files"],
+  "properties": {
+    "schema_version": {
+      "const": "resource-extraction.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_queue": {
+      "type": "string"
+    },
+    "input_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source_queue_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "summary": {
+      "type": "object"
+    },
+    "capability_signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["capability_id", "file_count", "extensions", "resource_roles", "example_files"],
+        "properties": {
+          "capability_id": {
+            "type": "string"
+          },
+          "file_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "extensions": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "resource_roles": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "example_files": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "relative_path", "extension", "candidate_domain", "resource_type", "extraction_status"],
+        "properties": {
+          "path": {
+            "type": "string"
+          },
+          "relative_path": {
+            "type": "string"
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "extension": {
+            "type": "string"
+          },
+          "candidate_domain": {
+            "type": "string"
+          },
+          "resource_type": {
+            "type": "string"
+          },
+          "extractor_family": {
+            "type": "string"
+          },
+          "extraction_status": {
+            "enum": ["extracted", "failed"]
+          },
+          "extractor": {
+            "type": "string"
+          },
+          "raw_hash_sha256": {
+            "type": "string"
+          },
+          "text_hash_sha256": {
+            "type": ["string", "null"]
+          },
+          "text_length": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "text_truncated": {
+            "type": "boolean"
+          },
+          "text_preview": {
+            "type": "string"
+          },
+          "headings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "signals": {
+            "type": "object"
+          },
+          "error": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/workflow-runtime.schema.json",
+  "title": "Hermes Workflow and Runtime Contracts",
+  "type": "object",
+  "required": ["schema_version", "capabilities", "workflows", "workflow_runs", "agent_runs"],
+  "properties": {
+    "schema_version": {
+      "const": "workflow-runtime.v1"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capability"
+      }
+    },
+    "workflows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workflow"
+      }
+    },
+    "workflow_runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/workflow_run"
+      }
+    },
+    "agent_runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/agent_run"
+      }
+    }
+  },
+  "$defs": {
+    "capability": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "version",
+        "domain_pack",
+        "input_schema",
+        "output_schema",
+        "allowed_runtimes",
+        "required_gates",
+        "data_policy",
+        "approval_policy"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "capability.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "version": {
+          "type": "string"
+        },
+        "domain_pack": {
+          "enum": ["law-firm", "personal-dev", "creative-document", "common", "platform"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "input_schema": {
+          "type": "string"
+        },
+        "output_schema": {
+          "type": "string"
+        },
+        "allowed_runtimes": {
+          "type": "array",
+          "items": {
+            "enum": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "mcp_tool", "manual"]
+          }
+        },
+        "required_gates": {
+          "type": "object",
+          "required": ["pre_run", "in_run", "post_run"],
+          "properties": {
+            "pre_run": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/id"
+              }
+            },
+            "in_run": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/id"
+              }
+            },
+            "post_run": {
+              "type": "array",
+              "items": {
+                "$ref": "common.schema.json#/$defs/id"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "data_policy": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "approval_policy": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "timeout_policy": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "retry_policy": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "cost_policy": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workflow": {
+      "type": "object",
+      "required": ["schema_version", "id", "capability_id", "version", "steps", "state_machine"],
+      "properties": {
+        "schema_version": {
+          "const": "workflow.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "capability_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "version": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["step_id", "step_type", "runtime_id"],
+            "properties": {
+              "step_id": {
+                "$ref": "common.schema.json#/$defs/id"
+              },
+              "step_type": {
+                "enum": ["ingest", "extract", "agent", "script", "render", "gate", "approval", "delivery"]
+              },
+              "runtime_id": {
+                "type": "string"
+              },
+              "input_refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/id"
+                }
+              },
+              "output_contract": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          }
+        },
+        "state_machine": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "workflow_run": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "workflow_id",
+        "capability_id",
+        "tenant_id",
+        "matter_id",
+        "status",
+        "input_refs",
+        "output_refs",
+        "policy_snapshot_id",
+        "created_at",
+        "created_by"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "workflow-run.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "workflow_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "capability_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "matter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/run_status"
+        },
+        "input_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "output_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "policy_snapshot_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "created_by": {
+          "$ref": "common.schema.json#/$defs/actor"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "agent_run": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "workflow_run_id",
+        "runtime_id",
+        "status",
+        "input_ref",
+        "output_ref",
+        "logs_ref",
+        "started_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "agent-run.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "workflow_run_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "runtime_id": {
+          "enum": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "mcp_tool", "browser", "manual"]
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/run_status"
+        },
+        "input_ref": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "output_ref": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "logs_ref": {
+          "type": "string"
+        },
+        "started_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "completed_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

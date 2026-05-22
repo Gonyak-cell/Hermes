@@ -1,0 +1,361 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/runtime-adapter.schema.json",
+  "title": "Hermes Runtime Adapter Registry",
+  "type": "object",
+  "required": ["schema_version", "registry_id", "version", "generated_at", "adapters"],
+  "properties": {
+    "schema_version": {
+      "const": "runtime-adapter-registry.v1"
+    },
+    "registry_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "version": {
+      "type": "string"
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/date_time"
+    },
+    "adapters": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/runtime_adapter"
+      }
+    },
+    "metadata": {
+      "$ref": "common.schema.json#/$defs/metadata"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "runtime_adapter": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "adapter_id",
+        "runtime_id",
+        "version",
+        "display_name",
+        "description",
+        "risk_level",
+        "execution_environment",
+        "input_contract",
+        "output_contract",
+        "workspace_policy",
+        "tool_policy",
+        "lifecycle",
+        "observability",
+        "verification",
+        "data_access"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "runtime-adapter.v1"
+        },
+        "adapter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "runtime_id": {
+          "$ref": "#/$defs/runtime_id"
+        },
+        "version": {
+          "type": "string"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "risk_level": {
+          "enum": ["low", "medium", "high", "critical"]
+        },
+        "execution_environment": {
+          "$ref": "#/$defs/execution_environment"
+        },
+        "input_contract": {
+          "$ref": "#/$defs/input_contract"
+        },
+        "output_contract": {
+          "$ref": "#/$defs/output_contract"
+        },
+        "workspace_policy": {
+          "$ref": "#/$defs/workspace_policy"
+        },
+        "tool_policy": {
+          "$ref": "#/$defs/tool_policy"
+        },
+        "lifecycle": {
+          "$ref": "#/$defs/lifecycle"
+        },
+        "observability": {
+          "$ref": "#/$defs/observability"
+        },
+        "verification": {
+          "$ref": "#/$defs/verification"
+        },
+        "data_access": {
+          "$ref": "#/$defs/data_access"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "execution_environment": {
+      "type": "object",
+      "required": ["execution_mode", "network_policy", "external_execution", "sandbox_required"],
+      "properties": {
+        "execution_mode": {
+          "enum": ["harness", "local_process", "docker", "ssh", "browser", "mcp", "manual"]
+        },
+        "network_policy": {
+          "enum": ["disabled", "restricted", "allowed"]
+        },
+        "external_execution": {
+          "type": "boolean"
+        },
+        "sandbox_required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "input_contract": {
+      "type": "object",
+      "required": [
+        "schema_ref",
+        "accepted_context_types",
+        "max_input_classification",
+        "redaction_required",
+        "prompt_injection_handling"
+      ],
+      "properties": {
+        "schema_ref": {
+          "type": "string"
+        },
+        "accepted_context_types": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "resource_metadata",
+              "normalized_text",
+              "source_span",
+              "evidence_item",
+              "fact",
+              "issue",
+              "output_artifact",
+              "diff",
+              "test_result",
+              "manual_instruction"
+            ]
+          }
+        },
+        "max_input_classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "redaction_required": {
+          "type": "boolean"
+        },
+        "prompt_injection_handling": {
+          "enum": ["not_applicable", "treat_untrusted_content_as_data", "manual_review_required"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_contract": {
+      "type": "object",
+      "required": ["schema_ref", "artifact_types", "output_trust"],
+      "properties": {
+        "schema_ref": {
+          "type": "string"
+        },
+        "artifact_types": {
+          "type": "array",
+          "items": {
+            "enum": ["markdown", "docx", "pptx", "email_draft", "pr_draft", "json", "task_update", "erp_billing_draft", "public_content"]
+          }
+        },
+        "output_trust": {
+          "enum": ["trusted_after_deterministic_validation", "untrusted_until_verified", "draft_only", "human_attested"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "workspace_policy": {
+      "type": "object",
+      "required": ["isolation_type", "dirty_checkout_policy", "protected_paths", "cleanup_policy"],
+      "properties": {
+        "isolation_type": {
+          "enum": ["none", "temp_dir", "git_worktree", "docker_container", "ssh_workspace", "manual"]
+        },
+        "dirty_checkout_policy": {
+          "enum": ["not_applicable", "allow_read_only", "block", "require_snapshot"]
+        },
+        "protected_paths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cleanup_policy": {
+          "enum": ["not_applicable", "delete_on_success", "retain_for_audit", "manual_cleanup"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "tool_policy": {
+      "type": "object",
+      "required": ["allowed_tools", "forbidden_tools", "required_gates"],
+      "properties": {
+        "allowed_tools": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "forbidden_tools": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "required_gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "lifecycle": {
+      "type": "object",
+      "required": ["timeout_seconds", "heartbeat_seconds", "cancellable", "resumable", "max_retries"],
+      "properties": {
+        "timeout_seconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "heartbeat_seconds": {
+          "type": ["integer", "null"],
+          "minimum": 1
+        },
+        "cancellable": {
+          "type": "boolean"
+        },
+        "resumable": {
+          "type": "boolean"
+        },
+        "max_retries": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false
+    },
+    "observability": {
+      "type": "object",
+      "required": [
+        "logs_required",
+        "trace_required",
+        "prompt_hash_required",
+        "output_hash_required",
+        "artifact_capture_required",
+        "cost_tracking_required"
+      ],
+      "properties": {
+        "logs_required": {
+          "type": "boolean"
+        },
+        "trace_required": {
+          "type": "boolean"
+        },
+        "prompt_hash_required": {
+          "type": "boolean"
+        },
+        "output_hash_required": {
+          "type": "boolean"
+        },
+        "artifact_capture_required": {
+          "type": "boolean"
+        },
+        "cost_tracking_required": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "verification": {
+      "type": "object",
+      "required": ["verification_required", "verifier_runtime_ids", "required_gates", "acceptance_authority"],
+      "properties": {
+        "verification_required": {
+          "type": "boolean"
+        },
+        "verifier_runtime_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/runtime_id"
+          }
+        },
+        "required_gates": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "acceptance_authority": {
+          "enum": ["gate_engine", "harness", "human", "manual"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "data_access": {
+      "type": "object",
+      "required": [
+        "default_allowed_classifications",
+        "raw_context_allowed_classifications",
+        "redacted_context_allowed_classifications",
+        "secret_handling",
+        "retrieval_filters_required"
+      ],
+      "properties": {
+        "default_allowed_classifications": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/classification"
+          }
+        },
+        "raw_context_allowed_classifications": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/classification"
+          }
+        },
+        "redacted_context_allowed_classifications": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/classification"
+          }
+        },
+        "secret_handling": {
+          "enum": ["never_in_context", "manual_only"]
+        },
+        "retrieval_filters_required": {
+          "type": "array",
+          "items": {
+            "enum": ["tenant_id", "client_id", "matter_id", "wall_id", "classification", "resource_type"]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_id": {
+      "enum": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "mcp_tool", "browser", "manual"]
+    }
+  }
+}

@@ -1,0 +1,40 @@
+# Copy relevant sections into ~/.hermes/config.yaml after reviewing them.
+# This file intentionally contains no secrets.
+
+approvals:
+  mode: manual
+  timeout: 90
+
+skills:
+  template_vars: true
+  inline_shell: false
+
+web:
+  backend: firecrawl
+
+# Start with terminal + skills only. Add MCP servers after access control,
+# retention, and audit logging are reviewed.
+toolsets:
+  default:
+    - terminal
+    - file
+    - skills
+
+# Example only. Replace paths and commands with reviewed internal servers.
+mcp_servers:
+  matter_register:
+    enabled: false
+    command: "node"
+    args:
+      - "/absolute/path/to/internal-matter-mcp-server.mjs"
+    env:
+      MATTER_API_BASE_URL: "https://matter-api.internal.example"
+
+  document_management:
+    enabled: false
+    url: "https://dms-mcp.internal.example/mcp"
+    headers:
+      Authorization: "Bearer ${DMS_MCP_TOKEN}"
+
+cron:
+  enabled: true

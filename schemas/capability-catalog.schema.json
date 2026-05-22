@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes/capability-catalog.schema.json",
+  "title": "Hermes Capability Catalog",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "capabilities"],
+  "properties": {
+    "schema_version": {
+      "const": "capability-catalog.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/capability"
+      }
+    }
+  },
+  "$defs": {
+    "capability": {
+      "type": "object",
+      "required": [
+        "capability_id",
+        "owning_domain_pack",
+        "entrypoints",
+        "input_contract",
+        "output_contract",
+        "quality_gates",
+        "human_review_policy"
+      ],
+      "properties": {
+        "capability_id": {
+          "type": "string"
+        },
+        "owning_domain_pack": {
+          "enum": ["law-firm", "personal-dev", "creative", "agent-platform"]
+        },
+        "description": {
+          "type": "string"
+        },
+        "entrypoints": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/entrypoint"
+          }
+        },
+        "input_contract": {
+          "type": "string"
+        },
+        "output_contract": {
+          "type": "string"
+        },
+        "dependencies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "quality_gates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "human_review_policy": {
+          "enum": [
+            "none",
+            "review-recommended",
+            "review-required",
+            "partner-approval-required"
+          ]
+        },
+        "allowed_instances": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "version": {
+          "type": "string"
+        }
+      }
+    },
+    "entrypoint": {
+      "type": "object",
+      "required": ["type", "path"],
+      "properties": {
+        "type": {
+          "enum": ["skill", "command", "script", "plugin", "connector", "manual"]
+        },
+        "path": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

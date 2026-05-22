@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/capability-manifest.schema.json",
+  "title": "Hermes Capability Manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "capability_id",
+    "version",
+    "domain_pack",
+    "display_name",
+    "description",
+    "input_contract",
+    "output_contract",
+    "required_resources",
+    "allowed_runtimes",
+    "required_tools",
+    "required_gates",
+    "data_policy",
+    "approval_policy",
+    "idempotency_policy",
+    "retry_policy",
+    "timeout_policy",
+    "cost_policy",
+    "observability_policy",
+    "output_artifacts",
+    "entrypoints",
+    "golden_cases"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "capability-manifest.v1"
+    },
+    "capability_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "version": {
+      "type": "string"
+    },
+    "domain_pack": {
+      "enum": ["law-firm", "personal-dev", "creative-document", "common", "platform"]
+    },
+    "display_name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "input_contract": {
+      "type": "string"
+    },
+    "output_contract": {
+      "type": "string"
+    },
+    "required_resources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resource_requirement"
+      }
+    },
+    "allowed_runtimes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/runtime_id"
+      }
+    },
+    "required_tools": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/id"
+      }
+    },
+    "required_gates": {
+      "type": "object",
+      "required": ["pre_run", "in_run", "post_run"],
+      "properties": {
+        "pre_run": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "in_run": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "post_run": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "data_policy": {
+      "type": "object",
+      "required": [
+        "max_input_classification",
+        "external_model_policy",
+        "redaction_required",
+        "allowed_context_types",
+        "retrieval_filters_required"
+      ],
+      "properties": {
+        "max_input_classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "external_model_policy": {
+          "enum": ["allowed", "allowed_with_audit", "approval_required", "redaction_required", "forbidden"]
+        },
+        "redaction_required": {
+          "type": "boolean"
+        },
+        "allowed_context_types": {
+          "type": "array",
+          "items": {
+            "enum": ["resource_metadata", "normalized_text", "source_span", "evidence_item", "fact", "issue", "output_artifact", "diff", "test_result"]
+          }
+        },
+        "retrieval_filters_required": {
+          "type": "array",
+          "items": {
+            "enum": ["tenant_id", "client_id", "matter_id", "wall_id", "classification", "resource_type"]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "approval_policy": {
+      "type": "object",
+      "required": ["required", "approval_type", "default_output_status"],
+      "properties": {
+        "required": {
+          "type": "boolean"
+        },
+        "approval_type": {
+          "enum": ["none", "human_review", "attorney_review", "partner_approval", "test_gate_only"]
+        },
+        "default_output_status": {
+          "enum": ["draft", "pending_review", "approved", "delivered", "rejected", "archived"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "idempotency_policy": {
+      "type": "object",
+      "required": ["key_fields"],
+      "properties": {
+        "key_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "retry_policy": {
+      "type": "object",
+      "required": ["max_attempts", "retryable_failures"],
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "retryable_failures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "timeout_policy": {
+      "type": "object",
+      "required": ["max_seconds"],
+      "properties": {
+        "max_seconds": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "additionalProperties": false
+    },
+    "cost_policy": {
+      "type": "object",
+      "required": ["max_usd", "track_tokens"],
+      "properties": {
+        "max_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "track_tokens": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "observability_policy": {
+      "type": "object",
+      "required": ["record_trace", "record_prompt_hash", "record_output_hash", "record_cost"],
+      "properties": {
+        "record_trace": {
+          "type": "boolean"
+        },
+        "record_prompt_hash": {
+          "type": "boolean"
+        },
+        "record_output_hash": {
+          "type": "boolean"
+        },
+        "record_cost": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/output_artifact_contract"
+      }
+    },
+    "entrypoints": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/entrypoint"
+      }
+    },
+    "dependencies": {
+      "type": "array",
+      "items": {
+        "$ref": "common.schema.json#/$defs/id"
+      }
+    },
+    "golden_cases": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/golden_case"
+      }
+    },
+    "metadata": {
+      "$ref": "common.schema.json#/$defs/metadata"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "resource_requirement": {
+      "type": "object",
+      "required": ["resource_role", "required"],
+      "properties": {
+        "resource_role": {
+          "enum": ["resource", "resource_version", "normalized_text", "source_span", "evidence_item", "fact", "issue", "citation", "repo", "worktree", "test_result"]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_artifact_contract": {
+      "type": "object",
+      "required": ["artifact_type", "default_status", "delivery_policy"],
+      "properties": {
+        "artifact_type": {
+          "enum": ["markdown", "docx", "pptx", "pdf", "email_draft", "pr_draft", "json", "task_update", "erp_billing_draft", "public_content"]
+        },
+        "default_status": {
+          "enum": ["draft", "pending_review", "approved", "delivered", "rejected", "archived"]
+        },
+        "delivery_policy": {
+          "enum": ["internal_only", "approval_required", "partner_approval_required", "test_gate_required", "forbidden"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "entrypoint": {
+      "type": "object",
+      "required": ["entrypoint_type", "name"],
+      "properties": {
+        "entrypoint_type": {
+          "enum": ["workflow", "skill", "command", "script", "plugin", "runtime_adapter", "manual"]
+        },
+        "name": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "golden_case": {
+      "type": "object",
+      "required": ["case_id", "description", "input_ref", "expected_gate_results"],
+      "properties": {
+        "case_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "description": {
+          "type": "string"
+        },
+        "input_ref": {
+          "type": "string"
+        },
+        "expected_gate_results": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "runtime_id": {
+      "enum": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "mcp_tool", "browser", "manual"]
+    }
+  }
+}

@@ -1,0 +1,96 @@
+{
+  "schema_version": "capability-manifest.v1",
+  "capability_id": "law_firm.ldd.vdr_inventory",
+  "version": "0.1.0",
+  "domain_pack": "law-firm",
+  "display_name": "LDD VDR Inventory",
+  "description": "Build a matter-scoped VDR inventory with hashes, document classifications, missing-data signals, and evidence-ready source records.",
+  "input_contract": "resource-evidence.v1",
+  "output_contract": "governance-output.v1",
+  "required_resources": [
+    {
+      "resource_role": "resource",
+      "required": true,
+      "description": "Matter-scoped files or folders from local filesystem, OneDrive, or VDR source."
+    },
+    {
+      "resource_role": "normalized_text",
+      "required": false,
+      "description": "Existing normalized text may be reused when content hashes match."
+    }
+  ],
+  "allowed_runtimes": ["harness", "local_script", "document_renderer", "manual"],
+  "required_tools": ["filesystem.read", "filesystem.write", "terminal.exec", "vector.retrieve"],
+  "required_gates": {
+    "pre_run": ["matter_access_gate", "classification_gate", "external_model_gate", "tool_permission_gate"],
+    "in_run": ["prompt_injection_gate"],
+    "post_run": ["evidence_coverage_gate", "human_approval_gate"]
+  },
+  "data_policy": {
+    "max_input_classification": "P2_CLIENT_CONFIDENTIAL",
+    "external_model_policy": "approval_required",
+    "redaction_required": true,
+    "allowed_context_types": ["resource_metadata", "normalized_text", "source_span", "evidence_item"],
+    "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+  },
+  "approval_policy": {
+    "required": true,
+    "approval_type": "attorney_review",
+    "default_output_status": "pending_review"
+  },
+  "idempotency_policy": {
+    "key_fields": ["tenant_id", "matter_id", "source_uri", "content_hash", "capability_id", "version"]
+  },
+  "retry_policy": {
+    "max_attempts": 2,
+    "retryable_failures": ["timeout", "temporary_io_error", "materialization_pending"]
+  },
+  "timeout_policy": {
+    "max_seconds": 1800
+  },
+  "cost_policy": {
+    "max_usd": 5,
+    "track_tokens": true
+  },
+  "observability_policy": {
+    "record_trace": true,
+    "record_prompt_hash": true,
+    "record_output_hash": true,
+    "record_cost": true
+  },
+  "output_artifacts": [
+    {
+      "artifact_type": "json",
+      "default_status": "draft",
+      "delivery_policy": "internal_only"
+    },
+    {
+      "artifact_type": "markdown",
+      "default_status": "pending_review",
+      "delivery_policy": "internal_only"
+    }
+  ],
+  "entrypoints": [
+    {
+      "entrypoint_type": "workflow",
+      "name": "workflow.law_firm.ldd.vdr_inventory.v1"
+    },
+    {
+      "entrypoint_type": "script",
+      "name": "inventory_builder",
+      "path": "packs/law-firm/extractors/inventory_builder.py"
+    }
+  ],
+  "dependencies": ["common.evidence.source_span", "common.document.extraction"],
+  "golden_cases": [
+    {
+      "case_id": "golden.ldd.vdr_inventory.simple",
+      "description": "One folder with two local files produces two resource records and an inventory artifact.",
+      "input_ref": "examples/core/vertical-slice-example.json",
+      "expected_gate_results": ["matter_access_gate", "classification_gate", "evidence_coverage_gate"]
+    }
+  ],
+  "metadata": {
+    "draft_only": true
+  }
+}

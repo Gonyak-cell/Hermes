@@ -1,0 +1,29 @@
+[
+  {
+    "id": "MSG-001",
+    "matter_id": "MNA-2026-ALPHA",
+    "source_type": "teams",
+    "source_id": "SRC-TEAMS-ALPHA",
+    "date": "2026-05-22",
+    "author": "Partner Kim",
+    "text": "Senior Lee, please update SPA section 8.2 indemnity fallback by tomorrow. Also confirm whether tax team reviewed the related-party issue?"
+  },
+  {
+    "id": "MSG-002",
+    "matter_id": "MNA-2026-ALPHA",
+    "source_type": "meeting",
+    "source_id": "closing-call-2026-05-22",
+    "date": "2026-05-22",
+    "author": "Paralegal Choi",
+    "text": "Closing deliverable checklist still has missing officer certificate and updated disclosure schedule. Client should send documents by Friday."
+  },
+  {
+    "id": "MSG-003",
+    "matter_id": "MNA-2026-ALPHA",
+    "source_type": "slack",
+    "source_id": "legal-dd-export",
+    "date": "2026-05-22",
+    "author": "Associate Park",
+    "text": "고객에게 세무팀 메모 수령 여부 확인 필요. 2026-05-24까지 related-party transaction 관련 추가 자료 요청."
+  }
+]

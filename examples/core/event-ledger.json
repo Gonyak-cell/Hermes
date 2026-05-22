@@ -1,0 +1,286 @@
+{
+  "schema_version": "event-ledger.v1",
+  "ledger_id": "ledger.alpha.vertical_slice.001",
+  "generated_at": "2026-05-22T05:45:00.000Z",
+  "events": [
+    {
+      "schema_version": "event.v1",
+      "id": "event.resource.ingested.alpha.001",
+      "type": "resource.ingested",
+      "time": "2026-05-22T05:02:00.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": null,
+      "actor": {
+        "actor_type": "connector",
+        "actor_id": "connector.local_filesystem",
+        "display_name": "Local Filesystem"
+      },
+      "subject": {
+        "subject_type": "resource",
+        "subject_id": "resource.alpha.minutes.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "matter_id": "matter.alpha.ldd",
+        "source_system": "local_filesystem"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.resource.normalized.alpha.001",
+      "type": "resource.normalized",
+      "time": "2026-05-22T05:03:00.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.resource.ingested.alpha.001",
+      "actor": {
+        "actor_type": "script",
+        "actor_id": "extractor.plain_text.v1",
+        "display_name": "Plain Text Extractor"
+      },
+      "subject": {
+        "subject_type": "normalized_text",
+        "subject_id": "normalized.alpha.minutes.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "resource_id": "resource.alpha.minutes.001"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.evidence.created.alpha.001",
+      "type": "evidence.created",
+      "time": "2026-05-22T05:04:00.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.resource.normalized.alpha.001",
+      "actor": {
+        "actor_type": "harness",
+        "actor_id": "harness.orchestrator",
+        "display_name": "Harness Orchestrator"
+      },
+      "subject": {
+        "subject_type": "evidence_item",
+        "subject_id": "evidence.alpha.borrowing.approval.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "source_span_ids": ["span.alpha.minutes.001.p1"]
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.workflow.started.alpha.001",
+      "type": "workflow.started",
+      "time": "2026-05-22T05:05:00.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.evidence.created.alpha.001",
+      "actor": {
+        "actor_type": "harness",
+        "actor_id": "harness.orchestrator",
+        "display_name": "Harness Orchestrator"
+      },
+      "subject": {
+        "subject_type": "workflow_run",
+        "subject_id": "workflow-run.alpha.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "capability_id": "law_firm.ldd.issue_candidate_from_file"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.agent_run.started.alpha.001",
+      "type": "agent_run.started",
+      "time": "2026-05-22T05:05:01.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.workflow.started.alpha.001",
+      "actor": {
+        "actor_type": "script",
+        "actor_id": "agent-run.alpha.001",
+        "display_name": "Local Script Runtime"
+      },
+      "subject": {
+        "subject_type": "agent_run",
+        "subject_id": "agent-run.alpha.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "runtime_id": "local_script"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.agent_run.completed.alpha.001",
+      "type": "agent_run.completed",
+      "time": "2026-05-22T05:05:03.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.agent_run.started.alpha.001",
+      "actor": {
+        "actor_type": "script",
+        "actor_id": "agent-run.alpha.001",
+        "display_name": "Local Script Runtime"
+      },
+      "subject": {
+        "subject_type": "agent_run",
+        "subject_id": "agent-run.alpha.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "status": "completed",
+        "output_ref": "evidence.alpha.borrowing.approval.001"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.gate.passed.alpha.001",
+      "type": "gate.passed",
+      "time": "2026-05-22T05:05:04.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.agent_run.completed.alpha.001",
+      "actor": {
+        "actor_type": "harness",
+        "actor_id": "gate.evidence_coverage",
+        "display_name": "Evidence Coverage Gate"
+      },
+      "subject": {
+        "subject_type": "gate_result",
+        "subject_id": "gate-result.alpha.evidence.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "gate_id": "evidence_coverage_gate"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.output.rendered.alpha.001",
+      "type": "output.rendered",
+      "time": "2026-05-22T05:05:04.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.gate.passed.alpha.001",
+      "actor": {
+        "actor_type": "harness",
+        "actor_id": "harness.orchestrator",
+        "display_name": "Harness Orchestrator"
+      },
+      "subject": {
+        "subject_type": "output_artifact",
+        "subject_id": "output.alpha.ldd.note.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "artifact_type": "markdown",
+        "status": "pending_review"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.approval.requested.alpha.001",
+      "type": "approval.requested",
+      "time": "2026-05-22T05:05:05.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.output.rendered.alpha.001",
+      "actor": {
+        "actor_type": "harness",
+        "actor_id": "harness.orchestrator",
+        "display_name": "Harness Orchestrator"
+      },
+      "subject": {
+        "subject_type": "approval",
+        "subject_id": "approval.alpha.output.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "output_artifact_id": "output.alpha.ldd.note.001"
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "event.v1",
+      "id": "event.cost.recorded.alpha.001",
+      "type": "cost.recorded",
+      "time": "2026-05-22T05:05:06.000Z",
+      "tenant_id": "tenant.amic",
+      "correlation_id": "workflow-run.alpha.001",
+      "causation_id": "event.agent_run.completed.alpha.001",
+      "actor": {
+        "actor_type": "harness",
+        "actor_id": "harness.orchestrator",
+        "display_name": "Harness Orchestrator"
+      },
+      "subject": {
+        "subject_type": "cost_record",
+        "subject_id": "cost.alpha.001"
+      },
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "data": {
+        "cost_type": "runtime_seconds",
+        "amount": 2
+      },
+      "metadata": {}
+    }
+  ],
+  "run_ledgers": [
+    {
+      "schema_version": "run-ledger.v1",
+      "id": "run-ledger.alpha.001",
+      "tenant_id": "tenant.amic",
+      "workflow_run_id": "workflow-run.alpha.001",
+      "capability_id": "law_firm.ldd.issue_candidate_from_file",
+      "policy_snapshot_id": "policy.default.law_firm.v1",
+      "status": "blocked",
+      "input_refs": ["resource.alpha.minutes.001"],
+      "agent_run_ids": ["agent-run.alpha.001"],
+      "gate_result_ids": ["gate-result.alpha.evidence.001", "gate-result.alpha.approval.001"],
+      "approval_ids": ["approval.alpha.output.001"],
+      "output_artifact_ids": ["output.alpha.ldd.note.001"],
+      "event_ids": [
+        "event.resource.ingested.alpha.001",
+        "event.resource.normalized.alpha.001",
+        "event.evidence.created.alpha.001",
+        "event.workflow.started.alpha.001",
+        "event.agent_run.started.alpha.001",
+        "event.agent_run.completed.alpha.001",
+        "event.gate.passed.alpha.001",
+        "event.output.rendered.alpha.001",
+        "event.approval.requested.alpha.001",
+        "event.cost.recorded.alpha.001"
+      ],
+      "cost_records": [
+        {
+          "cost_record_id": "cost.alpha.001",
+          "cost_type": "runtime_seconds",
+          "amount": 2,
+          "unit": "seconds",
+          "created_at": "2026-05-22T05:05:06.000Z",
+          "metadata": {}
+        }
+      ],
+      "error_records": [],
+      "created_at": "2026-05-22T05:05:00.000Z",
+      "updated_at": "2026-05-22T05:05:06.000Z",
+      "metadata": {
+        "blocked_reason": "human_approval_pending"
+      }
+    }
+  ],
+  "metadata": {}
+}

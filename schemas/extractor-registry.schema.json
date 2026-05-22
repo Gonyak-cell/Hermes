@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/hermes/extractor-registry.schema.json",
+  "title": "Hermes Extractor Registry",
+  "type": "object",
+  "required": ["schema_version", "generated_at", "extractors"],
+  "properties": {
+    "schema_version": {
+      "const": "extractor-registry.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "extractors": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/extractor"
+      }
+    }
+  },
+  "$defs": {
+    "extractor": {
+      "type": "object",
+      "required": [
+        "document_type",
+        "classification_rules",
+        "extractor_chain",
+        "fact_schema",
+        "cross_document_rules",
+        "citation_rules",
+        "confidence_policy",
+        "review_required"
+      ],
+      "properties": {
+        "document_type": {
+          "type": "string"
+        },
+        "domain_pack": {
+          "enum": ["law-firm", "personal-dev", "creative", "agent-platform"]
+        },
+        "classification_rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "extractor_chain": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "fact_schema": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "cross_document_rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "absence_rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "citation_rules": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "confidence_policy": {
+          "type": "string"
+        },
+        "fallback_policy": {
+          "type": "string"
+        },
+        "review_required": {
+          "type": "boolean"
+        },
+        "review_ui_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

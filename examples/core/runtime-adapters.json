@@ -1,0 +1,620 @@
+{
+  "schema_version": "runtime-adapter-registry.v1",
+  "registry_id": "runtime.registry.default.v1",
+  "version": "0.1.0",
+  "generated_at": "2026-05-22T06:00:00.000Z",
+  "adapters": [
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.harness.default",
+      "runtime_id": "harness",
+      "version": "0.1.0",
+      "display_name": "Harness Orchestrator",
+      "description": "Owns workflow state, policy decisions, gate execution, ledger writes, and adapter dispatch.",
+      "risk_level": "medium",
+      "execution_environment": {
+        "execution_mode": "harness",
+        "network_policy": "restricted",
+        "external_execution": false,
+        "sandbox_required": false
+      },
+      "input_contract": {
+        "schema_ref": "workflow-runtime.v1",
+        "accepted_context_types": ["resource_metadata", "evidence_item", "fact", "issue", "output_artifact", "diff", "test_result", "manual_instruction"],
+        "max_input_classification": "P4_HIGHLY_RESTRICTED",
+        "redaction_required": false,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "event-ledger.v1",
+        "artifact_types": ["json", "markdown", "task_update"],
+        "output_trust": "trusted_after_deterministic_validation"
+      },
+      "workspace_policy": {
+        "isolation_type": "none",
+        "dirty_checkout_policy": "not_applicable",
+        "protected_paths": [".env", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "not_applicable"
+      },
+      "tool_policy": {
+        "allowed_tools": ["filesystem.read", "filesystem.write", "vector.retrieve", "github.merge"],
+        "forbidden_tools": ["email.send", "erp.billing.issue"],
+        "required_gates": ["matter_access_gate", "classification_gate", "tool_permission_gate", "cost_budget_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 7200,
+        "heartbeat_seconds": 60,
+        "cancellable": true,
+        "resumable": true,
+        "max_retries": 1
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": true,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["local_script", "manual"],
+        "required_gates": ["classification_gate", "human_approval_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.hermes.default",
+      "runtime_id": "hermes",
+      "version": "0.1.0",
+      "display_name": "Hermes Runtime",
+      "description": "Delegates bounded agent work to Hermes skills, gateways, or automations under harness control.",
+      "risk_level": "high",
+      "execution_environment": {
+        "execution_mode": "docker",
+        "network_policy": "restricted",
+        "external_execution": true,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "workflow-runtime.v1",
+        "accepted_context_types": ["resource_metadata", "evidence_item", "fact", "issue", "manual_instruction"],
+        "max_input_classification": "P1_INTERNAL",
+        "redaction_required": true,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["markdown", "json", "task_update"],
+        "output_trust": "untrusted_until_verified"
+      },
+      "workspace_policy": {
+        "isolation_type": "docker_container",
+        "dirty_checkout_policy": "block",
+        "protected_paths": [".env", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "retain_for_audit"
+      },
+      "tool_policy": {
+        "allowed_tools": ["filesystem.read", "filesystem.write", "terminal.exec", "vector.retrieve"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["classification_gate", "external_model_gate", "tool_permission_gate", "prompt_injection_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 3600,
+        "heartbeat_seconds": 60,
+        "cancellable": true,
+        "resumable": true,
+        "max_retries": 1
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": true,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "local_script", "manual"],
+        "required_gates": ["evidence_coverage_gate", "citation_gate", "human_approval_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+      },
+      "metadata": {
+        "raw_client_confidential_default": "forbidden"
+      }
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.claude_code.default",
+      "runtime_id": "claude_code",
+      "version": "0.1.0",
+      "display_name": "Claude Code Runtime",
+      "description": "Runs bounded engineering tasks in an isolated development workspace and returns diff artifacts.",
+      "risk_level": "high",
+      "execution_environment": {
+        "execution_mode": "docker",
+        "network_policy": "restricted",
+        "external_execution": true,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "workflow-runtime.v1",
+        "accepted_context_types": ["resource_metadata", "diff", "test_result", "manual_instruction"],
+        "max_input_classification": "P1_INTERNAL",
+        "redaction_required": true,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["pr_draft", "markdown", "json"],
+        "output_trust": "untrusted_until_verified"
+      },
+      "workspace_policy": {
+        "isolation_type": "git_worktree",
+        "dirty_checkout_policy": "block",
+        "protected_paths": [".env", "package-lock.json", "infra/**", "migrations/**", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "retain_for_audit"
+      },
+      "tool_policy": {
+        "allowed_tools": ["filesystem.read", "filesystem.write", "terminal.exec"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["tool_permission_gate", "protected_file_gate", "cost_budget_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 3600,
+        "heartbeat_seconds": 60,
+        "cancellable": true,
+        "resumable": false,
+        "max_retries": 0
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": true,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "local_script", "manual"],
+        "required_gates": ["protected_file_gate", "diff_review_gate", "test_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "classification"]
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.codex.default",
+      "runtime_id": "codex",
+      "version": "0.1.0",
+      "display_name": "Codex Runtime",
+      "description": "Runs Codex in an isolated worktree for implementation lanes and returns an untrusted diff for review.",
+      "risk_level": "high",
+      "execution_environment": {
+        "execution_mode": "docker",
+        "network_policy": "restricted",
+        "external_execution": true,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "workflow-runtime.v1",
+        "accepted_context_types": ["resource_metadata", "diff", "test_result", "manual_instruction"],
+        "max_input_classification": "P1_INTERNAL",
+        "redaction_required": true,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["pr_draft", "markdown", "json"],
+        "output_trust": "untrusted_until_verified"
+      },
+      "workspace_policy": {
+        "isolation_type": "git_worktree",
+        "dirty_checkout_policy": "block",
+        "protected_paths": [".env", "infra/**", "migrations/**", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "retain_for_audit"
+      },
+      "tool_policy": {
+        "allowed_tools": ["filesystem.read", "filesystem.write", "terminal.exec"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["tool_permission_gate", "protected_file_gate", "cost_budget_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 3600,
+        "heartbeat_seconds": 60,
+        "cancellable": true,
+        "resumable": false,
+        "max_retries": 0
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": true,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "local_script", "manual"],
+        "required_gates": ["protected_file_gate", "diff_review_gate", "test_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "classification"]
+      },
+      "metadata": {
+        "self_report_trust": "not_accepted"
+      }
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.local_script.default",
+      "runtime_id": "local_script",
+      "version": "0.1.0",
+      "display_name": "Local Script Runtime",
+      "description": "Runs deterministic extractors, classifiers, validators, and render preparation scripts.",
+      "risk_level": "medium",
+      "execution_environment": {
+        "execution_mode": "local_process",
+        "network_policy": "disabled",
+        "external_execution": false,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "resource-evidence.v1",
+        "accepted_context_types": ["resource_metadata", "normalized_text", "source_span", "evidence_item", "fact", "issue", "diff", "test_result"],
+        "max_input_classification": "P4_HIGHLY_RESTRICTED",
+        "redaction_required": false,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["json", "markdown"],
+        "output_trust": "trusted_after_deterministic_validation"
+      },
+      "workspace_policy": {
+        "isolation_type": "temp_dir",
+        "dirty_checkout_policy": "require_snapshot",
+        "protected_paths": [".env", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "retain_for_audit"
+      },
+      "tool_policy": {
+        "allowed_tools": ["filesystem.read", "filesystem.write", "terminal.exec", "vector.retrieve"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["matter_access_gate", "classification_gate", "tool_permission_gate", "protected_file_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 1800,
+        "heartbeat_seconds": 30,
+        "cancellable": true,
+        "resumable": true,
+        "max_retries": 2
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": false,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "manual"],
+        "required_gates": ["evidence_coverage_gate", "test_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.document_renderer.default",
+      "runtime_id": "document_renderer",
+      "version": "0.1.0",
+      "display_name": "Document Renderer",
+      "description": "Renders DOCX, PPTX, markdown, and structured output drafts from approved templates and evidence bindings.",
+      "risk_level": "medium",
+      "execution_environment": {
+        "execution_mode": "docker",
+        "network_policy": "disabled",
+        "external_execution": false,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "governance-output.v1",
+        "accepted_context_types": ["resource_metadata", "source_span", "evidence_item", "fact", "issue", "output_artifact"],
+        "max_input_classification": "P3_PRIVILEGED",
+        "redaction_required": false,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["docx", "pptx", "markdown", "json"],
+        "output_trust": "draft_only"
+      },
+      "workspace_policy": {
+        "isolation_type": "docker_container",
+        "dirty_checkout_policy": "not_applicable",
+        "protected_paths": [".env", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "retain_for_audit"
+      },
+      "tool_policy": {
+        "allowed_tools": ["filesystem.read", "filesystem.write", "terminal.exec"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["classification_gate", "evidence_coverage_gate", "citation_gate", "format_validation_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 1800,
+        "heartbeat_seconds": 30,
+        "cancellable": true,
+        "resumable": true,
+        "max_retries": 1
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": false,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "manual"],
+        "required_gates": ["format_validation_gate", "citation_gate", "human_approval_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+      },
+      "metadata": {
+        "delivery": "draft_only"
+      }
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.mcp_tool.default",
+      "runtime_id": "mcp_tool",
+      "version": "0.1.0",
+      "display_name": "MCP Tool Runtime",
+      "description": "Calls configured MCP tools through least-privilege adapter bindings.",
+      "risk_level": "high",
+      "execution_environment": {
+        "execution_mode": "mcp",
+        "network_policy": "restricted",
+        "external_execution": true,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "workflow-runtime.v1",
+        "accepted_context_types": ["resource_metadata", "manual_instruction"],
+        "max_input_classification": "P1_INTERNAL",
+        "redaction_required": true,
+        "prompt_injection_handling": "manual_review_required"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["json", "task_update", "email_draft"],
+        "output_trust": "untrusted_until_verified"
+      },
+      "workspace_policy": {
+        "isolation_type": "none",
+        "dirty_checkout_policy": "not_applicable",
+        "protected_paths": [".env", "**/*secret*", "**/*credential*"],
+        "cleanup_policy": "not_applicable"
+      },
+      "tool_policy": {
+        "allowed_tools": ["vector.retrieve", "web.browse"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["classification_gate", "tool_permission_gate", "external_model_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 900,
+        "heartbeat_seconds": 30,
+        "cancellable": true,
+        "resumable": false,
+        "max_retries": 1
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": true,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "manual"],
+        "required_gates": ["tool_permission_gate", "output_destination_gate", "human_approval_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "classification"]
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.browser.default",
+      "runtime_id": "browser",
+      "version": "0.1.0",
+      "display_name": "Browser Runtime",
+      "description": "Uses a controlled browser for public web or local UI verification tasks.",
+      "risk_level": "high",
+      "execution_environment": {
+        "execution_mode": "browser",
+        "network_policy": "restricted",
+        "external_execution": true,
+        "sandbox_required": true
+      },
+      "input_contract": {
+        "schema_ref": "workflow-runtime.v1",
+        "accepted_context_types": ["resource_metadata", "manual_instruction"],
+        "max_input_classification": "P1_INTERNAL",
+        "redaction_required": true,
+        "prompt_injection_handling": "treat_untrusted_content_as_data"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["markdown", "json"],
+        "output_trust": "untrusted_until_verified"
+      },
+      "workspace_policy": {
+        "isolation_type": "none",
+        "dirty_checkout_policy": "not_applicable",
+        "protected_paths": [],
+        "cleanup_policy": "not_applicable"
+      },
+      "tool_policy": {
+        "allowed_tools": ["web.browse"],
+        "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "required_gates": ["classification_gate", "external_model_gate", "tool_permission_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 900,
+        "heartbeat_seconds": 30,
+        "cancellable": true,
+        "resumable": false,
+        "max_retries": 1
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": true,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": true
+      },
+      "verification": {
+        "verification_required": true,
+        "verifier_runtime_ids": ["harness", "manual"],
+        "required_gates": ["classification_gate", "output_destination_gate"],
+        "acceptance_authority": "gate_engine"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL"],
+        "secret_handling": "never_in_context",
+        "retrieval_filters_required": ["tenant_id", "classification"]
+      },
+      "metadata": {}
+    },
+    {
+      "schema_version": "runtime-adapter.v1",
+      "adapter_id": "runtime.manual.default",
+      "runtime_id": "manual",
+      "version": "0.1.0",
+      "display_name": "Manual Runtime",
+      "description": "Represents human review, approval, delivery, and exceptional handling steps.",
+      "risk_level": "medium",
+      "execution_environment": {
+        "execution_mode": "manual",
+        "network_policy": "restricted",
+        "external_execution": false,
+        "sandbox_required": false
+      },
+      "input_contract": {
+        "schema_ref": "governance-output.v1",
+        "accepted_context_types": ["resource_metadata", "normalized_text", "source_span", "evidence_item", "fact", "issue", "output_artifact", "diff", "test_result", "manual_instruction"],
+        "max_input_classification": "P5_SECRET",
+        "redaction_required": false,
+        "prompt_injection_handling": "manual_review_required"
+      },
+      "output_contract": {
+        "schema_ref": "governance-output.v1",
+        "artifact_types": ["markdown", "docx", "pptx", "email_draft", "pr_draft", "json", "task_update", "erp_billing_draft", "public_content"],
+        "output_trust": "human_attested"
+      },
+      "workspace_policy": {
+        "isolation_type": "manual",
+        "dirty_checkout_policy": "not_applicable",
+        "protected_paths": [],
+        "cleanup_policy": "manual_cleanup"
+      },
+      "tool_policy": {
+        "allowed_tools": ["email.send", "erp.billing.issue", "github.merge"],
+        "forbidden_tools": [],
+        "required_gates": ["human_approval_gate", "output_destination_gate"]
+      },
+      "lifecycle": {
+        "timeout_seconds": 604800,
+        "heartbeat_seconds": null,
+        "cancellable": true,
+        "resumable": true,
+        "max_retries": 0
+      },
+      "observability": {
+        "logs_required": true,
+        "trace_required": true,
+        "prompt_hash_required": false,
+        "output_hash_required": true,
+        "artifact_capture_required": true,
+        "cost_tracking_required": false
+      },
+      "verification": {
+        "verification_required": false,
+        "verifier_runtime_ids": [],
+        "required_gates": ["human_approval_gate"],
+        "acceptance_authority": "human"
+      },
+      "data_access": {
+        "default_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"],
+        "raw_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"],
+        "redacted_context_allowed_classifications": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED"],
+        "secret_handling": "manual_only",
+        "retrieval_filters_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+      },
+      "metadata": {
+        "delivery_requires_separate_approval": true
+      }
+    }
+  ],
+  "metadata": {}
+}

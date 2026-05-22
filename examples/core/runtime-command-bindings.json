@@ -1,0 +1,79 @@
+{
+  "schema_version": "runtime-command-bindings.v1",
+  "binding_registry_id": "runtime.command_bindings.default.v1",
+  "version": "0.1.0",
+  "generated_at": "2026-05-23T04:10:00.000Z",
+  "bindings": [
+    {
+      "runtime_id": "claude_code",
+      "binding_id": "binding.claude_code.cli.default",
+      "display_name": "Claude Code CLI",
+      "candidate_commands": [
+        {
+          "command": "claude",
+          "args": []
+        },
+        {
+          "command": "claude-code",
+          "args": []
+        }
+      ],
+      "prompt_delivery": "stdin",
+      "execute_requires_git_worktree": true,
+      "install_hint": "Install and authenticate Claude Code CLI before enabling execute mode.",
+      "metadata": {
+        "output_trust": "untrusted_until_verified"
+      }
+    },
+    {
+      "runtime_id": "codex",
+      "binding_id": "binding.codex.cli.default",
+      "display_name": "Codex CLI",
+      "candidate_commands": [
+        {
+          "command": "codex",
+          "args": []
+        }
+      ],
+      "prompt_delivery": "stdin",
+      "execute_requires_git_worktree": true,
+      "install_hint": "Install and authenticate Codex CLI before enabling execute mode.",
+      "metadata": {
+        "output_trust": "untrusted_until_verified"
+      }
+    },
+    {
+      "runtime_id": "hermes",
+      "binding_id": "binding.hermes.cli.default",
+      "display_name": "Hermes CLI",
+      "candidate_commands": [
+        {
+          "command": "hermes",
+          "args": []
+        }
+      ],
+      "prompt_delivery": "stdin",
+      "execute_requires_git_worktree": false,
+      "install_hint": "Install Hermes CLI or configure the absolute command path.",
+      "metadata": {}
+    },
+    {
+      "runtime_id": "local_script",
+      "binding_id": "binding.local_script.node.default",
+      "display_name": "Node Local Script",
+      "candidate_commands": [
+        {
+          "command": "node",
+          "args": []
+        }
+      ],
+      "prompt_delivery": "none",
+      "execute_requires_git_worktree": false,
+      "install_hint": "Node.js is required for local script execution.",
+      "metadata": {
+        "deterministic": true
+      }
+    }
+  ],
+  "metadata": {}
+}

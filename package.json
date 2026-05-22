@@ -1,0 +1,34 @@
+{
+  "name": "hermes-law-firm-harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hermes Agent harnesses for law-firm operations and personal developer project management.",
+  "bin": {
+    "hermes-law-brief": "./scripts/matter-brief.mjs"
+  },
+  "scripts": {
+    "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
+    "deal": "node scripts/deal-control.mjs examples/project-alpha-matter.json",
+    "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",
+    "dev:validate": "node scripts/validate-dev-projects.mjs examples/dev-projects.json",
+    "intake": "node scripts/intake-messages.mjs examples/project-alpha-matter.json examples/raw-intake-messages.json",
+    "intake:kakao": "node scripts/intake-kakao.mjs examples/project-alpha-matter.json examples/kakaotalk-alpha-export.txt --source-id kakao-alpha",
+    "intake:outlook": "node scripts/intake-outlook.mjs examples/project-alpha-matter.json examples/outlook-alpha-email.eml --source-id outlook-alpha",
+    "intake:outlook-json": "node scripts/intake-outlook.mjs examples/project-alpha-matter.json examples/outlook-alpha-messages.json --source-id outlook-alpha-json",
+    "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
+    "personal-dev:slice": "node scripts/run-personal-dev-slice.mjs",
+    "resource:audit": "node scripts/resource-audit.mjs",
+    "resource:extract": "node scripts/resource-extract.mjs",
+    "runtime:bindings": "node scripts/runtime-bindings.mjs",
+    "runtime:invoke": "node scripts/runtime-invoker.mjs",
+    "slice:run": "node scripts/run-vertical-slice.mjs",
+    "worktree:prepare": "node scripts/worktree-manager.mjs",
+    "validate:core": "node scripts/validate-core-contracts.mjs",
+    "validate": "npm run validate:core && node scripts/validate-matter.mjs examples/project-alpha-matter.json && node scripts/validate-matter.mjs examples/project-beta-litigation-matter.json",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

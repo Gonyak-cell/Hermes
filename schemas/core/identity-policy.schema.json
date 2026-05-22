@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/identity-policy.schema.json",
+  "title": "Hermes Identity and Policy Contracts",
+  "type": "object",
+  "required": ["schema_version", "tenants", "users", "clients", "matters", "policy_snapshots"],
+  "properties": {
+    "schema_version": {
+      "const": "identity-policy.v1"
+    },
+    "tenants": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tenant"
+      }
+    },
+    "users": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/user"
+      }
+    },
+    "clients": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/client"
+      }
+    },
+    "matters": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/matter"
+      }
+    },
+    "policy_snapshots": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/policy_snapshot"
+      }
+    }
+  },
+  "$defs": {
+    "tenant": {
+      "type": "object",
+      "required": ["schema_version", "id", "name", "tenant_type", "default_policy_id", "created_at"],
+      "properties": {
+        "schema_version": {
+          "const": "tenant.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tenant_type": {
+          "enum": ["law_firm", "personal", "lab"]
+        },
+        "default_policy_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "user": {
+      "type": "object",
+      "required": ["schema_version", "id", "tenant_id", "display_name", "roles", "status", "created_at"],
+      "properties": {
+        "schema_version": {
+          "const": "user.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "roles": {
+          "type": "array",
+          "items": {
+            "enum": ["owner", "partner", "senior_associate", "junior_associate", "paralegal", "admin", "developer", "viewer"]
+          }
+        },
+        "status": {
+          "enum": ["active", "inactive", "suspended"]
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "client": {
+      "type": "object",
+      "required": ["schema_version", "id", "tenant_id", "name", "classification_floor", "created_at"],
+      "properties": {
+        "schema_version": {
+          "const": "client.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "name": {
+          "type": "string"
+        },
+        "classification_floor": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "matter": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "tenant_id",
+        "client_id",
+        "matter_name",
+        "practice_area",
+        "status",
+        "classification",
+        "matter_team",
+        "wall_ids",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "matter-core.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "client_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "matter_name": {
+          "type": "string"
+        },
+        "practice_area": {
+          "enum": ["ldd", "contract", "litigation", "corporate", "memo", "proposal", "personal_dev", "creative", "general"]
+        },
+        "status": {
+          "enum": ["active", "paused", "closed", "archived"]
+        },
+        "classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "matter_team": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["user_id", "matter_role"],
+            "properties": {
+              "user_id": {
+                "$ref": "common.schema.json#/$defs/id"
+              },
+              "matter_role": {
+                "enum": ["responsible_partner", "reviewer", "drafter", "paralegal", "developer", "viewer"]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "wall_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "policy_snapshot": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "tenant_id",
+        "created_at",
+        "classification_rules",
+        "runtime_permissions",
+        "model_permissions",
+        "output_permissions",
+        "approval_rules"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "policy-snapshot.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "classification_rules": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "runtime_permissions": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "model_permissions": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "output_permissions": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "approval_rules": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

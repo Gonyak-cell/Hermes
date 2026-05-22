@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/common.schema.json",
+  "title": "Hermes Core Common Definitions",
+  "$defs": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-zA-Z0-9][a-zA-Z0-9_.:-]*$"
+    },
+    "date_time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "actor": {
+      "type": "object",
+      "required": ["actor_type", "actor_id"],
+      "properties": {
+        "actor_type": {
+          "enum": ["human", "harness", "hermes", "claude_code", "codex", "script", "connector", "renderer", "mcp_tool", "browser", "manual"]
+        },
+        "actor_id": {
+          "$ref": "#/$defs/id"
+        },
+        "display_name": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "classification": {
+      "enum": [
+        "P0_PUBLIC",
+        "P1_INTERNAL",
+        "P2_CLIENT_CONFIDENTIAL",
+        "P3_PRIVILEGED",
+        "P4_HIGHLY_RESTRICTED",
+        "P5_SECRET"
+      ]
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "review_status": {
+      "enum": ["unreviewed", "needs_review", "reviewed", "approved", "rejected"]
+    },
+    "run_status": {
+      "enum": ["queued", "running", "blocked", "completed", "failed", "cancelled"]
+    },
+    "hash_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "uri": {
+      "type": "string",
+      "minLength": 1
+    }
+  }
+}

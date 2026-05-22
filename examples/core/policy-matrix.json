@@ -1,0 +1,420 @@
+{
+  "schema_version": "policy-matrix.v1",
+  "matrix_id": "policy.matrix.default.v1",
+  "version": "0.1.0",
+  "generated_at": "2026-05-22T05:30:00.000Z",
+  "classification_levels": [
+    {
+      "classification": "P0_PUBLIC",
+      "name": "Public",
+      "description": "Public law, public repositories, public documents, and non-sensitive examples.",
+      "default_external_model_policy": "allowed_with_audit",
+      "metadata": {}
+    },
+    {
+      "classification": "P1_INTERNAL",
+      "name": "Internal",
+      "description": "Internal personal or business work product that is not client confidential.",
+      "default_external_model_policy": "allowed_with_audit",
+      "metadata": {}
+    },
+    {
+      "classification": "P2_CLIENT_CONFIDENTIAL",
+      "name": "Client Confidential",
+      "description": "Client files, matter documents, VDR materials, emails, and meeting notes.",
+      "default_external_model_policy": "approval_required",
+      "metadata": {}
+    },
+    {
+      "classification": "P3_PRIVILEGED",
+      "name": "Privileged",
+      "description": "Attorney-client privileged materials, internal legal analysis, and litigation strategy.",
+      "default_external_model_policy": "forbidden",
+      "metadata": {}
+    },
+    {
+      "classification": "P4_HIGHLY_RESTRICTED",
+      "name": "Highly Restricted",
+      "description": "Sensitive personal data, trade secrets, critical strategy, investigation materials, or regulated data.",
+      "default_external_model_policy": "forbidden",
+      "metadata": {}
+    },
+    {
+      "classification": "P5_SECRET",
+      "name": "Secret / Credential",
+      "description": "API keys, passwords, tokens, certificates, and credentials.",
+      "default_external_model_policy": "forbidden",
+      "metadata": {}
+    }
+  ],
+  "runtime_rules": [
+    {
+      "classification": "P0_PUBLIC",
+      "allowed_runtimes": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "mcp_tool", "browser", "manual"],
+      "restricted_runtimes": [],
+      "forbidden_runtimes": [],
+      "required_gates": ["classification_gate", "cost_budget_gate"],
+      "notes": "Public data can use normal agent workflows, but runs are still audited."
+    },
+    {
+      "classification": "P1_INTERNAL",
+      "allowed_runtimes": ["harness", "hermes", "claude_code", "codex", "local_script", "document_renderer", "browser", "manual"],
+      "restricted_runtimes": ["mcp_tool"],
+      "forbidden_runtimes": [],
+      "required_gates": ["classification_gate", "tool_permission_gate", "cost_budget_gate"],
+      "notes": "Connector access is restricted to configured accounts and least privilege."
+    },
+    {
+      "classification": "P2_CLIENT_CONFIDENTIAL",
+      "allowed_runtimes": ["harness", "local_script", "document_renderer", "manual"],
+      "restricted_runtimes": ["hermes", "claude_code", "codex", "mcp_tool"],
+      "forbidden_runtimes": ["browser"],
+      "required_gates": ["matter_access_gate", "classification_gate", "external_model_gate", "tool_permission_gate", "human_approval_gate"],
+      "notes": "Agent runtimes may use redacted context only after policy approval."
+    },
+    {
+      "classification": "P3_PRIVILEGED",
+      "allowed_runtimes": ["harness", "local_script", "document_renderer", "manual"],
+      "restricted_runtimes": [],
+      "forbidden_runtimes": ["hermes", "claude_code", "codex", "mcp_tool", "browser"],
+      "required_gates": ["matter_access_gate", "classification_gate", "external_model_gate", "privilege_gate", "human_approval_gate"],
+      "notes": "External model transfer is forbidden by default."
+    },
+    {
+      "classification": "P4_HIGHLY_RESTRICTED",
+      "allowed_runtimes": ["harness", "local_script", "manual"],
+      "restricted_runtimes": ["document_renderer"],
+      "forbidden_runtimes": ["hermes", "claude_code", "codex", "mcp_tool", "browser"],
+      "required_gates": ["matter_access_gate", "classification_gate", "external_model_gate", "personal_data_gate", "human_approval_gate"],
+      "notes": "Use sandboxed/local-only execution and quarantine when confidence is low."
+    },
+    {
+      "classification": "P5_SECRET",
+      "allowed_runtimes": ["manual"],
+      "restricted_runtimes": ["harness", "local_script"],
+      "forbidden_runtimes": ["hermes", "claude_code", "codex", "document_renderer", "mcp_tool", "browser"],
+      "required_gates": ["classification_gate", "secrets_gate"],
+      "notes": "Secrets must not be inserted into prompts or agent context."
+    }
+  ],
+  "model_rules": [
+    {
+      "classification": "P0_PUBLIC",
+      "external_model_policy": "allowed_with_audit",
+      "local_model_policy": "allowed",
+      "redaction_policy": "not_required",
+      "approval_required": false,
+      "notes": "Record provider, model, prompt hash, and output hash."
+    },
+    {
+      "classification": "P1_INTERNAL",
+      "external_model_policy": "allowed_with_audit",
+      "local_model_policy": "allowed",
+      "redaction_policy": "recommended",
+      "approval_required": false,
+      "notes": "Do not include secrets or unrelated private data."
+    },
+    {
+      "classification": "P2_CLIENT_CONFIDENTIAL",
+      "external_model_policy": "approval_required",
+      "local_model_policy": "allowed",
+      "redaction_policy": "required",
+      "approval_required": true,
+      "notes": "Prefer extracted facts and redacted context over raw documents."
+    },
+    {
+      "classification": "P3_PRIVILEGED",
+      "external_model_policy": "forbidden",
+      "local_model_policy": "approval_required",
+      "redaction_policy": "required",
+      "approval_required": true,
+      "notes": "Privileged data requires attorney-controlled review."
+    },
+    {
+      "classification": "P4_HIGHLY_RESTRICTED",
+      "external_model_policy": "forbidden",
+      "local_model_policy": "restricted",
+      "redaction_policy": "required",
+      "approval_required": true,
+      "notes": "Quarantine if personal data or trade-secret risk is uncertain."
+    },
+    {
+      "classification": "P5_SECRET",
+      "external_model_policy": "forbidden",
+      "local_model_policy": "forbidden",
+      "redaction_policy": "not_applicable",
+      "approval_required": false,
+      "notes": "Secrets are handled by adapters, not model context."
+    }
+  ],
+  "tool_rules": [
+    {
+      "tool_id": "filesystem.read",
+      "description": "Read files from approved source or workspace paths.",
+      "default_policy": "restricted",
+      "required_gates": ["matter_access_gate", "classification_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "filesystem.write",
+      "description": "Write generated artifacts or workspace files.",
+      "default_policy": "restricted",
+      "required_gates": ["tool_permission_gate", "protected_file_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "terminal.exec",
+      "description": "Run shell commands, tests, renderers, and deterministic scripts.",
+      "default_policy": "restricted",
+      "required_gates": ["tool_permission_gate", "protected_file_gate", "cost_budget_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "web.browse",
+      "description": "Browse or search the public web.",
+      "default_policy": "restricted",
+      "required_gates": ["classification_gate", "external_model_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "email.send",
+      "description": "Send email outside the harness.",
+      "default_policy": "approval_required",
+      "required_gates": ["output_destination_gate", "human_approval_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "erp.billing.issue",
+      "description": "Issue billing or tax documents in ERP.",
+      "default_policy": "approval_required",
+      "required_gates": ["billing_approval_gate", "output_destination_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "github.merge",
+      "description": "Merge a pull request or write to protected branches.",
+      "default_policy": "approval_required",
+      "required_gates": ["protected_file_gate", "test_gate", "human_approval_gate"],
+      "metadata": {}
+    },
+    {
+      "tool_id": "vector.retrieve",
+      "description": "Retrieve indexed resources for context building.",
+      "default_policy": "restricted",
+      "required_gates": ["matter_access_gate", "classification_gate"],
+      "metadata": {
+        "filter_required": ["tenant_id", "matter_id", "wall_id", "classification"]
+      }
+    }
+  ],
+  "output_rules": [
+    {
+      "artifact_type": "markdown",
+      "default_status": "draft",
+      "required_gates": ["evidence_coverage_gate"],
+      "delivery_policy": "internal_only",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "json",
+      "default_status": "draft",
+      "required_gates": ["classification_gate"],
+      "delivery_policy": "internal_only",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "docx",
+      "default_status": "pending_review",
+      "required_gates": ["evidence_coverage_gate", "citation_gate", "human_approval_gate"],
+      "delivery_policy": "partner_approval_required",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "pptx",
+      "default_status": "pending_review",
+      "required_gates": ["evidence_coverage_gate", "format_validation_gate", "human_approval_gate"],
+      "delivery_policy": "approval_required",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "email_draft",
+      "default_status": "draft",
+      "required_gates": ["output_destination_gate", "human_approval_gate"],
+      "delivery_policy": "approval_required",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "pr_draft",
+      "default_status": "draft",
+      "required_gates": ["diff_review_gate", "test_gate"],
+      "delivery_policy": "test_gate_required",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "erp_billing_draft",
+      "default_status": "draft",
+      "required_gates": ["billing_approval_gate", "human_approval_gate"],
+      "delivery_policy": "partner_approval_required",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "task_update",
+      "default_status": "draft",
+      "required_gates": ["classification_gate"],
+      "delivery_policy": "internal_only",
+      "metadata": {}
+    },
+    {
+      "artifact_type": "public_content",
+      "default_status": "pending_review",
+      "required_gates": ["redaction_gate", "confidentiality_gate", "human_approval_gate"],
+      "delivery_policy": "approval_required",
+      "metadata": {}
+    }
+  ],
+  "gate_rules": [
+    {
+      "gate_id": "matter_access_gate",
+      "stage": "pre_run",
+      "description": "Require tenant, matter, client, wall, and team access before retrieval or runtime execution.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "classification_gate",
+      "stage": "pre_run",
+      "description": "Evaluate data classification before runtime, model, tool, and output decisions.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "external_model_gate",
+      "stage": "pre_run",
+      "description": "Block or require approval before external model transfer.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "tool_permission_gate",
+      "stage": "pre_run",
+      "description": "Check whether the requested tool is allowed for the workflow and classification.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "prompt_injection_gate",
+      "stage": "in_run",
+      "description": "Treat untrusted documents as evidence, not instructions.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "protected_file_gate",
+      "stage": "post_run",
+      "description": "Detect changes to secrets, production config, and protected files.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "evidence_coverage_gate",
+      "stage": "post_run",
+      "description": "Require source span or evidence linkage for material claims.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "citation_gate",
+      "stage": "post_run",
+      "description": "Verify citations against source spans and evidence items.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "test_gate",
+      "stage": "post_run",
+      "description": "Run canonical tests for development workflows.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "diff_review_gate",
+      "stage": "post_run",
+      "description": "Review actual diff instead of trusting agent self-report.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "format_validation_gate",
+      "stage": "post_run",
+      "description": "Check DOCX/PPTX/PDF formatting, overflow, layout, and required style constraints.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "privilege_gate",
+      "stage": "pre_run",
+      "description": "Detect privileged material and apply privileged-data runtime/model restrictions.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "personal_data_gate",
+      "stage": "pre_run",
+      "description": "Detect personal data and enforce restricted handling rules.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "secrets_gate",
+      "stage": "pre_run",
+      "description": "Prevent credentials from being inserted into prompts or agent context.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "billing_approval_gate",
+      "stage": "post_run",
+      "description": "Require approval before billing or tax documents are issued.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "redaction_gate",
+      "stage": "post_run",
+      "description": "Require redaction before public or external-facing content is delivered.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "confidentiality_gate",
+      "stage": "post_run",
+      "description": "Check that output does not disclose confidential matter or client information.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "human_approval_gate",
+      "stage": "post_run",
+      "description": "Require human approval before draft outputs become deliverable.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "output_destination_gate",
+      "stage": "post_run",
+      "description": "Check delivery destination before email, ERP, PR merge, or client delivery.",
+      "blocking_by_default": true,
+      "metadata": {}
+    },
+    {
+      "gate_id": "cost_budget_gate",
+      "stage": "pre_run",
+      "description": "Check token, runtime, and API budget before expensive workflows.",
+      "blocking_by_default": false,
+      "metadata": {}
+    }
+  ],
+  "metadata": {
+    "default_policy": "draft_only_for_law_firm_outputs"
+  }
+}

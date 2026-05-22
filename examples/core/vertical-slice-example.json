@@ -1,0 +1,428 @@
+{
+  "schema_version": "vertical-slice-example.v1",
+  "generated_at": "2026-05-22T05:10:00.000Z",
+  "identity_policy": {
+    "schema_version": "identity-policy.v1",
+    "tenants": [
+      {
+        "schema_version": "tenant.v1",
+        "id": "tenant.amic",
+        "name": "AMIC Harness Lab",
+        "tenant_type": "law_firm",
+        "default_policy_id": "policy.default.law_firm.v1",
+        "created_at": "2026-05-22T05:00:00.000Z",
+        "metadata": {}
+      }
+    ],
+    "users": [
+      {
+        "schema_version": "user.v1",
+        "id": "user.jws",
+        "tenant_id": "tenant.amic",
+        "display_name": "jws",
+        "roles": ["owner", "partner", "developer"],
+        "status": "active",
+        "created_at": "2026-05-22T05:00:00.000Z",
+        "metadata": {}
+      }
+    ],
+    "clients": [
+      {
+        "schema_version": "client.v1",
+        "id": "client.alpha",
+        "tenant_id": "tenant.amic",
+        "name": "Alpha Client",
+        "classification_floor": "P2_CLIENT_CONFIDENTIAL",
+        "created_at": "2026-05-22T05:00:00.000Z",
+        "metadata": {}
+      }
+    ],
+    "matters": [
+      {
+        "schema_version": "matter-core.v1",
+        "id": "matter.alpha.ldd",
+        "tenant_id": "tenant.amic",
+        "client_id": "client.alpha",
+        "matter_name": "Alpha LDD Pilot",
+        "practice_area": "ldd",
+        "status": "active",
+        "classification": "P2_CLIENT_CONFIDENTIAL",
+        "matter_team": [
+          {
+            "user_id": "user.jws",
+            "matter_role": "responsible_partner"
+          }
+        ],
+        "wall_ids": ["wall.alpha.default"],
+        "created_at": "2026-05-22T05:00:00.000Z",
+        "metadata": {}
+      }
+    ],
+    "policy_snapshots": [
+      {
+        "schema_version": "policy-snapshot.v1",
+        "id": "policy.default.law_firm.v1",
+        "tenant_id": "tenant.amic",
+        "created_at": "2026-05-22T05:00:00.000Z",
+        "classification_rules": {
+          "default_classification": "P2_CLIENT_CONFIDENTIAL"
+        },
+        "runtime_permissions": {
+          "P2_CLIENT_CONFIDENTIAL": ["harness", "local_script", "document_renderer", "manual"],
+          "P3_PRIVILEGED": ["harness", "local_script", "manual"]
+        },
+        "model_permissions": {
+          "external_model_for_P2": "approval_required",
+          "external_model_for_P3": "forbidden"
+        },
+        "output_permissions": {
+          "client_delivery": "partner_approval_required"
+        },
+        "approval_rules": {
+          "law_firm_output": "attorney_review_required"
+        },
+        "metadata": {}
+      }
+    ]
+  },
+  "resource_evidence": {
+    "schema_version": "resource-evidence.v1",
+    "resources": [
+      {
+        "schema_version": "resource-core.v1",
+        "id": "resource.alpha.minutes.001",
+        "tenant_id": "tenant.amic",
+        "source_system": "local_filesystem",
+        "source_uri": "/Users/jws/Documents/Codex/Hermes/examples/core/sample-board-minutes.md",
+        "resource_type": "file",
+        "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "classification": "P2_CLIENT_CONFIDENTIAL",
+        "matter_id": "matter.alpha.ldd",
+        "materialization_status": "not_required",
+        "ingestion_status": "normalized",
+        "created_at": "2026-05-22T05:02:00.000Z",
+        "created_by": {
+          "actor_type": "connector",
+          "actor_id": "connector.local_filesystem",
+          "display_name": "Local Filesystem"
+        },
+        "metadata": {
+          "filename": "sample-board-minutes.md"
+        }
+      }
+    ],
+    "resource_versions": [
+      {
+        "schema_version": "resource-version.v1",
+        "id": "resource-version.alpha.minutes.001.v1",
+        "resource_id": "resource.alpha.minutes.001",
+        "version_label": "v1",
+        "content_hash": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "created_at": "2026-05-22T05:02:00.000Z",
+        "metadata": {}
+      }
+    ],
+    "normalized_texts": [
+      {
+        "schema_version": "normalized-text.v1",
+        "id": "normalized.alpha.minutes.001",
+        "resource_id": "resource.alpha.minutes.001",
+        "resource_version_id": "resource-version.alpha.minutes.001.v1",
+        "text_hash": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "language": "ko",
+        "extractor_id": "extractor.plain_text.v1",
+        "quality": "high",
+        "text_preview": "2026. 5. 1. 이사회에서 신규 차입 승인 안건이 논의되었다.",
+        "metadata": {}
+      }
+    ],
+    "source_spans": [
+      {
+        "schema_version": "source-span.v1",
+        "id": "span.alpha.minutes.001.p1",
+        "resource_id": "resource.alpha.minutes.001",
+        "resource_version_id": "resource-version.alpha.minutes.001.v1",
+        "location_type": "paragraph",
+        "locator": {
+          "paragraph": 1
+        },
+        "text": "2026. 5. 1. 이사회에서 신규 차입 승인 안건이 논의되었다.",
+        "hash": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+        "metadata": {}
+      }
+    ],
+    "evidence_items": [
+      {
+        "schema_version": "evidence-item.v1",
+        "id": "evidence.alpha.borrowing.approval.001",
+        "matter_id": "matter.alpha.ldd",
+        "source_span_ids": ["span.alpha.minutes.001.p1"],
+        "evidence_type": "document_text",
+        "summary": "이사회에서 신규 차입 승인 안건이 논의되었다는 근거 문단",
+        "reliability": "client_provided",
+        "review_status": "needs_review",
+        "metadata": {}
+      }
+    ],
+    "facts": [
+      {
+        "schema_version": "fact.v1",
+        "id": "fact.alpha.borrowing.approval.001",
+        "matter_id": "matter.alpha.ldd",
+        "evidence_item_ids": ["evidence.alpha.borrowing.approval.001"],
+        "statement": "Alpha Client는 2026. 5. 1. 이사회에서 신규 차입 승인 안건을 논의하였다.",
+        "fact_type": "approval",
+        "confidence": 0.78,
+        "review_status": "needs_review",
+        "metadata": {}
+      }
+    ],
+    "issues": [
+      {
+        "schema_version": "issue.v1",
+        "id": "issue.alpha.borrowing.approval.001",
+        "matter_id": "matter.alpha.ldd",
+        "issue_type": "rfi",
+        "title": "신규 차입 승인 관련 결의 요건 및 실행 자료 확인 필요",
+        "linked_fact_ids": ["fact.alpha.borrowing.approval.001"],
+        "severity": "medium",
+        "status": "candidate",
+        "metadata": {}
+      }
+    ],
+    "citations": [
+      {
+        "schema_version": "citation.v1",
+        "id": "citation.alpha.output.001.p1",
+        "output_artifact_id": "output.alpha.ldd.note.001",
+        "target_path": "paragraphs[0]",
+        "source_span_ids": ["span.alpha.minutes.001.p1"],
+        "evidence_item_ids": ["evidence.alpha.borrowing.approval.001"],
+        "citation_status": "candidate",
+        "metadata": {}
+      }
+    ]
+  },
+  "workflow_runtime": {
+    "schema_version": "workflow-runtime.v1",
+    "capabilities": [
+      {
+        "schema_version": "capability.v1",
+        "id": "law_firm.ldd.issue_candidate_from_file",
+        "version": "0.1.0",
+        "domain_pack": "law-firm",
+        "description": "Create an evidence-backed LDD issue candidate from one local file.",
+        "input_schema": "resource-evidence.v1",
+        "output_schema": "governance-output.v1",
+        "allowed_runtimes": ["harness", "local_script", "manual"],
+        "required_gates": {
+          "pre_run": ["matter_access_gate", "classification_gate"],
+          "in_run": [],
+          "post_run": ["evidence_coverage_gate", "human_approval_gate"]
+        },
+        "data_policy": {
+          "external_model": "forbidden_for_default_slice"
+        },
+        "approval_policy": {
+          "output_status": "pending_review"
+        },
+        "timeout_policy": {
+          "max_seconds": 120
+        },
+        "retry_policy": {
+          "max_attempts": 1
+        },
+        "cost_policy": {
+          "max_usd": 0
+        },
+        "metadata": {}
+      }
+    ],
+    "workflows": [
+      {
+        "schema_version": "workflow.v1",
+        "id": "workflow.law_firm.ldd.issue_candidate_from_file.v1",
+        "capability_id": "law_firm.ldd.issue_candidate_from_file",
+        "version": "0.1.0",
+        "steps": [
+          {
+            "step_id": "step.extract_text",
+            "step_type": "extract",
+            "runtime_id": "local_script",
+            "input_refs": ["resource.alpha.minutes.001"],
+            "output_contract": "normalized-text.v1"
+          },
+          {
+            "step_id": "step.create_evidence",
+            "step_type": "script",
+            "runtime_id": "harness",
+            "input_refs": ["normalized.alpha.minutes.001"],
+            "output_contract": "evidence-item.v1"
+          },
+          {
+            "step_id": "step.request_approval",
+            "step_type": "approval",
+            "runtime_id": "manual",
+            "input_refs": ["output.alpha.ldd.note.001"],
+            "output_contract": "approval.v1"
+          }
+        ],
+        "state_machine": {
+          "initial": "queued",
+          "terminal": ["completed", "failed", "cancelled"]
+        },
+        "metadata": {}
+      }
+    ],
+    "workflow_runs": [
+      {
+        "schema_version": "workflow-run.v1",
+        "id": "workflow-run.alpha.001",
+        "workflow_id": "workflow.law_firm.ldd.issue_candidate_from_file.v1",
+        "capability_id": "law_firm.ldd.issue_candidate_from_file",
+        "tenant_id": "tenant.amic",
+        "matter_id": "matter.alpha.ldd",
+        "status": "blocked",
+        "input_refs": ["resource.alpha.minutes.001"],
+        "output_refs": ["output.alpha.ldd.note.001"],
+        "policy_snapshot_id": "policy.default.law_firm.v1",
+        "created_at": "2026-05-22T05:05:00.000Z",
+        "created_by": {
+          "actor_type": "harness",
+          "actor_id": "harness.orchestrator",
+          "display_name": "Harness Orchestrator"
+        },
+        "metadata": {
+          "blocked_reason": "human_approval_pending"
+        }
+      }
+    ],
+    "agent_runs": [
+      {
+        "schema_version": "agent-run.v1",
+        "id": "agent-run.alpha.001",
+        "workflow_run_id": "workflow-run.alpha.001",
+        "runtime_id": "local_script",
+        "status": "completed",
+        "input_ref": "resource.alpha.minutes.001",
+        "output_ref": "evidence.alpha.borrowing.approval.001",
+        "logs_ref": "logs/agent-run.alpha.001.log",
+        "started_at": "2026-05-22T05:05:01.000Z",
+        "completed_at": "2026-05-22T05:05:03.000Z",
+        "metadata": {}
+      }
+    ]
+  },
+  "governance_output": {
+    "schema_version": "governance-output.v1",
+    "gate_results": [
+      {
+        "schema_version": "gate-result.v1",
+        "id": "gate-result.alpha.evidence.001",
+        "workflow_run_id": "workflow-run.alpha.001",
+        "gate_id": "evidence_coverage_gate",
+        "gate_stage": "post_run",
+        "status": "passed",
+        "findings": [],
+        "blocking": false,
+        "created_at": "2026-05-22T05:05:04.000Z",
+        "metadata": {}
+      },
+      {
+        "schema_version": "gate-result.v1",
+        "id": "gate-result.alpha.approval.001",
+        "workflow_run_id": "workflow-run.alpha.001",
+        "gate_id": "human_approval_gate",
+        "gate_stage": "post_run",
+        "status": "pending",
+        "findings": [
+          {
+            "finding_id": "finding.approval.pending.001",
+            "severity": "info",
+            "message": "Attorney review is required before the output can leave draft status.",
+            "refs": ["output.alpha.ldd.note.001"]
+          }
+        ],
+        "blocking": true,
+        "created_at": "2026-05-22T05:05:05.000Z",
+        "metadata": {}
+      }
+    ],
+    "approvals": [
+      {
+        "schema_version": "approval.v1",
+        "id": "approval.alpha.output.001",
+        "workflow_run_id": "workflow-run.alpha.001",
+        "output_artifact_id": "output.alpha.ldd.note.001",
+        "requested_from": "user.jws",
+        "approval_status": "pending",
+        "decision": null,
+        "decided_at": null,
+        "created_at": "2026-05-22T05:05:05.000Z",
+        "metadata": {}
+      }
+    ],
+    "output_artifacts": [
+      {
+        "schema_version": "output-artifact.v1",
+        "id": "output.alpha.ldd.note.001",
+        "tenant_id": "tenant.amic",
+        "matter_id": "matter.alpha.ldd",
+        "artifact_type": "markdown",
+        "artifact_uri": "outputs/alpha-ldd-note-001.md",
+        "content_hash": "dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+        "status": "pending_review",
+        "citation_ids": ["citation.alpha.output.001.p1"],
+        "created_by_run_id": "agent-run.alpha.001",
+        "created_at": "2026-05-22T05:05:04.000Z",
+        "metadata": {
+          "title": "신규 차입 승인 관련 RFI 후보"
+        }
+      }
+    ],
+    "audit_events": [
+      {
+        "schema_version": "audit-event.v1",
+        "id": "event.resource.ingested.alpha.001",
+        "type": "resource.ingested",
+        "time": "2026-05-22T05:02:00.000Z",
+        "tenant_id": "tenant.amic",
+        "actor": {
+          "actor_type": "connector",
+          "actor_id": "connector.local_filesystem",
+          "display_name": "Local Filesystem"
+        },
+        "subject": {
+          "subject_type": "resource",
+          "subject_id": "resource.alpha.minutes.001"
+        },
+        "correlation_id": "workflow-run.alpha.001",
+        "data": {
+          "matter_id": "matter.alpha.ldd"
+        },
+        "metadata": {}
+      },
+      {
+        "schema_version": "audit-event.v1",
+        "id": "event.approval.requested.alpha.001",
+        "type": "approval.requested",
+        "time": "2026-05-22T05:05:05.000Z",
+        "tenant_id": "tenant.amic",
+        "actor": {
+          "actor_type": "harness",
+          "actor_id": "harness.orchestrator",
+          "display_name": "Harness Orchestrator"
+        },
+        "subject": {
+          "subject_type": "approval",
+          "subject_id": "approval.alpha.output.001"
+        },
+        "correlation_id": "workflow-run.alpha.001",
+        "data": {
+          "output_artifact_id": "output.alpha.ldd.note.001"
+        },
+        "metadata": {}
+      }
+    ]
+  }
+}

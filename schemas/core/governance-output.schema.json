@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/governance-output.schema.json",
+  "title": "Hermes Governance and Output Contracts",
+  "type": "object",
+  "required": ["schema_version", "gate_results", "approvals", "output_artifacts", "audit_events"],
+  "properties": {
+    "schema_version": {
+      "const": "governance-output.v1"
+    },
+    "gate_results": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/gate_result"
+      }
+    },
+    "approvals": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/approval"
+      }
+    },
+    "output_artifacts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/output_artifact"
+      }
+    },
+    "audit_events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/audit_event"
+      }
+    }
+  },
+  "$defs": {
+    "gate_result": {
+      "type": "object",
+      "required": ["schema_version", "id", "workflow_run_id", "gate_id", "gate_stage", "status", "findings", "blocking", "created_at"],
+      "properties": {
+        "schema_version": {
+          "const": "gate-result.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "workflow_run_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "gate_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "gate_stage": {
+          "enum": ["pre_run", "in_run", "post_run"]
+        },
+        "status": {
+          "enum": ["passed", "failed", "warning", "skipped", "pending"]
+        },
+        "findings": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["finding_id", "severity", "message"],
+            "properties": {
+              "finding_id": {
+                "$ref": "common.schema.json#/$defs/id"
+              },
+              "severity": {
+                "enum": ["info", "low", "medium", "high", "critical"]
+              },
+              "message": {
+                "type": "string"
+              },
+              "refs": {
+                "type": "array",
+                "items": {
+                  "$ref": "common.schema.json#/$defs/id"
+                }
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "blocking": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "approval": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "workflow_run_id",
+        "output_artifact_id",
+        "requested_from",
+        "approval_status",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "approval.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "workflow_run_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "output_artifact_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "requested_from": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "approval_status": {
+          "enum": ["pending", "approved", "rejected", "changes_requested", "cancelled"]
+        },
+        "decision": {
+          "type": ["string", "null"]
+        },
+        "decided_at": {
+          "type": ["string", "null"],
+          "format": "date-time"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "output_artifact": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "tenant_id",
+        "matter_id",
+        "artifact_type",
+        "artifact_uri",
+        "content_hash",
+        "status",
+        "citation_ids",
+        "created_by_run_id",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "output-artifact.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "matter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "artifact_type": {
+          "enum": ["markdown", "docx", "pptx", "pdf", "email_draft", "pr_draft", "json", "task_update"]
+        },
+        "artifact_uri": {
+          "$ref": "common.schema.json#/$defs/uri"
+        },
+        "content_hash": {
+          "$ref": "common.schema.json#/$defs/hash_sha256"
+        },
+        "status": {
+          "enum": ["draft", "pending_review", "approved", "delivered", "rejected", "archived"]
+        },
+        "citation_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "created_by_run_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "audit_event": {
+      "type": "object",
+      "required": ["schema_version", "id", "type", "time", "tenant_id", "actor", "subject", "correlation_id", "data"],
+      "properties": {
+        "schema_version": {
+          "const": "audit-event.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "type": {
+          "type": "string"
+        },
+        "time": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "actor": {
+          "$ref": "common.schema.json#/$defs/actor"
+        },
+        "subject": {
+          "type": "object",
+          "required": ["subject_type", "subject_id"],
+          "properties": {
+            "subject_type": {
+              "type": "string"
+            },
+            "subject_id": {
+              "$ref": "common.schema.json#/$defs/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "correlation_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "data": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

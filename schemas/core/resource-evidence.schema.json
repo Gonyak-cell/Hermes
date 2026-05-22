@@ -1,0 +1,386 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/resource-evidence.schema.json",
+  "title": "Hermes Resource and Evidence Contracts",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "resources",
+    "resource_versions",
+    "normalized_texts",
+    "source_spans",
+    "evidence_items",
+    "facts",
+    "issues",
+    "citations"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "resource-evidence.v1"
+    },
+    "resources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resource"
+      }
+    },
+    "resource_versions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/resource_version"
+      }
+    },
+    "normalized_texts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/normalized_text"
+      }
+    },
+    "source_spans": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source_span"
+      }
+    },
+    "evidence_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence_item"
+      }
+    },
+    "facts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/fact"
+      }
+    },
+    "issues": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/issue"
+      }
+    },
+    "citations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/citation"
+      }
+    }
+  },
+  "$defs": {
+    "resource": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "tenant_id",
+        "source_system",
+        "source_uri",
+        "resource_type",
+        "content_hash",
+        "classification",
+        "matter_id",
+        "materialization_status",
+        "ingestion_status",
+        "created_at",
+        "created_by"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "resource-core.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "source_system": {
+          "enum": ["local_filesystem", "onedrive", "vdr", "outlook", "kakaotalk", "github", "plane", "manual"]
+        },
+        "source_uri": {
+          "$ref": "common.schema.json#/$defs/uri"
+        },
+        "resource_type": {
+          "enum": ["file", "email", "message", "meeting_note", "github_issue", "plane_issue", "document", "archive", "output"]
+        },
+        "content_hash": {
+          "$ref": "common.schema.json#/$defs/hash_sha256"
+        },
+        "classification": {
+          "$ref": "common.schema.json#/$defs/classification"
+        },
+        "matter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "materialization_status": {
+          "enum": ["not_required", "needs_materialization", "materializing", "readable", "failed", "waived"]
+        },
+        "ingestion_status": {
+          "enum": ["discovered", "queued", "ingested", "normalized", "indexed", "quarantined", "failed", "skipped_duplicate"]
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "created_by": {
+          "$ref": "common.schema.json#/$defs/actor"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "resource_version": {
+      "type": "object",
+      "required": ["schema_version", "id", "resource_id", "version_label", "content_hash", "created_at"],
+      "properties": {
+        "schema_version": {
+          "const": "resource-version.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "resource_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "version_label": {
+          "type": "string"
+        },
+        "content_hash": {
+          "$ref": "common.schema.json#/$defs/hash_sha256"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "normalized_text": {
+      "type": "object",
+      "required": ["schema_version", "id", "resource_id", "resource_version_id", "text_hash", "language", "extractor_id", "quality"],
+      "properties": {
+        "schema_version": {
+          "const": "normalized-text.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "resource_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "resource_version_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "text_hash": {
+          "$ref": "common.schema.json#/$defs/hash_sha256"
+        },
+        "language": {
+          "type": "string"
+        },
+        "extractor_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "quality": {
+          "enum": ["unknown", "high", "medium", "low", "ocr_required", "failed"]
+        },
+        "text_preview": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "source_span": {
+      "type": "object",
+      "required": ["schema_version", "id", "resource_id", "resource_version_id", "location_type", "locator", "text", "hash"],
+      "properties": {
+        "schema_version": {
+          "const": "source-span.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "resource_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "resource_version_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "location_type": {
+          "enum": ["page", "paragraph", "line", "cell", "slide", "timestamp", "message", "whole_document"]
+        },
+        "locator": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "text": {
+          "type": "string"
+        },
+        "hash": {
+          "$ref": "common.schema.json#/$defs/hash_sha256"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "evidence_item": {
+      "type": "object",
+      "required": ["schema_version", "id", "matter_id", "source_span_ids", "evidence_type", "summary", "reliability", "review_status"],
+      "properties": {
+        "schema_version": {
+          "const": "evidence-item.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "matter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "source_span_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "evidence_type": {
+          "enum": ["document_text", "table", "email_statement", "meeting_statement", "metadata", "computed"]
+        },
+        "summary": {
+          "type": "string"
+        },
+        "reliability": {
+          "enum": ["unknown", "client_provided", "counterparty_provided", "public_record", "attorney_verified", "machine_extracted"]
+        },
+        "review_status": {
+          "$ref": "common.schema.json#/$defs/review_status"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "fact": {
+      "type": "object",
+      "required": ["schema_version", "id", "matter_id", "evidence_item_ids", "statement", "fact_type", "confidence", "review_status"],
+      "properties": {
+        "schema_version": {
+          "const": "fact.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "matter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "evidence_item_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "statement": {
+          "type": "string"
+        },
+        "fact_type": {
+          "enum": ["party", "date", "amount", "obligation", "approval", "risk_signal", "missing_document", "procedural_event", "general"]
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "review_status": {
+          "$ref": "common.schema.json#/$defs/review_status"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "issue": {
+      "type": "object",
+      "required": ["schema_version", "id", "matter_id", "issue_type", "title", "linked_fact_ids", "severity", "status"],
+      "properties": {
+        "schema_version": {
+          "const": "issue.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "matter_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "issue_type": {
+          "enum": ["ldd_red_flag", "ldd_yellow_flag", "rfi", "litigation_evidence", "contract_gap", "deadline", "development_task", "general"]
+        },
+        "title": {
+          "type": "string"
+        },
+        "linked_fact_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "severity": {
+          "enum": ["info", "low", "medium", "high", "critical"]
+        },
+        "status": {
+          "enum": ["candidate", "open", "reviewed", "resolved", "rejected"]
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "citation": {
+      "type": "object",
+      "required": ["schema_version", "id", "output_artifact_id", "target_path", "source_span_ids", "evidence_item_ids", "citation_status"],
+      "properties": {
+        "schema_version": {
+          "const": "citation.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "output_artifact_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "target_path": {
+          "type": "string"
+        },
+        "source_span_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "evidence_item_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "citation_status": {
+          "enum": ["candidate", "verified", "needs_review", "rejected"]
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

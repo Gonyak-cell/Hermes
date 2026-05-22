@@ -1,0 +1,167 @@
+{
+  "owner": "jws",
+  "generated_on": "2026-05-22",
+  "review_cadence": "daily",
+  "projects": [
+    {
+      "id": "HERMES-HARNESS",
+      "name": "Hermes Personal Developer Harness",
+      "status": "active",
+      "priority": "p0",
+      "repository": "/Users/jws/Documents/Codex/Hermes",
+      "north_star": "개발 중인 프로젝트들을 Hermes가 매일 추적하고 다음 액션을 제안하게 만든다.",
+      "next_milestone": {
+        "name": "Personal dev project manager MVP",
+        "due": "2026-05-24",
+        "success_criteria": [
+          "프로젝트 포트폴리오 JSON을 검증한다.",
+          "오늘 할 일과 막힌 일을 brief로 만든다.",
+          "Hermes skill에서 brief CLI를 실행할 수 있다."
+        ]
+      },
+      "tasks": [
+        {
+          "id": "HD-001",
+          "title": "Add personal dev project schema and sample portfolio",
+          "status": "review",
+          "priority": "p0",
+          "due": "2026-05-22",
+          "estimate_minutes": 30,
+          "context": "로펌용 하네스와 별도로 개인 개발 프로젝트 관리 레이어를 추가한다.",
+          "acceptance": [
+            "schema exists",
+            "sample portfolio exists",
+            "tests cover portfolio brief"
+          ]
+        },
+        {
+          "id": "HD-002",
+          "title": "Create daily project brief command",
+          "status": "in-progress",
+          "priority": "p0",
+          "due": "2026-05-22",
+          "estimate_minutes": 45,
+          "context": "오늘의 top tasks, blockers, review items, release readiness를 출력한다.",
+          "acceptance": [
+            "npm run dev:brief works",
+            "blocked tasks are clearly shown",
+            "release checks are summarized"
+          ]
+        },
+        {
+          "id": "HD-003",
+          "title": "Decide whether to connect GitHub Issues or keep local JSON first",
+          "status": "next",
+          "priority": "p1",
+          "due": "2026-05-23",
+          "estimate_minutes": 20,
+          "context": "초기에는 로컬 JSON이 안전하고 빠르다. GitHub 연동은 다음 단계.",
+          "acceptance": [
+            "integration decision recorded",
+            "next integration path selected"
+          ]
+        }
+      ],
+      "risks": [
+        {
+          "id": "HD-R-001",
+          "title": "Too many management fields may slow actual building",
+          "severity": "medium",
+          "status": "watching",
+          "mitigation": "Daily brief should stay under 10 minutes of attention."
+        }
+      ],
+      "decisions": [
+        {
+          "id": "HD-D-001",
+          "date": "2026-05-22",
+          "decision": "Start with local JSON before live integrations.",
+          "reason": "It keeps the system transparent and avoids auth friction while the workflow is still forming."
+        }
+      ],
+      "release": {
+        "target": "2026-05-24",
+        "version": "0.1.0",
+        "checklist": [
+          {
+            "name": "schema",
+            "status": "done"
+          },
+          {
+            "name": "brief command",
+            "status": "todo"
+          },
+          {
+            "name": "Hermes skill",
+            "status": "todo"
+          }
+        ]
+      },
+      "links": [
+        {
+          "label": "workspace",
+          "url": "/Users/jws/Documents/Codex/Hermes"
+        }
+      ]
+    },
+    {
+      "id": "SIDE-PROJECT-X",
+      "name": "Side Project X",
+      "status": "blocked",
+      "priority": "p1",
+      "repository": "/Users/jws/Documents/Codex/SideProjectX",
+      "north_star": "작게 출시 가능한 개인 앱을 만든다.",
+      "next_milestone": {
+        "name": "Recover project context",
+        "due": "2026-05-25",
+        "success_criteria": [
+          "현재 코드 상태를 읽는다.",
+          "막힌 원인을 하나로 줄인다.",
+          "다음 90분 작업을 정의한다."
+        ]
+      },
+      "tasks": [
+        {
+          "id": "SPX-001",
+          "title": "Find current failing command or missing setup",
+          "status": "blocked",
+          "priority": "p1",
+          "due": "2026-05-23",
+          "estimate_minutes": 60,
+          "context": "프로젝트를 오래 안 봐서 어디서 멈췄는지 모른다.",
+          "blocker": "Need to inspect repo and run tests."
+        },
+        {
+          "id": "SPX-002",
+          "title": "Write one-page project recovery note",
+          "status": "backlog",
+          "priority": "p2",
+          "due": "2026-05-25",
+          "estimate_minutes": 30,
+          "context": "다시 놓치지 않도록 현재 상태를 남긴다."
+        }
+      ],
+      "risks": [
+        {
+          "id": "SPX-R-001",
+          "title": "Project may remain vague unless next action is concrete",
+          "severity": "high",
+          "status": "open",
+          "mitigation": "Start with one repo inspection command and one failing test."
+        }
+      ],
+      "decisions": [],
+      "release": {
+        "target": "unknown",
+        "version": "prototype",
+        "checklist": [
+          {
+            "name": "recover context",
+            "status": "blocked"
+          }
+        ]
+      },
+      "links": []
+    }
+  ]
+}

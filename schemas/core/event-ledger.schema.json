@@ -1,0 +1,289 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/core/event-ledger.schema.json",
+  "title": "Hermes Event Ledger",
+  "type": "object",
+  "required": ["schema_version", "ledger_id", "generated_at", "events", "run_ledgers"],
+  "properties": {
+    "schema_version": {
+      "const": "event-ledger.v1"
+    },
+    "ledger_id": {
+      "$ref": "common.schema.json#/$defs/id"
+    },
+    "generated_at": {
+      "$ref": "common.schema.json#/$defs/date_time"
+    },
+    "events": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/event"
+      }
+    },
+    "run_ledgers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/run_ledger"
+      }
+    },
+    "metadata": {
+      "$ref": "common.schema.json#/$defs/metadata"
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "event": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "type",
+        "time",
+        "tenant_id",
+        "correlation_id",
+        "actor",
+        "subject",
+        "data"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "event.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "resource.discovered",
+            "resource.ingested",
+            "resource.normalized",
+            "evidence.created",
+            "fact.extracted",
+            "issue.created",
+            "workflow.started",
+            "workflow.completed",
+            "agent_run.started",
+            "agent_run.completed",
+            "gate.passed",
+            "gate.failed",
+            "approval.requested",
+            "approval.decided",
+            "output.rendered",
+            "output.delivered",
+            "policy.violation.detected",
+            "cost.recorded",
+            "error.recorded"
+          ]
+        },
+        "time": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "correlation_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "causation_id": {
+          "type": ["string", "null"]
+        },
+        "actor": {
+          "$ref": "common.schema.json#/$defs/actor"
+        },
+        "subject": {
+          "type": "object",
+          "required": ["subject_type", "subject_id"],
+          "properties": {
+            "subject_type": {
+              "enum": [
+                "resource",
+                "normalized_text",
+                "source_span",
+                "evidence_item",
+                "fact",
+                "issue",
+                "workflow_run",
+                "agent_run",
+                "gate_result",
+                "approval",
+                "output_artifact",
+                "policy_snapshot",
+                "cost_record",
+                "error_record"
+              ]
+            },
+            "subject_id": {
+              "$ref": "common.schema.json#/$defs/id"
+            }
+          },
+          "additionalProperties": false
+        },
+        "policy_snapshot_id": {
+          "type": ["string", "null"]
+        },
+        "data": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "run_ledger": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "id",
+        "tenant_id",
+        "workflow_run_id",
+        "capability_id",
+        "policy_snapshot_id",
+        "status",
+        "input_refs",
+        "agent_run_ids",
+        "gate_result_ids",
+        "approval_ids",
+        "output_artifact_ids",
+        "event_ids",
+        "cost_records",
+        "error_records",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "run-ledger.v1"
+        },
+        "id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "tenant_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "workflow_run_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "capability_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "policy_snapshot_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "status": {
+          "$ref": "common.schema.json#/$defs/run_status"
+        },
+        "input_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "agent_run_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "gate_result_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "approval_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "output_artifact_ids": {
+          "type": "array",
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "event_ids": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "common.schema.json#/$defs/id"
+          }
+        },
+        "cost_records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cost_record"
+          }
+        },
+        "error_records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/error_record"
+          }
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "updated_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "cost_record": {
+      "type": "object",
+      "required": ["cost_record_id", "cost_type", "amount", "unit", "created_at"],
+      "properties": {
+        "cost_record_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "cost_type": {
+          "enum": ["tokens", "usd", "runtime_seconds", "storage_bytes"]
+        },
+        "amount": {
+          "type": "number",
+          "minimum": 0
+        },
+        "unit": {
+          "type": "string"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "error_record": {
+      "type": "object",
+      "required": ["error_record_id", "error_type", "message", "recoverable", "created_at"],
+      "properties": {
+        "error_record_id": {
+          "$ref": "common.schema.json#/$defs/id"
+        },
+        "error_type": {
+          "type": "string"
+        },
+        "message": {
+          "type": "string"
+        },
+        "recoverable": {
+          "type": "boolean"
+        },
+        "created_at": {
+          "$ref": "common.schema.json#/$defs/date_time"
+        },
+        "metadata": {
+          "$ref": "common.schema.json#/$defs/metadata"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

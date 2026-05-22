@@ -1,0 +1,271 @@
+{
+  "matter_id": "MNA-2026-ALPHA",
+  "title": "Project Alpha Share Purchase",
+  "client": "Han River Holdings",
+  "practice_area": "mna",
+  "matter_profile": {
+    "jurisdiction": "Republic of Korea",
+    "responsible_partner": "Partner Kim",
+    "matter_stage": "signing",
+    "client_ai_consent": "approved-with-restrictions",
+    "conflict_screen": "cleared",
+    "external_output_policy": "Internal operational briefs are allowed. Client-facing drafts require Partner Kim approval."
+  },
+  "confidentiality": {
+    "level": "client-confidential",
+    "human_approval_required": true,
+    "export_allowed": false,
+    "retention": "matter-close-plus-7-years",
+    "allowed_systems": [
+      "local-harness",
+      "hermes-local"
+    ],
+    "prohibited_systems": [
+      "unapproved-public-chatbot"
+    ]
+  },
+  "source_register": [
+    {
+      "id": "SRC-TEAMS-ALPHA",
+      "system": "kakaotalk",
+      "source_type": "chat-export",
+      "access_tier": "client-confidential",
+      "status": "active",
+      "retention": "matter-close-plus-7-years"
+    },
+    {
+      "id": "SRC-OUTLOOK-ALPHA",
+      "system": "outlook",
+      "source_type": "email-export",
+      "access_tier": "client-confidential",
+      "status": "active",
+      "retention": "matter-close-plus-7-years"
+    },
+    {
+      "id": "SRC-VDR-ALPHA",
+      "system": "vdr",
+      "source_type": "diligence-export",
+      "access_tier": "restricted",
+      "status": "active",
+      "retention": "matter-close-plus-7-years"
+    }
+  ],
+  "review_workflow": {
+    "default_reviewer": "Senior Lee",
+    "client_facing_requires_partner_approval": true,
+    "legal_conclusion_requires_citation": true,
+    "review_log": []
+  },
+  "team": [
+    {
+      "name": "Partner Kim",
+      "role": "partner"
+    },
+    {
+      "name": "Senior Lee",
+      "role": "senior-associate"
+    },
+    {
+      "name": "Associate Park",
+      "role": "associate"
+    },
+    {
+      "name": "Paralegal Choi",
+      "role": "paralegal"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "T-001",
+      "title": "Update SPA section 8.2 fallback language",
+      "owner": "Senior Lee",
+      "status": "open",
+      "due": "2026-05-24",
+      "source": "teams:2026-05-21",
+      "review_required": true
+    },
+    {
+      "id": "T-002",
+      "title": "Prepare client questions on undisclosed related-party transactions",
+      "owner": "Associate Park",
+      "status": "blocked",
+      "due": "2026-05-23",
+      "source": "vdr-review:legal-dd",
+      "review_required": true
+    },
+    {
+      "id": "T-003",
+      "title": "Match closing deliverables to CP checklist",
+      "owner": "Paralegal Choi",
+      "status": "in-review",
+      "due": "2026-05-26",
+      "source": "closing-call:2026-05-20",
+      "review_required": false
+    }
+  ],
+  "deadlines": [
+    {
+      "id": "D-001",
+      "title": "Draft revised SPA to buyer counsel",
+      "date": "2026-05-25",
+      "type": "deal",
+      "owner": "Senior Lee"
+    },
+    {
+      "id": "D-002",
+      "title": "Client board memo final internal review",
+      "date": "2026-05-27",
+      "type": "client",
+      "owner": "Partner Kim"
+    }
+  ],
+  "communications": [
+    {
+      "id": "C-001",
+      "source": "teams",
+      "date": "2026-05-21",
+      "summary": "Partner asked team to tighten indemnity cap fallback and confirm whether tax team has reviewed related-party issue.",
+      "pending_questions": [
+        "Has the tax team reviewed the related-party transaction issue?",
+        "Can client accept a separate escrow for pre-closing tax exposure?"
+      ]
+    },
+    {
+      "id": "C-002",
+      "source": "meeting",
+      "date": "2026-05-20",
+      "summary": "Closing call identified three deliverables without current evidence: officer certificate, bring-down certificate, and updated disclosure schedule.",
+      "pending_questions": [
+        "Who owns the updated disclosure schedule on client side?"
+      ]
+    }
+  ],
+  "documents": [
+    {
+      "id": "DOC-001",
+      "title": "SPA markup v12",
+      "type": "contract",
+      "status": "in-review",
+      "issue": "indemnity"
+    },
+    {
+      "id": "DOC-002",
+      "title": "Updated disclosure schedule",
+      "type": "closing-deliverable",
+      "status": "missing",
+      "issue": "closing"
+    },
+    {
+      "id": "DOC-003",
+      "title": "Tax team memo on related-party issue",
+      "type": "internal-memo",
+      "status": "requested",
+      "issue": "tax"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-001",
+      "title": "Related-party transaction issue lacks tax team sign-off",
+      "severity": "high",
+      "status": "open",
+      "source": "legal-dd"
+    },
+    {
+      "id": "R-002",
+      "title": "Disclosure schedule still missing before SPA circulation",
+      "severity": "medium",
+      "status": "monitoring",
+      "source": "closing-checklist"
+    }
+  ],
+  "billing": {
+    "wip_hours": 42.5,
+    "non_billable_hours": 3,
+    "billing_notes": [
+      "Do not bill internal harness setup time to client.",
+      "Separate tax team review time if tax matter is opened."
+    ]
+  },
+  "deal_control": {
+    "role": "seller counsel",
+    "signing_target": "2026-05-28",
+    "closing_target": "2026-06-14",
+    "vdr_requests": [
+      {
+        "id": "VDR-001",
+        "title": "Related-party transaction ledger for FY2024-FY2026",
+        "status": "requested",
+        "owner": "Associate Park",
+        "due": "2026-05-24",
+        "issue": "tax"
+      },
+      {
+        "id": "VDR-002",
+        "title": "Officer certificate draft",
+        "status": "missing",
+        "owner": "Paralegal Choi",
+        "due": "2026-05-26",
+        "issue": "closing"
+      }
+    ],
+    "qa_items": [
+      {
+        "id": "QA-001",
+        "question": "Can client accept escrow for pre-closing tax exposure?",
+        "from": "seller counsel",
+        "to": "client",
+        "status": "open",
+        "owner": "Senior Lee",
+        "due": "2026-05-23"
+      },
+      {
+        "id": "QA-002",
+        "question": "Who owns the disclosure schedule update?",
+        "from": "seller counsel",
+        "to": "client",
+        "status": "pending",
+        "owner": "Paralegal Choi",
+        "due": "2026-05-22"
+      }
+    ],
+    "negotiation_points": [
+      {
+        "id": "NP-001",
+        "clause": "SPA 8.2 Indemnity Cap",
+        "position": "Client prefers lower cap with escrow carve-out.",
+        "open_issue": "Buyer counsel requests separate cap for tax exposure.",
+        "severity": "high",
+        "status": "open",
+        "owner": "Senior Lee"
+      },
+      {
+        "id": "NP-002",
+        "clause": "Disclosure Schedule Bring-down",
+        "position": "Client can provide bring-down at closing.",
+        "open_issue": "Updated schedule not yet received.",
+        "severity": "medium",
+        "status": "monitoring",
+        "owner": "Associate Park"
+      }
+    ],
+    "cp_checklist": [
+      {
+        "id": "CP-001",
+        "title": "Officer certificate",
+        "status": "blocked",
+        "owner": "Paralegal Choi",
+        "due": "2026-05-26",
+        "evidence": null
+      },
+      {
+        "id": "CP-002",
+        "title": "Tax team sign-off",
+        "status": "in-review",
+        "owner": "Senior Lee",
+        "due": "2026-05-25",
+        "evidence": "DOC-003"
+      }
+    ]
+  }
+}

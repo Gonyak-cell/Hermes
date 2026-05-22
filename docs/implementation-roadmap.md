@@ -117,3 +117,24 @@
 - 승격된 `resource-evidence.json`이 `schemas/core/resource-evidence.schema.json`을 통과함
 - quarantine/failed 항목은 blocking gate로 남음
 - duplicate 항목은 별도 report에 남되 Evidence OS 후보에는 포함되지 않음
+
+## Phase 7: Evidence Viewer
+
+목표: Evidence OS 후보를 사람이 검토할 수 있는 정적 review packet으로 렌더링합니다.
+
+- `resource-ingest.json` 또는 `resource-evidence.json` 입력 지원
+- Evidence 후보별 source URI, classification, review status, preview text 표시
+- Ingest gate와 blocked item을 함께 표시
+- 정적 HTML, JSON review packet, Markdown summary 생성
+
+현재 구현:
+
+- `npm run evidence:viewer`
+- `src/evidence-viewer.mjs`
+- `docs/evidence-viewer.md`
+
+완료 기준:
+
+- 승격된 resource-evidence 항목이 evidence review queue로 표시됨
+- blocking gate와 blocked item이 viewer에 표시됨
+- `npm test`에서 viewer output HTML/JSON/Markdown 생성이 검증됨

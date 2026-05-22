@@ -11,6 +11,7 @@ import { parseKakaoTalkExport } from "../src/kakao-parser.mjs";
 import { buildLitigationMatrix, renderLitigationMatrix } from "../src/litigation-matrix.mjs";
 import { buildMatterBrief, readMatterFile, renderMatterBrief, validateMatter } from "../src/matter-harness.mjs";
 import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
+import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import {
   validateCapabilityManifestFile,
   validateEventLedgerFile,
@@ -197,6 +198,18 @@ describe("matter harness", () => {
       assert.equal(ingest.summary.blocked_count, 1);
       assert.equal(ingest.summary.gate_status, "blocked");
       assert.match(await readFile(path.join(outDir, "ingest", "blocked-items.json"), "utf8"), /secret_or_credential_path/);
+
+      const viewer = await runEvidenceViewer({
+        inputPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        outDir: path.join(outDir, "viewer"),
+        runAt: "2026-05-23T06:15:00.000Z",
+      });
+      assert.equal(viewer.summary.evidence_count, 1);
+      assert.equal(viewer.summary.needs_review_count, 1);
+      assert.equal(viewer.summary.blocking_gate_count, 1);
+      assert.match(viewer.html, /Hermes Evidence Viewer/);
+      assert.match(viewer.html, /secret_or_credential_path/);
+      assert.match(await readFile(path.join(outDir, "viewer", "summary.md"), "utf8"), /Evidence Review Queue/);
     } finally {
       await rm(root, { recursive: true, force: true });
       await rm(outDir, { recursive: true, force: true });

@@ -12,6 +12,7 @@
     "deal": "node scripts/deal-control.mjs examples/project-alpha-matter.json",
     "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",
     "dev:validate": "node scripts/validate-dev-projects.mjs examples/dev-projects.json",
+    "evidence:viewer": "node scripts/evidence-viewer.mjs",
     "intake": "node scripts/intake-messages.mjs examples/project-alpha-matter.json examples/raw-intake-messages.json",
     "intake:kakao": "node scripts/intake-kakao.mjs examples/project-alpha-matter.json examples/kakaotalk-alpha-export.txt --source-id kakao-alpha",
     "intake:outlook": "node scripts/intake-outlook.mjs examples/project-alpha-matter.json examples/outlook-alpha-email.eml --source-id outlook-alpha",

@@ -234,3 +234,32 @@
 - route index schema validation이 통과함
 - smoke test가 임시 포트에서 API를 띄운 뒤 주요 route를 검증함
 - `npm test`에서 API 응답과 action filtering이 검증됨
+
+## Phase 12: Domain Pack Registry
+
+목표: Law Firm, Personal Dev, Creative Document, Common pack을 core 수정 없이 등록 가능한 플러그인형 패키지로 고정합니다.
+
+- `packs/*/pack.json` manifest 도입
+- pack manifest가 capabilities, policies, schemas, workflows, gates, templates, extractors, renderers, migrations, golden cases, dependencies, permissions를 선언
+- pack capability가 기존 `capability-manifest.v1`과 policy matrix를 통과하는지 검증
+- pack dependency와 capability `domain_pack` 불일치 검출
+- registry artifact와 summary 생성
+
+현재 구현:
+
+- `npm run packs:registry`
+- `npm run packs:validate`
+- `src/domain-pack-registry.mjs`
+- `schemas/domain-pack-registry.schema.json`
+- `packs/common/pack.json`
+- `packs/law-firm/pack.json`
+- `packs/personal-dev/pack.json`
+- `packs/creative-document/pack.json`
+- `docs/domain-pack-registry.md`
+
+완료 기준:
+
+- 네 pack이 registry에 등록됨
+- Law Firm, Personal Dev, Creative Document pack이 Common pack에 의존함
+- pack capability가 capability manifest와 policy matrix 검증을 통과함
+- `npm run validate`가 pack registry 검증까지 포함함

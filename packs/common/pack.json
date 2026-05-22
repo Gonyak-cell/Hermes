@@ -1,0 +1,57 @@
+{
+  "schema_version": "domain-pack-manifest.v1",
+  "pack_id": "common",
+  "pack_version": "0.1.0",
+  "display_name": "Common Harness Pack",
+  "description": "Shared contracts for evidence, citation, document rendering, workflow utilities, and approval primitives used by domain packs.",
+  "enabled": true,
+  "core_compatibility": {
+    "min_core_version": "0.1.0"
+  },
+  "capabilities": [],
+  "policies": [
+    {
+      "policy_id": "common.policy.draft_only_outputs",
+      "description": "Generated artifacts stay internal or draft until an explicit approval gate passes."
+    }
+  ],
+  "schemas": [
+    "schemas/core/resource-evidence.schema.json",
+    "schemas/core/governance-output.schema.json",
+    "schemas/core/workflow-runtime.schema.json"
+  ],
+  "workflows": [
+    "workflow.common.resource_to_evidence.v1",
+    "workflow.common.approval_queue.v1"
+  ],
+  "gates": [
+    "classification_gate",
+    "tool_permission_gate",
+    "format_validation_gate",
+    "human_approval_gate"
+  ],
+  "templates": [
+    "templates/common/review-summary.md"
+  ],
+  "extractors": [
+    "extractor.plain_text_probe.v1"
+  ],
+  "renderers": [
+    "renderer.markdown.v1",
+    "renderer.dashboard_html.v1"
+  ],
+  "migrations": [],
+  "golden_cases": [
+    "golden.common.resource_to_evidence.simple"
+  ],
+  "dependencies": [],
+  "permissions": {
+    "max_classification": "P2_CLIENT_CONFIDENTIAL",
+    "external_model_policy": "approval_required",
+    "allowed_runtimes": ["harness", "local_script", "document_renderer", "manual"],
+    "default_output_status": "draft"
+  },
+  "metadata": {
+    "plugin_boundary": "shared_pack"
+  }
+}

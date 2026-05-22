@@ -1,0 +1,81 @@
+{
+  "schema_version": "domain-pack-manifest.v1",
+  "pack_id": "law-firm",
+  "pack_version": "0.1.0",
+  "display_name": "Law Firm Pack",
+  "description": "Matter-scoped legal operations, LDD, litigation evidence, contracts, VDR review, citation, and attorney approval workflows.",
+  "enabled": true,
+  "core_compatibility": {
+    "min_core_version": "0.1.0"
+  },
+  "capabilities": [
+    {
+      "capability_id": "law_firm.ldd.vdr_inventory",
+      "version": "0.1.0",
+      "path": "../../examples/core/capabilities/law-firm-ldd-vdr-inventory.json"
+    }
+  ],
+  "policies": [
+    {
+      "policy_id": "law_firm.policy.matter_boundary",
+      "description": "Retrieval must be filtered by tenant_id, matter_id, wall_id, and classification before context building."
+    },
+    {
+      "policy_id": "law_firm.policy.attorney_approval",
+      "description": "Client or court-facing outputs remain draft-only until attorney review passes."
+    }
+  ],
+  "schemas": [
+    "schemas/core/identity-policy.schema.json",
+    "schemas/core/resource-evidence.schema.json",
+    "schemas/core/governance-output.schema.json"
+  ],
+  "workflows": [
+    "workflow.law_firm.ldd.vdr_inventory.v1",
+    "workflow.law_firm.evidence_matrix.v1",
+    "workflow.law_firm.contract_draft_review.v1"
+  ],
+  "gates": [
+    "matter_access_gate",
+    "classification_gate",
+    "external_model_gate",
+    "privilege_gate",
+    "personal_data_gate",
+    "citation_gate",
+    "evidence_coverage_gate",
+    "human_approval_gate"
+  ],
+  "templates": [
+    "templates/law-firm/ldd-report.md",
+    "templates/law-firm/client-memo.md"
+  ],
+  "extractors": [
+    "extractor.law_firm.vdr_inventory.v1",
+    "extractor.law_firm.contract_terms.v1",
+    "extractor.law_firm.board_minutes.v1"
+  ],
+  "renderers": [
+    "renderer.law_firm.markdown_report.v1",
+    "renderer.law_firm.docx_draft.v1"
+  ],
+  "migrations": [],
+  "golden_cases": [
+    "golden.ldd.vdr_inventory.simple"
+  ],
+  "dependencies": [
+    {
+      "pack_id": "common",
+      "version": "0.1.0"
+    }
+  ],
+  "permissions": {
+    "max_classification": "P3_PRIVILEGED",
+    "external_model_policy": "approval_required",
+    "allowed_runtimes": ["harness", "local_script", "document_renderer", "manual"],
+    "default_output_status": "pending_review"
+  },
+  "metadata": {
+    "matter_boundary_required": true,
+    "draft_only_by_default": true
+  }
+}

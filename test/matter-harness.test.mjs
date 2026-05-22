@@ -13,6 +13,7 @@ import { buildMatterBrief, readMatterFile, renderMatterBrief, validateMatter } f
 import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
 import { runApprovalDecisions } from "../src/approval-decisions.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
+import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
@@ -378,6 +379,28 @@ describe("matter harness", () => {
     assert.deepEqual(personalDevResult.errors, []);
     assert.equal(lawFirmResult.valid, true);
     assert.equal(personalDevResult.valid, true);
+  });
+
+  it("builds and validates the domain pack registry", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "hermes-domain-packs-"));
+    try {
+      const registry = await runDomainPackRegistry({
+        outDir,
+        runAt: "2026-05-23T07:55:00.000Z",
+      });
+      const registrySchema = JSON.parse(await readFile("schemas/domain-pack-registry.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(registry, registrySchema, {}, "domain_pack_registry"), []);
+      assert.equal(registry.validation.valid, true);
+      assert.equal(registry.summary.pack_count, 4);
+      assert.equal(registry.summary.capability_count, 3);
+      assert.ok(registry.packs.some((pack) => pack.pack_id === "law-firm"));
+      assert.ok(registry.packs.some((pack) => pack.pack_id === "personal-dev"));
+      assert.ok(registry.packs.some((pack) => pack.pack_id === "creative-document"));
+      assert.ok(registry.capabilities.some((capability) => capability.capability_id === "creative_document.pptx.design_system"));
+      assert.match(await readFile(path.join(outDir, "summary.md"), "utf8"), /Domain Pack Registry/);
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
   });
 
   it("validates the event ledger against schema and run references", async () => {

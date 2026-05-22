@@ -1,0 +1,220 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/domain-pack-registry.schema.json",
+  "title": "Hermes Domain Pack Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "pack_root",
+    "policy_matrix_path",
+    "summary",
+    "packs",
+    "capabilities",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "domain-pack-registry.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "pack_root": {
+      "type": "string"
+    },
+    "policy_matrix_path": {
+      "type": "string"
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "pack_count",
+        "enabled_pack_count",
+        "capability_count",
+        "valid_pack_count",
+        "invalid_pack_count",
+        "valid_capability_count",
+        "invalid_capability_count",
+        "error_count",
+        "by_pack_id"
+      ],
+      "properties": {
+        "pack_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "enabled_pack_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "capability_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_pack_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invalid_pack_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "valid_capability_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "invalid_capability_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "by_pack_id": {
+          "type": "object"
+        }
+      }
+    },
+    "packs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "pack_id",
+          "pack_version",
+          "display_name",
+          "enabled",
+          "path",
+          "capability_count",
+          "dependency_pack_ids",
+          "policy_overlay_count",
+          "validation",
+          "manifest"
+        ],
+        "properties": {
+          "pack_id": {
+            "type": "string"
+          },
+          "pack_version": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "path": {
+            "type": "string"
+          },
+          "capability_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "dependency_pack_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "policy_overlay_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "validation": {
+            "$ref": "#/$defs/validation"
+          },
+          "manifest": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "capability_id",
+          "version",
+          "pack_id",
+          "path",
+          "display_name",
+          "input_contract",
+          "output_contract",
+          "allowed_runtimes",
+          "required_gate_count",
+          "validation"
+        ],
+        "properties": {
+          "capability_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          },
+          "pack_id": {
+            "type": "string"
+          },
+          "path": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "input_contract": {
+            "type": ["string", "null"]
+          },
+          "output_contract": {
+            "type": ["string", "null"]
+          },
+          "allowed_runtimes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "required_gate_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "validation": {
+            "$ref": "#/$defs/validation"
+          }
+        }
+      }
+    },
+    "validation": {
+      "$ref": "#/$defs/validation"
+    }
+  },
+  "$defs": {
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": {
+          "type": "boolean"
+        },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

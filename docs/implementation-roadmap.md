@@ -312,3 +312,29 @@
 - `law_firm_ldd_slice` stage와 action item이 생성됨
 - `/api/actions?source_stage=law_firm_ldd_slice`로 attorney approval action을 조회할 수 있음
 - `npm test`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 15: Domain Pack Dashboard/API Integration
+
+목표: Domain Pack Registry를 Dashboard/API에 1급 운영 상태로 노출합니다.
+
+- `artifacts/domain-packs/latest/domain-pack-registry.json`을 dashboard source로 읽음
+- pack/capability validation 상태를 `domain_pack_registry` stage로 표시
+- pack count, capability count, invalid/error count를 dashboard summary에 반영
+- validation error가 있으면 action queue에 `needs_fix` 항목을 생성
+- Review API에서 `/api/packs`, `/api/capabilities` 읽기 전용 route를 제공
+
+현재 구현:
+
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+- `schemas/review-dashboard.schema.json`
+- `scripts/review-api-smoke.mjs`
+- `docs/review-dashboard.md`
+- `docs/review-api.md`
+
+완료 기준:
+
+- dashboard가 Domain Pack Registry source와 `domain_pack_registry` stage를 포함함
+- `/api/packs?pack_id=law-firm`로 Law Firm pack을 조회할 수 있음
+- `/api/capabilities?pack_id=law-firm`로 Law Firm capability를 조회할 수 있음
+- `npm test`, `dashboard:build`, `api:smoke`가 통과함

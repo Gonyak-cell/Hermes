@@ -16,6 +16,8 @@ try {
   const index = await fetchJson(`${url}/api`);
   assert.equal(index.schema_version, "review-api-index.v1");
   assert.ok(index.routes.some((route) => route.path === "/api/dashboard"));
+  assert.ok(index.routes.some((route) => route.path === "/api/packs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capabilities"));
 
   const dashboard = await fetchJson(`${url}/api/dashboard`);
   assert.equal(dashboard.schema_version, "review-dashboard.v1");

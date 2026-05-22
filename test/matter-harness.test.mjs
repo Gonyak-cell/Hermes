@@ -274,6 +274,12 @@ describe("matter harness", () => {
       assert.equal(lddSlice.law_firm_slice.resource_evidence.citations.length, 1);
       assert.match(await readFile(path.join(outDir, "law-firm-ldd", "ldd-issue-report.md"), "utf8"), /LDD Issue Candidate Report/);
 
+      const domainPackRegistry = await runDomainPackRegistry({
+        outDir: path.join(outDir, "domain-packs"),
+        runAt: "2026-05-23T06:33:00.000Z",
+      });
+      assert.equal(domainPackRegistry.validation.valid, true);
+
       const personalDevSummaryPath = path.join(outDir, "personal-dev-summary.json");
       await writeFile(
         personalDevSummaryPath,
@@ -296,6 +302,7 @@ describe("matter harness", () => {
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath,
         outDir: path.join(outDir, "dashboard"),
@@ -306,8 +313,12 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.overall_status, "blocked");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
       assert.equal(dashboard.summary.pending_approval_count, 2);
+      assert.equal(dashboard.summary.domain_pack_count, 4);
+      assert.equal(dashboard.summary.domain_pack_capability_count, 4);
+      assert.equal(dashboard.summary.domain_pack_error_count, 0);
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "domain_pack_registry"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
       assert.ok(dashboard.summary.action_item_count >= 1);
@@ -326,6 +337,8 @@ describe("matter harness", () => {
       const routeIndexSchema = JSON.parse(await readFile("schemas/review-api-index.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(routeIndex, routeIndexSchema, {}, "review_api_index"), []);
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -335,6 +348,15 @@ describe("matter harness", () => {
       assert.equal(highActions.collection, "action_items");
       assert.ok(highActions.items.length >= 1);
       assert.ok(highActions.items.every((item) => item.priority === "high"));
+
+      const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
+      assert.equal(lawFirmPacks.collection, "domain_packs");
+      assert.equal(lawFirmPacks.count, 1);
+      assert.equal(lawFirmPacks.items[0].pack_id, "law-firm");
+
+      const lawFirmCapabilities = JSON.parse((await buildReviewApiResponse("/api/capabilities?pack_id=law-firm", apiOptions)).body);
+      assert.equal(lawFirmCapabilities.collection, "capabilities");
+      assert.ok(lawFirmCapabilities.items.some((capability) => capability.capability_id === "law_firm.ldd.issue_report"));
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

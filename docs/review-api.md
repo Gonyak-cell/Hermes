@@ -31,9 +31,11 @@ npm run api:serve
 - `GET /api/stages`: control plane stage 상태
 - `GET /api/actions`: action queue
 - `GET /api/sources`: dashboard source artifact 목록
+- `GET /api/packs`: domain pack registry의 pack 목록
+- `GET /api/capabilities`: domain pack capability 계약 목록
 - `GET /summary.md`: Markdown 요약
 
-`/api/actions`와 `/api/stages`는 `status`, `priority`, `source_stage`, `stage_id`, `source_id`, `available`, `limit` query를 지원한다.
+`/api/actions`와 `/api/stages`는 `status`, `priority`, `source_stage`, `stage_id`, `source_id`, `available`, `limit` query를 지원한다. `/api/packs`와 `/api/capabilities`는 `pack_id`, `capability_id`, `enabled`, `valid`, `limit` query를 지원한다.
 
 ## 검증
 

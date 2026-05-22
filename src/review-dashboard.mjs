@@ -8,6 +8,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   approvalDecisionPath: "artifacts/approval-decisions/latest/approval-decision-result.json",
+  domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
 };
@@ -37,6 +38,11 @@ const SOURCE_DEFINITIONS = [
     option: "approvalDecisionPath",
     source_id: "approval_decisions",
     label: "Approval Decisions",
+  },
+  {
+    option: "domainPackRegistryPath",
+    source_id: "domain_pack_registry",
+    label: "Domain Pack Registry",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -184,6 +190,17 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "approval_decisions") return data.summary ?? {};
+  if (sourceId === "domain_pack_registry") {
+    return {
+      valid: data.validation?.valid ?? false,
+      pack_count: data.summary?.pack_count ?? 0,
+      enabled_pack_count: data.summary?.enabled_pack_count ?? 0,
+      capability_count: data.summary?.capability_count ?? 0,
+      invalid_pack_count: data.summary?.invalid_pack_count ?? 0,
+      invalid_capability_count: data.summary?.invalid_capability_count ?? 0,
+      error_count: data.summary?.error_count ?? data.validation?.errors?.length ?? 0,
+    };
+  }
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -214,6 +231,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildApprovalDecisionStage(artifacts.approval_decisions, sourceById.get("approval_decisions")),
+    buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
   ];
@@ -329,6 +347,33 @@ function buildApprovalDecisionStage(decisions, source) {
   };
 }
 
+function buildDomainPackRegistryStage(registry, source) {
+  if (!registry) return missingStage("domain_pack_registry", "Domain Pack Registry", source);
+  const summary = registry.summary ?? {};
+  const errorCount = summary.error_count ?? registry.validation?.errors?.length ?? 0;
+  const invalidPackCount = summary.invalid_pack_count ?? 0;
+  const invalidCapabilityCount = summary.invalid_capability_count ?? 0;
+  const status = errorCount > 0 || invalidPackCount > 0 || invalidCapabilityCount > 0 ? "blocked" : "passed";
+  return {
+    stage_id: "domain_pack_registry",
+    label: "Domain Pack Registry",
+    status,
+    message: status === "passed"
+      ? `${summary.pack_count ?? 0} pack(s), ${summary.capability_count ?? 0} capability contract(s) registered.`
+      : `${invalidPackCount} invalid pack(s), ${invalidCapabilityCount} invalid capability contract(s), ${errorCount} error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      valid: registry.validation?.valid ?? false,
+      pack_count: summary.pack_count ?? 0,
+      enabled_pack_count: summary.enabled_pack_count ?? 0,
+      capability_count: summary.capability_count ?? 0,
+      invalid_pack_count: invalidPackCount,
+      invalid_capability_count: invalidCapabilityCount,
+      error_count: errorCount,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -434,6 +479,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.domain_pack_registry?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "domain_pack_registry";
+    items.push({
+      action_item_id: `dashboard.action.domain_pack_registry.${slugify(subjectId)}`,
+      source_stage: "domain_pack_registry",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix domain pack registry validation",
+      subject_ref: {
+        subject_type: "domain_pack_registry_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_pack_manifest", "rerun_packs_validate", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -500,6 +563,11 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     approval_queue_item_count: queueSummary.total_items ?? 0,
     approval_applied_count: decisionSummary.applied_count ?? 0,
     pending_approval_count: pendingApprovalCount,
+    domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
+    domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
+    invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
+    invalid_domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.invalid_capability_count ?? 0,
+    domain_pack_error_count: artifacts.domain_pack_registry?.summary?.error_count ?? artifacts.domain_pack_registry?.validation?.errors?.length ?? 0,
     law_firm_issue_count: artifacts.law_firm_ldd_slice?.issue_count ?? 0,
     law_firm_rfi_count: artifacts.law_firm_ldd_slice?.rfi_count ?? 0,
     law_firm_citation_count: artifacts.law_firm_ldd_slice?.citation_count ?? 0,
@@ -572,6 +640,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Evidence", dashboard.summary.evidence_count)}
       ${stat("Needs Review", dashboard.summary.evidence_needs_review_count)}
       ${stat("Pending Approvals", dashboard.summary.pending_approval_count)}
+      ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
     </div>
@@ -602,6 +671,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Evidence: ${dashboard.summary.evidence_count}`);
   lines.push(`- Evidence needs review: ${dashboard.summary.evidence_needs_review_count}`);
   lines.push(`- Pending approvals: ${dashboard.summary.pending_approval_count}`);
+  lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
+  lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Law firm issues: ${dashboard.summary.law_firm_issue_count ?? 0}`);
   lines.push(`- Law firm citations: ${dashboard.summary.law_firm_citation_count ?? 0}`);
   lines.push(`- Blocking gates: ${dashboard.summary.blocking_gate_count}`);
@@ -689,6 +760,8 @@ function parseArgs(argv) {
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--approval-decisions") parsed.approvalDecisionPath = argv[++index];
+    else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
+    else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -708,6 +781,8 @@ Options:
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --approval-decisions <path>    approval-decision-result.json path.
+  --domain-pack-registry <path>  domain-pack-registry.json path.
+  --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.
@@ -729,4 +804,12 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#39;");
+}
+
+function slugify(value) {
+  return String(value ?? "unknown")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "")
+    .slice(0, 120) || "unknown";
 }

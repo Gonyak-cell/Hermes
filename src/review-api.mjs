@@ -106,6 +106,24 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
   if (pathname === "/api/sources") {
     return jsonResponse(200, buildCollectionResponse("sources", dashboard.sources ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/packs") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "domain_pack_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("domain_pack_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("domain_packs", registryResult.artifact.packs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/capabilities") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "domain_pack_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("domain_pack_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capabilities", registryResult.artifact.capabilities ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -127,7 +145,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -145,6 +163,8 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/stages", "Control Plane stage statuses"),
       route("GET", "/api/actions", "Pending action queue"),
       route("GET", "/api/sources", "Dashboard source artifacts"),
+      route("GET", "/api/packs", "Domain pack registry packs"),
+      route("GET", "/api/capabilities", "Domain pack capability contracts"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -179,16 +199,32 @@ function buildCollectionResponse(collection, rawItems, url, generatedAt) {
 }
 
 function filterItems(items, searchParams) {
-  const filterKeys = ["status", "priority", "source_stage", "stage_id", "source_id", "available"];
+  const filterKeys = [
+    "status",
+    "priority",
+    "source_stage",
+    "stage_id",
+    "source_id",
+    "available",
+    "pack_id",
+    "capability_id",
+    "enabled",
+    "valid",
+  ];
   return items.filter((item) => {
     for (const key of filterKeys) {
       if (!searchParams.has(key)) continue;
       const expected = searchParams.get(key);
-      const actual = item[key];
+      const actual = readFilterValue(item, key);
       if (String(actual) !== expected) return false;
     }
     return true;
   });
+}
+
+function readFilterValue(item, key) {
+  if (key === "valid") return item.validation?.valid;
+  return item[key];
 }
 
 function limitItems(items, searchParams) {
@@ -210,6 +246,37 @@ async function readDashboard(options) {
     return {
       available: false,
       dashboard: null,
+      error: error.code === "ENOENT" ? "not_found" : error.message,
+    };
+  }
+}
+
+async function readDashboardSourceArtifact(dashboard, sourceId) {
+  const source = (dashboard.sources ?? []).find((candidate) => candidate.source_id === sourceId);
+  if (!source) {
+    return {
+      available: false,
+      artifact: null,
+      error: `Dashboard source ${sourceId} is not registered.`,
+    };
+  }
+  if (!source.available || !source.path) {
+    return {
+      available: false,
+      artifact: null,
+      error: `Dashboard source ${sourceId} is not available: ${source.error ?? "unavailable"}`,
+    };
+  }
+  try {
+    return {
+      available: true,
+      artifact: JSON.parse(await readFile(source.path, "utf8")),
+      error: null,
+    };
+  } catch (error) {
+    return {
+      available: false,
+      artifact: null,
       error: error.code === "ENOENT" ? "not_found" : error.message,
     };
   }

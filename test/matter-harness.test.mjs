@@ -13,6 +13,7 @@ import { buildMatterBrief, readMatterFile, renderMatterBrief, validateMatter } f
 import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
 import { runApprovalDecisions } from "../src/approval-decisions.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
+import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
@@ -280,6 +281,18 @@ describe("matter harness", () => {
       });
       assert.equal(domainPackRegistry.validation.valid, true);
 
+      const creativeDocumentSlice = await runCreativeDocumentSlice({
+        outDir: path.join(outDir, "creative-document"),
+        runAt: "2026-05-23T06:34:00.000Z",
+      });
+      assert.equal(creativeDocumentSlice.validation.valid, true);
+      assert.equal(creativeDocumentSlice.summary.status, "blocked");
+      assert.equal(creativeDocumentSlice.summary.format_validation_status, "passed");
+      assert.equal(creativeDocumentSlice.creative_document_slice.governance_output.gate_results.at(-1).gate_id, "human_approval_gate");
+      assert.equal(creativeDocumentSlice.creative_document_slice.governance_output.gate_results.at(-1).blocking, true);
+      assert.equal(creativeDocumentSlice.deck_manifest.slides.length, 5);
+      assert.match(await readFile(path.join(outDir, "creative-document", "deck-outline.md"), "utf8"), /Hermes Harness Progress Report/);
+
       const personalDevSummaryPath = path.join(outDir, "personal-dev-summary.json");
       await writeFile(
         personalDevSummaryPath,
@@ -305,6 +318,7 @@ describe("matter harness", () => {
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath,
+        creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -312,15 +326,19 @@ describe("matter harness", () => {
       assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
       assert.equal(dashboard.summary.overall_status, "blocked");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
-      assert.equal(dashboard.summary.pending_approval_count, 2);
+      assert.equal(dashboard.summary.pending_approval_count, 3);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
       assert.equal(dashboard.summary.domain_pack_error_count, 0);
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
+      assert.equal(dashboard.summary.creative_slide_count, 5);
+      assert.equal(dashboard.summary.creative_artifact_count, 3);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "domain_pack_registry"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "creative_document_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
+      assert.ok(dashboard.action_items.some((item) => item.source_stage === "creative_document_slice"));
       assert.ok(dashboard.summary.action_item_count >= 1);
       assert.match(await readFile(path.join(outDir, "dashboard", "index.html"), "utf8"), /Hermes Review Dashboard/);
       assert.match(await readFile(path.join(outDir, "dashboard", "summary.md"), "utf8"), /Action Items/);

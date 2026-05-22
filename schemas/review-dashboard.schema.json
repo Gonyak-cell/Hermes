@@ -45,6 +45,8 @@
         "law_firm_issue_count",
         "law_firm_rfi_count",
         "law_firm_citation_count",
+        "creative_slide_count",
+        "creative_artifact_count",
         "audit_event_count",
         "follow_up_count",
         "decision_error_count",
@@ -139,6 +141,14 @@
           "minimum": 0
         },
         "law_firm_citation_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "creative_slide_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "creative_artifact_count": {
           "type": "integer",
           "minimum": 0
         },

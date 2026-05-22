@@ -11,6 +11,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
+  creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
 };
 
 const SOURCE_DEFINITIONS = [
@@ -53,6 +54,11 @@ const SOURCE_DEFINITIONS = [
     option: "personalDevSummaryPath",
     source_id: "personal_dev_slice",
     label: "Personal Dev Slice",
+  },
+  {
+    option: "creativeDocumentSummaryPath",
+    source_id: "creative_document_slice",
+    label: "Creative Document Slice",
   },
 ];
 
@@ -220,6 +226,17 @@ function summarizeSource(sourceId, data) {
       approval_id: data.approval_id ?? null,
     };
   }
+  if (sourceId === "creative_document_slice") {
+    return {
+      status: data.status ?? "unknown",
+      blocked_reason: data.blocked_reason ?? null,
+      workflow_run_id: data.workflow_run_id ?? null,
+      approval_id: data.approval_id ?? null,
+      slide_count: data.slide_count ?? 0,
+      artifact_count: data.artifact_count ?? 0,
+      format_validation_status: data.format_validation_status ?? "unknown",
+    };
+  }
   return {};
 }
 
@@ -234,6 +251,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
+    buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
   ];
 }
 
@@ -415,6 +433,28 @@ function buildPersonalDevStage(summary, source) {
   };
 }
 
+function buildCreativeDocumentStage(summary, source) {
+  if (!summary) return missingStage("creative_document_slice", "Creative Document Slice", source);
+  const status = summary.status === "blocked" ? "pending" : summary.status === "passed" ? "passed" : summary.status ?? "attention";
+  return {
+    stage_id: "creative_document_slice",
+    label: "Creative Document Slice",
+    status,
+    message: summary.blocked_reason
+      ? `${summary.slide_count ?? 0} slide(s), format ${summary.format_validation_status ?? "unknown"}, blocked: ${summary.blocked_reason}`
+      : `${summary.slide_count ?? 0} slide(s), format ${summary.format_validation_status ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      status: summary.status ?? "unknown",
+      blocked_reason: summary.blocked_reason ?? null,
+      slide_count: summary.slide_count ?? 0,
+      artifact_count: summary.artifact_count ?? 0,
+      format_validation_status: summary.format_validation_status ?? "unknown",
+      approval_id: summary.approval_id ?? null,
+    },
+  };
+}
+
 function missingStage(stageId, label, source) {
   return {
     stage_id: stageId,
@@ -531,6 +571,23 @@ function buildActionItems(artifacts) {
     });
   }
 
+  if (artifacts.creative_document_slice?.status === "blocked") {
+    items.push({
+      action_item_id: `dashboard.action.creative_document.${artifacts.creative_document_slice.approval_id ?? "human_review"}`,
+      source_stage: "creative_document_slice",
+      priority: "medium",
+      status: "pending_approval",
+      title: "Review creative-document draft deck",
+      subject_ref: {
+        subject_type: "approval",
+        subject_id: artifacts.creative_document_slice.approval_id ?? "creative_document.human_review",
+      },
+      reason: artifacts.creative_document_slice.blocked_reason ?? "human approval pending",
+      recommended_actions: ["review_deck_outline", "inspect_pptx_draft", "approve_or_request_changes"],
+      source_ref: artifacts.creative_document_slice.workflow_run_id ?? null,
+    });
+  }
+
   return items;
 }
 
@@ -543,7 +600,9 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
   const blockingGateCount = viewerSummary.blocking_gate_count ?? countBlockingGates(artifacts.resource_ingest?.gate_results ?? []);
   const pendingApprovalCount = (
     decisionSummary.pending_count ?? queueSummary.by_status?.pending ?? queueSummary.total_items ?? 0
-  ) + pendingSliceApprovalCount(artifacts.law_firm_ldd_slice) + pendingSliceApprovalCount(artifacts.personal_dev_slice);
+  ) + pendingSliceApprovalCount(artifacts.law_firm_ldd_slice)
+    + pendingSliceApprovalCount(artifacts.personal_dev_slice)
+    + pendingSliceApprovalCount(artifacts.creative_document_slice);
   const blockedResourceCount = artifacts.resource_ingest?.summary?.blocked_count ?? viewerSummary.blocked_item_count ?? 0;
   const decisionErrorCount = artifacts.approval_decisions?.decision_errors?.length ?? 0;
 
@@ -571,6 +630,8 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     law_firm_issue_count: artifacts.law_firm_ldd_slice?.issue_count ?? 0,
     law_firm_rfi_count: artifacts.law_firm_ldd_slice?.rfi_count ?? 0,
     law_firm_citation_count: artifacts.law_firm_ldd_slice?.citation_count ?? 0,
+    creative_slide_count: artifacts.creative_document_slice?.slide_count ?? 0,
+    creative_artifact_count: artifacts.creative_document_slice?.artifact_count ?? 0,
     audit_event_count: artifacts.approval_decisions?.audit_events?.length ?? 0,
     follow_up_count: decisionSummary.follow_up_count ?? 0,
     decision_error_count: decisionErrorCount,
@@ -675,6 +736,7 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Law firm issues: ${dashboard.summary.law_firm_issue_count ?? 0}`);
   lines.push(`- Law firm citations: ${dashboard.summary.law_firm_citation_count ?? 0}`);
+  lines.push(`- Creative slides: ${dashboard.summary.creative_slide_count ?? 0}`);
   lines.push(`- Blocking gates: ${dashboard.summary.blocking_gate_count}`);
   lines.push(`- Blocked resources: ${dashboard.summary.blocked_resource_count}`);
   lines.push(`- Audit events: ${dashboard.summary.audit_event_count}`);
@@ -766,6 +828,8 @@ function parseArgs(argv) {
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
     else if (arg === "--no-personal-dev-summary") parsed.personalDevSummaryPath = false;
+    else if (arg === "--creative-document-summary") parsed.creativeDocumentSummaryPath = argv[++index];
+    else if (arg === "--no-creative-document-summary") parsed.creativeDocumentSummaryPath = false;
     else throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -787,6 +851,9 @@ Options:
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.
   --no-personal-dev-summary      Do not include personal-dev slice status.
+  --creative-document-summary <path>
+                                  Creative Document summary.json path.
+  --no-creative-document-summary Do not include Creative Document slice status.
   --out-dir <folder>             Output directory.
   --run-at <iso>                 Deterministic generated_at timestamp.
   -h, --help                     Show this help.

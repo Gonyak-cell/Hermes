@@ -338,3 +338,32 @@
 - `/api/packs?pack_id=law-firm`로 Law Firm pack을 조회할 수 있음
 - `/api/capabilities?pack_id=law-firm`로 Law Firm capability를 조회할 수 있음
 - `npm test`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 16: Creative Document PPTX Slice
+
+목표: Creative Document Pack의 PPTX 디자인 시스템 capability를 Control Plane vertical slice로 실행합니다.
+
+- `creative_document.pptx.design_system` capability를 실제 runner와 연결
+- `creative-document-brief.v1` 입력을 Resource/Evidence 계약으로 승격
+- deck manifest, markdown outline, deterministic draft PPTX 생성
+- `classification_gate`, `tool_permission_gate`, `cost_budget_gate`, `format_validation_gate`, `human_approval_gate` 생성
+- draft PPTX는 human approval 전 delivery 불가 상태로 유지
+- event ledger와 run ledger 생성
+- Review Dashboard/API에 creative document stage와 approval action을 표시
+
+현재 구현:
+
+- `npm run creative-document:slice`
+- `src/creative-document-slice-runner.mjs`
+- `scripts/run-creative-document-slice.mjs`
+- `examples/creative-document-brief.json`
+- `docs/creative-document-slice-runner.md`
+- `src/review-dashboard.mjs`
+
+완료 기준:
+
+- Creative Document slice가 core vertical slice schema와 event ledger validation을 통과함
+- `draft-deck.pptx`, `deck-manifest.json`, `deck-outline.md`가 생성됨
+- `format_validation_gate`가 passed, `human_approval_gate`가 blocking pending 상태로 남음
+- dashboard가 `creative_document_slice` stage와 action item을 포함함
+- `npm test`, `creative-document:slice`, `dashboard:build`, `api:smoke`가 통과함

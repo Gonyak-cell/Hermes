@@ -1,0 +1,46 @@
+{
+  "schema_version": "creative-document-brief.v1",
+  "project_id": "hermes-report-design-system",
+  "title": "Hermes Harness Progress Report",
+  "audience": "personal operator and reviewer",
+  "classification": "P1_INTERNAL",
+  "language": "ko",
+  "style_profile": {
+    "font_family": "Pretendard",
+    "page_size": "16:9",
+    "density": "compact",
+    "accent_colors": ["#0f766e", "#334155", "#f59e0b"],
+    "tone": "calm, operational, evidence-aware"
+  },
+  "constraints": [
+    "Maximum 6 slides",
+    "No client-confidential source text",
+    "Draft artifact only until human approval",
+    "Each slide must fit title and bullet placeholders"
+  ],
+  "sections": [
+    {
+      "title": "Current Control Plane",
+      "bullets": [
+        "Core contracts, policy matrix, event ledger, runtime adapter, and domain pack registry are active.",
+        "Review Dashboard and API expose stage status, action queue, packs, and capabilities."
+      ]
+    },
+    {
+      "title": "Domain Pack Coverage",
+      "bullets": [
+        "Law Firm Pack has an LDD issue report slice with citation and attorney approval gates.",
+        "Personal Dev Pack has worktree isolation, Claude/Codex planning, canonical checks, and merge approval gates.",
+        "Creative Document Pack now needs a draft presentation generation slice."
+      ]
+    },
+    {
+      "title": "Next Build Path",
+      "bullets": [
+        "Keep outputs draft-only until review.",
+        "Validate layout and format before human approval.",
+        "Expose the slice through the same dashboard/API surfaces."
+      ]
+    }
+  ]
+}

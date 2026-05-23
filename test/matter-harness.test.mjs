@@ -44,6 +44,7 @@ import { runObservabilityCatalog } from "../src/observability-catalog.mjs";
 import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
 import { runPostDeliveryReconciliation } from "../src/post-delivery-reconciliation.mjs";
 import { runProtectedDeliveryQueue } from "../src/protected-delivery-queue.mjs";
+import { runPolicyMatrixCatalog } from "../src/policy-matrix-catalog.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
@@ -329,6 +330,19 @@ describe("matter harness", () => {
       assert.equal(lddSlice.law_firm_slice.governance_output.gate_results.at(-1).blocking, true);
       assert.equal(lddSlice.law_firm_slice.resource_evidence.citations.length, 1);
       assert.match(await readFile(path.join(outDir, "law-firm-ldd", "ldd-issue-report.md"), "utf8"), /LDD Issue Candidate Report/);
+
+      const policyMatrixCatalog = await runPolicyMatrixCatalog({
+        outDir: path.join(outDir, "policy-matrix"),
+        runAt: "2026-05-23T06:32:30.000Z",
+      });
+      const policyMatrixCatalogSchema = JSON.parse(await readFile("schemas/policy-matrix-catalog.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(policyMatrixCatalog, policyMatrixCatalogSchema, {}, "policy_matrix_catalog"), []);
+      assert.equal(policyMatrixCatalog.policy_status, "valid");
+      assert.equal(policyMatrixCatalog.summary.classification_count, 6);
+      assert.equal(policyMatrixCatalog.summary.external_model_forbidden_count, 3);
+      assert.equal(policyMatrixCatalog.summary.external_model_approval_required_count, 1);
+      assert.ok(policyMatrixCatalog.gate_rules.some((gate) => gate.gate_id === "human_approval_gate"));
+      assert.match(await readFile(path.join(outDir, "policy-matrix", "summary.md"), "utf8"), /Policy Matrix Catalog/);
 
       const domainPackRegistry = await runDomainPackRegistry({
         outDir: path.join(outDir, "domain-packs"),
@@ -735,6 +749,7 @@ describe("matter harness", () => {
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
         approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
         approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -769,6 +784,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: false,
         controlPlaneGoalCheckpointPath: false,
         controlPlaneAuditTrailPath: false,
+        policyMatrixCatalogPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -1066,6 +1082,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
       assert.equal(dashboard.summary.evidence_review_draft_pending_decision_count, evidenceReviewDraft.summary.pending_decision_count);
       assert.equal(dashboard.summary.pending_approval_count, 3);
+      assert.equal(dashboard.summary.policy_classification_count, policyMatrixCatalog.summary.classification_count);
+      assert.equal(dashboard.summary.policy_gate_rule_count, policyMatrixCatalog.summary.gate_rule_count);
+      assert.equal(dashboard.summary.policy_external_model_forbidden_count, policyMatrixCatalog.summary.external_model_forbidden_count);
+      assert.equal(dashboard.summary.policy_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
       assert.equal(dashboard.summary.domain_pack_error_count, 0);
@@ -1162,6 +1182,7 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.approval_inbox_decision_pending_count, 0);
       assert.equal(dashboard.summary.approval_inbox_ready_for_delivery_count, 5);
       assert.equal(dashboard.summary.approval_inbox_decision_error_count, 0);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_matrix_catalog"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1216,6 +1237,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-drafts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-matrices"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-classifications"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-policies"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1290,6 +1318,23 @@ describe("matter harness", () => {
       const evidenceReviewItems = JSON.parse((await buildReviewApiResponse("/api/evidence-review-items?review_status=ready_for_review", apiOptions)).body);
       assert.equal(evidenceReviewItems.collection, "evidence_review_items");
       assert.ok(evidenceReviewItems.count >= 1);
+
+      const policyMatrices = JSON.parse((await buildReviewApiResponse("/api/policy-matrices?policy_status=valid", apiOptions)).body);
+      assert.equal(policyMatrices.collection, "policy_matrices");
+      assert.equal(policyMatrices.count, 1);
+
+      const p3ModelPolicies = JSON.parse((await buildReviewApiResponse("/api/model-policies?classification=P3_PRIVILEGED", apiOptions)).body);
+      assert.equal(p3ModelPolicies.collection, "model_policies");
+      assert.equal(p3ModelPolicies.count, 1);
+      assert.equal(p3ModelPolicies.items[0].external_model_policy, "forbidden");
+
+      const approvalToolPolicies = JSON.parse((await buildReviewApiResponse("/api/tool-policies?default_policy=approval_required", apiOptions)).body);
+      assert.equal(approvalToolPolicies.collection, "tool_policies");
+      assert.equal(approvalToolPolicies.count, policyMatrixCatalog.summary.approval_required_tool_count);
+
+      const blockingGatePolicies = JSON.parse((await buildReviewApiResponse("/api/gate-policies?blocking_by_default=true", apiOptions)).body);
+      assert.equal(blockingGatePolicies.collection, "gate_policies");
+      assert.equal(blockingGatePolicies.count, policyMatrixCatalog.summary.blocking_gate_count);
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

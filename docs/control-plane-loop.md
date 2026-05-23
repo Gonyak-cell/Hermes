@@ -10,6 +10,7 @@ npm run control-plane:loop
 
 기본 실행 순서:
 
+- `npm run policy:catalog`
 - `npm run control-plane:pipeline`
 - `npm run dashboard:build`
 - `npm run control-plane:health`

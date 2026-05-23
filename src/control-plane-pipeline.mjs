@@ -5,6 +5,7 @@ import path from "node:path";
 export const DEFAULT_CONTROL_PLANE_PIPELINE_OUT_DIR = "artifacts/control-plane-pipeline/latest";
 
 export const DEFAULT_CONTROL_PLANE_PIPELINE_STEPS = [
+  step("policy_matrix_catalog", "Policy Matrix Catalog", "policy_plane", ["npm", "run", "policy:catalog"], ["artifacts/policy-matrix/latest/policy-matrix-catalog.json"]),
   step("domain_pack_registry", "Domain Pack Registry", "pack_registry", ["npm", "run", "packs:registry"], ["artifacts/domain-packs/latest/domain-pack-registry.json"]),
   step("output_artifact_catalog", "Output Artifact Catalog", "output_plane", ["npm", "run", "output:catalog"], ["artifacts/output-catalog/latest/output-catalog.json"]),
   step("observability_catalog", "Observability Catalog", "observability_plane", ["npm", "run", "observability:catalog"], ["artifacts/observability/latest/observability-catalog.json"]),

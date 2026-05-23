@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/policy-matrix-catalog.schema.json",
+  "title": "Hermes Policy Matrix Catalog",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "catalog_id",
+    "source_policy_matrix_path",
+    "output_dir",
+    "policy_matrix",
+    "policy_status",
+    "summary",
+    "classification_levels",
+    "runtime_rules",
+    "model_rules",
+    "tool_rules",
+    "output_rules",
+    "gate_rules",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "policy-matrix-catalog.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "catalog_id": { "type": "string" },
+    "source_policy_matrix_path": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "policy_matrix": {
+      "type": "object",
+      "required": ["schema_version", "matrix_id", "version", "generated_at", "metadata"],
+      "properties": {
+        "schema_version": { "const": "policy-matrix.v1" },
+        "matrix_id": { "type": "string" },
+        "version": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "policy_status": { "enum": ["valid", "invalid"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "policy_status",
+        "classification_count",
+        "runtime_rule_count",
+        "model_rule_count",
+        "tool_rule_count",
+        "output_rule_count",
+        "gate_rule_count",
+        "external_model_forbidden_count",
+        "external_model_approval_required_count",
+        "model_approval_required_count",
+        "restricted_runtime_binding_count",
+        "forbidden_runtime_binding_count",
+        "approval_required_tool_count",
+        "restricted_tool_count",
+        "approval_required_output_count",
+        "partner_approval_output_count",
+        "blocking_gate_count",
+        "validation_error_count",
+        "by_external_model_policy",
+        "by_tool_policy",
+        "by_delivery_policy",
+        "by_gate_stage"
+      ],
+      "properties": {
+        "policy_status": { "enum": ["valid", "invalid"] },
+        "classification_count": { "type": "integer", "minimum": 0 },
+        "runtime_rule_count": { "type": "integer", "minimum": 0 },
+        "model_rule_count": { "type": "integer", "minimum": 0 },
+        "tool_rule_count": { "type": "integer", "minimum": 0 },
+        "output_rule_count": { "type": "integer", "minimum": 0 },
+        "gate_rule_count": { "type": "integer", "minimum": 0 },
+        "external_model_forbidden_count": { "type": "integer", "minimum": 0 },
+        "external_model_approval_required_count": { "type": "integer", "minimum": 0 },
+        "model_approval_required_count": { "type": "integer", "minimum": 0 },
+        "restricted_runtime_binding_count": { "type": "integer", "minimum": 0 },
+        "forbidden_runtime_binding_count": { "type": "integer", "minimum": 0 },
+        "approval_required_tool_count": { "type": "integer", "minimum": 0 },
+        "restricted_tool_count": { "type": "integer", "minimum": 0 },
+        "approval_required_output_count": { "type": "integer", "minimum": 0 },
+        "partner_approval_output_count": { "type": "integer", "minimum": 0 },
+        "blocking_gate_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_external_model_policy": { "type": "object" },
+        "by_tool_policy": { "type": "object" },
+        "by_delivery_policy": { "type": "object" },
+        "by_gate_stage": { "type": "object" }
+      }
+    },
+    "classification_levels": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/classification_level" }
+    },
+    "runtime_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/runtime_rule" }
+    },
+    "model_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/model_rule" }
+    },
+    "tool_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/tool_rule" }
+    },
+    "output_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/output_rule" }
+    },
+    "gate_rules": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gate_rule" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "classification_level": {
+      "type": "object",
+      "required": ["classification", "name", "description", "default_external_model_policy", "metadata"],
+      "properties": {
+        "classification": { "type": "string" },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "default_external_model_policy": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "runtime_rule": {
+      "type": "object",
+      "required": [
+        "runtime_rule_id",
+        "classification",
+        "allowed_runtimes",
+        "restricted_runtimes",
+        "forbidden_runtimes",
+        "required_gates",
+        "allowed_runtime_count",
+        "restricted_runtime_count",
+        "forbidden_runtime_count",
+        "required_gate_count",
+        "notes"
+      ],
+      "properties": {
+        "runtime_rule_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "allowed_runtimes": { "type": "array", "items": { "type": "string" } },
+        "restricted_runtimes": { "type": "array", "items": { "type": "string" } },
+        "forbidden_runtimes": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "allowed_runtime_count": { "type": "integer", "minimum": 0 },
+        "restricted_runtime_count": { "type": "integer", "minimum": 0 },
+        "forbidden_runtime_count": { "type": "integer", "minimum": 0 },
+        "required_gate_count": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "string" }
+      }
+    },
+    "model_rule": {
+      "type": "object",
+      "required": [
+        "model_rule_id",
+        "classification",
+        "external_model_policy",
+        "local_model_policy",
+        "redaction_policy",
+        "approval_required",
+        "notes"
+      ],
+      "properties": {
+        "model_rule_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "external_model_policy": { "type": "string" },
+        "local_model_policy": { "type": "string" },
+        "redaction_policy": { "type": "string" },
+        "approval_required": { "type": "boolean" },
+        "notes": { "type": "string" }
+      }
+    },
+    "tool_rule": {
+      "type": "object",
+      "required": ["tool_id", "description", "default_policy", "required_gates", "required_gate_count", "approval_required", "metadata"],
+      "properties": {
+        "tool_id": { "type": "string" },
+        "description": { "type": "string" },
+        "default_policy": { "type": "string" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "required_gate_count": { "type": "integer", "minimum": 0 },
+        "approval_required": { "type": "boolean" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "output_rule": {
+      "type": "object",
+      "required": ["artifact_type", "default_status", "required_gates", "required_gate_count", "delivery_policy", "approval_required", "metadata"],
+      "properties": {
+        "artifact_type": { "type": "string" },
+        "default_status": { "type": "string" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "required_gate_count": { "type": "integer", "minimum": 0 },
+        "delivery_policy": { "type": "string" },
+        "approval_required": { "type": "boolean" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "gate_rule": {
+      "type": "object",
+      "required": ["gate_id", "stage", "description", "blocking_by_default", "metadata"],
+      "properties": {
+        "gate_id": { "type": "string" },
+        "stage": { "type": "string" },
+        "description": { "type": "string" },
+        "blocking_by_default": { "type": "boolean" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

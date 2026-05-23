@@ -11,6 +11,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   approvalDecisionPath: "artifacts/approval-decisions/latest/approval-decision-result.json",
   approvalInboxPath: "artifacts/approval-inbox/latest/approval-inbox.json",
   approvalInboxDecisionPath: "artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json",
+  policyMatrixCatalogPath: "artifacts/policy-matrix/latest/policy-matrix-catalog.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -81,6 +82,11 @@ const SOURCE_DEFINITIONS = [
     option: "approvalInboxDecisionPath",
     source_id: "approval_inbox_decisions",
     label: "Approval Inbox Decisions",
+  },
+  {
+    option: "policyMatrixCatalogPath",
+    source_id: "policy_matrix_catalog",
+    label: "Policy Matrix Catalog",
   },
   {
     option: "domainPackRegistryPath",
@@ -361,6 +367,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "approval_decisions") return data.summary ?? {};
   if (sourceId === "approval_inbox") return data.summary ?? {};
   if (sourceId === "approval_inbox_decisions") return data.summary ?? {};
+  if (sourceId === "policy_matrix_catalog") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -488,6 +495,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApprovalDecisionStage(artifacts.approval_decisions, sourceById.get("approval_decisions")),
     buildApprovalInboxStage(artifacts.approval_inbox, sourceById.get("approval_inbox")),
     buildApprovalInboxDecisionStage(artifacts.approval_inbox_decisions, sourceById.get("approval_inbox_decisions")),
+    buildPolicyMatrixCatalogStage(artifacts.policy_matrix_catalog, sourceById.get("policy_matrix_catalog")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -699,6 +707,34 @@ function buildApprovalInboxDecisionStage(result, source) {
       ready_for_delivery_count: ready,
       patched_delivery_blocked_count: blocked,
       decision_error_count: errors,
+    },
+  };
+}
+
+function buildPolicyMatrixCatalogStage(catalog, source) {
+  if (!catalog) return missingStage("policy_matrix_catalog", "Policy Matrix Catalog", source);
+  const summary = catalog.summary ?? {};
+  const errorCount = summary.validation_error_count ?? catalog.validation?.errors?.length ?? 0;
+  const status = catalog.policy_status === "valid" && errorCount === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "policy_matrix_catalog",
+    label: "Policy Matrix Catalog",
+    status,
+    message: status === "passed"
+      ? `${summary.classification_count ?? 0} classification(s), ${summary.gate_rule_count ?? 0} gate rule(s), ${summary.external_model_forbidden_count ?? 0} external-model forbidden class(es).`
+      : `${errorCount} policy validation error(s) require contract repair.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      policy_status: catalog.policy_status ?? "unknown",
+      classification_count: summary.classification_count ?? 0,
+      runtime_rule_count: summary.runtime_rule_count ?? 0,
+      model_rule_count: summary.model_rule_count ?? 0,
+      tool_rule_count: summary.tool_rule_count ?? 0,
+      output_rule_count: summary.output_rule_count ?? 0,
+      gate_rule_count: summary.gate_rule_count ?? 0,
+      external_model_forbidden_count: summary.external_model_forbidden_count ?? 0,
+      external_model_approval_required_count: summary.external_model_approval_required_count ?? 0,
+      validation_error_count: errorCount,
     },
   };
 }
@@ -1546,6 +1582,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.policy_matrix_catalog?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "policy_matrix";
+    items.push({
+      action_item_id: `dashboard.action.policy_matrix.${slugify(subjectId)}`,
+      source_stage: "policy_matrix_catalog",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix policy matrix validation",
+      subject_ref: {
+        subject_type: "policy_matrix_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_policy_matrix", "rerun_policy_catalog", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -1959,6 +2013,17 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     approval_inbox_decision_pending_count: artifacts.approval_inbox_decisions?.summary?.pending_count ?? 0,
     approval_inbox_ready_for_delivery_count: artifacts.approval_inbox_decisions?.summary?.ready_for_delivery_count ?? 0,
     approval_inbox_decision_error_count: artifacts.approval_inbox_decisions?.summary?.decision_error_count ?? 0,
+    policy_classification_count: artifacts.policy_matrix_catalog?.summary?.classification_count ?? 0,
+    policy_runtime_rule_count: artifacts.policy_matrix_catalog?.summary?.runtime_rule_count ?? 0,
+    policy_model_rule_count: artifacts.policy_matrix_catalog?.summary?.model_rule_count ?? 0,
+    policy_tool_rule_count: artifacts.policy_matrix_catalog?.summary?.tool_rule_count ?? 0,
+    policy_output_rule_count: artifacts.policy_matrix_catalog?.summary?.output_rule_count ?? 0,
+    policy_gate_rule_count: artifacts.policy_matrix_catalog?.summary?.gate_rule_count ?? 0,
+    policy_external_model_forbidden_count: artifacts.policy_matrix_catalog?.summary?.external_model_forbidden_count ?? 0,
+    policy_external_model_approval_required_count: artifacts.policy_matrix_catalog?.summary?.external_model_approval_required_count ?? 0,
+    policy_approval_required_tool_count: artifacts.policy_matrix_catalog?.summary?.approval_required_tool_count ?? 0,
+    policy_approval_required_output_count: artifacts.policy_matrix_catalog?.summary?.approval_required_output_count ?? 0,
+    policy_validation_error_count: artifacts.policy_matrix_catalog?.summary?.validation_error_count ?? artifacts.policy_matrix_catalog?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2160,6 +2225,8 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Approval Inbox", dashboard.summary.approval_inbox_item_count)}
       ${stat("Inbox Applied", dashboard.summary.approval_inbox_applied_count)}
       ${stat("Matters", dashboard.summary.matter_count)}
+      ${stat("Policy Classes", dashboard.summary.policy_classification_count)}
+      ${stat("Policy Gates", dashboard.summary.policy_gate_rule_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2222,6 +2289,10 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Approval inbox ready for delivery: ${dashboard.summary.approval_inbox_ready_for_delivery_count ?? 0}`);
   lines.push(`- Matters: ${dashboard.summary.matter_count ?? 0}`);
   lines.push(`- Blocked matters: ${dashboard.summary.blocked_matter_count ?? 0}`);
+  lines.push(`- Policy classifications: ${dashboard.summary.policy_classification_count ?? 0}`);
+  lines.push(`- Policy gate rules: ${dashboard.summary.policy_gate_rule_count ?? 0}`);
+  lines.push(`- Policy external-model forbidden: ${dashboard.summary.policy_external_model_forbidden_count ?? 0}`);
+  lines.push(`- Policy validation errors: ${dashboard.summary.policy_validation_error_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2386,6 +2457,8 @@ function parseArgs(argv) {
     else if (arg === "--no-approval-inbox") parsed.approvalInboxPath = false;
     else if (arg === "--approval-inbox-decisions") parsed.approvalInboxDecisionPath = argv[++index];
     else if (arg === "--no-approval-inbox-decisions") parsed.approvalInboxDecisionPath = false;
+    else if (arg === "--policy-matrix-catalog") parsed.policyMatrixCatalogPath = argv[++index];
+    else if (arg === "--no-policy-matrix-catalog") parsed.policyMatrixCatalogPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2464,6 +2537,8 @@ Options:
   --approval-inbox-decisions <path>
                                   approval-inbox-decision-result.json path.
   --no-approval-inbox-decisions  Do not include Approval Inbox Decisions status.
+  --policy-matrix-catalog <path> policy-matrix-catalog.json path.
+  --no-policy-matrix-catalog     Do not include Policy Matrix Catalog status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

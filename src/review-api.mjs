@@ -128,6 +128,59 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/policy-matrices") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_matrices", [policyResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-classifications") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("policy_classifications", policyResult.artifact.classification_levels ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-policies") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_policies", policyResult.artifact.runtime_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/model-policies") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("model_policies", policyResult.artifact.model_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/tool-policies") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("tool_policies", policyResult.artifact.tool_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-policies") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_policies", policyResult.artifact.output_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/gate-policies") {
+    const policyResult = await readDashboardSourceArtifact(dashboard, "policy_matrix_catalog");
+    if (!policyResult.available) {
+      return jsonResponse(503, buildError("policy_matrix_catalog_unavailable", policyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("gate_policies", policyResult.artifact.gate_rules ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/packs") {
     const registryResult = await readDashboardSourceArtifact(dashboard, "domain_pack_registry");
     if (!registryResult.available) {
@@ -772,7 +825,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -792,6 +845,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/sources", "Dashboard source artifacts"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
+      route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
+      route("GET", "/api/policy-classifications", "Policy data classification levels"),
+      route("GET", "/api/runtime-policies", "Policy runtime rules"),
+      route("GET", "/api/model-policies", "Policy model transfer rules"),
+      route("GET", "/api/tool-policies", "Policy tool permission rules"),
+      route("GET", "/api/output-policies", "Policy output delivery rules"),
+      route("GET", "/api/gate-policies", "Policy gate rules"),
       route("GET", "/api/packs", "Domain pack registry packs"),
       route("GET", "/api/capabilities", "Domain pack capability contracts"),
       route("GET", "/api/artifacts", "Output artifact catalog"),
@@ -890,6 +950,20 @@ function filterItems(items, searchParams) {
     "stage_id",
     "source_id",
     "available",
+    "catalog_id",
+    "policy_status",
+    "matrix_id",
+    "classification",
+    "external_model_policy",
+    "local_model_policy",
+    "redaction_policy",
+    "approval_required",
+    "tool_id",
+    "default_policy",
+    "delivery_policy",
+    "gate_id",
+    "stage",
+    "blocking_by_default",
     "pack_id",
     "capability_id",
     "artifact_id",
@@ -989,6 +1063,7 @@ function filterItems(items, searchParams) {
 function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;
+  if (key === "matrix_id") return item.policy_matrix?.matrix_id ?? item.matrix_id;
   return item[key];
 }
 

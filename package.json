@@ -55,6 +55,7 @@
     "packs:registry": "node scripts/domain-pack-registry.mjs",
     "packs:validate": "node scripts/domain-pack-registry.mjs --check",
     "personal-dev:slice": "node scripts/run-personal-dev-slice.mjs",
+    "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "resource:audit": "node scripts/resource-audit.mjs",
     "resource:expand": "node scripts/resource-expansion.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",

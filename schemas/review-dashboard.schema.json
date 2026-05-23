@@ -49,6 +49,17 @@
         "approval_inbox_decision_pending_count",
         "approval_inbox_ready_for_delivery_count",
         "approval_inbox_decision_error_count",
+        "policy_classification_count",
+        "policy_runtime_rule_count",
+        "policy_model_rule_count",
+        "policy_tool_rule_count",
+        "policy_output_rule_count",
+        "policy_gate_rule_count",
+        "policy_external_model_forbidden_count",
+        "policy_external_model_approval_required_count",
+        "policy_approval_required_tool_count",
+        "policy_approval_required_output_count",
+        "policy_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -283,6 +294,50 @@
           "minimum": 0
         },
         "approval_inbox_decision_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_classification_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_runtime_rule_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_model_rule_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_tool_rule_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_output_rule_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_gate_rule_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_external_model_forbidden_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_external_model_approval_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_approval_required_tool_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_approval_required_output_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

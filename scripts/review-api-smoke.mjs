@@ -25,6 +25,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/audit-trails"));
   assert.ok(index.routes.some((route) => route.path === "/api/audit-events"));
   assert.ok(index.routes.some((route) => route.path === "/api/audit-sources"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-matrices"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-classifications"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/model-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -98,6 +105,22 @@ try {
   const auditSources = await fetchJson(`${url}/api/audit-sources?available=true&limit=5`);
   assert.equal(auditSources.collection, "audit_sources");
   assert.ok(auditSources.count <= 5);
+
+  const policyMatrices = await fetchJson(`${url}/api/policy-matrices?policy_status=valid&limit=1`);
+  assert.equal(policyMatrices.collection, "policy_matrices");
+  assert.ok(policyMatrices.count <= 1);
+
+  const p3ModelPolicies = await fetchJson(`${url}/api/model-policies?classification=P3_PRIVILEGED`);
+  assert.equal(p3ModelPolicies.collection, "model_policies");
+  assert.ok(p3ModelPolicies.items.every((item) => item.external_model_policy === "forbidden"));
+
+  const approvalToolPolicies = await fetchJson(`${url}/api/tool-policies?default_policy=approval_required&limit=5`);
+  assert.equal(approvalToolPolicies.collection, "tool_policies");
+  assert.ok(approvalToolPolicies.count <= 5);
+
+  const blockingGatePolicies = await fetchJson(`${url}/api/gate-policies?blocking_by_default=true&limit=5`);
+  assert.equal(blockingGatePolicies.collection, "gate_policies");
+  assert.ok(blockingGatePolicies.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

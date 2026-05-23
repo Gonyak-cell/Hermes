@@ -14,6 +14,7 @@ npm run dashboard:build -- \
   --approval-decisions artifacts/approval-decisions/latest/approval-decision-result.json \
   --approval-inbox artifacts/approval-inbox/latest/approval-inbox.json \
   --approval-inbox-decisions artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json \
+  --policy-matrix-catalog artifacts/policy-matrix/latest/policy-matrix-catalog.json \
   --domain-pack-registry artifacts/domain-packs/latest/domain-pack-registry.json \
   --output-catalog artifacts/output-catalog/latest/output-catalog.json \
   --observability-catalog artifacts/observability/latest/observability-catalog.json \
@@ -61,6 +62,7 @@ npm run dashboard:build -- \
 - Approval Decisions의 applied, pending, audit event, follow-up action
 - Approval Inbox의 output/delivery approval request와 gate blocker review 상태
 - Approval Inbox Decisions의 applied decision, patched ready delivery, decision error 상태
+- Policy Matrix Catalog의 classification, model/tool/output/gate policy와 validation 상태
 - Domain Pack Registry의 pack, capability, validation 상태
 - Output Artifact Catalog의 artifact, approval, delivery readiness 상태
 - Observability Catalog의 workflow run, event, runtime cost, blocked run 상태

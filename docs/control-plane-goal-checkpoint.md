@@ -30,6 +30,7 @@ npm run control-plane:goal-checkpoint -- \
 ## 체크 항목
 
 - Core contracts
+- Identity/Policy matrix
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow
@@ -66,4 +67,4 @@ node scripts/review-api.mjs --once "/api/goal-checkpoint-items?status=attention"
 
 ## Goal 내 위치
 
-이 단계는 `/goal`의 “각 단계마다 계획 대비 100% 구현 여부를 검증한 뒤 다음 단계로 넘어간다”는 원칙을 상태 artifact로 고정한다. 단순히 테스트 통과 여부가 아니라, core plane과 domain pack, runtime/approval/dashboard 계층이 목표 축별로 살아 있는지 확인한다.
+이 단계는 `/goal`의 “각 단계마다 계획 대비 100% 구현 여부를 검증한 뒤 다음 단계로 넘어간다”는 원칙을 상태 artifact로 고정한다. 단순히 테스트 통과 여부가 아니라, core plane과 policy, domain pack, runtime/approval/dashboard 계층이 목표 축별로 살아 있는지 확인한다.

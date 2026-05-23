@@ -1197,3 +1197,33 @@
 - `/api/audit-events?event_type=delivery.executed`로 protected delivery trace를 조회할 수 있음
 - Dashboard summary가 audit event/source/protected-action count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:audit-trail`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 48: Policy Matrix Catalog
+
+목표: `examples/core/policy-matrix.json`을 Dashboard/API와 Control Plane Loop에서 조회 가능한 Identity/Policy 운영 artifact로 올립니다.
+
+- `policy-matrix.v1`을 검증해 `policy-matrix-catalog.v1`로 정규화
+- classification, runtime, model, tool, output, gate rule을 별도 collection으로 노출
+- 외부 모델 금지/승인 필요, approval-required tool/output, blocking gate count를 summary로 제공
+- policy validation error를 dashboard action item으로 전환
+- Review Dashboard에 `policy_matrix_catalog` stage와 policy summary 추가
+- Review API에서 `/api/policy-matrices`, `/api/policy-classifications`, `/api/runtime-policies`, `/api/model-policies`, `/api/tool-policies`, `/api/output-policies`, `/api/gate-policies` route 제공
+- Control Plane Pipeline과 Loop에 `npm run policy:catalog` 포함
+- Goal Checkpoint에서 Identity/Policy matrix를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run policy:catalog`
+- `src/policy-matrix-catalog.mjs`
+- `schemas/policy-matrix-catalog.schema.json`
+- `docs/policy-matrix-catalog.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- policy matrix catalog artifact가 schema validation을 통과함
+- `/api/model-policies?classification=P3_PRIVILEGED`로 privileged 외부모델 금지 정책을 조회할 수 있음
+- `/api/tool-policies?default_policy=approval_required`와 `/api/gate-policies?blocking_by_default=true`가 동작함
+- Dashboard summary가 classification/gate/external-model restriction/validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run policy:catalog`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

@@ -1568,3 +1568,37 @@
 - `/api/human-review-workspace-entries?receipt_status=pending`으로 pending workspace entry를 조회할 수 있음
 - Dashboard summary가 actor workspace, workspace entry, receipt row, pending, editable file, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-workspace`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 60: Human Review Receipt Workspace Merge
+
+목표: actor별 receipt workspace에서 사람이 수정한 `receipt-input.json`들을 다시 하나의 표준 receipt input으로 합쳐, 기존 Human Gate Receipt Validation에 넘길 수 있게 한다.
+
+- actor별 `actors/<required_actor>/receipt-input.json`을 읽어 merge item 생성
+- workspace entry 기준으로 receipt id, gate item, source plan item, required actor 일치 여부 확인
+- 누락 receipt, 중복 receipt, unknown receipt, actor mismatch를 merge validation error로 기록
+- pending receipt는 그대로 pending으로 보존하고 terminal receipt는 validation 대상으로 전달
+- protected action은 merge 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- `receipt-input.json`을 `control-plane-human-gate-receipts-input.v1` 형태로 재생성
+- Control Plane Loop에서 human gate receipt validation이 workspace merge의 `receipt-input.json`을 읽도록 연결
+- Review Dashboard에 `human_review_receipt_workspace_merge` stage와 actor input/merge row/pending/ready/error summary 추가
+- Review API에서 `/api/human-review-receipt-workspace-merges`, `/api/human-review-receipt-merge-items`, `/api/human-review-merged-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Receipt Workspace Merge를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-workspace:merge`
+- `src/human-review-receipt-workspace-merge.mjs`
+- `schemas/human-review-receipt-workspace-merge.schema.json`
+- `docs/human-review-receipt-workspace-merge.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review receipt workspace merge artifact가 schema validation을 통과함
+- merged `receipt-input.json`이 actor별 receipt input row를 누락 없이 포함함
+- `/api/human-review-receipt-merge-items?merge_status=pending_receipt`로 pending merge item을 조회할 수 있음
+- `/api/human-review-merged-receipt-input?receipt_status=pending`으로 validation에 넘길 merged receipt row를 조회할 수 있음
+- Dashboard summary가 actor input, merge item, receipt row, pending, ready, missing, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-workspace:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

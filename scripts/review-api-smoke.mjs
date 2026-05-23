@@ -99,6 +99,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-receipt-workspaces"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-workspaces"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-workspace-entries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-receipt-workspace-merges"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-receipt-merge-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-merged-receipt-input"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
@@ -333,6 +336,18 @@ try {
   const humanReviewWorkspaceEntries = await fetchJson(`${url}/api/human-review-workspace-entries?receipt_status=pending&limit=5`);
   assert.equal(humanReviewWorkspaceEntries.collection, "human_review_workspace_entries");
   assert.ok(humanReviewWorkspaceEntries.count <= 5);
+
+  const humanReviewReceiptWorkspaceMerges = await fetchJson(`${url}/api/human-review-receipt-workspace-merges?merge_status=pending_receipts&limit=1`);
+  assert.equal(humanReviewReceiptWorkspaceMerges.collection, "human_review_receipt_workspace_merges");
+  assert.ok(humanReviewReceiptWorkspaceMerges.count <= 1);
+
+  const humanReviewReceiptMergeItems = await fetchJson(`${url}/api/human-review-receipt-merge-items?merge_status=pending_receipt&limit=5`);
+  assert.equal(humanReviewReceiptMergeItems.collection, "human_review_receipt_merge_items");
+  assert.ok(humanReviewReceiptMergeItems.count <= 5);
+
+  const humanReviewMergedReceiptInput = await fetchJson(`${url}/api/human-review-merged-receipt-input?receipt_status=pending&limit=5`);
+  assert.equal(humanReviewMergedReceiptInput.collection, "human_review_merged_receipt_input");
+  assert.ok(humanReviewMergedReceiptInput.count <= 5);
 
   const pendingHumanGateReceiptValidations = await fetchJson(`${url}/api/human-gate-receipt-validations?validation_status=pending_receipt&limit=5`);
   assert.equal(pendingHumanGateReceiptValidations.collection, "human_gate_receipt_validations");

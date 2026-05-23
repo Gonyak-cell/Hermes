@@ -915,6 +915,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-receipt-workspace-merges") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_receipt_workspace_merges", [mergeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-receipt-merge-items") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_receipt_merge_items", mergeResult.artifact.merge_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-merged-receipt-input") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_merged_receipt_input", mergeResult.artifact.receipt_input?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1202,6 +1235,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-receipt-workspaces", "Human review receipt workspace artifacts"),
       route("GET", "/api/human-review-actor-workspaces", "Actor-specific editable receipt workspaces"),
       route("GET", "/api/human-review-workspace-entries", "Human review receipt workspace entries"),
+      route("GET", "/api/human-review-receipt-workspace-merges", "Human review receipt workspace merge artifacts"),
+      route("GET", "/api/human-review-receipt-merge-items", "Merged human review receipt items"),
+      route("GET", "/api/human-review-merged-receipt-input", "Merged receipt input rows generated from actor workspaces"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
@@ -1410,6 +1446,10 @@ function filterItems(items, searchParams) {
     "actor_workspace_id",
     "workspace_entry_id",
     "workspace_status",
+    "merge_id",
+    "merge_item_id",
+    "merge_status",
+    "actor_input_id",
     "template_row_present",
     "ready_for_validation",
     "receipt_status",

@@ -23,3 +23,5 @@ Safe handling:
 - Every edited actor receipt input must still pass human gate receipt validation before any receipt application command.
 
 This keeps `/goal`'s Gate/Approval layer explicit: agenda is for deciding what must be reviewed, intake turns decisions into standard receipt input, and workspace gives each actor a clean file to fill without bypassing validation.
+
+After actor files are edited, run `npm run control-plane:review-workspace:merge` to recombine them into one validation input. Validation and application remain separate gated steps.

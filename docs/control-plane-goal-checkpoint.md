@@ -45,6 +45,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human review agenda
 - Human review agenda receipt intake
 - Human review receipt workspace
+- Human review receipt workspace merge
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
@@ -60,6 +61,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Agenda: reviewer별 agenda와 receipt decision template이 생성되고 validation error가 없으면 구현 통과
 - Human Review Agenda Receipt Intake: agenda decision template이 표준 human gate receipt input으로 변환되고 validation error가 없으면 구현 통과
 - Human Review Receipt Workspace: actor별 editable receipt input과 review checklist가 생성되고 validation error가 없으면 구현 통과
+- Human Review Receipt Workspace Merge: actor별 receipt input이 표준 receipt input으로 병합되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

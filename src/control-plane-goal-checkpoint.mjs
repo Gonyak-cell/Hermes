@@ -25,6 +25,7 @@ const GOAL_ITEMS = [
   sourceItem("approval_workflow", "Gate and approval workflow", "gate_approval", "approval_inbox", "control-plane-approval-workflow", { acceptance_profile: "approval_gate" }),
   sourceItem("human_review_packets", "Human review packets", "gate_approval", "human_review_packet_ledger", "control-plane-human-review-packets", { acceptance_profile: "human_review_packet_gate" }),
   sourceItem("human_review_agenda", "Human review agenda", "gate_approval", "human_review_agenda", "control-plane-human-review-agenda", { acceptance_profile: "human_review_agenda_gate" }),
+  sourceItem("human_review_agenda_receipt_intake", "Human review agenda receipt intake", "gate_approval", "human_review_agenda_receipt_intake", "control-plane-human-review-agenda-intake", { acceptance_profile: "human_review_agenda_receipt_intake_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -321,6 +322,12 @@ function evaluateStageAcceptance(item, stage) {
   if (item.acceptance_profile === "human_review_agenda_gate") {
     if ((metrics.agenda_item_count ?? 0) > 0 && (metrics.decision_template_row_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
       return passedWithOperationalGate(stage, "Human review agenda is implemented and producing reviewer-specific receipt templates.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_agenda_receipt_intake_gate") {
+    if ((metrics.receipt_row_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
+      return passedWithOperationalGate(stage, "Human review agenda receipt intake is implemented and feeding receipt validation safely.");
     }
   }
 

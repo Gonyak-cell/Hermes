@@ -40,6 +40,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlaneHumanGateReceiptsPath: "artifacts/control-plane-human-gate-receipts/latest/control-plane-human-gate-receipt-drafts.json",
   humanReviewPacketLedgerPath: "artifacts/human-review-packets/latest/human-review-packet-ledger.json",
   humanReviewAgendaPath: "artifacts/human-review-agenda/latest/human-review-agenda.json",
+  humanReviewAgendaReceiptIntakePath: "artifacts/human-review-agenda-receipt-intake/latest/human-review-agenda-receipt-intake.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -236,6 +237,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewAgendaPath",
     source_id: "human_review_agenda",
     label: "Human Review Agenda",
+  },
+  {
+    option: "humanReviewAgendaReceiptIntakePath",
+    source_id: "human_review_agenda_receipt_intake",
+    label: "Human Review Agenda Receipt Intake",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -508,6 +514,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_human_gate_receipts") return data.summary ?? {};
   if (sourceId === "human_review_packet_ledger") return data.summary ?? {};
   if (sourceId === "human_review_agenda") return data.summary ?? {};
+  if (sourceId === "human_review_agenda_receipt_intake") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -587,6 +594,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlaneHumanGateReceiptsStage(artifacts.control_plane_human_gate_receipts, sourceById.get("control_plane_human_gate_receipts")),
     buildHumanReviewPacketLedgerStage(artifacts.human_review_packet_ledger, sourceById.get("human_review_packet_ledger")),
     buildHumanReviewAgendaStage(artifacts.human_review_agenda, sourceById.get("human_review_agenda")),
+    buildHumanReviewAgendaReceiptIntakeStage(artifacts.human_review_agenda_receipt_intake, sourceById.get("human_review_agenda_receipt_intake")),
     buildControlPlaneHumanGateReceiptValidationStage(artifacts.control_plane_human_gate_receipt_validation, sourceById.get("control_plane_human_gate_receipt_validation")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
@@ -1615,6 +1623,38 @@ function buildHumanReviewAgendaStage(agenda, source) {
   };
 }
 
+function buildHumanReviewAgendaReceiptIntakeStage(intake, source) {
+  if (!intake) return missingStage("human_review_agenda_receipt_intake", "Human Review Agenda Receipt Intake", source);
+  const summary = intake.summary ?? {};
+  const errorCount = summary.validation_error_count ?? intake.validation?.errors?.length ?? 0;
+  const status = intake.intake_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : (summary.pending_receipt_count ?? 0) > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "human_review_agenda_receipt_intake",
+    label: "Human Review Agenda Receipt Intake",
+    status,
+    message: `${summary.receipt_row_count ?? 0} receipt row(s), ${summary.pending_receipt_count ?? 0} pending, ${summary.ready_for_validation_count ?? 0} ready for validation.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      intake_status: intake.intake_status ?? "unknown",
+      intake_item_count: summary.intake_item_count ?? 0,
+      receipt_row_count: summary.receipt_row_count ?? 0,
+      pending_receipt_count: summary.pending_receipt_count ?? 0,
+      ready_for_validation_count: summary.ready_for_validation_count ?? 0,
+      invalid_template_row_count: summary.invalid_template_row_count ?? 0,
+      missing_template_row_count: summary.missing_template_row_count ?? 0,
+      unknown_requirement_count: summary.unknown_requirement_count ?? 0,
+      protected_action_count: summary.protected_action_count ?? 0,
+      human_required_count: summary.human_required_count ?? 0,
+      evidence_decision_count: summary.evidence_decision_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -2160,6 +2200,24 @@ function buildActionItems(artifacts) {
       reason: agendaItem.reason,
       recommended_actions: agendaItem.checklist ?? agendaItem.recommended_actions ?? [],
       source_ref: agendaItem.review_packet_id,
+    });
+  }
+
+  for (const error of artifacts.human_review_agenda_receipt_intake?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_agenda_receipt_intake";
+    items.push({
+      action_item_id: `dashboard.action.human_review_agenda_receipt_intake.${slugify(subjectId)}`,
+      source_stage: "human_review_agenda_receipt_intake",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review agenda receipt intake",
+      subject_ref: {
+        subject_type: "human_review_agenda_receipt_intake_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_human_review_decision_template", "rerun_human_review_agenda_intake", "rerun_human_gate_receipt_validation"],
+      source_ref: subjectId,
     });
   }
 
@@ -2749,6 +2807,12 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_agenda_decision_row_count: artifacts.human_review_agenda?.summary?.decision_template_row_count ?? 0,
     human_review_agenda_protected_action_count: artifacts.human_review_agenda?.summary?.protected_action_count ?? 0,
     human_review_agenda_validation_error_count: artifacts.human_review_agenda?.summary?.validation_error_count ?? artifacts.human_review_agenda?.validation?.errors?.length ?? 0,
+    human_review_agenda_intake_item_count: artifacts.human_review_agenda_receipt_intake?.summary?.intake_item_count ?? 0,
+    human_review_agenda_intake_receipt_row_count: artifacts.human_review_agenda_receipt_intake?.summary?.receipt_row_count ?? 0,
+    human_review_agenda_intake_pending_count: artifacts.human_review_agenda_receipt_intake?.summary?.pending_receipt_count ?? 0,
+    human_review_agenda_intake_ready_count: artifacts.human_review_agenda_receipt_intake?.summary?.ready_for_validation_count ?? 0,
+    human_review_agenda_intake_invalid_count: artifacts.human_review_agenda_receipt_intake?.summary?.invalid_template_row_count ?? 0,
+    human_review_agenda_intake_validation_error_count: artifacts.human_review_agenda_receipt_intake?.summary?.validation_error_count ?? artifacts.human_review_agenda_receipt_intake?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -2895,6 +2959,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Gate Receipts", dashboard.summary.human_gate_receipt_draft_count)}
       ${stat("Review Packets", dashboard.summary.human_review_packet_count)}
       ${stat("Review Agenda", dashboard.summary.human_review_agenda_item_count)}
+      ${stat("Agenda Intake", dashboard.summary.human_review_agenda_intake_receipt_row_count)}
       ${stat("Gate Receipt Check", dashboard.summary.human_gate_receipt_validation_ready_count)}
       ${stat("Gate Receipt Apply", dashboard.summary.human_gate_receipt_application_applied_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
@@ -3024,6 +3089,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human review agenda items: ${dashboard.summary.human_review_agenda_item_count ?? 0}`);
   lines.push(`- Human review agenda actors: ${dashboard.summary.human_review_agenda_actor_count ?? 0}`);
   lines.push(`- Human review agenda decision rows: ${dashboard.summary.human_review_agenda_decision_row_count ?? 0}`);
+  lines.push(`- Human review agenda intake rows: ${dashboard.summary.human_review_agenda_intake_receipt_row_count ?? 0}`);
+  lines.push(`- Human review agenda intake pending: ${dashboard.summary.human_review_agenda_intake_pending_count ?? 0}`);
+  lines.push(`- Human review agenda intake ready: ${dashboard.summary.human_review_agenda_intake_ready_count ?? 0}`);
   lines.push(`- Human gate receipts ready: ${dashboard.summary.human_gate_receipt_validation_ready_count ?? 0}`);
   lines.push(`- Human gate receipts pending: ${dashboard.summary.human_gate_receipt_validation_pending_count ?? 0}`);
   lines.push(`- Human gate receipts applied: ${dashboard.summary.human_gate_receipt_application_applied_count ?? 0}`);
@@ -3199,6 +3267,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-packets") parsed.humanReviewPacketLedgerPath = false;
     else if (arg === "--human-review-agenda") parsed.humanReviewAgendaPath = argv[++index];
     else if (arg === "--no-human-review-agenda") parsed.humanReviewAgendaPath = false;
+    else if (arg === "--human-review-agenda-intake") parsed.humanReviewAgendaReceiptIntakePath = argv[++index];
+    else if (arg === "--no-human-review-agenda-intake") parsed.humanReviewAgendaReceiptIntakePath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -3312,6 +3382,10 @@ Options:
   --no-human-review-packets      Do not include Human Review Packet Ledger status.
   --human-review-agenda <path>   human-review-agenda.json path.
   --no-human-review-agenda       Do not include Human Review Agenda status.
+  --human-review-agenda-intake <path>
+                                  human-review-agenda-receipt-intake.json path.
+  --no-human-review-agenda-intake
+                                  Do not include Human Review Agenda Receipt Intake status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

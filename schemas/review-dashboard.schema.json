@@ -222,6 +222,12 @@
         "human_review_agenda_decision_row_count",
         "human_review_agenda_protected_action_count",
         "human_review_agenda_validation_error_count",
+        "human_review_agenda_intake_item_count",
+        "human_review_agenda_intake_receipt_row_count",
+        "human_review_agenda_intake_pending_count",
+        "human_review_agenda_intake_ready_count",
+        "human_review_agenda_intake_invalid_count",
+        "human_review_agenda_intake_validation_error_count",
         "human_gate_receipt_validation_ready_count",
         "human_gate_receipt_validation_pending_count",
         "human_gate_receipt_validation_invalid_count",
@@ -1060,6 +1066,30 @@
           "minimum": 0
         },
         "human_review_agenda_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_agenda_intake_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_agenda_intake_receipt_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_agenda_intake_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_agenda_intake_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_agenda_intake_invalid_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_agenda_intake_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

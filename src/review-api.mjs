@@ -849,6 +849,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-agenda-receipt-intakes") {
+    const intakeResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda_receipt_intake");
+    if (!intakeResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_receipt_intake_unavailable", intakeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_agenda_receipt_intakes", [intakeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-agenda-receipt-intake-items") {
+    const intakeResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda_receipt_intake");
+    if (!intakeResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_receipt_intake_unavailable", intakeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_agenda_receipt_intake_items", intakeResult.artifact.intake_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-agenda-receipt-input") {
+    const intakeResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda_receipt_intake");
+    if (!intakeResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_receipt_intake_unavailable", intakeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_agenda_receipt_input", intakeResult.artifact.receipt_input?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1130,6 +1163,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-agenda-sections", "Human review agenda sections by required actor"),
       route("GET", "/api/human-review-agenda-items", "Human review agenda packet items"),
       route("GET", "/api/human-review-decision-template", "Human review receipt decision template rows"),
+      route("GET", "/api/human-review-agenda-receipt-intakes", "Human review agenda receipt intake artifacts"),
+      route("GET", "/api/human-review-agenda-receipt-intake-items", "Human review agenda receipt intake items"),
+      route("GET", "/api/human-review-agenda-receipt-input", "Receipt input rows generated from human review agenda"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
@@ -1331,6 +1367,11 @@ function filterItems(items, searchParams) {
     "agenda_section_id",
     "agenda_status",
     "section_status",
+    "intake_id",
+    "intake_item_id",
+    "intake_status",
+    "template_row_present",
+    "ready_for_validation",
     "receipt_status",
     "requires_human",
     "protected_action",

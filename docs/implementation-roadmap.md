@@ -1503,3 +1503,35 @@
 - `/api/human-review-decision-template?receipt_status=pending`으로 사람이 채울 receipt row를 조회할 수 있음
 - Dashboard summary가 agenda item, actor, decision row, protected action, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-agenda`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 58: Human Review Agenda Receipt Intake
+
+목표: Human Review Agenda의 decision template을 기존 Human Gate Receipt Validation이 읽을 수 있는 표준 receipt input으로 변환한다.
+
+- agenda decision template row와 human gate receipt requirement를 gate item 기준으로 매칭
+- pending row는 pending receipt input으로 보존
+- terminal receipt row는 validation 전에 기본 allowed outcome과 current receipt id를 점검
+- protected action은 intake 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- `receipt-input.json`을 `control-plane-human-gate-receipts-input.v1` 형태로 생성
+- Control Plane Loop에서 human gate receipt validation이 agenda intake의 `receipt-input.json`을 읽도록 연결
+- Review Dashboard에 `human_review_agenda_receipt_intake` stage와 pending/ready/error summary 추가
+- Review API에서 `/api/human-review-agenda-receipt-intakes`, `/api/human-review-agenda-receipt-intake-items`, `/api/human-review-agenda-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Agenda Receipt Intake를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-agenda:intake`
+- `src/human-review-agenda-receipt-intake.mjs`
+- `schemas/human-review-agenda-receipt-intake.schema.json`
+- `docs/human-review-agenda-receipt-intake.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review agenda receipt intake artifact가 schema validation을 통과함
+- `/api/human-review-agenda-receipt-intake-items?intake_status=pending_receipt`로 pending intake item을 조회할 수 있음
+- `/api/human-review-agenda-receipt-input?receipt_status=pending`으로 validation에 넘길 receipt row를 조회할 수 있음
+- Dashboard summary가 intake item, receipt row, pending, ready, invalid, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-agenda:intake`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

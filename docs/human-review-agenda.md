@@ -24,3 +24,5 @@ Safety contract:
 - Completed rows must be validated with `npm run control-plane:human-gate-receipts:validate` before any application command.
 
 The agenda is intentionally not an execution layer. It is a controlled review surface that helps an attorney, authorized operator, developer owner, content owner, or human reviewer see the packet priority, required actor, receipt rows, protected-action warnings, and follow-up commands in one place.
+
+After a reviewer edits `decision-template.json`, run `npm run control-plane:review-agenda:intake` to convert it into the standard human gate receipt input format. Validation and application remain separate gated steps.

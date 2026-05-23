@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/model-routing-ledger.schema.json",
+  "title": "Hermes Model Routing Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_id",
+    "output_dir",
+    "context_packet_ledger_path",
+    "policy_matrix_catalog_path",
+    "policy_snapshot_ledger_path",
+    "runtime_adapters_path",
+    "ledger_status",
+    "summary",
+    "sources",
+    "routing_decisions",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "model-routing-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "context_packet_ledger_path": { "type": "string" },
+    "policy_matrix_catalog_path": { "type": "string" },
+    "policy_snapshot_ledger_path": { "type": "string" },
+    "runtime_adapters_path": { "type": "string" },
+    "ledger_status": { "enum": ["valid", "blocked"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "routing_decision_count",
+        "ready_route_count",
+        "approval_required_route_count",
+        "blocked_route_count",
+        "external_transfer_count",
+        "local_route_count",
+        "audit_required_count",
+        "redaction_enforced_count",
+        "runtime_restricted_count",
+        "validation_error_count",
+        "by_route_status",
+        "by_route_mode",
+        "by_runtime_id",
+        "by_classification",
+        "by_external_model_policy",
+        "by_runtime_policy_status"
+      ],
+      "properties": {
+        "routing_decision_count": { "type": "integer", "minimum": 0 },
+        "ready_route_count": { "type": "integer", "minimum": 0 },
+        "approval_required_route_count": { "type": "integer", "minimum": 0 },
+        "blocked_route_count": { "type": "integer", "minimum": 0 },
+        "external_transfer_count": { "type": "integer", "minimum": 0 },
+        "local_route_count": { "type": "integer", "minimum": 0 },
+        "audit_required_count": { "type": "integer", "minimum": 0 },
+        "redaction_enforced_count": { "type": "integer", "minimum": 0 },
+        "runtime_restricted_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_route_status": { "type": "object" },
+        "by_route_mode": { "type": "object" },
+        "by_runtime_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_external_model_policy": { "type": "object" },
+        "by_runtime_policy_status": { "type": "object" }
+      }
+    },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "routing_decisions": { "type": "array", "items": { "$ref": "#/$defs/routing_decision" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "label",
+        "path",
+        "available",
+        "schema_version",
+        "generated_at",
+        "error"
+      ],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "routing_decision": {
+      "type": "object",
+      "required": [
+        "routing_decision_id",
+        "context_packet_id",
+        "source_id",
+        "workflow_run_id",
+        "agent_run_id",
+        "runtime_id",
+        "capability_id",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "client_id",
+        "policy_snapshot_id",
+        "policy_decision_id",
+        "classification",
+        "context_mode",
+        "route_status",
+        "route_mode",
+        "external_transfer",
+        "provider_boundary",
+        "runtime_policy_status",
+        "external_model_policy",
+        "local_model_policy",
+        "redaction_policy",
+        "redaction_status",
+        "audit_required",
+        "approval_required",
+        "approval_reasons",
+        "blocker_reasons",
+        "required_gates",
+        "prompt_injection_handling",
+        "routing_hash",
+        "metadata"
+      ],
+      "properties": {
+        "routing_decision_id": { "type": "string" },
+        "context_packet_id": { "type": "string" },
+        "source_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": "string" },
+        "policy_decision_id": { "type": ["string", "null"] },
+        "classification": { "type": "string" },
+        "context_mode": { "type": "string" },
+        "route_status": { "enum": ["ready", "approval_required", "blocked"] },
+        "route_mode": {
+          "enum": [
+            "local_allowed",
+            "local_restricted",
+            "local_requires_approval",
+            "external_allowed_with_audit",
+            "external_restricted",
+            "external_requires_approval",
+            "blocked"
+          ]
+        },
+        "external_transfer": { "type": "boolean" },
+        "provider_boundary": { "type": "string" },
+        "runtime_policy_status": { "type": "string" },
+        "external_model_policy": { "type": "string" },
+        "local_model_policy": { "type": "string" },
+        "redaction_policy": { "type": "string" },
+        "redaction_status": { "type": "string" },
+        "audit_required": { "type": "boolean" },
+        "approval_required": { "type": "boolean" },
+        "approval_reasons": { "type": "array", "items": { "type": "string" } },
+        "blocker_reasons": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "prompt_injection_handling": { "type": "string" },
+        "routing_hash": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

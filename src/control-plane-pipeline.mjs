@@ -9,6 +9,7 @@ export const DEFAULT_CONTROL_PLANE_PIPELINE_STEPS = [
   step("policy_snapshot_ledger", "Policy Snapshot Ledger", "policy_plane", ["npm", "run", "policy:snapshots"], ["artifacts/policy-snapshots/latest/policy-snapshot-ledger.json"]),
   step("domain_pack_registry", "Domain Pack Registry", "pack_registry", ["npm", "run", "packs:registry"], ["artifacts/domain-packs/latest/domain-pack-registry.json"]),
   step("context_packet_ledger", "Context Packet Ledger", "context_plane", ["npm", "run", "context:packets"], ["artifacts/context-packets/latest/context-packet-ledger.json"]),
+  step("model_routing_ledger", "Model Routing Ledger", "runtime_plane", ["npm", "run", "model:routing"], ["artifacts/model-routing/latest/model-routing-ledger.json"]),
   step("output_artifact_catalog", "Output Artifact Catalog", "output_plane", ["npm", "run", "output:catalog"], ["artifacts/output-catalog/latest/output-catalog.json"]),
   step("observability_catalog", "Observability Catalog", "observability_plane", ["npm", "run", "observability:catalog"], ["artifacts/observability/latest/observability-catalog.json"]),
   step("protected_delivery_queue", "Protected Delivery Queue", "delivery_plane", ["npm", "run", "delivery:queue"], ["artifacts/delivery-queue/latest/protected-delivery-queue.json"]),

@@ -14,6 +14,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policyMatrixCatalogPath: "artifacts/policy-matrix/latest/policy-matrix-catalog.json",
   policySnapshotLedgerPath: "artifacts/policy-snapshots/latest/policy-snapshot-ledger.json",
   contextPacketLedgerPath: "artifacts/context-packets/latest/context-packet-ledger.json",
+  modelRoutingLedgerPath: "artifacts/model-routing/latest/model-routing-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -99,6 +100,11 @@ const SOURCE_DEFINITIONS = [
     option: "contextPacketLedgerPath",
     source_id: "context_packet_ledger",
     label: "Context Packet Ledger",
+  },
+  {
+    option: "modelRoutingLedgerPath",
+    source_id: "model_routing_ledger",
+    label: "Model Routing Ledger",
   },
   {
     option: "domainPackRegistryPath",
@@ -382,6 +388,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_matrix_catalog") return data.summary ?? {};
   if (sourceId === "policy_snapshot_ledger") return data.summary ?? {};
   if (sourceId === "context_packet_ledger") return data.summary ?? {};
+  if (sourceId === "model_routing_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -512,6 +519,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicyMatrixCatalogStage(artifacts.policy_matrix_catalog, sourceById.get("policy_matrix_catalog")),
     buildPolicySnapshotLedgerStage(artifacts.policy_snapshot_ledger, sourceById.get("policy_snapshot_ledger")),
     buildContextPacketLedgerStage(artifacts.context_packet_ledger, sourceById.get("context_packet_ledger")),
+    buildModelRoutingLedgerStage(artifacts.model_routing_ledger, sourceById.get("model_routing_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -808,6 +816,40 @@ function buildContextPacketLedgerStage(ledger, source) {
       missing_filter_count: summary.missing_filter_count ?? 0,
       runtime_mismatch_count: summary.runtime_mismatch_count ?? 0,
       classification_blocked_count: summary.classification_blocked_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildModelRoutingLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("model_routing_ledger", "Model Routing Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const blocked = summary.blocked_route_count ?? 0;
+  const approvals = summary.approval_required_route_count ?? 0;
+  const status = ledger.ledger_status !== "valid" || errorCount > 0 || blocked > 0
+    ? "blocked"
+    : approvals > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "model_routing_ledger",
+    label: "Model Routing Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.routing_decision_count ?? 0} route decision(s), ${summary.external_transfer_count ?? 0} external transfer(s), all ready.`
+      : `${blocked} blocked route(s), ${approvals} approval-required route(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: ledger.ledger_status ?? "unknown",
+      routing_decision_count: summary.routing_decision_count ?? 0,
+      ready_route_count: summary.ready_route_count ?? 0,
+      approval_required_route_count: approvals,
+      blocked_route_count: blocked,
+      external_transfer_count: summary.external_transfer_count ?? 0,
+      local_route_count: summary.local_route_count ?? 0,
+      redaction_enforced_count: summary.redaction_enforced_count ?? 0,
+      runtime_restricted_count: summary.runtime_restricted_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -1710,6 +1752,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.model_routing_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "model_routing_ledger";
+    items.push({
+      action_item_id: `dashboard.action.model_routing_ledger.${slugify(subjectId)}`,
+      source_stage: "model_routing_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix model routing validation",
+      subject_ref: {
+        subject_type: "model_routing_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_model_routing_policy", "rerun_model_routing", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -2152,6 +2212,14 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     context_runtime_mismatch_count: artifacts.context_packet_ledger?.summary?.runtime_mismatch_count ?? 0,
     context_classification_blocked_count: artifacts.context_packet_ledger?.summary?.classification_blocked_count ?? 0,
     context_validation_error_count: artifacts.context_packet_ledger?.summary?.validation_error_count ?? artifacts.context_packet_ledger?.validation?.errors?.length ?? 0,
+    model_route_count: artifacts.model_routing_ledger?.summary?.routing_decision_count ?? 0,
+    model_route_ready_count: artifacts.model_routing_ledger?.summary?.ready_route_count ?? 0,
+    model_route_approval_required_count: artifacts.model_routing_ledger?.summary?.approval_required_route_count ?? 0,
+    model_route_blocked_count: artifacts.model_routing_ledger?.summary?.blocked_route_count ?? 0,
+    model_route_external_transfer_count: artifacts.model_routing_ledger?.summary?.external_transfer_count ?? 0,
+    model_route_local_count: artifacts.model_routing_ledger?.summary?.local_route_count ?? 0,
+    model_route_redaction_enforced_count: artifacts.model_routing_ledger?.summary?.redaction_enforced_count ?? 0,
+    model_route_validation_error_count: artifacts.model_routing_ledger?.summary?.validation_error_count ?? artifacts.model_routing_ledger?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2357,6 +2425,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Policy Gates", dashboard.summary.policy_gate_rule_count)}
       ${stat("Policy Snapshots", dashboard.summary.policy_snapshot_count)}
       ${stat("Context Packets", dashboard.summary.context_packet_count)}
+      ${stat("Model Routes", dashboard.summary.model_route_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2431,6 +2500,11 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Context packets ready: ${dashboard.summary.context_packet_ready_count ?? 0}`);
   lines.push(`- Context packets redacted: ${dashboard.summary.context_packet_redacted_count ?? 0}`);
   lines.push(`- Context packet validation errors: ${dashboard.summary.context_validation_error_count ?? 0}`);
+  lines.push(`- Model routes: ${dashboard.summary.model_route_count ?? 0}`);
+  lines.push(`- Model routes ready: ${dashboard.summary.model_route_ready_count ?? 0}`);
+  lines.push(`- Model routes requiring approval: ${dashboard.summary.model_route_approval_required_count ?? 0}`);
+  lines.push(`- Model external transfers: ${dashboard.summary.model_route_external_transfer_count ?? 0}`);
+  lines.push(`- Model route validation errors: ${dashboard.summary.model_route_validation_error_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2601,6 +2675,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-snapshot-ledger") parsed.policySnapshotLedgerPath = false;
     else if (arg === "--context-packet-ledger") parsed.contextPacketLedgerPath = argv[++index];
     else if (arg === "--no-context-packet-ledger") parsed.contextPacketLedgerPath = false;
+    else if (arg === "--model-routing-ledger") parsed.modelRoutingLedgerPath = argv[++index];
+    else if (arg === "--no-model-routing-ledger") parsed.modelRoutingLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2686,6 +2762,8 @@ Options:
   --no-policy-snapshot-ledger    Do not include Policy Snapshot Ledger status.
   --context-packet-ledger <path> context-packet-ledger.json path.
   --no-context-packet-ledger     Do not include Context Packet Ledger status.
+  --model-routing-ledger <path>  model-routing-ledger.json path.
+  --no-model-routing-ledger      Do not include Model Routing Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

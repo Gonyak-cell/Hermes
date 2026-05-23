@@ -78,6 +78,14 @@
         "context_runtime_mismatch_count",
         "context_classification_blocked_count",
         "context_validation_error_count",
+        "model_route_count",
+        "model_route_ready_count",
+        "model_route_approval_required_count",
+        "model_route_blocked_count",
+        "model_route_external_transfer_count",
+        "model_route_local_count",
+        "model_route_redaction_enforced_count",
+        "model_route_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -428,6 +436,38 @@
           "minimum": 0
         },
         "context_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_approval_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_external_transfer_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_local_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_redaction_enforced_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "model_route_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

@@ -33,6 +33,7 @@ npm run control-plane:goal-checkpoint -- \
 - Identity/Policy matrix
 - Policy snapshot ledger
 - Context builder and retrieval filters
+- Model routing and external transfer decisions
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow

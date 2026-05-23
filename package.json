@@ -16,6 +16,7 @@
     "api:smoke": "node scripts/review-api-smoke.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "context:packets": "node scripts/context-packet-ledger.mjs",
+    "model:routing": "node scripts/model-routing-ledger.mjs",
     "control-plane:goal-checkpoint": "node scripts/control-plane-goal-checkpoint.mjs",
     "control-plane:audit-trail": "node scripts/control-plane-audit-trail.mjs",
     "control-plane:human-gates": "node scripts/control-plane-human-gates.mjs",

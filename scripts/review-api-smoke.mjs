@@ -41,6 +41,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-retrieval-filters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -162,6 +164,18 @@ try {
   const contextRetrievalFilters = await fetchJson(`${url}/api/context-retrieval-filters?filter_status=complete&limit=5`);
   assert.equal(contextRetrievalFilters.collection, "context_retrieval_filters");
   assert.ok(contextRetrievalFilters.count <= 5);
+
+  const modelRoutingLedgers = await fetchJson(`${url}/api/model-routing-ledgers?ledger_status=valid&limit=1`);
+  assert.equal(modelRoutingLedgers.collection, "model_routing_ledgers");
+  assert.ok(modelRoutingLedgers.count <= 1);
+
+  const modelRoutingDecisions = await fetchJson(`${url}/api/model-routing-decisions?route_status=ready&limit=5`);
+  assert.equal(modelRoutingDecisions.collection, "model_routing_decisions");
+  assert.ok(modelRoutingDecisions.count <= 5);
+
+  const externalModelRoutes = await fetchJson(`${url}/api/model-routing-decisions?external_transfer=true&limit=5`);
+  assert.equal(externalModelRoutes.collection, "model_routing_decisions");
+  assert.ok(externalModelRoutes.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

@@ -1290,3 +1290,34 @@
 - `/api/context-packets?runtime_id=codex`와 `/api/context-packets?context_mode=redacted`로 runtime/redaction 상태를 조회할 수 있음
 - Dashboard summary가 context packet, context item, retrieval filter, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run context:packets`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 51: Model Routing Ledger
+
+목표: Context Packet을 실제 runtime/model/provider boundary로 보내기 전에 classification, policy snapshot, runtime adapter, redaction 상태를 기준으로 routing decision을 별도 ledger로 남깁니다.
+
+- Context Packet Ledger의 packet별 runtime, capability, matter/classification 정보를 입력으로 사용
+- Policy Matrix Catalog와 Policy Snapshot Ledger의 model/runtime/redaction policy를 대조
+- Runtime Adapter Registry의 external execution 여부로 external transfer와 provider boundary를 판정
+- 외부 전송 금지, required redaction 누락, forbidden/unlisted runtime을 blocked route validation error로 기록
+- 승인 필요 model policy와 restricted runtime을 approval-required route로 표시
+- Review Dashboard에 `model_routing_ledger` stage와 route/external-transfer/redaction summary 추가
+- Review API에서 `/api/model-routing-ledgers`, `/api/model-routing-decisions` route 제공
+- Control Plane Pipeline과 Loop에 `npm run model:routing` 포함
+- Goal Checkpoint에서 Model Routing과 외부전송 결정을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run model:routing`
+- `src/model-routing-ledger.mjs`
+- `schemas/model-routing-ledger.schema.json`
+- `docs/model-routing-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- model routing ledger artifact가 schema validation을 통과함
+- `/api/model-routing-decisions?runtime_id=codex`로 Codex external allowed-with-audit route를 조회할 수 있음
+- `/api/model-routing-decisions?external_transfer=true`로 외부 runtime 전송 결정을 조회할 수 있음
+- Dashboard summary가 route, external transfer, redaction, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run model:routing`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

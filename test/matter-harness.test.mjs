@@ -41,6 +41,7 @@ import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runEvidenceReviewDraft } from "../src/evidence-review-draft.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
 import { runMatterCockpit } from "../src/matter-cockpit.mjs";
+import { runModelRoutingLedger } from "../src/model-routing-ledger.mjs";
 import { runObservabilityCatalog } from "../src/observability-catalog.mjs";
 import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
 import { runPostDeliveryReconciliation } from "../src/post-delivery-reconciliation.mjs";
@@ -506,6 +507,27 @@ describe("matter harness", () => {
       assert.ok(contextPacketLedger.context_items.some((item) => item.item_type === "resource_metadata"));
       assert.match(await readFile(path.join(outDir, "context-packets", "summary.md"), "utf8"), /Context Packet Ledger/);
 
+      const modelRoutingLedger = await runModelRoutingLedger({
+        contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        runtimeAdaptersPath: "examples/core/runtime-adapters.json",
+        outDir: path.join(outDir, "model-routing"),
+        runAt: "2026-05-23T06:34:54.000Z",
+      });
+      const modelRoutingLedgerSchema = JSON.parse(await readFile("schemas/model-routing-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(modelRoutingLedger, modelRoutingLedgerSchema, {}, "model_routing_ledger"), []);
+      assert.equal(modelRoutingLedger.ledger_status, "valid");
+      assert.equal(modelRoutingLedger.summary.routing_decision_count, contextPacketLedger.summary.context_packet_count);
+      assert.equal(modelRoutingLedger.summary.blocked_route_count, 0);
+      assert.equal(modelRoutingLedger.summary.external_transfer_count, 2);
+      assert.equal(modelRoutingLedger.summary.ready_route_count, 6);
+      assert.equal(modelRoutingLedger.summary.validation_error_count, 0);
+      assert.ok(modelRoutingLedger.routing_decisions.some((decision) => (
+        decision.runtime_id === "codex" && decision.route_mode === "external_allowed_with_audit"
+      )));
+      assert.match(await readFile(path.join(outDir, "model-routing", "summary.md"), "utf8"), /Model Routing Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -827,6 +849,7 @@ describe("matter harness", () => {
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
+        modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -1173,6 +1196,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.context_packet_redacted_count, contextPacketLedger.summary.redacted_packet_count);
       assert.equal(dashboard.summary.context_item_count, contextPacketLedger.summary.context_item_count);
       assert.equal(dashboard.summary.context_retrieval_filter_count, contextPacketLedger.summary.retrieval_filter_count);
+      assert.equal(dashboard.summary.model_route_count, modelRoutingLedger.summary.routing_decision_count);
+      assert.equal(dashboard.summary.model_route_ready_count, modelRoutingLedger.summary.ready_route_count);
+      assert.equal(dashboard.summary.model_route_external_transfer_count, modelRoutingLedger.summary.external_transfer_count);
+      assert.equal(dashboard.summary.model_route_validation_error_count, 0);
       assert.equal(dashboard.summary.context_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
@@ -1273,6 +1300,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_matrix_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1343,6 +1371,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-retrieval-filters"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1472,6 +1502,23 @@ describe("matter harness", () => {
       const completeRetrievalFilters = JSON.parse((await buildReviewApiResponse("/api/context-retrieval-filters?filter_status=complete", apiOptions)).body);
       assert.equal(completeRetrievalFilters.collection, "context_retrieval_filters");
       assert.equal(completeRetrievalFilters.count, contextPacketLedger.summary.retrieval_filter_count);
+
+      const modelRoutingLedgers = JSON.parse((await buildReviewApiResponse("/api/model-routing-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(modelRoutingLedgers.collection, "model_routing_ledgers");
+      assert.equal(modelRoutingLedgers.count, 1);
+
+      const codexModelRoutes = JSON.parse((await buildReviewApiResponse("/api/model-routing-decisions?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexModelRoutes.collection, "model_routing_decisions");
+      assert.equal(codexModelRoutes.count, 1);
+      assert.equal(codexModelRoutes.items[0].route_mode, "external_allowed_with_audit");
+
+      const externalModelRoutes = JSON.parse((await buildReviewApiResponse("/api/model-routing-decisions?external_transfer=true", apiOptions)).body);
+      assert.equal(externalModelRoutes.collection, "model_routing_decisions");
+      assert.equal(externalModelRoutes.count, modelRoutingLedger.summary.external_transfer_count);
+
+      const localModelRoutes = JSON.parse((await buildReviewApiResponse("/api/model-routing-decisions?route_mode=local_allowed", apiOptions)).body);
+      assert.equal(localModelRoutes.collection, "model_routing_decisions");
+      assert.ok(localModelRoutes.count >= 1);
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

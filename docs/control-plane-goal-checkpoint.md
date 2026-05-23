@@ -35,6 +35,7 @@ npm run control-plane:goal-checkpoint -- \
 - Context builder and retrieval filters
 - Model routing and external transfer decisions
 - Cost budget gate ledger
+- Token usage ledger
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow

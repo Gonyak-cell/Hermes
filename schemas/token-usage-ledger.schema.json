@@ -1,0 +1,176 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/token-usage-ledger.schema.json",
+  "title": "Hermes Token Usage Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_id",
+    "output_dir",
+    "cost_budget_ledger_path",
+    "context_packet_ledger_path",
+    "observability_catalog_path",
+    "ledger_status",
+    "summary",
+    "sources",
+    "token_usage_records",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "token-usage-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "cost_budget_ledger_path": { "type": "string" },
+    "context_packet_ledger_path": { "type": "string" },
+    "observability_catalog_path": { "type": "string" },
+    "ledger_status": { "enum": ["valid", "blocked"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "token_usage_record_count",
+        "tracking_required_count",
+        "recorded_record_count",
+        "estimated_record_count",
+        "not_required_record_count",
+        "unknown_record_count",
+        "blocked_record_count",
+        "total_input_token_count",
+        "total_output_token_count",
+        "total_token_count",
+        "validation_error_count",
+        "by_tracking_status",
+        "by_runtime_id",
+        "by_capability_id"
+      ],
+      "properties": {
+        "token_usage_record_count": { "type": "integer", "minimum": 0 },
+        "tracking_required_count": { "type": "integer", "minimum": 0 },
+        "recorded_record_count": { "type": "integer", "minimum": 0 },
+        "estimated_record_count": { "type": "integer", "minimum": 0 },
+        "not_required_record_count": { "type": "integer", "minimum": 0 },
+        "unknown_record_count": { "type": "integer", "minimum": 0 },
+        "blocked_record_count": { "type": "integer", "minimum": 0 },
+        "total_input_token_count": { "type": "integer", "minimum": 0 },
+        "total_output_token_count": { "type": "integer", "minimum": 0 },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_tracking_status": { "type": "object" },
+        "by_runtime_id": { "type": "object" },
+        "by_capability_id": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "token_usage_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/token_usage_record" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "token_usage_record": {
+      "type": "object",
+      "required": [
+        "token_usage_id",
+        "budget_decision_id",
+        "routing_decision_id",
+        "context_packet_id",
+        "workflow_run_id",
+        "agent_run_id",
+        "runtime_id",
+        "capability_id",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "budget_status",
+        "route_status",
+        "route_mode",
+        "token_tracking_required",
+        "tracking_status",
+        "estimated",
+        "input_token_count",
+        "output_token_count",
+        "total_token_count",
+        "context_item_count",
+        "context_mode",
+        "redaction_applied",
+        "estimation_method",
+        "token_record_count",
+        "cost_record_ids",
+        "required_gates",
+        "audit_required",
+        "usage_hash",
+        "metadata"
+      ],
+      "properties": {
+        "token_usage_id": { "type": "string" },
+        "budget_decision_id": { "type": "string" },
+        "routing_decision_id": { "type": "string" },
+        "context_packet_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "budget_status": { "type": "string" },
+        "route_status": { "type": "string" },
+        "route_mode": { "type": "string" },
+        "token_tracking_required": { "type": "boolean" },
+        "tracking_status": { "enum": ["recorded", "estimated", "not_required", "unknown", "blocked"] },
+        "estimated": { "type": "boolean" },
+        "input_token_count": { "type": "integer", "minimum": 0 },
+        "output_token_count": { "type": "integer", "minimum": 0 },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "context_item_count": { "type": "integer", "minimum": 0 },
+        "context_mode": { "type": "string" },
+        "redaction_applied": { "type": "boolean" },
+        "estimation_method": { "type": "string" },
+        "token_record_count": { "type": "integer", "minimum": 0 },
+        "cost_record_ids": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "audit_required": { "type": "boolean" },
+        "usage_hash": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

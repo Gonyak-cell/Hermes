@@ -13,6 +13,7 @@ export const DEFAULT_CONTROL_PLANE_PIPELINE_STEPS = [
   step("output_artifact_catalog", "Output Artifact Catalog", "output_plane", ["npm", "run", "output:catalog"], ["artifacts/output-catalog/latest/output-catalog.json"]),
   step("observability_catalog", "Observability Catalog", "observability_plane", ["npm", "run", "observability:catalog"], ["artifacts/observability/latest/observability-catalog.json"]),
   step("cost_budget_ledger", "Cost Budget Ledger", "gate_plane", ["npm", "run", "cost:budgets"], ["artifacts/cost-budget/latest/cost-budget-ledger.json"]),
+  step("token_usage_ledger", "Token Usage Ledger", "observability_plane", ["npm", "run", "token:usage"], ["artifacts/token-usage/latest/token-usage-ledger.json"]),
   step("protected_delivery_queue", "Protected Delivery Queue", "delivery_plane", ["npm", "run", "delivery:queue"], ["artifacts/delivery-queue/latest/protected-delivery-queue.json"]),
   step("matter_cockpit", "Matter Cockpit", "matter_plane", ["npm", "run", "matter:cockpit"], ["artifacts/matter-cockpit/latest/matter-cockpit.json"]),
   step("approval_inbox", "Approval Inbox", "approval_plane", ["npm", "run", "approval:inbox"], ["artifacts/approval-inbox/latest/approval-inbox.json"]),

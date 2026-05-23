@@ -20,6 +20,7 @@ import { runControlPlaneWorkPacketReceiptValidation } from "../src/control-plane
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
 import { runContextPacketLedger } from "../src/context-packet-ledger.mjs";
 import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
+import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -548,6 +549,26 @@ describe("matter harness", () => {
       assert.ok(costBudgetLedger.budget_decisions.every((decision) => decision.required_gates.includes("cost_budget_gate")));
       assert.match(await readFile(path.join(outDir, "cost-budget", "summary.md"), "utf8"), /Cost Budget Ledger/);
 
+      const tokenUsageLedger = await runTokenUsageLedger({
+        costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
+        contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        outDir: path.join(outDir, "token-usage"),
+        runAt: "2026-05-23T06:34:54.750Z",
+      });
+      const tokenUsageLedgerSchema = JSON.parse(await readFile("schemas/token-usage-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(tokenUsageLedger, tokenUsageLedgerSchema, {}, "token_usage_ledger"), []);
+      assert.equal(tokenUsageLedger.ledger_status, "valid");
+      assert.equal(tokenUsageLedger.summary.token_usage_record_count, costBudgetLedger.summary.budget_decision_count);
+      assert.equal(tokenUsageLedger.summary.tracking_required_count, costBudgetLedger.summary.token_tracking_required_count);
+      assert.equal(tokenUsageLedger.summary.estimated_record_count, costBudgetLedger.summary.token_tracking_required_count);
+      assert.ok(tokenUsageLedger.summary.total_token_count > 0);
+      assert.equal(tokenUsageLedger.summary.validation_error_count, 0);
+      assert.ok(tokenUsageLedger.token_usage_records.some((record) => (
+        record.runtime_id === "codex" && record.tracking_status === "estimated"
+      )));
+      assert.match(await readFile(path.join(outDir, "token-usage", "summary.md"), "utf8"), /Token Usage Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -871,6 +892,7 @@ describe("matter harness", () => {
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
+        tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -1226,6 +1248,11 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.cost_budget_blocked_count, 0);
       assert.equal(dashboard.summary.cost_budget_total_max_usd, costBudgetLedger.summary.total_max_usd);
       assert.equal(dashboard.summary.cost_budget_validation_error_count, 0);
+      assert.equal(dashboard.summary.token_usage_record_count, tokenUsageLedger.summary.token_usage_record_count);
+      assert.equal(dashboard.summary.token_usage_tracking_required_count, tokenUsageLedger.summary.tracking_required_count);
+      assert.equal(dashboard.summary.token_usage_estimated_count, tokenUsageLedger.summary.estimated_record_count);
+      assert.equal(dashboard.summary.token_usage_total_tokens, tokenUsageLedger.summary.total_token_count);
+      assert.equal(dashboard.summary.token_usage_validation_error_count, 0);
       assert.equal(dashboard.summary.context_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
@@ -1328,6 +1355,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1402,6 +1430,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1561,6 +1591,19 @@ describe("matter harness", () => {
       assert.equal(codexCostBudgets.collection, "cost_budget_decisions");
       assert.equal(codexCostBudgets.count, 1);
       assert.equal(codexCostBudgets.items[0].budget_status, "passed");
+
+      const tokenUsageLedgers = JSON.parse((await buildReviewApiResponse("/api/token-usage-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(tokenUsageLedgers.collection, "token_usage_ledgers");
+      assert.equal(tokenUsageLedgers.count, 1);
+
+      const estimatedTokenUsage = JSON.parse((await buildReviewApiResponse("/api/token-usage-records?tracking_status=estimated", apiOptions)).body);
+      assert.equal(estimatedTokenUsage.collection, "token_usage_records");
+      assert.equal(estimatedTokenUsage.count, tokenUsageLedger.summary.estimated_record_count);
+
+      const codexTokenUsage = JSON.parse((await buildReviewApiResponse("/api/token-usage-records?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexTokenUsage.collection, "token_usage_records");
+      assert.equal(codexTokenUsage.count, 1);
+      assert.equal(codexTokenUsage.items[0].tracking_status, "estimated");
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

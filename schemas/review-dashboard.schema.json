@@ -95,6 +95,16 @@
         "cost_budget_total_observed_usd",
         "cost_budget_total_runtime_seconds",
         "cost_budget_validation_error_count",
+        "token_usage_record_count",
+        "token_usage_tracking_required_count",
+        "token_usage_recorded_count",
+        "token_usage_estimated_count",
+        "token_usage_unknown_count",
+        "token_usage_blocked_count",
+        "token_usage_total_input_tokens",
+        "token_usage_total_output_tokens",
+        "token_usage_total_tokens",
+        "token_usage_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -513,6 +523,46 @@
           "minimum": 0
         },
         "cost_budget_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_tracking_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_recorded_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_estimated_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_unknown_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_total_input_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_total_output_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_total_tokens": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "token_usage_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

@@ -45,6 +45,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/token-usage-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/token-usage-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -190,6 +192,18 @@ try {
   const tokenPendingBudgets = await fetchJson(`${url}/api/cost-budget-decisions?token_tracking_status=pending_records&limit=5`);
   assert.equal(tokenPendingBudgets.collection, "cost_budget_decisions");
   assert.ok(tokenPendingBudgets.count <= 5);
+
+  const tokenUsageLedgers = await fetchJson(`${url}/api/token-usage-ledgers?ledger_status=valid&limit=1`);
+  assert.equal(tokenUsageLedgers.collection, "token_usage_ledgers");
+  assert.ok(tokenUsageLedgers.count <= 1);
+
+  const estimatedTokenUsage = await fetchJson(`${url}/api/token-usage-records?tracking_status=estimated&limit=5`);
+  assert.equal(estimatedTokenUsage.collection, "token_usage_records");
+  assert.ok(estimatedTokenUsage.count <= 5);
+
+  const codexTokenUsage = await fetchJson(`${url}/api/token-usage-records?runtime_id=codex&limit=5`);
+  assert.equal(codexTokenUsage.collection, "token_usage_records");
+  assert.ok(codexTokenUsage.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

@@ -17,6 +17,7 @@
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "context:packets": "node scripts/context-packet-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",
+    "token:usage": "node scripts/token-usage-ledger.mjs",
     "model:routing": "node scripts/model-routing-ledger.mjs",
     "control-plane:goal-checkpoint": "node scripts/control-plane-goal-checkpoint.mjs",
     "control-plane:audit-trail": "node scripts/control-plane-audit-trail.mjs",

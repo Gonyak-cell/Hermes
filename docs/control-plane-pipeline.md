@@ -16,6 +16,7 @@ npm run control-plane:pipeline
 - Output Artifact Catalog
 - Observability Catalog
 - Cost Budget Ledger
+- Token Usage Ledger
 - Protected Delivery Queue
 - Matter Cockpit
 - Approval Inbox

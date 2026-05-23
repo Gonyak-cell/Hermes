@@ -16,6 +16,7 @@ npm run control-plane:loop
 - `npm run context:packets`
 - `npm run model:routing`
 - `npm run cost:budgets`
+- `npm run token:usage`
 - `npm run dashboard:build`
 - `npm run control-plane:health`
 - `npm run control-plane:plan`

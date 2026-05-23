@@ -16,6 +16,7 @@ import { runApprovalInboxDecisions } from "../src/approval-inbox-decisions.mjs";
 import { runApprovalInbox } from "../src/approval-inbox.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.mjs";
+import { runDeliveryExecutionDraft } from "../src/delivery-execution-draft.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
@@ -464,6 +465,23 @@ describe("matter harness", () => {
         [],
       );
 
+      const deliveryExecution = await runDeliveryExecutionDraft({
+        deliveryQueuePath: path.join(outDir, "approval-inbox-decisions", "patched-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "approval-inbox-decisions", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "delivery-execution"),
+        runAt: "2026-05-23T06:35:00.500Z",
+      });
+      const deliveryExecutionSchema = JSON.parse(await readFile("schemas/delivery-execution-draft.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(deliveryExecution, deliveryExecutionSchema, {}, "delivery_execution_draft"), []);
+      assert.equal(deliveryExecution.execution_mode, "draft_only");
+      assert.equal(deliveryExecution.summary.ready_candidate_count, 5);
+      assert.equal(deliveryExecution.summary.blocked_candidate_count, 0);
+      assert.equal(deliveryExecution.summary.execution_packet_count, 4);
+      assert.equal(deliveryExecution.summary.manual_execution_required_count, 5);
+      assert.ok(deliveryExecution.execution_candidates.every((candidate) => candidate.execution_status === "draft_not_executed"));
+      assert.ok(deliveryExecution.execution_candidates.some((candidate) => candidate.delivery_channel === "github"));
+      assert.ok(deliveryExecution.execution_packets.some((packet) => packet.delivery_target === "supporting_document" && packet.candidate_count === 2));
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -477,6 +495,7 @@ describe("matter harness", () => {
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
         protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
         matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
+        deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -502,6 +521,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.delivery_blocked_action_count, 5);
       assert.equal(dashboard.summary.delivery_ready_action_count, 0);
       assert.equal(dashboard.summary.delivery_pending_approval_count, 3);
+      assert.equal(dashboard.summary.delivery_execution_ready_candidate_count, 5);
+      assert.equal(dashboard.summary.delivery_execution_packet_count, 4);
+      assert.equal(dashboard.summary.delivery_execution_manual_required_count, 5);
+      assert.equal(dashboard.summary.delivery_execution_blocked_candidate_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -523,6 +546,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "protected_delivery_queue"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_cockpit"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_execution_draft"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -555,6 +579,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matters"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approvals"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-inbox-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-execution-candidates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-execution-packets"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -611,6 +637,16 @@ describe("matter harness", () => {
       assert.equal(appliedInboxDecisions.collection, "approval_inbox_decisions");
       assert.equal(appliedInboxDecisions.count, 3);
       assert.ok(appliedInboxDecisions.items.every((item) => item.status_after === "approved"));
+
+      const githubExecutionCandidates = JSON.parse((await buildReviewApiResponse("/api/delivery-execution-candidates?delivery_channel=github", apiOptions)).body);
+      assert.equal(githubExecutionCandidates.collection, "delivery_execution_candidates");
+      assert.equal(githubExecutionCandidates.count, 1);
+      assert.equal(githubExecutionCandidates.items[0].execution_status, "draft_not_executed");
+
+      const supportingDocumentPackets = JSON.parse((await buildReviewApiResponse("/api/delivery-execution-packets?delivery_target=supporting_document", apiOptions)).body);
+      assert.equal(supportingDocumentPackets.collection, "delivery_execution_packets");
+      assert.equal(supportingDocumentPackets.count, 1);
+      assert.equal(supportingDocumentPackets.items[0].candidate_count, 2);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

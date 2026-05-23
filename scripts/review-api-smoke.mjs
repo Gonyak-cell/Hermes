@@ -26,6 +26,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/matters"));
   assert.ok(index.routes.some((route) => route.path === "/api/approvals"));
   assert.ok(index.routes.some((route) => route.path === "/api/approval-inbox-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/delivery-execution-candidates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/delivery-execution-packets"));
 
   const dashboard = await fetchJson(`${url}/api/dashboard`);
   assert.equal(dashboard.schema_version, "review-dashboard.v1");

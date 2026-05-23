@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/delivery-execution-draft.schema.json",
+  "title": "Hermes Delivery Execution Draft",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "execution_plan_id",
+    "execution_mode",
+    "summary",
+    "sources",
+    "execution_candidates",
+    "blocked_candidates",
+    "execution_packets"
+  ],
+  "properties": {
+    "schema_version": { "const": "delivery-execution-draft.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "execution_plan_id": { "type": "string" },
+    "execution_mode": { "const": "draft_only" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "delivery_queue_available",
+        "output_catalog_available",
+        "ready_candidate_count",
+        "blocked_candidate_count",
+        "execution_packet_count",
+        "manual_execution_required_count",
+        "final_check_required_count",
+        "high_priority_count",
+        "law_firm_count",
+        "personal_dev_count",
+        "creative_document_count",
+        "by_delivery_channel",
+        "by_delivery_target",
+        "by_domain_pack"
+      ],
+      "properties": {
+        "delivery_queue_available": { "type": "boolean" },
+        "output_catalog_available": { "type": "boolean" },
+        "ready_candidate_count": { "type": "integer", "minimum": 0 },
+        "blocked_candidate_count": { "type": "integer", "minimum": 0 },
+        "execution_packet_count": { "type": "integer", "minimum": 0 },
+        "manual_execution_required_count": { "type": "integer", "minimum": 0 },
+        "final_check_required_count": { "type": "integer", "minimum": 0 },
+        "high_priority_count": { "type": "integer", "minimum": 0 },
+        "law_firm_count": { "type": "integer", "minimum": 0 },
+        "personal_dev_count": { "type": "integer", "minimum": 0 },
+        "creative_document_count": { "type": "integer", "minimum": 0 },
+        "by_delivery_channel": { "type": "object" },
+        "by_delivery_target": { "type": "object" },
+        "by_domain_pack": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "execution_candidates": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "execution_candidate_id",
+          "delivery_action_id",
+          "artifact_id",
+          "artifact_type",
+          "artifact_uri",
+          "domain_pack",
+          "capability_id",
+          "workflow_run_id",
+          "tenant_id",
+          "matter_id",
+          "delivery_target",
+          "delivery_channel",
+          "priority",
+          "execution_status",
+          "protected_action",
+          "requires_manual_execution",
+          "final_check_required",
+          "execution_command",
+          "checklist",
+          "artifact_context",
+          "metadata"
+        ],
+        "properties": {
+          "execution_candidate_id": { "type": "string" },
+          "delivery_action_id": { "type": "string" },
+          "artifact_id": { "type": "string" },
+          "artifact_type": { "type": "string" },
+          "artifact_uri": { "type": "string" },
+          "domain_pack": { "type": "string" },
+          "capability_id": { "type": ["string", "null"] },
+          "workflow_run_id": { "type": ["string", "null"] },
+          "tenant_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "delivery_target": { "type": "string" },
+          "delivery_channel": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "execution_status": { "const": "draft_not_executed" },
+          "protected_action": { "const": true },
+          "requires_manual_execution": { "const": true },
+          "final_check_required": { "const": true },
+          "execution_command": { "type": "object" },
+          "checklist": { "type": "array", "items": { "type": "string" } },
+          "artifact_context": { "type": "object" },
+          "metadata": { "type": "object" }
+        }
+      }
+    },
+    "blocked_candidates": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "execution_packets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "packet_id",
+          "packet_key",
+          "tenant_id",
+          "matter_id",
+          "delivery_channel",
+          "delivery_target",
+          "priority",
+          "execution_status",
+          "candidate_count",
+          "artifact_ids",
+          "execution_candidate_ids",
+          "final_check_required",
+          "requires_manual_execution",
+          "checklist"
+        ],
+        "properties": {
+          "packet_id": { "type": "string" },
+          "packet_key": { "type": "string" },
+          "tenant_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "delivery_channel": { "type": "string" },
+          "delivery_target": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "execution_status": { "const": "draft_not_executed" },
+          "candidate_count": { "type": "integer", "minimum": 0 },
+          "artifact_ids": { "type": "array", "items": { "type": "string" } },
+          "execution_candidate_ids": { "type": "array", "items": { "type": "string" } },
+          "final_check_required": { "const": true },
+          "requires_manual_execution": { "const": true },
+          "checklist": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

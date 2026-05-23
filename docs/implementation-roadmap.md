@@ -537,3 +537,31 @@
 - 결정 적용 결과와 audit event가 schema validation을 통과함
 - `/api/approval-inbox-decisions?decision=approve`로 적용된 결정을 조회할 수 있음
 - `npm test`, `approval:inbox:apply`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 23: Delivery Execution Draft
+
+목표: `ready_for_delivery`가 된 delivery action을 실제 실행하지 않고, 사람이 최종 확인할 draft packet으로 묶습니다.
+
+- patched delivery queue에서 `ready_for_delivery` action 추출
+- patched output catalog로 approval, citation, content hash context 보강
+- delivery channel/target/matter별 execution packet 생성
+- 모든 candidate와 packet은 `draft_not_executed`, `requires_manual_execution`, `final_check_required` 상태 유지
+- Review Dashboard에 `delivery_execution_draft` stage와 execution summary/action item 추가
+- Review API에서 `/api/delivery-execution-candidates`, `/api/delivery-execution-packets` route 제공
+
+현재 구현:
+
+- `npm run delivery:execution:draft`
+- `src/delivery-execution-draft.mjs`
+- `schemas/delivery-execution-draft.schema.json`
+- `docs/delivery-execution-draft.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- ready delivery action이 draft execution candidate로 정규화됨
+- candidate가 자동 실행되지 않고 manual checklist를 포함함
+- matter/channel/target별 execution packet이 생성됨
+- `/api/delivery-execution-candidates?delivery_channel=github`로 GitHub 실행 후보를 조회할 수 있음
+- `npm test`, `delivery:execution:draft`, `dashboard:build`, `api:smoke`가 통과함

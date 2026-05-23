@@ -61,6 +61,10 @@
         "delivery_blocked_action_count",
         "delivery_ready_action_count",
         "delivery_pending_approval_count",
+        "delivery_execution_ready_candidate_count",
+        "delivery_execution_packet_count",
+        "delivery_execution_manual_required_count",
+        "delivery_execution_blocked_candidate_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -228,6 +232,22 @@
           "minimum": 0
         },
         "delivery_pending_approval_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivery_execution_ready_candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivery_execution_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivery_execution_manual_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivery_execution_blocked_candidate_count": {
           "type": "integer",
           "minimum": 0
         },

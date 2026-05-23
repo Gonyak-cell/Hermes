@@ -15,6 +15,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
   protectedDeliveryQueuePath: "artifacts/delivery-queue/latest/protected-delivery-queue.json",
   matterCockpitPath: "artifacts/matter-cockpit/latest/matter-cockpit.json",
+  deliveryExecutionDraftPath: "artifacts/delivery-execution/latest/delivery-execution-draft.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -80,6 +81,11 @@ const SOURCE_DEFINITIONS = [
     option: "matterCockpitPath",
     source_id: "matter_cockpit",
     label: "Matter Cockpit",
+  },
+  {
+    option: "deliveryExecutionDraftPath",
+    source_id: "delivery_execution_draft",
+    label: "Delivery Execution Draft",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -297,6 +303,7 @@ function summarizeSource(sourceId, data) {
       blocked_delivery_count: data.summary?.blocked_delivery_count ?? 0,
     };
   }
+  if (sourceId === "delivery_execution_draft") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -345,6 +352,7 @@ function buildStageStatuses(artifacts, sources) {
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
     buildProtectedDeliveryQueueStage(artifacts.protected_delivery_queue, sourceById.get("protected_delivery_queue")),
     buildMatterCockpitStage(artifacts.matter_cockpit, sourceById.get("matter_cockpit")),
+    buildDeliveryExecutionDraftStage(artifacts.delivery_execution_draft, sourceById.get("delivery_execution_draft")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -637,6 +645,29 @@ function buildMatterCockpitStage(cockpit, source) {
   };
 }
 
+function buildDeliveryExecutionDraftStage(draft, source) {
+  if (!draft) return missingStage("delivery_execution_draft", "Delivery Execution Draft", source);
+  const summary = draft.summary ?? {};
+  const ready = summary.ready_candidate_count ?? 0;
+  const packets = summary.execution_packet_count ?? 0;
+  const status = ready > 0 ? "ready" : "passed";
+  return {
+    stage_id: "delivery_execution_draft",
+    label: "Delivery Execution Draft",
+    status,
+    message: `${ready} ready candidate(s) grouped into ${packets} draft packet(s); execution remains manual.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      execution_mode: draft.execution_mode ?? "unknown",
+      ready_candidate_count: ready,
+      blocked_candidate_count: summary.blocked_candidate_count ?? 0,
+      execution_packet_count: packets,
+      manual_execution_required_count: summary.manual_execution_required_count ?? 0,
+      final_check_required_count: summary.final_check_required_count ?? 0,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -920,6 +951,23 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const packet of artifacts.delivery_execution_draft?.execution_packets ?? []) {
+    items.push({
+      action_item_id: `dashboard.action.delivery_execution.${slugify(packet.packet_id)}`,
+      source_stage: "delivery_execution_draft",
+      priority: packet.priority,
+      status: packet.execution_status,
+      title: `Manually execute delivery packet: ${packet.delivery_target}`,
+      subject_ref: {
+        subject_type: "delivery_execution_packet",
+        subject_id: packet.packet_id,
+      },
+      reason: `${packet.candidate_count} ready artifact(s) require final manual execution via ${packet.delivery_channel}.`,
+      recommended_actions: packet.checklist ?? [],
+      source_ref: packet.packet_id,
+    });
+  }
+
   return items;
 }
 
@@ -978,6 +1026,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     delivery_blocked_action_count: artifacts.protected_delivery_queue?.summary?.blocked_action_count ?? 0,
     delivery_ready_action_count: artifacts.protected_delivery_queue?.summary?.ready_action_count ?? 0,
     delivery_pending_approval_count: artifacts.protected_delivery_queue?.summary?.pending_approval_count ?? 0,
+    delivery_execution_ready_candidate_count: artifacts.delivery_execution_draft?.summary?.ready_candidate_count ?? 0,
+    delivery_execution_packet_count: artifacts.delivery_execution_draft?.summary?.execution_packet_count ?? 0,
+    delivery_execution_manual_required_count: artifacts.delivery_execution_draft?.summary?.manual_execution_required_count ?? 0,
+    delivery_execution_blocked_candidate_count: artifacts.delivery_execution_draft?.summary?.blocked_candidate_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1062,6 +1114,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
+      ${stat("Execution Packets", dashboard.summary.delivery_execution_packet_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1106,6 +1159,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Delivery actions: ${dashboard.summary.delivery_action_count ?? 0}`);
   lines.push(`- Delivery blocked: ${dashboard.summary.delivery_blocked_action_count ?? 0}`);
   lines.push(`- Delivery ready: ${dashboard.summary.delivery_ready_action_count ?? 0}`);
+  lines.push(`- Delivery execution ready candidates: ${dashboard.summary.delivery_execution_ready_candidate_count ?? 0}`);
+  lines.push(`- Delivery execution packets: ${dashboard.summary.delivery_execution_packet_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1211,6 +1266,8 @@ function parseArgs(argv) {
     else if (arg === "--no-delivery-queue") parsed.protectedDeliveryQueuePath = false;
     else if (arg === "--matter-cockpit") parsed.matterCockpitPath = argv[++index];
     else if (arg === "--no-matter-cockpit") parsed.matterCockpitPath = false;
+    else if (arg === "--delivery-execution") parsed.deliveryExecutionDraftPath = argv[++index];
+    else if (arg === "--no-delivery-execution") parsed.deliveryExecutionDraftPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1247,6 +1304,8 @@ Options:
   --no-delivery-queue            Do not include Protected Delivery Queue status.
   --matter-cockpit <path>        matter-cockpit.json path.
   --no-matter-cockpit            Do not include Matter Cockpit status.
+  --delivery-execution <path>    delivery-execution-draft.json path.
+  --no-delivery-execution        Do not include Delivery Execution Draft status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

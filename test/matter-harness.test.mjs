@@ -1295,6 +1295,107 @@ describe("matter harness", () => {
     }
   });
 
+  it("applies validated control plane work packet receipts", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "hermes-work-packet-application-"));
+    try {
+      const validationPath = path.join(root, "validation.json");
+      const workPacketsPath = path.join(root, "work-packets.json");
+      await writeFile(
+        validationPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-work-packet-receipt-validation.v1",
+          generated_at: "2026-05-23T06:45:00.000Z",
+          validation_id: "control-plane-work-packet-receipt-validation.test",
+          validation_status: "ready_to_apply",
+          summary: {
+            error_count: 0,
+            ready_to_apply_count: 1,
+            pending_receipt_count: 0,
+            invalid_receipt_count: 0,
+          },
+          validation_items: [],
+          receipt_errors: [],
+          validated_receipts_to_apply: {
+            schema_version: "control-plane-work-packet-receipts-input.v1",
+            generated_at: "2026-05-23T06:45:00.000Z",
+            work_packet_run_id: "control-plane-work-packets.test",
+            instructions: "Test ready receipt.",
+            receipts: [
+              {
+                receipt_id: "work-packet-receipt.test",
+                work_packet_id: "work-packet.test",
+                packet_type: "stage_recheck",
+                source_stage: "control_plane_pipeline",
+                receipt_status: "resolved",
+                resolved_by: "codex",
+                resolved_at: "2026-05-23T06:46:00.000Z",
+                resolution_reference: "npm test",
+                reviewer: "jws",
+                protected_action_reference: null,
+                command_result: "passed",
+                completed_work_item_ids: ["work-item.test"],
+              },
+            ],
+          },
+        }, null, 2)}\n`,
+        "utf8",
+      );
+      await writeFile(
+        workPacketsPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-work-packets.v1",
+          generated_at: "2026-05-23T06:44:00.000Z",
+          work_packet_run_id: "control-plane-work-packets.test",
+          packet_status: "blocked",
+          summary: {
+            work_packet_count: 1,
+            work_item_count: 1,
+          },
+          work_packets: [
+            {
+              work_packet_id: "work-packet.test",
+              packet_type: "stage_recheck",
+              source_stage: "control_plane_pipeline",
+              status: "blocked",
+              priority: "high",
+            },
+          ],
+          work_items: [
+            {
+              work_item_id: "work-item.test",
+              work_packet_id: "work-packet.test",
+              plan_item_id: "plan-item.test",
+              source_stage: "control_plane_pipeline",
+              status: "blocked",
+              priority: "high",
+            },
+          ],
+        }, null, 2)}\n`,
+        "utf8",
+      );
+
+      const application = await runControlPlaneWorkPacketReceiptApplication({
+        validationPath,
+        workPacketsPath,
+        outDir: path.join(root, "application"),
+        runAt: "2026-05-23T06:47:00.000Z",
+      });
+      const schema = JSON.parse(await readFile("schemas/control-plane-work-packet-receipt-application.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(application, schema, {}, "control_plane_work_packet_receipt_application_ready"), []);
+      assert.equal(application.application_status, "applied");
+      assert.equal(application.safe_to_apply, true);
+      assert.equal(application.summary.applied_receipt_count, 1);
+      assert.equal(application.summary.patched_work_packet_count, 1);
+      assert.equal(application.summary.patched_work_item_count, 1);
+      assert.equal(application.patched_work_packets[0].status, "closed");
+      assert.equal(application.patched_work_items[0].status, "completed");
+      assert.equal(application.audit_events[0].type, "work_packet.receipt.applied");
+      assert.match(await readFile(path.join(root, "application", "summary.md"), "utf8"), /Applied receipts: 1/);
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("validates the event ledger against schema and run references", async () => {
     const result = await validateEventLedgerFile("examples/core/event-ledger.json");
     assert.deepEqual(result.errors, []);

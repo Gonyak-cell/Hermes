@@ -7,6 +7,7 @@ import path from "node:path";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
+import { runControlPlaneWorkPacketReceipts } from "../src/control-plane-work-packet-receipts.mjs";
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
@@ -709,6 +710,7 @@ describe("matter harness", () => {
         controlPlanePipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -718,6 +720,7 @@ describe("matter harness", () => {
         controlPlaneHealthPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneWorkPacketsPath: false,
+        controlPlaneWorkPacketReceiptsPath: false,
         outDir: path.join(outDir, "dashboard-pre-health"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -766,11 +769,26 @@ describe("matter harness", () => {
       assert.ok(controlPlaneWorkPackets.summary.work_item_count >= controlPlaneActionPlan.summary.plan_item_count);
       assert.ok(controlPlaneWorkPackets.summary.human_packet_count >= 1);
 
+      const controlPlaneWorkPacketReceipts = await runControlPlaneWorkPacketReceipts({
+        workPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        outDir: path.join(outDir, "control-plane-work-packet-receipts"),
+        runAt: "2026-05-23T06:35:06.850Z",
+      });
+      const controlPlaneWorkPacketReceiptsSchema = JSON.parse(await readFile("schemas/control-plane-work-packet-receipt-drafts.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneWorkPacketReceipts, controlPlaneWorkPacketReceiptsSchema, {}, "control_plane_work_packet_receipts"),
+        [],
+      );
+      assert.equal(controlPlaneWorkPacketReceipts.receipt_status, "pending_receipts");
+      assert.equal(controlPlaneWorkPacketReceipts.summary.receipt_draft_count, controlPlaneWorkPackets.summary.work_packet_count);
+      assert.ok(controlPlaneWorkPacketReceipts.summary.human_receipt_count >= 1);
+
       const dashboard = await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -827,6 +845,8 @@ describe("matter harness", () => {
       assert.ok(dashboard.summary.action_plan_human_required_count >= 1);
       assert.equal(dashboard.summary.work_packet_count, controlPlaneWorkPackets.summary.work_packet_count);
       assert.ok(dashboard.summary.work_packet_human_count >= 1);
+      assert.equal(dashboard.summary.work_packet_receipt_draft_count, controlPlaneWorkPacketReceipts.summary.receipt_draft_count);
+      assert.ok(dashboard.summary.work_packet_receipt_human_count >= 1);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -858,6 +878,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -912,6 +933,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-plan-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-work-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-work-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-drafts"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -1059,6 +1082,14 @@ describe("matter harness", () => {
       const matterWorkItems = JSON.parse((await buildReviewApiResponse("/api/action-work-items?source_stage=matter_cockpit", apiOptions)).body);
       assert.equal(matterWorkItems.collection, "action_work_items");
       assert.ok(matterWorkItems.count >= 1);
+
+      const humanReceiptRequirements = JSON.parse((await buildReviewApiResponse("/api/work-packet-receipt-requirements?requires_human=true", apiOptions)).body);
+      assert.equal(humanReceiptRequirements.collection, "work_packet_receipt_requirements");
+      assert.ok(humanReceiptRequirements.count >= 1);
+
+      const pendingPacketReceipts = JSON.parse((await buildReviewApiResponse("/api/work-packet-receipt-drafts?receipt_status=pending", apiOptions)).body);
+      assert.equal(pendingPacketReceipts.collection, "work_packet_receipt_drafts");
+      assert.ok(pendingPacketReceipts.count >= 1);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

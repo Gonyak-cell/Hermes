@@ -812,3 +812,29 @@
 - protected action packet은 자동 실행되지 않고 checklist로만 표시됨
 - `/api/action-work-packets?protected_action=true`로 보호 작업 묶음을 조회할 수 있음
 - `npm test`, `control-plane:work-packets`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 33: Control Plane Work Packet Receipt Drafts
+
+목표: Work Packet을 닫기 위해 사람이 기록해야 할 receipt 입력 계약을 생성합니다.
+
+- `control-plane-work-packets.json`을 읽어 packet별 receipt requirement 생성
+- protected action, human review, command rerun에 필요한 필드를 분리
+- pending receipt input draft를 생성하되 packet을 자동 완료 처리하지 않음
+- Review Dashboard에 `control_plane_work_packet_receipts` stage와 receipt summary 추가
+- Review API에서 `/api/work-packet-receipt-requirements`, `/api/work-packet-receipt-drafts` route 제공
+
+현재 구현:
+
+- `npm run control-plane:work-receipts`
+- `src/control-plane-work-packet-receipts.mjs`
+- `schemas/control-plane-work-packet-receipt-drafts.schema.json`
+- `docs/control-plane-work-packet-receipts.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- work packet별 receipt requirement와 pending receipt row가 생성됨
+- protected action은 `protected_action_reference` 필드를 요구함
+- `/api/work-packet-receipt-drafts?receipt_status=pending`으로 입력 초안을 조회할 수 있음
+- `npm test`, `control-plane:work-receipts`, `dashboard:build`, `api:smoke`가 통과함

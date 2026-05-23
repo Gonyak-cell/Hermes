@@ -106,6 +106,12 @@
         "work_packet_protected_count",
         "work_packet_command_count",
         "work_packet_next_command_count",
+        "work_packet_receipt_requirement_count",
+        "work_packet_receipt_draft_count",
+        "work_packet_receipt_pending_count",
+        "work_packet_receipt_human_count",
+        "work_packet_receipt_protected_count",
+        "work_packet_receipt_command_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -453,6 +459,30 @@
           "minimum": 0
         },
         "work_packet_next_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_requirement_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_draft_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_human_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_protected_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_command_count": {
           "type": "integer",
           "minimum": 0
         },

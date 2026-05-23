@@ -48,6 +48,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/action-plan-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
+  assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-drafts"));
 
   const dashboard = await fetchJson(`${url}/api/dashboard`);
   assert.equal(dashboard.schema_version, "review-dashboard.v1");
@@ -71,6 +73,10 @@ try {
   const protectedWorkPackets = await fetchJson(`${url}/api/action-work-packets?protected_action=true&limit=5`);
   assert.equal(protectedWorkPackets.collection, "action_work_packets");
   assert.ok(protectedWorkPackets.count <= 5);
+
+  const packetReceiptDrafts = await fetchJson(`${url}/api/work-packet-receipt-drafts?receipt_status=pending&limit=5`);
+  assert.equal(packetReceiptDrafts.collection, "work_packet_receipt_drafts");
+  assert.ok(packetReceiptDrafts.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

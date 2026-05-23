@@ -1382,3 +1382,33 @@
 - `/api/token-usage-records?runtime_id=codex`로 Codex runtime token usage를 조회할 수 있음
 - Dashboard summary가 token usage record, tracking required, estimated count, total token count, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run token:usage`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 54: Cost Attribution Ledger
+
+목표: Cost Budget Ledger, Token Usage Ledger, Observability Catalog를 연결해 matter/runtime/capability/domain pack 기준 projected cost를 귀속합니다.
+
+- budget decision마다 cost attribution record 생성
+- observed USD가 있으면 우선 사용하고, 없으면 token usage와 deterministic `estimated_token_usd_per_1k`로 projected USD 계산
+- budget remaining, over-budget, untracked cost 상태를 기록
+- domain pack, runtime, capability, matter 기준 rollup 생성
+- Review Dashboard에 `cost_attribution_ledger` stage와 projected/budget remaining summary 추가
+- Review API에서 `/api/cost-attribution-ledgers`, `/api/cost-attribution-records` route 제공
+- Control Plane Pipeline과 Loop에 `npm run cost:attribution` 포함
+- Goal Checkpoint에서 Cost Attribution Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run cost:attribution`
+- `src/cost-attribution-ledger.mjs`
+- `schemas/cost-attribution-ledger.schema.json`
+- `docs/cost-attribution-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- cost attribution ledger artifact가 schema validation을 통과함
+- `/api/cost-attribution-records?attribution_status=attributed`로 attribution record를 조회할 수 있음
+- `/api/cost-attribution-records?runtime_id=codex`로 Codex runtime cost attribution을 조회할 수 있음
+- Dashboard summary가 attribution record, projected USD, budget remaining, over-budget, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run cost:attribution`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

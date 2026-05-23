@@ -16,6 +16,7 @@
     "api:smoke": "node scripts/review-api-smoke.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "context:packets": "node scripts/context-packet-ledger.mjs",
+    "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",
     "token:usage": "node scripts/token-usage-ledger.mjs",
     "model:routing": "node scripts/model-routing-ledger.mjs",

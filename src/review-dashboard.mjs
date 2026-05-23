@@ -17,6 +17,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   modelRoutingLedgerPath: "artifacts/model-routing/latest/model-routing-ledger.json",
   costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   tokenUsageLedgerPath: "artifacts/token-usage/latest/token-usage-ledger.json",
+  costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -117,6 +118,11 @@ const SOURCE_DEFINITIONS = [
     option: "tokenUsageLedgerPath",
     source_id: "token_usage_ledger",
     label: "Token Usage Ledger",
+  },
+  {
+    option: "costAttributionLedgerPath",
+    source_id: "cost_attribution_ledger",
+    label: "Cost Attribution Ledger",
   },
   {
     option: "domainPackRegistryPath",
@@ -403,6 +409,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "model_routing_ledger") return data.summary ?? {};
   if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "token_usage_ledger") return data.summary ?? {};
+  if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -536,6 +543,7 @@ function buildStageStatuses(artifacts, sources) {
     buildModelRoutingLedgerStage(artifacts.model_routing_ledger, sourceById.get("model_routing_ledger")),
     buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildTokenUsageLedgerStage(artifacts.token_usage_ledger, sourceById.get("token_usage_ledger")),
+    buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -926,6 +934,40 @@ function buildTokenUsageLedgerStage(ledger, source) {
       blocked_record_count: blocked,
       total_input_token_count: summary.total_input_token_count ?? 0,
       total_output_token_count: summary.total_output_token_count ?? 0,
+      total_token_count: summary.total_token_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildCostAttributionLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("cost_attribution_ledger", "Cost Attribution Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const blocked = summary.blocked_record_count ?? 0;
+  const overBudget = summary.over_budget_count ?? 0;
+  const status = ledger.ledger_status === "valid" && errorCount === 0 && blocked === 0 && overBudget === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "cost_attribution_ledger",
+    label: "Cost Attribution Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.attribution_record_count ?? 0} attribution record(s), projected $${summary.total_projected_usd ?? 0}, remaining $${summary.total_budget_remaining_usd ?? 0}.`
+      : `${blocked} blocked record(s), ${overBudget} over-budget record(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: ledger.ledger_status ?? "unknown",
+      attribution_record_count: summary.attribution_record_count ?? 0,
+      attributed_record_count: summary.attributed_record_count ?? 0,
+      attention_record_count: summary.attention_record_count ?? 0,
+      blocked_record_count: blocked,
+      over_budget_count: overBudget,
+      untracked_cost_count: summary.untracked_cost_count ?? 0,
+      total_budget_usd: summary.total_budget_usd ?? 0,
+      total_observed_usd: summary.total_observed_usd ?? 0,
+      total_estimated_token_usd: summary.total_estimated_token_usd ?? 0,
+      total_projected_usd: summary.total_projected_usd ?? 0,
+      total_budget_remaining_usd: summary.total_budget_remaining_usd ?? 0,
       total_token_count: summary.total_token_count ?? 0,
       validation_error_count: errorCount,
     },
@@ -1883,6 +1925,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.cost_attribution_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "cost_attribution_ledger";
+    items.push({
+      action_item_id: `dashboard.action.cost_attribution_ledger.${slugify(subjectId)}`,
+      source_stage: "cost_attribution_ledger",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix cost attribution validation",
+      subject_ref: {
+        subject_type: "cost_attribution_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_cost_attribution", "rerun_cost_attribution", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -2352,6 +2412,16 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     token_usage_total_output_tokens: artifacts.token_usage_ledger?.summary?.total_output_token_count ?? 0,
     token_usage_total_tokens: artifacts.token_usage_ledger?.summary?.total_token_count ?? 0,
     token_usage_validation_error_count: artifacts.token_usage_ledger?.summary?.validation_error_count ?? artifacts.token_usage_ledger?.validation?.errors?.length ?? 0,
+    cost_attribution_record_count: artifacts.cost_attribution_ledger?.summary?.attribution_record_count ?? 0,
+    cost_attribution_attributed_count: artifacts.cost_attribution_ledger?.summary?.attributed_record_count ?? 0,
+    cost_attribution_attention_count: artifacts.cost_attribution_ledger?.summary?.attention_record_count ?? 0,
+    cost_attribution_blocked_count: artifacts.cost_attribution_ledger?.summary?.blocked_record_count ?? 0,
+    cost_attribution_over_budget_count: artifacts.cost_attribution_ledger?.summary?.over_budget_count ?? 0,
+    cost_attribution_untracked_count: artifacts.cost_attribution_ledger?.summary?.untracked_cost_count ?? 0,
+    cost_attribution_total_budget_usd: artifacts.cost_attribution_ledger?.summary?.total_budget_usd ?? 0,
+    cost_attribution_total_projected_usd: artifacts.cost_attribution_ledger?.summary?.total_projected_usd ?? 0,
+    cost_attribution_total_remaining_usd: artifacts.cost_attribution_ledger?.summary?.total_budget_remaining_usd ?? 0,
+    cost_attribution_validation_error_count: artifacts.cost_attribution_ledger?.summary?.validation_error_count ?? artifacts.cost_attribution_ledger?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2560,6 +2630,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Model Routes", dashboard.summary.model_route_count)}
       ${stat("Cost Budgets", dashboard.summary.cost_budget_decision_count)}
       ${stat("Token Usage", dashboard.summary.token_usage_record_count)}
+      ${stat("Cost Attribution", dashboard.summary.cost_attribution_record_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2647,6 +2718,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Token usage records: ${dashboard.summary.token_usage_record_count ?? 0}`);
   lines.push(`- Token usage estimated: ${dashboard.summary.token_usage_estimated_count ?? 0}`);
   lines.push(`- Token usage total tokens: ${dashboard.summary.token_usage_total_tokens ?? 0}`);
+  lines.push(`- Cost attribution records: ${dashboard.summary.cost_attribution_record_count ?? 0}`);
+  lines.push(`- Cost attribution projected USD: ${dashboard.summary.cost_attribution_total_projected_usd ?? 0}`);
+  lines.push(`- Cost attribution remaining USD: ${dashboard.summary.cost_attribution_total_remaining_usd ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2823,6 +2897,8 @@ function parseArgs(argv) {
     else if (arg === "--no-cost-budget-ledger") parsed.costBudgetLedgerPath = false;
     else if (arg === "--token-usage-ledger") parsed.tokenUsageLedgerPath = argv[++index];
     else if (arg === "--no-token-usage-ledger") parsed.tokenUsageLedgerPath = false;
+    else if (arg === "--cost-attribution-ledger") parsed.costAttributionLedgerPath = argv[++index];
+    else if (arg === "--no-cost-attribution-ledger") parsed.costAttributionLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2914,6 +2990,9 @@ Options:
   --no-cost-budget-ledger        Do not include Cost Budget Ledger status.
   --token-usage-ledger <path>    token-usage-ledger.json path.
   --no-token-usage-ledger        Do not include Token Usage Ledger status.
+  --cost-attribution-ledger <path>
+                                  cost-attribution-ledger.json path.
+  --no-cost-attribution-ledger   Do not include Cost Attribution Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

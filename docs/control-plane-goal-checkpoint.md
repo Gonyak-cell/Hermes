@@ -36,6 +36,7 @@ npm run control-plane:goal-checkpoint -- \
 - Model routing and external transfer decisions
 - Cost budget gate ledger
 - Token usage ledger
+- Cost attribution ledger
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow

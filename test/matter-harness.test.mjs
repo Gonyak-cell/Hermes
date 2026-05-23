@@ -19,6 +19,7 @@ import { runControlPlaneWorkPacketReceiptApplication } from "../src/control-plan
 import { runControlPlaneWorkPacketReceiptValidation } from "../src/control-plane-work-packet-receipt-validation.mjs";
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
 import { runContextPacketLedger } from "../src/context-packet-ledger.mjs";
+import { runCostAttributionLedger } from "../src/cost-attribution-ledger.mjs";
 import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
 import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
@@ -569,6 +570,27 @@ describe("matter harness", () => {
       )));
       assert.match(await readFile(path.join(outDir, "token-usage", "summary.md"), "utf8"), /Token Usage Ledger/);
 
+      const costAttributionLedger = await runCostAttributionLedger({
+        costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
+        tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        outDir: path.join(outDir, "cost-attribution"),
+        runAt: "2026-05-23T06:34:54.900Z",
+      });
+      const costAttributionLedgerSchema = JSON.parse(await readFile("schemas/cost-attribution-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(costAttributionLedger, costAttributionLedgerSchema, {}, "cost_attribution_ledger"), []);
+      assert.equal(costAttributionLedger.ledger_status, "valid");
+      assert.equal(costAttributionLedger.summary.attribution_record_count, costBudgetLedger.summary.budget_decision_count);
+      assert.equal(costAttributionLedger.summary.attributed_record_count, costAttributionLedger.summary.attribution_record_count);
+      assert.equal(costAttributionLedger.summary.over_budget_count, 0);
+      assert.equal(costAttributionLedger.summary.untracked_cost_count, 0);
+      assert.ok(costAttributionLedger.summary.total_projected_usd > 0);
+      assert.ok(costAttributionLedger.summary.total_budget_remaining_usd > 0);
+      assert.equal(costAttributionLedger.summary.total_token_count, tokenUsageLedger.summary.total_token_count);
+      assert.equal(costAttributionLedger.summary.validation_error_count, 0);
+      assert.ok(costAttributionLedger.rollups.by_runtime_id.some((rollup) => rollup.key === "codex"));
+      assert.match(await readFile(path.join(outDir, "cost-attribution", "summary.md"), "utf8"), /Cost Attribution Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -893,6 +915,7 @@ describe("matter harness", () => {
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
         tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
+        costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -1253,6 +1276,12 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.token_usage_estimated_count, tokenUsageLedger.summary.estimated_record_count);
       assert.equal(dashboard.summary.token_usage_total_tokens, tokenUsageLedger.summary.total_token_count);
       assert.equal(dashboard.summary.token_usage_validation_error_count, 0);
+      assert.equal(dashboard.summary.cost_attribution_record_count, costAttributionLedger.summary.attribution_record_count);
+      assert.equal(dashboard.summary.cost_attribution_attributed_count, costAttributionLedger.summary.attributed_record_count);
+      assert.equal(dashboard.summary.cost_attribution_over_budget_count, 0);
+      assert.equal(dashboard.summary.cost_attribution_total_projected_usd, costAttributionLedger.summary.total_projected_usd);
+      assert.equal(dashboard.summary.cost_attribution_total_remaining_usd, costAttributionLedger.summary.total_budget_remaining_usd);
+      assert.equal(dashboard.summary.cost_attribution_validation_error_count, 0);
       assert.equal(dashboard.summary.context_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
@@ -1356,6 +1385,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1432,6 +1462,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-attribution-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-attribution-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1604,6 +1636,19 @@ describe("matter harness", () => {
       assert.equal(codexTokenUsage.collection, "token_usage_records");
       assert.equal(codexTokenUsage.count, 1);
       assert.equal(codexTokenUsage.items[0].tracking_status, "estimated");
+
+      const costAttributionLedgers = JSON.parse((await buildReviewApiResponse("/api/cost-attribution-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(costAttributionLedgers.collection, "cost_attribution_ledgers");
+      assert.equal(costAttributionLedgers.count, 1);
+
+      const attributedCosts = JSON.parse((await buildReviewApiResponse("/api/cost-attribution-records?attribution_status=attributed", apiOptions)).body);
+      assert.equal(attributedCosts.collection, "cost_attribution_records");
+      assert.equal(attributedCosts.count, costAttributionLedger.summary.attributed_record_count);
+
+      const codexCostAttribution = JSON.parse((await buildReviewApiResponse("/api/cost-attribution-records?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexCostAttribution.collection, "cost_attribution_records");
+      assert.equal(codexCostAttribution.count, 1);
+      assert.equal(codexCostAttribution.items[0].attribution_status, "attributed");
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

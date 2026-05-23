@@ -47,6 +47,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-attribution-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-attribution-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -204,6 +206,18 @@ try {
   const codexTokenUsage = await fetchJson(`${url}/api/token-usage-records?runtime_id=codex&limit=5`);
   assert.equal(codexTokenUsage.collection, "token_usage_records");
   assert.ok(codexTokenUsage.count <= 5);
+
+  const costAttributionLedgers = await fetchJson(`${url}/api/cost-attribution-ledgers?ledger_status=valid&limit=1`);
+  assert.equal(costAttributionLedgers.collection, "cost_attribution_ledgers");
+  assert.ok(costAttributionLedgers.count <= 1);
+
+  const costAttributionRecords = await fetchJson(`${url}/api/cost-attribution-records?attribution_status=attributed&limit=5`);
+  assert.equal(costAttributionRecords.collection, "cost_attribution_records");
+  assert.ok(costAttributionRecords.count <= 5);
+
+  const codexCostAttribution = await fetchJson(`${url}/api/cost-attribution-records?runtime_id=codex&limit=5`);
+  assert.equal(codexCostAttribution.collection, "cost_attribution_records");
+  assert.ok(codexCostAttribution.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

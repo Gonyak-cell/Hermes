@@ -1,0 +1,219 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/cost-attribution-ledger.schema.json",
+  "title": "Hermes Cost Attribution Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_id",
+    "output_dir",
+    "cost_budget_ledger_path",
+    "token_usage_ledger_path",
+    "observability_catalog_path",
+    "estimated_token_usd_per_1k",
+    "ledger_status",
+    "summary",
+    "sources",
+    "attribution_records",
+    "rollups",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "cost-attribution-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "cost_budget_ledger_path": { "type": "string" },
+    "token_usage_ledger_path": { "type": "string" },
+    "observability_catalog_path": { "type": "string" },
+    "estimated_token_usd_per_1k": { "type": "number", "minimum": 0 },
+    "ledger_status": { "enum": ["valid", "blocked"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "attribution_record_count",
+        "attributed_record_count",
+        "attention_record_count",
+        "blocked_record_count",
+        "over_budget_count",
+        "untracked_cost_count",
+        "total_budget_usd",
+        "total_observed_usd",
+        "total_estimated_token_usd",
+        "total_projected_usd",
+        "total_budget_remaining_usd",
+        "total_token_count",
+        "validation_error_count",
+        "by_attribution_status",
+        "by_domain_pack",
+        "by_runtime_id",
+        "by_capability_id",
+        "by_matter_id"
+      ],
+      "properties": {
+        "attribution_record_count": { "type": "integer", "minimum": 0 },
+        "attributed_record_count": { "type": "integer", "minimum": 0 },
+        "attention_record_count": { "type": "integer", "minimum": 0 },
+        "blocked_record_count": { "type": "integer", "minimum": 0 },
+        "over_budget_count": { "type": "integer", "minimum": 0 },
+        "untracked_cost_count": { "type": "integer", "minimum": 0 },
+        "total_budget_usd": { "type": "number" },
+        "total_observed_usd": { "type": "number" },
+        "total_estimated_token_usd": { "type": "number" },
+        "total_projected_usd": { "type": "number" },
+        "total_budget_remaining_usd": { "type": "number" },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_attribution_status": { "type": "object" },
+        "by_domain_pack": { "type": "object" },
+        "by_runtime_id": { "type": "object" },
+        "by_capability_id": { "type": "object" },
+        "by_matter_id": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "attribution_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/attribution_record" }
+    },
+    "rollups": { "$ref": "#/$defs/rollups" },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "attribution_record": {
+      "type": "object",
+      "required": [
+        "attribution_id",
+        "budget_decision_id",
+        "token_usage_id",
+        "routing_decision_id",
+        "context_packet_id",
+        "workflow_run_id",
+        "agent_run_id",
+        "runtime_id",
+        "capability_id",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "budget_status",
+        "token_tracking_status",
+        "attribution_status",
+        "max_usd",
+        "observed_usd",
+        "estimated_token_usd",
+        "projected_usd",
+        "budget_remaining_usd",
+        "over_budget",
+        "untracked_cost",
+        "total_token_count",
+        "observed_runtime_seconds",
+        "cost_record_count",
+        "required_gates",
+        "audit_required",
+        "attribution_hash",
+        "metadata"
+      ],
+      "properties": {
+        "attribution_id": { "type": "string" },
+        "budget_decision_id": { "type": "string" },
+        "token_usage_id": { "type": ["string", "null"] },
+        "routing_decision_id": { "type": "string" },
+        "context_packet_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "budget_status": { "type": "string" },
+        "token_tracking_status": { "type": "string" },
+        "attribution_status": { "enum": ["attributed", "attention", "blocked"] },
+        "max_usd": { "type": ["number", "null"], "minimum": 0 },
+        "observed_usd": { "type": "number", "minimum": 0 },
+        "estimated_token_usd": { "type": "number", "minimum": 0 },
+        "projected_usd": { "type": "number", "minimum": 0 },
+        "budget_remaining_usd": { "type": ["number", "null"] },
+        "over_budget": { "type": "boolean" },
+        "untracked_cost": { "type": "boolean" },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "observed_runtime_seconds": { "type": "number", "minimum": 0 },
+        "cost_record_count": { "type": "integer", "minimum": 0 },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "audit_required": { "type": "boolean" },
+        "attribution_hash": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "rollups": {
+      "type": "object",
+      "required": ["by_domain_pack", "by_runtime_id", "by_capability_id", "by_matter_id"],
+      "properties": {
+        "by_domain_pack": { "type": "array", "items": { "$ref": "#/$defs/rollup" } },
+        "by_runtime_id": { "type": "array", "items": { "$ref": "#/$defs/rollup" } },
+        "by_capability_id": { "type": "array", "items": { "$ref": "#/$defs/rollup" } },
+        "by_matter_id": { "type": "array", "items": { "$ref": "#/$defs/rollup" } }
+      }
+    },
+    "rollup": {
+      "type": "object",
+      "required": [
+        "key",
+        "record_count",
+        "total_budget_usd",
+        "total_observed_usd",
+        "total_estimated_token_usd",
+        "total_projected_usd",
+        "total_token_count",
+        "over_budget_count"
+      ],
+      "properties": {
+        "key": { "type": "string" },
+        "record_count": { "type": "integer", "minimum": 0 },
+        "total_budget_usd": { "type": "number" },
+        "total_observed_usd": { "type": "number" },
+        "total_estimated_token_usd": { "type": "number" },
+        "total_projected_usd": { "type": "number" },
+        "total_token_count": { "type": "integer", "minimum": 0 },
+        "over_budget_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -105,6 +105,16 @@
         "token_usage_total_output_tokens",
         "token_usage_total_tokens",
         "token_usage_validation_error_count",
+        "cost_attribution_record_count",
+        "cost_attribution_attributed_count",
+        "cost_attribution_attention_count",
+        "cost_attribution_blocked_count",
+        "cost_attribution_over_budget_count",
+        "cost_attribution_untracked_count",
+        "cost_attribution_total_budget_usd",
+        "cost_attribution_total_projected_usd",
+        "cost_attribution_total_remaining_usd",
+        "cost_attribution_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -563,6 +573,43 @@
           "minimum": 0
         },
         "token_usage_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_attributed_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_attention_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_over_budget_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_untracked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_attribution_total_budget_usd": {
+          "type": "number"
+        },
+        "cost_attribution_total_projected_usd": {
+          "type": "number"
+        },
+        "cost_attribution_total_remaining_usd": {
+          "type": "number"
+        },
+        "cost_attribution_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

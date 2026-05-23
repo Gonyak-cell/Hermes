@@ -17,6 +17,7 @@
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",
+    "control-plane:work-receipts:validate": "node scripts/control-plane-work-packet-receipt-validation.mjs",
     "control-plane:work-packets": "node scripts/control-plane-work-packets.mjs",
     "control-plane:health": "node scripts/control-plane-health.mjs",
     "control-plane:pipeline": "node scripts/control-plane-pipeline.mjs",

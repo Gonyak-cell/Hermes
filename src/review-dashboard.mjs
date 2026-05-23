@@ -26,6 +26,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
   controlPlaneWorkPacketReceiptsPath: "artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json",
+  controlPlaneWorkPacketReceiptValidationPath: "artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -146,6 +147,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneWorkPacketReceiptsPath",
     source_id: "control_plane_work_packet_receipts",
     label: "Control Plane Work Packet Receipts",
+  },
+  {
+    option: "controlPlaneWorkPacketReceiptValidationPath",
+    source_id: "control_plane_work_packet_receipt_validation",
+    label: "Control Plane Work Packet Receipt Validation",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -374,6 +380,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
   if (sourceId === "control_plane_work_packet_receipts") return data.summary ?? {};
+  if (sourceId === "control_plane_work_packet_receipt_validation") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -433,6 +440,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
+    buildControlPlaneWorkPacketReceiptValidationStage(artifacts.control_plane_work_packet_receipt_validation, sourceById.get("control_plane_work_packet_receipt_validation")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -1029,6 +1037,40 @@ function buildControlPlaneWorkPacketReceiptsStage(receipts, source) {
   };
 }
 
+function buildControlPlaneWorkPacketReceiptValidationStage(validation, source) {
+  if (!validation) return missingStage("control_plane_work_packet_receipt_validation", "Control Plane Work Packet Receipt Validation", source);
+  const summary = validation.summary ?? {};
+  const errors = summary.error_count ?? 0;
+  const invalid = summary.invalid_receipt_count ?? 0;
+  const pending = summary.pending_receipt_count ?? 0;
+  const missing = summary.missing_receipt_count ?? 0;
+  const ready = summary.ready_to_apply_count ?? 0;
+  const status = errors > 0 || invalid > 0
+    ? "attention"
+    : pending > 0 || missing > 0
+      ? "pending"
+      : ready > 0
+        ? "ready"
+        : "passed";
+  return {
+    stage_id: "control_plane_work_packet_receipt_validation",
+    label: "Control Plane Work Packet Receipt Validation",
+    status,
+    message: `${ready} ready receipt(s), ${pending} pending, ${invalid} invalid, ${missing} missing.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      validation_status: validation.validation_status,
+      receipt_requirement_count: summary.receipt_requirement_count ?? 0,
+      receipt_count: summary.receipt_count ?? 0,
+      ready_to_apply_count: ready,
+      pending_receipt_count: pending,
+      missing_receipt_count: missing,
+      invalid_receipt_count: invalid,
+      error_count: errors,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -1615,6 +1657,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     work_packet_receipt_human_count: artifacts.control_plane_work_packet_receipts?.summary?.human_receipt_count ?? 0,
     work_packet_receipt_protected_count: artifacts.control_plane_work_packet_receipts?.summary?.protected_receipt_count ?? 0,
     work_packet_receipt_command_count: artifacts.control_plane_work_packet_receipts?.summary?.command_receipt_count ?? 0,
+    work_packet_receipt_validation_ready_count: artifacts.control_plane_work_packet_receipt_validation?.summary?.ready_to_apply_count ?? 0,
+    work_packet_receipt_validation_pending_count: artifacts.control_plane_work_packet_receipt_validation?.summary?.pending_receipt_count ?? 0,
+    work_packet_receipt_validation_invalid_count: artifacts.control_plane_work_packet_receipt_validation?.summary?.invalid_receipt_count ?? 0,
+    work_packet_receipt_validation_error_count: artifacts.control_plane_work_packet_receipt_validation?.summary?.error_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1712,6 +1758,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
       ${stat("Packet Receipts", dashboard.summary.work_packet_receipt_draft_count)}
+      ${stat("Receipt Gate", dashboard.summary.work_packet_receipt_validation_ready_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1786,6 +1833,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Work packet next commands: ${dashboard.summary.work_packet_next_command_count ?? 0}`);
   lines.push(`- Work packet receipt drafts: ${dashboard.summary.work_packet_receipt_draft_count ?? 0}`);
   lines.push(`- Work packet receipt protected: ${dashboard.summary.work_packet_receipt_protected_count ?? 0}`);
+  lines.push(`- Work packet receipts ready: ${dashboard.summary.work_packet_receipt_validation_ready_count ?? 0}`);
+  lines.push(`- Work packet receipts pending: ${dashboard.summary.work_packet_receipt_validation_pending_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1920,6 +1969,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = false;
     else if (arg === "--control-plane-work-packet-receipts") parsed.controlPlaneWorkPacketReceiptsPath = argv[++index];
     else if (arg === "--no-control-plane-work-packet-receipts") parsed.controlPlaneWorkPacketReceiptsPath = false;
+    else if (arg === "--control-plane-work-packet-receipt-validation") parsed.controlPlaneWorkPacketReceiptValidationPath = argv[++index];
+    else if (arg === "--no-control-plane-work-packet-receipt-validation") parsed.controlPlaneWorkPacketReceiptValidationPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1988,6 +2039,10 @@ Options:
                                   control-plane-work-packet-receipt-drafts.json path.
   --no-control-plane-work-packet-receipts
                                   Do not include Control Plane Work Packet Receipts status.
+  --control-plane-work-packet-receipt-validation <path>
+                                  control-plane-work-packet-receipt-validation.json path.
+  --no-control-plane-work-packet-receipt-validation
+                                  Do not include Control Plane Work Packet Receipt Validation status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

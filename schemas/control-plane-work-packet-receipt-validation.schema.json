@@ -1,0 +1,153 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-work-packet-receipt-validation.schema.json",
+  "title": "Hermes Control Plane Work Packet Receipt Validation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "validation_id",
+    "output_dir",
+    "validation_status",
+    "sources",
+    "summary",
+    "validation_items",
+    "receipt_errors",
+    "validated_receipts_to_apply"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-work-packet-receipt-validation.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "validation_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "validation_status": { "enum": ["clear", "pending_receipts", "ready_to_apply", "blocked_missing_source", "blocked_invalid_receipts"] },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "validation_status",
+        "receipt_drafts_available",
+        "receipt_input_available",
+        "receipt_requirement_count",
+        "receipt_count",
+        "validation_item_count",
+        "ready_to_apply_count",
+        "pending_receipt_count",
+        "missing_receipt_count",
+        "invalid_receipt_count",
+        "unknown_receipt_count",
+        "error_count",
+        "protected_ready_count",
+        "human_ready_count",
+        "command_ready_count",
+        "by_validation_status",
+        "by_receipt_status",
+        "by_packet_type",
+        "by_source_stage"
+      ],
+      "properties": {
+        "validation_status": { "enum": ["clear", "pending_receipts", "ready_to_apply", "blocked_missing_source", "blocked_invalid_receipts"] },
+        "receipt_drafts_available": { "type": "boolean" },
+        "receipt_input_available": { "type": "boolean" },
+        "receipt_requirement_count": { "type": "integer", "minimum": 0 },
+        "receipt_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "ready_to_apply_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "missing_receipt_count": { "type": "integer", "minimum": 0 },
+        "invalid_receipt_count": { "type": "integer", "minimum": 0 },
+        "unknown_receipt_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "protected_ready_count": { "type": "integer", "minimum": 0 },
+        "human_ready_count": { "type": "integer", "minimum": 0 },
+        "command_ready_count": { "type": "integer", "minimum": 0 },
+        "by_validation_status": { "type": "object" },
+        "by_receipt_status": { "type": "object" },
+        "by_packet_type": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "validation_item_id",
+          "receipt_requirement_id",
+          "work_packet_id",
+          "packet_type",
+          "source_stage",
+          "priority",
+          "validation_status",
+          "receipt_status",
+          "ready_to_apply",
+          "error_count",
+          "requires_human",
+          "protected_action",
+          "required_receipt_fields",
+          "errors",
+          "receipt"
+        ],
+        "properties": {
+          "validation_item_id": { "type": "string" },
+          "receipt_requirement_id": { "type": ["string", "null"] },
+          "work_packet_id": { "type": "string" },
+          "packet_type": { "type": "string" },
+          "source_stage": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "validation_status": { "enum": ["pending_receipt", "ready_to_apply", "invalid_receipt", "missing_receipt", "unknown_work_packet"] },
+          "receipt_status": { "type": "string" },
+          "ready_to_apply": { "type": "boolean" },
+          "error_count": { "type": "integer", "minimum": 0 },
+          "requires_human": { "type": "boolean" },
+          "protected_action": { "type": "boolean" },
+          "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+          "errors": { "type": "array", "items": { "$ref": "#/$defs/error" } },
+          "receipt": { "type": ["object", "null"] }
+        }
+      }
+    },
+    "receipt_errors": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/error" }
+    },
+    "validated_receipts_to_apply": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "work_packet_run_id", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "control-plane-work-packet-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "work_packet_run_id": { "type": "string" },
+        "instructions": { "type": "string" },
+        "receipts": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "error": {
+      "type": "object",
+      "required": ["work_packet_id", "field", "message"],
+      "properties": {
+        "work_packet_id": { "type": "string" },
+        "field": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

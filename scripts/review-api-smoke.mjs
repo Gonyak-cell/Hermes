@@ -50,6 +50,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
   assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-drafts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-errors"));
+  assert.ok(index.routes.some((route) => route.path === "/api/validated-work-packet-receipts"));
 
   const dashboard = await fetchJson(`${url}/api/dashboard`);
   assert.equal(dashboard.schema_version, "review-dashboard.v1");
@@ -77,6 +80,10 @@ try {
   const packetReceiptDrafts = await fetchJson(`${url}/api/work-packet-receipt-drafts?receipt_status=pending&limit=5`);
   assert.equal(packetReceiptDrafts.collection, "work_packet_receipt_drafts");
   assert.ok(packetReceiptDrafts.count <= 5);
+
+  const packetReceiptValidations = await fetchJson(`${url}/api/work-packet-receipt-validations?validation_status=pending_receipt&limit=5`);
+  assert.equal(packetReceiptValidations.collection, "work_packet_receipt_validations");
+  assert.ok(packetReceiptValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

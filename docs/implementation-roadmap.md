@@ -838,3 +838,29 @@
 - protected action은 `protected_action_reference` 필드를 요구함
 - `/api/work-packet-receipt-drafts?receipt_status=pending`으로 입력 초안을 조회할 수 있음
 - `npm test`, `control-plane:work-receipts`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 34: Control Plane Work Packet Receipt Validation
+
+목표: 사람이 채운 work packet receipt input을 적용 전 gate로 검증합니다.
+
+- receipt requirement와 receipt input을 대조해 validation item 생성
+- pending receipt는 대기 상태로 두고, resolved/deferred/cancelled/failed만 적용 후보로 분리
+- human/protected/command packet별 필수 필드를 검증
+- Review Dashboard에 `control_plane_work_packet_receipt_validation` stage와 validation summary 추가
+- Review API에서 `/api/work-packet-receipt-validations`, `/api/work-packet-receipt-errors`, `/api/validated-work-packet-receipts` route 제공
+
+현재 구현:
+
+- `npm run control-plane:work-receipts:validate`
+- `src/control-plane-work-packet-receipt-validation.mjs`
+- `schemas/control-plane-work-packet-receipt-validation.schema.json`
+- `docs/control-plane-work-packet-receipt-validation.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- pending receipt가 오류 없이 pending validation item으로 기록됨
+- invalid receipt는 error와 함께 apply 대상에서 제외됨
+- `/api/work-packet-receipt-validations?validation_status=pending_receipt`로 대기 receipt를 조회할 수 있음
+- `npm test`, `control-plane:work-receipts:validate`, `dashboard:build`, `api:smoke`가 통과함

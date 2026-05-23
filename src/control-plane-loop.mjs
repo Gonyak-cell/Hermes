@@ -9,6 +9,7 @@ export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("dashboard_pre_health", "Dashboard Pre-Health", "dashboard", ["npm", "run", "dashboard:build"], ["artifacts/dashboard/latest/review-dashboard.json"]),
   step("control_plane_health", "Control Plane Health", "health", ["npm", "run", "control-plane:health"], ["artifacts/control-plane-health/latest/control-plane-health.json"]),
   step("control_plane_action_plan", "Control Plane Action Plan", "planning", ["npm", "run", "control-plane:plan"], ["artifacts/control-plane-action-plan/latest/control-plane-action-plan.json"]),
+  step("control_plane_human_gates", "Control Plane Human Gates", "planning", ["npm", "run", "control-plane:human-gates"], ["artifacts/control-plane-human-gates/latest/control-plane-human-gates.json"]),
   step("control_plane_work_packets", "Control Plane Work Packets", "planning", ["npm", "run", "control-plane:work-packets"], ["artifacts/control-plane-work-packets/latest/control-plane-work-packets.json"]),
   step("control_plane_work_packet_receipts", "Control Plane Work Packet Receipts", "receipt", ["npm", "run", "control-plane:work-receipts"], ["artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json"]),
   step("control_plane_work_packet_receipt_validation", "Control Plane Work Packet Receipt Validation", "receipt", ["npm", "run", "control-plane:work-receipts:validate"], ["artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json"]),

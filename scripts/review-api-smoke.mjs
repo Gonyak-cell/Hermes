@@ -52,6 +52,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plan-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-gate-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
@@ -88,6 +90,14 @@ try {
   const actionPlanItems = await fetchJson(`${url}/api/action-plan-items?requires_human=true&limit=5`);
   assert.equal(actionPlanItems.collection, "action_plan_items");
   assert.ok(actionPlanItems.count <= 5);
+
+  const humanGates = await fetchJson(`${url}/api/human-gates`);
+  assert.equal(humanGates.collection, "human_gates");
+  assert.equal(humanGates.count, 1);
+
+  const humanGateItems = await fetchJson(`${url}/api/human-gate-items?gate_type=evidence_decision&limit=5`);
+  assert.equal(humanGateItems.collection, "human_gate_items");
+  assert.ok(humanGateItems.count <= 5);
 
   const protectedWorkPackets = await fetchJson(`${url}/api/action-work-packets?protected_action=true&limit=5`);
   assert.equal(protectedWorkPackets.collection, "action_work_packets");

@@ -112,6 +112,12 @@
         "action_plan_ready_to_run_count",
         "action_plan_protected_action_count",
         "action_plan_human_required_count",
+        "human_gate_item_count",
+        "human_gate_waiting_count",
+        "human_gate_blocked_count",
+        "human_gate_protected_action_count",
+        "human_gate_evidence_decision_count",
+        "human_gate_auto_execute_allowed_count",
         "work_packet_count",
         "work_item_count",
         "work_packet_blocked_count",
@@ -504,6 +510,30 @@
           "minimum": 0
         },
         "action_plan_human_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_waiting_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_protected_action_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_evidence_decision_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_auto_execute_allowed_count": {
           "type": "integer",
           "minimum": 0
         },

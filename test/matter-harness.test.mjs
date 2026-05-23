@@ -7,6 +7,7 @@ import path from "node:path";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
+import { runControlPlaneHumanGates } from "../src/control-plane-human-gates.mjs";
 import { runControlPlaneLoop, runControlPlaneLoopFinalization } from "../src/control-plane-loop.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
 import { runControlPlaneWorkPacketReceipts } from "../src/control-plane-work-packet-receipts.mjs";
@@ -759,6 +760,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: false,
         controlPlaneGoalCheckpointPath: false,
         controlPlaneActionPlanPath: false,
+        controlPlaneHumanGatesPath: false,
         controlPlaneWorkPacketsPath: false,
         controlPlaneWorkPacketReceiptsPath: false,
         controlPlaneWorkPacketReceiptValidationPath: false,
@@ -795,6 +797,22 @@ describe("matter harness", () => {
       assert.ok(controlPlaneActionPlan.summary.plan_item_count >= controlPlaneHealth.summary.blocked_check_count);
       assert.ok(controlPlaneActionPlan.summary.human_required_count >= 1);
       assert.ok(controlPlaneActionPlan.plan_items.some((item) => item.requires_human));
+
+      const controlPlaneHumanGates = await runControlPlaneHumanGates({
+        actionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        outDir: path.join(outDir, "control-plane-human-gates"),
+        runAt: "2026-05-23T06:35:05.750Z",
+      });
+      const controlPlaneHumanGatesSchema = JSON.parse(await readFile("schemas/control-plane-human-gates.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneHumanGates, controlPlaneHumanGatesSchema, {}, "control_plane_human_gates"),
+        [],
+      );
+      assert.equal(controlPlaneHumanGates.policy.auto_execute_allowed, false);
+      assert.equal(controlPlaneHumanGates.summary.auto_execute_allowed_count, 0);
+      assert.ok(controlPlaneHumanGates.summary.gate_item_count >= controlPlaneActionPlan.summary.human_required_count);
+      assert.ok(controlPlaneHumanGates.gate_items.every((item) => item.safe_handling.auto_execute_allowed === false));
+      assert.match(await readFile(path.join(outDir, "control-plane-human-gates", "summary.md"), "utf8"), /Control Plane Human Gates/);
 
       const controlPlaneWorkPackets = await runControlPlaneWorkPackets({
         actionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
@@ -902,6 +920,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: false,
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
@@ -941,6 +960,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
@@ -1010,6 +1030,9 @@ describe("matter harness", () => {
       assert.ok(dashboard.summary.health_attention_check_count >= 1);
       assert.equal(dashboard.summary.action_plan_item_count, controlPlaneActionPlan.summary.plan_item_count);
       assert.ok(dashboard.summary.action_plan_human_required_count >= 1);
+      assert.equal(dashboard.summary.human_gate_item_count, controlPlaneHumanGates.summary.gate_item_count);
+      assert.equal(dashboard.summary.human_gate_evidence_decision_count, controlPlaneHumanGates.summary.evidence_decision_count);
+      assert.equal(dashboard.summary.human_gate_auto_execute_allowed_count, 0);
       assert.equal(dashboard.summary.work_packet_count, controlPlaneWorkPackets.summary.work_packet_count);
       assert.ok(dashboard.summary.work_packet_human_count >= 1);
       assert.equal(dashboard.summary.work_packet_receipt_draft_count, controlPlaneWorkPacketReceipts.summary.receipt_draft_count);
@@ -1051,6 +1074,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gates"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipt_validation"));
@@ -1286,6 +1310,14 @@ describe("matter harness", () => {
       const humanActionPlanItems = JSON.parse((await buildReviewApiResponse("/api/action-plan-items?requires_human=true", apiOptions)).body);
       assert.equal(humanActionPlanItems.collection, "action_plan_items");
       assert.ok(humanActionPlanItems.count >= 1);
+
+      const humanGates = JSON.parse((await buildReviewApiResponse("/api/human-gates?human_gate_id=control-plane-human-gates.20260523T063505", apiOptions)).body);
+      assert.equal(humanGates.collection, "human_gates");
+      assert.equal(humanGates.count, 1);
+
+      const evidenceHumanGateItems = JSON.parse((await buildReviewApiResponse("/api/human-gate-items?gate_type=evidence_decision", apiOptions)).body);
+      assert.equal(evidenceHumanGateItems.collection, "human_gate_items");
+      assert.ok(evidenceHumanGateItems.count >= 1);
 
       const humanWorkPackets = JSON.parse((await buildReviewApiResponse("/api/action-work-packets?requires_human=true", apiOptions)).body);
       assert.equal(humanWorkPackets.collection, "action_work_packets");

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-human-gates.schema.json",
+  "title": "Hermes Control Plane Human Gates",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "human_gate_id",
+    "source_action_plan",
+    "source_action_plan_id",
+    "output_dir",
+    "policy",
+    "summary",
+    "agenda",
+    "gate_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-human-gates.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "human_gate_id": { "type": "string" },
+    "source_action_plan": { "type": "string" },
+    "source_action_plan_id": { "type": ["string", "null"] },
+    "output_dir": { "type": "string" },
+    "policy": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "protected_actions_require_receipt",
+        "evidence_decisions_require_human",
+        "generated_outputs_remain_draft_only"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "protected_actions_require_receipt": { "type": "boolean" },
+        "evidence_decisions_require_human": { "type": "boolean" },
+        "generated_outputs_remain_draft_only": { "type": "boolean" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "gate_item_count",
+        "waiting_for_human_count",
+        "blocked_count",
+        "protected_action_count",
+        "human_required_count",
+        "evidence_decision_count",
+        "approval_request_count",
+        "protected_delivery_count",
+        "closeout_receipt_count",
+        "auto_execute_allowed_count",
+        "next_command_count",
+        "by_gate_type",
+        "by_priority",
+        "by_status",
+        "by_source_stage"
+      ],
+      "properties": {
+        "gate_item_count": { "type": "integer", "minimum": 0 },
+        "waiting_for_human_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "human_required_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "approval_request_count": { "type": "integer", "minimum": 0 },
+        "protected_delivery_count": { "type": "integer", "minimum": 0 },
+        "closeout_receipt_count": { "type": "integer", "minimum": 0 },
+        "auto_execute_allowed_count": { "type": "integer", "minimum": 0 },
+        "next_command_count": { "type": "integer", "minimum": 0 },
+        "by_gate_type": { "type": "object" },
+        "by_priority": { "type": "object" },
+        "by_status": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "agenda": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "gate_type",
+          "item_count",
+          "protected_action_count",
+          "waiting_for_human_count",
+          "blocked_count",
+          "highest_priority",
+          "required_actor",
+          "sample_item_ids"
+        ],
+        "properties": {
+          "gate_type": { "type": "string" },
+          "item_count": { "type": "integer", "minimum": 0 },
+          "protected_action_count": { "type": "integer", "minimum": 0 },
+          "waiting_for_human_count": { "type": "integer", "minimum": 0 },
+          "blocked_count": { "type": "integer", "minimum": 0 },
+          "highest_priority": { "type": "string" },
+          "required_actor": { "type": "string" },
+          "sample_item_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "gate_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "gate_item_id",
+          "source_plan_item_id",
+          "source_stage",
+          "gate_type",
+          "priority",
+          "status",
+          "title",
+          "subject_ref",
+          "reason",
+          "recommended_actions",
+          "next_commands",
+          "requires_human",
+          "protected_action",
+          "safe_handling",
+          "source_refs"
+        ],
+        "properties": {
+          "gate_item_id": { "type": "string" },
+          "source_plan_item_id": { "type": "string" },
+          "source_stage": { "type": "string" },
+          "gate_type": { "type": "string" },
+          "priority": { "type": "string" },
+          "status": { "type": "string" },
+          "title": { "type": "string" },
+          "subject_ref": { "type": "object" },
+          "reason": { "type": "string" },
+          "recommended_actions": { "type": "array", "items": { "type": "string" } },
+          "next_commands": { "type": "array", "items": { "type": "string" } },
+          "requires_human": { "type": "boolean" },
+          "protected_action": { "type": "boolean" },
+          "safe_handling": {
+            "type": "object",
+            "required": [
+              "auto_execute_allowed",
+              "required_actor",
+              "receipt_required",
+              "decision_required",
+              "draft_only"
+            ],
+            "properties": {
+              "auto_execute_allowed": { "const": false },
+              "required_actor": { "type": "string" },
+              "receipt_required": { "type": "boolean" },
+              "decision_required": { "type": "boolean" },
+              "draft_only": { "type": "boolean" }
+            }
+          },
+          "source_refs": { "type": "array" }
+        }
+      }
+    }
+  }
+}

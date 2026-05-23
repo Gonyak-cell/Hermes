@@ -1059,3 +1059,28 @@
 
 - evidence approval queue item의 Action Plan status가 `waiting_for_human`으로 기록됨
 - `npm test`, `npm run validate`, `npm run control-plane:plan`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함
+
+## Phase 43: Control Plane Human Gate Briefing
+
+목표: 남은 operational blocker를 자동 실행하지 않고 사람이 처리할 수 있는 하나의 gate agenda로 묶습니다.
+
+- Action Plan의 human/protected/blocked item을 `control-plane-human-gates.v1`로 변환
+- evidence decision, approval request, attorney review, merge review, content review, protected delivery, closeout receipt를 gate type으로 분류
+- 모든 gate item에 `auto_execute_allowed: false`와 필요한 actor/receipt 여부를 기록
+- Review Dashboard와 Review API에서 human gate artifact와 item을 조회 가능하게 함
+- Control Plane Loop에 `npm run control-plane:human-gates`를 포함
+
+현재 구현:
+
+- `npm run control-plane:human-gates`
+- `src/control-plane-human-gates.mjs`
+- `schemas/control-plane-human-gates.schema.json`
+- `docs/control-plane-human-gates.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- evidence decision과 protected delivery가 자동 실행 후보가 아니라 human gate agenda로 표시됨
+- `/api/human-gate-items?gate_type=evidence_decision`으로 evidence decision gate를 조회할 수 있음
+- `npm test`, `npm run validate`, `npm run control-plane:human-gates`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함

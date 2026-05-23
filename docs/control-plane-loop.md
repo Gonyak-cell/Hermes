@@ -14,6 +14,7 @@ npm run control-plane:loop
 - `npm run dashboard:build`
 - `npm run control-plane:health`
 - `npm run control-plane:plan`
+- `npm run control-plane:human-gates`
 - `npm run control-plane:work-packets`
 - `npm run control-plane:work-receipts`
 - `npm run control-plane:work-receipts:validate`

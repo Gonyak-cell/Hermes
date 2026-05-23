@@ -72,6 +72,7 @@ npm run dashboard:build -- \
 - Control Plane Goal Checkpoint의 `/goal` coverage와 next focus 상태
 - Control Plane Health의 건강도 check, blocker, action 상태
 - Control Plane Action Plan의 우선순위별 처리 항목, 사람 검토 필요 여부, 다음 명령 상태
+- Control Plane Human Gates의 evidence decision, approval, protected delivery agenda
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값
 - Control Plane Work Packet Receipt Validation의 pending/invalid/ready receipt gate 상태

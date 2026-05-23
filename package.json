@@ -16,6 +16,7 @@
     "api:smoke": "node scripts/review-api-smoke.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "control-plane:goal-checkpoint": "node scripts/control-plane-goal-checkpoint.mjs",
+    "control-plane:human-gates": "node scripts/control-plane-human-gates.mjs",
     "control-plane:loop": "node scripts/control-plane-loop.mjs",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",

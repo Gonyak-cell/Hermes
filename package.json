@@ -15,6 +15,7 @@
     "api:serve": "node scripts/review-api.mjs",
     "api:smoke": "node scripts/review-api-smoke.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
+    "control-plane:pipeline": "node scripts/control-plane-pipeline.mjs",
     "creative-document:slice": "node scripts/run-creative-document-slice.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",

@@ -21,6 +21,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   deliveryCloseoutQueuePath: "artifacts/delivery-closeout/latest/delivery-closeout-queue.json",
   closeoutReceiptValidationPath: "artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json",
   closeoutReceiptApplicationPath: "artifacts/delivery-closeout-application/latest/closeout-receipt-application.json",
+  controlPlanePipelinePath: "artifacts/control-plane-pipeline/latest/control-plane-pipeline.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -116,6 +117,11 @@ const SOURCE_DEFINITIONS = [
     option: "closeoutReceiptApplicationPath",
     source_id: "closeout_receipt_application",
     label: "Closeout Receipt Application",
+  },
+  {
+    option: "controlPlanePipelinePath",
+    source_id: "control_plane_pipeline",
+    label: "Control Plane Pipeline",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -339,6 +345,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "delivery_closeout_queue") return data.summary ?? {};
   if (sourceId === "closeout_receipt_validation") return data.summary ?? {};
   if (sourceId === "closeout_receipt_application") return data.summary ?? {};
+  if (sourceId === "control_plane_pipeline") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -393,6 +400,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDeliveryCloseoutQueueStage(artifacts.delivery_closeout_queue, sourceById.get("delivery_closeout_queue")),
     buildCloseoutReceiptValidationStage(artifacts.closeout_receipt_validation, sourceById.get("closeout_receipt_validation")),
     buildCloseoutReceiptApplicationStage(artifacts.closeout_receipt_application, sourceById.get("closeout_receipt_application")),
+    buildControlPlanePipelineStage(artifacts.control_plane_pipeline, sourceById.get("control_plane_pipeline")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -853,6 +861,35 @@ function buildCloseoutReceiptApplicationStage(application, source) {
   };
 }
 
+function buildControlPlanePipelineStage(pipeline, source) {
+  if (!pipeline) return missingStage("control_plane_pipeline", "Control Plane Pipeline", source);
+  const summary = pipeline.summary ?? {};
+  const failed = summary.failed_step_count ?? 0;
+  const missing = summary.missing_artifact_count ?? 0;
+  const skipped = summary.skipped_step_count ?? 0;
+  const status = failed > 0 || missing > 0
+    ? "attention"
+    : skipped > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "control_plane_pipeline",
+    label: "Control Plane Pipeline",
+    status,
+    message: `${summary.passed_step_count ?? 0}/${summary.step_count ?? 0} step(s) passed, ${failed} failed, ${missing} missing artifact(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      overall_status: summary.overall_status ?? "unknown",
+      step_count: summary.step_count ?? 0,
+      passed_step_count: summary.passed_step_count ?? 0,
+      failed_step_count: failed,
+      skipped_step_count: skipped,
+      missing_artifact_count: missing,
+      total_duration_ms: summary.total_duration_ms ?? 0,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -1273,6 +1310,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const stepResult of artifacts.control_plane_pipeline?.step_results ?? []) {
+    if (stepResult.status === "passed" || stepResult.status === "skipped") continue;
+    items.push({
+      action_item_id: `dashboard.action.control_plane_pipeline.${slugify(stepResult.step_id)}`,
+      source_stage: "control_plane_pipeline",
+      priority: stepResult.status === "failed" ? "high" : "medium",
+      status: stepResult.status,
+      title: `Fix pipeline step: ${stepResult.label}`,
+      subject_ref: {
+        subject_type: "control_plane_pipeline_step",
+        subject_id: stepResult.step_id,
+      },
+      reason: stepResult.error ?? stepResult.status,
+      recommended_actions: ["inspect_pipeline_step_logs", "fix_source_artifact_or_command", "rerun_control_plane_pipeline"],
+      source_ref: stepResult.step_id,
+    });
+  }
+
   const ledgerPendingPacketIds = new Set((artifacts.delivery_receipt_ledger?.pending_receipts ?? []).map((pending) => pending.packet_id));
   for (const pending of artifacts.post_delivery_reconciliation?.outstanding_receipts ?? []) {
     if (ledgerPendingPacketIds.has(pending.packet_id)) continue;
@@ -1375,6 +1430,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     closeout_application_applied_count: artifacts.closeout_receipt_application?.summary?.applied_receipt_count ?? 0,
     closeout_application_delivered_artifact_count: artifacts.closeout_receipt_application?.summary?.delivered_artifact_count ?? 0,
     closeout_application_error_count: artifacts.closeout_receipt_application?.summary?.receipt_error_count ?? 0,
+    pipeline_step_count: artifacts.control_plane_pipeline?.summary?.step_count ?? 0,
+    pipeline_passed_step_count: artifacts.control_plane_pipeline?.summary?.passed_step_count ?? 0,
+    pipeline_failed_step_count: artifacts.control_plane_pipeline?.summary?.failed_step_count ?? 0,
+    pipeline_missing_artifact_count: artifacts.control_plane_pipeline?.summary?.missing_artifact_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1467,6 +1526,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Closeout", dashboard.summary.delivery_closeout_item_count)}
       ${stat("Receipt Gate", dashboard.summary.closeout_receipt_ready_count)}
       ${stat("Closeout Applied", dashboard.summary.closeout_application_applied_count)}
+      ${stat("Pipeline", dashboard.summary.pipeline_passed_step_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1527,6 +1587,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Closeout application ready receipts: ${dashboard.summary.closeout_application_ready_count ?? 0}`);
   lines.push(`- Closeout application applied receipts: ${dashboard.summary.closeout_application_applied_count ?? 0}`);
   lines.push(`- Closeout application delivered artifacts: ${dashboard.summary.closeout_application_delivered_artifact_count ?? 0}`);
+  lines.push(`- Pipeline steps: ${dashboard.summary.pipeline_step_count ?? 0}`);
+  lines.push(`- Pipeline steps passed: ${dashboard.summary.pipeline_passed_step_count ?? 0}`);
+  lines.push(`- Pipeline steps failed: ${dashboard.summary.pipeline_failed_step_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1644,6 +1707,8 @@ function parseArgs(argv) {
     else if (arg === "--no-closeout-receipt-validation") parsed.closeoutReceiptValidationPath = false;
     else if (arg === "--closeout-receipt-application") parsed.closeoutReceiptApplicationPath = argv[++index];
     else if (arg === "--no-closeout-receipt-application") parsed.closeoutReceiptApplicationPath = false;
+    else if (arg === "--control-plane-pipeline") parsed.controlPlanePipelinePath = argv[++index];
+    else if (arg === "--no-control-plane-pipeline") parsed.controlPlanePipelinePath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1698,6 +1763,8 @@ Options:
                                   closeout-receipt-application.json path.
   --no-closeout-receipt-application
                                   Do not include Closeout Receipt Application status.
+  --control-plane-pipeline <path> control-plane-pipeline.json path.
+  --no-control-plane-pipeline     Do not include Control Plane Pipeline status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

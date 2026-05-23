@@ -707,3 +707,30 @@
 - 적용 결과가 Delivery Receipt Ledger schema를 통과함
 - `/api/closeout-applied-receipts?receipt_status=delivered`로 적용된 closeout receipt를 조회할 수 있음
 - `npm test`, `delivery:closeout:apply`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 29: Control Plane Pipeline Runner
+
+목표: 이미 구현된 Control Plane 단계들을 안전한 순서로 실행하고, command 결과와 expected artifact check를 하나의 pipeline ledger로 남깁니다.
+
+- Domain Pack, Output, Observability, Delivery, Matter, Approval, Closeout 단계를 순서대로 실행
+- 각 단계의 command, exit code, stdout/stderr, duration, expected artifact 존재 여부를 기록
+- 실패 후 계속 실행할지 또는 fail-fast로 멈출지 선택 가능
+- 외부 발송/merge/ERP 반영 같은 protected action은 실행하지 않음
+- Review Dashboard에 `control_plane_pipeline` stage와 실패 action item 추가
+- Review API에서 `/api/pipeline-runs`, `/api/pipeline-steps` route 제공
+
+현재 구현:
+
+- `npm run control-plane:pipeline`
+- `src/control-plane-pipeline.mjs`
+- `schemas/control-plane-pipeline.schema.json`
+- `docs/control-plane-pipeline.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- pipeline run이 단계별 command result와 artifact check를 기록함
+- 실패 단계는 dashboard action item으로 표시됨
+- `/api/pipeline-steps?status=passed`로 pipeline step 결과를 조회할 수 있음
+- `npm test`, `control-plane:pipeline`, `dashboard:build`, `api:smoke`가 통과함

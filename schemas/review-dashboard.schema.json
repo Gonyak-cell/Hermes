@@ -84,6 +84,10 @@
         "closeout_application_applied_count",
         "closeout_application_delivered_artifact_count",
         "closeout_application_error_count",
+        "pipeline_step_count",
+        "pipeline_passed_step_count",
+        "pipeline_failed_step_count",
+        "pipeline_missing_artifact_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -343,6 +347,22 @@
           "minimum": 0
         },
         "closeout_application_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pipeline_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pipeline_passed_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pipeline_failed_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pipeline_missing_artifact_count": {
           "type": "integer",
           "minimum": 0
         },

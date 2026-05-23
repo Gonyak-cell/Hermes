@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -654,6 +655,35 @@ describe("matter harness", () => {
       assert.equal(finalCloseoutReceiptValidation.summary.ready_to_apply_count, 0);
       assert.equal(finalCloseoutReceiptValidation.summary.error_count, 0);
 
+      const controlPlanePipeline = await runControlPlanePipeline({
+        outDir: path.join(outDir, "control-plane-pipeline"),
+        cwd: process.cwd(),
+        runAt: "2026-05-23T06:35:04.500Z",
+        steps: [
+          {
+            step_id: "synthetic_output_catalog_check",
+            label: "Synthetic Output Catalog Check",
+            category: "test_control_plane",
+            command: [process.execPath, "-e", "console.log('output catalog checked')"],
+            expected_artifacts: [path.join(outDir, "output-catalog", "output-catalog.json")],
+          },
+          {
+            step_id: "synthetic_dashboard_ready",
+            label: "Synthetic Dashboard Ready",
+            category: "test_control_plane",
+            command: [process.execPath, "-e", "console.log('dashboard ready')"],
+            expected_artifacts: [],
+          },
+        ],
+      });
+      const controlPlanePipelineSchema = JSON.parse(await readFile("schemas/control-plane-pipeline.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlanePipeline, controlPlanePipelineSchema, {}, "control_plane_pipeline"),
+        [],
+      );
+      assert.equal(controlPlanePipeline.summary.overall_status, "passed");
+      assert.equal(controlPlanePipeline.summary.passed_step_count, 2);
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -673,6 +703,7 @@ describe("matter harness", () => {
         deliveryCloseoutQueuePath: path.join(outDir, "delivery-closeout", "delivery-closeout-queue.json"),
         closeoutReceiptValidationPath: path.join(outDir, "closeout-receipt-validation", "closeout-receipt-validation.json"),
         closeoutReceiptApplicationPath: path.join(outDir, "closeout-receipt-application", "closeout-receipt-application.json"),
+        controlPlanePipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -720,6 +751,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.closeout_application_applied_count, 4);
       assert.equal(dashboard.summary.closeout_application_delivered_artifact_count, 5);
       assert.equal(dashboard.summary.closeout_application_error_count, 0);
+      assert.equal(dashboard.summary.pipeline_step_count, 2);
+      assert.equal(dashboard.summary.pipeline_passed_step_count, 2);
+      assert.equal(dashboard.summary.pipeline_failed_step_count, 0);
+      assert.equal(dashboard.summary.pipeline_missing_artifact_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -747,6 +782,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_closeout_queue"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_validation"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_application"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_pipeline"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -793,6 +829,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-receipts-to-apply"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-receipt-applications"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-applied-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/pipeline-runs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/pipeline-steps"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -909,6 +947,14 @@ describe("matter harness", () => {
       assert.equal(closeoutAppliedReceipts.collection, "closeout_applied_receipts");
       assert.equal(closeoutAppliedReceipts.count, 4);
 
+      const pipelineRuns = JSON.parse((await buildReviewApiResponse("/api/pipeline-runs?pipeline_id=control-plane-pipeline.20260523T063504", apiOptions)).body);
+      assert.equal(pipelineRuns.collection, "pipeline_runs");
+      assert.equal(pipelineRuns.count, 1);
+
+      const pipelineSteps = JSON.parse((await buildReviewApiResponse("/api/pipeline-steps?status=passed", apiOptions)).body);
+      assert.equal(pipelineSteps.collection, "pipeline_steps");
+      assert.equal(pipelineSteps.count, 2);
+
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);
       assert.equal(health.overall_status, "blocked");
@@ -992,6 +1038,51 @@ describe("matter harness", () => {
       assert.ok(registry.capabilities.some((capability) => capability.capability_id === "creative_document.pptx.design_system"));
       assert.ok(registry.capabilities.some((capability) => capability.capability_id === "law_firm.ldd.issue_report"));
       assert.match(await readFile(path.join(outDir, "summary.md"), "utf8"), /Domain Pack Registry/);
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  });
+
+  it("records control plane pipeline failures and missing artifacts", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "hermes-control-plane-pipeline-"));
+    try {
+      const pipeline = await runControlPlanePipeline({
+        outDir,
+        cwd: process.cwd(),
+        runAt: "2026-05-23T08:05:00.000Z",
+        steps: [
+          {
+            step_id: "pass_step",
+            label: "Pass Step",
+            category: "test",
+            command: [process.execPath, "-e", "console.log('ok')"],
+            expected_artifacts: [],
+          },
+          {
+            step_id: "missing_artifact_step",
+            label: "Missing Artifact Step",
+            category: "test",
+            command: [process.execPath, "-e", "console.log('missing')"],
+            expected_artifacts: [path.join(outDir, "missing.json")],
+          },
+          {
+            step_id: "fail_step",
+            label: "Fail Step",
+            category: "test",
+            command: [process.execPath, "-e", "console.error('bad'); process.exit(2)"],
+            expected_artifacts: [],
+          },
+        ],
+      });
+      const schema = JSON.parse(await readFile("schemas/control-plane-pipeline.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(pipeline, schema, {}, "control_plane_pipeline_failure"), []);
+      assert.equal(pipeline.summary.step_count, 3);
+      assert.equal(pipeline.summary.passed_step_count, 1);
+      assert.equal(pipeline.summary.artifact_missing_step_count, 1);
+      assert.equal(pipeline.summary.failed_step_count, 1);
+      assert.equal(pipeline.summary.missing_artifact_count, 1);
+      assert.equal(pipeline.summary.overall_status, "failed");
+      assert.match(await readFile(path.join(outDir, "summary.md"), "utf8"), /Control Plane Pipeline/);
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }

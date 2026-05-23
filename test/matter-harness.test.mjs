@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runControlPlaneAuditTrail } from "../src/control-plane-audit-trail.mjs";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
@@ -748,6 +749,7 @@ describe("matter harness", () => {
         controlPlanePipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
+        controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
         controlPlaneHumanGateReceiptsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
@@ -766,6 +768,7 @@ describe("matter harness", () => {
         controlPlaneHealthPath: false,
         controlPlaneLoopPath: false,
         controlPlaneGoalCheckpointPath: false,
+        controlPlaneAuditTrailPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -935,6 +938,32 @@ describe("matter harness", () => {
       assert.equal(controlPlaneWorkPacketReceiptApplication.summary.pending_receipt_count, controlPlaneWorkPacketReceiptValidation.summary.pending_receipt_count);
       assert.equal(controlPlaneWorkPacketReceiptApplication.applied_receipts.length, 0);
 
+      const controlPlaneAuditTrail = await runControlPlaneAuditTrail({
+        approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
+        approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
+        deliveryReceiptLedgerPath: false,
+        closeoutReceiptApplicationPath: path.join(outDir, "closeout-receipt-application", "closeout-receipt-application.json"),
+        humanGateReceiptApplicationPath: path.join(outDir, "control-plane-human-gate-receipt-application", "control-plane-human-gate-receipt-application.json"),
+        workPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
+        outDir: path.join(outDir, "control-plane-audit-trail"),
+        runAt: "2026-05-23T06:35:07.700Z",
+      });
+      const controlPlaneAuditTrailSchema = JSON.parse(await readFile("schemas/control-plane-audit-trail.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneAuditTrail, controlPlaneAuditTrailSchema, {}, "control_plane_audit_trail"),
+        [],
+      );
+      assert.equal(controlPlaneAuditTrail.audit_status, "complete");
+      assert.equal(
+        controlPlaneAuditTrail.summary.audit_event_count,
+        approvalResult.audit_events.length + approvalInboxDecisionResult.audit_events.length + closeoutReceiptApplication.audit_events.length,
+      );
+      assert.equal(controlPlaneAuditTrail.summary.by_event_type["approval.decided"], approvalResult.audit_events.length);
+      assert.equal(controlPlaneAuditTrail.summary.by_event_type["approval_inbox.decided"], approvalInboxDecisionResult.audit_events.length);
+      assert.equal(controlPlaneAuditTrail.summary.by_event_type["delivery.executed"], closeoutReceiptApplication.audit_events.length);
+      assert.equal(controlPlaneAuditTrail.summary.protected_action_executed_count, closeoutReceiptApplication.audit_events.length);
+      assert.match(await readFile(path.join(outDir, "control-plane-audit-trail", "summary.md"), "utf8"), /Control Plane Audit Trail/);
+
       const controlPlaneLoop = await runControlPlaneLoop({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.900Z",
@@ -1080,6 +1109,11 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.control_plane_loop_step_count, 1);
       assert.equal(dashboard.summary.control_plane_loop_passed_step_count, 1);
       assert.equal(dashboard.summary.control_plane_loop_failed_step_count, 0);
+      assert.equal(dashboard.summary.audit_trail_source_count, controlPlaneAuditTrail.summary.source_count);
+      assert.equal(dashboard.summary.audit_trail_missing_source_count, 0);
+      assert.equal(dashboard.summary.audit_trail_event_count, controlPlaneAuditTrail.summary.audit_event_count);
+      assert.equal(dashboard.summary.audit_trail_protected_action_executed_count, closeoutReceiptApplication.audit_events.length);
+      assert.equal(dashboard.summary.audit_event_count, controlPlaneAuditTrail.summary.audit_event_count);
       assert.equal(dashboard.summary.goal_checkpoint_item_count, controlPlaneGoalCheckpoint.summary.checkpoint_item_count);
       assert.equal(dashboard.summary.goal_checkpoint_passed_item_count, controlPlaneGoalCheckpoint.summary.passed_item_count);
       assert.equal(dashboard.summary.goal_checkpoint_attention_item_count, controlPlaneGoalCheckpoint.summary.attention_item_count);
@@ -1146,6 +1180,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_pipeline"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_loop"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gates"));
@@ -1187,6 +1222,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/events"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/costs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/audit-trails"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/audit-events"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/audit-sources"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-actions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matters"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approvals"));
@@ -1279,6 +1317,18 @@ describe("matter harness", () => {
       const runtimeCosts = JSON.parse((await buildReviewApiResponse("/api/costs?cost_type=runtime_seconds", apiOptions)).body);
       assert.equal(runtimeCosts.collection, "cost_records");
       assert.equal(runtimeCosts.count, 3);
+
+      const auditTrails = JSON.parse((await buildReviewApiResponse("/api/audit-trails?audit_status=complete", apiOptions)).body);
+      assert.equal(auditTrails.collection, "audit_trails");
+      assert.equal(auditTrails.count, 1);
+
+      const deliveryAuditEvents = JSON.parse((await buildReviewApiResponse("/api/audit-events?event_type=delivery.executed", apiOptions)).body);
+      assert.equal(deliveryAuditEvents.collection, "audit_events");
+      assert.equal(deliveryAuditEvents.count, closeoutReceiptApplication.audit_events.length);
+
+      const auditSources = JSON.parse((await buildReviewApiResponse("/api/audit-sources?available=true", apiOptions)).body);
+      assert.equal(auditSources.collection, "audit_sources");
+      assert.equal(auditSources.count, controlPlaneAuditTrail.summary.source_count);
 
       const pendingDeliveryActions = JSON.parse((await buildReviewApiResponse("/api/delivery-actions?delivery_status=blocked_pending_approval", apiOptions)).body);
       assert.equal(pendingDeliveryActions.collection, "delivery_actions");

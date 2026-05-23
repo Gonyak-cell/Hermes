@@ -190,6 +190,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/audit-trails") {
+    const auditTrailResult = await readDashboardSourceArtifact(dashboard, "control_plane_audit_trail");
+    if (!auditTrailResult.available) {
+      return jsonResponse(503, buildError("control_plane_audit_trail_unavailable", auditTrailResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_trails", [auditTrailResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/audit-events") {
+    const auditTrailResult = await readDashboardSourceArtifact(dashboard, "control_plane_audit_trail");
+    if (!auditTrailResult.available) {
+      return jsonResponse(503, buildError("control_plane_audit_trail_unavailable", auditTrailResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_events", auditTrailResult.artifact.audit_events ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/audit-sources") {
+    const auditTrailResult = await readDashboardSourceArtifact(dashboard, "control_plane_audit_trail");
+    if (!auditTrailResult.available) {
+      return jsonResponse(503, buildError("control_plane_audit_trail_unavailable", auditTrailResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_sources", auditTrailResult.artifact.sources ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/delivery-actions") {
     const queueResult = await readDashboardSourceArtifact(dashboard, "protected_delivery_queue");
     if (!queueResult.available) {
@@ -739,7 +772,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -765,6 +798,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runs", "Observability workflow run records"),
       route("GET", "/api/events", "Observability event records"),
       route("GET", "/api/costs", "Observability cost records"),
+      route("GET", "/api/audit-trails", "Control Plane audit trail artifacts"),
+      route("GET", "/api/audit-events", "Normalized Control Plane audit events"),
+      route("GET", "/api/audit-sources", "Control Plane audit event sources"),
       route("GET", "/api/delivery-actions", "Protected delivery action queue"),
       route("GET", "/api/matters", "Matter cockpit records"),
       route("GET", "/api/approvals", "Approval inbox items"),
@@ -862,11 +898,19 @@ function filterItems(items, searchParams) {
     "delivery_state",
     "approval_status",
     "run_id",
+    "audit_trail_id",
+    "audit_status",
+    "audit_event_id",
     "workflow_run_id",
     "runtime_id",
+    "actor_type",
+    "actor_id",
     "type",
     "event_type",
+    "event_category",
     "correlation_id",
+    "protected_action_event",
+    "protected_action_executed",
     "cost_type",
     "delivery_action_id",
     "delivery_status",

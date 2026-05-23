@@ -96,6 +96,13 @@
         "control_plane_loop_passed_step_count",
         "control_plane_loop_failed_step_count",
         "control_plane_loop_missing_artifact_count",
+        "audit_trail_source_count",
+        "audit_trail_missing_source_count",
+        "audit_trail_event_count",
+        "audit_trail_duplicate_event_count",
+        "audit_trail_protected_action_event_count",
+        "audit_trail_protected_action_executed_count",
+        "audit_trail_human_actor_event_count",
         "goal_checkpoint_item_count",
         "goal_checkpoint_passed_item_count",
         "goal_checkpoint_attention_item_count",
@@ -464,6 +471,34 @@
           "minimum": 0
         },
         "control_plane_loop_missing_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_missing_source_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_duplicate_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_protected_action_event_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_protected_action_executed_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_trail_human_actor_event_count": {
           "type": "integer",
           "minimum": 0
         },

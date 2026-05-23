@@ -1,0 +1,172 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-audit-trail.schema.json",
+  "title": "Hermes Control Plane Audit Trail",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "audit_trail_id",
+    "output_dir",
+    "audit_status",
+    "summary",
+    "sources",
+    "audit_events",
+    "duplicate_events"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-audit-trail.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "audit_trail_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "audit_status": { "enum": ["complete", "partial", "empty", "missing_sources"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "source_count",
+        "available_source_count",
+        "missing_source_count",
+        "audit_event_count",
+        "duplicate_event_count",
+        "protected_action_event_count",
+        "protected_action_executed_count",
+        "human_actor_event_count",
+        "machine_actor_event_count",
+        "unknown_actor_event_count",
+        "approval_event_count",
+        "delivery_event_count",
+        "human_gate_event_count",
+        "work_packet_event_count",
+        "by_event_type",
+        "by_source_id",
+        "by_actor_type",
+        "by_tenant_id"
+      ],
+      "properties": {
+        "source_count": { "type": "integer", "minimum": 0 },
+        "available_source_count": { "type": "integer", "minimum": 0 },
+        "missing_source_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "duplicate_event_count": { "type": "integer", "minimum": 0 },
+        "protected_action_event_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "type": "integer", "minimum": 0 },
+        "human_actor_event_count": { "type": "integer", "minimum": 0 },
+        "machine_actor_event_count": { "type": "integer", "minimum": 0 },
+        "unknown_actor_event_count": { "type": "integer", "minimum": 0 },
+        "approval_event_count": { "type": "integer", "minimum": 0 },
+        "delivery_event_count": { "type": "integer", "minimum": 0 },
+        "human_gate_event_count": { "type": "integer", "minimum": 0 },
+        "work_packet_event_count": { "type": "integer", "minimum": 0 },
+        "by_event_type": { "type": "object" },
+        "by_source_id": { "type": "object" },
+        "by_actor_type": { "type": "object" },
+        "by_tenant_id": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "source_id",
+          "label",
+          "path",
+          "available",
+          "schema_version",
+          "generated_at",
+          "event_count",
+          "error"
+        ],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": "string" },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "event_count": { "type": "integer", "minimum": 0 },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "audit_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/audit_event" }
+    },
+    "duplicate_events": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "duplicate_audit_event_id",
+          "kept_audit_event_id",
+          "source_id",
+          "event_type",
+          "time"
+        ],
+        "properties": {
+          "duplicate_audit_event_id": { "type": "string" },
+          "kept_audit_event_id": { "type": "string" },
+          "source_id": { "type": "string" },
+          "event_type": { "type": "string" },
+          "time": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "audit_event": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "audit_event_id",
+        "raw_event_id",
+        "source_id",
+        "source_label",
+        "source_schema_version",
+        "source_generated_at",
+        "event_index",
+        "event_type",
+        "event_category",
+        "time",
+        "tenant_id",
+        "actor_type",
+        "actor_id",
+        "actor_display_name",
+        "subject_type",
+        "subject_id",
+        "correlation_id",
+        "policy_snapshot_id",
+        "protected_action_event",
+        "protected_action_executed",
+        "data",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "control-plane-audit-event.v1" },
+        "audit_event_id": { "type": "string" },
+        "raw_event_id": { "type": ["string", "null"] },
+        "source_id": { "type": "string" },
+        "source_label": { "type": "string" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "source_generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "event_index": { "type": "integer", "minimum": 0 },
+        "event_type": { "type": "string" },
+        "event_category": { "type": "string" },
+        "time": { "type": "string", "format": "date-time" },
+        "tenant_id": { "type": "string" },
+        "actor_type": { "type": "string" },
+        "actor_id": { "type": "string" },
+        "actor_display_name": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "correlation_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "protected_action_event": { "type": "boolean" },
+        "protected_action_executed": { "type": "boolean" },
+        "data": { "type": "object" },
+        "metadata": { "type": "object" }
+      }
+    }
+  }
+}

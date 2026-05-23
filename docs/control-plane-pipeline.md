@@ -20,6 +20,7 @@ npm run control-plane:pipeline
 - Delivery Closeout Queue
 - Closeout Receipt Validation
 - Closeout Receipt Application
+- Control Plane Audit Trail
 
 출력:
 

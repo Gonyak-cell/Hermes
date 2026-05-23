@@ -34,7 +34,7 @@ npm run control-plane:goal-checkpoint -- \
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow
 - Law Firm, Personal Dev, Creative Document slices
-- Output, Observability, Delivery, Matter Cockpit
+- Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
 - Dashboard/API surface
 

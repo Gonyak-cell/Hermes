@@ -17,6 +17,7 @@ export const DEFAULT_CONTROL_PLANE_PIPELINE_STEPS = [
   step("delivery_closeout_queue", "Delivery Closeout Queue", "delivery_plane", ["npm", "run", "delivery:closeout"], ["artifacts/delivery-closeout/latest/delivery-closeout-queue.json"]),
   step("closeout_receipt_validation", "Closeout Receipt Validation", "delivery_plane", ["npm", "run", "delivery:closeout:validate"], ["artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json"]),
   step("closeout_receipt_application", "Closeout Receipt Application", "delivery_plane", ["npm", "run", "delivery:closeout:apply"], ["artifacts/delivery-closeout-application/latest/closeout-receipt-application.json"]),
+  step("control_plane_audit_trail", "Control Plane Audit Trail", "audit_plane", ["npm", "run", "control-plane:audit-trail"], ["artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json"]),
 ];
 
 export async function runControlPlanePipeline(options = {}) {

@@ -28,6 +28,7 @@ npm run dashboard:build -- \
   --control-plane-pipeline artifacts/control-plane-pipeline/latest/control-plane-pipeline.json \
   --control-plane-loop artifacts/control-plane-loop/latest/control-plane-loop.json \
   --control-plane-goal-checkpoint artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json \
+  --control-plane-audit-trail artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json \
   --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --control-plane-action-plan artifacts/control-plane-action-plan/latest/control-plane-action-plan.json \
   --control-plane-human-gates artifacts/control-plane-human-gates/latest/control-plane-human-gates.json \
@@ -74,6 +75,7 @@ npm run dashboard:build -- \
 - Control Plane Pipeline의 단계별 실행 성공/실패와 artifact check 상태
 - Control Plane Loop의 heartbeat 운영 루프 실행 성공/실패와 artifact check 상태
 - Control Plane Goal Checkpoint의 `/goal` coverage와 next focus 상태
+- Control Plane Audit Trail의 audit event, source, protected action trace 상태
 - Control Plane Health의 건강도 check, blocker, action 상태
 - Control Plane Action Plan의 우선순위별 처리 항목, 사람 검토 필요 여부, 다음 명령 상태
 - Control Plane Human Gates의 evidence decision, approval, protected delivery agenda

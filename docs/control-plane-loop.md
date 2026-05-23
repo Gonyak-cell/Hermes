@@ -22,6 +22,7 @@ npm run control-plane:loop
 - `npm run control-plane:work-receipts`
 - `npm run control-plane:work-receipts:validate`
 - `npm run control-plane:work-receipts:apply`
+- `npm run control-plane:audit-trail`
 - `npm run evidence:review:draft`
 - `node scripts/review-dashboard.mjs --no-control-plane-goal-checkpoint`
 - `npm run control-plane:goal-checkpoint`

@@ -25,6 +25,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlanePipelinePath: "artifacts/control-plane-pipeline/latest/control-plane-pipeline.json",
   controlPlaneLoopPath: "artifacts/control-plane-loop/latest/control-plane-loop.json",
   controlPlaneGoalCheckpointPath: "artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json",
+  controlPlaneAuditTrailPath: "artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
   controlPlaneHumanGatesPath: "artifacts/control-plane-human-gates/latest/control-plane-human-gates.json",
@@ -150,6 +151,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneGoalCheckpointPath",
     source_id: "control_plane_goal_checkpoint",
     label: "Control Plane Goal Checkpoint",
+  },
+  {
+    option: "controlPlaneAuditTrailPath",
+    source_id: "control_plane_audit_trail",
+    label: "Control Plane Audit Trail",
   },
   {
     option: "controlPlaneHealthPath",
@@ -427,6 +433,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_pipeline") return data.summary ?? {};
   if (sourceId === "control_plane_loop") return data.summary ?? {};
   if (sourceId === "control_plane_goal_checkpoint") return data.summary ?? {};
+  if (sourceId === "control_plane_audit_trail") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
   if (sourceId === "control_plane_human_gates") return data.summary ?? {};
@@ -495,6 +502,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlanePipelineStage(artifacts.control_plane_pipeline, sourceById.get("control_plane_pipeline")),
     buildControlPlaneLoopStage(artifacts.control_plane_loop, sourceById.get("control_plane_loop")),
     buildControlPlaneGoalCheckpointStage(artifacts.control_plane_goal_checkpoint, sourceById.get("control_plane_goal_checkpoint")),
+    buildControlPlaneAuditTrailStage(artifacts.control_plane_audit_trail, sourceById.get("control_plane_audit_trail")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
     buildControlPlaneHumanGatesStage(artifacts.control_plane_human_gates, sourceById.get("control_plane_human_gates")),
@@ -1072,6 +1080,32 @@ function buildControlPlaneGoalCheckpointStage(checkpoint, source) {
       blocked_item_count: summary.blocked_item_count ?? 0,
       missing_item_count: summary.missing_item_count ?? 0,
       latest_roadmap_phase: summary.latest_roadmap_phase ?? null,
+    },
+  };
+}
+
+function buildControlPlaneAuditTrailStage(auditTrail, source) {
+  if (!auditTrail) return missingStage("control_plane_audit_trail", "Control Plane Audit Trail", source);
+  const summary = auditTrail.summary ?? {};
+  const status = auditTrail.audit_status === "missing_sources" || auditTrail.audit_status === "partial"
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "control_plane_audit_trail",
+    label: "Control Plane Audit Trail",
+    status,
+    message: `${summary.audit_event_count ?? 0} audit event(s), ${summary.missing_source_count ?? 0} missing source(s), status ${auditTrail.audit_status}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      audit_status: auditTrail.audit_status,
+      source_count: summary.source_count ?? 0,
+      available_source_count: summary.available_source_count ?? 0,
+      missing_source_count: summary.missing_source_count ?? 0,
+      audit_event_count: summary.audit_event_count ?? 0,
+      duplicate_event_count: summary.duplicate_event_count ?? 0,
+      protected_action_event_count: summary.protected_action_event_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      human_actor_event_count: summary.human_actor_event_count ?? 0,
     },
   };
 }
@@ -1972,6 +2006,13 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     control_plane_loop_passed_step_count: artifacts.control_plane_loop?.summary?.passed_step_count ?? 0,
     control_plane_loop_failed_step_count: artifacts.control_plane_loop?.summary?.failed_step_count ?? 0,
     control_plane_loop_missing_artifact_count: artifacts.control_plane_loop?.summary?.missing_artifact_count ?? 0,
+    audit_trail_source_count: artifacts.control_plane_audit_trail?.summary?.source_count ?? 0,
+    audit_trail_missing_source_count: artifacts.control_plane_audit_trail?.summary?.missing_source_count ?? 0,
+    audit_trail_event_count: artifacts.control_plane_audit_trail?.summary?.audit_event_count ?? 0,
+    audit_trail_duplicate_event_count: artifacts.control_plane_audit_trail?.summary?.duplicate_event_count ?? 0,
+    audit_trail_protected_action_event_count: artifacts.control_plane_audit_trail?.summary?.protected_action_event_count ?? 0,
+    audit_trail_protected_action_executed_count: artifacts.control_plane_audit_trail?.summary?.protected_action_executed_count ?? 0,
+    audit_trail_human_actor_event_count: artifacts.control_plane_audit_trail?.summary?.human_actor_event_count ?? 0,
     goal_checkpoint_item_count: artifacts.control_plane_goal_checkpoint?.summary?.checkpoint_item_count ?? 0,
     goal_checkpoint_passed_item_count: artifacts.control_plane_goal_checkpoint?.summary?.passed_item_count ?? 0,
     goal_checkpoint_attention_item_count: artifacts.control_plane_goal_checkpoint?.summary?.attention_item_count ?? 0,
@@ -2042,10 +2083,11 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     law_firm_citation_count: artifacts.law_firm_ldd_slice?.citation_count ?? 0,
     creative_slide_count: artifacts.creative_document_slice?.slide_count ?? 0,
     creative_artifact_count: artifacts.creative_document_slice?.artifact_count ?? 0,
-    audit_event_count: (artifacts.approval_decisions?.audit_events?.length ?? 0)
-      + (artifacts.delivery_receipt_ledger?.audit_events?.length ?? 0)
-      + (artifacts.closeout_receipt_application?.audit_events?.length ?? 0)
-      + (artifacts.control_plane_human_gate_receipt_application?.audit_events?.length ?? 0),
+    audit_event_count: artifacts.control_plane_audit_trail?.summary?.audit_event_count
+      ?? (artifacts.approval_decisions?.audit_events?.length ?? 0)
+        + (artifacts.delivery_receipt_ledger?.audit_events?.length ?? 0)
+        + (artifacts.closeout_receipt_application?.audit_events?.length ?? 0)
+        + (artifacts.control_plane_human_gate_receipt_application?.audit_events?.length ?? 0),
     follow_up_count: decisionSummary.follow_up_count ?? 0,
     decision_error_count: decisionErrorCount,
     action_item_count: actionItems.length,
@@ -2130,6 +2172,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Pipeline", dashboard.summary.pipeline_passed_step_count)}
       ${stat("Loop", dashboard.summary.control_plane_loop_passed_step_count)}
       ${stat("Goal Check", dashboard.summary.goal_checkpoint_passed_item_count)}
+      ${stat("Audit Trail", dashboard.summary.audit_trail_event_count)}
       ${stat("Health", dashboard.summary.health_passed_check_count)}
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
       ${stat("Human Gates", dashboard.summary.human_gate_item_count)}
@@ -2208,6 +2251,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Control loop steps: ${dashboard.summary.control_plane_loop_step_count ?? 0}`);
   lines.push(`- Control loop steps passed: ${dashboard.summary.control_plane_loop_passed_step_count ?? 0}`);
   lines.push(`- Control loop steps failed: ${dashboard.summary.control_plane_loop_failed_step_count ?? 0}`);
+  lines.push(`- Audit trail events: ${dashboard.summary.audit_trail_event_count ?? 0}`);
+  lines.push(`- Audit trail missing sources: ${dashboard.summary.audit_trail_missing_source_count ?? 0}`);
+  lines.push(`- Audit trail protected action events: ${dashboard.summary.audit_trail_protected_action_event_count ?? 0}`);
   lines.push(`- Goal checkpoint items: ${dashboard.summary.goal_checkpoint_item_count ?? 0}`);
   lines.push(`- Goal checkpoint passed: ${dashboard.summary.goal_checkpoint_passed_item_count ?? 0}`);
   lines.push(`- Goal checkpoint attention: ${dashboard.summary.goal_checkpoint_attention_item_count ?? 0}`);
@@ -2368,6 +2414,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-loop") parsed.controlPlaneLoopPath = false;
     else if (arg === "--control-plane-goal-checkpoint") parsed.controlPlaneGoalCheckpointPath = argv[++index];
     else if (arg === "--no-control-plane-goal-checkpoint") parsed.controlPlaneGoalCheckpointPath = false;
+    else if (arg === "--control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = argv[++index];
+    else if (arg === "--no-control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
     else if (arg === "--no-control-plane-health") parsed.controlPlaneHealthPath = false;
     else if (arg === "--control-plane-action-plan") parsed.controlPlaneActionPlanPath = argv[++index];
@@ -2452,6 +2500,9 @@ Options:
                                   control-plane-goal-checkpoint.json path.
   --no-control-plane-goal-checkpoint
                                   Do not include Control Plane Goal Checkpoint status.
+  --control-plane-audit-trail <path>
+                                  control-plane-audit-trail.json path.
+  --no-control-plane-audit-trail  Do not include Control Plane Audit Trail status.
   --control-plane-health <path>   control-plane-health.json path.
   --no-control-plane-health       Do not include Control Plane Health status.
   --control-plane-action-plan <path>

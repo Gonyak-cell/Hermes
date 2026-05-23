@@ -1167,3 +1167,33 @@
 - 적용 단계는 protected action을 실행하지 않고 audit event만 생성함
 - `/api/human-gate-receipt-applications?application_status=nothing_to_apply`로 적용 상태를 조회할 수 있음
 - `npm test`, `npm run validate`, `npm run control-plane:human-gate-receipts:apply`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 47: Control Plane Audit Trail
+
+목표: approval, delivery, human gate, work packet application에 흩어진 audit event를 하나의 읽기 전용 audit trail로 정규화합니다.
+
+- Approval Decisions, Approval Inbox Decisions, Delivery Receipt Ledger, Closeout Receipt Application, Human Gate Receipt Application, Work Packet Receipt Application의 `audit_events` 수집
+- actor, subject, tenant, correlation, event type, protected action 여부를 공통 `control-plane-audit-event.v1`로 정규화
+- raw event id가 같은 event는 중복 제거하고 `duplicate_events`로 기록
+- `delivery.executed`는 protected action executed event로 표시하되 별도 action은 실행하지 않음
+- Review Dashboard에 `control_plane_audit_trail` stage와 audit summary 추가
+- Review API에서 `/api/audit-trails`, `/api/audit-events`, `/api/audit-sources` route 제공
+- Control Plane Pipeline과 Loop에 `npm run control-plane:audit-trail` 포함
+- Goal Checkpoint에서 Audit Trail을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:audit-trail`
+- `src/control-plane-audit-trail.mjs`
+- `schemas/control-plane-audit-trail.schema.json`
+- `docs/control-plane-audit-trail.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- audit trail artifact가 schema validation을 통과함
+- delivery/approval/human-gate/work-packet audit event를 source별로 조회할 수 있음
+- `/api/audit-events?event_type=delivery.executed`로 protected delivery trace를 조회할 수 있음
+- Dashboard summary가 audit event/source/protected-action count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:audit-trail`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

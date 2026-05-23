@@ -1138,3 +1138,32 @@
 - `/api/human-gate-receipt-validations?validation_status=pending_receipt`와 `/api/validated-human-gate-receipts`가 동작함
 - Dashboard summary가 human gate receipt validation ready/pending/error 수를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:human-gate-receipts:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 46: Control Plane Human Gate Receipt Application
+
+목표: validation gate를 통과한 Human Gate receipt만 gate ledger에 반영하고 audit event를 남깁니다.
+
+- `control-plane-human-gate-receipt-validation.v1`의 검증 완료 receipt와 `control-plane-human-gates.v1`의 gate item을 조합
+- pending receipt는 아무 상태도 바꾸지 않고 `nothing_to_apply`로 기록
+- 적용된 receipt는 patched human gate item과 `human_gate.receipt.applied` audit event로 기록
+- evidence decision과 protected action 적용 count를 dashboard summary에 노출
+- protected action은 실행하지 않고 `protected_actions_executed: false`를 계약으로 고정
+- Review Dashboard에 `control_plane_human_gate_receipt_application` stage와 application summary 추가
+- Review API에서 `/api/human-gate-receipt-applications`, `/api/applied-human-gate-receipts`, `/api/patched-human-gate-items` route 제공
+- Control Plane Loop에 `npm run control-plane:human-gate-receipts:apply` 포함
+
+현재 구현:
+
+- `npm run control-plane:human-gate-receipts:apply`
+- `src/control-plane-human-gate-receipt-application.mjs`
+- `schemas/control-plane-human-gate-receipt-application.schema.json`
+- `docs/control-plane-human-gate-receipt-application.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- validation 완료 receipt만 적용되고 pending receipt는 gate 상태를 바꾸지 않음
+- 적용 단계는 protected action을 실행하지 않고 audit event만 생성함
+- `/api/human-gate-receipt-applications?application_status=nothing_to_apply`로 적용 상태를 조회할 수 있음
+- `npm test`, `npm run validate`, `npm run control-plane:human-gate-receipts:apply`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

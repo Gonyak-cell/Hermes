@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-human-gate-receipt-application.schema.json",
+  "title": "Hermes Control Plane Human Gate Receipt Application",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "application_id",
+    "output_dir",
+    "application_status",
+    "safe_to_apply",
+    "protected_actions_executed",
+    "sources",
+    "summary",
+    "validated_receipts_to_apply",
+    "applied_receipts",
+    "pending_receipts",
+    "receipt_errors",
+    "audit_events",
+    "patched_gate_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-human-gate-receipt-application.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "application_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "application_status": {
+      "enum": [
+        "applied",
+        "nothing_to_apply",
+        "blocked_missing_validation",
+        "blocked_missing_human_gates",
+        "blocked_validation_errors"
+      ]
+    },
+    "safe_to_apply": { "type": "boolean" },
+    "protected_actions_executed": { "const": false },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "application_status",
+        "validation_available",
+        "human_gates_available",
+        "validation_status",
+        "validation_error_count",
+        "ready_receipt_count",
+        "pending_receipt_count",
+        "invalid_receipt_count",
+        "applied_receipt_count",
+        "patched_gate_item_count",
+        "protected_action_executed_count",
+        "protected_applied_count",
+        "evidence_decision_applied_count",
+        "audit_event_count",
+        "receipt_error_count",
+        "by_receipt_status",
+        "by_outcome",
+        "by_gate_type",
+        "by_source_stage"
+      ],
+      "properties": {
+        "application_status": {
+          "enum": [
+            "applied",
+            "nothing_to_apply",
+            "blocked_missing_validation",
+            "blocked_missing_human_gates",
+            "blocked_validation_errors"
+          ]
+        },
+        "validation_available": { "type": "boolean" },
+        "human_gates_available": { "type": "boolean" },
+        "validation_status": { "type": ["string", "null"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "ready_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "invalid_receipt_count": { "type": "integer", "minimum": 0 },
+        "applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "patched_gate_item_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "protected_applied_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_applied_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "receipt_error_count": { "type": "integer", "minimum": 0 },
+        "by_receipt_status": { "type": "object" },
+        "by_outcome": { "type": "object" },
+        "by_gate_type": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "validated_receipts_to_apply": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "human_gate_id", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "control-plane-human-gate-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "human_gate_id": { "type": "string" },
+        "instructions": { "type": "string" },
+        "receipts": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "applied_receipts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/applied_receipt" }
+    },
+    "pending_receipts": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "receipt_errors": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "audit_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/audit_event" }
+    },
+    "patched_gate_items": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  },
+  "$defs": {
+    "applied_receipt": {
+      "type": "object",
+      "required": [
+        "receipt_id",
+        "gate_item_id",
+        "source_plan_item_id",
+        "gate_type",
+        "source_stage",
+        "receipt_status",
+        "outcome",
+        "applied_gate_status",
+        "decided_by",
+        "decided_at",
+        "reviewer",
+        "decision_reference",
+        "decision_notes",
+        "protected_action_reference",
+        "command_result",
+        "commands_run",
+        "completed_action_refs",
+        "gate_found",
+        "protected_action",
+        "safe_handling",
+        "protected_action_executed"
+      ],
+      "properties": {
+        "receipt_id": { "type": "string" },
+        "gate_item_id": { "type": "string" },
+        "source_plan_item_id": { "type": "string" },
+        "gate_type": { "type": "string" },
+        "source_stage": { "type": "string" },
+        "receipt_status": { "type": "string" },
+        "outcome": { "type": "string" },
+        "applied_gate_status": { "type": "string" },
+        "decided_by": { "type": "string" },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "reviewer": { "type": ["string", "null"] },
+        "decision_reference": { "type": "string" },
+        "decision_notes": { "type": "string" },
+        "protected_action_reference": { "type": ["string", "null"] },
+        "command_result": { "type": ["string", "null"] },
+        "commands_run": { "type": "array", "items": { "type": "string" } },
+        "completed_action_refs": { "type": "array", "items": { "type": "string" } },
+        "gate_found": { "type": "boolean" },
+        "protected_action": { "type": "boolean" },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed"],
+          "properties": {
+            "auto_execute_allowed": { "const": false }
+          }
+        },
+        "protected_action_executed": { "const": false }
+      }
+    },
+    "audit_event": {
+      "type": "object",
+      "required": ["type", "time", "actor", "correlation_id", "subject"],
+      "properties": {
+        "type": { "const": "human_gate.receipt.applied" },
+        "time": { "type": "string", "format": "date-time" },
+        "actor": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "subject": { "type": "object" }
+      }
+    }
+  }
+}

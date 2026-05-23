@@ -7,6 +7,7 @@ import path from "node:path";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
+import { runControlPlaneHumanGateReceiptApplication } from "../src/control-plane-human-gate-receipt-application.mjs";
 import { runControlPlaneHumanGateReceiptValidation } from "../src/control-plane-human-gate-receipt-validation.mjs";
 import { runControlPlaneHumanGateReceipts } from "../src/control-plane-human-gate-receipts.mjs";
 import { runControlPlaneHumanGates } from "../src/control-plane-human-gates.mjs";
@@ -751,6 +752,7 @@ describe("matter harness", () => {
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
         controlPlaneHumanGateReceiptsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
         controlPlaneHumanGateReceiptValidationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
+        controlPlaneHumanGateReceiptApplicationPath: path.join(outDir, "control-plane-human-gate-receipt-application", "control-plane-human-gate-receipt-application.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
@@ -768,6 +770,7 @@ describe("matter harness", () => {
         controlPlaneHumanGatesPath: false,
         controlPlaneHumanGateReceiptsPath: false,
         controlPlaneHumanGateReceiptValidationPath: false,
+        controlPlaneHumanGateReceiptApplicationPath: false,
         controlPlaneWorkPacketsPath: false,
         controlPlaneWorkPacketReceiptsPath: false,
         controlPlaneWorkPacketReceiptValidationPath: false,
@@ -853,6 +856,24 @@ describe("matter harness", () => {
       assert.equal(controlPlaneHumanGateReceiptValidation.summary.ready_to_apply_count, 0);
       assert.equal(controlPlaneHumanGateReceiptValidation.summary.error_count, 0);
       assert.match(await readFile(path.join(outDir, "control-plane-human-gate-receipt-validation", "summary.md"), "utf8"), /Control Plane Human Gate Receipt Validation/);
+
+      const controlPlaneHumanGateReceiptApplication = await runControlPlaneHumanGateReceiptApplication({
+        validationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
+        humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
+        outDir: path.join(outDir, "control-plane-human-gate-receipt-application"),
+        runAt: "2026-05-23T06:35:06.150Z",
+      });
+      const controlPlaneHumanGateReceiptApplicationSchema = JSON.parse(await readFile("schemas/control-plane-human-gate-receipt-application.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneHumanGateReceiptApplication, controlPlaneHumanGateReceiptApplicationSchema, {}, "control_plane_human_gate_receipt_application"),
+        [],
+      );
+      assert.equal(controlPlaneHumanGateReceiptApplication.application_status, "nothing_to_apply");
+      assert.equal(controlPlaneHumanGateReceiptApplication.protected_actions_executed, false);
+      assert.equal(controlPlaneHumanGateReceiptApplication.summary.applied_receipt_count, 0);
+      assert.equal(controlPlaneHumanGateReceiptApplication.summary.pending_receipt_count, controlPlaneHumanGateReceiptValidation.summary.pending_receipt_count);
+      assert.equal(controlPlaneHumanGateReceiptApplication.applied_receipts.length, 0);
+      assert.match(await readFile(path.join(outDir, "control-plane-human-gate-receipt-application", "summary.md"), "utf8"), /Control Plane Human Gate Receipt Application/);
 
       const controlPlaneWorkPackets = await runControlPlaneWorkPackets({
         actionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
@@ -1080,6 +1101,12 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.human_gate_receipt_validation_pending_count, controlPlaneHumanGateReceiptValidation.summary.pending_receipt_count);
       assert.equal(dashboard.summary.human_gate_receipt_validation_ready_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_validation_error_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_application_ready_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_application_applied_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_application_patched_gate_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_application_error_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_application_protected_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_application_evidence_decision_count, 0);
       assert.equal(dashboard.summary.work_packet_count, controlPlaneWorkPackets.summary.work_packet_count);
       assert.ok(dashboard.summary.work_packet_human_count >= 1);
       assert.equal(dashboard.summary.work_packet_receipt_draft_count, controlPlaneWorkPacketReceipts.summary.receipt_draft_count);
@@ -1124,6 +1151,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gates"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipts"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipt_validation"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipt_validation"));
@@ -1195,6 +1223,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/patched-human-gate-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-work-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-work-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
@@ -1399,6 +1430,18 @@ describe("matter harness", () => {
       const validatedHumanGateReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-human-gate-receipts", apiOptions)).body);
       assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
       assert.equal(validatedHumanGateReceipts.count, 0);
+
+      const humanGateReceiptApplications = JSON.parse((await buildReviewApiResponse("/api/human-gate-receipt-applications?application_status=nothing_to_apply", apiOptions)).body);
+      assert.equal(humanGateReceiptApplications.collection, "human_gate_receipt_applications");
+      assert.equal(humanGateReceiptApplications.count, 1);
+
+      const appliedHumanGateReceipts = JSON.parse((await buildReviewApiResponse("/api/applied-human-gate-receipts", apiOptions)).body);
+      assert.equal(appliedHumanGateReceipts.collection, "applied_human_gate_receipts");
+      assert.equal(appliedHumanGateReceipts.count, 0);
+
+      const patchedHumanGateItems = JSON.parse((await buildReviewApiResponse("/api/patched-human-gate-items", apiOptions)).body);
+      assert.equal(patchedHumanGateItems.collection, "patched_human_gate_items");
+      assert.equal(patchedHumanGateItems.count, 0);
 
       const humanWorkPackets = JSON.parse((await buildReviewApiResponse("/api/action-work-packets?requires_human=true", apiOptions)).body);
       assert.equal(humanWorkPackets.collection, "action_work_packets");
@@ -1752,6 +1795,157 @@ describe("matter harness", () => {
       assert.equal(validation.summary.pending_receipt_count, 0);
       assert.equal(validation.summary.evidence_decision_ready_count, 1);
       assert.equal(validation.validated_receipts_to_apply.receipts[0].outcome, "approve_evidence");
+    } finally {
+      await rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("applies validated control plane human gate receipts without executing protected actions", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "hermes-human-gate-application-"));
+    try {
+      const validationPath = path.join(root, "validation.json");
+      const humanGatesPath = path.join(root, "human-gates.json");
+      await writeFile(
+        validationPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-human-gate-receipt-validation.v1",
+          generated_at: "2026-05-23T13:25:00.000Z",
+          validation_id: "control-plane-human-gate-receipt-validation.test",
+          output_dir: root,
+          validation_status: "ready_to_apply",
+          sources: [],
+          summary: {
+            validation_status: "ready_to_apply",
+            receipt_drafts_available: true,
+            receipt_input_available: true,
+            receipt_requirement_count: 1,
+            receipt_count: 1,
+            validation_item_count: 1,
+            ready_to_apply_count: 1,
+            pending_receipt_count: 0,
+            missing_receipt_count: 0,
+            invalid_receipt_count: 0,
+            unknown_receipt_count: 0,
+            error_count: 0,
+            protected_ready_count: 0,
+            human_ready_count: 1,
+            evidence_decision_ready_count: 1,
+            command_ready_count: 0,
+            by_validation_status: { ready_to_apply: 1 },
+            by_receipt_status: { resolved: 1 },
+            by_gate_type: { evidence_decision: 1 },
+            by_source_stage: { evidence_viewer: 1 },
+          },
+          validation_items: [],
+          receipt_errors: [],
+          validated_receipts_to_apply: {
+            schema_version: "control-plane-human-gate-receipts-input.v1",
+            generated_at: "2026-05-23T13:25:00.000Z",
+            human_gate_id: "control-plane-human-gates.test",
+            instructions: "test",
+            receipts: [
+              {
+                receipt_id: "human-gate-receipt.test",
+                gate_item_id: "human-gate.test",
+                source_plan_item_id: "plan-item.test",
+                gate_type: "evidence_decision",
+                receipt_status: "resolved",
+                outcome: "approve_evidence",
+                decided_by: "jws",
+                decided_at: "2026-05-23T13:25:30.000Z",
+                reviewer: "jws",
+                decision_reference: "approval-decisions.test",
+                decision_notes: "Evidence reviewed and approved.",
+                protected_action_reference: null,
+                command_result: null,
+                commands_run: [],
+                completed_action_refs: ["approval-decisions.test"],
+                required_receipt_fields: ["receipt_status", "outcome", "decided_by", "decided_at", "decision_reference", "decision_notes", "reviewer", "completed_action_refs"],
+                generated_at: "2026-05-23T13:24:00.000Z",
+              },
+            ],
+          },
+        }, null, 2)}\n`,
+        "utf8",
+      );
+      await writeFile(
+        humanGatesPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-human-gates.v1",
+          generated_at: "2026-05-23T13:24:00.000Z",
+          human_gate_id: "control-plane-human-gates.test",
+          source_action_plan: "control-plane-action-plan.test",
+          source_action_plan_id: "control-plane-action-plan.test",
+          output_dir: root,
+          policy: {
+            auto_execute_allowed: false,
+            protected_actions_require_receipt: true,
+            evidence_decisions_require_human: true,
+            generated_outputs_remain_draft_only: true,
+          },
+          summary: {
+            gate_item_count: 1,
+            waiting_for_human_count: 1,
+            blocked_count: 0,
+            protected_action_count: 0,
+            human_required_count: 1,
+            evidence_decision_count: 1,
+            approval_request_count: 0,
+            protected_delivery_count: 0,
+            closeout_receipt_count: 0,
+            auto_execute_allowed_count: 0,
+            next_command_count: 0,
+            by_gate_type: { evidence_decision: 1 },
+            by_priority: { high: 1 },
+            by_status: { waiting_for_human: 1 },
+            by_source_stage: { evidence_viewer: 1 },
+          },
+          agenda: [],
+          gate_items: [
+            {
+              gate_item_id: "human-gate.test",
+              source_plan_item_id: "plan-item.test",
+              source_stage: "evidence_viewer",
+              gate_type: "evidence_decision",
+              priority: "high",
+              status: "waiting_for_human",
+              title: "Review evidence decision",
+              subject_ref: { subject_type: "evidence", subject_id: "evidence.test" },
+              reason: "Human review is required.",
+              recommended_actions: ["Review evidence decision."],
+              next_commands: [],
+              requires_human: true,
+              protected_action: false,
+              safe_handling: {
+                auto_execute_allowed: false,
+                required_actor: "attorney_or_owner",
+                receipt_required: false,
+                decision_required: true,
+                draft_only: true,
+              },
+              source_refs: [],
+            },
+          ],
+        }, null, 2)}\n`,
+        "utf8",
+      );
+
+      const application = await runControlPlaneHumanGateReceiptApplication({
+        validationPath,
+        humanGatesPath,
+        outDir: path.join(root, "application"),
+        runAt: "2026-05-23T13:26:00.000Z",
+      });
+      const schema = JSON.parse(await readFile("schemas/control-plane-human-gate-receipt-application.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(application, schema, {}, "control_plane_human_gate_receipt_application_ready"), []);
+      assert.equal(application.application_status, "applied");
+      assert.equal(application.protected_actions_executed, false);
+      assert.equal(application.summary.applied_receipt_count, 1);
+      assert.equal(application.summary.evidence_decision_applied_count, 1);
+      assert.equal(application.applied_receipts[0].safe_handling.auto_execute_allowed, false);
+      assert.equal(application.patched_gate_items[0].status, "closed");
+      assert.equal(application.patched_gate_items[0].protected_action_executed, false);
+      assert.equal(application.audit_events[0].type, "human_gate.receipt.applied");
     } finally {
       await rm(root, { recursive: true, force: true });
     }

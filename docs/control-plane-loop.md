@@ -17,6 +17,7 @@ npm run control-plane:loop
 - `npm run control-plane:human-gates`
 - `npm run control-plane:human-gate-receipts`
 - `npm run control-plane:human-gate-receipts:validate`
+- `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`
 - `npm run control-plane:work-receipts`
 - `npm run control-plane:work-receipts:validate`

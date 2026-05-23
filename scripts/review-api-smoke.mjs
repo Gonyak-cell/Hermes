@@ -60,6 +60,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
+  assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/patched-human-gate-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-work-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
@@ -126,6 +129,15 @@ try {
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
+
+  const humanGateReceiptApplications = await fetchJson(`${url}/api/human-gate-receipt-applications?application_status=nothing_to_apply`);
+  assert.equal(humanGateReceiptApplications.collection, "human_gate_receipt_applications");
+
+  const appliedHumanGateReceipts = await fetchJson(`${url}/api/applied-human-gate-receipts`);
+  assert.equal(appliedHumanGateReceipts.collection, "applied_human_gate_receipts");
+
+  const patchedHumanGateItems = await fetchJson(`${url}/api/patched-human-gate-items`);
+  assert.equal(patchedHumanGateItems.collection, "patched_human_gate_items");
 
   const protectedWorkPackets = await fetchJson(`${url}/api/action-work-packets?protected_action=true&limit=5`);
   assert.equal(protectedWorkPackets.collection, "action_work_packets");

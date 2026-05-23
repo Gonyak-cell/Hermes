@@ -8,6 +8,12 @@
 npm run control-plane:human-gate-receipts:validate
 ```
 
+검증 완료 receipt를 gate ledger에 반영하려면 다음 application 단계를 실행한다.
+
+```bash
+npm run control-plane:human-gate-receipts:apply
+```
+
 옵션:
 
 ```bash
@@ -39,6 +45,9 @@ Dashboard는 `control_plane_human_gate_receipt_validation` stage를 표시한다
 - `GET /api/human-gate-receipt-validations`
 - `GET /api/human-gate-receipt-errors`
 - `GET /api/validated-human-gate-receipts`
+- `GET /api/human-gate-receipt-applications`
+- `GET /api/applied-human-gate-receipts`
+- `GET /api/patched-human-gate-items`
 
 ## Goal 내 위치
 

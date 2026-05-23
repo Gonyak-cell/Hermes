@@ -179,6 +179,17 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/matters") {
+    const cockpitResult = await readDashboardSourceArtifact(dashboard, "matter_cockpit");
+    if (!cockpitResult.available) {
+      return jsonResponse(503, buildError("matter_cockpit_unavailable", cockpitResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matters", cockpitResult.artifact.matters ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -200,7 +211,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -225,6 +236,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/events", "Observability event records"),
       route("GET", "/api/costs", "Observability cost records"),
       route("GET", "/api/delivery-actions", "Protected delivery action queue"),
+      route("GET", "/api/matters", "Matter cockpit records"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -282,6 +294,9 @@ function filterItems(items, searchParams) {
     "delivery_status",
     "delivery_channel",
     "delivery_target",
+    "matter_key",
+    "matter_id",
+    "tenant_id",
     "enabled",
     "valid",
   ];

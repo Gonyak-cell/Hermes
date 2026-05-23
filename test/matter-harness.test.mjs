@@ -17,6 +17,7 @@ import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
+import { runMatterCockpit } from "../src/matter-cockpit.mjs";
 import { runObservabilityCatalog } from "../src/observability-catalog.mjs";
 import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
 import { runProtectedDeliveryQueue } from "../src/protected-delivery-queue.mjs";
@@ -381,6 +382,26 @@ describe("matter harness", () => {
       assert.equal(deliveryQueue.summary.ready_action_count, 0);
       assert.ok(deliveryQueue.delivery_actions.some((action) => action.delivery_channel === "github"));
 
+      const matterCockpit = await runMatterCockpit({
+        resourceEvidencePath: path.join(outDir, "ingest", "resource-evidence.json"),
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        outDir: path.join(outDir, "matter-cockpit"),
+        runAt: "2026-05-23T06:34:58.000Z",
+      });
+      const matterCockpitSchema = JSON.parse(await readFile("schemas/matter-cockpit.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterCockpit, matterCockpitSchema, {}, "matter_cockpit"), []);
+      assert.equal(matterCockpit.summary.matter_count, 3);
+      assert.equal(matterCockpit.summary.blocked_matter_count, 3);
+      assert.equal(matterCockpit.summary.resource_count, 1);
+      assert.equal(matterCockpit.summary.evidence_count, 1);
+      assert.equal(matterCockpit.summary.output_artifact_count, 5);
+      assert.equal(matterCockpit.summary.workflow_run_count, 3);
+      assert.equal(matterCockpit.summary.delivery_action_count, 5);
+      assert.equal(matterCockpit.summary.pending_approval_count, 3);
+      assert.ok(matterCockpit.matters.some((matter) => matter.matter_id === "matter.personal_dev.hermes"));
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -391,6 +412,7 @@ describe("matter harness", () => {
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
         protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -416,6 +438,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.delivery_blocked_action_count, 5);
       assert.equal(dashboard.summary.delivery_ready_action_count, 0);
       assert.equal(dashboard.summary.delivery_pending_approval_count, 3);
+      assert.equal(dashboard.summary.matter_count, 3);
+      assert.equal(dashboard.summary.blocked_matter_count, 3);
+      assert.equal(dashboard.summary.pending_review_matter_count, 0);
+      assert.equal(dashboard.summary.ready_matter_count, 0);
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -424,6 +450,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "output_artifact_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "protected_delivery_queue"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_cockpit"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "creative_document_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
@@ -451,6 +478,7 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/events"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/costs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-actions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matters"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -492,6 +520,11 @@ describe("matter harness", () => {
       assert.equal(pendingDeliveryActions.collection, "delivery_actions");
       assert.equal(pendingDeliveryActions.count, 3);
       assert.ok(pendingDeliveryActions.items.some((action) => action.delivery_channel === "github"));
+
+      const blockedMatters = JSON.parse((await buildReviewApiResponse("/api/matters?status=blocked", apiOptions)).body);
+      assert.equal(blockedMatters.collection, "matters");
+      assert.equal(blockedMatters.count, 3);
+      assert.ok(blockedMatters.items.some((matter) => matter.matter_id === "matter.personal_dev.hermes"));
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

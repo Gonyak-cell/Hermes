@@ -53,6 +53,10 @@
         "delivery_blocked_action_count",
         "delivery_ready_action_count",
         "delivery_pending_approval_count",
+        "matter_count",
+        "blocked_matter_count",
+        "pending_review_matter_count",
+        "ready_matter_count",
         "law_firm_issue_count",
         "law_firm_rfi_count",
         "law_firm_citation_count",
@@ -184,6 +188,22 @@
           "minimum": 0
         },
         "delivery_pending_approval_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "matter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "blocked_matter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pending_review_matter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "ready_matter_count": {
           "type": "integer",
           "minimum": 0
         },

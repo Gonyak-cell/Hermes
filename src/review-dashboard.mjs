@@ -12,6 +12,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
   protectedDeliveryQueuePath: "artifacts/delivery-queue/latest/protected-delivery-queue.json",
+  matterCockpitPath: "artifacts/matter-cockpit/latest/matter-cockpit.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -62,6 +63,11 @@ const SOURCE_DEFINITIONS = [
     option: "protectedDeliveryQueuePath",
     source_id: "protected_delivery_queue",
     label: "Protected Delivery Queue",
+  },
+  {
+    option: "matterCockpitPath",
+    source_id: "matter_cockpit",
+    label: "Matter Cockpit",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -262,6 +268,21 @@ function summarizeSource(sourceId, data) {
       by_delivery_channel: data.summary?.by_delivery_channel ?? {},
     };
   }
+  if (sourceId === "matter_cockpit") {
+    return {
+      matter_count: data.summary?.matter_count ?? 0,
+      blocked_matter_count: data.summary?.blocked_matter_count ?? 0,
+      pending_review_matter_count: data.summary?.pending_review_matter_count ?? 0,
+      ready_matter_count: data.summary?.ready_matter_count ?? 0,
+      resource_count: data.summary?.resource_count ?? 0,
+      evidence_count: data.summary?.evidence_count ?? 0,
+      output_artifact_count: data.summary?.output_artifact_count ?? 0,
+      workflow_run_count: data.summary?.workflow_run_count ?? 0,
+      delivery_action_count: data.summary?.delivery_action_count ?? 0,
+      pending_approval_count: data.summary?.pending_approval_count ?? 0,
+      blocked_delivery_count: data.summary?.blocked_delivery_count ?? 0,
+    };
+  }
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -307,6 +328,7 @@ function buildStageStatuses(artifacts, sources) {
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
     buildProtectedDeliveryQueueStage(artifacts.protected_delivery_queue, sourceById.get("protected_delivery_queue")),
+    buildMatterCockpitStage(artifacts.matter_cockpit, sourceById.get("matter_cockpit")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -525,6 +547,33 @@ function buildProtectedDeliveryQueueStage(queue, source) {
   };
 }
 
+function buildMatterCockpitStage(cockpit, source) {
+  if (!cockpit) return missingStage("matter_cockpit", "Matter Cockpit", source);
+  const summary = cockpit.summary ?? {};
+  const blocked = summary.blocked_matter_count ?? 0;
+  const pending = summary.pending_review_matter_count ?? 0;
+  const ready = summary.ready_matter_count ?? 0;
+  const status = blocked > 0 ? "blocked" : pending > 0 ? "pending" : ready > 0 ? "ready" : "passed";
+  return {
+    stage_id: "matter_cockpit",
+    label: "Matter Cockpit",
+    status,
+    message: `${summary.matter_count ?? 0} matter/project record(s), ${blocked} blocked, ${pending} pending review.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      matter_count: summary.matter_count ?? 0,
+      blocked_matter_count: blocked,
+      pending_review_matter_count: pending,
+      ready_matter_count: ready,
+      resource_count: summary.resource_count ?? 0,
+      evidence_count: summary.evidence_count ?? 0,
+      output_artifact_count: summary.output_artifact_count ?? 0,
+      delivery_action_count: summary.delivery_action_count ?? 0,
+      pending_approval_count: summary.pending_approval_count ?? 0,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -739,6 +788,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const matter of artifacts.matter_cockpit?.matters ?? []) {
+    if (matter.status !== "blocked") continue;
+    items.push({
+      action_item_id: `dashboard.action.matter.${slugify(matter.matter_key)}`,
+      source_stage: "matter_cockpit",
+      priority: matter.high_priority_action_count > 0 ? "high" : "medium",
+      status: "blocked",
+      title: `Resolve blocked matter/project: ${matter.matter_id}`,
+      subject_ref: {
+        subject_type: "matter",
+        subject_id: matter.matter_key,
+      },
+      reason: `${matter.blocked_delivery_count} blocked delivery action(s), ${matter.blocking_gate_count} blocking gate(s).`,
+      recommended_actions: ["open_matter_cockpit", "resolve_gate_or_approval_blockers", "rerun_matter_cockpit"],
+      source_ref: matter.matter_key,
+    });
+  }
+
   return items;
 }
 
@@ -789,6 +856,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     delivery_blocked_action_count: artifacts.protected_delivery_queue?.summary?.blocked_action_count ?? 0,
     delivery_ready_action_count: artifacts.protected_delivery_queue?.summary?.ready_action_count ?? 0,
     delivery_pending_approval_count: artifacts.protected_delivery_queue?.summary?.pending_approval_count ?? 0,
+    matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
+    blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
+    pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
+    ready_matter_count: artifacts.matter_cockpit?.summary?.ready_matter_count ?? 0,
     law_firm_issue_count: artifacts.law_firm_ldd_slice?.issue_count ?? 0,
     law_firm_rfi_count: artifacts.law_firm_ldd_slice?.rfi_count ?? 0,
     law_firm_citation_count: artifacts.law_firm_ldd_slice?.citation_count ?? 0,
@@ -863,6 +934,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Evidence", dashboard.summary.evidence_count)}
       ${stat("Needs Review", dashboard.summary.evidence_needs_review_count)}
       ${stat("Pending Approvals", dashboard.summary.pending_approval_count)}
+      ${stat("Matters", dashboard.summary.matter_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -897,6 +969,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Evidence: ${dashboard.summary.evidence_count}`);
   lines.push(`- Evidence needs review: ${dashboard.summary.evidence_needs_review_count}`);
   lines.push(`- Pending approvals: ${dashboard.summary.pending_approval_count}`);
+  lines.push(`- Matters: ${dashboard.summary.matter_count ?? 0}`);
+  lines.push(`- Blocked matters: ${dashboard.summary.blocked_matter_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -1003,6 +1077,8 @@ function parseArgs(argv) {
     else if (arg === "--no-observability-catalog") parsed.observabilityCatalogPath = false;
     else if (arg === "--delivery-queue") parsed.protectedDeliveryQueuePath = argv[++index];
     else if (arg === "--no-delivery-queue") parsed.protectedDeliveryQueuePath = false;
+    else if (arg === "--matter-cockpit") parsed.matterCockpitPath = argv[++index];
+    else if (arg === "--no-matter-cockpit") parsed.matterCockpitPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1032,6 +1108,8 @@ Options:
   --no-observability-catalog     Do not include Observability Catalog status.
   --delivery-queue <path>        protected-delivery-queue.json path.
   --no-delivery-queue            Do not include Protected Delivery Queue status.
+  --matter-cockpit <path>        matter-cockpit.json path.
+  --no-matter-cockpit            Do not include Matter Cockpit status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

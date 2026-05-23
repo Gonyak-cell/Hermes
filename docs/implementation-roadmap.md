@@ -452,3 +452,32 @@
 - dashboard가 delivery action count와 blocked/ready count를 표시함
 - `/api/delivery-actions?delivery_status=blocked_pending_approval`로 전달 차단 항목을 조회할 수 있음
 - `npm test`, `delivery:queue`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 20: Matter Cockpit
+
+목표: Resource/Evidence, Output, Observability, Delivery Queue를 matter/project 단위로 묶어 운영 상태를 확인합니다.
+
+- Resource/Evidence에서 matter별 resource/evidence/review count 수집
+- Output Artifact Catalog에서 matter별 output, approval, delivery blocker 수집
+- Observability Catalog에서 matter별 workflow run, runtime, gate/error count 수집
+- Protected Delivery Queue에서 matter별 delivery action과 channel 수집
+- `matter-cockpit.json`과 `summary.md` 생성
+- Review Dashboard에 `matter_cockpit` stage와 matter summary/action item 추가
+- Review API에서 `/api/matters` 읽기 전용 route 제공
+
+현재 구현:
+
+- `npm run matter:cockpit`
+- `src/matter-cockpit.mjs`
+- `schemas/matter-cockpit.schema.json`
+- `docs/matter-cockpit.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- Law Firm, Personal Dev, Creative Document matter/project가 같은 cockpit 계약으로 조회됨
+- blocked delivery, pending approval, blocking gate가 matter status에 반영됨
+- dashboard가 matter count와 blocked matter count를 표시함
+- `/api/matters?status=blocked`로 막힌 matter/project를 조회할 수 있음
+- `npm test`, `matter:cockpit`, `dashboard:build`, `api:smoke`가 통과함

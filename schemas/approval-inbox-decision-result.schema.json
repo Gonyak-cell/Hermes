@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/approval-inbox-decision-result.schema.json",
+  "title": "Hermes Approval Inbox Decision Result",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "source_inbox",
+    "source_decisions",
+    "source_delivery_queue",
+    "source_output_catalog",
+    "summary",
+    "applied_items",
+    "unapplied_items",
+    "audit_events",
+    "patched_delivery_queue",
+    "patched_output_catalog",
+    "decision_errors"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "approval-inbox-decision-result.v1"
+    },
+    "generated_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source_inbox": {
+      "type": "string"
+    },
+    "source_decisions": {
+      "type": "string"
+    },
+    "source_delivery_queue": {
+      "type": ["string", "null"]
+    },
+    "source_output_catalog": {
+      "type": ["string", "null"]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "inbox_item_count",
+        "applied_count",
+        "pending_count",
+        "approved_count",
+        "rejected_count",
+        "changes_requested_count",
+        "gate_resolved_or_waived_count",
+        "keep_blocked_count",
+        "deferred_count",
+        "follow_up_count",
+        "decision_error_count",
+        "audit_event_count",
+        "ready_for_delivery_count",
+        "patched_delivery_blocked_count",
+        "patched_output_blocked_count",
+        "by_decision",
+        "by_item_type"
+      ],
+      "properties": {
+        "inbox_item_count": { "type": "integer", "minimum": 0 },
+        "applied_count": { "type": "integer", "minimum": 0 },
+        "pending_count": { "type": "integer", "minimum": 0 },
+        "approved_count": { "type": "integer", "minimum": 0 },
+        "rejected_count": { "type": "integer", "minimum": 0 },
+        "changes_requested_count": { "type": "integer", "minimum": 0 },
+        "gate_resolved_or_waived_count": { "type": "integer", "minimum": 0 },
+        "keep_blocked_count": { "type": "integer", "minimum": 0 },
+        "deferred_count": { "type": "integer", "minimum": 0 },
+        "follow_up_count": { "type": "integer", "minimum": 0 },
+        "decision_error_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "ready_for_delivery_count": { "type": "integer", "minimum": 0 },
+        "patched_delivery_blocked_count": { "type": "integer", "minimum": 0 },
+        "patched_output_blocked_count": { "type": "integer", "minimum": 0 },
+        "by_decision": { "type": "object" },
+        "by_item_type": { "type": "object" }
+      }
+    },
+    "applied_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "approval_item_id",
+          "item_type",
+          "subject_ref",
+          "priority",
+          "status_before",
+          "status_after",
+          "decision",
+          "decided_at",
+          "delivery_patch",
+          "output_patch"
+        ],
+        "properties": {
+          "approval_item_id": { "type": "string" },
+          "item_type": { "enum": ["approval_request", "gate_blocker_review"] },
+          "subject_ref": { "type": "object" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "status_before": { "type": "string" },
+          "status_after": {
+            "enum": [
+              "approved",
+              "changes_requested",
+              "rejected",
+              "resolved",
+              "waived",
+              "kept_blocked",
+              "deferred",
+              "decided"
+            ]
+          },
+          "decision": { "type": "string" },
+          "decided_by": { "type": ["string", "null"] },
+          "decided_at": { "type": "string", "format": "date-time" },
+          "comment": { "type": "string" },
+          "follow_up_action": { "type": "string" },
+          "delivery_patch": { "type": ["object", "null"] },
+          "output_patch": { "type": ["object", "null"] },
+          "correlation_id": { "type": "string" }
+        }
+      }
+    },
+    "unapplied_items": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "audit_events": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    },
+    "patched_delivery_queue": {
+      "type": ["object", "null"]
+    },
+    "patched_output_catalog": {
+      "type": ["object", "null"]
+    },
+    "decision_errors": {
+      "type": "array",
+      "items": {
+        "type": "object"
+      }
+    }
+  }
+}

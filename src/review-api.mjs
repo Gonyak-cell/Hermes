@@ -201,6 +201,17 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/approval-inbox-decisions") {
+    const decisionResult = await readDashboardSourceArtifact(dashboard, "approval_inbox_decisions");
+    if (!decisionResult.available) {
+      return jsonResponse(503, buildError("approval_inbox_decisions_unavailable", decisionResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("approval_inbox_decisions", decisionResult.artifact.applied_items ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -222,7 +233,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -249,6 +260,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/delivery-actions", "Protected delivery action queue"),
       route("GET", "/api/matters", "Matter cockpit records"),
       route("GET", "/api/approvals", "Approval inbox items"),
+      route("GET", "/api/approval-inbox-decisions", "Applied approval inbox decisions"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -312,6 +324,8 @@ function filterItems(items, searchParams) {
     "approval_item_id",
     "item_type",
     "required_decision",
+    "decision",
+    "status_after",
     "enabled",
     "valid",
   ];

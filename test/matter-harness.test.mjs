@@ -12,6 +12,7 @@ import { buildLitigationMatrix, renderLitigationMatrix } from "../src/litigation
 import { buildMatterBrief, readMatterFile, renderMatterBrief, validateMatter } from "../src/matter-harness.mjs";
 import { parseOutlookEml, parseOutlookJson } from "../src/outlook-parser.mjs";
 import { runApprovalDecisions } from "../src/approval-decisions.mjs";
+import { runApprovalInboxDecisions } from "../src/approval-inbox-decisions.mjs";
 import { runApprovalInbox } from "../src/approval-inbox.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.mjs";
@@ -418,6 +419,51 @@ describe("matter harness", () => {
       assert.equal(approvalInbox.decision_template.decisions.length, 5);
       assert.ok(approvalInbox.items.some((item) => item.delivery_channel === "github"));
 
+      const approvalInboxDecisionsPath = path.join(outDir, "approval-inbox-decisions-input.json");
+      const approvalInboxDecisions = {
+        ...approvalInbox.decision_template,
+        decisions: approvalInbox.items.map((item) => ({
+          approval_item_id: item.approval_item_id,
+          item_type: item.item_type,
+          subject_ref: {
+            subject_type: item.item_type === "approval_request" ? "approval" : "delivery_action",
+            subject_id: item.approval_id ?? item.delivery_action_id,
+          },
+          allowed_decisions: item.allowed_decisions,
+          decision: item.item_type === "approval_request" ? "approve" : "mark_resolved",
+          decided_by: "user.jws",
+          decided_at: "2026-05-23T06:34:59.500Z",
+          comment: "Test inbox decision",
+          follow_up_action: "",
+        })),
+      };
+      await writeFile(approvalInboxDecisionsPath, `${JSON.stringify(approvalInboxDecisions, null, 2)}\n`, "utf8");
+      const approvalInboxDecisionResult = await runApprovalInboxDecisions({
+        inboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
+        decisionsPath: approvalInboxDecisionsPath,
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        outDir: path.join(outDir, "approval-inbox-decisions"),
+        runAt: "2026-05-23T06:34:59.750Z",
+      });
+      const approvalInboxDecisionSchema = JSON.parse(await readFile("schemas/approval-inbox-decision-result.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(approvalInboxDecisionResult, approvalInboxDecisionSchema, {}, "approval_inbox_decision_result"), []);
+      assert.equal(approvalInboxDecisionResult.summary.applied_count, 5);
+      assert.equal(approvalInboxDecisionResult.summary.pending_count, 0);
+      assert.equal(approvalInboxDecisionResult.summary.approved_count, 3);
+      assert.equal(approvalInboxDecisionResult.summary.gate_resolved_or_waived_count, 2);
+      assert.equal(approvalInboxDecisionResult.summary.ready_for_delivery_count, 5);
+      assert.equal(approvalInboxDecisionResult.summary.patched_delivery_blocked_count, 0);
+      assert.equal(approvalInboxDecisionResult.audit_events.length, 5);
+      assert.deepEqual(
+        validateAgainstSchema(approvalInboxDecisionResult.patched_delivery_queue, deliveryQueueSchema, {}, "patched_delivery_queue"),
+        [],
+      );
+      assert.deepEqual(
+        validateAgainstSchema(approvalInboxDecisionResult.patched_output_catalog, outputCatalogSchema, {}, "patched_output_catalog"),
+        [],
+      );
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -425,6 +471,7 @@ describe("matter harness", () => {
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
         approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
+        approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -463,6 +510,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.approval_inbox_request_count, 3);
       assert.equal(dashboard.summary.approval_inbox_gate_review_count, 2);
       assert.equal(dashboard.summary.approval_inbox_high_priority_count, 1);
+      assert.equal(dashboard.summary.approval_inbox_applied_count, 5);
+      assert.equal(dashboard.summary.approval_inbox_decision_pending_count, 0);
+      assert.equal(dashboard.summary.approval_inbox_ready_for_delivery_count, 5);
+      assert.equal(dashboard.summary.approval_inbox_decision_error_count, 0);
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -473,6 +524,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "protected_delivery_queue"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_cockpit"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "creative_document_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
@@ -502,6 +554,7 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-actions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matters"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approvals"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-inbox-decisions"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -553,6 +606,11 @@ describe("matter harness", () => {
       assert.equal(approvalRequests.collection, "approval_items");
       assert.equal(approvalRequests.count, 3);
       assert.ok(approvalRequests.items.some((item) => item.delivery_channel === "github"));
+
+      const appliedInboxDecisions = JSON.parse((await buildReviewApiResponse("/api/approval-inbox-decisions?decision=approve", apiOptions)).body);
+      assert.equal(appliedInboxDecisions.collection, "approval_inbox_decisions");
+      assert.equal(appliedInboxDecisions.count, 3);
+      assert.ok(appliedInboxDecisions.items.every((item) => item.status_after === "approved"));
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

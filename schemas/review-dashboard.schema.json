@@ -41,6 +41,10 @@
         "approval_inbox_request_count",
         "approval_inbox_gate_review_count",
         "approval_inbox_high_priority_count",
+        "approval_inbox_applied_count",
+        "approval_inbox_decision_pending_count",
+        "approval_inbox_ready_for_delivery_count",
+        "approval_inbox_decision_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -144,6 +148,22 @@
           "minimum": 0
         },
         "approval_inbox_high_priority_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approval_inbox_applied_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approval_inbox_decision_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approval_inbox_ready_for_delivery_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "approval_inbox_decision_error_count": {
           "type": "integer",
           "minimum": 0
         },

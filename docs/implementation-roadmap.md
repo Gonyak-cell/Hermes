@@ -509,3 +509,31 @@
 - decision template이 모든 inbox item을 포함함
 - `/api/approvals?item_type=approval_request`로 승인 요청을 조회할 수 있음
 - `npm test`, `approval:inbox`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 22: Approval Inbox Decisions
+
+목표: 사람이 채운 Approval Inbox decision file을 읽고 output/delivery 상태 patch와 audit event를 생성합니다.
+
+- `approval_request` 결정으로 approval/output/delivery 상태 patch 생성
+- `gate_blocker_review` 결정으로 human approval gate blocker 해소 또는 유지
+- `patched-delivery-queue.json`과 `patched-output-catalog.json` 생성
+- 모든 적용 결정을 `approval_inbox.decided` audit event로 기록
+- Review Dashboard에 `approval_inbox_decisions` stage와 summary 추가
+- Review API에서 `/api/approval-inbox-decisions` 읽기 전용 route 제공
+
+현재 구현:
+
+- `npm run approval:inbox:apply`
+- `src/approval-inbox-decisions.mjs`
+- `schemas/approval-inbox-decision-result.schema.json`
+- `docs/approval-inbox-decisions.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- 승인 요청 `approve`가 `ready_for_delivery` patch로 이어짐
+- gate blocker `mark_resolved` 또는 `waive_for_now`가 blocker 해소 patch로 이어짐
+- 결정 적용 결과와 audit event가 schema validation을 통과함
+- `/api/approval-inbox-decisions?decision=approve`로 적용된 결정을 조회할 수 있음
+- `npm test`, `approval:inbox:apply`, `dashboard:build`, `api:smoke`가 통과함

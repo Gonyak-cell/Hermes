@@ -9,6 +9,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   approvalDecisionPath: "artifacts/approval-decisions/latest/approval-decision-result.json",
   approvalInboxPath: "artifacts/approval-inbox/latest/approval-inbox.json",
+  approvalInboxDecisionPath: "artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -49,6 +50,11 @@ const SOURCE_DEFINITIONS = [
     option: "approvalInboxPath",
     source_id: "approval_inbox",
     label: "Approval Inbox",
+  },
+  {
+    option: "approvalInboxDecisionPath",
+    source_id: "approval_inbox_decisions",
+    label: "Approval Inbox Decisions",
   },
   {
     option: "domainPackRegistryPath",
@@ -227,6 +233,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "approval_decisions") return data.summary ?? {};
   if (sourceId === "approval_inbox") return data.summary ?? {};
+  if (sourceId === "approval_inbox_decisions") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -332,6 +339,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildApprovalDecisionStage(artifacts.approval_decisions, sourceById.get("approval_decisions")),
     buildApprovalInboxStage(artifacts.approval_inbox, sourceById.get("approval_inbox")),
+    buildApprovalInboxDecisionStage(artifacts.approval_inbox_decisions, sourceById.get("approval_inbox_decisions")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -471,6 +479,31 @@ function buildApprovalInboxStage(inbox, source) {
       approval_request_count: summary.approval_request_count ?? 0,
       gate_review_count: summary.gate_review_count ?? 0,
       high_priority_count: highPriority,
+    },
+  };
+}
+
+function buildApprovalInboxDecisionStage(result, source) {
+  if (!result) return missingStage("approval_inbox_decisions", "Approval Inbox Decisions", source);
+  const summary = result.summary ?? {};
+  const errors = summary.decision_error_count ?? 0;
+  const pending = summary.pending_count ?? 0;
+  const ready = summary.ready_for_delivery_count ?? 0;
+  const blocked = summary.patched_delivery_blocked_count ?? 0;
+  const status = errors > 0 ? "attention" : pending > 0 ? "pending" : blocked > 0 ? "pending" : "passed";
+  return {
+    stage_id: "approval_inbox_decisions",
+    label: "Approval Inbox Decisions",
+    status,
+    message: `${summary.applied_count ?? 0} applied, ${pending} pending, ${ready} ready for delivery after patch.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      inbox_item_count: summary.inbox_item_count ?? 0,
+      applied_count: summary.applied_count ?? 0,
+      pending_count: pending,
+      ready_for_delivery_count: ready,
+      patched_delivery_blocked_count: blocked,
+      decision_error_count: errors,
     },
   };
 }
@@ -683,6 +716,7 @@ function buildActionItems(artifacts) {
   const queueItems = artifacts.approval_queue?.items ?? [];
   const appliedIds = new Set((artifacts.approval_decisions?.applied_items ?? []).map((item) => item.queue_item_id));
   const unappliedIds = new Set((artifacts.approval_decisions?.unapplied_items ?? []).map((item) => item.queue_item_id));
+  const appliedApprovalInboxIds = new Set((artifacts.approval_inbox_decisions?.applied_items ?? []).map((item) => item.approval_item_id));
 
   for (const item of queueItems) {
     if (appliedIds.has(item.queue_item_id)) continue;
@@ -837,6 +871,7 @@ function buildActionItems(artifacts) {
   }
 
   for (const item of artifacts.approval_inbox?.items ?? []) {
+    if (appliedApprovalInboxIds.has(item.approval_item_id)) continue;
     items.push({
       action_item_id: `dashboard.action.approval_inbox.${slugify(item.approval_item_id)}`,
       source_stage: "approval_inbox",
@@ -850,6 +885,38 @@ function buildActionItems(artifacts) {
       reason: item.reason,
       recommended_actions: item.recommended_actions ?? [],
       source_ref: item.approval_id ?? item.delivery_action_id,
+    });
+  }
+
+  for (const error of artifacts.approval_inbox_decisions?.decision_errors ?? []) {
+    items.push({
+      action_item_id: `dashboard.action.approval_inbox_decision_error.${slugify(error.approval_item_id)}`,
+      source_stage: "approval_inbox_decisions",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix approval inbox decision",
+      subject_ref: {
+        subject_type: "approval_inbox_decision",
+        subject_id: error.approval_item_id ?? "unknown",
+      },
+      reason: error.message,
+      recommended_actions: ["fix_decision_file", "rerun_approval_inbox_apply", "rebuild_dashboard"],
+      source_ref: error.approval_item_id ?? null,
+    });
+  }
+
+  for (const item of artifacts.approval_inbox_decisions?.applied_items ?? []) {
+    if (!item.follow_up_action) continue;
+    items.push({
+      action_item_id: `dashboard.action.approval_inbox_follow_up.${slugify(item.approval_item_id)}`,
+      source_stage: "approval_inbox_decisions",
+      priority: item.priority ?? "medium",
+      status: "follow_up_required",
+      title: `Follow up approval inbox decision: ${item.follow_up_action}`,
+      subject_ref: item.subject_ref,
+      reason: item.comment || item.follow_up_action,
+      recommended_actions: [item.follow_up_action],
+      source_ref: item.approval_item_id,
     });
   }
 
@@ -891,6 +958,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     approval_inbox_request_count: artifacts.approval_inbox?.summary?.approval_request_count ?? 0,
     approval_inbox_gate_review_count: artifacts.approval_inbox?.summary?.gate_review_count ?? 0,
     approval_inbox_high_priority_count: artifacts.approval_inbox?.summary?.high_priority_count ?? 0,
+    approval_inbox_applied_count: artifacts.approval_inbox_decisions?.summary?.applied_count ?? 0,
+    approval_inbox_decision_pending_count: artifacts.approval_inbox_decisions?.summary?.pending_count ?? 0,
+    approval_inbox_ready_for_delivery_count: artifacts.approval_inbox_decisions?.summary?.ready_for_delivery_count ?? 0,
+    approval_inbox_decision_error_count: artifacts.approval_inbox_decisions?.summary?.decision_error_count ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -986,6 +1057,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Needs Review", dashboard.summary.evidence_needs_review_count)}
       ${stat("Pending Approvals", dashboard.summary.pending_approval_count)}
       ${stat("Approval Inbox", dashboard.summary.approval_inbox_item_count)}
+      ${stat("Inbox Applied", dashboard.summary.approval_inbox_applied_count)}
       ${stat("Matters", dashboard.summary.matter_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -1023,6 +1095,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Pending approvals: ${dashboard.summary.pending_approval_count}`);
   lines.push(`- Approval inbox items: ${dashboard.summary.approval_inbox_item_count ?? 0}`);
   lines.push(`- Approval inbox requests: ${dashboard.summary.approval_inbox_request_count ?? 0}`);
+  lines.push(`- Approval inbox decisions applied: ${dashboard.summary.approval_inbox_applied_count ?? 0}`);
+  lines.push(`- Approval inbox ready for delivery: ${dashboard.summary.approval_inbox_ready_for_delivery_count ?? 0}`);
   lines.push(`- Matters: ${dashboard.summary.matter_count ?? 0}`);
   lines.push(`- Blocked matters: ${dashboard.summary.blocked_matter_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
@@ -1125,6 +1199,8 @@ function parseArgs(argv) {
     else if (arg === "--approval-decisions") parsed.approvalDecisionPath = argv[++index];
     else if (arg === "--approval-inbox") parsed.approvalInboxPath = argv[++index];
     else if (arg === "--no-approval-inbox") parsed.approvalInboxPath = false;
+    else if (arg === "--approval-inbox-decisions") parsed.approvalInboxDecisionPath = argv[++index];
+    else if (arg === "--no-approval-inbox-decisions") parsed.approvalInboxDecisionPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -1158,6 +1234,9 @@ Options:
   --approval-decisions <path>    approval-decision-result.json path.
   --approval-inbox <path>        approval-inbox.json path.
   --no-approval-inbox            Do not include Approval Inbox status.
+  --approval-inbox-decisions <path>
+                                  approval-inbox-decision-result.json path.
+  --no-approval-inbox-decisions  Do not include Approval Inbox Decisions status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

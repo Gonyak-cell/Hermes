@@ -28,7 +28,7 @@ Useful options:
 
 ## Safety
 
-This stage is draft-only and register-only. It does not approve, reject, apply, merge, send, delete, deliver, or execute protected actions. The generated `receipt-input.json` remains subject to Human Gate Receipt Validation before any application stage can consume it.
+This stage is draft-only and register-only. It does not approve, reject, apply, send, delete, deliver, or execute protected actions. Actor-specific receipt inputs should be merged by `npm run control-plane:review-decisions:merge`, and that merged `receipt-input.json` remains subject to Human Gate Receipt Validation before any application stage can consume it.
 
 ## Completion Criteria
 
@@ -37,3 +37,4 @@ This stage is draft-only and register-only. It does not approve, reject, apply, 
 - Receipt input row count equals decision row count.
 - All rows keep `auto_execute_allowed: false` and `protected_actions_executed: false`.
 - Dashboard/API expose the register, decision rows, and actor registers.
+- `Human Review Decision Register Merge` can recombine actor-local edits before validation.

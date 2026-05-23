@@ -48,6 +48,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human review receipt workspace merge
 - Human review context bundle
 - Human review decision register
+- Human review decision register merge
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
@@ -66,6 +67,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Receipt Workspace Merge: actor별 receipt input이 표준 receipt input으로 병합되고 validation error가 없으면 구현 통과
 - Human Review Context Bundle: pending receipt마다 gate/evidence/approval/matter context card가 생성되고 validation error가 없으면 구현 통과
 - Human Review Decision Register: context-bound decision row와 표준 receipt input이 생성되고 validation error가 없으면 구현 통과
+- Human Review Decision Register Merge: actor별 decision receipt input이 표준 receipt input으로 병합되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

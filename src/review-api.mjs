@@ -1014,6 +1014,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-decision-register-merges") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_decision_register_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_decision_register_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_decision_register_merges", [mergeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-decision-merge-items") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_decision_register_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_decision_register_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_decision_merge_items", mergeResult.artifact.merge_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-merged-decision-receipt-input") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_decision_register_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_decision_register_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_merged_decision_receipt_input", mergeResult.artifact.receipt_input?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1310,6 +1343,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-decision-registers", "Human review decision register artifacts"),
       route("GET", "/api/human-review-decision-rows", "Human review decision rows"),
       route("GET", "/api/human-review-decision-receipt-input", "Receipt input rows generated from the decision register"),
+      route("GET", "/api/human-review-decision-register-merges", "Human review decision register merge artifacts"),
+      route("GET", "/api/human-review-decision-merge-items", "Merged human review decision receipt items"),
+      route("GET", "/api/human-review-merged-decision-receipt-input", "Merged receipt input rows generated from actor decision registers"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),

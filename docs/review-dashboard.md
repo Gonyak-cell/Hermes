@@ -47,6 +47,7 @@ npm run dashboard:build -- \
   --human-review-receipt-workspace-merge artifacts/human-review-receipt-workspace-merge/latest/human-review-receipt-workspace-merge.json \
   --human-review-context-bundle artifacts/human-review-context-bundle/latest/human-review-context-bundle.json \
   --human-review-decision-register artifacts/human-review-decision-register/latest/human-review-decision-register.json \
+  --human-review-decision-register-merge artifacts/human-review-decision-register-merge/latest/human-review-decision-register-merge.json \
   --control-plane-human-gate-receipt-validation artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json \
   --control-plane-human-gate-receipt-application artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
@@ -109,6 +110,7 @@ npm run dashboard:build -- \
 - Human Review Receipt Workspace Merge의 actor input 병합과 validation input readiness 상태
 - Human Review Context Bundle의 reviewer별 gate/evidence/approval/matter context card 상태
 - Human Review Decision Register의 context-bound decision row와 receipt input 상태
+- Human Review Decision Register Merge의 actor별 decision receipt input 병합과 validation input readiness 상태
 - Control Plane Human Gate Receipt Validation의 pending/invalid/ready receipt gate 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태

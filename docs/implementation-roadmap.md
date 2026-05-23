@@ -1669,3 +1669,38 @@
 - `/api/human-review-decision-receipt-input?receipt_status=pending`으로 validation에 넘길 receipt row를 조회할 수 있음
 - Dashboard summary가 actor decision register, decision row, receipt row, pending, ready, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-decisions`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 63: Human Review Decision Register Merge
+
+목표: actor별 Human Review Decision Register receipt input을 사람이 수정한 뒤, 다시 하나의 검증용 receipt input으로 안전하게 병합한다.
+
+- actor별 `actors/<required_actor>/receipt-input.json`을 읽어 현재 decision register의 `decision_rows`와 대조
+- receipt id, gate item, source plan item, gate type, required actor, allowed outcome 불일치 감지
+- duplicate, missing, unknown, invalid decision receipt를 validation error로 차단
+- merged `receipt-input.json`을 `control-plane-human-gate-receipts-input.v1` 형태로 생성
+- protected action은 merge 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 decision register 뒤, human gate receipt validation 전에 `npm run control-plane:review-decisions:merge` 실행
+- Human Gate Receipt Validation은 decision register merge의 `receipt-input.json`을 읽도록 연결
+- Review Dashboard에 `human_review_decision_register_merge` stage와 actor/receipt/pending/invalid/error summary 추가
+- Review API에서 `/api/human-review-decision-register-merges`, `/api/human-review-decision-merge-items`, `/api/human-review-merged-decision-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Decision Register Merge를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-decisions:merge`
+- `src/human-review-decision-register-merge.mjs`
+- `schemas/human-review-decision-register-merge.schema.json`
+- `docs/human-review-decision-register-merge.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review decision register merge artifact가 schema validation을 통과함
+- merged receipt row count가 decision register receipt row count와 일치함
+- duplicate, missing, unknown, invalid decision receipt count가 0임
+- `/api/human-review-decision-merge-items?merge_status=pending_receipt`로 pending merge item을 조회할 수 있음
+- `/api/human-review-merged-decision-receipt-input?receipt_status=pending`으로 validation에 넘길 merged receipt row를 조회할 수 있음
+- Dashboard summary가 actor input, receipt row, pending, ready, missing, invalid, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-decisions:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

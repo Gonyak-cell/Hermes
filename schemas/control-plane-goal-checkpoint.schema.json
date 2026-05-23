@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-goal-checkpoint.schema.json",
+  "title": "Hermes Control Plane Goal Checkpoint",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "checkpoint_id",
+    "output_dir",
+    "checkpoint_status",
+    "sources",
+    "summary",
+    "checkpoint_items",
+    "next_focus"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-goal-checkpoint.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "checkpoint_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "checkpoint_status": { "enum": ["passed", "attention", "blocked", "incomplete"] },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": "string" },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "checkpoint_status",
+        "checkpoint_item_count",
+        "passed_item_count",
+        "attention_item_count",
+        "blocked_item_count",
+        "missing_item_count",
+        "roadmap_phase_count",
+        "latest_roadmap_phase",
+        "dashboard_available",
+        "loop_available",
+        "loop_status",
+        "health_available",
+        "health_status",
+        "dashboard_overall_status",
+        "dashboard_action_item_count",
+        "by_status",
+        "by_category"
+      ],
+      "properties": {
+        "checkpoint_status": { "enum": ["passed", "attention", "blocked", "incomplete"] },
+        "checkpoint_item_count": { "type": "integer", "minimum": 0 },
+        "passed_item_count": { "type": "integer", "minimum": 0 },
+        "attention_item_count": { "type": "integer", "minimum": 0 },
+        "blocked_item_count": { "type": "integer", "minimum": 0 },
+        "missing_item_count": { "type": "integer", "minimum": 0 },
+        "roadmap_phase_count": { "type": "integer", "minimum": 0 },
+        "latest_roadmap_phase": { "type": ["string", "null"] },
+        "dashboard_available": { "type": "boolean" },
+        "loop_available": { "type": "boolean" },
+        "loop_status": { "type": ["string", "null"] },
+        "health_available": { "type": "boolean" },
+        "health_status": { "type": ["string", "null"] },
+        "dashboard_overall_status": { "type": ["string", "null"] },
+        "dashboard_action_item_count": { "type": "integer", "minimum": 0 },
+        "by_status": { "type": "object" },
+        "by_category": { "type": "object" }
+      }
+    },
+    "checkpoint_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "checkpoint_item_id",
+          "category",
+          "label",
+          "status",
+          "priority",
+          "evidence_refs",
+          "reason",
+          "recommended_actions"
+        ],
+        "properties": {
+          "checkpoint_item_id": { "type": "string" },
+          "category": { "type": "string" },
+          "label": { "type": "string" },
+          "status": { "enum": ["passed", "attention", "blocked", "missing"] },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "evidence_refs": { "type": "array", "items": { "type": "string" } },
+          "reason": { "type": "string" },
+          "recommended_actions": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "next_focus": {
+      "type": ["object", "null"]
+    }
+  }
+}

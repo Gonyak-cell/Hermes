@@ -918,3 +918,31 @@
 - loop step 실패나 missing artifact가 dashboard action item으로 표시됨
 - `/api/control-plane-loop-steps?status=passed`로 루프 단계 결과를 조회할 수 있음
 - `npm test`, `npm run validate`, `npm run control-plane:loop`가 통과함
+
+## Phase 37: Control Plane Goal Checkpoint
+
+목표: `/goal`의 완성 기준을 machine-readable checkpoint로 고정해 heartbeat가 다음 작업을 기억이 아니라 artifact 기준으로 선택하게 합니다.
+
+- dashboard, loop, health, package scripts, roadmap을 읽어 goal item별 구현 상태를 산출
+- Core contracts, domain packs, resource/evidence, approval, law-firm, personal-dev, creative-document, observability, matter cockpit, loop, API를 checkpoint item으로 추적
+- `passed`, `attention`, `blocked`, `missing` item을 요약하고 `next_focus`를 기록
+- Review Dashboard에 `control_plane_goal_checkpoint` stage와 goal summary 추가
+- Review API에서 `/api/goal-checkpoints`, `/api/goal-checkpoint-items` route 제공
+- Control Plane Loop에 pre-checkpoint dashboard → checkpoint → final dashboard → API smoke 순서를 편입
+
+현재 구현:
+
+- `npm run control-plane:goal-checkpoint`
+- `src/control-plane-goal-checkpoint.mjs`
+- `schemas/control-plane-goal-checkpoint.schema.json`
+- `docs/control-plane-goal-checkpoint.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- goal checkpoint가 dashboard/loop/health/roadmap/package script 상태를 한 artifact로 재현함
+- dashboard에서 goal checkpoint stage와 summary count를 볼 수 있음
+- `/api/goal-checkpoint-items?status=passed`로 checkpoint item을 조회할 수 있음
+- `npm test`, `npm run validate`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함

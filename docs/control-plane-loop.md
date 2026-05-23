@@ -18,9 +18,10 @@ npm run control-plane:loop
 - `npm run control-plane:work-receipts`
 - `npm run control-plane:work-receipts:validate`
 - `npm run control-plane:work-receipts:apply`
+- `node scripts/review-dashboard.mjs --no-control-plane-goal-checkpoint`
+- `npm run control-plane:goal-checkpoint`
 - `npm run dashboard:build`
 - `npm run api:smoke`
-- `npm run dashboard:build`
 
 출력:
 

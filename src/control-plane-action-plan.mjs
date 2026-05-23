@@ -52,6 +52,7 @@ const ACTION_COMMANDS = {
   rebuild_dashboard: ["npm run dashboard:build"],
   rerun_control_plane_pipeline: ["npm run control-plane:pipeline"],
   rerun_control_plane_loop: ["npm run control-plane:loop"],
+  rerun_goal_checkpoint: ["npm run control-plane:goal-checkpoint", "npm run dashboard:build"],
   rerun_delivery_closeout_apply: ["npm run delivery:closeout:apply"],
   rerun_delivery_closeout_validate: ["npm run delivery:closeout:validate"],
   rerun_matter_cockpit: ["npm run matter:cockpit"],

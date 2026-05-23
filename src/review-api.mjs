@@ -410,6 +410,28 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/goal-checkpoints") {
+    const checkpointResult = await readDashboardSourceArtifact(dashboard, "control_plane_goal_checkpoint");
+    if (!checkpointResult.available) {
+      return jsonResponse(503, buildError("control_plane_goal_checkpoint_unavailable", checkpointResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("goal_checkpoints", [checkpointResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/goal-checkpoint-items") {
+    const checkpointResult = await readDashboardSourceArtifact(dashboard, "control_plane_goal_checkpoint");
+    if (!checkpointResult.available) {
+      return jsonResponse(503, buildError("control_plane_goal_checkpoint_unavailable", checkpointResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("goal_checkpoint_items", checkpointResult.artifact.checkpoint_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -574,7 +596,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -620,6 +642,8 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/pipeline-steps", "Control Plane pipeline step results"),
       route("GET", "/api/control-plane-loops", "Control Plane loop run artifacts"),
       route("GET", "/api/control-plane-loop-steps", "Control Plane loop step results"),
+      route("GET", "/api/goal-checkpoints", "Control Plane goal checkpoint artifacts"),
+      route("GET", "/api/goal-checkpoint-items", "Control Plane goal checkpoint items"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -716,6 +740,9 @@ function filterItems(items, searchParams) {
     "pipeline_id",
     "loop_id",
     "loop_status",
+    "checkpoint_id",
+    "checkpoint_item_id",
+    "checkpoint_status",
     "step_id",
     "category",
     "health_id",

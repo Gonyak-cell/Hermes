@@ -92,6 +92,11 @@
         "control_plane_loop_passed_step_count",
         "control_plane_loop_failed_step_count",
         "control_plane_loop_missing_artifact_count",
+        "goal_checkpoint_item_count",
+        "goal_checkpoint_passed_item_count",
+        "goal_checkpoint_attention_item_count",
+        "goal_checkpoint_blocked_item_count",
+        "goal_checkpoint_missing_item_count",
         "health_check_count",
         "health_passed_check_count",
         "health_attention_check_count",
@@ -415,6 +420,26 @@
           "minimum": 0
         },
         "control_plane_loop_missing_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "goal_checkpoint_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "goal_checkpoint_passed_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "goal_checkpoint_attention_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "goal_checkpoint_blocked_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "goal_checkpoint_missing_item_count": {
           "type": "integer",
           "minimum": 0
         },

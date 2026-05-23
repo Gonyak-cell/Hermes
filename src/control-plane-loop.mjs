@@ -13,9 +13,10 @@ export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("control_plane_work_packet_receipts", "Control Plane Work Packet Receipts", "receipt", ["npm", "run", "control-plane:work-receipts"], ["artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json"]),
   step("control_plane_work_packet_receipt_validation", "Control Plane Work Packet Receipt Validation", "receipt", ["npm", "run", "control-plane:work-receipts:validate"], ["artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json"]),
   step("control_plane_work_packet_receipt_application", "Control Plane Work Packet Receipt Application", "receipt", ["npm", "run", "control-plane:work-receipts:apply"], ["artifacts/control-plane-work-packet-receipt-application/latest/control-plane-work-packet-receipt-application.json"]),
-  step("dashboard_before_smoke", "Dashboard Before API Smoke", "dashboard", ["npm", "run", "dashboard:build"], ["artifacts/dashboard/latest/review-dashboard.json"]),
-  step("api_smoke", "Review API Smoke", "api", ["npm", "run", "api:smoke"], []),
+  step("dashboard_before_checkpoint", "Dashboard Before Goal Checkpoint", "dashboard", ["node", "scripts/review-dashboard.mjs", "--no-control-plane-goal-checkpoint"], ["artifacts/dashboard/latest/review-dashboard.json"]),
+  step("control_plane_goal_checkpoint", "Control Plane Goal Checkpoint", "checkpoint", ["npm", "run", "control-plane:goal-checkpoint"], ["artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json"]),
   step("dashboard_final", "Dashboard Final", "dashboard", ["npm", "run", "dashboard:build"], ["artifacts/dashboard/latest/review-dashboard.json"]),
+  step("api_smoke", "Review API Smoke", "api", ["npm", "run", "api:smoke"], []),
 ];
 
 export async function runControlPlaneLoop(options = {}) {

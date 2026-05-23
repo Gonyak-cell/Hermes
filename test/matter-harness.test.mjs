@@ -5,6 +5,7 @@ import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
+import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlaneLoop } from "../src/control-plane-loop.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
@@ -712,6 +713,7 @@ describe("matter harness", () => {
         closeoutReceiptApplicationPath: path.join(outDir, "closeout-receipt-application", "closeout-receipt-application.json"),
         controlPlanePipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
@@ -725,6 +727,7 @@ describe("matter harness", () => {
         ...dashboardInputs,
         controlPlaneHealthPath: false,
         controlPlaneLoopPath: false,
+        controlPlaneGoalCheckpointPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneWorkPacketsPath: false,
         controlPlaneWorkPacketReceiptsPath: false,
@@ -841,10 +844,45 @@ describe("matter harness", () => {
       assert.equal(controlPlaneLoop.loop_status, "passed");
       assert.equal(controlPlaneLoop.summary.passed_step_count, 1);
 
+      await runReviewDashboard({
+        ...dashboardInputs,
+        controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        controlPlaneGoalCheckpointPath: false,
+        controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
+        controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
+        controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
+        outDir: path.join(outDir, "dashboard-pre-checkpoint"),
+        runAt: "2026-05-23T06:35:08.000Z",
+      });
+
+      const controlPlaneGoalCheckpoint = await runControlPlaneGoalCheckpoint({
+        dashboardPath: path.join(outDir, "dashboard-pre-checkpoint", "review-dashboard.json"),
+        loopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        healthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "control-plane-goal-checkpoint"),
+        runAt: "2026-05-23T06:35:08.250Z",
+      });
+      const controlPlaneGoalCheckpointSchema = JSON.parse(await readFile("schemas/control-plane-goal-checkpoint.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneGoalCheckpoint, controlPlaneGoalCheckpointSchema, {}, "control_plane_goal_checkpoint"),
+        [],
+      );
+      assert.ok(["passed", "attention", "blocked", "incomplete"].includes(controlPlaneGoalCheckpoint.checkpoint_status));
+      assert.ok(controlPlaneGoalCheckpoint.summary.checkpoint_item_count >= 13);
+      assert.ok(controlPlaneGoalCheckpoint.summary.passed_item_count >= 1);
+      assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.checkpoint_item_id === "control-plane-loop"));
+      assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
+
       const dashboard = await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
@@ -901,6 +939,11 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.control_plane_loop_step_count, 1);
       assert.equal(dashboard.summary.control_plane_loop_passed_step_count, 1);
       assert.equal(dashboard.summary.control_plane_loop_failed_step_count, 0);
+      assert.equal(dashboard.summary.goal_checkpoint_item_count, controlPlaneGoalCheckpoint.summary.checkpoint_item_count);
+      assert.equal(dashboard.summary.goal_checkpoint_passed_item_count, controlPlaneGoalCheckpoint.summary.passed_item_count);
+      assert.equal(dashboard.summary.goal_checkpoint_attention_item_count, controlPlaneGoalCheckpoint.summary.attention_item_count);
+      assert.equal(dashboard.summary.goal_checkpoint_blocked_item_count, controlPlaneGoalCheckpoint.summary.blocked_item_count);
+      assert.equal(dashboard.summary.goal_checkpoint_missing_item_count, controlPlaneGoalCheckpoint.summary.missing_item_count);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -945,6 +988,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_pipeline"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_loop"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
@@ -1001,6 +1045,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/pipeline-steps"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-loops"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-loop-steps"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/goal-checkpoints"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/goal-checkpoint-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-health"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/health-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-plans"));
@@ -1145,6 +1191,14 @@ describe("matter harness", () => {
       const controlPlaneLoopSteps = JSON.parse((await buildReviewApiResponse("/api/control-plane-loop-steps?status=passed", apiOptions)).body);
       assert.equal(controlPlaneLoopSteps.collection, "control_plane_loop_steps");
       assert.equal(controlPlaneLoopSteps.count, 1);
+
+      const goalCheckpoints = JSON.parse((await buildReviewApiResponse("/api/goal-checkpoints?checkpoint_id=control-plane-goal-checkpoint.20260523T063508", apiOptions)).body);
+      assert.equal(goalCheckpoints.collection, "goal_checkpoints");
+      assert.equal(goalCheckpoints.count, 1);
+
+      const passedGoalCheckpointItems = JSON.parse((await buildReviewApiResponse("/api/goal-checkpoint-items?status=passed", apiOptions)).body);
+      assert.equal(passedGoalCheckpointItems.collection, "goal_checkpoint_items");
+      assert.ok(passedGoalCheckpointItems.count >= 1);
 
       const controlPlaneHealthItems = JSON.parse((await buildReviewApiResponse("/api/control-plane-health?health_id=control-plane-health.20260523T063504", apiOptions)).body);
       assert.equal(controlPlaneHealthItems.collection, "control_plane_health");

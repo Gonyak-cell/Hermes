@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-validation-feedback.schema.json",
+  "title": "Hermes Human Review Validation Feedback",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "feedback_id",
+    "output_dir",
+    "feedback_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_feedback",
+    "feedback_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-validation-feedback.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "feedback_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "feedback_status": { "enum": ["clear", "pending_human_review", "ready_for_application", "attention", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "feedback_only", "protected_actions_executed"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "feedback_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "actor_feedback_count",
+        "feedback_item_count",
+        "pending_receipt_count",
+        "ready_for_application_count",
+        "needs_correction_count",
+        "missing_validation_count",
+        "invalid_receipt_count",
+        "missing_receipt_count",
+        "unknown_receipt_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_gate_type",
+        "by_validation_status",
+        "by_feedback_status"
+      ],
+      "properties": {
+        "actor_feedback_count": { "type": "integer", "minimum": 0 },
+        "feedback_item_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "ready_for_application_count": { "type": "integer", "minimum": 0 },
+        "needs_correction_count": { "type": "integer", "minimum": 0 },
+        "missing_validation_count": { "type": "integer", "minimum": 0 },
+        "invalid_receipt_count": { "type": "integer", "minimum": 0 },
+        "missing_receipt_count": { "type": "integer", "minimum": 0 },
+        "unknown_receipt_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_gate_type": { "type": "object" },
+        "by_validation_status": { "type": "object" },
+        "by_feedback_status": { "type": "object" }
+      }
+    },
+    "actor_feedback": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_feedback" }
+    },
+    "feedback_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/feedback_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_feedback": {
+      "type": "object",
+      "required": [
+        "actor_feedback_id",
+        "actor_input_id",
+        "actor_decision_register_id",
+        "required_actor",
+        "feedback_status",
+        "priority",
+        "feedback_item_count",
+        "pending_receipt_count",
+        "ready_for_application_count",
+        "needs_correction_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "feedback_item_ids",
+        "feedback_json_path",
+        "feedback_markdown_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_feedback_id": { "type": "string" },
+        "actor_input_id": { "type": ["string", "null"] },
+        "actor_decision_register_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "feedback_status": { "enum": ["clear", "pending_human_review", "ready_for_application", "attention"] },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "feedback_item_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "ready_for_application_count": { "type": "integer", "minimum": 0 },
+        "needs_correction_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "feedback_item_ids": { "type": "array", "items": { "type": "string" } },
+        "feedback_json_path": { "type": "string" },
+        "feedback_markdown_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/safe_handling" }
+      }
+    },
+    "feedback_item": {
+      "type": "object",
+      "required": [
+        "feedback_item_id",
+        "merge_item_id",
+        "validation_item_id",
+        "actor_input_id",
+        "actor_decision_register_id",
+        "required_actor",
+        "decision_row_id",
+        "context_card_id",
+        "receipt_id",
+        "gate_item_id",
+        "source_plan_item_id",
+        "gate_type",
+        "priority",
+        "protected_action",
+        "evidence_decision",
+        "receipt_status",
+        "outcome",
+        "validation_status",
+        "feedback_status",
+        "ready_to_apply",
+        "allowed_outcomes",
+        "required_receipt_fields",
+        "error_count",
+        "errors",
+        "next_actions",
+        "receipt",
+        "safe_handling"
+      ],
+      "properties": {
+        "feedback_item_id": { "type": "string" },
+        "merge_item_id": { "type": "string" },
+        "validation_item_id": { "type": ["string", "null"] },
+        "actor_input_id": { "type": ["string", "null"] },
+        "actor_decision_register_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "decision_row_id": { "type": ["string", "null"] },
+        "context_card_id": { "type": ["string", "null"] },
+        "receipt_id": { "type": ["string", "null"] },
+        "gate_item_id": { "type": ["string", "null"] },
+        "source_plan_item_id": { "type": ["string", "null"] },
+        "gate_type": { "type": "string" },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "protected_action": { "type": "boolean" },
+        "evidence_decision": { "type": "boolean" },
+        "receipt_status": { "type": "string" },
+        "outcome": { "type": "string" },
+        "validation_status": { "enum": ["pending_receipt", "ready_to_apply", "invalid_receipt", "missing_receipt", "unknown_human_gate", "missing_validation"] },
+        "feedback_status": { "enum": ["needs_human_decision", "ready_for_application", "needs_correction", "attention"] },
+        "ready_to_apply": { "type": "boolean" },
+        "allowed_outcomes": { "type": "array", "items": { "type": "string" } },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/receipt_error" } },
+        "next_actions": { "type": "array", "items": { "type": "string" } },
+        "receipt": { "type": ["object", "null"] },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "protected_actions_executed", "feedback_only"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "protected_actions_executed": { "const": false },
+            "feedback_only": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "feedback_only", "protected_actions_executed"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "feedback_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "receipt_error": {
+      "type": "object",
+      "required": ["gate_item_id", "field", "message"],
+      "properties": {
+        "gate_item_id": { "type": ["string", "null"] },
+        "field": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -113,6 +113,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-merged-decision-receipt-input"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-validation-feedbacks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-feedback-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-feedback"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -400,6 +403,18 @@ try {
 
   const humanGateReceiptErrors = await fetchJson(`${url}/api/human-gate-receipt-errors`);
   assert.equal(humanGateReceiptErrors.collection, "human_gate_receipt_errors");
+
+  const humanReviewValidationFeedbacks = await fetchJson(`${url}/api/human-review-validation-feedbacks?feedback_status=pending_human_review&limit=1`);
+  assert.equal(humanReviewValidationFeedbacks.collection, "human_review_validation_feedbacks");
+  assert.ok(humanReviewValidationFeedbacks.count <= 1);
+
+  const humanReviewFeedbackItems = await fetchJson(`${url}/api/human-review-feedback-items?feedback_status=needs_human_decision&limit=5`);
+  assert.equal(humanReviewFeedbackItems.collection, "human_review_feedback_items");
+  assert.ok(humanReviewFeedbackItems.count <= 5);
+
+  const humanReviewActorFeedback = await fetchJson(`${url}/api/human-review-actor-feedback?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewActorFeedback.collection, "human_review_actor_feedback");
+  assert.ok(humanReviewActorFeedback.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

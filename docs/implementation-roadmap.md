@@ -1704,3 +1704,38 @@
 - `/api/human-review-merged-decision-receipt-input?receipt_status=pending`으로 validation에 넘길 merged receipt row를 조회할 수 있음
 - Dashboard summary가 actor input, receipt row, pending, ready, missing, invalid, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-decisions:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 64: Human Review Validation Feedback
+
+목표: Human Gate Receipt Validation 결과를 actor별 feedback bundle로 되돌려 사람이 어떤 decision receipt input을 고쳐야 하는지 명확히 한다.
+
+- decision register merge item과 human gate receipt validation item을 gate item 기준으로 연결
+- pending, ready, invalid, missing, unknown validation 상태를 actor별 feedback item으로 변환
+- actor별 `actors/<required_actor>/feedback.json`과 `feedback.md` 생성
+- 각 feedback item에 next action, required receipt fields, validation errors, allowed outcomes를 연결
+- protected action은 feedback 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 human gate receipt validation 뒤, receipt application 전에 `npm run control-plane:review-feedback` 실행
+- Review Dashboard에 `human_review_validation_feedback` stage와 actor/item/pending/correction/error summary 추가
+- Review API에서 `/api/human-review-validation-feedbacks`, `/api/human-review-feedback-items`, `/api/human-review-actor-feedback` route 제공
+- Goal Checkpoint에서 Human Review Validation Feedback을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-feedback`
+- `src/human-review-validation-feedback.mjs`
+- `schemas/human-review-validation-feedback.schema.json`
+- `docs/human-review-validation-feedback.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review validation feedback artifact가 schema validation을 통과함
+- feedback item count가 human gate receipt validation item count와 일치함
+- actor feedback count가 decision register merge actor input count와 일치함
+- pending validation item이 `needs_human_decision` feedback으로 actor에게 환류됨
+- `/api/human-review-feedback-items?feedback_status=needs_human_decision`로 pending feedback item을 조회할 수 있음
+- `/api/human-review-actor-feedback?required_actor=attorney_or_designated_reviewer`로 actor별 feedback bundle을 조회할 수 있음
+- Dashboard summary가 actor feedback, feedback item, pending, ready, correction, missing validation, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-feedback`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

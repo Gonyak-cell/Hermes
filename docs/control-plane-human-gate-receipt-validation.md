@@ -14,6 +14,12 @@ npm run control-plane:human-gate-receipts:validate
 npm run control-plane:human-gate-receipts:apply
 ```
 
+검증 결과를 actor별 reviewer queue로 되돌리려면 application 전에 feedback 단계를 실행한다.
+
+```bash
+npm run control-plane:review-feedback
+```
+
 옵션:
 
 ```bash
@@ -44,6 +50,9 @@ Dashboard는 `control_plane_human_gate_receipt_validation` stage를 표시한다
 
 - `GET /api/human-gate-receipt-validations`
 - `GET /api/human-gate-receipt-errors`
+- `GET /api/human-review-validation-feedbacks`
+- `GET /api/human-review-feedback-items`
+- `GET /api/human-review-actor-feedback`
 - `GET /api/validated-human-gate-receipts`
 - `GET /api/human-gate-receipt-applications`
 - `GET /api/applied-human-gate-receipts`

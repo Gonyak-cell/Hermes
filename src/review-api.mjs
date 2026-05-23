@@ -1069,6 +1069,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-validation-feedbacks") {
+    const feedbackResult = await readDashboardSourceArtifact(dashboard, "human_review_validation_feedback");
+    if (!feedbackResult.available) {
+      return jsonResponse(503, buildError("human_review_validation_feedback_unavailable", feedbackResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_validation_feedbacks", [feedbackResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-feedback-items") {
+    const feedbackResult = await readDashboardSourceArtifact(dashboard, "human_review_validation_feedback");
+    if (!feedbackResult.available) {
+      return jsonResponse(503, buildError("human_review_validation_feedback_unavailable", feedbackResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_feedback_items", feedbackResult.artifact.feedback_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-feedback") {
+    const feedbackResult = await readDashboardSourceArtifact(dashboard, "human_review_validation_feedback");
+    if (!feedbackResult.available) {
+      return jsonResponse(503, buildError("human_review_validation_feedback_unavailable", feedbackResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_feedback", feedbackResult.artifact.actor_feedback ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1348,6 +1381,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-merged-decision-receipt-input", "Merged receipt input rows generated from actor decision registers"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
+      route("GET", "/api/human-review-validation-feedbacks", "Human review validation feedback artifacts"),
+      route("GET", "/api/human-review-feedback-items", "Human review validation feedback items"),
+      route("GET", "/api/human-review-actor-feedback", "Actor-specific human review validation feedback bundles"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -1570,6 +1606,10 @@ function filterItems(items, searchParams) {
     "actor_decision_register_id",
     "decision_row_id",
     "decision_status",
+    "feedback_id",
+    "actor_feedback_id",
+    "feedback_item_id",
+    "feedback_status",
     "template_row_present",
     "ready_for_validation",
     "receipt_status",

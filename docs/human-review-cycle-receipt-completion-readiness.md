@@ -31,3 +31,5 @@ Typical query points:
 - `/api/human-review-actor-completion-readiness?required_actor=attorney_or_designated_reviewer`
 
 Protected application remains approval-only even when all manual input is complete.
+
+The next read-only visibility layer is `npm run control-plane:review-cycle:completion-command-queue`, which turns the readiness gates into ready and held manual command queues without executing them.

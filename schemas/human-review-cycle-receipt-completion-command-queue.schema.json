@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-command-queue.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Command Queue",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "command_queue_id",
+    "output_dir",
+    "queue_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "command_queue_items",
+    "held_command_items",
+    "actor_command_queues",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-command-queue.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "command_queue_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "queue_status": { "$ref": "#/$defs/queue_status" },
+    "safe_handling": { "$ref": "#/$defs/top_safe_handling" },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "queue_status",
+        "source_available",
+        "source_readiness_status",
+        "source_command_gate_count",
+        "source_allowed_command_count",
+        "source_blocked_command_count",
+        "command_queue_item_count",
+        "held_command_item_count",
+        "actor_command_queue_count",
+        "protected_held_command_count",
+        "manual_input_hold_count",
+        "pending_human_input_count",
+        "pending_prompt_count",
+        "validation_error_count",
+        "by_command_kind",
+        "by_command_status",
+        "by_hold_status",
+        "by_required_actor"
+      ],
+      "properties": {
+        "queue_status": { "$ref": "#/$defs/queue_status" },
+        "source_available": { "type": "boolean" },
+        "source_readiness_status": { "type": ["string", "null"] },
+        "source_command_gate_count": { "type": "integer", "minimum": 0 },
+        "source_allowed_command_count": { "type": "integer", "minimum": 0 },
+        "source_blocked_command_count": { "type": "integer", "minimum": 0 },
+        "command_queue_item_count": { "type": "integer", "minimum": 0 },
+        "held_command_item_count": { "type": "integer", "minimum": 0 },
+        "actor_command_queue_count": { "type": "integer", "minimum": 0 },
+        "protected_held_command_count": { "type": "integer", "minimum": 0 },
+        "manual_input_hold_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_command_kind": { "type": "object" },
+        "by_command_status": { "type": "object" },
+        "by_hold_status": { "type": "object" },
+        "by_required_actor": { "type": "object" }
+      }
+    },
+    "command_queue_items": { "type": "array", "items": { "$ref": "#/$defs/command_queue_item" } },
+    "held_command_items": { "type": "array", "items": { "$ref": "#/$defs/held_command_item" } },
+    "actor_command_queues": { "type": "array", "items": { "$ref": "#/$defs/actor_command_queue" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "queue_status": {
+      "enum": ["empty", "waiting_for_human_input", "ready", "ready_with_holds", "blocked"]
+    },
+    "priority": {
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "command_queue_item": {
+      "type": "object",
+      "required": [
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "step_rank",
+        "queue_rank",
+        "command_kind",
+        "command",
+        "command_status",
+        "queue_status",
+        "requires_explicit_human_approval",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "queue_item_id": { "type": "string" },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "step_rank": { "type": "integer", "minimum": 1 },
+        "queue_rank": { "type": "integer", "minimum": 1 },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "command_status": { "const": "available_now" },
+        "queue_status": { "const": "ready_to_run_manually" },
+        "requires_explicit_human_approval": { "const": false },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "$ref": "#/$defs/step_safe_handling" }
+      }
+    },
+    "held_command_item": {
+      "type": "object",
+      "required": [
+        "held_command_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "step_rank",
+        "hold_rank",
+        "command_kind",
+        "command",
+        "command_status",
+        "hold_status",
+        "hold_reason",
+        "requires_explicit_human_approval",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "held_command_id": { "type": "string" },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "step_rank": { "type": "integer", "minimum": 1 },
+        "hold_rank": { "type": "integer", "minimum": 1 },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "command_status": { "type": "string" },
+        "hold_status": { "enum": ["held_until_manual_input", "requires_explicit_human_approval"] },
+        "hold_reason": { "type": "string" },
+        "requires_explicit_human_approval": { "type": "boolean" },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "$ref": "#/$defs/step_safe_handling" }
+      }
+    },
+    "actor_command_queue": {
+      "type": "object",
+      "required": [
+        "actor_command_queue_id",
+        "actor_readiness_id",
+        "required_actor",
+        "readiness_status",
+        "priority",
+        "command_queue_item_count",
+        "held_command_item_count",
+        "next_commands",
+        "held_commands",
+        "actor_runbook_html_path",
+        "workbench_html_path",
+        "command_queue_json_path",
+        "held_commands_json_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_command_queue_id": { "type": "string" },
+        "actor_readiness_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "readiness_status": { "type": "string" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "command_queue_item_count": { "type": "integer", "minimum": 0 },
+        "held_command_item_count": { "type": "integer", "minimum": 0 },
+        "next_commands": { "type": "array", "items": { "type": "string" } },
+        "held_commands": { "type": "array", "items": { "type": "object" } },
+        "actor_runbook_html_path": { "type": ["string", "null"] },
+        "workbench_html_path": { "type": ["string", "null"] },
+        "command_queue_json_path": { "type": "string" },
+        "held_commands_json_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/top_safe_handling" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "top_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "command_queue_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "command_queue_only": { "const": true },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "step_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "command_queue_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "command_queue_only": { "const": true },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

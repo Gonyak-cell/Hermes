@@ -164,6 +164,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-readiness"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queues"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-held-commands"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-command-queues"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -654,6 +658,22 @@ try {
   const humanReviewActorCompletionReadiness = await fetchJson(`${url}/api/human-review-actor-completion-readiness?required_actor=attorney_or_designated_reviewer&limit=5`);
   assert.equal(humanReviewActorCompletionReadiness.collection, "human_review_actor_completion_readiness");
   assert.ok(humanReviewActorCompletionReadiness.count <= 5);
+
+  const humanReviewCycleCompletionCommandQueues = await fetchJson(`${url}/api/human-review-cycle-completion-command-queues?queue_status=ready_with_holds&limit=1`);
+  assert.equal(humanReviewCycleCompletionCommandQueues.collection, "human_review_cycle_completion_command_queues");
+  assert.ok(humanReviewCycleCompletionCommandQueues.count <= 1);
+
+  const humanReviewCycleCompletionCommandQueueItems = await fetchJson(`${url}/api/human-review-cycle-completion-command-queue-items?queue_status=ready_to_run_manually&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandQueueItems.collection, "human_review_cycle_completion_command_queue_items");
+  assert.ok(humanReviewCycleCompletionCommandQueueItems.count <= 5);
+
+  const humanReviewCycleCompletionHeldCommands = await fetchJson(`${url}/api/human-review-cycle-completion-held-commands?hold_status=held_until_manual_input&limit=5`);
+  assert.equal(humanReviewCycleCompletionHeldCommands.collection, "human_review_cycle_completion_held_commands");
+  assert.ok(humanReviewCycleCompletionHeldCommands.count <= 5);
+
+  const humanReviewActorCompletionCommandQueues = await fetchJson(`${url}/api/human-review-actor-completion-command-queues?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewActorCompletionCommandQueues.collection, "human_review_actor_completion_command_queues");
+  assert.ok(humanReviewActorCompletionCommandQueues.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

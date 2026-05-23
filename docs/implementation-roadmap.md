@@ -2284,3 +2284,42 @@
 - `/api/human-review-actor-completion-readiness?required_actor=attorney_or_designated_reviewer`로 actor별 readiness를 조회할 수 있음
 - Dashboard summary가 completion readiness actor, command gate, manual requirement, blocked/allowed command count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-readiness`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 80: Human Review Cycle Receipt Completion Command Queue
+
+목표: Human Review Cycle Receipt Completion Readiness가 분류한 command gate를 사람이 바로 볼 수 있는 read-only command queue로 고정한다. 실행 가능한 refresh command와 manual input 또는 explicit approval 전 보류해야 할 command를 분리하되, harness는 어떤 command도 실행하지 않는다.
+
+- `Human Review Cycle Receipt Completion Readiness`를 입력으로 사용
+- `available_now` command gate를 `command_queue_items`로 변환
+- unavailable command gate를 `held_command_items`로 변환
+- actor별 command queue view를 생성
+- protected application command는 held command로 유지
+- target `receipt-input.json`은 수정하지 않으며 command-queue-only로 유지
+- Control Plane Loop에서 completion readiness 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-command-queue` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_queue` stage와 ready/held/protected hold summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-queues`, `/api/human-review-cycle-completion-command-queue-items`, `/api/human-review-cycle-completion-held-commands`, `/api/human-review-actor-completion-command-queues` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Command Queue를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-queue`
+- `src/human-review-cycle-receipt-completion-command-queue.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-queue.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-queue.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt completion command queue artifact가 schema validation을 통과함
+- command queue item count가 readiness allowed command count와 일치함
+- held command item count가 readiness blocked command count와 일치함
+- actor command queue count가 readiness actor count와 일치함
+- protected command는 held command로 유지됨
+- 모든 item은 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 유지함
+- 전체 HTML과 summary markdown이 생성됨
+- `/api/human-review-cycle-completion-command-queue-items?queue_status=ready_to_run_manually`로 즉시 수동 실행 가능한 command를 조회할 수 있음
+- `/api/human-review-cycle-completion-held-commands?hold_status=held_until_manual_input`으로 held command를 조회할 수 있음
+- Dashboard summary가 completion command queue ready, held, actor, protected held count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-queue`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

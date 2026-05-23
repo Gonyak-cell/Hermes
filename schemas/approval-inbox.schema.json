@@ -1,0 +1,168 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/approval-inbox.schema.json",
+  "title": "Hermes Approval Inbox",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "inbox_id",
+    "summary",
+    "sources",
+    "items",
+    "decision_template"
+  ],
+  "properties": {
+    "schema_version": { "const": "approval-inbox.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "inbox_id": { "type": "string" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "delivery_queue_available",
+        "matter_cockpit_available",
+        "inbox_item_count",
+        "pending_item_count",
+        "approval_request_count",
+        "gate_review_count",
+        "high_priority_count",
+        "law_firm_count",
+        "personal_dev_count",
+        "creative_document_count",
+        "by_item_type",
+        "by_priority",
+        "by_domain_pack",
+        "by_delivery_target"
+      ],
+      "properties": {
+        "delivery_queue_available": { "type": "boolean" },
+        "matter_cockpit_available": { "type": "boolean" },
+        "inbox_item_count": { "type": "integer", "minimum": 0 },
+        "pending_item_count": { "type": "integer", "minimum": 0 },
+        "approval_request_count": { "type": "integer", "minimum": 0 },
+        "gate_review_count": { "type": "integer", "minimum": 0 },
+        "high_priority_count": { "type": "integer", "minimum": 0 },
+        "law_firm_count": { "type": "integer", "minimum": 0 },
+        "personal_dev_count": { "type": "integer", "minimum": 0 },
+        "creative_document_count": { "type": "integer", "minimum": 0 },
+        "by_item_type": { "type": "object" },
+        "by_priority": { "type": "object" },
+        "by_domain_pack": { "type": "object" },
+        "by_delivery_target": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "approval_item_id",
+          "item_type",
+          "priority",
+          "status",
+          "tenant_id",
+          "matter_id",
+          "matter_key",
+          "domain_pack",
+          "approval_id",
+          "approval_status",
+          "artifact_id",
+          "artifact_type",
+          "delivery_action_id",
+          "delivery_status",
+          "delivery_target",
+          "delivery_channel",
+          "workflow_run_id",
+          "title",
+          "reason",
+          "required_decision",
+          "allowed_decisions",
+          "recommended_actions",
+          "blocked_reasons",
+          "source_refs",
+          "context"
+        ],
+        "properties": {
+          "approval_item_id": { "type": "string" },
+          "item_type": { "enum": ["approval_request", "gate_blocker_review"] },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "status": { "enum": ["pending", "decided", "deferred"] },
+          "tenant_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "matter_key": { "type": "string" },
+          "domain_pack": { "type": "string" },
+          "approval_id": { "type": ["string", "null"] },
+          "approval_status": { "type": ["string", "null"] },
+          "artifact_id": { "type": "string" },
+          "artifact_type": { "type": "string" },
+          "delivery_action_id": { "type": "string" },
+          "delivery_status": { "type": "string" },
+          "delivery_target": { "type": "string" },
+          "delivery_channel": { "type": "string" },
+          "workflow_run_id": { "type": ["string", "null"] },
+          "title": { "type": "string" },
+          "reason": { "type": "string" },
+          "required_decision": { "type": "string" },
+          "allowed_decisions": { "type": "array", "items": { "type": "string" } },
+          "recommended_actions": { "type": "array", "items": { "type": "string" } },
+          "blocked_reasons": { "type": "array", "items": { "type": "string" } },
+          "source_refs": { "type": "object" },
+          "context": { "type": "object" }
+        }
+      }
+    },
+    "decision_template": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "instructions", "decisions"],
+      "properties": {
+        "schema_version": { "const": "approval-inbox-decision-template.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "instructions": { "type": "string" },
+        "decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "approval_item_id",
+              "item_type",
+              "subject_ref",
+              "allowed_decisions",
+              "decision",
+              "decided_by",
+              "decided_at",
+              "comment",
+              "follow_up_action"
+            ],
+            "properties": {
+              "approval_item_id": { "type": "string" },
+              "item_type": { "type": "string" },
+              "subject_ref": { "type": "object" },
+              "allowed_decisions": { "type": "array", "items": { "type": "string" } },
+              "decision": { "type": "string" },
+              "decided_by": { "type": "string" },
+              "decided_at": { "type": "string" },
+              "comment": { "type": "string" },
+              "follow_up_action": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

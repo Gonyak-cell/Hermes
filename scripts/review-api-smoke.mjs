@@ -24,6 +24,7 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/costs"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
   assert.ok(index.routes.some((route) => route.path === "/api/matters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/approvals"));
 
   const dashboard = await fetchJson(`${url}/api/dashboard`);
   assert.equal(dashboard.schema_version, "review-dashboard.v1");
@@ -35,6 +36,10 @@ try {
   const actions = await fetchJson(`${url}/api/actions?limit=5`);
   assert.equal(actions.collection, "action_items");
   assert.ok(actions.count <= 5);
+
+  const approvals = await fetchJson(`${url}/api/approvals?item_type=approval_request`);
+  assert.equal(approvals.collection, "approval_items");
+  assert.ok(approvals.count >= 1);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

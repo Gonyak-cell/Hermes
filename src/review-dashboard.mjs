@@ -8,6 +8,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   approvalDecisionPath: "artifacts/approval-decisions/latest/approval-decision-result.json",
+  approvalInboxPath: "artifacts/approval-inbox/latest/approval-inbox.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -43,6 +44,11 @@ const SOURCE_DEFINITIONS = [
     option: "approvalDecisionPath",
     source_id: "approval_decisions",
     label: "Approval Decisions",
+  },
+  {
+    option: "approvalInboxPath",
+    source_id: "approval_inbox",
+    label: "Approval Inbox",
   },
   {
     option: "domainPackRegistryPath",
@@ -220,6 +226,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "approval_decisions") return data.summary ?? {};
+  if (sourceId === "approval_inbox") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -324,6 +331,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildApprovalDecisionStage(artifacts.approval_decisions, sourceById.get("approval_decisions")),
+    buildApprovalInboxStage(artifacts.approval_inbox, sourceById.get("approval_inbox")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -441,6 +449,28 @@ function buildApprovalDecisionStage(decisions, source) {
       rejected_count: decisions.summary?.rejected_count ?? 0,
       audit_event_count: decisions.audit_events?.length ?? 0,
       decision_error_count: errors,
+    },
+  };
+}
+
+function buildApprovalInboxStage(inbox, source) {
+  if (!inbox) return missingStage("approval_inbox", "Approval Inbox", source);
+  const summary = inbox.summary ?? {};
+  const pending = summary.pending_item_count ?? 0;
+  const highPriority = summary.high_priority_count ?? 0;
+  const status = highPriority > 0 ? "pending" : pending > 0 ? "pending" : "passed";
+  return {
+    stage_id: "approval_inbox",
+    label: "Approval Inbox",
+    status,
+    message: `${summary.inbox_item_count ?? 0} inbox item(s), ${summary.approval_request_count ?? 0} approval request(s), ${summary.gate_review_count ?? 0} gate review(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      inbox_item_count: summary.inbox_item_count ?? 0,
+      pending_item_count: pending,
+      approval_request_count: summary.approval_request_count ?? 0,
+      gate_review_count: summary.gate_review_count ?? 0,
+      high_priority_count: highPriority,
     },
   };
 }
@@ -806,6 +836,23 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const item of artifacts.approval_inbox?.items ?? []) {
+    items.push({
+      action_item_id: `dashboard.action.approval_inbox.${slugify(item.approval_item_id)}`,
+      source_stage: "approval_inbox",
+      priority: item.priority,
+      status: item.status,
+      title: item.title,
+      subject_ref: {
+        subject_type: item.item_type,
+        subject_id: item.approval_item_id,
+      },
+      reason: item.reason,
+      recommended_actions: item.recommended_actions ?? [],
+      source_ref: item.approval_id ?? item.delivery_action_id,
+    });
+  }
+
   return items;
 }
 
@@ -840,6 +887,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     approval_queue_item_count: queueSummary.total_items ?? 0,
     approval_applied_count: decisionSummary.applied_count ?? 0,
     pending_approval_count: pendingApprovalCount,
+    approval_inbox_item_count: artifacts.approval_inbox?.summary?.inbox_item_count ?? 0,
+    approval_inbox_request_count: artifacts.approval_inbox?.summary?.approval_request_count ?? 0,
+    approval_inbox_gate_review_count: artifacts.approval_inbox?.summary?.gate_review_count ?? 0,
+    approval_inbox_high_priority_count: artifacts.approval_inbox?.summary?.high_priority_count ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -934,6 +985,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Evidence", dashboard.summary.evidence_count)}
       ${stat("Needs Review", dashboard.summary.evidence_needs_review_count)}
       ${stat("Pending Approvals", dashboard.summary.pending_approval_count)}
+      ${stat("Approval Inbox", dashboard.summary.approval_inbox_item_count)}
       ${stat("Matters", dashboard.summary.matter_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -969,6 +1021,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Evidence: ${dashboard.summary.evidence_count}`);
   lines.push(`- Evidence needs review: ${dashboard.summary.evidence_needs_review_count}`);
   lines.push(`- Pending approvals: ${dashboard.summary.pending_approval_count}`);
+  lines.push(`- Approval inbox items: ${dashboard.summary.approval_inbox_item_count ?? 0}`);
+  lines.push(`- Approval inbox requests: ${dashboard.summary.approval_inbox_request_count ?? 0}`);
   lines.push(`- Matters: ${dashboard.summary.matter_count ?? 0}`);
   lines.push(`- Blocked matters: ${dashboard.summary.blocked_matter_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
@@ -1069,6 +1123,8 @@ function parseArgs(argv) {
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--approval-decisions") parsed.approvalDecisionPath = argv[++index];
+    else if (arg === "--approval-inbox") parsed.approvalInboxPath = argv[++index];
+    else if (arg === "--no-approval-inbox") parsed.approvalInboxPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -1100,6 +1156,8 @@ Options:
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --approval-decisions <path>    approval-decision-result.json path.
+  --approval-inbox <path>        approval-inbox.json path.
+  --no-approval-inbox            Do not include Approval Inbox status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

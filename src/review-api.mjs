@@ -190,6 +190,17 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/approvals") {
+    const inboxResult = await readDashboardSourceArtifact(dashboard, "approval_inbox");
+    if (!inboxResult.available) {
+      return jsonResponse(503, buildError("approval_inbox_unavailable", inboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("approval_items", inboxResult.artifact.items ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -211,7 +222,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -237,6 +248,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/costs", "Observability cost records"),
       route("GET", "/api/delivery-actions", "Protected delivery action queue"),
       route("GET", "/api/matters", "Matter cockpit records"),
+      route("GET", "/api/approvals", "Approval inbox items"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -297,6 +309,9 @@ function filterItems(items, searchParams) {
     "matter_key",
     "matter_id",
     "tenant_id",
+    "approval_item_id",
+    "item_type",
+    "required_decision",
     "enabled",
     "valid",
   ];

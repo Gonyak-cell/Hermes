@@ -481,3 +481,31 @@
 - dashboard가 matter count와 blocked matter count를 표시함
 - `/api/matters?status=blocked`로 막힌 matter/project를 조회할 수 있음
 - `npm test`, `matter:cockpit`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 21: Approval Inbox
+
+목표: Evidence approval queue 밖에 흩어진 output/delivery approval request와 gate blocker를 하나의 사람 검토 inbox로 묶습니다.
+
+- Protected Delivery Queue의 blocked delivery action을 approval inbox item으로 변환
+- Matter Cockpit의 matter context로 pending approval, blocker, runtime 정보를 보강
+- `approval_request`와 `gate_blocker_review` item type 분리
+- 사람이 채울 수 있는 `decision-template.json` 생성
+- Review Dashboard에 `approval_inbox` stage와 action item 추가
+- Review API에서 `/api/approvals` 읽기 전용 route 제공
+
+현재 구현:
+
+- `npm run approval:inbox`
+- `src/approval-inbox.mjs`
+- `schemas/approval-inbox.schema.json`
+- `docs/approval-inbox.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- delivery approval pending과 gate blocker가 모두 inbox item으로 정규화됨
+- approval request와 gate blocker review가 구분됨
+- decision template이 모든 inbox item을 포함함
+- `/api/approvals?item_type=approval_request`로 승인 요청을 조회할 수 있음
+- `npm test`, `approval:inbox`, `dashboard:build`, `api:smoke`가 통과함

@@ -9,6 +9,7 @@
   },
   "scripts": {
     "approval:apply": "node scripts/approval-decisions.mjs",
+    "approval:inbox": "node scripts/approval-inbox.mjs",
     "approval:queue": "node scripts/approval-queue.mjs",
     "api:serve": "node scripts/review-api.mjs",
     "api:smoke": "node scripts/review-api-smoke.mjs",

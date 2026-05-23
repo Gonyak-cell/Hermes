@@ -1019,3 +1019,24 @@
 - `npm run control-plane:loop` 후 dashboard의 loop summary가 최종 loop step count를 반영함
 - finalization ledger schema validation이 통과함
 - `npm test`, `npm run validate`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함
+
+## Phase 41: Gate-Aware Goal Checkpoint
+
+목표: goal checkpoint가 구현 완료 여부와 운영상 사람 승인 대기를 분리하도록 합니다.
+
+- Evidence review, approval inbox, attorney approval, merge approval, protected delivery blocker를 구현 실패로 보지 않음
+- gate가 의도대로 생성된 stage는 `passed_with_operational_gate`로 표시
+- 실제 사람 승인, 발송, merge, delivery는 dashboard/action plan blocker로 계속 유지
+- checkpoint item에 `implementation_status`, `operational_status`, `acceptance_profile`을 기록
+
+현재 구현:
+
+- `src/control-plane-goal-checkpoint.mjs`
+- `schemas/control-plane-goal-checkpoint.schema.json`
+- `docs/control-plane-goal-checkpoint.md`
+
+완료 기준:
+
+- evidence viewer가 review queue를 생성한 경우 goal checkpoint에서 구현 통과로 인정됨
+- 사람 승인 대기는 dashboard/action plan의 operational blocker로 남음
+- `npm test`, `npm run validate`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함

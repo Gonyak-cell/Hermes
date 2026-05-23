@@ -2,6 +2,8 @@
 
 `Control Plane Goal Checkpoint`은 `/goal`의 완성 기준을 현재 artifact와 대조해 어떤 축이 통과했고 어떤 축이 아직 막혀 있는지 기록한다. 다음 heartbeat는 이 checkpoint를 기준으로 다음 작업을 고를 수 있다.
 
+Checkpoint는 구현 완료 여부와 운영상 사람 승인 대기를 분리한다. Evidence review, attorney approval, merge approval, protected delivery처럼 의도적으로 사람 gate에서 멈추는 단계는 artifact와 gate가 정상 생성되면 `passed_with_operational_gate`로 인정하고, 실제 승인·발송·merge는 계속 별도 blocker로 남긴다.
+
 ## 실행
 
 ```bash
@@ -35,6 +37,18 @@ npm run control-plane:goal-checkpoint -- \
 - Output, Observability, Delivery, Matter Cockpit
 - Control Plane Loop
 - Dashboard/API surface
+
+## Gate-Aware Acceptance
+
+일부 stage는 `pending`이나 `blocked`가 구현 실패가 아니라 올바른 통제 동작이다.
+
+- Evidence Viewer: evidence queue가 생성되고 blocking ingest gate가 없으면 구현 통과
+- Approval Workflow: approval inbox와 gate review 항목이 생성되면 구현 통과
+- Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
+- Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
+- Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과
+
+이 경우 checkpoint item은 `status: passed`, `implementation_status: passed_with_operational_gate`, `operational_status: pending|blocked|attention`을 함께 기록한다.
 
 ## Dashboard/API
 

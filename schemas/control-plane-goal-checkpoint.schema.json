@@ -55,6 +55,8 @@
         "health_status",
         "dashboard_overall_status",
         "dashboard_action_item_count",
+        "implementation_gate_pass_count",
+        "operational_blocker_count",
         "by_status",
         "by_category"
       ],
@@ -74,6 +76,8 @@
         "health_status": { "type": ["string", "null"] },
         "dashboard_overall_status": { "type": ["string", "null"] },
         "dashboard_action_item_count": { "type": "integer", "minimum": 0 },
+        "implementation_gate_pass_count": { "type": "integer", "minimum": 0 },
+        "operational_blocker_count": { "type": "integer", "minimum": 0 },
         "by_status": { "type": "object" },
         "by_category": { "type": "object" }
       }
@@ -90,7 +94,10 @@
           "priority",
           "evidence_refs",
           "reason",
-          "recommended_actions"
+          "recommended_actions",
+          "implementation_status",
+          "operational_status",
+          "acceptance_profile"
         ],
         "properties": {
           "checkpoint_item_id": { "type": "string" },
@@ -100,7 +107,12 @@
           "priority": { "enum": ["critical", "high", "medium", "low"] },
           "evidence_refs": { "type": "array", "items": { "type": "string" } },
           "reason": { "type": "string" },
-          "recommended_actions": { "type": "array", "items": { "type": "string" } }
+          "recommended_actions": { "type": "array", "items": { "type": "string" } },
+          "implementation_status": {
+            "enum": ["passed", "passed_with_operational_gate", "attention", "blocked", "missing"]
+          },
+          "operational_status": { "type": "string" },
+          "acceptance_profile": { "type": "string" }
         }
       }
     },

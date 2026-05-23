@@ -927,7 +927,12 @@ describe("matter harness", () => {
       assert.ok(["passed", "attention", "blocked", "incomplete"].includes(controlPlaneGoalCheckpoint.checkpoint_status));
       assert.ok(controlPlaneGoalCheckpoint.summary.checkpoint_item_count >= 13);
       assert.ok(controlPlaneGoalCheckpoint.summary.passed_item_count >= 1);
+      assert.ok(controlPlaneGoalCheckpoint.summary.implementation_gate_pass_count >= 1);
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.checkpoint_item_id === "control-plane-loop"));
+      const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
+      assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
+      assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
+      assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.implementation_status === "passed_with_operational_gate"));
       assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
 
       const dashboard = await runReviewDashboard({

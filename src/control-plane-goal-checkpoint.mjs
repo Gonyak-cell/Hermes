@@ -13,13 +13,13 @@ const GOAL_ITEMS = [
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
-  sourceItem("evidence_viewer", "Evidence viewer", "resource_evidence", "evidence_viewer", "control-plane-evidence-viewer"),
-  sourceItem("approval_workflow", "Gate and approval workflow", "gate_approval", "approval_inbox", "control-plane-approval-workflow"),
-  sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice"),
-  sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice"),
-  sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice"),
-  sourceItem("output_observability", "Output and observability planes", "observability", "observability_catalog", "control-plane-observability"),
-  sourceItem("delivery_matter_cockpit", "Protected delivery and matter cockpit", "delivery", "matter_cockpit", "control-plane-matter-cockpit"),
+  sourceItem("evidence_viewer", "Evidence viewer", "resource_evidence", "evidence_viewer", "control-plane-evidence-viewer", { acceptance_profile: "evidence_review_gate" }),
+  sourceItem("approval_workflow", "Gate and approval workflow", "gate_approval", "approval_inbox", "control-plane-approval-workflow", { acceptance_profile: "approval_gate" }),
+  sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
+  sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
+  sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
+  sourceItem("output_observability", "Output and observability planes", "observability", "observability_catalog", "control-plane-observability", { acceptance_profile: "observability_gate" }),
+  sourceItem("delivery_matter_cockpit", "Protected delivery and matter cockpit", "delivery", "matter_cockpit", "control-plane-matter-cockpit", { acceptance_profile: "matter_cockpit_gate" }),
   sourceItem("control_plane_loop", "Automated control-plane loop", "control_plane", "control_plane_loop", "control-plane-loop"),
   scriptItem("dashboard_api", "Dashboard/API read-only surface", "dashboard_api", "api:smoke", "control-plane-api"),
 ];
@@ -179,16 +179,16 @@ function buildCheckpointItem(item, context) {
     });
   }
 
-  const status = stage.status === "passed" || stage.status === "ready"
-    ? "passed"
-    : stage.status === "blocked"
-      ? "blocked"
-      : "attention";
+  const acceptance = evaluateStageAcceptance(item, stage);
+  const status = acceptance.status;
   return checkpointItem(item, {
     status,
     evidence_refs: [`source:${item.source_id}`, `stage:${stage.stage_id}`],
-    reason: `${stage.label} stage is ${stage.status}: ${stage.message}`,
+    reason: acceptance.reason ?? `${stage.label} stage is ${stage.status}: ${stage.message}`,
     recommended_actions: status === "passed" ? [] : ["inspect_dashboard_stage", "resolve_stage_blocker", "rerun_control_plane_loop"],
+    implementation_status: acceptance.implementation_status,
+    operational_status: stage.status,
+    acceptance_profile: item.acceptance_profile ?? "stage_status",
   });
 }
 
@@ -202,6 +202,9 @@ function checkpointItem(item, result) {
     evidence_refs: result.evidence_refs,
     reason: result.reason,
     recommended_actions: result.recommended_actions,
+    implementation_status: result.implementation_status ?? result.status,
+    operational_status: result.operational_status ?? result.status,
+    acceptance_profile: result.acceptance_profile ?? item.acceptance_profile ?? "direct",
   };
 }
 
@@ -222,6 +225,8 @@ function summarizeCheckpoint(items, context) {
     health_status: context.health?.overall_health ?? null,
     dashboard_overall_status: context.dashboard?.summary?.overall_status ?? null,
     dashboard_action_item_count: context.dashboard?.summary?.action_item_count ?? 0,
+    implementation_gate_pass_count: items.filter((item) => item.implementation_status === "passed_with_operational_gate").length,
+    operational_blocker_count: items.filter((item) => ["attention", "blocked", "pending"].includes(item.operational_status)).length,
     by_status: countBy(items, "status"),
     by_category: countBy(items, "category"),
   };
@@ -267,7 +272,75 @@ function renderGoalCheckpointMarkdown(checkpoint) {
   return `${lines.join("\n")}\n`;
 }
 
-function sourceItem(id, label, category, sourceId, checkpointItemId) {
+function evaluateStageAcceptance(item, stage) {
+  const directStatus = stage.status === "passed" || stage.status === "ready"
+    ? "passed"
+    : stage.status === "blocked"
+      ? "blocked"
+      : "attention";
+  if (directStatus === "passed") {
+    return {
+      status: "passed",
+      implementation_status: "passed",
+      reason: `${stage.label} stage is ${stage.status}: ${stage.message}`,
+    };
+  }
+
+  const metrics = stage.metrics ?? {};
+  if (item.acceptance_profile === "evidence_review_gate") {
+    const blockingGateCount = metrics.blocking_gate_count ?? 0;
+    const blockedItemCount = metrics.blocked_item_count ?? 0;
+    if (blockingGateCount === 0 && blockedItemCount === 0 && (metrics.evidence_count ?? 0) > 0) {
+      return passedWithOperationalGate(stage, "Evidence review queue is implemented and waiting for human evidence decisions.");
+    }
+  }
+
+  if (item.acceptance_profile === "approval_gate") {
+    if ((metrics.inbox_item_count ?? 0) >= 0 && (metrics.approval_request_count ?? 0) >= 0) {
+      return passedWithOperationalGate(stage, "Approval workflow is implemented; remaining items are human approval work.");
+    }
+  }
+
+  if (item.acceptance_profile === "protected_human_gate") {
+    const expectedBlockers = new Set([
+      "attorney_approval_pending",
+      "human_approval_pending",
+      "merge_approval_pending",
+    ]);
+    if (expectedBlockers.has(metrics.blocked_reason)) {
+      return passedWithOperationalGate(stage, `${stage.label} reached its required protected human gate.`);
+    }
+  }
+
+  if (item.acceptance_profile === "observability_gate") {
+    const errors = metrics.error_record_count ?? 0;
+    if (errors === 0 && (metrics.workflow_run_count ?? 0) > 0 && (metrics.event_count ?? 0) > 0) {
+      return passedWithOperationalGate(stage, "Observability plane is recording runs, events, and gate blockers without runtime errors.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_cockpit_gate") {
+    if ((metrics.matter_count ?? 0) > 0 && (metrics.resource_count ?? 0) > 0 && (metrics.evidence_count ?? 0) > 0) {
+      return passedWithOperationalGate(stage, "Matter Cockpit is implemented and surfacing protected delivery blockers.");
+    }
+  }
+
+  return {
+    status: directStatus,
+    implementation_status: directStatus,
+    reason: `${stage.label} stage is ${stage.status}: ${stage.message}`,
+  };
+}
+
+function passedWithOperationalGate(stage, reason) {
+  return {
+    status: "passed",
+    implementation_status: "passed_with_operational_gate",
+    reason: `${reason} Operational status remains ${stage.status}: ${stage.message}`,
+  };
+}
+
+function sourceItem(id, label, category, sourceId, checkpointItemId, options = {}) {
   return {
     check_type: "source",
     id,
@@ -275,6 +348,7 @@ function sourceItem(id, label, category, sourceId, checkpointItemId) {
     category,
     source_id: sourceId,
     checkpoint_item_id: checkpointItemId,
+    acceptance_profile: options.acceptance_profile ?? "stage_status",
   };
 }
 

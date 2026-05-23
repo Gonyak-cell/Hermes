@@ -981,6 +981,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-decision-registers") {
+    const registerResult = await readDashboardSourceArtifact(dashboard, "human_review_decision_register");
+    if (!registerResult.available) {
+      return jsonResponse(503, buildError("human_review_decision_register_unavailable", registerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_decision_registers", [registerResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-decision-rows") {
+    const registerResult = await readDashboardSourceArtifact(dashboard, "human_review_decision_register");
+    if (!registerResult.available) {
+      return jsonResponse(503, buildError("human_review_decision_register_unavailable", registerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_decision_rows", registerResult.artifact.decision_rows ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-decision-receipt-input") {
+    const registerResult = await readDashboardSourceArtifact(dashboard, "human_review_decision_register");
+    if (!registerResult.available) {
+      return jsonResponse(503, buildError("human_review_decision_register_unavailable", registerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_decision_receipt_input", registerResult.artifact.receipt_input?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1274,6 +1307,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-context-bundles", "Human review context bundle artifacts"),
       route("GET", "/api/human-review-context-cards", "Human review decision context cards"),
       route("GET", "/api/human-review-actor-context-bundles", "Actor-specific human review context bundles"),
+      route("GET", "/api/human-review-decision-registers", "Human review decision register artifacts"),
+      route("GET", "/api/human-review-decision-rows", "Human review decision rows"),
+      route("GET", "/api/human-review-decision-receipt-input", "Receipt input rows generated from the decision register"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
@@ -1493,6 +1529,11 @@ function filterItems(items, searchParams) {
     "context_status",
     "subject_type",
     "subject_id",
+    "register_id",
+    "register_status",
+    "actor_decision_register_id",
+    "decision_row_id",
+    "decision_status",
     "template_row_present",
     "ready_for_validation",
     "receipt_status",

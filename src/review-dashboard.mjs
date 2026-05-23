@@ -44,6 +44,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewReceiptWorkspacePath: "artifacts/human-review-receipt-workspace/latest/human-review-receipt-workspace.json",
   humanReviewReceiptWorkspaceMergePath: "artifacts/human-review-receipt-workspace-merge/latest/human-review-receipt-workspace-merge.json",
   humanReviewContextBundlePath: "artifacts/human-review-context-bundle/latest/human-review-context-bundle.json",
+  humanReviewDecisionRegisterPath: "artifacts/human-review-decision-register/latest/human-review-decision-register.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -260,6 +261,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewContextBundlePath",
     source_id: "human_review_context_bundle",
     label: "Human Review Context Bundle",
+  },
+  {
+    option: "humanReviewDecisionRegisterPath",
+    source_id: "human_review_decision_register",
+    label: "Human Review Decision Register",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -536,6 +542,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_receipt_workspace") return data.summary ?? {};
   if (sourceId === "human_review_receipt_workspace_merge") return data.summary ?? {};
   if (sourceId === "human_review_context_bundle") return data.summary ?? {};
+  if (sourceId === "human_review_decision_register") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -619,6 +626,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewReceiptWorkspaceStage(artifacts.human_review_receipt_workspace, sourceById.get("human_review_receipt_workspace")),
     buildHumanReviewReceiptWorkspaceMergeStage(artifacts.human_review_receipt_workspace_merge, sourceById.get("human_review_receipt_workspace_merge")),
     buildHumanReviewContextBundleStage(artifacts.human_review_context_bundle, sourceById.get("human_review_context_bundle")),
+    buildHumanReviewDecisionRegisterStage(artifacts.human_review_decision_register, sourceById.get("human_review_decision_register")),
     buildControlPlaneHumanGateReceiptValidationStage(artifacts.control_plane_human_gate_receipt_validation, sourceById.get("control_plane_human_gate_receipt_validation")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
@@ -1786,6 +1794,40 @@ function buildHumanReviewContextBundleStage(bundle, source) {
   };
 }
 
+function buildHumanReviewDecisionRegisterStage(register, source) {
+  if (!register) return missingStage("human_review_decision_register", "Human Review Decision Register", source);
+  const summary = register.summary ?? {};
+  const errorCount = summary.validation_error_count ?? register.validation?.errors?.length ?? 0;
+  const invalid = (summary.invalid_context_count ?? 0) + (summary.invalid_decision_count ?? 0);
+  const status = register.register_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : invalid > 0 || register.register_status === "attention"
+      ? "attention"
+      : (summary.pending_decision_count ?? 0) > 0
+        ? "pending"
+        : "passed";
+  return {
+    stage_id: "human_review_decision_register",
+    label: "Human Review Decision Register",
+    status,
+    message: `${summary.actor_decision_register_count ?? 0} actor register(s), ${summary.decision_row_count ?? 0} decision row(s), ${summary.pending_decision_count ?? 0} pending decision(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      register_status: register.register_status ?? "unknown",
+      actor_decision_register_count: summary.actor_decision_register_count ?? 0,
+      decision_row_count: summary.decision_row_count ?? 0,
+      receipt_row_count: summary.receipt_row_count ?? 0,
+      pending_decision_count: summary.pending_decision_count ?? 0,
+      ready_for_validation_count: summary.ready_for_validation_count ?? 0,
+      invalid_context_count: summary.invalid_context_count ?? 0,
+      invalid_decision_count: summary.invalid_decision_count ?? 0,
+      protected_action_count: summary.protected_action_count ?? 0,
+      evidence_decision_count: summary.evidence_decision_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -2406,6 +2448,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_decision_register?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_decision_register";
+    items.push({
+      action_item_id: `dashboard.action.human_review_decision_register.${slugify(subjectId)}`,
+      source_stage: "human_review_decision_register",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review decision register",
+      subject_ref: {
+        subject_type: "human_review_decision_register_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_decision_register", "inspect_context_cards", "rerun_human_gate_receipt_validation"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -3019,6 +3079,15 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_context_bundle_approval_count: artifacts.human_review_context_bundle?.summary?.approval_context_count ?? 0,
     human_review_context_bundle_matter_count: artifacts.human_review_context_bundle?.summary?.matter_context_count ?? 0,
     human_review_context_bundle_validation_error_count: artifacts.human_review_context_bundle?.summary?.validation_error_count ?? artifacts.human_review_context_bundle?.validation?.errors?.length ?? 0,
+    human_review_decision_register_actor_count: artifacts.human_review_decision_register?.summary?.actor_decision_register_count ?? 0,
+    human_review_decision_register_row_count: artifacts.human_review_decision_register?.summary?.decision_row_count ?? 0,
+    human_review_decision_register_receipt_row_count: artifacts.human_review_decision_register?.summary?.receipt_row_count ?? 0,
+    human_review_decision_register_pending_count: artifacts.human_review_decision_register?.summary?.pending_decision_count ?? 0,
+    human_review_decision_register_ready_count: artifacts.human_review_decision_register?.summary?.ready_for_validation_count ?? 0,
+    human_review_decision_register_invalid_count: (artifacts.human_review_decision_register?.summary?.invalid_context_count ?? 0) + (artifacts.human_review_decision_register?.summary?.invalid_decision_count ?? 0),
+    human_review_decision_register_protected_count: artifacts.human_review_decision_register?.summary?.protected_action_count ?? 0,
+    human_review_decision_register_evidence_count: artifacts.human_review_decision_register?.summary?.evidence_decision_count ?? 0,
+    human_review_decision_register_validation_error_count: artifacts.human_review_decision_register?.summary?.validation_error_count ?? artifacts.human_review_decision_register?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -3169,6 +3238,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Review Workspace", dashboard.summary.human_review_receipt_workspace_actor_count)}
       ${stat("Workspace Merge", dashboard.summary.human_review_receipt_workspace_merge_receipt_row_count)}
       ${stat("Review Context", dashboard.summary.human_review_context_bundle_card_count)}
+      ${stat("Decision Register", dashboard.summary.human_review_decision_register_row_count)}
       ${stat("Gate Receipt Check", dashboard.summary.human_gate_receipt_validation_ready_count)}
       ${stat("Gate Receipt Apply", dashboard.summary.human_gate_receipt_application_applied_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
@@ -3310,6 +3380,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human review context cards: ${dashboard.summary.human_review_context_bundle_card_count ?? 0}`);
   lines.push(`- Human review context pending: ${dashboard.summary.human_review_context_bundle_pending_count ?? 0}`);
   lines.push(`- Human review context evidence: ${dashboard.summary.human_review_context_bundle_evidence_count ?? 0}`);
+  lines.push(`- Human review decision rows: ${dashboard.summary.human_review_decision_register_row_count ?? 0}`);
+  lines.push(`- Human review decision pending: ${dashboard.summary.human_review_decision_register_pending_count ?? 0}`);
+  lines.push(`- Human review decision ready: ${dashboard.summary.human_review_decision_register_ready_count ?? 0}`);
   lines.push(`- Human gate receipts ready: ${dashboard.summary.human_gate_receipt_validation_ready_count ?? 0}`);
   lines.push(`- Human gate receipts pending: ${dashboard.summary.human_gate_receipt_validation_pending_count ?? 0}`);
   lines.push(`- Human gate receipts applied: ${dashboard.summary.human_gate_receipt_application_applied_count ?? 0}`);
@@ -3493,6 +3566,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-receipt-workspace-merge") parsed.humanReviewReceiptWorkspaceMergePath = false;
     else if (arg === "--human-review-context-bundle") parsed.humanReviewContextBundlePath = argv[++index];
     else if (arg === "--no-human-review-context-bundle") parsed.humanReviewContextBundlePath = false;
+    else if (arg === "--human-review-decision-register") parsed.humanReviewDecisionRegisterPath = argv[++index];
+    else if (arg === "--no-human-review-decision-register") parsed.humanReviewDecisionRegisterPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];

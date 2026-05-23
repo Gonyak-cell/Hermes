@@ -249,6 +249,15 @@
         "human_review_context_bundle_approval_count",
         "human_review_context_bundle_matter_count",
         "human_review_context_bundle_validation_error_count",
+        "human_review_decision_register_actor_count",
+        "human_review_decision_register_row_count",
+        "human_review_decision_register_receipt_row_count",
+        "human_review_decision_register_pending_count",
+        "human_review_decision_register_ready_count",
+        "human_review_decision_register_invalid_count",
+        "human_review_decision_register_protected_count",
+        "human_review_decision_register_evidence_count",
+        "human_review_decision_register_validation_error_count",
         "human_gate_receipt_validation_ready_count",
         "human_gate_receipt_validation_pending_count",
         "human_gate_receipt_validation_invalid_count",
@@ -1195,6 +1204,42 @@
           "minimum": 0
         },
         "human_review_context_bundle_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_actor_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_receipt_row_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_invalid_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_protected_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_evidence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_decision_register_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

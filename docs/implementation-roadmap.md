@@ -1634,3 +1634,38 @@
 - `/api/human-review-actor-context-bundles?required_actor=attorney_or_designated_reviewer`로 actor별 context bundle을 조회할 수 있음
 - Dashboard summary가 actor context bundle, context card, evidence context, approval context, matter context, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-context`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 62: Human Review Decision Register
+
+목표: Human Review Context Bundle의 context card를 사람이 실제 receipt 결정을 입력할 수 있는 context-bound decision register로 변환한다.
+
+- context card마다 decision row 생성
+- decision row에 receipt id, gate item, source plan item, required actor, allowed outcomes, required receipt fields, context summary를 연결
+- actor별 decision register와 actor별 receipt input subset 생성
+- 전체 `receipt-input.json`을 `control-plane-human-gate-receipts-input.v1` 형태로 생성
+- protected action은 decision register 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 context bundle 뒤, human gate receipt validation 전에 `npm run control-plane:review-decisions` 실행
+- Human Gate Receipt Validation은 decision register의 `receipt-input.json`을 읽도록 연결
+- Review Dashboard에 `human_review_decision_register` stage와 actor/decision/receipt/pending/error summary 추가
+- Review API에서 `/api/human-review-decision-registers`, `/api/human-review-decision-rows`, `/api/human-review-decision-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Decision Register를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-decisions`
+- `src/human-review-decision-register.mjs`
+- `schemas/human-review-decision-register.schema.json`
+- `docs/human-review-decision-register.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review decision register artifact가 schema validation을 통과함
+- decision row count가 context card count와 일치함
+- generated receipt input row count가 decision row count와 일치함
+- `/api/human-review-decision-rows?decision_status=pending_decision`로 pending decision row를 조회할 수 있음
+- `/api/human-review-decision-receipt-input?receipt_status=pending`으로 validation에 넘길 receipt row를 조회할 수 있음
+- Dashboard summary가 actor decision register, decision row, receipt row, pending, ready, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-decisions`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

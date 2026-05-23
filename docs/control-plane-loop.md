@@ -19,7 +19,7 @@ npm run control-plane:loop
 - `npm run token:usage`
 - `npm run cost:attribution`
 - `npm run budget:alerts`
-- `node scripts/review-dashboard.mjs --no-human-review-agenda --no-human-review-agenda-intake --no-human-review-receipt-workspace --no-human-review-receipt-workspace-merge --no-human-review-context-bundle`
+- `node scripts/review-dashboard.mjs --no-human-review-agenda --no-human-review-agenda-intake --no-human-review-receipt-workspace --no-human-review-receipt-workspace-merge --no-human-review-context-bundle --no-human-review-decision-register`
 - `npm run control-plane:health`
 - `npm run control-plane:plan`
 - `npm run control-plane:human-gates`
@@ -30,7 +30,8 @@ npm run control-plane:loop
 - `npm run control-plane:review-workspace`
 - `npm run control-plane:review-workspace:merge`
 - `npm run control-plane:review-context`
-- `node scripts/control-plane-human-gate-receipt-validation.mjs --receipt-input artifacts/human-review-receipt-workspace-merge/latest/receipt-input.json`
+- `npm run control-plane:review-decisions`
+- `node scripts/control-plane-human-gate-receipt-validation.mjs --receipt-input artifacts/human-review-decision-register/latest/receipt-input.json`
 - `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`
 - `npm run control-plane:work-receipts`

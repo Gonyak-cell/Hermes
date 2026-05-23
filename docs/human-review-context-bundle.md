@@ -42,3 +42,5 @@ This stage is context-only. It does not apply receipts, execute commands, delive
 - Every context card has safe handling disabled and includes a review contract.
 - Evidence gate cards include evidence context when the evidence viewer has the referenced card.
 - Dashboard/API expose the bundle, actor bundles, and cards without changing protected state.
+
+After this stage, run `npm run control-plane:review-decisions` to turn context cards into a context-bound decision register and standard receipt input.

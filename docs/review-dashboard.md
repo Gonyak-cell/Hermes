@@ -66,6 +66,7 @@ npm run dashboard:build -- \
   --human-review-cycle-completion-readiness artifacts/human-review-cycle-receipt-completion-readiness/latest/human-review-cycle-receipt-completion-readiness.json \
   --human-review-cycle-completion-command-queue artifacts/human-review-cycle-receipt-completion-command-queue/latest/human-review-cycle-receipt-completion-command-queue.json \
   --human-review-cycle-completion-command-receipts artifacts/human-review-cycle-receipt-completion-command-receipts/latest/human-review-cycle-receipt-completion-command-receipts.json \
+  --human-review-cycle-completion-command-receipt-validation artifacts/human-review-cycle-receipt-completion-command-receipt-validation/latest/human-review-cycle-receipt-completion-command-receipt-validation.json \
   --control-plane-human-gate-receipt-validation artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json \
   --control-plane-human-gate-receipt-application artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
@@ -148,6 +149,7 @@ npm run dashboard:build -- \
 - Human Review Cycle Receipt Completion Readiness의 command gate, allowed-now command, manual-input hold 상태
 - Human Review Cycle Receipt Completion Command Queue의 ready manual command와 held command 상태
 - Human Review Cycle Receipt Completion Command Receipts의 pending command receipt draft와 held command reference 상태
+- Human Review Cycle Receipt Completion Command Receipt Validation의 pending/ready/invalid command receipt 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값

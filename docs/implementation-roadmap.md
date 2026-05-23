@@ -2361,3 +2361,41 @@
 - `/api/human-review-cycle-completion-held-command-references?requires_explicit_human_approval=true`로 held command reference를 조회할 수 있음
 - Dashboard summary가 completion command receipt draft, held reference, required field count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 82: Human Review Cycle Receipt Completion Command Receipt Validation
+
+목표: Human Review Cycle Receipt Completion Command Receipts에서 생성한 pending command-run receipt input을 검증 계층으로 분리한다. 사람이 실제로 refresh command를 수동 실행하고 receipt row를 채운 경우에도, harness는 이를 바로 적용하거나 후속 protected action으로 넘기지 않고 pending/ready/invalid 상태로만 판정한다.
+
+- `Human Review Cycle Receipt Completion Command Receipts`와 `receipt-input-draft.json`을 입력으로 사용
+- command receipt requirement와 receipt row를 `queue_item_id`로 매칭
+- pending receipt는 `pending_receipt`로 유지하고 proof of execution으로 취급하지 않음
+- non-pending receipt는 `receipt_status`, `command_result`, `executed_by`, `executed_at`, `output_reference`, `notes`, `commands_run`을 검증
+- `commands_run`은 원래 queued command를 정확히 포함해야 함
+- unknown command receipt row는 validation error로 분리
+- 검증 완료 receipt는 `validated-command-receipts.json`으로 별도 출력하되, target receipt input이나 protected action은 수정하지 않음
+- Control Plane Loop에서 completion command receipts 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-command-receipts:validate` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_receipt_validation` stage와 pending/ready/invalid/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-receipt-validations`, `/api/human-review-cycle-completion-command-receipt-validation-items`, `/api/human-review-cycle-completion-command-receipt-errors`, `/api/validated-human-review-cycle-completion-command-receipts` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Command Receipt Validation을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-receipts:validate`
+- `src/human-review-cycle-receipt-completion-command-receipt-validation.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-receipt-validation.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-receipt-validation.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- command receipt validation artifact가 schema validation을 통과함
+- validation item count가 command receipt draft count와 일치함
+- pending command receipt는 `pending_receipt`와 `command_result: not_run`으로 유지됨
+- pending 상태에서는 ready receipt가 0개이고 error가 0개임
+- non-pending receipt를 위한 필수 실행 증빙 필드 검증 규칙이 존재함
+- `/api/human-review-cycle-completion-command-receipt-validation-items?validation_status=pending_receipt`로 pending validation item을 조회할 수 있음
+- `/api/validated-human-review-cycle-completion-command-receipts`로 검증 완료 receipt를 조회할 수 있음
+- Dashboard summary가 command receipt validation item, pending, ready, invalid, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

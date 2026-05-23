@@ -31,3 +31,5 @@ Typical query points:
 - `/api/human-review-cycle-completion-held-command-references?requires_explicit_human_approval=true`
 
 This stage gives the human reviewer a receipt form for commands they choose to run manually. Pending rows are not treated as proof of execution.
+
+The next validation layer is `npm run control-plane:review-cycle:completion-command-receipts:validate`, which checks filled command-run receipt rows before any later refresh confirmation step.

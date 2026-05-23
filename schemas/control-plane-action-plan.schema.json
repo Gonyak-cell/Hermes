@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-action-plan.schema.json",
+  "title": "Hermes Control Plane Action Plan",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "plan_id",
+    "output_dir",
+    "plan_status",
+    "sources",
+    "summary",
+    "plan_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-action-plan.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "plan_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "plan_status": { "enum": ["clear", "open", "blocked"] },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "plan_status",
+        "plan_item_count",
+        "open_item_count",
+        "blocked_item_count",
+        "waiting_for_human_count",
+        "ready_to_run_count",
+        "protected_action_count",
+        "human_required_count",
+        "critical_count",
+        "high_count",
+        "medium_count",
+        "low_count",
+        "health_item_count",
+        "dashboard_item_count",
+        "by_priority",
+        "by_status",
+        "by_source_stage"
+      ],
+      "properties": {
+        "plan_status": { "enum": ["clear", "open", "blocked"] },
+        "plan_item_count": { "type": "integer", "minimum": 0 },
+        "open_item_count": { "type": "integer", "minimum": 0 },
+        "blocked_item_count": { "type": "integer", "minimum": 0 },
+        "waiting_for_human_count": { "type": "integer", "minimum": 0 },
+        "ready_to_run_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "human_required_count": { "type": "integer", "minimum": 0 },
+        "critical_count": { "type": "integer", "minimum": 0 },
+        "high_count": { "type": "integer", "minimum": 0 },
+        "medium_count": { "type": "integer", "minimum": 0 },
+        "low_count": { "type": "integer", "minimum": 0 },
+        "health_item_count": { "type": "integer", "minimum": 0 },
+        "dashboard_item_count": { "type": "integer", "minimum": 0 },
+        "by_priority": { "type": "object" },
+        "by_status": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "plan_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "plan_item_id",
+          "source_type",
+          "source_stage",
+          "priority",
+          "status",
+          "title",
+          "subject_ref",
+          "reason",
+          "recommended_actions",
+          "next_commands",
+          "requires_human",
+          "protected_action",
+          "source_refs"
+        ],
+        "properties": {
+          "plan_item_id": { "type": "string" },
+          "source_type": { "enum": ["source_availability", "health_check", "dashboard_action"] },
+          "source_stage": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "status": { "enum": ["blocked", "waiting_for_human", "ready_to_run", "open"] },
+          "title": { "type": "string" },
+          "subject_ref": {
+            "type": "object",
+            "required": ["subject_type", "subject_id"],
+            "properties": {
+              "subject_type": { "type": "string" },
+              "subject_id": { "type": "string" }
+            }
+          },
+          "reason": { "type": "string" },
+          "recommended_actions": { "type": "array", "items": { "type": "string" } },
+          "next_commands": { "type": "array", "items": { "type": "string" } },
+          "requires_human": { "type": "boolean" },
+          "protected_action": { "type": "boolean" },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["source_id", "ref_id", "path"],
+              "properties": {
+                "source_id": { "type": "string" },
+                "ref_id": { "type": "string" },
+                "path": { "type": ["string", "null"] }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

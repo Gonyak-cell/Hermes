@@ -410,6 +410,28 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/action-plans") {
+    const actionPlanResult = await readDashboardSourceArtifact(dashboard, "control_plane_action_plan");
+    if (!actionPlanResult.available) {
+      return jsonResponse(503, buildError("control_plane_action_plan_unavailable", actionPlanResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("action_plans", [actionPlanResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/action-plan-items") {
+    const actionPlanResult = await readDashboardSourceArtifact(dashboard, "control_plane_action_plan");
+    if (!actionPlanResult.available) {
+      return jsonResponse(503, buildError("control_plane_action_plan_unavailable", actionPlanResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("action_plan_items", actionPlanResult.artifact.plan_items ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -431,7 +453,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-health, /api/health-checks");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -477,6 +499,8 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/pipeline-steps", "Control Plane pipeline step results"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
+      route("GET", "/api/action-plans", "Control Plane action plan artifact"),
+      route("GET", "/api/action-plan-items", "Control Plane action plan items"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -563,6 +587,12 @@ function filterItems(items, searchParams) {
     "health_id",
     "check_id",
     "severity",
+    "plan_id",
+    "plan_status",
+    "plan_item_id",
+    "source_type",
+    "requires_human",
+    "protected_action",
     "enabled",
     "valid",
   ];

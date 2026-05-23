@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
@@ -705,6 +706,7 @@ describe("matter harness", () => {
         closeoutReceiptValidationPath: path.join(outDir, "closeout-receipt-validation", "closeout-receipt-validation.json"),
         closeoutReceiptApplicationPath: path.join(outDir, "closeout-receipt-application", "closeout-receipt-application.json"),
         controlPlanePipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
+        controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -712,6 +714,7 @@ describe("matter harness", () => {
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: false,
+        controlPlaneActionPlanPath: false,
         outDir: path.join(outDir, "dashboard-pre-health"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -729,9 +732,26 @@ describe("matter harness", () => {
       assert.equal(controlPlaneHealth.overall_health, "blocked");
       assert.ok(controlPlaneHealth.summary.blocked_check_count >= 1);
 
+      const controlPlaneActionPlan = await runControlPlaneActionPlan({
+        dashboardPath: path.join(outDir, "dashboard-pre-health", "review-dashboard.json"),
+        healthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        outDir: path.join(outDir, "control-plane-action-plan"),
+        runAt: "2026-05-23T06:35:05.500Z",
+      });
+      const controlPlaneActionPlanSchema = JSON.parse(await readFile("schemas/control-plane-action-plan.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneActionPlan, controlPlaneActionPlanSchema, {}, "control_plane_action_plan"),
+        [],
+      );
+      assert.equal(controlPlaneActionPlan.plan_status, "blocked");
+      assert.ok(controlPlaneActionPlan.summary.plan_item_count >= controlPlaneHealth.summary.blocked_check_count);
+      assert.ok(controlPlaneActionPlan.summary.human_required_count >= 1);
+      assert.ok(controlPlaneActionPlan.plan_items.some((item) => item.requires_human));
+
       const dashboard = await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
+        controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -784,6 +804,8 @@ describe("matter harness", () => {
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
       assert.ok(dashboard.summary.health_attention_check_count >= 1);
+      assert.equal(dashboard.summary.action_plan_item_count, controlPlaneActionPlan.summary.plan_item_count);
+      assert.ok(dashboard.summary.action_plan_human_required_count >= 1);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -813,6 +835,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_pipeline"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -863,6 +886,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/pipeline-steps"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-health"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/health-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-plans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-plan-items"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -994,6 +1019,14 @@ describe("matter harness", () => {
       const blockedHealthChecks = JSON.parse((await buildReviewApiResponse("/api/health-checks?status=blocked", apiOptions)).body);
       assert.equal(blockedHealthChecks.collection, "health_checks");
       assert.ok(blockedHealthChecks.count >= 1);
+
+      const actionPlans = JSON.parse((await buildReviewApiResponse("/api/action-plans?plan_id=control-plane-action-plan.20260523T063505", apiOptions)).body);
+      assert.equal(actionPlans.collection, "action_plans");
+      assert.equal(actionPlans.count, 1);
+
+      const humanActionPlanItems = JSON.parse((await buildReviewApiResponse("/api/action-plan-items?requires_human=true", apiOptions)).body);
+      assert.equal(humanActionPlanItems.collection, "action_plan_items");
+      assert.ok(humanActionPlanItems.count >= 1);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

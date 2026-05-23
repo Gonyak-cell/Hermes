@@ -93,6 +93,12 @@
         "health_attention_check_count",
         "health_blocked_check_count",
         "health_missing_check_count",
+        "action_plan_item_count",
+        "action_plan_blocked_item_count",
+        "action_plan_waiting_for_human_count",
+        "action_plan_ready_to_run_count",
+        "action_plan_protected_action_count",
+        "action_plan_human_required_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -388,6 +394,30 @@
           "minimum": 0
         },
         "health_missing_check_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_plan_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_plan_blocked_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_plan_waiting_for_human_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_plan_ready_to_run_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_plan_protected_action_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "action_plan_human_required_count": {
           "type": "integer",
           "minimum": 0
         },

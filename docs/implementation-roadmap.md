@@ -760,3 +760,29 @@
 - blocker/attention check가 dashboard action item으로 표시됨
 - `/api/health-checks?status=blocked`로 막힌 health check를 조회할 수 있음
 - `npm test`, `control-plane:health`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 31: Control Plane Action Plan
+
+목표: Control Plane Health와 Review Dashboard action queue를 사람이 처리 가능한 우선순위 실행 계획으로 정규화합니다.
+
+- health check와 dashboard action item을 통합해 ordered plan item 생성
+- 각 item에 priority, status, requires_human, protected_action, next_commands 기록
+- protected delivery/merge/ERP 실행은 하지 않고 plan만 생성
+- Review Dashboard에 `control_plane_action_plan` stage와 action plan summary 추가
+- Review API에서 `/api/action-plans`, `/api/action-plan-items` route 제공
+
+현재 구현:
+
+- `npm run control-plane:plan`
+- `src/control-plane-action-plan.mjs`
+- `schemas/control-plane-action-plan.schema.json`
+- `docs/control-plane-action-plan.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- health blocker와 dashboard action item이 plan item으로 정규화됨
+- 사람 검토가 필요한 항목과 protected action이 별도 flag로 구분됨
+- `/api/action-plan-items?requires_human=true`로 사람 처리 항목을 조회할 수 있음
+- `npm test`, `control-plane:plan`, `dashboard:build`, `api:smoke`가 통과함

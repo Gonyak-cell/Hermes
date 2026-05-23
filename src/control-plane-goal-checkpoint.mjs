@@ -28,6 +28,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_agenda_receipt_intake", "Human review agenda receipt intake", "gate_approval", "human_review_agenda_receipt_intake", "control-plane-human-review-agenda-intake", { acceptance_profile: "human_review_agenda_receipt_intake_gate" }),
   sourceItem("human_review_receipt_workspace", "Human review receipt workspace", "gate_approval", "human_review_receipt_workspace", "control-plane-human-review-receipt-workspace", { acceptance_profile: "human_review_receipt_workspace_gate" }),
   sourceItem("human_review_receipt_workspace_merge", "Human review receipt workspace merge", "gate_approval", "human_review_receipt_workspace_merge", "control-plane-human-review-receipt-workspace-merge", { acceptance_profile: "human_review_receipt_workspace_merge_gate" }),
+  sourceItem("human_review_context_bundle", "Human review context bundle", "gate_approval", "human_review_context_bundle", "control-plane-human-review-context-bundle", { acceptance_profile: "human_review_context_bundle_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -342,6 +343,12 @@ function evaluateStageAcceptance(item, stage) {
   if (item.acceptance_profile === "human_review_receipt_workspace_merge_gate") {
     if ((metrics.actor_input_count ?? 0) > 0 && (metrics.receipt_row_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
       return passedWithOperationalGate(stage, "Human review receipt workspace merge is implemented and recombining actor receipt inputs for validation.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_context_bundle_gate") {
+    if ((metrics.context_card_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
+      return passedWithOperationalGate(stage, "Human review context bundle is implemented and binding pending receipt decisions to gate, evidence, approval, and matter context.");
     }
   }
 

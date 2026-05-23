@@ -14,6 +14,7 @@ import { runControlPlaneHumanGateReceipts } from "../src/control-plane-human-gat
 import { runControlPlaneHumanGates } from "../src/control-plane-human-gates.mjs";
 import { runHumanReviewAgenda } from "../src/human-review-agenda.mjs";
 import { runHumanReviewAgendaReceiptIntake } from "../src/human-review-agenda-receipt-intake.mjs";
+import { runHumanReviewContextBundle } from "../src/human-review-context-bundle.mjs";
 import { runHumanReviewReceiptWorkspace } from "../src/human-review-receipt-workspace.mjs";
 import { runHumanReviewReceiptWorkspaceMerge } from "../src/human-review-receipt-workspace-merge.mjs";
 import { runHumanReviewPacketLedger } from "../src/human-review-packet-ledger.mjs";
@@ -964,6 +965,7 @@ describe("matter harness", () => {
         humanReviewAgendaReceiptIntakePath: path.join(outDir, "human-review-agenda-receipt-intake", "human-review-agenda-receipt-intake.json"),
         humanReviewReceiptWorkspacePath: path.join(outDir, "human-review-receipt-workspace", "human-review-receipt-workspace.json"),
         humanReviewReceiptWorkspaceMergePath: path.join(outDir, "human-review-receipt-workspace-merge", "human-review-receipt-workspace-merge.json"),
+        humanReviewContextBundlePath: path.join(outDir, "human-review-context-bundle", "human-review-context-bundle.json"),
         controlPlaneHumanGateReceiptValidationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         controlPlaneHumanGateReceiptApplicationPath: path.join(outDir, "control-plane-human-gate-receipt-application", "control-plane-human-gate-receipt-application.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
@@ -990,6 +992,7 @@ describe("matter harness", () => {
         humanReviewAgendaReceiptIntakePath: false,
         humanReviewReceiptWorkspacePath: false,
         humanReviewReceiptWorkspaceMergePath: false,
+        humanReviewContextBundlePath: false,
         controlPlaneHumanGateReceiptValidationPath: false,
         controlPlaneHumanGateReceiptApplicationPath: false,
         controlPlaneWorkPacketsPath: false,
@@ -1170,6 +1173,47 @@ describe("matter harness", () => {
       assert.equal(humanReviewReceiptWorkspaceMerge.summary.validation_error_count, 0);
       assert.equal(humanReviewReceiptWorkspaceMerge.receipt_input.receipts.length, humanReviewReceiptWorkspace.summary.receipt_row_count);
       assert.match(await readFile(path.join(outDir, "human-review-receipt-workspace-merge", "summary.md"), "utf8"), /Human Review Receipt Workspace Merge/);
+
+      const humanReviewContextBundle = await runHumanReviewContextBundle({
+        workspaceMergePath: path.join(outDir, "human-review-receipt-workspace-merge", "human-review-receipt-workspace-merge.json"),
+        workspacePath: path.join(outDir, "human-review-receipt-workspace", "human-review-receipt-workspace.json"),
+        humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
+        actionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
+        evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
+        approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
+        matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
+        outDir: path.join(outDir, "human-review-context-bundle"),
+        runAt: "2026-05-23T06:35:06.047Z",
+      });
+      const humanReviewContextBundleSchema = JSON.parse(await readFile("schemas/human-review-context-bundle.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(humanReviewContextBundle, humanReviewContextBundleSchema, {}, "human_review_context_bundle"),
+        [],
+      );
+      assert.equal(humanReviewContextBundle.bundle_status, "pending_human_review");
+      assert.equal(humanReviewContextBundle.safe_handling.auto_execute_allowed, false);
+      assert.equal(humanReviewContextBundle.safe_handling.protected_actions_executed, false);
+      assert.equal(humanReviewContextBundle.summary.context_card_count, humanReviewReceiptWorkspaceMerge.summary.merge_item_count);
+      assert.equal(humanReviewContextBundle.summary.actor_context_bundle_count, humanReviewReceiptWorkspace.summary.actor_workspace_count);
+      assert.equal(humanReviewContextBundle.summary.pending_receipt_count, humanReviewReceiptWorkspaceMerge.summary.pending_receipt_count);
+      assert.equal(humanReviewContextBundle.summary.evidence_context_count, controlPlaneHumanGates.summary.evidence_decision_count);
+      assert.equal(humanReviewContextBundle.summary.validation_error_count, 0);
+      assert.ok(humanReviewContextBundle.context_cards.every((card) => card.safe_handling.auto_execute_allowed === false));
+      assert.ok(humanReviewContextBundle.context_cards.every((card) => card.gate_context && card.plan_context && card.review_contract));
+      if (humanReviewContextBundle.summary.evidence_context_count > 0) {
+        assert.ok(humanReviewContextBundle.context_cards.some((card) => card.evidence_context));
+      }
+      if (humanReviewContextBundle.summary.approval_context_count > 0) {
+        assert.ok(humanReviewContextBundle.context_cards.some((card) => card.approval_context));
+      }
+      if (humanReviewContextBundle.summary.matter_context_count > 0) {
+        assert.ok(humanReviewContextBundle.context_cards.some((card) => card.matter_context));
+      }
+      assert.match(await readFile(path.join(outDir, "human-review-context-bundle", "summary.md"), "utf8"), /Human Review Context Bundle/);
+      assert.match(
+        await readFile(path.join(outDir, "human-review-context-bundle", "actors", "attorney_or_designated_reviewer", "context.md"), "utf8"),
+        /Human Review Context/,
+      );
 
       const controlPlaneHumanGateReceiptValidation = await runControlPlaneHumanGateReceiptValidation({
         receiptDraftsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
@@ -1369,6 +1413,9 @@ describe("matter harness", () => {
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
+      const contextBundleCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-context-bundle");
+      assert.equal(contextBundleCheckpoint?.acceptance_profile, "human_review_context_bundle_gate");
+      assert.equal(contextBundleCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.implementation_status === "passed_with_operational_gate"));
       assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
 
@@ -1522,6 +1569,13 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.human_review_receipt_workspace_merge_ready_count, 0);
       assert.equal(dashboard.summary.human_review_receipt_workspace_merge_missing_count, 0);
       assert.equal(dashboard.summary.human_review_receipt_workspace_merge_validation_error_count, 0);
+      assert.equal(dashboard.summary.human_review_context_bundle_actor_count, humanReviewContextBundle.summary.actor_context_bundle_count);
+      assert.equal(dashboard.summary.human_review_context_bundle_card_count, humanReviewContextBundle.summary.context_card_count);
+      assert.equal(dashboard.summary.human_review_context_bundle_pending_count, humanReviewContextBundle.summary.pending_receipt_count);
+      assert.equal(dashboard.summary.human_review_context_bundle_evidence_count, humanReviewContextBundle.summary.evidence_context_count);
+      assert.equal(dashboard.summary.human_review_context_bundle_approval_count, humanReviewContextBundle.summary.approval_context_count);
+      assert.equal(dashboard.summary.human_review_context_bundle_matter_count, humanReviewContextBundle.summary.matter_context_count);
+      assert.equal(dashboard.summary.human_review_context_bundle_validation_error_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_validation_pending_count, controlPlaneHumanGateReceiptValidation.summary.pending_receipt_count);
       assert.equal(dashboard.summary.human_gate_receipt_validation_ready_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_validation_error_count, 0);
@@ -1703,6 +1757,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-receipt-workspace-merges"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-receipt-merge-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-merged-receipt-input"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-context-bundles"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-context-cards"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-actor-context-bundles"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
@@ -2101,6 +2158,18 @@ describe("matter harness", () => {
       const humanReviewMergedReceiptInput = JSON.parse((await buildReviewApiResponse("/api/human-review-merged-receipt-input?receipt_status=pending", apiOptions)).body);
       assert.equal(humanReviewMergedReceiptInput.collection, "human_review_merged_receipt_input");
       assert.equal(humanReviewMergedReceiptInput.count, humanReviewReceiptWorkspaceMerge.summary.receipt_row_count);
+
+      const humanReviewContextBundles = JSON.parse((await buildReviewApiResponse("/api/human-review-context-bundles?bundle_status=pending_human_review", apiOptions)).body);
+      assert.equal(humanReviewContextBundles.collection, "human_review_context_bundles");
+      assert.equal(humanReviewContextBundles.count, 1);
+
+      const readyHumanReviewContextCards = JSON.parse((await buildReviewApiResponse("/api/human-review-context-cards?context_status=ready", apiOptions)).body);
+      assert.equal(readyHumanReviewContextCards.collection, "human_review_context_cards");
+      assert.equal(readyHumanReviewContextCards.count, humanReviewContextBundle.summary.ready_context_count);
+
+      const attorneyHumanReviewContextBundles = JSON.parse((await buildReviewApiResponse("/api/human-review-actor-context-bundles?required_actor=attorney_or_designated_reviewer", apiOptions)).body);
+      assert.equal(attorneyHumanReviewContextBundles.collection, "human_review_actor_context_bundles");
+      assert.equal(attorneyHumanReviewContextBundles.count, 1);
 
       const pendingHumanGateReceiptValidations = JSON.parse((await buildReviewApiResponse("/api/human-gate-receipt-validations?validation_status=pending_receipt", apiOptions)).body);
       assert.equal(pendingHumanGateReceiptValidations.collection, "human_gate_receipt_validations");

@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-context-bundle.schema.json",
+  "title": "Hermes Human Review Context Bundle",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "bundle_id",
+    "output_dir",
+    "bundle_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_context_bundles",
+    "context_cards",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-context-bundle.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "bundle_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "bundle_status": { "enum": ["ready", "pending_human_review", "attention", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "context_only", "protected_actions_executed"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "context_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "actor_context_bundle_count",
+        "context_card_count",
+        "pending_receipt_count",
+        "ready_context_count",
+        "attention_context_count",
+        "gate_context_count",
+        "plan_context_count",
+        "evidence_context_count",
+        "approval_context_count",
+        "matter_context_count",
+        "protected_action_context_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_gate_type",
+        "by_context_status"
+      ],
+      "properties": {
+        "actor_context_bundle_count": { "type": "integer", "minimum": 0 },
+        "context_card_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "ready_context_count": { "type": "integer", "minimum": 0 },
+        "attention_context_count": { "type": "integer", "minimum": 0 },
+        "gate_context_count": { "type": "integer", "minimum": 0 },
+        "plan_context_count": { "type": "integer", "minimum": 0 },
+        "evidence_context_count": { "type": "integer", "minimum": 0 },
+        "approval_context_count": { "type": "integer", "minimum": 0 },
+        "matter_context_count": { "type": "integer", "minimum": 0 },
+        "protected_action_context_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_gate_type": { "type": "object" },
+        "by_context_status": { "type": "object" }
+      }
+    },
+    "actor_context_bundles": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_context_bundle" }
+    },
+    "context_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/context_card" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_context_bundle": {
+      "type": "object",
+      "required": [
+        "actor_context_bundle_id",
+        "required_actor",
+        "bundle_status",
+        "priority",
+        "context_card_count",
+        "pending_receipt_count",
+        "evidence_context_count",
+        "approval_context_count",
+        "matter_context_count",
+        "protected_action_count",
+        "attention_context_count",
+        "context_card_ids",
+        "context_json_path",
+        "context_markdown_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_context_bundle_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "bundle_status": { "enum": ["ready", "pending_human_review", "attention"] },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "context_card_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "evidence_context_count": { "type": "integer", "minimum": 0 },
+        "approval_context_count": { "type": "integer", "minimum": 0 },
+        "matter_context_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "attention_context_count": { "type": "integer", "minimum": 0 },
+        "context_card_ids": { "type": "array", "items": { "type": "string" } },
+        "context_json_path": { "type": "string" },
+        "context_markdown_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/safe_context" }
+      }
+    },
+    "context_card": {
+      "type": "object",
+      "required": [
+        "context_card_id",
+        "merge_item_id",
+        "receipt_id",
+        "gate_item_id",
+        "source_plan_item_id",
+        "gate_type",
+        "priority",
+        "required_actor",
+        "protected_action",
+        "subject_ref",
+        "title",
+        "reason",
+        "gate_context",
+        "plan_context",
+        "recommended_actions",
+        "next_commands",
+        "receipt_status",
+        "outcome",
+        "review_contract",
+        "evidence_context",
+        "approval_context",
+        "matter_context",
+        "context_refs",
+        "context_flags",
+        "context_status",
+        "missing_context",
+        "safe_handling"
+      ],
+      "properties": {
+        "context_card_id": { "type": "string" },
+        "merge_item_id": { "type": "string" },
+        "receipt_id": { "type": ["string", "null"] },
+        "gate_item_id": { "type": ["string", "null"] },
+        "source_plan_item_id": { "type": ["string", "null"] },
+        "gate_type": { "type": "string" },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "required_actor": { "type": "string" },
+        "protected_action": { "type": "boolean" },
+        "subject_ref": { "type": ["object", "null"] },
+        "title": { "type": "string" },
+        "reason": { "type": "string" },
+        "gate_context": { "type": ["object", "null"] },
+        "plan_context": { "type": ["object", "null"] },
+        "recommended_actions": { "type": "array", "items": { "type": "string" } },
+        "next_commands": { "type": "array", "items": { "type": "string" } },
+        "receipt_status": { "type": "string" },
+        "outcome": { "type": "string" },
+        "review_contract": {
+          "type": "object",
+          "required": [
+            "receipt_id",
+            "receipt_status",
+            "outcome",
+            "allowed_outcomes",
+            "required_receipt_fields",
+            "decision_reference",
+            "decision_notes",
+            "ready_for_validation",
+            "validation_required_before_application",
+            "protected_action_reference"
+          ],
+          "properties": {
+            "receipt_id": { "type": ["string", "null"] },
+            "receipt_status": { "type": "string" },
+            "outcome": { "type": "string" },
+            "allowed_outcomes": { "type": "array", "items": { "type": "string" } },
+            "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+            "decision_reference": { "type": "string" },
+            "decision_notes": { "type": "string" },
+            "ready_for_validation": { "type": "boolean" },
+            "validation_required_before_application": { "type": "boolean" },
+            "protected_action_reference": { "type": ["string", "null"] }
+          }
+        },
+        "evidence_context": { "type": ["object", "null"] },
+        "approval_context": { "type": ["object", "null"] },
+        "matter_context": { "type": ["object", "null"] },
+        "context_refs": { "type": "array", "items": { "type": "object" } },
+        "context_flags": { "type": "object" },
+        "context_status": { "enum": ["ready", "attention"] },
+        "missing_context": { "type": "array", "items": { "type": "string" } },
+        "safe_handling": { "$ref": "#/$defs/safe_context" }
+      }
+    },
+    "safe_context": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "protected_actions_executed", "context_only"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false },
+        "context_only": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/error" } }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

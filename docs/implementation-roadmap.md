@@ -1602,3 +1602,35 @@
 - `/api/human-review-merged-receipt-input?receipt_status=pending`으로 validation에 넘길 merged receipt row를 조회할 수 있음
 - Dashboard summary가 actor input, merge item, receipt row, pending, ready, missing, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-workspace:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 61: Human Review Context Bundle
+
+목표: merged actor receipt input의 각 pending receipt에 대해 reviewer가 즉시 판단할 수 있는 gate/action/evidence/approval/matter context bundle을 생성한다.
+
+- workspace merge item마다 context card 생성
+- context card에 gate context, action-plan context, review contract, evidence context, approval context, matter context를 연결
+- actor별 context bundle과 `actors/<required_actor>/context.md` 생성
+- protected action은 context bundle 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 workspace merge 뒤, human gate receipt validation 전에 `npm run control-plane:review-context` 실행
+- Review Dashboard에 `human_review_context_bundle` stage와 actor/card/evidence/approval/matter/error summary 추가
+- Review API에서 `/api/human-review-context-bundles`, `/api/human-review-context-cards`, `/api/human-review-actor-context-bundles` route 제공
+- Goal Checkpoint에서 Human Review Context Bundle을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-context`
+- `src/human-review-context-bundle.mjs`
+- `schemas/human-review-context-bundle.schema.json`
+- `docs/human-review-context-bundle.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review context bundle artifact가 schema validation을 통과함
+- context card count가 workspace merge item count와 일치함
+- `/api/human-review-context-cards?context_status=ready`로 ready context card를 조회할 수 있음
+- `/api/human-review-actor-context-bundles?required_actor=attorney_or_designated_reviewer`로 actor별 context bundle을 조회할 수 있음
+- Dashboard summary가 actor context bundle, context card, evidence context, approval context, matter context, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-context`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

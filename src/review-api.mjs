@@ -948,6 +948,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-context-bundles") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "human_review_context_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("human_review_context_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_context_bundles", [bundleResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-context-cards") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "human_review_context_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("human_review_context_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_context_cards", bundleResult.artifact.context_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-context-bundles") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "human_review_context_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("human_review_context_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_context_bundles", bundleResult.artifact.actor_context_bundles ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1238,6 +1271,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-receipt-workspace-merges", "Human review receipt workspace merge artifacts"),
       route("GET", "/api/human-review-receipt-merge-items", "Merged human review receipt items"),
       route("GET", "/api/human-review-merged-receipt-input", "Merged receipt input rows generated from actor workspaces"),
+      route("GET", "/api/human-review-context-bundles", "Human review context bundle artifacts"),
+      route("GET", "/api/human-review-context-cards", "Human review decision context cards"),
+      route("GET", "/api/human-review-actor-context-bundles", "Actor-specific human review context bundles"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
@@ -1450,6 +1486,13 @@ function filterItems(items, searchParams) {
     "merge_item_id",
     "merge_status",
     "actor_input_id",
+    "bundle_id",
+    "bundle_status",
+    "actor_context_bundle_id",
+    "context_card_id",
+    "context_status",
+    "subject_type",
+    "subject_id",
     "template_row_present",
     "ready_for_validation",
     "receipt_status",
@@ -1477,6 +1520,8 @@ function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;
   if (key === "matrix_id") return item.policy_matrix?.matrix_id ?? item.matrix_id;
+  if (key === "subject_type") return item.subject_ref?.subject_type ?? item[key];
+  if (key === "subject_id") return item.subject_ref?.subject_id ?? item[key];
   return item[key];
 }
 

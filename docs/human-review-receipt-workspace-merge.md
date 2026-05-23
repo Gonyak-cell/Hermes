@@ -22,3 +22,5 @@ Safe handling:
 - Duplicate, missing, unknown, or actor-mismatched receipts block the merge before receipt application.
 
 This closes the loop between per-actor review folders and deterministic validation: humans can edit actor-local files, then the control plane merges them into the same receipt contract already enforced by the human gate receipt validator.
+
+After merge, run `npm run control-plane:review-context` before receipt validation when reviewers need a single packet tying each pending receipt to its gate, action-plan item, evidence span, approval item, and matter context.

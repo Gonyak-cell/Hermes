@@ -240,6 +240,15 @@
         "human_review_receipt_workspace_merge_ready_count",
         "human_review_receipt_workspace_merge_missing_count",
         "human_review_receipt_workspace_merge_validation_error_count",
+        "human_review_context_bundle_actor_count",
+        "human_review_context_bundle_card_count",
+        "human_review_context_bundle_pending_count",
+        "human_review_context_bundle_ready_count",
+        "human_review_context_bundle_attention_count",
+        "human_review_context_bundle_evidence_count",
+        "human_review_context_bundle_approval_count",
+        "human_review_context_bundle_matter_count",
+        "human_review_context_bundle_validation_error_count",
         "human_gate_receipt_validation_ready_count",
         "human_gate_receipt_validation_pending_count",
         "human_gate_receipt_validation_invalid_count",
@@ -1150,6 +1159,42 @@
           "minimum": 0
         },
         "human_review_receipt_workspace_merge_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_actor_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_card_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_attention_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_evidence_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_approval_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_matter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_context_bundle_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

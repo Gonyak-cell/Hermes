@@ -168,6 +168,17 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/delivery-actions") {
+    const queueResult = await readDashboardSourceArtifact(dashboard, "protected_delivery_queue");
+    if (!queueResult.available) {
+      return jsonResponse(503, buildError("protected_delivery_queue_unavailable", queueResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_actions", queueResult.artifact.delivery_actions ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -189,7 +200,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -213,6 +224,7 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runs", "Observability workflow run records"),
       route("GET", "/api/events", "Observability event records"),
       route("GET", "/api/costs", "Observability cost records"),
+      route("GET", "/api/delivery-actions", "Protected delivery action queue"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -266,6 +278,10 @@ function filterItems(items, searchParams) {
     "runtime_id",
     "event_type",
     "cost_type",
+    "delivery_action_id",
+    "delivery_status",
+    "delivery_channel",
+    "delivery_target",
     "enabled",
     "valid",
   ];

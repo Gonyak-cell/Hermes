@@ -15,6 +15,7 @@
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "creative-document:slice": "node scripts/run-creative-document-slice.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
+    "delivery:queue": "node scripts/protected-delivery-queue.mjs",
     "deal": "node scripts/deal-control.mjs examples/project-alpha-matter.json",
     "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",
     "dev:validate": "node scripts/validate-dev-projects.mjs examples/dev-projects.json",

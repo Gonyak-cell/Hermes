@@ -423,3 +423,32 @@
 - dashboard가 observability run/event/runtime summary를 표시함
 - `/api/runs?runtime_id=codex`와 `/api/events?event_type=approval.requested`로 실행 기록을 조회할 수 있음
 - `npm test`, `observability:catalog`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 19: Protected Delivery Queue
+
+목표: Output Artifact를 실제 전달/merge/email 후보로 정규화하되, 사람 승인과 gate가 끝나기 전까지 protected action으로 차단합니다.
+
+- Output Artifact Catalog를 입력으로 delivery action 생성
+- Observability Catalog의 run status와 runtime seconds로 action을 보강
+- artifact type/domain별 delivery target과 delivery channel 부여
+- approval pending, gate blocked, decision blocked, ready, delivered 상태를 유지
+- `protected-delivery-queue.json`과 `summary.md` 생성
+- Review Dashboard에 `protected_delivery_queue` stage와 delivery summary/action item 추가
+- Review API에서 `/api/delivery-actions` 읽기 전용 route 제공
+
+현재 구현:
+
+- `npm run delivery:queue`
+- `src/protected-delivery-queue.mjs`
+- `schemas/protected-delivery-queue.schema.json`
+- `docs/protected-delivery-queue.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- Law Firm, Personal Dev, Creative Document 산출물이 delivery action으로 정규화됨
+- approval pending과 blocking gate가 delivery blocker로 남음
+- dashboard가 delivery action count와 blocked/ready count를 표시함
+- `/api/delivery-actions?delivery_status=blocked_pending_approval`로 전달 차단 항목을 조회할 수 있음
+- `npm test`, `delivery:queue`, `dashboard:build`, `api:smoke`가 통과함

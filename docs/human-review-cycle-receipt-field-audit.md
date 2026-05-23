@@ -46,3 +46,7 @@ The Review API exposes:
 - `/api/human-review-cycle-field-audits`
 - `/api/human-review-cycle-field-audit-items`
 - `/api/human-review-actor-field-audits`
+
+Next stage:
+
+- `npm run control-plane:review-cycle:completion-pack` turns the pending field list into actor-specific manual completion templates.

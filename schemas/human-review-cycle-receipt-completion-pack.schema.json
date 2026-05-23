@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-pack.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Pack",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "completion_pack_id",
+    "output_dir",
+    "completion_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_completion_packs",
+    "completion_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-pack.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "completion_pack_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "completion_status": { "$ref": "#/$defs/status" },
+    "safe_handling": { "$ref": "#/$defs/top_safe_handling" },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "completion_status",
+        "source_available",
+        "source_field_audit_status",
+        "source_field_audit_item_count",
+        "source_actor_field_audit_count",
+        "actor_completion_pack_count",
+        "completion_item_count",
+        "ready_for_human_input_count",
+        "ready_for_validation_count",
+        "attention_count",
+        "blocked_count",
+        "target_file_count",
+        "template_field_prompt_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_gate_type",
+        "by_completion_status",
+        "by_priority"
+      ],
+      "properties": {
+        "completion_status": { "$ref": "#/$defs/status" },
+        "source_available": { "type": "boolean" },
+        "source_field_audit_status": { "type": ["string", "null"] },
+        "source_field_audit_item_count": { "type": "integer", "minimum": 0 },
+        "source_actor_field_audit_count": { "type": "integer", "minimum": 0 },
+        "actor_completion_pack_count": { "type": "integer", "minimum": 0 },
+        "completion_item_count": { "type": "integer", "minimum": 0 },
+        "ready_for_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "template_field_prompt_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_gate_type": { "type": "object" },
+        "by_completion_status": { "type": "object" },
+        "by_priority": { "type": "object" }
+      }
+    },
+    "actor_completion_packs": { "type": "array", "items": { "$ref": "#/$defs/actor_completion_pack" } },
+    "completion_items": { "type": "array", "items": { "$ref": "#/$defs/completion_item" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["clear", "ready_for_human_input", "ready_for_validation", "attention", "blocked"]
+    },
+    "priority": {
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_completion_pack": {
+      "type": "object",
+      "required": [
+        "actor_completion_pack_id",
+        "actor_field_audit_id",
+        "required_actor",
+        "completion_status",
+        "priority",
+        "completion_item_count",
+        "ready_for_human_input_count",
+        "ready_for_validation_count",
+        "attention_count",
+        "blocked_count",
+        "target_file_count",
+        "template_field_prompt_count",
+        "completion_item_ids",
+        "completion_pack_json_path",
+        "completion_pack_markdown_path",
+        "receipt_completion_template_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_completion_pack_id": { "type": "string" },
+        "actor_field_audit_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "completion_status": { "$ref": "#/$defs/status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "completion_item_count": { "type": "integer", "minimum": 0 },
+        "ready_for_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "template_field_prompt_count": { "type": "integer", "minimum": 0 },
+        "completion_item_ids": { "type": "array", "items": { "type": "string" } },
+        "completion_pack_json_path": { "type": "string" },
+        "completion_pack_markdown_path": { "type": "string" },
+        "receipt_completion_template_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/top_safe_handling" }
+      }
+    },
+    "completion_item": {
+      "type": "object",
+      "required": [
+        "completion_item_id",
+        "completion_rank",
+        "field_audit_item_id",
+        "console_item_id",
+        "gate_item_id",
+        "receipt_id",
+        "required_actor",
+        "gate_type",
+        "priority",
+        "completion_status",
+        "field_audit_status",
+        "protected_action",
+        "evidence_decision",
+        "target_receipt_input_path",
+        "receipt_row_present",
+        "pending_receipt",
+        "terminal_receipt",
+        "title",
+        "reason",
+        "required_receipt_fields",
+        "completed_required_fields",
+        "missing_required_field_values",
+        "template_field_prompt_count",
+        "field_prompts",
+        "completion_template_row",
+        "manual_next_action",
+        "next_actions",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "completion_item_id": { "type": "string" },
+        "completion_rank": { "type": "integer", "minimum": 1 },
+        "field_audit_item_id": { "type": "string" },
+        "console_item_id": { "type": "string" },
+        "gate_item_id": { "type": "string" },
+        "receipt_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "gate_type": { "type": "string" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "completion_status": { "$ref": "#/$defs/status" },
+        "field_audit_status": { "type": "string" },
+        "protected_action": { "type": "boolean" },
+        "evidence_decision": { "type": "boolean" },
+        "target_receipt_input_path": { "type": ["string", "null"] },
+        "receipt_row_present": { "type": "boolean" },
+        "pending_receipt": { "type": "boolean" },
+        "terminal_receipt": { "type": "boolean" },
+        "title": { "type": ["string", "null"] },
+        "reason": { "type": ["string", "null"] },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "completed_required_fields": { "type": "array", "items": { "type": "string" } },
+        "missing_required_field_values": { "type": "array", "items": { "type": "string" } },
+        "template_field_prompt_count": { "type": "integer", "minimum": 0 },
+        "field_prompts": { "type": "array", "items": { "$ref": "#/$defs/field_prompt" } },
+        "completion_template_row": { "$ref": "#/$defs/completion_template_row" },
+        "manual_next_action": { "type": "string" },
+        "next_actions": { "type": "array", "items": { "type": "string" } },
+        "source_refs": { "type": "object" },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "protected_actions_executed", "template_only", "receipt_edits_must_be_manual"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "protected_actions_executed": { "const": false },
+            "template_only": { "type": "boolean" },
+            "receipt_edits_must_be_manual": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "field_prompt": {
+      "type": "object",
+      "required": ["field_name", "expected_value_type", "allowed_values", "placeholder_value", "instruction"],
+      "properties": {
+        "field_name": { "type": "string" },
+        "expected_value_type": { "type": "string" },
+        "allowed_values": { "type": "array", "items": { "type": "string" } },
+        "placeholder_value": {
+          "anyOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } },
+            { "type": "null" }
+          ]
+        },
+        "instruction": { "type": "string" }
+      }
+    },
+    "completion_template_row": {
+      "type": "object",
+      "required": [
+        "receipt_id",
+        "gate_item_id",
+        "target_receipt_input_path",
+        "completion_status",
+        "fields_to_fill",
+        "allowed_outcomes",
+        "receipt_status_allowed_values",
+        "notes"
+      ],
+      "properties": {
+        "receipt_id": { "type": ["string", "null"] },
+        "gate_item_id": { "type": "string" },
+        "target_receipt_input_path": { "type": ["string", "null"] },
+        "completion_status": { "$ref": "#/$defs/status" },
+        "fields_to_fill": { "type": "object" },
+        "allowed_outcomes": { "type": "array", "items": { "type": "string" } },
+        "receipt_status_allowed_values": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" }
+      }
+    },
+    "top_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "template_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "template_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

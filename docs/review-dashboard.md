@@ -59,6 +59,7 @@ npm run dashboard:build -- \
   --human-review-cycle-triage artifacts/human-review-cycle-triage-inbox/latest/human-review-cycle-triage-inbox.json \
   --human-review-cycle-console artifacts/human-review-cycle-reviewer-console/latest/human-review-cycle-reviewer-console.json \
   --human-review-cycle-field-audit artifacts/human-review-cycle-receipt-field-audit/latest/human-review-cycle-receipt-field-audit.json \
+  --human-review-cycle-completion-pack artifacts/human-review-cycle-receipt-completion-pack/latest/human-review-cycle-receipt-completion-pack.json \
   --control-plane-human-gate-receipt-validation artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json \
   --control-plane-human-gate-receipt-application artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \

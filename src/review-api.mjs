@@ -1466,6 +1466,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-packs") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_packs", [packResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-items") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_items", packResult.artifact.completion_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-completion-packs") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_completion_packs", packResult.artifact.actor_completion_packs ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1781,6 +1814,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-field-audits", "Human review cycle receipt field audit artifacts"),
       route("GET", "/api/human-review-cycle-field-audit-items", "Human review cycle receipt field audit items"),
       route("GET", "/api/human-review-actor-field-audits", "Actor-specific human review receipt field audits"),
+      route("GET", "/api/human-review-cycle-completion-packs", "Human review cycle receipt completion pack artifacts"),
+      route("GET", "/api/human-review-cycle-completion-items", "Human review cycle receipt completion items"),
+      route("GET", "/api/human-review-actor-completion-packs", "Actor-specific human review receipt completion packs"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2031,6 +2067,15 @@ function filterItems(items, searchParams) {
     "console_item_id",
     "console_status",
     "console_rank",
+    "field_audit_id",
+    "actor_field_audit_id",
+    "field_audit_item_id",
+    "field_audit_status",
+    "completion_pack_id",
+    "actor_completion_pack_id",
+    "completion_item_id",
+    "completion_status",
+    "completion_rank",
     "correction_workspace_id",
     "actor_correction_workspace_id",
     "correction_item_id",

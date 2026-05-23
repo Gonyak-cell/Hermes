@@ -2089,3 +2089,40 @@
 - `/api/human-review-actor-field-audits?required_actor=attorney_or_designated_reviewer`로 actor별 field audit을 조회할 수 있음
 - Dashboard summary가 field audit actor, item, pending, ready, attention, missing field, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:field-audit`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 75: Human Review Cycle Receipt Completion Pack
+
+목표: Human Review Cycle Receipt Field Audit의 pending field 목록을 actor별 manual completion template로 변환해, 사람이 target receipt input을 안전하게 채울 수 있게 한다.
+
+- `Human Review Cycle Receipt Field Audit`을 입력으로 사용
+- field audit item별 missing required field value를 field prompt로 변환
+- receipt_status, outcome, command_result 등 선택값이 있는 필드는 allowed values와 placeholder를 함께 기록
+- actor별 `receipt-completion-template.json`과 Markdown completion pack을 생성
+- target `receipt-input.json`은 수정하지 않으며 template-only로 유지
+- protected action은 completion pack 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 receipt field audit 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-pack` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_pack` stage와 actor/item/template-field/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-packs`, `/api/human-review-cycle-completion-items`, `/api/human-review-actor-completion-packs` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Pack을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-pack`
+- `src/human-review-cycle-receipt-completion-pack.mjs`
+- `schemas/human-review-cycle-receipt-completion-pack.schema.json`
+- `docs/human-review-cycle-receipt-completion-pack.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt completion pack artifact가 schema validation을 통과함
+- completion item count가 field audit item count와 일치함
+- actor completion pack count가 actor field audit count와 일치함
+- pending receipt row는 `ready_for_human_input` completion item으로 변환됨
+- template field prompt count가 field audit missing required field value와 pending receipt의 terminal decision field를 함께 반영함
+- `/api/human-review-cycle-completion-items?completion_status=ready_for_human_input`으로 completion item을 조회할 수 있음
+- `/api/human-review-actor-completion-packs?required_actor=attorney_or_designated_reviewer`로 actor별 completion pack을 조회할 수 있음
+- Dashboard summary가 completion pack actor, item, ready human input, template field prompt, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-pack`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

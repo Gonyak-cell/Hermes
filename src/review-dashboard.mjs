@@ -57,6 +57,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCycleTriageInboxPath: "artifacts/human-review-cycle-triage-inbox/latest/human-review-cycle-triage-inbox.json",
   humanReviewCycleReviewerConsolePath: "artifacts/human-review-cycle-reviewer-console/latest/human-review-cycle-reviewer-console.json",
   humanReviewCycleReceiptFieldAuditPath: "artifacts/human-review-cycle-receipt-field-audit/latest/human-review-cycle-receipt-field-audit.json",
+  humanReviewCycleReceiptCompletionPackPath: "artifacts/human-review-cycle-receipt-completion-pack/latest/human-review-cycle-receipt-completion-pack.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -338,6 +339,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewCycleReceiptFieldAuditPath",
     source_id: "human_review_cycle_receipt_field_audit",
     label: "Human Review Cycle Receipt Field Audit",
+  },
+  {
+    option: "humanReviewCycleReceiptCompletionPackPath",
+    source_id: "human_review_cycle_receipt_completion_pack",
+    label: "Human Review Cycle Receipt Completion Pack",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -627,6 +633,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_cycle_triage_inbox") return data.summary ?? {};
   if (sourceId === "human_review_cycle_reviewer_console") return data.summary ?? {};
   if (sourceId === "human_review_cycle_receipt_field_audit") return data.summary ?? {};
+  if (sourceId === "human_review_cycle_receipt_completion_pack") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -724,6 +731,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCycleTriageInboxStage(artifacts.human_review_cycle_triage_inbox, sourceById.get("human_review_cycle_triage_inbox")),
     buildHumanReviewCycleReviewerConsoleStage(artifacts.human_review_cycle_reviewer_console, sourceById.get("human_review_cycle_reviewer_console")),
     buildHumanReviewCycleReceiptFieldAuditStage(artifacts.human_review_cycle_receipt_field_audit, sourceById.get("human_review_cycle_receipt_field_audit")),
+    buildHumanReviewCycleReceiptCompletionPackStage(artifacts.human_review_cycle_receipt_completion_pack, sourceById.get("human_review_cycle_receipt_completion_pack")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -2374,6 +2382,42 @@ function buildHumanReviewCycleReceiptFieldAuditStage(audit, source) {
   };
 }
 
+function buildHumanReviewCycleReceiptCompletionPackStage(pack, source) {
+  if (!pack) return missingStage("human_review_cycle_receipt_completion_pack", "Human Review Cycle Receipt Completion Pack", source);
+  const summary = pack.summary ?? {};
+  const errorCount = summary.validation_error_count ?? pack.validation?.errors?.length ?? 0;
+  const status = pack.completion_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : pack.completion_status === "attention" || (summary.attention_count ?? 0) > 0
+      ? "attention"
+      : (summary.ready_for_human_input_count ?? 0) > 0
+        ? "pending"
+        : (summary.ready_for_validation_count ?? 0) > 0
+          ? "ready"
+          : "passed";
+  return {
+    stage_id: "human_review_cycle_receipt_completion_pack",
+    label: "Human Review Cycle Receipt Completion Pack",
+    status,
+    message: `${summary.actor_completion_pack_count ?? 0} actor pack(s), ${summary.completion_item_count ?? 0} item(s), ${summary.template_field_prompt_count ?? 0} field prompt(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      completion_status: pack.completion_status ?? "unknown",
+      actor_completion_pack_count: summary.actor_completion_pack_count ?? 0,
+      completion_item_count: summary.completion_item_count ?? 0,
+      ready_for_human_input_count: summary.ready_for_human_input_count ?? 0,
+      ready_for_validation_count: summary.ready_for_validation_count ?? 0,
+      attention_count: summary.attention_count ?? 0,
+      blocked_count: summary.blocked_count ?? 0,
+      target_file_count: summary.target_file_count ?? 0,
+      template_field_prompt_count: summary.template_field_prompt_count ?? 0,
+      protected_action_count: summary.protected_action_count ?? 0,
+      evidence_decision_count: summary.evidence_decision_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -3228,6 +3272,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_cycle_receipt_completion_pack?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_cycle_receipt_completion_pack";
+    items.push({
+      action_item_id: `dashboard.action.human_review_cycle_receipt_completion_pack.${slugify(subjectId)}`,
+      source_stage: "human_review_cycle_receipt_completion_pack",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review cycle receipt completion pack",
+      subject_ref: {
+        subject_type: "human_review_cycle_receipt_completion_pack_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_cycle_receipt_field_audit", "rerun_human_review_cycle_receipt_completion_pack"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -3970,6 +4032,14 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_cycle_field_audit_missing_field_count: artifacts.human_review_cycle_receipt_field_audit?.summary?.missing_required_field_count ?? 0,
     human_review_cycle_field_audit_missing_row_count: artifacts.human_review_cycle_receipt_field_audit?.summary?.missing_receipt_row_count ?? 0,
     human_review_cycle_field_audit_validation_error_count: artifacts.human_review_cycle_receipt_field_audit?.summary?.validation_error_count ?? artifacts.human_review_cycle_receipt_field_audit?.validation?.errors?.length ?? 0,
+    human_review_cycle_completion_pack_actor_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.actor_completion_pack_count ?? 0,
+    human_review_cycle_completion_pack_item_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.completion_item_count ?? 0,
+    human_review_cycle_completion_pack_ready_input_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.ready_for_human_input_count ?? 0,
+    human_review_cycle_completion_pack_ready_validation_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.ready_for_validation_count ?? 0,
+    human_review_cycle_completion_pack_attention_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.attention_count ?? 0,
+    human_review_cycle_completion_pack_blocked_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.blocked_count ?? 0,
+    human_review_cycle_completion_pack_template_field_prompt_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.template_field_prompt_count ?? 0,
+    human_review_cycle_completion_pack_validation_error_count: artifacts.human_review_cycle_receipt_completion_pack?.summary?.validation_error_count ?? artifacts.human_review_cycle_receipt_completion_pack?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -4506,6 +4576,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-cycle-console") parsed.humanReviewCycleReviewerConsolePath = false;
     else if (arg === "--human-review-cycle-field-audit") parsed.humanReviewCycleReceiptFieldAuditPath = argv[++index];
     else if (arg === "--no-human-review-cycle-field-audit") parsed.humanReviewCycleReceiptFieldAuditPath = false;
+    else if (arg === "--human-review-cycle-completion-pack") parsed.humanReviewCycleReceiptCompletionPackPath = argv[++index];
+    else if (arg === "--no-human-review-cycle-completion-pack") parsed.humanReviewCycleReceiptCompletionPackPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -4659,6 +4731,10 @@ Options:
                                   human-review-cycle-receipt-field-audit.json path.
   --no-human-review-cycle-field-audit
                                   Do not include Human Review Cycle Receipt Field Audit status.
+  --human-review-cycle-completion-pack <path>
+                                  human-review-cycle-receipt-completion-pack.json path.
+  --no-human-review-cycle-completion-pack
+                                  Do not include Human Review Cycle Receipt Completion Pack status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

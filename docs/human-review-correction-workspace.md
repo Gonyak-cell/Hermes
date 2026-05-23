@@ -32,3 +32,9 @@ Safe handling:
 - It does not execute protected delivery, merge, ERP, or external actions.
 
 This gives each reviewer a small editable file instead of asking them to work from a large global receipt input.
+
+After actor correction inputs are filled, merge them back into a single validation input with:
+
+```bash
+npm run control-plane:review-corrections:merge
+```

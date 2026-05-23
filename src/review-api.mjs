@@ -1147,6 +1147,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-correction-workspace-merges") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_workspace_merges", [mergeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-merge-actors") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_merge_actors", mergeResult.artifact.actor_inputs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-merge-items") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_merge_items", mergeResult.artifact.merge_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-merged-correction-receipt-input") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_merged_correction_receipt_input", mergeResult.artifact.receipt_input?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1433,6 +1477,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-correction-actors", "Actor-specific human review correction workspaces"),
       route("GET", "/api/human-review-correction-items", "Human review correction workspace items"),
       route("GET", "/api/human-review-correction-receipt-input", "Editable correction receipt input rows"),
+      route("GET", "/api/human-review-correction-workspace-merges", "Human review correction workspace merge artifacts"),
+      route("GET", "/api/human-review-correction-merge-actors", "Actor correction receipt inputs included in the correction merge"),
+      route("GET", "/api/human-review-correction-merge-items", "Merged human review correction receipt items"),
+      route("GET", "/api/human-review-merged-correction-receipt-input", "Merged correction receipt input rows"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

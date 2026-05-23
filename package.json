@@ -37,6 +37,7 @@
     "control-plane:review-decisions:merge": "node scripts/human-review-decision-register-merge.mjs",
     "control-plane:review-feedback": "node scripts/human-review-validation-feedback.mjs",
     "control-plane:review-corrections": "node scripts/human-review-correction-workspace.mjs",
+    "control-plane:review-corrections:merge": "node scripts/human-review-correction-workspace-merge.mjs",
     "control-plane:loop": "node scripts/control-plane-loop.mjs",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",

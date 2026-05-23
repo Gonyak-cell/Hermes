@@ -1774,3 +1774,38 @@
 - `/api/human-review-correction-receipt-input?receipt_status=pending`으로 editable correction receipt row를 조회할 수 있음
 - Dashboard summary가 actor workspace, correction item, receipt row, pending, correction, editable file, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-corrections`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 66: Human Review Correction Workspace Merge
+
+목표: actor별 correction receipt input을 하나의 표준 human gate receipt input으로 병합해 validation loop에 다시 넣을 수 있게 한다.
+
+- `Human Review Correction Workspace`의 actor별 `receipt-input.json`을 읽음
+- correction item을 기대 목록으로 삼아 receipt id, actor, gate item, source plan item, gate type을 검증
+- missing, duplicate, unknown, invalid correction receipt를 분리해 merge item status로 기록
+- 병합된 `receipt-input.json`은 표준 `control-plane-human-gate-receipts-input.v1` 형식으로 생성
+- protected action은 merge 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 correction workspace 뒤, receipt application 전에 `npm run control-plane:review-corrections:merge` 실행
+- Review Dashboard에 `human_review_correction_workspace_merge` stage와 actor/receipt/pending/ready/error summary 추가
+- Review API에서 `/api/human-review-correction-workspace-merges`, `/api/human-review-correction-merge-actors`, `/api/human-review-correction-merge-items`, `/api/human-review-merged-correction-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Correction Workspace Merge를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-corrections:merge`
+- `src/human-review-correction-workspace-merge.mjs`
+- `schemas/human-review-correction-workspace-merge.schema.json`
+- `docs/human-review-correction-workspace-merge.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review correction workspace merge artifact가 schema validation을 통과함
+- actor input count가 correction workspace actor count와 일치함
+- merged receipt row count가 correction workspace correction item count와 일치함
+- duplicate, missing, unknown, invalid correction receipt count가 0임
+- `/api/human-review-correction-merge-items?merge_status=pending_receipt`로 pending correction merge item을 조회할 수 있음
+- `/api/human-review-merged-correction-receipt-input?receipt_status=pending`으로 validation에 넘길 merged correction receipt row를 조회할 수 있음
+- Dashboard summary가 actor input, receipt row, pending, ready, missing, invalid, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-corrections:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

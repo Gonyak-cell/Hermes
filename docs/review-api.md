@@ -135,6 +135,10 @@ npm run api:serve
 - `GET /api/human-review-correction-actors`: required actor별 correction workspace
 - `GET /api/human-review-correction-items`: actor별 correction item
 - `GET /api/human-review-correction-receipt-input`: editable correction receipt input row
+- `GET /api/human-review-correction-workspace-merges`: actor correction receipt input merge artifact
+- `GET /api/human-review-correction-merge-actors`: correction merge에 포함된 actor input
+- `GET /api/human-review-correction-merge-items`: merge된 correction receipt item
+- `GET /api/human-review-merged-correction-receipt-input`: validation에 넘길 merged correction receipt input row
 - `GET /api/validated-human-gate-receipts`: 향후 적용 가능한 검증 완료 human gate receipt
 - `GET /api/human-gate-receipt-applications`: human gate receipt application artifact
 - `GET /api/applied-human-gate-receipts`: 적용된 human gate receipt

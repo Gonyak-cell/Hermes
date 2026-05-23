@@ -33,6 +33,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_decision_register_merge", "Human review decision register merge", "gate_approval", "human_review_decision_register_merge", "control-plane-human-review-decision-register-merge", { acceptance_profile: "human_review_decision_register_merge_gate" }),
   sourceItem("human_review_validation_feedback", "Human review validation feedback", "gate_approval", "human_review_validation_feedback", "control-plane-human-review-validation-feedback", { acceptance_profile: "human_review_validation_feedback_gate" }),
   sourceItem("human_review_correction_workspace", "Human review correction workspace", "gate_approval", "human_review_correction_workspace", "control-plane-human-review-correction-workspace", { acceptance_profile: "human_review_correction_workspace_gate" }),
+  sourceItem("human_review_correction_workspace_merge", "Human review correction workspace merge", "gate_approval", "human_review_correction_workspace_merge", "control-plane-human-review-correction-workspace-merge", { acceptance_profile: "human_review_correction_workspace_merge_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -377,6 +378,12 @@ function evaluateStageAcceptance(item, stage) {
   if (item.acceptance_profile === "human_review_correction_workspace_gate") {
     if ((metrics.actor_workspace_count ?? 0) > 0 && (metrics.correction_item_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
       return passedWithOperationalGate(stage, "Human review correction workspace is implemented and preparing actor-editable correction receipt inputs.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_correction_workspace_merge_gate") {
+    if ((metrics.actor_input_count ?? 0) > 0 && (metrics.receipt_row_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
+      return passedWithOperationalGate(stage, "Human review correction workspace merge is implemented and recombining actor correction receipt inputs for validation.");
     }
   }
 

@@ -26,6 +26,12 @@ feedback을 actor별 editable correction receipt input으로 바꾸려면 이어
 npm run control-plane:review-corrections
 ```
 
+correction workspace actor input을 다시 validation input으로 합치려면 merge 단계를 실행한다.
+
+```bash
+npm run control-plane:review-corrections:merge
+```
+
 옵션:
 
 ```bash
@@ -58,6 +64,9 @@ Dashboard는 `control_plane_human_gate_receipt_validation` stage를 표시한다
 - `GET /api/human-gate-receipt-errors`
 - `GET /api/human-review-validation-feedbacks`
 - `GET /api/human-review-feedback-items`
+- `GET /api/human-review-correction-workspace-merges`
+- `GET /api/human-review-correction-merge-items`
+- `GET /api/human-review-merged-correction-receipt-input`
 - `GET /api/human-review-actor-feedback`
 - `GET /api/human-review-correction-workspaces`
 - `GET /api/human-review-correction-actors`

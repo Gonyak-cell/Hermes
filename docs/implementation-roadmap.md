@@ -2204,3 +2204,42 @@
 - `/api/human-review-actor-completion-workbenches?required_actor=attorney_or_designated_reviewer`로 actor별 workbench를 조회할 수 있음
 - Dashboard summary가 completion workbench actor, item, pending prompt, template count, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-workbench`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 78: Human Review Cycle Receipt Completion Runbook
+
+목표: Human Review Cycle Receipt Completion Workbench의 pending human input 상태를 사람이 그대로 실행할 수 있는 read-only runbook으로 고정한다.
+
+- `Human Review Cycle Receipt Completion Workbench`와 `Human Review Cycle Receipt Completion Verification`을 입력으로 사용
+- actor별 runbook과 전체 command/manual step list를 생성
+- completion workbench, actor template, target receipt input, 후속 검증 명령의 순서를 명시
+- target `receipt-input.json`은 수정하지 않으며 runbook-only로 유지
+- protected action은 runbook 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- protected application command는 기록만 하며 explicit human approval 없이는 실행 대상으로 보지 않음
+- Control Plane Loop에서 completion workbench 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-runbook` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_runbook` stage와 actor/step/manual/command/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-runbooks`, `/api/human-review-cycle-completion-runbook-steps`, `/api/human-review-actor-completion-runbooks` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Runbook을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-runbook`
+- `src/human-review-cycle-receipt-completion-runbook.mjs`
+- `schemas/human-review-cycle-receipt-completion-runbook.schema.json`
+- `docs/human-review-cycle-receipt-completion-runbook.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt completion runbook artifact가 schema validation을 통과함
+- actor runbook count가 actor workbench count와 일치함
+- workbench item count가 completion workbench item count와 일치함
+- manual step과 command step이 모두 존재함
+- actor별 workbench HTML과 completion template path가 연결됨
+- pending receipt row는 `pending_human_input` runbook status로 유지됨
+- 전체 HTML과 actor별 HTML runbook이 생성됨
+- `/api/human-review-cycle-completion-runbook-steps?step_status=pending_human_input`으로 pending runbook step을 조회할 수 있음
+- `/api/human-review-actor-completion-runbooks?required_actor=attorney_or_designated_reviewer`로 actor별 runbook을 조회할 수 있음
+- Dashboard summary가 completion runbook actor, step, command, manual, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-runbook`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

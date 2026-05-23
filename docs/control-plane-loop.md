@@ -47,6 +47,7 @@ npm run control-plane:loop
 - `npm run control-plane:review-cycle:completion-pack`
 - `npm run control-plane:review-cycle:completion-verify`
 - `npm run control-plane:review-cycle:completion-workbench`
+- `npm run control-plane:review-cycle:completion-runbook`
 - `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`
 - `npm run control-plane:work-receipts`

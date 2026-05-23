@@ -140,6 +140,7 @@ npm run dashboard:build -- \
 - Human Review Cycle Receipt Completion Pack의 actor별 manual completion template 상태
 - Human Review Cycle Receipt Completion Verification의 수동 receipt 입력 반영 여부와 prompt field 상태
 - Human Review Cycle Receipt Completion Workbench의 actor별 manual input 작업판과 template link 상태
+- Human Review Cycle Receipt Completion Runbook의 manual/command step과 actor별 후속 실행 순서 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값

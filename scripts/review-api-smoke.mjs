@@ -152,6 +152,15 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-packs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-verifications"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-verification-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-verifications"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-workbenches"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-workbench-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-workbenches"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-runbooks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-runbook-steps"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-runbooks"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -618,6 +627,18 @@ try {
   const humanReviewActorCompletionWorkbenches = await fetchJson(`${url}/api/human-review-actor-completion-workbenches?required_actor=attorney_or_designated_reviewer&limit=5`);
   assert.equal(humanReviewActorCompletionWorkbenches.collection, "human_review_actor_completion_workbenches");
   assert.ok(humanReviewActorCompletionWorkbenches.count <= 5);
+
+  const humanReviewCycleCompletionRunbooks = await fetchJson(`${url}/api/human-review-cycle-completion-runbooks?runbook_status=pending_human_input&limit=1`);
+  assert.equal(humanReviewCycleCompletionRunbooks.collection, "human_review_cycle_completion_runbooks");
+  assert.ok(humanReviewCycleCompletionRunbooks.count <= 1);
+
+  const humanReviewCycleCompletionRunbookSteps = await fetchJson(`${url}/api/human-review-cycle-completion-runbook-steps?step_status=pending_human_input&limit=5`);
+  assert.equal(humanReviewCycleCompletionRunbookSteps.collection, "human_review_cycle_completion_runbook_steps");
+  assert.ok(humanReviewCycleCompletionRunbookSteps.count <= 5);
+
+  const humanReviewActorCompletionRunbooks = await fetchJson(`${url}/api/human-review-actor-completion-runbooks?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewActorCompletionRunbooks.collection, "human_review_actor_completion_runbooks");
+  assert.ok(humanReviewActorCompletionRunbooks.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

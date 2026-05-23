@@ -49,6 +49,7 @@
     "control-plane:review-cycle:completion-pack": "node scripts/human-review-cycle-receipt-completion-pack.mjs",
     "control-plane:review-cycle:completion-verify": "node scripts/human-review-cycle-receipt-completion-verification.mjs",
     "control-plane:review-cycle:completion-workbench": "node scripts/human-review-cycle-receipt-completion-workbench.mjs",
+    "control-plane:review-cycle:completion-runbook": "node scripts/human-review-cycle-receipt-completion-runbook.mjs",
     "control-plane:loop": "node scripts/control-plane-loop.mjs",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",

@@ -41,4 +41,6 @@ Files:
 2. Open the linked `receipt-completion-template.json`.
 3. Manually edit only the linked target `receipt-input.json`.
 4. Rerun `npm run control-plane:review-cycle:completion-verify`.
-5. If verification becomes `ready_for_validation`, rerun correction merge and validation before any application.
+5. Rerun `npm run control-plane:review-cycle:completion-workbench`.
+6. Rerun `npm run control-plane:review-cycle:completion-runbook`.
+7. If verification becomes `ready_for_validation`, rerun correction merge and validation before any application.

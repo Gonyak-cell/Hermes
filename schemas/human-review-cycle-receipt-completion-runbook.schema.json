@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-runbook.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Runbook",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "runbook_id",
+    "output_dir",
+    "runbook_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_runbooks",
+    "runbook_steps",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-runbook.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "runbook_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "runbook_status": { "$ref": "#/$defs/status" },
+    "safe_handling": { "$ref": "#/$defs/top_safe_handling" },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "runbook_status",
+        "source_available",
+        "source_workbench_status",
+        "source_verification_status",
+        "source_workbench_item_count",
+        "source_actor_workbench_count",
+        "actor_runbook_count",
+        "runbook_step_count",
+        "workbench_item_count",
+        "pending_human_input_count",
+        "ready_for_validation_count",
+        "attention_count",
+        "blocked_count",
+        "target_file_count",
+        "field_prompt_count",
+        "completed_prompt_count",
+        "pending_prompt_count",
+        "invalid_prompt_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "command_step_count",
+        "manual_step_count",
+        "protected_step_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_step_type",
+        "by_step_status",
+        "by_priority"
+      ],
+      "properties": {
+        "runbook_status": { "$ref": "#/$defs/status" },
+        "source_available": { "type": "boolean" },
+        "source_workbench_status": { "type": ["string", "null"] },
+        "source_verification_status": { "type": ["string", "null"] },
+        "source_workbench_item_count": { "type": "integer", "minimum": 0 },
+        "source_actor_workbench_count": { "type": "integer", "minimum": 0 },
+        "actor_runbook_count": { "type": "integer", "minimum": 0 },
+        "runbook_step_count": { "type": "integer", "minimum": 0 },
+        "workbench_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "field_prompt_count": { "type": "integer", "minimum": 0 },
+        "completed_prompt_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "invalid_prompt_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "command_step_count": { "type": "integer", "minimum": 0 },
+        "manual_step_count": { "type": "integer", "minimum": 0 },
+        "protected_step_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_step_type": { "type": "object" },
+        "by_step_status": { "type": "object" },
+        "by_priority": { "type": "object" }
+      }
+    },
+    "actor_runbooks": { "type": "array", "items": { "$ref": "#/$defs/actor_runbook" } },
+    "runbook_steps": { "type": "array", "items": { "$ref": "#/$defs/runbook_step" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["clear", "pending_human_input", "ready_for_validation", "attention", "blocked"]
+    },
+    "priority": {
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "step_type": {
+      "enum": ["manual", "command", "protected_manual"]
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_runbook": {
+      "type": "object",
+      "required": [
+        "actor_runbook_id",
+        "actor_workbench_id",
+        "required_actor",
+        "runbook_status",
+        "priority",
+        "workbench_item_count",
+        "pending_human_input_count",
+        "ready_for_validation_count",
+        "attention_count",
+        "blocked_count",
+        "target_file_count",
+        "field_prompt_count",
+        "completed_prompt_count",
+        "pending_prompt_count",
+        "invalid_prompt_count",
+        "command_step_count",
+        "manual_step_count",
+        "protected_step_count",
+        "workbench_item_ids",
+        "pending_fields",
+        "workbench_html_path",
+        "workbench_markdown_path",
+        "receipt_completion_template_path",
+        "completion_runbook_json_path",
+        "completion_runbook_markdown_path",
+        "completion_runbook_html_path",
+        "next_command_sequence",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_runbook_id": { "type": "string" },
+        "actor_workbench_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "runbook_status": { "$ref": "#/$defs/status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "workbench_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "field_prompt_count": { "type": "integer", "minimum": 0 },
+        "completed_prompt_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "invalid_prompt_count": { "type": "integer", "minimum": 0 },
+        "command_step_count": { "type": "integer", "minimum": 0 },
+        "manual_step_count": { "type": "integer", "minimum": 0 },
+        "protected_step_count": { "type": "integer", "minimum": 0 },
+        "workbench_item_ids": { "type": "array", "items": { "type": "string" } },
+        "pending_fields": { "type": "array", "items": { "type": "string" } },
+        "workbench_html_path": { "type": ["string", "null"] },
+        "workbench_markdown_path": { "type": ["string", "null"] },
+        "receipt_completion_template_path": { "type": ["string", "null"] },
+        "completion_runbook_json_path": { "type": "string" },
+        "completion_runbook_markdown_path": { "type": "string" },
+        "completion_runbook_html_path": { "type": "string" },
+        "next_command_sequence": { "type": "array", "items": { "type": "object" } },
+        "safe_handling": { "$ref": "#/$defs/top_safe_handling" }
+      }
+    },
+    "runbook_step": {
+      "type": "object",
+      "required": [
+        "runbook_step_id",
+        "step_rank",
+        "step_key",
+        "step_type",
+        "step_status",
+        "instruction",
+        "command",
+        "command_may_be_run_by_human",
+        "requires_explicit_human_approval",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "runbook_step_id": { "type": "string" },
+        "step_rank": { "type": "integer", "minimum": 1 },
+        "step_key": { "type": "string" },
+        "step_type": { "$ref": "#/$defs/step_type" },
+        "step_status": { "$ref": "#/$defs/status" },
+        "instruction": { "type": "string" },
+        "command": { "type": ["string", "null"] },
+        "command_may_be_run_by_human": { "type": "boolean" },
+        "requires_explicit_human_approval": { "type": "boolean" },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "$ref": "#/$defs/step_safe_handling" }
+      }
+    },
+    "top_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "runbook_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "const": true },
+        "runbook_only": { "const": true },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "step_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "runbook_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "runbook_only": { "const": true },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

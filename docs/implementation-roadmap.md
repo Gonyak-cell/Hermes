@@ -2126,3 +2126,43 @@
 - `/api/human-review-actor-completion-packs?required_actor=attorney_or_designated_reviewer`로 actor별 completion pack을 조회할 수 있음
 - Dashboard summary가 completion pack actor, item, ready human input, template field prompt, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-pack`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 76: Human Review Cycle Receipt Completion Verification
+
+목표: Human Review Cycle Receipt Completion Pack의 actor별 template가 실제 target receipt input row에 수동 반영되었는지 read-only로 검증한다.
+
+- `Human Review Cycle Receipt Completion Pack`을 입력으로 사용
+- completion item별 `target_receipt_input_path`와 `receipt_id` 또는 `gate_item_id`로 실제 receipt row를 다시 읽음
+- 각 field prompt의 실제 값을 `complete`, `pending`, `invalid`로 판정
+- `receipt_status`, `outcome`, `command_result`, `decided_at` 등 terminal decision field의 allowed value와 형식을 검증
+- pending/empty/placeholder 값은 validation error가 아니라 `pending_human_input`으로 표시
+- missing target file/row는 structural validation error와 `blocked` 상태로 표시
+- target `receipt-input.json`은 수정하지 않으며 verification-only로 유지
+- protected action은 verification 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 completion pack 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-verify` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_verification` stage와 actor/item/pending/ready/prompt/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-verifications`, `/api/human-review-cycle-completion-verification-items`, `/api/human-review-actor-completion-verifications` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Verification을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-verify`
+- `src/human-review-cycle-receipt-completion-verification.mjs`
+- `schemas/human-review-cycle-receipt-completion-verification.schema.json`
+- `docs/human-review-cycle-receipt-completion-verification.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt completion verification artifact가 schema validation을 통과함
+- verification item count가 completion pack item count와 일치함
+- actor verification count가 actor completion pack count와 일치함
+- pending target receipt row는 `pending_human_input` verification item으로 유지됨
+- field prompt count가 completion pack template field prompt count와 일치함
+- missing target file/row가 없으면 validation error가 0임
+- `/api/human-review-cycle-completion-verification-items?verification_status=pending_human_input`으로 pending verification item을 조회할 수 있음
+- `/api/human-review-actor-completion-verifications?required_actor=attorney_or_designated_reviewer`로 actor별 verification을 조회할 수 있음
+- Dashboard summary가 completion verification actor, item, pending input, pending prompt, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-verify`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

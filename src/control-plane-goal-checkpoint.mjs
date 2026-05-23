@@ -43,6 +43,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_reviewer_console", "Human review cycle reviewer console", "gate_approval", "human_review_cycle_reviewer_console", "control-plane-human-review-cycle-reviewer-console", { acceptance_profile: "human_review_cycle_reviewer_console_gate" }),
   sourceItem("human_review_cycle_receipt_field_audit", "Human review cycle receipt field audit", "gate_approval", "human_review_cycle_receipt_field_audit", "control-plane-human-review-cycle-receipt-field-audit", { acceptance_profile: "human_review_cycle_receipt_field_audit_gate" }),
   sourceItem("human_review_cycle_receipt_completion_pack", "Human review cycle receipt completion pack", "gate_approval", "human_review_cycle_receipt_completion_pack", "control-plane-human-review-cycle-receipt-completion-pack", { acceptance_profile: "human_review_cycle_receipt_completion_pack_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_verification", "Human review cycle receipt completion verification", "gate_approval", "human_review_cycle_receipt_completion_verification", "control-plane-human-review-cycle-receipt-completion-verification", { acceptance_profile: "human_review_cycle_receipt_completion_verification_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -453,6 +454,15 @@ function evaluateStageAcceptance(item, stage) {
     const errors = (metrics.validation_error_count ?? 0) + (metrics.blocked_count ?? 0);
     if ((metrics.completion_item_count ?? 0) > 0 && (metrics.actor_completion_pack_count ?? 0) > 0 && (metrics.template_field_prompt_count ?? 0) > 0 && errors === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion pack is implemented and preparing actor-specific manual receipt completion templates.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_verification_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.blocked_count ?? 0) + (metrics.missing_receipt_row_count ?? 0);
+    const hasVerificationItems = (metrics.verification_item_count ?? 0) > 0 && (metrics.actor_verification_count ?? 0) > 0;
+    const hasPromptAccounting = (metrics.field_prompt_count ?? 0) > 0 && ((metrics.pending_prompt_count ?? 0) + (metrics.completed_prompt_count ?? 0)) > 0;
+    if (hasVerificationItems && hasPromptAccounting && errors === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion verification is implemented and checking manual receipt input completion without editing receipts.");
     }
   }
 

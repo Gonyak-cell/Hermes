@@ -1,0 +1,296 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-verification.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Verification",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "verification_id",
+    "output_dir",
+    "verification_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_verifications",
+    "verification_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-verification.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "verification_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "verification_status": { "$ref": "#/$defs/status" },
+    "safe_handling": { "$ref": "#/$defs/top_safe_handling" },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "verification_status",
+        "source_available",
+        "source_completion_status",
+        "source_completion_item_count",
+        "source_actor_completion_pack_count",
+        "actor_verification_count",
+        "verification_item_count",
+        "pending_human_input_count",
+        "ready_for_validation_count",
+        "attention_count",
+        "blocked_count",
+        "target_file_count",
+        "receipt_row_count",
+        "missing_receipt_row_count",
+        "field_prompt_count",
+        "completed_prompt_count",
+        "pending_prompt_count",
+        "invalid_prompt_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_gate_type",
+        "by_verification_status",
+        "by_priority"
+      ],
+      "properties": {
+        "verification_status": { "$ref": "#/$defs/status" },
+        "source_available": { "type": "boolean" },
+        "source_completion_status": { "type": ["string", "null"] },
+        "source_completion_item_count": { "type": "integer", "minimum": 0 },
+        "source_actor_completion_pack_count": { "type": "integer", "minimum": 0 },
+        "actor_verification_count": { "type": "integer", "minimum": 0 },
+        "verification_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "receipt_row_count": { "type": "integer", "minimum": 0 },
+        "missing_receipt_row_count": { "type": "integer", "minimum": 0 },
+        "field_prompt_count": { "type": "integer", "minimum": 0 },
+        "completed_prompt_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "invalid_prompt_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_gate_type": { "type": "object" },
+        "by_verification_status": { "type": "object" },
+        "by_priority": { "type": "object" }
+      }
+    },
+    "actor_verifications": { "type": "array", "items": { "$ref": "#/$defs/actor_verification" } },
+    "verification_items": { "type": "array", "items": { "$ref": "#/$defs/verification_item" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "status": {
+      "enum": ["clear", "pending_human_input", "ready_for_validation", "attention", "blocked"]
+    },
+    "field_status": {
+      "enum": ["complete", "pending", "invalid"]
+    },
+    "priority": {
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_verification": {
+      "type": "object",
+      "required": [
+        "actor_verification_id",
+        "actor_completion_pack_id",
+        "required_actor",
+        "verification_status",
+        "priority",
+        "verification_item_count",
+        "pending_human_input_count",
+        "ready_for_validation_count",
+        "attention_count",
+        "blocked_count",
+        "target_file_count",
+        "receipt_row_count",
+        "missing_receipt_row_count",
+        "field_prompt_count",
+        "completed_prompt_count",
+        "pending_prompt_count",
+        "invalid_prompt_count",
+        "verification_item_ids",
+        "verification_json_path",
+        "verification_markdown_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_verification_id": { "type": "string" },
+        "actor_completion_pack_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "verification_status": { "$ref": "#/$defs/status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "verification_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "receipt_row_count": { "type": "integer", "minimum": 0 },
+        "missing_receipt_row_count": { "type": "integer", "minimum": 0 },
+        "field_prompt_count": { "type": "integer", "minimum": 0 },
+        "completed_prompt_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "invalid_prompt_count": { "type": "integer", "minimum": 0 },
+        "verification_item_ids": { "type": "array", "items": { "type": "string" } },
+        "verification_json_path": { "type": "string" },
+        "verification_markdown_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/top_safe_handling" }
+      }
+    },
+    "verification_item": {
+      "type": "object",
+      "required": [
+        "verification_item_id",
+        "verification_rank",
+        "completion_item_id",
+        "field_audit_item_id",
+        "console_item_id",
+        "gate_item_id",
+        "receipt_id",
+        "required_actor",
+        "gate_type",
+        "priority",
+        "verification_status",
+        "completion_status",
+        "protected_action",
+        "evidence_decision",
+        "target_receipt_input_path",
+        "target_file_available",
+        "target_file_error",
+        "receipt_row_present",
+        "source_receipt_row_present",
+        "field_prompt_count",
+        "completed_prompt_count",
+        "pending_prompt_count",
+        "invalid_prompt_count",
+        "field_results",
+        "actual_receipt_status",
+        "actual_outcome",
+        "completion_applied",
+        "manual_next_action",
+        "next_actions",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "verification_item_id": { "type": "string" },
+        "verification_rank": { "type": "integer", "minimum": 1 },
+        "completion_item_id": { "type": "string" },
+        "field_audit_item_id": { "type": "string" },
+        "console_item_id": { "type": "string" },
+        "gate_item_id": { "type": "string" },
+        "receipt_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "gate_type": { "type": "string" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "verification_status": { "$ref": "#/$defs/status" },
+        "completion_status": { "type": "string" },
+        "protected_action": { "type": "boolean" },
+        "evidence_decision": { "type": "boolean" },
+        "target_receipt_input_path": { "type": ["string", "null"] },
+        "target_file_available": { "type": "boolean" },
+        "target_file_error": { "type": ["string", "null"] },
+        "receipt_row_present": { "type": "boolean" },
+        "source_receipt_row_present": { "type": "boolean" },
+        "field_prompt_count": { "type": "integer", "minimum": 0 },
+        "completed_prompt_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "invalid_prompt_count": { "type": "integer", "minimum": 0 },
+        "field_results": { "type": "array", "items": { "$ref": "#/$defs/field_result" } },
+        "actual_receipt_status": { "type": ["string", "null"] },
+        "actual_outcome": { "type": ["string", "null"] },
+        "completion_applied": { "type": "boolean" },
+        "manual_next_action": { "type": "string" },
+        "next_actions": { "type": "array", "items": { "type": "string" } },
+        "source_refs": { "type": "object" },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "protected_actions_executed", "verification_only", "receipt_edits_must_be_manual"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "protected_actions_executed": { "const": false },
+            "verification_only": { "type": "boolean" },
+            "receipt_edits_must_be_manual": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "field_result": {
+      "type": "object",
+      "required": [
+        "field_name",
+        "expected_value_type",
+        "allowed_values",
+        "placeholder_value",
+        "actual_value_preview",
+        "field_status",
+        "reason"
+      ],
+      "properties": {
+        "field_name": { "type": "string" },
+        "expected_value_type": { "type": "string" },
+        "allowed_values": { "type": "array", "items": { "type": "string" } },
+        "placeholder_value": {
+          "anyOf": [
+            { "type": "string" },
+            { "type": "array", "items": { "type": "string" } },
+            { "type": "null" }
+          ]
+        },
+        "actual_value_preview": { "type": ["string", "null"] },
+        "field_status": { "$ref": "#/$defs/field_status" },
+        "reason": { "type": "string" }
+      }
+    },
+    "top_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "verification_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "verification_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

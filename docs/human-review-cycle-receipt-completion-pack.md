@@ -9,6 +9,7 @@ This stage is template-only:
 - It does not execute protected actions.
 - It only produces JSON/Markdown checklists that a human reviewer can use while filling receipts.
 - Pending rows include prompts for changing `receipt_status` and `outcome` to terminal human decision values.
+- After a human edits the target receipt inputs, run `npm run control-plane:review-cycle:completion-verify` to confirm the template values were actually applied.
 
 ## Inputs
 
@@ -36,6 +37,7 @@ This stage is template-only:
 ```bash
 npm run control-plane:review-cycle:completion-pack
 npm run control-plane:review-cycle:completion-pack -- --check
+npm run control-plane:review-cycle:completion-verify
 npm run dashboard:build
 npm run api:smoke
 ```

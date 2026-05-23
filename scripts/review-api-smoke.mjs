@@ -595,6 +595,18 @@ try {
   assert.equal(humanReviewActorCompletionPacks.collection, "human_review_actor_completion_packs");
   assert.ok(humanReviewActorCompletionPacks.count <= 5);
 
+  const humanReviewCycleCompletionVerifications = await fetchJson(`${url}/api/human-review-cycle-completion-verifications?verification_status=pending_human_input&limit=1`);
+  assert.equal(humanReviewCycleCompletionVerifications.collection, "human_review_cycle_completion_verifications");
+  assert.ok(humanReviewCycleCompletionVerifications.count <= 1);
+
+  const humanReviewCycleCompletionVerificationItems = await fetchJson(`${url}/api/human-review-cycle-completion-verification-items?verification_status=pending_human_input&limit=5`);
+  assert.equal(humanReviewCycleCompletionVerificationItems.collection, "human_review_cycle_completion_verification_items");
+  assert.ok(humanReviewCycleCompletionVerificationItems.count <= 5);
+
+  const humanReviewActorCompletionVerifications = await fetchJson(`${url}/api/human-review-actor-completion-verifications?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewActorCompletionVerifications.collection, "human_review_actor_completion_verifications");
+  assert.ok(humanReviewActorCompletionVerifications.count <= 5);
+
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
 

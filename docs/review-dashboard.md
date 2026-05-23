@@ -52,6 +52,7 @@ npm run dashboard:build -- \
   --human-review-correction-workspace artifacts/human-review-correction-workspace/latest/human-review-correction-workspace.json \
   --human-review-correction-workspace-merge artifacts/human-review-correction-workspace-merge/latest/human-review-correction-workspace-merge.json \
   --human-review-correction-validation artifacts/human-review-correction-validation/latest/control-plane-human-gate-receipt-validation.json \
+  --human-review-correction-feedback artifacts/human-review-correction-feedback/latest/human-review-correction-feedback.json \
   --control-plane-human-gate-receipt-validation artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json \
   --control-plane-human-gate-receipt-application artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
@@ -120,6 +121,7 @@ npm run dashboard:build -- \
 - Human Review Correction Workspace의 actor별 editable correction receipt input 상태
 - Human Review Correction Workspace Merge의 actor별 correction receipt input 병합과 validation input readiness 상태
 - Human Review Correction Validation의 merged correction receipt validation 상태
+- Human Review Correction Feedback의 actor별 correction validation feedback 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값

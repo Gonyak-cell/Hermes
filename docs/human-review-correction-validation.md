@@ -19,6 +19,8 @@ Output:
 
 This stage does not apply receipts. It only proves that the correction workspace output can re-enter the validation loop without missing, unknown, or invalid receipt rows.
 
+The next stage is `npm run control-plane:review-corrections:feedback`, which routes these validation results back to actor-specific correction feedback bundles.
+
 Operational meaning:
 
 - `pending_receipts`: reviewers still need to fill correction receipt decisions.

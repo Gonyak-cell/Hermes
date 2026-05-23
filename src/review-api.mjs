@@ -1235,6 +1235,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-correction-feedbacks") {
+    const feedbackResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_feedback");
+    if (!feedbackResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_feedback_unavailable", feedbackResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_feedbacks", [feedbackResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-feedback-items") {
+    const feedbackResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_feedback");
+    if (!feedbackResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_feedback_unavailable", feedbackResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_feedback_items", feedbackResult.artifact.feedback_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-actor-feedback") {
+    const feedbackResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_feedback");
+    if (!feedbackResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_feedback_unavailable", feedbackResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_actor_feedback", feedbackResult.artifact.actor_feedback ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1529,6 +1562,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-correction-validation-items", "Human review correction receipt validation items"),
       route("GET", "/api/human-review-correction-validation-errors", "Human review correction receipt validation errors"),
       route("GET", "/api/validated-correction-human-gate-receipts", "Validated correction receipts ready for future application"),
+      route("GET", "/api/human-review-correction-feedbacks", "Human review correction feedback artifacts"),
+      route("GET", "/api/human-review-correction-feedback-items", "Human review correction feedback items"),
+      route("GET", "/api/human-review-correction-actor-feedback", "Actor-specific human review correction feedback bundles"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

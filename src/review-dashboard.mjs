@@ -50,6 +50,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCorrectionWorkspacePath: "artifacts/human-review-correction-workspace/latest/human-review-correction-workspace.json",
   humanReviewCorrectionWorkspaceMergePath: "artifacts/human-review-correction-workspace-merge/latest/human-review-correction-workspace-merge.json",
   humanReviewCorrectionValidationPath: "artifacts/human-review-correction-validation/latest/control-plane-human-gate-receipt-validation.json",
+  humanReviewCorrectionFeedbackPath: "artifacts/human-review-correction-feedback/latest/human-review-correction-feedback.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -296,6 +297,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewCorrectionValidationPath",
     source_id: "human_review_correction_validation",
     label: "Human Review Correction Validation",
+  },
+  {
+    option: "humanReviewCorrectionFeedbackPath",
+    source_id: "human_review_correction_feedback",
+    label: "Human Review Correction Feedback",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -578,6 +584,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_correction_workspace") return data.summary ?? {};
   if (sourceId === "human_review_correction_workspace_merge") return data.summary ?? {};
   if (sourceId === "human_review_correction_validation") return data.summary ?? {};
+  if (sourceId === "human_review_correction_feedback") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -668,6 +675,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCorrectionWorkspaceStage(artifacts.human_review_correction_workspace, sourceById.get("human_review_correction_workspace")),
     buildHumanReviewCorrectionWorkspaceMergeStage(artifacts.human_review_correction_workspace_merge, sourceById.get("human_review_correction_workspace_merge")),
     buildHumanReviewCorrectionValidationStage(artifacts.human_review_correction_validation, sourceById.get("human_review_correction_validation")),
+    buildHumanReviewCorrectionFeedbackStage(artifacts.human_review_correction_feedback, sourceById.get("human_review_correction_feedback")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -2058,6 +2066,43 @@ function buildHumanReviewCorrectionValidationStage(validation, source) {
   };
 }
 
+function buildHumanReviewCorrectionFeedbackStage(feedback, source) {
+  if (!feedback) return missingStage("human_review_correction_feedback", "Human Review Correction Feedback", source);
+  const summary = feedback.summary ?? {};
+  const errorCount = summary.validation_error_count ?? feedback.validation?.errors?.length ?? 0;
+  const status = feedback.feedback_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : feedback.feedback_status === "attention" || (summary.needs_correction_count ?? 0) > 0
+      ? "attention"
+      : (summary.pending_receipt_count ?? 0) > 0
+        ? "pending"
+        : (summary.ready_for_application_count ?? 0) > 0
+          ? "ready"
+          : "passed";
+  return {
+    stage_id: "human_review_correction_feedback",
+    label: "Human Review Correction Feedback",
+    status,
+    message: `${summary.actor_feedback_count ?? 0} correction feedback bundle(s), ${summary.feedback_item_count ?? 0} item(s), ${summary.pending_receipt_count ?? 0} pending.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      feedback_status: feedback.feedback_status ?? "unknown",
+      actor_feedback_count: summary.actor_feedback_count ?? 0,
+      feedback_item_count: summary.feedback_item_count ?? 0,
+      pending_receipt_count: summary.pending_receipt_count ?? 0,
+      ready_for_application_count: summary.ready_for_application_count ?? 0,
+      needs_correction_count: summary.needs_correction_count ?? 0,
+      missing_validation_count: summary.missing_validation_count ?? 0,
+      invalid_receipt_count: summary.invalid_receipt_count ?? 0,
+      missing_receipt_count: summary.missing_receipt_count ?? 0,
+      unknown_receipt_count: summary.unknown_receipt_count ?? 0,
+      protected_action_count: summary.protected_action_count ?? 0,
+      evidence_decision_count: summary.evidence_decision_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -2786,6 +2831,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_correction_feedback?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_correction_feedback";
+    items.push({
+      action_item_id: `dashboard.action.human_review_correction_feedback.${slugify(subjectId)}`,
+      source_stage: "human_review_correction_feedback",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review correction feedback",
+      subject_ref: {
+        subject_type: "human_review_correction_feedback_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_correction_validation", "rerun_human_review_correction_feedback", "inspect_actor_correction_feedback"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -3455,6 +3518,15 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_correction_validation_unknown_count: artifacts.human_review_correction_validation?.summary?.unknown_receipt_count ?? 0,
     human_review_correction_validation_error_count: artifacts.human_review_correction_validation?.summary?.error_count ?? 0,
     human_review_correction_validation_evidence_ready_count: artifacts.human_review_correction_validation?.summary?.evidence_decision_ready_count ?? 0,
+    human_review_correction_feedback_actor_count: artifacts.human_review_correction_feedback?.summary?.actor_feedback_count ?? 0,
+    human_review_correction_feedback_item_count: artifacts.human_review_correction_feedback?.summary?.feedback_item_count ?? 0,
+    human_review_correction_feedback_pending_count: artifacts.human_review_correction_feedback?.summary?.pending_receipt_count ?? 0,
+    human_review_correction_feedback_ready_count: artifacts.human_review_correction_feedback?.summary?.ready_for_application_count ?? 0,
+    human_review_correction_feedback_correction_count: artifacts.human_review_correction_feedback?.summary?.needs_correction_count ?? 0,
+    human_review_correction_feedback_missing_validation_count: artifacts.human_review_correction_feedback?.summary?.missing_validation_count ?? 0,
+    human_review_correction_feedback_protected_count: artifacts.human_review_correction_feedback?.summary?.protected_action_count ?? 0,
+    human_review_correction_feedback_evidence_count: artifacts.human_review_correction_feedback?.summary?.evidence_decision_count ?? 0,
+    human_review_correction_feedback_validation_error_count: artifacts.human_review_correction_feedback?.summary?.validation_error_count ?? artifacts.human_review_correction_feedback?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -3612,6 +3684,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Correction Workspace", dashboard.summary.human_review_correction_workspace_item_count)}
       ${stat("Correction Merge", dashboard.summary.human_review_correction_workspace_merge_receipt_row_count)}
       ${stat("Correction Validation", dashboard.summary.human_review_correction_validation_item_count)}
+      ${stat("Correction Feedback", dashboard.summary.human_review_correction_feedback_item_count)}
       ${stat("Gate Receipt Apply", dashboard.summary.human_gate_receipt_application_applied_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
       ${stat("Packet Receipts", dashboard.summary.work_packet_receipt_draft_count)}
@@ -3770,6 +3843,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human review correction workspace merge pending: ${dashboard.summary.human_review_correction_workspace_merge_pending_count ?? 0}`);
   lines.push(`- Human review correction validation pending: ${dashboard.summary.human_review_correction_validation_pending_count ?? 0}`);
   lines.push(`- Human review correction validation ready: ${dashboard.summary.human_review_correction_validation_ready_count ?? 0}`);
+  lines.push(`- Human review correction feedback items: ${dashboard.summary.human_review_correction_feedback_item_count ?? 0}`);
+  lines.push(`- Human review correction feedback pending: ${dashboard.summary.human_review_correction_feedback_pending_count ?? 0}`);
+  lines.push(`- Human review correction feedback corrections: ${dashboard.summary.human_review_correction_feedback_correction_count ?? 0}`);
   lines.push(`- Human gate receipts applied: ${dashboard.summary.human_gate_receipt_application_applied_count ?? 0}`);
   lines.push(`- Human gate patched gates: ${dashboard.summary.human_gate_receipt_application_patched_gate_count ?? 0}`);
   lines.push(`- Work packets: ${dashboard.summary.work_packet_count ?? 0}`);
@@ -3963,6 +4039,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-correction-workspace-merge") parsed.humanReviewCorrectionWorkspaceMergePath = false;
     else if (arg === "--human-review-correction-validation") parsed.humanReviewCorrectionValidationPath = argv[++index];
     else if (arg === "--no-human-review-correction-validation") parsed.humanReviewCorrectionValidationPath = false;
+    else if (arg === "--human-review-correction-feedback") parsed.humanReviewCorrectionFeedbackPath = argv[++index];
+    else if (arg === "--no-human-review-correction-feedback") parsed.humanReviewCorrectionFeedbackPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -4088,6 +4166,10 @@ Options:
                                   human-review-receipt-workspace-merge.json path.
   --no-human-review-receipt-workspace-merge
                                   Do not include Human Review Receipt Workspace Merge status.
+  --human-review-correction-feedback <path>
+                                  human-review-correction-feedback.json path.
+  --no-human-review-correction-feedback
+                                  Do not include Human Review Correction Feedback status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

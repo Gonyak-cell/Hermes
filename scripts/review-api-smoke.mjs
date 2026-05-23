@@ -128,6 +128,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-correction-validation-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-correction-validation-errors"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-correction-human-gate-receipts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-correction-feedbacks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-correction-feedback-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-correction-actor-feedback"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -474,6 +477,18 @@ try {
 
   const validatedCorrectionHumanGateReceipts = await fetchJson(`${url}/api/validated-correction-human-gate-receipts`);
   assert.equal(validatedCorrectionHumanGateReceipts.collection, "validated_correction_human_gate_receipts");
+
+  const humanReviewCorrectionFeedbacks = await fetchJson(`${url}/api/human-review-correction-feedbacks?feedback_status=pending_human_review&limit=1`);
+  assert.equal(humanReviewCorrectionFeedbacks.collection, "human_review_correction_feedbacks");
+  assert.ok(humanReviewCorrectionFeedbacks.count <= 1);
+
+  const humanReviewCorrectionFeedbackItems = await fetchJson(`${url}/api/human-review-correction-feedback-items?feedback_status=needs_human_decision&limit=5`);
+  assert.equal(humanReviewCorrectionFeedbackItems.collection, "human_review_correction_feedback_items");
+  assert.ok(humanReviewCorrectionFeedbackItems.count <= 5);
+
+  const humanReviewCorrectionActorFeedback = await fetchJson(`${url}/api/human-review-correction-actor-feedback?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewCorrectionActorFeedback.collection, "human_review_correction_actor_feedback");
+  assert.ok(humanReviewCorrectionActorFeedback.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

@@ -1840,3 +1840,38 @@
 - `/api/validated-correction-human-gate-receipts`로 ready correction receipt를 조회할 수 있음
 - Dashboard summary가 correction validation item, receipt, pending, ready, invalid, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-corrections:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 68: Human Review Correction Feedback
+
+목표: correction validation 결과를 다시 actor별 feedback bundle로 환류해 feedback → correction → merge → validation → feedback 루프를 완성한다.
+
+- `Human Review Correction Workspace Merge`와 `Human Review Correction Validation`을 입력으로 사용
+- correction validation item을 merged correction receipt와 `gate_item_id` 기준으로 매칭
+- pending, ready, invalid, missing, unknown 상태를 actor별 correction feedback item으로 변환
+- actor별 `feedback.json`과 `feedback.md`를 생성해 다음 correction receipt 입력 작업 큐로 사용
+- protected action은 feedback 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 correction validation 뒤, receipt application 전에 `npm run control-plane:review-corrections:feedback` 실행
+- Review Dashboard에 `human_review_correction_feedback` stage와 actor/item/pending/ready/correction/error summary 추가
+- Review API에서 `/api/human-review-correction-feedbacks`, `/api/human-review-correction-feedback-items`, `/api/human-review-correction-actor-feedback` route 제공
+- Goal Checkpoint에서 Human Review Correction Feedback을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-corrections:feedback`
+- `src/human-review-correction-feedback.mjs`
+- `schemas/human-review-correction-feedback.schema.json`
+- `docs/human-review-correction-feedback.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- correction feedback artifact가 schema validation을 통과함
+- actor feedback count가 correction workspace merge actor input count와 일치함
+- feedback item count가 correction validation item count와 일치함
+- pending correction receipt는 actor feedback에서 `needs_human_decision`으로 유지되고 missing validation count가 0임
+- `/api/human-review-correction-feedback-items?feedback_status=needs_human_decision`으로 pending correction feedback item을 조회할 수 있음
+- `/api/human-review-correction-actor-feedback?required_actor=attorney_or_designated_reviewer`로 actor별 correction feedback bundle을 조회할 수 있음
+- Dashboard summary가 correction feedback actor, item, pending, ready, correction, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-corrections:feedback`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

@@ -27,3 +27,7 @@ Safe handling:
 - This stage is audit-only.
 - It reads target receipt inputs but does not edit or apply them.
 - It does not execute protected delivery, merge, ERP, command, or external actions.
+
+Next stage:
+
+- `npm run control-plane:review-cycle:triage` turns verified work orders and target audit items into actor-specific triage inboxes.

@@ -1367,6 +1367,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-triage-inboxes") {
+    const inboxResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_triage_inbox");
+    if (!inboxResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_triage_inbox_unavailable", inboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_triage_inboxes", [inboxResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-triage-items") {
+    const inboxResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_triage_inbox");
+    if (!inboxResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_triage_inbox_unavailable", inboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_triage_items", inboxResult.artifact.triage_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-triage-inboxes") {
+    const inboxResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_triage_inbox");
+    if (!inboxResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_triage_inbox_unavailable", inboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_triage_inboxes", inboxResult.artifact.actor_triage_inboxes ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1673,6 +1706,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-target-audits", "Human review cycle work order target audit artifacts"),
       route("GET", "/api/human-review-cycle-target-audit-items", "Human review cycle work order target audit items"),
       route("GET", "/api/human-review-actor-target-audits", "Actor-specific human review target audits"),
+      route("GET", "/api/human-review-cycle-triage-inboxes", "Human review cycle triage inbox artifacts"),
+      route("GET", "/api/human-review-cycle-triage-items", "Human review cycle triage items"),
+      route("GET", "/api/human-review-actor-triage-inboxes", "Actor-specific human review cycle triage inboxes"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -1913,6 +1949,11 @@ function filterItems(items, searchParams) {
     "target_audit_status",
     "target_file_available",
     "receipt_row_present",
+    "triage_inbox_id",
+    "actor_triage_inbox_id",
+    "triage_item_id",
+    "triage_status",
+    "triage_rank",
     "correction_workspace_id",
     "actor_correction_workspace_id",
     "correction_item_id",

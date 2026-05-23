@@ -56,6 +56,7 @@ npm run dashboard:build -- \
   --human-review-cycle-ledger artifacts/human-review-cycle-ledger/latest/human-review-cycle-ledger.json \
   --human-review-cycle-work-orders artifacts/human-review-cycle-work-orders/latest/human-review-cycle-work-orders.json \
   --human-review-cycle-target-audit artifacts/human-review-cycle-work-order-target-audit/latest/human-review-cycle-work-order-target-audit.json \
+  --human-review-cycle-triage artifacts/human-review-cycle-triage-inbox/latest/human-review-cycle-triage-inbox.json \
   --control-plane-human-gate-receipt-validation artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json \
   --control-plane-human-gate-receipt-application artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
@@ -128,6 +129,7 @@ npm run dashboard:build -- \
 - Human Review Cycle Ledger의 feedback/correction loop 연결 상태
 - Human Review Cycle Work Orders의 actor별 work order queue 상태
 - Human Review Cycle Target Audit의 work order target receipt file/row readiness 상태
+- Human Review Cycle Triage Inbox의 actor별 ready-for-human-review queue 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값

@@ -22,6 +22,7 @@ import { runHumanReviewCorrectionFeedback } from "../src/human-review-correction
 import { runHumanReviewCycleLedger } from "../src/human-review-cycle-ledger.mjs";
 import { runHumanReviewCycleWorkOrders } from "../src/human-review-cycle-work-orders.mjs";
 import { runHumanReviewCycleWorkOrderTargetAudit } from "../src/human-review-cycle-work-order-target-audit.mjs";
+import { runHumanReviewCycleTriageInbox } from "../src/human-review-cycle-triage-inbox.mjs";
 import { runHumanReviewCorrectionWorkspace } from "../src/human-review-correction-workspace.mjs";
 import { runHumanReviewCorrectionWorkspaceMerge } from "../src/human-review-correction-workspace-merge.mjs";
 import { runHumanReviewReceiptWorkspace } from "../src/human-review-receipt-workspace.mjs";
@@ -985,6 +986,7 @@ describe("matter harness", () => {
         humanReviewCycleLedgerPath: path.join(outDir, "human-review-cycle-ledger", "human-review-cycle-ledger.json"),
         humanReviewCycleWorkOrdersPath: path.join(outDir, "human-review-cycle-work-orders", "human-review-cycle-work-orders.json"),
         humanReviewCycleTargetAuditPath: path.join(outDir, "human-review-cycle-work-order-target-audit", "human-review-cycle-work-order-target-audit.json"),
+        humanReviewCycleTriageInboxPath: path.join(outDir, "human-review-cycle-triage-inbox", "human-review-cycle-triage-inbox.json"),
         controlPlaneHumanGateReceiptValidationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         controlPlaneHumanGateReceiptApplicationPath: path.join(outDir, "control-plane-human-gate-receipt-application", "control-plane-human-gate-receipt-application.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
@@ -1539,6 +1541,33 @@ describe("matter harness", () => {
         /Human Review Work Order Target Audit/,
       );
 
+      const humanReviewCycleTriageInbox = await runHumanReviewCycleTriageInbox({
+        workOrdersPath: path.join(outDir, "human-review-cycle-work-orders", "human-review-cycle-work-orders.json"),
+        targetAuditPath: path.join(outDir, "human-review-cycle-work-order-target-audit", "human-review-cycle-work-order-target-audit.json"),
+        outDir: path.join(outDir, "human-review-cycle-triage-inbox"),
+        runAt: "2026-05-23T06:35:06.148Z",
+      });
+      const humanReviewCycleTriageInboxSchema = JSON.parse(await readFile("schemas/human-review-cycle-triage-inbox.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(humanReviewCycleTriageInbox, humanReviewCycleTriageInboxSchema, {}, "human_review_cycle_triage_inbox"),
+        [],
+      );
+      assert.equal(humanReviewCycleTriageInbox.triage_status, "ready_for_human_review");
+      assert.equal(humanReviewCycleTriageInbox.safe_handling.auto_execute_allowed, false);
+      assert.equal(humanReviewCycleTriageInbox.safe_handling.protected_actions_executed, false);
+      assert.equal(humanReviewCycleTriageInbox.summary.actor_triage_inbox_count, humanReviewCycleWorkOrders.summary.actor_work_order_count);
+      assert.equal(humanReviewCycleTriageInbox.summary.triage_item_count, humanReviewCycleWorkOrders.summary.work_order_item_count);
+      assert.equal(humanReviewCycleTriageInbox.summary.ready_for_human_review_count, humanReviewCycleTargetAudit.summary.ready_target_count);
+      assert.equal(humanReviewCycleTriageInbox.summary.blocked_count, 0);
+      assert.equal(humanReviewCycleTriageInbox.summary.validation_error_count, 0);
+      assert.ok(humanReviewCycleTriageInbox.triage_items.every((item) => item.target_audit_item_id));
+      assert.ok(humanReviewCycleTriageInbox.triage_items.every((item) => item.safe_handling.auto_execute_allowed === false));
+      assert.match(await readFile(path.join(outDir, "human-review-cycle-triage-inbox", "summary.md"), "utf8"), /Human Review Cycle Triage Inbox/);
+      assert.match(
+        await readFile(path.join(outDir, "human-review-cycle-triage-inbox", "actors", "attorney_or_designated_reviewer", "triage-inbox.md"), "utf8"),
+        /Human Review Cycle Triage Inbox/,
+      );
+
       const controlPlaneHumanGateReceiptApplication = await runControlPlaneHumanGateReceiptApplication({
         validationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -1753,6 +1782,9 @@ describe("matter harness", () => {
       const cycleTargetAuditCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-cycle-target-audit");
       assert.equal(cycleTargetAuditCheckpoint?.acceptance_profile, "human_review_cycle_target_audit_gate");
       assert.equal(cycleTargetAuditCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const cycleTriageInboxCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-cycle-triage-inbox");
+      assert.equal(cycleTriageInboxCheckpoint?.acceptance_profile, "human_review_cycle_triage_inbox_gate");
+      assert.equal(cycleTriageInboxCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.implementation_status === "passed_with_operational_gate"));
       assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
 
@@ -2047,6 +2079,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_work_orders"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_target_audit"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_triage_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
@@ -2199,6 +2232,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-target-audits"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-target-audit-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-actor-target-audits"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-triage-inboxes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-triage-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-actor-triage-inboxes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -2747,6 +2783,18 @@ describe("matter harness", () => {
       const humanReviewActorTargetAudits = JSON.parse((await buildReviewApiResponse("/api/human-review-actor-target-audits?required_actor=attorney_or_designated_reviewer", apiOptions)).body);
       assert.equal(humanReviewActorTargetAudits.collection, "human_review_actor_target_audits");
       assert.equal(humanReviewActorTargetAudits.count, 1);
+
+      const humanReviewCycleTriageInboxes = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-triage-inboxes?triage_status=ready_for_human_review", apiOptions)).body);
+      assert.equal(humanReviewCycleTriageInboxes.collection, "human_review_cycle_triage_inboxes");
+      assert.equal(humanReviewCycleTriageInboxes.count, 1);
+
+      const humanReviewCycleTriageItems = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-triage-items?triage_status=ready_for_human_review", apiOptions)).body);
+      assert.equal(humanReviewCycleTriageItems.collection, "human_review_cycle_triage_items");
+      assert.equal(humanReviewCycleTriageItems.count, humanReviewCycleTriageInboxes.items[0].summary.ready_for_human_review_count);
+
+      const humanReviewActorTriageInboxes = JSON.parse((await buildReviewApiResponse("/api/human-review-actor-triage-inboxes?required_actor=attorney_or_designated_reviewer", apiOptions)).body);
+      assert.equal(humanReviewActorTriageInboxes.collection, "human_review_actor_triage_inboxes");
+      assert.equal(humanReviewActorTriageInboxes.count, 1);
 
       const validatedHumanGateReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-human-gate-receipts", apiOptions)).body);
       assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

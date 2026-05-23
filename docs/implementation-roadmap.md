@@ -1981,3 +1981,38 @@
 - `/api/human-review-actor-target-audits?required_actor=attorney_or_designated_reviewer`로 actor별 target audit을 조회할 수 있음
 - Dashboard summary가 target audit actor, item, ready, attention, blocked, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:target-audit`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 72: Human Review Cycle Triage Inbox
+
+목표: 검증 완료된 Human Review Cycle Work Orders와 Target Audit을 actor-ready triage inbox로 묶어, 사람이 바로 어떤 receipt row를 열고 판단해야 하는지 볼 수 있게 한다.
+
+- `Human Review Cycle Work Orders`와 `Human Review Cycle Target Audit`을 입력으로 사용
+- work order item별 target audit linkage, target receipt input, receipt row 상태를 triage item에 결합
+- actor별 triage inbox와 gate item별 triage item을 생성
+- `ready_for_human_review`, `ready_for_application`, `attention`, `blocked`, `clear` 상태를 triage status로 정규화
+- protected action은 triage 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 target audit 뒤, receipt application 전에 `npm run control-plane:review-cycle:triage` 실행
+- Review Dashboard에 `human_review_cycle_triage_inbox` stage와 actor/item/ready/attention/blocked/error summary 추가
+- Review API에서 `/api/human-review-cycle-triage-inboxes`, `/api/human-review-cycle-triage-items`, `/api/human-review-actor-triage-inboxes` route 제공
+- Goal Checkpoint에서 Human Review Cycle Triage Inbox를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:triage`
+- `src/human-review-cycle-triage-inbox.mjs`
+- `schemas/human-review-cycle-triage-inbox.schema.json`
+- `docs/human-review-cycle-triage-inbox.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle triage inbox artifact가 schema validation을 통과함
+- triage item count가 work order item count와 target audit item count와 일치함
+- actor triage inbox count가 actor work order count와 일치함
+- 모든 verified target audit item은 `ready_for_human_review` triage item으로 표시됨
+- `/api/human-review-cycle-triage-items?triage_status=ready_for_human_review`로 ready triage item을 조회할 수 있음
+- `/api/human-review-actor-triage-inboxes?required_actor=attorney_or_designated_reviewer`로 actor별 triage inbox를 조회할 수 있음
+- Dashboard summary가 triage actor, item, ready, attention, blocked, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:triage`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

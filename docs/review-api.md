@@ -155,6 +155,9 @@ npm run api:serve
 - `GET /api/human-review-cycle-target-audits`: work order target audit artifact
 - `GET /api/human-review-cycle-target-audit-items`: work order target receipt file/row audit item
 - `GET /api/human-review-actor-target-audits`: required actor별 target audit
+- `GET /api/human-review-cycle-triage-inboxes`: human review cycle triage inbox artifact
+- `GET /api/human-review-cycle-triage-items`: actor-ready triage item
+- `GET /api/human-review-actor-triage-inboxes`: required actor별 triage inbox
 - `GET /api/validated-human-gate-receipts`: 향후 적용 가능한 검증 완료 human gate receipt
 - `GET /api/human-gate-receipt-applications`: human gate receipt application artifact
 - `GET /api/applied-human-gate-receipts`: 적용된 human gate receipt

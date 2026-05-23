@@ -57,6 +57,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human review cycle ledger
 - Human review cycle work orders
 - Human review cycle target audit
+- Human review cycle triage inbox
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
@@ -84,6 +85,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Cycle Ledger: feedback, correction workspace, merge, validation, feedback 상태가 gate item 단위로 연결되고 validation error가 없으면 구현 통과
 - Human Review Cycle Work Orders: cycle ledger item이 actor별 work order queue로 변환되고 validation error가 없으면 구현 통과
 - Human Review Cycle Target Audit: work order별 target receipt input과 gate row가 확인되고 validation error가 없으면 구현 통과
+- Human Review Cycle Triage Inbox: verified work order와 target audit이 actor-ready triage queue로 변환되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

@@ -24,4 +24,4 @@ npm run delivery:closeout
 - `closeout_items`: packet별 수동 실행 대상, checklist, artifact context, receipt form draft
 - `receipt_input_draft`: `npm run delivery:receipts -- --receipts <path>`에 넣을 수 있는 pending receipt 초안
 
-사람이 실제 전달, export, merge를 수행한 뒤 `receipt_input_draft.receipts`의 `receipt_status`, `executed_by`, `executed_at`, `delivery_reference`, `notes`를 채우고 `npm run delivery:receipts`, `npm run delivery:reconcile`, `npm run dashboard:build`를 다시 실행한다.
+사람이 실제 전달, export, merge를 수행한 뒤 `receipt_input_draft.receipts`의 `receipt_status`, `executed_by`, `executed_at`, `delivery_reference`, `notes`를 채운다. 그 다음 `npm run delivery:closeout:validate`로 검증하고, 검증된 `validated-receipts-to-apply.json`을 `npm run delivery:receipts -- --receipts <path>`에 넘긴다.

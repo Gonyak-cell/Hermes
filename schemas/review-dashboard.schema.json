@@ -76,6 +76,10 @@
         "delivery_closeout_item_count",
         "delivery_closeout_awaiting_count",
         "delivery_closeout_blocked_count",
+        "closeout_receipt_ready_count",
+        "closeout_receipt_pending_count",
+        "closeout_receipt_invalid_count",
+        "closeout_receipt_error_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -303,6 +307,22 @@
           "minimum": 0
         },
         "delivery_closeout_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_receipt_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_receipt_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_receipt_invalid_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_receipt_error_count": {
           "type": "integer",
           "minimum": 0
         },

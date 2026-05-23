@@ -22,6 +22,7 @@ npm run dashboard:build -- \
   --delivery-receipts artifacts/delivery-receipts/latest/delivery-receipt-ledger.json \
   --post-delivery-reconciliation artifacts/post-delivery-reconciliation/latest/post-delivery-reconciliation.json \
   --delivery-closeout artifacts/delivery-closeout/latest/delivery-closeout-queue.json \
+  --closeout-receipt-validation artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json \
   --law-firm-ldd-summary artifacts/law-firm-ldd-slice/latest/summary.json \
   --personal-dev-summary artifacts/personal-dev-slice/latest/summary.json \
   --creative-document-summary artifacts/creative-document-slice/latest/summary.json \
@@ -52,6 +53,7 @@ npm run dashboard:build -- \
 - Delivery Receipt Ledger의 receipt applied/pending, delivered artifact, audit event 상태
 - Post-Delivery Reconciliation의 delivered matter/artifact, outstanding receipt 상태
 - Delivery Closeout Queue의 수동 closeout item, receipt input draft 상태
+- Closeout Receipt Validation의 ready/pending/invalid receipt 상태
 - Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 - Creative Document Slice의 slide, artifact, format validation, human approval 상태

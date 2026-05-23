@@ -649,3 +649,32 @@
 - `receipt-input-draft.json`이 delivery receipt input 계약을 따른다
 - `/api/delivery-closeout-items?status=awaiting_manual_execution`으로 수동 closeout 대상을 조회할 수 있음
 - `npm test`, `delivery:closeout`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 27: Delivery Closeout Receipt Validation
+
+목표: 사람이 채운 closeout receipt input을 `delivery:receipts`에 적용하기 전에 closeout packet과 artifact 기준으로 검증합니다.
+
+- closeout queue와 receipt input draft를 함께 읽음
+- pending, missing, invalid, ready-to-apply receipt를 분류
+- closeout queue 밖의 packet receipt를 `unknown_packet`으로 차단
+- delivered receipt에는 `executed_by`, `executed_at`, `delivery_reference`, artifact id 일치가 필요
+- ready receipt만 `validated-receipts-to-apply.json`으로 분리
+- Review Dashboard에 `closeout_receipt_validation` stage와 validation action item 추가
+- Review API에서 `/api/closeout-receipt-validations`, `/api/closeout-receipt-errors`, `/api/validated-receipts-to-apply` route 제공
+
+현재 구현:
+
+- `npm run delivery:closeout:validate`
+- `src/delivery-closeout-receipt-validation.mjs`
+- `schemas/delivery-closeout-receipt-validation.schema.json`
+- `docs/delivery-closeout-receipt-validation.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- pending receipt input은 pending으로 남고 delivered patch를 만들지 않음
+- filled receipt input은 ready-to-apply로 분류되고 validated receipt input으로 분리됨
+- invalid/unknown receipt는 receipt error와 dashboard action item으로 드러남
+- `/api/closeout-receipt-validations?validation_status=ready_to_apply`로 검증 완료 receipt를 조회할 수 있음
+- `npm test`, `delivery:closeout:validate`, `dashboard:build`, `api:smoke`가 통과함

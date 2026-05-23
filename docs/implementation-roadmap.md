@@ -1739,3 +1739,38 @@
 - `/api/human-review-actor-feedback?required_actor=attorney_or_designated_reviewer`로 actor별 feedback bundle을 조회할 수 있음
 - Dashboard summary가 actor feedback, feedback item, pending, ready, correction, missing validation, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-feedback`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 65: Human Review Correction Workspace
+
+목표: Human Review Validation Feedback 중 사람이 다시 채워야 할 항목을 actor별 editable correction receipt input으로 변환한다.
+
+- `needs_human_decision`, `needs_correction` feedback item만 correction item으로 추출
+- actor별 `correction-workspace.json`, `receipt-input.json`, `corrections.md` 생성
+- 각 correction item에 target receipt input path, required receipt fields, allowed outcomes, next actions 연결
+- editable receipt input은 표준 `control-plane-human-gate-receipts-input.v1` 형식으로 생성
+- protected action은 correction workspace 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 validation feedback 뒤, receipt application 전에 `npm run control-plane:review-corrections` 실행
+- Review Dashboard에 `human_review_correction_workspace` stage와 actor/item/receipt/pending/correction/error summary 추가
+- Review API에서 `/api/human-review-correction-workspaces`, `/api/human-review-correction-actors`, `/api/human-review-correction-items`, `/api/human-review-correction-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Correction Workspace를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-corrections`
+- `src/human-review-correction-workspace.mjs`
+- `schemas/human-review-correction-workspace.schema.json`
+- `docs/human-review-correction-workspace.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review correction workspace artifact가 schema validation을 통과함
+- correction item count가 validation feedback의 pending/correction item count와 일치함
+- actor workspace count가 validation feedback actor count와 일치함
+- actor별 `receipt-input.json`이 correction item만 포함함
+- `/api/human-review-correction-items?correction_status=pending_decision`로 pending correction item을 조회할 수 있음
+- `/api/human-review-correction-receipt-input?receipt_status=pending`으로 editable correction receipt row를 조회할 수 있음
+- Dashboard summary가 actor workspace, correction item, receipt row, pending, correction, editable file, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-corrections`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

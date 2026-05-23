@@ -1102,6 +1102,51 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-correction-workspaces") {
+    const workspaceResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace");
+    if (!workspaceResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_unavailable", workspaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_workspaces", [workspaceResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-actors") {
+    const workspaceResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace");
+    if (!workspaceResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_unavailable", workspaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_actors", workspaceResult.artifact.actor_workspaces ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-items") {
+    const workspaceResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace");
+    if (!workspaceResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_unavailable", workspaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_items", workspaceResult.artifact.correction_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-correction-receipt-input") {
+    const workspaceResult = await readDashboardSourceArtifact(dashboard, "human_review_correction_workspace");
+    if (!workspaceResult.available) {
+      return jsonResponse(503, buildError("human_review_correction_workspace_unavailable", workspaceResult.error), method);
+    }
+    const receipts = (workspaceResult.artifact.correction_items ?? []).map((item) => item.editable_receipt);
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_correction_receipt_input", receipts, url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1384,6 +1429,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-validation-feedbacks", "Human review validation feedback artifacts"),
       route("GET", "/api/human-review-feedback-items", "Human review validation feedback items"),
       route("GET", "/api/human-review-actor-feedback", "Actor-specific human review validation feedback bundles"),
+      route("GET", "/api/human-review-correction-workspaces", "Human review correction workspace artifacts"),
+      route("GET", "/api/human-review-correction-actors", "Actor-specific human review correction workspaces"),
+      route("GET", "/api/human-review-correction-items", "Human review correction workspace items"),
+      route("GET", "/api/human-review-correction-receipt-input", "Editable correction receipt input rows"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -1610,6 +1659,10 @@ function filterItems(items, searchParams) {
     "actor_feedback_id",
     "feedback_item_id",
     "feedback_status",
+    "correction_workspace_id",
+    "actor_correction_workspace_id",
+    "correction_item_id",
+    "correction_status",
     "template_row_present",
     "ready_for_validation",
     "receipt_status",

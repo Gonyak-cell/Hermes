@@ -20,6 +20,12 @@ npm run control-plane:human-gate-receipts:apply
 npm run control-plane:review-feedback
 ```
 
+feedback을 actor별 editable correction receipt input으로 바꾸려면 이어서 correction workspace를 생성한다.
+
+```bash
+npm run control-plane:review-corrections
+```
+
 옵션:
 
 ```bash
@@ -53,6 +59,10 @@ Dashboard는 `control_plane_human_gate_receipt_validation` stage를 표시한다
 - `GET /api/human-review-validation-feedbacks`
 - `GET /api/human-review-feedback-items`
 - `GET /api/human-review-actor-feedback`
+- `GET /api/human-review-correction-workspaces`
+- `GET /api/human-review-correction-actors`
+- `GET /api/human-review-correction-items`
+- `GET /api/human-review-correction-receipt-input`
 - `GET /api/validated-human-gate-receipts`
 - `GET /api/human-gate-receipt-applications`
 - `GET /api/applied-human-gate-receipts`

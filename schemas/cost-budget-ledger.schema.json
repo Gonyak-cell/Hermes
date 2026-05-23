@@ -1,0 +1,174 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/cost-budget-ledger.schema.json",
+  "title": "Hermes Cost Budget Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_id",
+    "output_dir",
+    "model_routing_ledger_path",
+    "domain_pack_registry_path",
+    "observability_catalog_path",
+    "policy_matrix_catalog_path",
+    "ledger_status",
+    "summary",
+    "sources",
+    "budget_decisions",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "cost-budget-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "model_routing_ledger_path": { "type": "string" },
+    "domain_pack_registry_path": { "type": "string" },
+    "observability_catalog_path": { "type": "string" },
+    "policy_matrix_catalog_path": { "type": "string" },
+    "ledger_status": { "enum": ["valid", "blocked"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "budget_decision_count",
+        "passed_decision_count",
+        "blocked_decision_count",
+        "token_tracking_required_count",
+        "token_tracking_pending_count",
+        "cost_record_count",
+        "total_max_usd",
+        "total_observed_usd",
+        "total_observed_runtime_seconds",
+        "validation_error_count",
+        "by_budget_status",
+        "by_token_tracking_status",
+        "by_runtime_id",
+        "by_capability_id"
+      ],
+      "properties": {
+        "budget_decision_count": { "type": "integer", "minimum": 0 },
+        "passed_decision_count": { "type": "integer", "minimum": 0 },
+        "blocked_decision_count": { "type": "integer", "minimum": 0 },
+        "token_tracking_required_count": { "type": "integer", "minimum": 0 },
+        "token_tracking_pending_count": { "type": "integer", "minimum": 0 },
+        "cost_record_count": { "type": "integer", "minimum": 0 },
+        "total_max_usd": { "type": "number", "minimum": 0 },
+        "total_observed_usd": { "type": "number", "minimum": 0 },
+        "total_observed_runtime_seconds": { "type": "number", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_budget_status": { "type": "object" },
+        "by_token_tracking_status": { "type": "object" },
+        "by_runtime_id": { "type": "object" },
+        "by_capability_id": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "budget_decisions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/budget_decision" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "budget_decision": {
+      "type": "object",
+      "required": [
+        "budget_decision_id",
+        "routing_decision_id",
+        "context_packet_id",
+        "workflow_run_id",
+        "agent_run_id",
+        "runtime_id",
+        "capability_id",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "route_status",
+        "route_mode",
+        "budget_status",
+        "cost_budget_gate_present",
+        "cost_policy_present",
+        "max_usd",
+        "observed_usd",
+        "budget_margin_usd",
+        "observed_runtime_seconds",
+        "cost_record_count",
+        "token_tracking_required",
+        "token_tracking_status",
+        "token_record_count",
+        "blocker_reasons",
+        "required_gates",
+        "audit_required",
+        "decision_hash",
+        "metadata"
+      ],
+      "properties": {
+        "budget_decision_id": { "type": "string" },
+        "routing_decision_id": { "type": "string" },
+        "context_packet_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "route_status": { "type": "string" },
+        "route_mode": { "type": "string" },
+        "budget_status": { "enum": ["passed", "blocked"] },
+        "cost_budget_gate_present": { "type": "boolean" },
+        "cost_policy_present": { "type": "boolean" },
+        "max_usd": { "type": ["number", "null"], "minimum": 0 },
+        "observed_usd": { "type": "number", "minimum": 0 },
+        "budget_margin_usd": { "type": ["number", "null"] },
+        "observed_runtime_seconds": { "type": "number", "minimum": 0 },
+        "cost_record_count": { "type": "integer", "minimum": 0 },
+        "token_tracking_required": { "type": "boolean" },
+        "token_tracking_status": { "enum": ["recorded", "pending_records", "not_required", "unknown"] },
+        "token_record_count": { "type": "integer", "minimum": 0 },
+        "blocker_reasons": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "audit_required": { "type": "boolean" },
+        "decision_hash": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

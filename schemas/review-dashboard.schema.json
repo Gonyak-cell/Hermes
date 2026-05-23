@@ -86,6 +86,15 @@
         "model_route_local_count",
         "model_route_redaction_enforced_count",
         "model_route_validation_error_count",
+        "cost_budget_decision_count",
+        "cost_budget_passed_count",
+        "cost_budget_blocked_count",
+        "cost_budget_token_tracking_required_count",
+        "cost_budget_token_tracking_pending_count",
+        "cost_budget_total_max_usd",
+        "cost_budget_total_observed_usd",
+        "cost_budget_total_runtime_seconds",
+        "cost_budget_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -468,6 +477,42 @@
           "minimum": 0
         },
         "model_route_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_budget_decision_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_budget_passed_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_budget_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_budget_token_tracking_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_budget_token_tracking_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "cost_budget_total_max_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cost_budget_total_observed_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cost_budget_total_runtime_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "cost_budget_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

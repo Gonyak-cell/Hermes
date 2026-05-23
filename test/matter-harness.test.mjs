@@ -19,6 +19,7 @@ import { runControlPlaneWorkPacketReceiptApplication } from "../src/control-plan
 import { runControlPlaneWorkPacketReceiptValidation } from "../src/control-plane-work-packet-receipt-validation.mjs";
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
 import { runContextPacketLedger } from "../src/context-packet-ledger.mjs";
+import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -528,6 +529,25 @@ describe("matter harness", () => {
       )));
       assert.match(await readFile(path.join(outDir, "model-routing", "summary.md"), "utf8"), /Model Routing Ledger/);
 
+      const costBudgetLedger = await runCostBudgetLedger({
+        modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        outDir: path.join(outDir, "cost-budget"),
+        runAt: "2026-05-23T06:34:54.500Z",
+      });
+      const costBudgetLedgerSchema = JSON.parse(await readFile("schemas/cost-budget-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(costBudgetLedger, costBudgetLedgerSchema, {}, "cost_budget_ledger"), []);
+      assert.equal(costBudgetLedger.ledger_status, "valid");
+      assert.equal(costBudgetLedger.summary.budget_decision_count, modelRoutingLedger.summary.routing_decision_count);
+      assert.equal(costBudgetLedger.summary.blocked_decision_count, 0);
+      assert.equal(costBudgetLedger.summary.passed_decision_count, modelRoutingLedger.summary.routing_decision_count);
+      assert.ok(costBudgetLedger.summary.total_max_usd > 0);
+      assert.equal(costBudgetLedger.summary.validation_error_count, 0);
+      assert.ok(costBudgetLedger.budget_decisions.every((decision) => decision.required_gates.includes("cost_budget_gate")));
+      assert.match(await readFile(path.join(outDir, "cost-budget", "summary.md"), "utf8"), /Cost Budget Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -850,6 +870,7 @@ describe("matter harness", () => {
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
+        costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -1200,6 +1221,11 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.model_route_ready_count, modelRoutingLedger.summary.ready_route_count);
       assert.equal(dashboard.summary.model_route_external_transfer_count, modelRoutingLedger.summary.external_transfer_count);
       assert.equal(dashboard.summary.model_route_validation_error_count, 0);
+      assert.equal(dashboard.summary.cost_budget_decision_count, costBudgetLedger.summary.budget_decision_count);
+      assert.equal(dashboard.summary.cost_budget_passed_count, costBudgetLedger.summary.passed_decision_count);
+      assert.equal(dashboard.summary.cost_budget_blocked_count, 0);
+      assert.equal(dashboard.summary.cost_budget_total_max_usd, costBudgetLedger.summary.total_max_usd);
+      assert.equal(dashboard.summary.cost_budget_validation_error_count, 0);
       assert.equal(dashboard.summary.context_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
@@ -1301,6 +1327,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1373,6 +1400,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-retrieval-filters"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1519,6 +1548,19 @@ describe("matter harness", () => {
       const localModelRoutes = JSON.parse((await buildReviewApiResponse("/api/model-routing-decisions?route_mode=local_allowed", apiOptions)).body);
       assert.equal(localModelRoutes.collection, "model_routing_decisions");
       assert.ok(localModelRoutes.count >= 1);
+
+      const costBudgetLedgers = JSON.parse((await buildReviewApiResponse("/api/cost-budget-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");
+      assert.equal(costBudgetLedgers.count, 1);
+
+      const passedCostBudgets = JSON.parse((await buildReviewApiResponse("/api/cost-budget-decisions?budget_status=passed", apiOptions)).body);
+      assert.equal(passedCostBudgets.collection, "cost_budget_decisions");
+      assert.equal(passedCostBudgets.count, costBudgetLedger.summary.passed_decision_count);
+
+      const codexCostBudgets = JSON.parse((await buildReviewApiResponse("/api/cost-budget-decisions?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexCostBudgets.collection, "cost_budget_decisions");
+      assert.equal(codexCostBudgets.count, 1);
+      assert.equal(codexCostBudgets.items[0].budget_status, "passed");
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

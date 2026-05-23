@@ -43,6 +43,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/context-retrieval-filters"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -176,6 +178,18 @@ try {
   const externalModelRoutes = await fetchJson(`${url}/api/model-routing-decisions?external_transfer=true&limit=5`);
   assert.equal(externalModelRoutes.collection, "model_routing_decisions");
   assert.ok(externalModelRoutes.count <= 5);
+
+  const costBudgetLedgers = await fetchJson(`${url}/api/cost-budget-ledgers?ledger_status=valid&limit=1`);
+  assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");
+  assert.ok(costBudgetLedgers.count <= 1);
+
+  const costBudgetDecisions = await fetchJson(`${url}/api/cost-budget-decisions?budget_status=passed&limit=5`);
+  assert.equal(costBudgetDecisions.collection, "cost_budget_decisions");
+  assert.ok(costBudgetDecisions.count <= 5);
+
+  const tokenPendingBudgets = await fetchJson(`${url}/api/cost-budget-decisions?token_tracking_status=pending_records&limit=5`);
+  assert.equal(tokenPendingBudgets.collection, "cost_budget_decisions");
+  assert.ok(tokenPendingBudgets.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

@@ -34,6 +34,7 @@ npm run control-plane:goal-checkpoint -- \
 - Policy snapshot ledger
 - Context builder and retrieval filters
 - Model routing and external transfer decisions
+- Cost budget gate ledger
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow

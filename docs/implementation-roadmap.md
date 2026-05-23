@@ -1321,3 +1321,34 @@
 - `/api/model-routing-decisions?external_transfer=true`로 외부 runtime 전송 결정을 조회할 수 있음
 - Dashboard summary가 route, external transfer, redaction, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run model:routing`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 52: Cost Budget Ledger
+
+목표: Model Routing Ledger의 route decision을 capability별 `cost_policy`, Observability cost records, Policy Matrix의 `cost_budget_gate`와 대조해 실행 전 비용 통제 ledger로 고정합니다.
+
+- Domain Pack Registry의 capability manifest를 읽어 `max_usd`, token tracking 요구를 수집
+- Model Routing Ledger의 routing decision마다 cost budget decision 생성
+- Observability Catalog의 cost records에서 observed USD와 runtime seconds를 연결
+- missing cost policy, budget exceeded, missing cost gate를 blocked validation error로 기록
+- token record가 아직 없는 상태는 `pending_records`로 표시하되 비용 gate 실패로 보지 않음
+- Review Dashboard에 `cost_budget_ledger` stage와 budget/token/runtime summary 추가
+- Review API에서 `/api/cost-budget-ledgers`, `/api/cost-budget-decisions` route 제공
+- Control Plane Pipeline과 Loop에 `npm run cost:budgets` 포함
+- Goal Checkpoint에서 Cost Budget Gate Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run cost:budgets`
+- `src/cost-budget-ledger.mjs`
+- `schemas/cost-budget-ledger.schema.json`
+- `docs/cost-budget-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- cost budget ledger artifact가 schema validation을 통과함
+- `/api/cost-budget-decisions?budget_status=passed`로 예산 gate 통과 route를 조회할 수 있음
+- `/api/cost-budget-decisions?token_tracking_status=pending_records`로 남은 token 계측 과제를 조회할 수 있음
+- Dashboard summary가 budget decision, max/observed cost, token tracking, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run cost:budgets`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

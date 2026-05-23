@@ -15,6 +15,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policySnapshotLedgerPath: "artifacts/policy-snapshots/latest/policy-snapshot-ledger.json",
   contextPacketLedgerPath: "artifacts/context-packets/latest/context-packet-ledger.json",
   modelRoutingLedgerPath: "artifacts/model-routing/latest/model-routing-ledger.json",
+  costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -105,6 +106,11 @@ const SOURCE_DEFINITIONS = [
     option: "modelRoutingLedgerPath",
     source_id: "model_routing_ledger",
     label: "Model Routing Ledger",
+  },
+  {
+    option: "costBudgetLedgerPath",
+    source_id: "cost_budget_ledger",
+    label: "Cost Budget Ledger",
   },
   {
     option: "domainPackRegistryPath",
@@ -389,6 +395,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_snapshot_ledger") return data.summary ?? {};
   if (sourceId === "context_packet_ledger") return data.summary ?? {};
   if (sourceId === "model_routing_ledger") return data.summary ?? {};
+  if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -520,6 +527,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicySnapshotLedgerStage(artifacts.policy_snapshot_ledger, sourceById.get("policy_snapshot_ledger")),
     buildContextPacketLedgerStage(artifacts.context_packet_ledger, sourceById.get("context_packet_ledger")),
     buildModelRoutingLedgerStage(artifacts.model_routing_ledger, sourceById.get("model_routing_ledger")),
+    buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -850,6 +858,36 @@ function buildModelRoutingLedgerStage(ledger, source) {
       local_route_count: summary.local_route_count ?? 0,
       redaction_enforced_count: summary.redaction_enforced_count ?? 0,
       runtime_restricted_count: summary.runtime_restricted_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildCostBudgetLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("cost_budget_ledger", "Cost Budget Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const blocked = summary.blocked_decision_count ?? 0;
+  const status = ledger.ledger_status === "valid" && errorCount === 0 && blocked === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "cost_budget_ledger",
+    label: "Cost Budget Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.budget_decision_count ?? 0} budget decision(s), max $${summary.total_max_usd ?? 0}, observed $${summary.total_observed_usd ?? 0}.`
+      : `${blocked} blocked budget decision(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: ledger.ledger_status ?? "unknown",
+      budget_decision_count: summary.budget_decision_count ?? 0,
+      passed_decision_count: summary.passed_decision_count ?? 0,
+      blocked_decision_count: blocked,
+      token_tracking_required_count: summary.token_tracking_required_count ?? 0,
+      token_tracking_pending_count: summary.token_tracking_pending_count ?? 0,
+      cost_record_count: summary.cost_record_count ?? 0,
+      total_max_usd: summary.total_max_usd ?? 0,
+      total_observed_usd: summary.total_observed_usd ?? 0,
+      total_observed_runtime_seconds: summary.total_observed_runtime_seconds ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -1770,6 +1808,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.cost_budget_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "cost_budget_ledger";
+    items.push({
+      action_item_id: `dashboard.action.cost_budget_ledger.${slugify(subjectId)}`,
+      source_stage: "cost_budget_ledger",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix cost budget validation",
+      subject_ref: {
+        subject_type: "cost_budget_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_cost_policy", "rerun_cost_budgets", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -2220,6 +2276,15 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     model_route_local_count: artifacts.model_routing_ledger?.summary?.local_route_count ?? 0,
     model_route_redaction_enforced_count: artifacts.model_routing_ledger?.summary?.redaction_enforced_count ?? 0,
     model_route_validation_error_count: artifacts.model_routing_ledger?.summary?.validation_error_count ?? artifacts.model_routing_ledger?.validation?.errors?.length ?? 0,
+    cost_budget_decision_count: artifacts.cost_budget_ledger?.summary?.budget_decision_count ?? 0,
+    cost_budget_passed_count: artifacts.cost_budget_ledger?.summary?.passed_decision_count ?? 0,
+    cost_budget_blocked_count: artifacts.cost_budget_ledger?.summary?.blocked_decision_count ?? 0,
+    cost_budget_token_tracking_required_count: artifacts.cost_budget_ledger?.summary?.token_tracking_required_count ?? 0,
+    cost_budget_token_tracking_pending_count: artifacts.cost_budget_ledger?.summary?.token_tracking_pending_count ?? 0,
+    cost_budget_total_max_usd: artifacts.cost_budget_ledger?.summary?.total_max_usd ?? 0,
+    cost_budget_total_observed_usd: artifacts.cost_budget_ledger?.summary?.total_observed_usd ?? 0,
+    cost_budget_total_runtime_seconds: artifacts.cost_budget_ledger?.summary?.total_observed_runtime_seconds ?? 0,
+    cost_budget_validation_error_count: artifacts.cost_budget_ledger?.summary?.validation_error_count ?? artifacts.cost_budget_ledger?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2426,6 +2491,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Policy Snapshots", dashboard.summary.policy_snapshot_count)}
       ${stat("Context Packets", dashboard.summary.context_packet_count)}
       ${stat("Model Routes", dashboard.summary.model_route_count)}
+      ${stat("Cost Budgets", dashboard.summary.cost_budget_decision_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2505,6 +2571,11 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Model routes requiring approval: ${dashboard.summary.model_route_approval_required_count ?? 0}`);
   lines.push(`- Model external transfers: ${dashboard.summary.model_route_external_transfer_count ?? 0}`);
   lines.push(`- Model route validation errors: ${dashboard.summary.model_route_validation_error_count ?? 0}`);
+  lines.push(`- Cost budget decisions: ${dashboard.summary.cost_budget_decision_count ?? 0}`);
+  lines.push(`- Cost budget passed: ${dashboard.summary.cost_budget_passed_count ?? 0}`);
+  lines.push(`- Cost budget token tracking pending: ${dashboard.summary.cost_budget_token_tracking_pending_count ?? 0}`);
+  lines.push(`- Cost budget max USD: ${dashboard.summary.cost_budget_total_max_usd ?? 0}`);
+  lines.push(`- Cost budget observed USD: ${dashboard.summary.cost_budget_total_observed_usd ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2677,6 +2748,8 @@ function parseArgs(argv) {
     else if (arg === "--no-context-packet-ledger") parsed.contextPacketLedgerPath = false;
     else if (arg === "--model-routing-ledger") parsed.modelRoutingLedgerPath = argv[++index];
     else if (arg === "--no-model-routing-ledger") parsed.modelRoutingLedgerPath = false;
+    else if (arg === "--cost-budget-ledger") parsed.costBudgetLedgerPath = argv[++index];
+    else if (arg === "--no-cost-budget-ledger") parsed.costBudgetLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2764,6 +2837,8 @@ Options:
   --no-context-packet-ledger     Do not include Context Packet Ledger status.
   --model-routing-ledger <path>  model-routing-ledger.json path.
   --no-model-routing-ledger      Do not include Model Routing Ledger status.
+  --cost-budget-ledger <path>    cost-budget-ledger.json path.
+  --no-cost-budget-ledger        Do not include Cost Budget Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

@@ -4,6 +4,8 @@
 
 이 단계의 목적은 파일 본문을 무작정 LLM에 넣는 것이 아니다. 각 파일을 상태 있는 job item으로 만들고, materialization 필요 파일, secret 후보, unsupported 파일, 중복 파일, extraction 실패 파일을 명시적으로 분리한다.
 
+현재 기본 extractor는 plain text/config/code, DOCX/PPTX/XLSX/PDF probe, archive/plugin probe, Outlook `.eml` probe를 지원한다. `.eml`은 기존 Outlook parser를 재사용해 subject, author, date, body를 normalized text 후보로 만든다.
+
 ## 실행
 
 ```bash

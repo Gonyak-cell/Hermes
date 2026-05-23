@@ -33,6 +33,7 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 
 const ARCHIVE_EXTENSIONS = new Set(["plugin", "rar", "zip"]);
+const EMAIL_EXTENSIONS = new Set(["eml"]);
 const OFFICE_EXTENSIONS = new Set(["doc", "docx", "hwp", "msg", "pdf", "pptx", "xlsb", "xlsx"]);
 const MEDIA_EXTENSIONS = new Set(["ico", "jpg", "jpeg", "mp4", "png", "webp"]);
 
@@ -178,6 +179,7 @@ function classifyResourceType(filePath, extension) {
   if (normalized.includes("/skills/") || normalized.endsWith("/skill.md")) return "skill";
   if (normalized.includes("/commands/") && extension === "md") return "command";
   if (normalized.includes("/scripts/") || ["py", "js", "mjs", "ps1", "sh", "bat"].includes(extension)) return "script";
+  if (EMAIL_EXTENSIONS.has(extension)) return "email";
   if (extension === "plugin") return "plugin-package";
   if (ARCHIVE_EXTENSIONS.has(extension)) return "archive";
   if (OFFICE_EXTENSIONS.has(extension)) return "document";
@@ -215,7 +217,13 @@ function classifyDomain(filePath, topLevelFolder, resourceType) {
 function classifyAuditStatus(file, extension) {
   if (file.fileprovider.dataless) return "needs_materialization";
   if (["doc", "hwp", "msg", "rar", "xlsb"].includes(extension)) return "unsupported_but_recorded";
-  if (TEXT_EXTENSIONS.has(extension) || ARCHIVE_EXTENSIONS.has(extension) || OFFICE_EXTENSIONS.has(extension) || MEDIA_EXTENSIONS.has(extension)) {
+  if (
+    TEXT_EXTENSIONS.has(extension) ||
+    EMAIL_EXTENSIONS.has(extension) ||
+    ARCHIVE_EXTENSIONS.has(extension) ||
+    OFFICE_EXTENSIONS.has(extension) ||
+    MEDIA_EXTENSIONS.has(extension)
+  ) {
     return "ready_for_extraction";
   }
   return "recorded_unknown_type";
@@ -227,6 +235,7 @@ function chooseExtractorFamily(extension) {
   if (extension === "pptx") return "pptx_open_xml";
   if (extension === "xlsx") return "xlsx_workbook";
   if (extension === "pdf") return "pdf_text_or_ocr";
+  if (extension === "eml") return "outlook_eml";
   if (extension === "msg") return "outlook_msg";
   if (extension === "hwp") return "hwp_converter";
   if (extension === "doc") return "legacy_doc_converter";

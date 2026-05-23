@@ -53,7 +53,7 @@ import {
 } from "../src/core-contract-validator.mjs";
 import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
-import { extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
+import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
 import { runPersonalDevSlice } from "../src/personal-dev-slice-runner.mjs";
 import { runVerticalSlice } from "../src/vertical-slice-runner.mjs";
@@ -152,7 +152,7 @@ describe("matter harness", () => {
     assert.match(renderDevProjectBrief(brief), /Recommended Focus/);
   });
 
-  it("extracts text from office xml and classifies resource signals", () => {
+  it("extracts text from office xml, Outlook EML, and classifies resource signals", async () => {
     const xml = "<w:p><w:r><w:t>LDD 전수검토</w:t></w:r></w:p><w:p><w:r><w:t>계약서 검토</w:t></w:r></w:p>";
     assert.equal(extractTextFromOfficeXml(xml), "LDD 전수검토\n계약서 검토");
 
@@ -171,6 +171,22 @@ describe("matter harness", () => {
     assert.ok(signals.resource_roles.includes("skill_instruction"));
     assert.ok(signals.capability_ids.includes("law_firm.ldd_vdr_review"));
     assert.ok(signals.capability_ids.includes("platform.plugin_skill_registry"));
+
+    const emlPath = path.resolve("examples/outlook-alpha-email.eml");
+    const emlExtraction = await extractResourceFile({
+      path: emlPath,
+      relative_path: "outlook-alpha-email.eml",
+      size_bytes: (await readFile(emlPath)).byteLength,
+      extension: "eml",
+      candidate_domain: "law-firm",
+      resource_type: "email",
+      extractor_family: "outlook_eml",
+    });
+    assert.equal(emlExtraction.extraction_status, "extracted");
+    assert.equal(emlExtraction.extractor, "outlook_eml_probe");
+    assert.match(emlExtraction.text_preview, /Project Alpha - disclosure schedule/);
+    assert.match(emlExtraction.text_preview, /tax team memo by 2026-05-24/);
+    assert.ok(emlExtraction.signals.capability_ids.includes("law_firm.email_reply"));
   });
 
   it("runs a resumable resource expansion job with quarantine and duplicate handling", async () => {

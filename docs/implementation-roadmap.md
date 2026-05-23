@@ -946,3 +946,27 @@
 - dashboard에서 goal checkpoint stage와 summary count를 볼 수 있음
 - `/api/goal-checkpoint-items?status=passed`로 checkpoint item을 조회할 수 있음
 - `npm test`, `npm run validate`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함
+
+## Phase 38: Outlook EML Resource Extraction
+
+목표: Resource Expansion에서 Outlook `.eml` 파일이 unsupported quarantine으로 빠지지 않고 Resource/Evidence lineage에 들어오도록 합니다.
+
+- Resource Audit이 `.eml`을 `email` resource type과 `outlook_eml` extractor family로 분류
+- Resource Extraction이 기존 Outlook EML parser를 재사용해 subject/body/date/author를 normalized text 후보로 추출
+- `.eml`에서 email reply capability signal을 감지
+- Resource Expansion의 unsupported quarantine을 실제 extractor 추가로 줄임
+
+현재 구현:
+
+- `src/resource-audit.mjs`
+- `src/resource-extract.mjs`
+- `src/outlook-parser.mjs`
+- `docs/resource-expansion-job.md`
+- `test/matter-harness.test.mjs`
+
+완료 기준:
+
+- `examples/outlook-alpha-email.eml`이 `outlook_eml_probe`로 추출됨
+- `.eml` 파일이 Resource Expansion에서 `quarantined`가 아니라 `extracted`가 됨
+- resource expansion, ingest, evidence viewer, dashboard, goal checkpoint가 새 상태를 반영함
+- `npm test`, `npm run validate`, `npm run resource:expand`, `npm run resource:ingest`, `npm run evidence:viewer`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함

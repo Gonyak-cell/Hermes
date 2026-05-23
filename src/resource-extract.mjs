@@ -3,6 +3,7 @@ import { mkdir, open, readFile, writeFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import path from "node:path";
+import { parseOutlookEml } from "./outlook-parser.mjs";
 
 export const DEFAULT_EXTRACTOR_QUEUE = "audits/resource-audit/latest/extractor-queue.json";
 export const DEFAULT_EXTRACTION_OUT_DIR = "audits/resource-audit/latest/extraction";
@@ -211,6 +212,7 @@ async function extractByExtension(file, options) {
   if (ext === "pptx") return extractPptx(file);
   if (ext === "xlsx") return extractXlsx(file);
   if (ext === "pdf") return extractPdf(file);
+  if (ext === "eml") return extractEml(file, options);
   if (ARCHIVE_EXTENSIONS.has(ext)) return extractArchiveOrPlugin(file);
   throw new Error(`No extractor registered for extension ${ext}`);
 }
@@ -327,6 +329,26 @@ async function extractPdf(file) {
     text: buffer.toString("latin1"),
     metadata: {
       pdftotext_available: false,
+    },
+  };
+}
+
+async function extractEml(file, options) {
+  const maxTextBytes = options.maxTextBytes ?? DEFAULT_MAX_TEXT_BYTES;
+  const { buffer, truncated, size } = await readFirstBytes(file.path, maxTextBytes);
+  const rawText = buffer.toString("utf8");
+  const message = parseOutlookEml(rawText, { sourceId: "resource-expansion-eml" }, file.path);
+  return {
+    extractor: "outlook_eml_probe",
+    text: message.text,
+    text_truncated: truncated,
+    metadata: {
+      parsed_message_id: message.id,
+      source_type: message.source_type,
+      source_id: message.source_id,
+      author: message.author,
+      date: message.date ?? null,
+      raw_size_bytes: size,
     },
   };
 }

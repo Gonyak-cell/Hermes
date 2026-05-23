@@ -1809,3 +1809,34 @@
 - `/api/human-review-merged-correction-receipt-input?receipt_status=pending`으로 validation에 넘길 merged correction receipt row를 조회할 수 있음
 - Dashboard summary가 actor input, receipt row, pending, ready, missing, invalid, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-corrections:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 67: Human Review Correction Validation
+
+목표: 병합된 correction receipt input을 표준 human gate receipt validation에 다시 투입해 feedback → correction → merge → validation 루프를 닫는다.
+
+- `artifacts/human-review-correction-workspace-merge/latest/receipt-input.json`을 validation input으로 사용
+- 기존 `control-plane-human-gate-receipt-validation.v1` 계약을 재사용해 별도 correction validation artifact 생성
+- pending, ready, invalid, missing, unknown correction receipt 상태를 validation item으로 기록
+- validated correction receipt는 `validated-human-gate-receipts.json`에 분리하되 application은 실행하지 않음
+- Control Plane Loop에서 correction workspace merge 뒤, receipt application 전에 `npm run control-plane:review-corrections:validate` 실행
+- Review Dashboard에 `human_review_correction_validation` stage와 item/receipt/pending/ready/error summary 추가
+- Review API에서 `/api/human-review-correction-validations`, `/api/human-review-correction-validation-items`, `/api/human-review-correction-validation-errors`, `/api/validated-correction-human-gate-receipts` route 제공
+- Goal Checkpoint에서 Human Review Correction Validation을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-corrections:validate`
+- `docs/human-review-correction-validation.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- correction validation artifact가 기존 human gate receipt validation schema를 통과함
+- validation item count가 correction workspace merge receipt row count와 일치함
+- pending correction receipt는 pending으로 유지되고 invalid, missing, unknown receipt count가 0임
+- `/api/human-review-correction-validation-items?validation_status=pending_receipt`로 pending correction validation item을 조회할 수 있음
+- `/api/validated-correction-human-gate-receipts`로 ready correction receipt를 조회할 수 있음
+- Dashboard summary가 correction validation item, receipt, pending, ready, invalid, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-corrections:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

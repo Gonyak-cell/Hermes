@@ -32,6 +32,5 @@ Useful checks:
 
 ```sh
 npm run control-plane:review-corrections:merge -- --check
-node scripts/control-plane-human-gate-receipt-validation.mjs \
-  --receipt-input artifacts/human-review-correction-workspace-merge/latest/receipt-input.json
+npm run control-plane:review-corrections:validate
 ```

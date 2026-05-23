@@ -32,6 +32,12 @@ correction workspace actor input을 다시 validation input으로 합치려면 m
 npm run control-plane:review-corrections:merge
 ```
 
+병합된 correction receipt input을 다시 human gate validation에 넣으려면 다음 shortcut을 실행한다.
+
+```bash
+npm run control-plane:review-corrections:validate
+```
+
 옵션:
 
 ```bash
@@ -67,6 +73,9 @@ Dashboard는 `control_plane_human_gate_receipt_validation` stage를 표시한다
 - `GET /api/human-review-correction-workspace-merges`
 - `GET /api/human-review-correction-merge-items`
 - `GET /api/human-review-merged-correction-receipt-input`
+- `GET /api/human-review-correction-validations`
+- `GET /api/human-review-correction-validation-items`
+- `GET /api/human-review-correction-validation-errors`
 - `GET /api/human-review-actor-feedback`
 - `GET /api/human-review-correction-workspaces`
 - `GET /api/human-review-correction-actors`

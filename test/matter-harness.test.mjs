@@ -1456,6 +1456,64 @@ describe("matter harness", () => {
     }
   });
 
+  it("classifies evidence decisions as human-gated action plan items", async () => {
+    const outDir = await mkdtemp(path.join(tmpdir(), "hermes-action-plan-human-gate-"));
+    try {
+      const dashboardPath = path.join(outDir, "dashboard.json");
+      const healthPath = path.join(outDir, "health.json");
+      await writeFile(
+        dashboardPath,
+        `${JSON.stringify({
+          schema_version: "review-dashboard.v1",
+          generated_at: "2026-05-23T12:40:00.000Z",
+          summary: {},
+          action_items: [
+            {
+              action_item_id: "dashboard.action.approval-item.evidence.synthetic",
+              source_stage: "approval_queue",
+              priority: "medium",
+              status: "pending",
+              title: "Review evidence: synthetic",
+              subject_ref: {
+                subject_type: "evidence_item",
+                subject_id: "evidence.synthetic",
+              },
+              reason: "Machine-extracted evidence requires human review before downstream use.",
+              recommended_actions: ["approve_evidence", "reject_evidence", "request_reextract", "assign_matter"],
+              source_ref: "approval-item.evidence.synthetic",
+            },
+          ],
+        }, null, 2)}\n`,
+        "utf8",
+      );
+      await writeFile(
+        healthPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-health.v1",
+          generated_at: "2026-05-23T12:40:00.000Z",
+          health_checks: [],
+        }, null, 2)}\n`,
+        "utf8",
+      );
+      const actionPlan = await runControlPlaneActionPlan({
+        dashboardPath,
+        healthPath,
+        outDir: path.join(outDir, "action-plan"),
+        runAt: "2026-05-23T12:40:01.000Z",
+      });
+      const schema = JSON.parse(await readFile("schemas/control-plane-action-plan.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(actionPlan, schema, {}, "control_plane_action_plan_human_gate"), []);
+      assert.equal(actionPlan.summary.ready_to_run_count, 0);
+      assert.equal(actionPlan.summary.waiting_for_human_count, 1);
+      assert.equal(actionPlan.summary.human_required_count, 1);
+      assert.equal(actionPlan.plan_items[0].status, "waiting_for_human");
+      assert.equal(actionPlan.plan_items[0].requires_human, true);
+      assert.equal(actionPlan.plan_items[0].next_commands.length, 0);
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  });
+
   it("applies validated control plane work packet receipts", async () => {
     const root = await mkdtemp(path.join(tmpdir(), "hermes-work-packet-application-"));
     try {

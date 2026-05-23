@@ -1040,3 +1040,22 @@
 - evidence viewer가 review queue를 생성한 경우 goal checkpoint에서 구현 통과로 인정됨
 - 사람 승인 대기는 dashboard/action plan의 operational blocker로 남음
 - `npm test`, `npm run validate`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함
+
+## Phase 42: Evidence Decision Human Gate Classification
+
+목표: Action Plan이 evidence 승인/반려/재추출/사건배정 판단을 자동 실행 후보로 분류하지 않도록 합니다.
+
+- `approve_evidence`, `reject_evidence`, `request_reextract`, `assign_matter`를 human action으로 분류
+- output review, citation review, PR/deck review 같은 승인성 action도 human action으로 분류
+- evidence review queue item은 `ready_to_run`이 아니라 `waiting_for_human` 상태로 유지
+- protected action은 계속 `blocked`, 단순 재실행 command만 `ready_to_run`으로 남김
+
+현재 구현:
+
+- `src/control-plane-action-plan.mjs`
+- `docs/control-plane-action-plan.md`
+
+완료 기준:
+
+- evidence approval queue item의 Action Plan status가 `waiting_for_human`으로 기록됨
+- `npm test`, `npm run validate`, `npm run control-plane:plan`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함

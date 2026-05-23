@@ -21,6 +21,9 @@ const STATUS_ORDER = {
 
 const HUMAN_ACTIONS = new Set([
   "apply_approval_decisions",
+  "approve_evidence",
+  "approve_or_request_changes",
+  "assign_matter",
   "confirm_attorney_delivery_approval",
   "confirm_citation_spot_check_completed",
   "fill_closeout_receipts",
@@ -28,9 +31,17 @@ const HUMAN_ACTIONS = new Set([
   "open_review_dashboard",
   "perform_manual_delivery_or_merge",
   "record_delivery_reference",
+  "reject_evidence",
+  "request_reextract",
+  "review_citations",
+  "review_deck_outline",
+  "review_issue_candidates",
+  "review_output_artifact",
+  "review_pr_draft",
   "resolve_dashboard_action_queue",
   "review_blocked_items_next",
   "review_blocking_gates",
+  "run_canonical_tests",
   "triage_high_priority_actions",
 ]);
 

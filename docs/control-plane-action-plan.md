@@ -35,6 +35,8 @@ npm run control-plane:plan -- \
 - `requires_human`: 승인, 검토, receipt 입력처럼 사람이 필요한 항목
 - `protected_action`: 실제 발송, merge, 수동 delivery 같은 protected action 여부
 
+Evidence decision 계열은 항상 human gate로 분류한다. `approve_evidence`, `reject_evidence`, `request_reextract`, `assign_matter`, `approve_or_request_changes` 같은 action은 로컬 명령 후보가 아니라 사람 판단이 필요한 승인/반려/수정 지시다. 따라서 dashboard가 evidence review를 `pending`으로 내보내면 Action Plan은 이를 `ready_to_run`이 아니라 `waiting_for_human`으로 기록한다.
+
 ## Dashboard/API
 
 Dashboard는 `control_plane_action_plan` stage를 표시하고 summary에 action plan count를 포함한다. Review API는 다음 route를 제공한다.

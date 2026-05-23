@@ -1535,3 +1535,36 @@
 - `/api/human-review-agenda-receipt-input?receipt_status=pending`으로 validation에 넘길 receipt row를 조회할 수 있음
 - Dashboard summary가 intake item, receipt row, pending, ready, invalid, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-agenda:intake`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 59: Human Review Receipt Workspace
+
+목표: Human Review Agenda Receipt Intake의 pending receipt row를 required actor별 편집 workspace로 나누어, 사람이 실제 결정을 안전하게 입력할 수 있게 한다.
+
+- intake item을 required actor별 workspace entry로 그룹화
+- actor별 `receipt-input.json`을 표준 `control-plane-human-gate-receipts-input.v1` subset으로 생성
+- actor별 `review.md`에 receipt count, pending count, protected action count, validation-before-application 절차를 기록
+- agenda decision template의 allowed outcome과 subject ref를 workspace entry에 보강
+- protected action은 workspace 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Review Dashboard에 `human_review_receipt_workspace` stage와 actor/entry/receipt/editable file summary 추가
+- Review API에서 `/api/human-review-receipt-workspaces`, `/api/human-review-actor-workspaces`, `/api/human-review-workspace-entries` route 제공
+- Control Plane Loop에 `npm run control-plane:review-workspace` 포함
+- Goal Checkpoint에서 Human Review Receipt Workspace를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-workspace`
+- `src/human-review-receipt-workspace.mjs`
+- `schemas/human-review-receipt-workspace.schema.json`
+- `docs/human-review-receipt-workspace.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review receipt workspace artifact가 schema validation을 통과함
+- actor별 `actors/<required_actor>/receipt-input.json`과 `review.md`가 생성됨
+- `/api/human-review-actor-workspaces?workspace_status=pending_human_review`로 actor별 workspace를 조회할 수 있음
+- `/api/human-review-workspace-entries?receipt_status=pending`으로 pending workspace entry를 조회할 수 있음
+- Dashboard summary가 actor workspace, workspace entry, receipt row, pending, editable file, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-workspace`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

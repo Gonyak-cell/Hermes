@@ -24,3 +24,5 @@ Safety contract:
 - Filled rows must still pass `npm run control-plane:human-gate-receipts:validate` before `npm run control-plane:human-gate-receipts:apply`.
 
 This is the bridge between the human-facing agenda and the deterministic receipt validation/application pipeline.
+
+For actor-specific editing folders, run `npm run control-plane:review-workspace` after intake. The workspace keeps the same receipt input contract, but splits pending rows by required actor.

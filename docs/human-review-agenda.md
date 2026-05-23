@@ -25,4 +25,4 @@ Safety contract:
 
 The agenda is intentionally not an execution layer. It is a controlled review surface that helps an attorney, authorized operator, developer owner, content owner, or human reviewer see the packet priority, required actor, receipt rows, protected-action warnings, and follow-up commands in one place.
 
-After a reviewer edits `decision-template.json`, run `npm run control-plane:review-agenda:intake` to convert it into the standard human gate receipt input format. Validation and application remain separate gated steps.
+After a reviewer edits `decision-template.json`, run `npm run control-plane:review-agenda:intake` to convert it into the standard human gate receipt input format. If the review needs to be split by actor first, run `npm run control-plane:review-workspace` to write per-actor receipt inputs and `review.md` checklists. Validation and application remain separate gated steps.

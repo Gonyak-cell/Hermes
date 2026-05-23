@@ -19,7 +19,7 @@ npm run control-plane:loop
 - `npm run token:usage`
 - `npm run cost:attribution`
 - `npm run budget:alerts`
-- `node scripts/review-dashboard.mjs --no-human-review-agenda --no-human-review-agenda-intake`
+- `node scripts/review-dashboard.mjs --no-human-review-agenda --no-human-review-agenda-intake --no-human-review-receipt-workspace`
 - `npm run control-plane:health`
 - `npm run control-plane:plan`
 - `npm run control-plane:human-gates`
@@ -27,6 +27,7 @@ npm run control-plane:loop
 - `npm run control-plane:review-packets`
 - `npm run control-plane:review-agenda`
 - `npm run control-plane:review-agenda:intake`
+- `npm run control-plane:review-workspace`
 - `node scripts/control-plane-human-gate-receipt-validation.mjs --receipt-input artifacts/human-review-agenda-receipt-intake/latest/receipt-input.json`
 - `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`

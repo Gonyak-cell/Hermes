@@ -30,6 +30,7 @@
     "control-plane:review-packets": "node scripts/human-review-packet-ledger.mjs",
     "control-plane:review-agenda": "node scripts/human-review-agenda.mjs",
     "control-plane:review-agenda:intake": "node scripts/human-review-agenda-receipt-intake.mjs",
+    "control-plane:review-workspace": "node scripts/human-review-receipt-workspace.mjs",
     "control-plane:loop": "node scripts/control-plane-loop.mjs",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",

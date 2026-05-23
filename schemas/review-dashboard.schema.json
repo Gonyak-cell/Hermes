@@ -116,6 +116,10 @@
         "work_packet_receipt_validation_pending_count",
         "work_packet_receipt_validation_invalid_count",
         "work_packet_receipt_validation_error_count",
+        "work_packet_receipt_application_ready_count",
+        "work_packet_receipt_application_applied_count",
+        "work_packet_receipt_application_patched_packet_count",
+        "work_packet_receipt_application_error_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -503,6 +507,22 @@
           "minimum": 0
         },
         "work_packet_receipt_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_application_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_application_applied_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_application_patched_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_receipt_application_error_count": {
           "type": "integer",
           "minimum": 0
         },

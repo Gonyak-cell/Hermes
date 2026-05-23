@@ -864,3 +864,30 @@
 - invalid receipt는 error와 함께 apply 대상에서 제외됨
 - `/api/work-packet-receipt-validations?validation_status=pending_receipt`로 대기 receipt를 조회할 수 있음
 - `npm test`, `control-plane:work-receipts:validate`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 35: Control Plane Work Packet Receipt Application
+
+목표: validation을 통과한 work packet receipt만 실제 work packet closure patch와 audit event로 적용합니다.
+
+- `control-plane-work-packet-receipt-validation.json`의 `validated_receipts_to_apply`만 적용
+- validation error, missing validation, missing work packet artifact가 있으면 적용 차단
+- pending receipt만 있는 경우 `nothing_to_apply` no-op artifact를 남김
+- 적용된 receipt는 patched work packet/work item과 `work_packet.receipt.applied` audit event로 기록
+- Review Dashboard에 `control_plane_work_packet_receipt_application` stage와 application summary 추가
+- Review API에서 `/api/work-packet-receipt-applications`, `/api/applied-work-packet-receipts` route 제공
+
+현재 구현:
+
+- `npm run control-plane:work-receipts:apply`
+- `src/control-plane-work-packet-receipt-application.mjs`
+- `schemas/control-plane-work-packet-receipt-application.schema.json`
+- `docs/control-plane-work-packet-receipt-application.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- validation 완료 receipt만 적용되고 pending receipt는 packet 상태를 바꾸지 않음
+- no-op 상황도 application artifact와 summary로 재현 가능함
+- `/api/work-packet-receipt-applications?application_status=nothing_to_apply`로 적용 상태를 조회할 수 있음
+- `npm test`, `control-plane:work-receipts:apply`, `dashboard:build`, `api:smoke`가 통과함

@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-work-packet-receipt-application.schema.json",
+  "title": "Hermes Control Plane Work Packet Receipt Application",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "application_id",
+    "output_dir",
+    "application_status",
+    "safe_to_apply",
+    "sources",
+    "summary",
+    "validated_receipts_to_apply",
+    "applied_receipts",
+    "pending_receipts",
+    "receipt_errors",
+    "audit_events",
+    "patched_work_packets",
+    "patched_work_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-work-packet-receipt-application.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "application_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "application_status": { "enum": ["applied", "nothing_to_apply", "blocked_missing_validation", "blocked_missing_work_packets", "blocked_validation_errors"] },
+    "safe_to_apply": { "type": "boolean" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "application_status",
+        "validation_available",
+        "work_packets_available",
+        "validation_status",
+        "validation_error_count",
+        "ready_receipt_count",
+        "pending_receipt_count",
+        "invalid_receipt_count",
+        "applied_receipt_count",
+        "patched_work_packet_count",
+        "patched_work_item_count",
+        "audit_event_count",
+        "receipt_error_count",
+        "by_receipt_status",
+        "by_packet_type",
+        "by_source_stage"
+      ],
+      "properties": {
+        "application_status": { "enum": ["applied", "nothing_to_apply", "blocked_missing_validation", "blocked_missing_work_packets", "blocked_validation_errors"] },
+        "validation_available": { "type": "boolean" },
+        "work_packets_available": { "type": "boolean" },
+        "validation_status": { "type": ["string", "null"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "ready_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "invalid_receipt_count": { "type": "integer", "minimum": 0 },
+        "applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "patched_work_packet_count": { "type": "integer", "minimum": 0 },
+        "patched_work_item_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "receipt_error_count": { "type": "integer", "minimum": 0 },
+        "by_receipt_status": { "type": "object" },
+        "by_packet_type": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "validated_receipts_to_apply": { "type": "object" },
+    "applied_receipts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "receipt_id",
+          "work_packet_id",
+          "packet_type",
+          "source_stage",
+          "receipt_status",
+          "applied_packet_status",
+          "resolved_by",
+          "resolved_at",
+          "resolution_reference",
+          "reviewer",
+          "protected_action_reference",
+          "command_result",
+          "completed_work_item_ids",
+          "packet_found"
+        ],
+        "properties": {
+          "receipt_id": { "type": "string" },
+          "work_packet_id": { "type": "string" },
+          "packet_type": { "type": "string" },
+          "source_stage": { "type": "string" },
+          "receipt_status": { "type": "string" },
+          "applied_packet_status": { "type": "string" },
+          "resolved_by": { "type": "string" },
+          "resolved_at": { "type": "string" },
+          "resolution_reference": { "type": "string" },
+          "reviewer": { "type": ["string", "null"] },
+          "protected_action_reference": { "type": ["string", "null"] },
+          "command_result": { "type": ["string", "null"] },
+          "completed_work_item_ids": { "type": "array", "items": { "type": "string" } },
+          "packet_found": { "type": "boolean" }
+        }
+      }
+    },
+    "pending_receipts": { "type": "array", "items": { "type": "object" } },
+    "receipt_errors": { "type": "array", "items": { "type": "object" } },
+    "audit_events": { "type": "array", "items": { "type": "object" } },
+    "patched_work_packets": { "type": "array", "items": { "type": "object" } },
+    "patched_work_items": { "type": "array", "items": { "type": "object" } }
+  }
+}

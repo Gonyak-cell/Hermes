@@ -30,6 +30,7 @@ npm run dashboard:build -- \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
   --control-plane-work-packet-receipts artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json \
   --control-plane-work-packet-receipt-validation artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json \
+  --control-plane-work-packet-receipt-application artifacts/control-plane-work-packet-receipt-application/latest/control-plane-work-packet-receipt-application.json \
   --law-firm-ldd-summary artifacts/law-firm-ldd-slice/latest/summary.json \
   --personal-dev-summary artifacts/personal-dev-slice/latest/summary.json \
   --creative-document-summary artifacts/creative-document-slice/latest/summary.json \
@@ -68,6 +69,7 @@ npm run dashboard:build -- \
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값
 - Control Plane Work Packet Receipt Validation의 pending/invalid/ready receipt gate 상태
+- Control Plane Work Packet Receipt Application의 applied receipt, patched packet, audit event 상태
 - Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 - Creative Document Slice의 slide, artifact, format validation, human approval 상태

@@ -8,6 +8,7 @@ import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs"
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
 import { runControlPlaneWorkPacketReceipts } from "../src/control-plane-work-packet-receipts.mjs";
+import { runControlPlaneWorkPacketReceiptApplication } from "../src/control-plane-work-packet-receipt-application.mjs";
 import { runControlPlaneWorkPacketReceiptValidation } from "../src/control-plane-work-packet-receipt-validation.mjs";
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
@@ -713,6 +714,7 @@ describe("matter harness", () => {
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
+        controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -724,6 +726,7 @@ describe("matter harness", () => {
         controlPlaneWorkPacketsPath: false,
         controlPlaneWorkPacketReceiptsPath: false,
         controlPlaneWorkPacketReceiptValidationPath: false,
+        controlPlaneWorkPacketReceiptApplicationPath: false,
         outDir: path.join(outDir, "dashboard-pre-health"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -801,6 +804,22 @@ describe("matter harness", () => {
       assert.equal(controlPlaneWorkPacketReceiptValidation.summary.pending_receipt_count, controlPlaneWorkPacketReceipts.summary.receipt_draft_count);
       assert.equal(controlPlaneWorkPacketReceiptValidation.summary.ready_to_apply_count, 0);
 
+      const controlPlaneWorkPacketReceiptApplication = await runControlPlaneWorkPacketReceiptApplication({
+        validationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
+        workPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
+        outDir: path.join(outDir, "control-plane-work-packet-receipt-application"),
+        runAt: "2026-05-23T06:35:07.550Z",
+      });
+      const controlPlaneWorkPacketReceiptApplicationSchema = JSON.parse(await readFile("schemas/control-plane-work-packet-receipt-application.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneWorkPacketReceiptApplication, controlPlaneWorkPacketReceiptApplicationSchema, {}, "control_plane_work_packet_receipt_application"),
+        [],
+      );
+      assert.equal(controlPlaneWorkPacketReceiptApplication.application_status, "nothing_to_apply");
+      assert.equal(controlPlaneWorkPacketReceiptApplication.summary.applied_receipt_count, 0);
+      assert.equal(controlPlaneWorkPacketReceiptApplication.summary.pending_receipt_count, controlPlaneWorkPacketReceiptValidation.summary.pending_receipt_count);
+      assert.equal(controlPlaneWorkPacketReceiptApplication.applied_receipts.length, 0);
+
       const dashboard = await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -808,6 +827,7 @@ describe("matter harness", () => {
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
+        controlPlaneWorkPacketReceiptApplicationPath: path.join(outDir, "control-plane-work-packet-receipt-application", "control-plane-work-packet-receipt-application.json"),
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -868,6 +888,9 @@ describe("matter harness", () => {
       assert.ok(dashboard.summary.work_packet_receipt_human_count >= 1);
       assert.equal(dashboard.summary.work_packet_receipt_validation_pending_count, controlPlaneWorkPacketReceiptValidation.summary.pending_receipt_count);
       assert.equal(dashboard.summary.work_packet_receipt_validation_ready_count, 0);
+      assert.equal(dashboard.summary.work_packet_receipt_application_ready_count, 0);
+      assert.equal(dashboard.summary.work_packet_receipt_application_applied_count, 0);
+      assert.equal(dashboard.summary.work_packet_receipt_application_patched_packet_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -901,6 +924,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipt_validation"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -960,6 +984,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-errors"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-work-packet-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-applications"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/applied-work-packet-receipts"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -1127,6 +1153,14 @@ describe("matter harness", () => {
       const validatedPacketReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-work-packet-receipts", apiOptions)).body);
       assert.equal(validatedPacketReceipts.collection, "validated_work_packet_receipts");
       assert.equal(validatedPacketReceipts.count, 0);
+
+      const packetReceiptApplications = JSON.parse((await buildReviewApiResponse("/api/work-packet-receipt-applications?application_status=nothing_to_apply", apiOptions)).body);
+      assert.equal(packetReceiptApplications.collection, "work_packet_receipt_applications");
+      assert.equal(packetReceiptApplications.count, 1);
+
+      const appliedPacketReceipts = JSON.parse((await buildReviewApiResponse("/api/applied-work-packet-receipts", apiOptions)).body);
+      assert.equal(appliedPacketReceipts.collection, "applied_work_packet_receipts");
+      assert.equal(appliedPacketReceipts.count, 0);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

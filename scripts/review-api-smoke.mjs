@@ -22,6 +22,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/runs"));
   assert.ok(index.routes.some((route) => route.path === "/api/events"));
   assert.ok(index.routes.some((route) => route.path === "/api/costs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
   assert.ok(index.routes.some((route) => route.path === "/api/matters"));
   assert.ok(index.routes.some((route) => route.path === "/api/approvals"));
@@ -70,6 +72,14 @@ try {
   const actions = await fetchJson(`${url}/api/actions?limit=5`);
   assert.equal(actions.collection, "action_items");
   assert.ok(actions.count <= 5);
+
+  const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
+  assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");
+  assert.equal(evidenceReviewDrafts.count, 1);
+
+  const evidenceReviewItems = await fetchJson(`${url}/api/evidence-review-items?review_status=ready_for_review&limit=5`);
+  assert.equal(evidenceReviewItems.collection, "evidence_review_items");
+  assert.ok(evidenceReviewItems.count <= 5);
 
   const approvals = await fetchJson(`${url}/api/approvals?item_type=approval_request`);
   assert.equal(approvals.collection, "approval_items");

@@ -43,6 +43,7 @@ const ACTION_COMMANDS = {
   fill_closeout_receipts: ["npm run delivery:closeout:validate", "npm run delivery:closeout:apply"],
   fix_closeout_receipts: ["npm run delivery:closeout:validate", "npm run delivery:closeout:apply"],
   fix_receipt_input: ["npm run delivery:closeout:validate"],
+  generate_evidence_review_draft: ["npm run evidence:review:draft", "npm run dashboard:build"],
   inspect_pipeline_step_logs: ["node scripts/review-api.mjs --once \"/api/pipeline-steps?status=failed\""],
   inspect_loop_step_logs: ["node scripts/review-api.mjs --once \"/api/control-plane-loop-steps?status=failed\""],
   open_approval_inbox: ["npm run approval:inbox"],

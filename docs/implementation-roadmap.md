@@ -970,3 +970,31 @@
 - `.eml` 파일이 Resource Expansion에서 `quarantined`가 아니라 `extracted`가 됨
 - resource expansion, ingest, evidence viewer, dashboard, goal checkpoint가 새 상태를 반영함
 - `npm test`, `npm run validate`, `npm run resource:expand`, `npm run resource:ingest`, `npm run evidence:viewer`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
+## Phase 39: Evidence Review Draft
+
+목표: Evidence Viewer의 `needs_review` 항목을 사람이 바로 검토할 수 있는 decision draft와 API surface로 전환합니다.
+
+- Approval Queue의 `evidence_review` item을 `evidence-review-draft.v1` ledger로 변환
+- classification별 review policy를 기록하고 P2 이상은 attorney review required로 유지
+- `approval-decisions.v1` 호환 draft를 생성하되 기본값은 protected data를 자동 승인하지 않음
+- Review Dashboard에 `evidence_review_draft` stage와 summary 추가
+- Review API에서 `/api/evidence-review-drafts`, `/api/evidence-review-items` route 제공
+- Control Plane Loop에 `npm run evidence:review:draft`를 포함
+
+현재 구현:
+
+- `npm run evidence:review:draft`
+- `src/evidence-review-draft.mjs`
+- `schemas/evidence-review-draft.schema.json`
+- `docs/evidence-review-draft.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- evidence review draft가 queue item과 evidence id를 보존함
+- P1 internal과 P2+ 자료의 suggested decision이 분리됨
+- 생성된 `approval-decisions.draft.json`을 사람이 검토 후 `approval:apply`에 넘길 수 있음
+- `/api/evidence-review-items?review_status=ready_for_review`로 검토 대상을 조회할 수 있음
+- `npm test`, `npm run validate`, `npm run evidence:review:draft`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

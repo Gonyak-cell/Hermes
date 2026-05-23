@@ -10,6 +10,7 @@ npm run dashboard:build -- \
   --resource-ingest artifacts/resource-ingest/latest/resource-ingest.json \
   --evidence-viewer artifacts/evidence-viewer/latest/evidence-viewer.json \
   --approval-queue artifacts/approval-queue/latest/approval-queue.json \
+  --evidence-review-draft artifacts/evidence-review-draft/latest/evidence-review-draft.json \
   --approval-decisions artifacts/approval-decisions/latest/approval-decision-result.json \
   --approval-inbox artifacts/approval-inbox/latest/approval-inbox.json \
   --approval-inbox-decisions artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json \
@@ -51,6 +52,7 @@ npm run dashboard:build -- \
 - Resource Ingest의 promoted, blocked, duplicate 상태
 - Evidence Viewer의 evidence count, needs review, blocking gate 상태
 - Approval Queue의 priority별 pending item
+- Evidence Review Draft의 review item, attorney review, suggested decision 상태
 - Approval Decisions의 applied, pending, audit event, follow-up action
 - Approval Inbox의 output/delivery approval request와 gate blocker review 상태
 - Approval Inbox Decisions의 applied decision, patched ready delivery, decision error 상태

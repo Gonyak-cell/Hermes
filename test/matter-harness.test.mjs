@@ -32,6 +32,7 @@ import { runDeliveryCloseoutReceiptValidation } from "../src/delivery-closeout-r
 import { runDeliveryReceipts } from "../src/delivery-receipts.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
+import { runEvidenceReviewDraft } from "../src/evidence-review-draft.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
 import { runMatterCockpit } from "../src/matter-cockpit.mjs";
 import { runObservabilityCatalog } from "../src/observability-catalog.mjs";
@@ -268,6 +269,18 @@ describe("matter harness", () => {
       assert.equal(approvalQueue.items[0].priority, "critical");
       assert.equal(approvalQueue.decision_template.decisions.length, approvalQueue.summary.total_items);
       assert.match(await readFile(path.join(outDir, "approval-queue", "summary.md"), "utf8"), /Approval Queue/);
+
+      const evidenceReviewDraft = await runEvidenceReviewDraft({
+        queuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
+        outDir: path.join(outDir, "evidence-review-draft"),
+        runAt: "2026-05-23T06:22:00.000Z",
+      });
+      const evidenceReviewDraftSchema = JSON.parse(await readFile("schemas/evidence-review-draft.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(evidenceReviewDraft, evidenceReviewDraftSchema, {}, "evidence_review_draft"), []);
+      assert.equal(evidenceReviewDraft.summary.review_item_count, 1);
+      assert.equal(evidenceReviewDraft.summary.pending_decision_count, approvalQueue.summary.total_items);
+      assert.equal(evidenceReviewDraft.decision_draft.schema_version, "approval-decisions.v1");
+      assert.match(await readFile(path.join(outDir, "evidence-review-draft", "summary.md"), "utf8"), /Evidence Review Draft/);
 
       const decisionsPath = path.join(outDir, "approval-decisions.json");
       const decisions = {
@@ -713,6 +726,7 @@ describe("matter harness", () => {
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
+        evidenceReviewDraftPath: path.join(outDir, "evidence-review-draft", "evidence-review-draft.json"),
         approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
         approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
         approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
@@ -911,6 +925,9 @@ describe("matter harness", () => {
       assert.deepEqual(validateAgainstSchema(dashboard, dashboardSchema, {}, "review_dashboard"), []);
       assert.equal(dashboard.summary.overall_status, "blocked");
       assert.equal(dashboard.summary.evidence_approved_count, 1);
+      assert.equal(dashboard.summary.evidence_review_draft_item_count, evidenceReviewDraft.summary.review_item_count);
+      assert.equal(dashboard.summary.evidence_review_draft_attorney_count, evidenceReviewDraft.summary.attorney_review_count);
+      assert.equal(dashboard.summary.evidence_review_draft_pending_decision_count, evidenceReviewDraft.summary.pending_decision_count);
       assert.equal(dashboard.summary.pending_approval_count, 3);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
@@ -1013,6 +1030,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_review_draft"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "creative_document_slice"));
       assert.ok(dashboard.action_items.some((item) => item.source_stage === "law_firm_ldd_slice"));
@@ -1033,6 +1051,8 @@ describe("matter harness", () => {
       const routeIndexSchema = JSON.parse(await readFile("schemas/review-api-index.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(routeIndex, routeIndexSchema, {}, "review_api_index"), []);
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-drafts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1085,6 +1105,14 @@ describe("matter harness", () => {
       assert.equal(highActions.collection, "action_items");
       assert.ok(highActions.items.length >= 1);
       assert.ok(highActions.items.every((item) => item.priority === "high"));
+
+      const evidenceReviewDrafts = JSON.parse((await buildReviewApiResponse("/api/evidence-review-drafts", apiOptions)).body);
+      assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");
+      assert.equal(evidenceReviewDrafts.count, 1);
+
+      const evidenceReviewItems = JSON.parse((await buildReviewApiResponse("/api/evidence-review-items?review_status=ready_for_review", apiOptions)).body);
+      assert.equal(evidenceReviewItems.collection, "evidence_review_items");
+      assert.ok(evidenceReviewItems.count >= 1);
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

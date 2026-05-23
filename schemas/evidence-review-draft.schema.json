@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-review-draft.schema.json",
+  "title": "Hermes Evidence Review Draft",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "draft_id",
+    "source_queue",
+    "source_queue_id",
+    "output_dir",
+    "review_policy",
+    "summary",
+    "review_items",
+    "decision_draft"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-review-draft.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "draft_id": { "type": "string" },
+    "source_queue": { "type": "string" },
+    "source_queue_id": { "type": ["string", "null"] },
+    "output_dir": { "type": "string" },
+    "review_policy": {
+      "type": "object",
+      "required": [
+        "draft_mode",
+        "reviewer",
+        "p1_internal_default",
+        "p2_client_confidential_default",
+        "p3_privileged_default",
+        "p4_highly_restricted_default",
+        "p5_secret_default"
+      ],
+      "properties": {
+        "draft_mode": { "enum": ["suggest_only", "safe_internal_auto_prefill"] },
+        "reviewer": { "type": ["string", "null"] },
+        "p1_internal_default": { "type": "string" },
+        "p2_client_confidential_default": { "type": "string" },
+        "p3_privileged_default": { "type": "string" },
+        "p4_highly_restricted_default": { "type": "string" },
+        "p5_secret_default": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "review_item_count",
+        "ready_for_review_count",
+        "attorney_review_count",
+        "auto_approvable_count",
+        "suggested_approve_count",
+        "suggested_pending_count",
+        "suggested_reject_count",
+        "generated_decision_count",
+        "pending_decision_count",
+        "by_classification",
+        "by_priority",
+        "by_review_status",
+        "by_suggested_decision"
+      ],
+      "properties": {
+        "review_item_count": { "type": "integer", "minimum": 0 },
+        "ready_for_review_count": { "type": "integer", "minimum": 0 },
+        "attorney_review_count": { "type": "integer", "minimum": 0 },
+        "auto_approvable_count": { "type": "integer", "minimum": 0 },
+        "suggested_approve_count": { "type": "integer", "minimum": 0 },
+        "suggested_pending_count": { "type": "integer", "minimum": 0 },
+        "suggested_reject_count": { "type": "integer", "minimum": 0 },
+        "generated_decision_count": { "type": "integer", "minimum": 0 },
+        "pending_decision_count": { "type": "integer", "minimum": 0 },
+        "by_classification": { "type": "object" },
+        "by_priority": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "by_suggested_decision": { "type": "object" }
+      }
+    },
+    "review_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "review_item_id",
+          "queue_item_id",
+          "evidence_id",
+          "priority",
+          "classification",
+          "matter_id",
+          "source_uri",
+          "capability_ids",
+          "review_status",
+          "suggested_decision",
+          "draft_decision",
+          "auto_approvable",
+          "reason",
+          "source_queue_item"
+        ],
+        "properties": {
+          "review_item_id": { "type": "string" },
+          "queue_item_id": { "type": "string" },
+          "evidence_id": { "type": ["string", "null"] },
+          "priority": { "type": "string" },
+          "classification": { "type": "string" },
+          "matter_id": { "type": ["string", "null"] },
+          "source_uri": { "type": ["string", "null"] },
+          "capability_ids": { "type": "array", "items": { "type": "string" } },
+          "review_status": { "enum": ["ready_for_review", "attorney_review_required"] },
+          "suggested_decision": { "type": "string" },
+          "draft_decision": { "type": "string" },
+          "auto_approvable": { "type": "boolean" },
+          "reason": { "type": "string" },
+          "source_queue_item": { "type": "object" }
+        }
+      }
+    },
+    "decision_draft": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "source_queue_id", "decisions"],
+      "properties": {
+        "schema_version": { "const": "approval-decisions.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_queue_id": { "type": ["string", "null"] },
+        "decisions": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  }
+}

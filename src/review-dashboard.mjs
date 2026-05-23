@@ -7,6 +7,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceIngestPath: "artifacts/resource-ingest/latest/resource-ingest.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
+  evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
   approvalDecisionPath: "artifacts/approval-decisions/latest/approval-decision-result.json",
   approvalInboxPath: "artifacts/approval-inbox/latest/approval-inbox.json",
   approvalInboxDecisionPath: "artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json",
@@ -55,6 +56,11 @@ const SOURCE_DEFINITIONS = [
     option: "approvalQueuePath",
     source_id: "approval_queue",
     label: "Approval Queue",
+  },
+  {
+    option: "evidenceReviewDraftPath",
+    source_id: "evidence_review_draft",
+    label: "Evidence Review Draft",
   },
   {
     option: "approvalDecisionPath",
@@ -321,6 +327,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "resource_ingest") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
+  if (sourceId === "evidence_review_draft") return data.summary ?? {};
   if (sourceId === "approval_decisions") return data.summary ?? {};
   if (sourceId === "approval_inbox") return data.summary ?? {};
   if (sourceId === "approval_inbox_decisions") return data.summary ?? {};
@@ -442,6 +449,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceIngestStage(artifacts.resource_ingest, sourceById.get("resource_ingest")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
+    buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
     buildApprovalDecisionStage(artifacts.approval_decisions, sourceById.get("approval_decisions")),
     buildApprovalInboxStage(artifacts.approval_inbox, sourceById.get("approval_inbox")),
     buildApprovalInboxDecisionStage(artifacts.approval_inbox_decisions, sourceById.get("approval_inbox_decisions")),
@@ -555,6 +563,33 @@ function buildApprovalQueueStage(queue, source, decisions) {
       pending_count: pending,
       critical_count: critical,
       critical_or_high_count: criticalOrHigh,
+    },
+  };
+}
+
+function buildEvidenceReviewDraftStage(draft, source) {
+  if (!draft) return missingStage("evidence_review_draft", "Evidence Review Draft", source);
+  const summary = draft.summary ?? {};
+  const attorney = summary.attorney_review_count ?? 0;
+  const pending = summary.pending_decision_count ?? 0;
+  const status = summary.review_item_count > 0
+    ? attorney > 0 || pending > 0
+      ? "ready"
+      : "passed"
+    : "passed";
+  return {
+    stage_id: "evidence_review_draft",
+    label: "Evidence Review Draft",
+    status,
+    message: `${summary.review_item_count ?? 0} evidence review draft item(s), ${attorney} requiring attorney review.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      review_item_count: summary.review_item_count ?? 0,
+      ready_for_review_count: summary.ready_for_review_count ?? 0,
+      attorney_review_count: attorney,
+      auto_approvable_count: summary.auto_approvable_count ?? 0,
+      suggested_approve_count: summary.suggested_approve_count ?? 0,
+      pending_decision_count: pending,
     },
   };
 }
@@ -1724,6 +1759,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     blocking_gate_count: blockingGateCount,
     blocked_resource_count: blockedResourceCount,
     approval_queue_item_count: queueSummary.total_items ?? 0,
+    evidence_review_draft_item_count: artifacts.evidence_review_draft?.summary?.review_item_count ?? 0,
+    evidence_review_draft_attorney_count: artifacts.evidence_review_draft?.summary?.attorney_review_count ?? 0,
+    evidence_review_draft_suggested_approve_count: artifacts.evidence_review_draft?.summary?.suggested_approve_count ?? 0,
+    evidence_review_draft_pending_decision_count: artifacts.evidence_review_draft?.summary?.pending_decision_count ?? 0,
     approval_applied_count: decisionSummary.applied_count ?? 0,
     pending_approval_count: pendingApprovalCount,
     approval_inbox_item_count: artifacts.approval_inbox?.summary?.inbox_item_count ?? 0,
@@ -1897,6 +1936,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Resources", dashboard.summary.resource_count)}
       ${stat("Evidence", dashboard.summary.evidence_count)}
       ${stat("Needs Review", dashboard.summary.evidence_needs_review_count)}
+      ${stat("Review Draft", dashboard.summary.evidence_review_draft_item_count)}
       ${stat("Pending Approvals", dashboard.summary.pending_approval_count)}
       ${stat("Approval Inbox", dashboard.summary.approval_inbox_item_count)}
       ${stat("Inbox Applied", dashboard.summary.approval_inbox_applied_count)}
@@ -1949,6 +1989,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Resources: ${dashboard.summary.resource_count}`);
   lines.push(`- Evidence: ${dashboard.summary.evidence_count}`);
   lines.push(`- Evidence needs review: ${dashboard.summary.evidence_needs_review_count}`);
+  lines.push(`- Evidence review draft items: ${dashboard.summary.evidence_review_draft_item_count ?? 0}`);
+  lines.push(`- Evidence review attorney items: ${dashboard.summary.evidence_review_draft_attorney_count ?? 0}`);
   lines.push(`- Pending approvals: ${dashboard.summary.pending_approval_count}`);
   lines.push(`- Approval inbox items: ${dashboard.summary.approval_inbox_item_count ?? 0}`);
   lines.push(`- Approval inbox requests: ${dashboard.summary.approval_inbox_request_count ?? 0}`);
@@ -2100,6 +2142,8 @@ function parseArgs(argv) {
     else if (arg === "--resource-ingest") parsed.resourceIngestPath = argv[++index];
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
+    else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];
+    else if (arg === "--no-evidence-review-draft") parsed.evidenceReviewDraftPath = false;
     else if (arg === "--approval-decisions") parsed.approvalDecisionPath = argv[++index];
     else if (arg === "--approval-inbox") parsed.approvalInboxPath = argv[++index];
     else if (arg === "--no-approval-inbox") parsed.approvalInboxPath = false;
@@ -2165,6 +2209,8 @@ Options:
   --resource-ingest <path>       resource-ingest.json path.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
+  --evidence-review-draft <path> evidence-review-draft.json path.
+  --no-evidence-review-draft     Do not include Evidence Review Draft status.
   --approval-decisions <path>    approval-decision-result.json path.
   --approval-inbox <path>        approval-inbox.json path.
   --no-approval-inbox            Do not include Approval Inbox status.

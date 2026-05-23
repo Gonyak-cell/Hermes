@@ -35,6 +35,10 @@
         "blocking_gate_count",
         "blocked_resource_count",
         "approval_queue_item_count",
+        "evidence_review_draft_item_count",
+        "evidence_review_draft_attorney_count",
+        "evidence_review_draft_suggested_approve_count",
+        "evidence_review_draft_pending_decision_count",
         "approval_applied_count",
         "pending_approval_count",
         "approval_inbox_item_count",
@@ -192,6 +196,22 @@
           "minimum": 0
         },
         "approval_queue_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence_review_draft_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence_review_draft_attorney_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence_review_draft_suggested_approve_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence_review_draft_pending_decision_count": {
           "type": "integer",
           "minimum": 0
         },

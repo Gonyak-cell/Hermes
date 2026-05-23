@@ -7,7 +7,7 @@ import path from "node:path";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
-import { runControlPlaneLoop } from "../src/control-plane-loop.mjs";
+import { runControlPlaneLoop, runControlPlaneLoopFinalization } from "../src/control-plane-loop.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
 import { runControlPlaneWorkPacketReceipts } from "../src/control-plane-work-packet-receipts.mjs";
 import { runControlPlaneWorkPacketReceiptApplication } from "../src/control-plane-work-packet-receipt-application.mjs";
@@ -873,6 +873,28 @@ describe("matter harness", () => {
       assert.deepEqual(validateAgainstSchema(controlPlaneLoop, controlPlaneLoopSchema, {}, "control_plane_loop"), []);
       assert.equal(controlPlaneLoop.loop_status, "passed");
       assert.equal(controlPlaneLoop.summary.passed_step_count, 1);
+
+      const controlPlaneLoopFinalization = await runControlPlaneLoopFinalization({
+        outDir: path.join(outDir, "control-plane-loop"),
+        runAt: "2026-05-23T06:35:07.950Z",
+        steps: [
+          {
+            step_id: "synthetic_loop_artifact_refresh",
+            label: "Synthetic Loop Artifact Refresh",
+            category: "test_control_plane_loop_finalization",
+            command: [process.execPath, "-e", "console.log('loop artifact refresh seen')"],
+            expected_artifacts: [path.join(outDir, "control-plane-loop", "control-plane-loop.json")],
+          },
+        ],
+      });
+      const controlPlaneLoopFinalizationSchema = JSON.parse(await readFile("schemas/control-plane-loop-finalization.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneLoopFinalization, controlPlaneLoopFinalizationSchema, {}, "control_plane_loop_finalization"),
+        [],
+      );
+      assert.equal(controlPlaneLoopFinalization.finalization_status, "passed");
+      assert.equal(controlPlaneLoopFinalization.summary.passed_step_count, 1);
+      assert.match(await readFile(path.join(outDir, "control-plane-loop", "finalization-summary.md"), "utf8"), /Control Plane Loop Finalization/);
 
       await runReviewDashboard({
         ...dashboardInputs,

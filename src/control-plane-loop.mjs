@@ -20,9 +20,21 @@ export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("api_smoke", "Review API Smoke", "api", ["npm", "run", "api:smoke"], []),
 ];
 
+export const DEFAULT_CONTROL_PLANE_LOOP_FINALIZATION_STEPS = [
+  step("goal_checkpoint_after_loop", "Goal Checkpoint After Loop", "finalization", ["npm", "run", "control-plane:goal-checkpoint"], ["artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json"]),
+  step("dashboard_after_loop", "Dashboard After Loop", "finalization", ["npm", "run", "dashboard:build"], ["artifacts/dashboard/latest/review-dashboard.json"]),
+  step("api_smoke_after_loop", "API Smoke After Loop", "finalization", ["npm", "run", "api:smoke"], []),
+];
+
 export async function runControlPlaneLoop(options = {}) {
   const result = await buildControlPlaneLoop(options);
   if (options.write !== false) await writeControlPlaneLoop(result, result.output_dir);
+  return result;
+}
+
+export async function runControlPlaneLoopFinalization(options = {}) {
+  const result = await buildControlPlaneLoopFinalization(options);
+  if (options.write !== false) await writeControlPlaneLoopFinalization(result, result.output_dir);
   return result;
 }
 
@@ -69,6 +81,35 @@ export async function writeControlPlaneLoop(result, outDir = result.output_dir) 
   await writeFile(path.join(outDir, "summary.md"), result.markdown, "utf8");
 }
 
+export async function buildControlPlaneLoopFinalization(options = {}) {
+  const outputDir = path.resolve(options.outDir ?? DEFAULT_CONTROL_PLANE_LOOP_OUT_DIR);
+  const cwd = path.resolve(options.cwd ?? process.cwd());
+  const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
+  const steps = normalizeSteps(options.steps ?? DEFAULT_CONTROL_PLANE_LOOP_FINALIZATION_STEPS);
+  const stepResults = [];
+
+  for (const finalizationStep of steps) {
+    stepResults.push(await runLoopStep(finalizationStep, { cwd }));
+  }
+
+  return buildFinalizationArtifact({ generatedAt, outputDir, cwd, stepResults });
+}
+
+export async function writeControlPlaneLoopFinalization(result, outDir = result.output_dir) {
+  await mkdir(outDir, { recursive: true });
+  await writeJson(path.join(outDir, "control-plane-loop-finalization.json"), {
+    schema_version: result.schema_version,
+    generated_at: result.generated_at,
+    finalization_id: result.finalization_id,
+    output_dir: result.output_dir,
+    cwd: result.cwd,
+    finalization_status: result.finalization_status,
+    summary: result.summary,
+    step_results: result.step_results,
+  });
+  await writeFile(path.join(outDir, "finalization-summary.md"), result.markdown, "utf8");
+}
+
 export async function runControlPlaneLoopCli(argv = process.argv.slice(2)) {
   const args = parseArgs(argv);
   if (args.help) {
@@ -77,11 +118,28 @@ export async function runControlPlaneLoopCli(argv = process.argv.slice(2)) {
   }
 
   const result = await runControlPlaneLoop(args);
+  const finalization = args.finalize
+    ? await runControlPlaneLoopFinalization({
+      outDir: args.outDir,
+      cwd: args.cwd,
+      runAt: args.runAt,
+    })
+    : null;
   console.log(`Control plane loop written to ${result.output_dir}`);
   console.log(`Loop status: ${result.loop_status}`);
   console.log(`Passed steps: ${result.summary.passed_step_count}/${result.summary.step_count}`);
   console.log(`Failed steps: ${result.summary.failed_step_count}`);
-  if (result.summary.failed_step_count > 0 || result.summary.missing_artifact_count > 0) process.exitCode = 1;
+  if (finalization) {
+    console.log(`Finalization status: ${finalization.finalization_status}`);
+    console.log(`Finalization steps: ${finalization.summary.passed_step_count}/${finalization.summary.step_count}`);
+  }
+  if (
+    result.summary.failed_step_count > 0
+    || result.summary.missing_artifact_count > 0
+    || (finalization && (finalization.summary.failed_step_count > 0 || finalization.summary.missing_artifact_count > 0))
+  ) {
+    process.exitCode = 1;
+  }
 }
 
 function buildLoopArtifact({ generatedAt, outputDir, cwd, continueOnError, stepResults }) {
@@ -101,6 +159,25 @@ function buildLoopArtifact({ generatedAt, outputDir, cwd, continueOnError, stepR
   return {
     ...loop,
     markdown: renderLoopMarkdown(loop),
+  };
+}
+
+function buildFinalizationArtifact({ generatedAt, outputDir, cwd, stepResults }) {
+  const summary = summarizeLoop(stepResults);
+  const finalization = {
+    schema_version: "control-plane-loop-finalization.v1",
+    generated_at: generatedAt,
+    finalization_id: `control-plane-loop-finalization.${dateStamp(generatedAt)}`,
+    output_dir: outputDir,
+    cwd,
+    finalization_status: summary.overall_status,
+    summary,
+    step_results: stepResults,
+  };
+
+  return {
+    ...finalization,
+    markdown: renderFinalizationMarkdown(finalization),
   };
 }
 
@@ -212,6 +289,27 @@ function renderLoopMarkdown(loop) {
   lines.push("## Steps");
   lines.push("");
   for (const result of loop.step_results) {
+    lines.push(`- ${result.step_id}: ${result.status} (${result.duration_ms}ms)`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function renderFinalizationMarkdown(finalization) {
+  const lines = [];
+  lines.push("# Control Plane Loop Finalization");
+  lines.push("");
+  lines.push(`Generated: ${finalization.generated_at}`);
+  lines.push(`Finalization status: ${finalization.finalization_status}`);
+  lines.push("");
+  lines.push(`- Steps: ${finalization.summary.step_count}`);
+  lines.push(`- Passed: ${finalization.summary.passed_step_count}`);
+  lines.push(`- Failed: ${finalization.summary.failed_step_count}`);
+  lines.push(`- Missing artifacts: ${finalization.summary.missing_artifact_count}`);
+  lines.push(`- Duration ms: ${finalization.summary.total_duration_ms}`);
+  lines.push("");
+  lines.push("## Steps");
+  lines.push("");
+  for (const result of finalization.step_results) {
     lines.push(`- ${result.step_id}: ${result.status} (${result.duration_ms}ms)`);
   }
   return `${lines.join("\n")}\n`;
@@ -329,6 +427,7 @@ function parseArgs(argv) {
   const parsed = {
     outDir: DEFAULT_CONTROL_PLANE_LOOP_OUT_DIR,
     continueOnError: true,
+    finalize: true,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -339,6 +438,8 @@ function parseArgs(argv) {
     else if (arg === "--cwd") parsed.cwd = argv[++index];
     else if (arg === "--fail-fast") parsed.continueOnError = false;
     else if (arg === "--continue-on-error") parsed.continueOnError = true;
+    else if (arg === "--finalize") parsed.finalize = true;
+    else if (arg === "--no-finalize") parsed.finalize = false;
     else throw new Error(`Unknown argument: ${arg}`);
   }
 
@@ -354,6 +455,8 @@ Options:
   --run-at <iso>           Deterministic generated_at timestamp.
   --continue-on-error      Continue running later steps after a failed step.
   --fail-fast              Skip later steps after the first failure.
+  --finalize               Refresh checkpoint, dashboard, and API smoke after the loop.
+  --no-finalize            Skip post-loop artifact refresh.
   -h, --help               Show this help.
 `);
 }

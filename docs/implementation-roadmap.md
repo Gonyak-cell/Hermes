@@ -998,3 +998,24 @@
 - 생성된 `approval-decisions.draft.json`을 사람이 검토 후 `approval:apply`에 넘길 수 있음
 - `/api/evidence-review-items?review_status=ready_for_review`로 검토 대상을 조회할 수 있음
 - `npm test`, `npm run validate`, `npm run evidence:review:draft`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 40: Control Plane Loop Finalization
+
+목표: `control-plane:loop`가 모든 step을 끝낸 뒤 dashboard와 goal checkpoint가 최종 loop artifact를 다시 읽도록 동기화합니다.
+
+- loop step 실행과 최종 artifact 저장을 먼저 완료
+- post-loop finalization에서 goal checkpoint, dashboard, API smoke를 한 번 더 실행
+- finalization 결과를 `control-plane-loop-finalization.v1` ledger로 저장
+- `--no-finalize` 옵션으로 finalization을 끌 수 있게 유지
+
+현재 구현:
+
+- `src/control-plane-loop.mjs`
+- `schemas/control-plane-loop-finalization.schema.json`
+- `docs/control-plane-loop.md`
+
+완료 기준:
+
+- `npm run control-plane:loop` 후 dashboard의 loop summary가 최종 loop step count를 반영함
+- finalization ledger schema validation이 통과함
+- `npm test`, `npm run validate`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함

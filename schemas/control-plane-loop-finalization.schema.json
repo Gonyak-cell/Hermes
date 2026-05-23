@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-loop-finalization.schema.json",
+  "title": "Hermes Control Plane Loop Finalization",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "finalization_id",
+    "output_dir",
+    "cwd",
+    "finalization_status",
+    "summary",
+    "step_results"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-loop-finalization.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "finalization_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "cwd": { "type": "string" },
+    "finalization_status": { "enum": ["passed", "partial", "failed", "artifact_missing"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "overall_status",
+        "step_count",
+        "passed_step_count",
+        "failed_step_count",
+        "skipped_step_count",
+        "artifact_missing_step_count",
+        "missing_artifact_count",
+        "protected_action_count",
+        "total_duration_ms",
+        "by_status",
+        "by_category"
+      ],
+      "properties": {
+        "overall_status": { "enum": ["passed", "partial", "failed", "artifact_missing"] },
+        "step_count": { "type": "integer", "minimum": 0 },
+        "passed_step_count": { "type": "integer", "minimum": 0 },
+        "failed_step_count": { "type": "integer", "minimum": 0 },
+        "skipped_step_count": { "type": "integer", "minimum": 0 },
+        "artifact_missing_step_count": { "type": "integer", "minimum": 0 },
+        "missing_artifact_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "total_duration_ms": { "type": "integer", "minimum": 0 },
+        "by_status": { "type": "object" },
+        "by_category": { "type": "object" }
+      }
+    },
+    "step_results": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "step_id",
+          "label",
+          "category",
+          "status",
+          "command",
+          "cwd",
+          "protected_action",
+          "started_at",
+          "completed_at",
+          "duration_ms",
+          "exit_code",
+          "signal",
+          "stdout",
+          "stderr",
+          "expected_artifacts",
+          "error"
+        ],
+        "properties": {
+          "step_id": { "type": "string" },
+          "label": { "type": "string" },
+          "category": { "type": "string" },
+          "status": { "enum": ["passed", "failed", "skipped", "artifact_missing"] },
+          "command": { "type": "array", "items": { "type": "string" } },
+          "cwd": { "type": "string" },
+          "protected_action": { "type": "boolean" },
+          "started_at": { "type": "string", "format": "date-time" },
+          "completed_at": { "type": "string", "format": "date-time" },
+          "duration_ms": { "type": "integer", "minimum": 0 },
+          "exit_code": { "type": ["integer", "null"] },
+          "signal": { "type": ["string", "null"] },
+          "stdout": { "type": "string" },
+          "stderr": { "type": "string" },
+          "expected_artifacts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["path", "exists"],
+              "properties": {
+                "path": { "type": "string" },
+                "exists": { "type": "boolean" }
+              }
+            }
+          },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    }
+  }
+}

@@ -24,10 +24,20 @@ npm run control-plane:loop
 - `npm run dashboard:build`
 - `npm run api:smoke`
 
+기본 CLI는 loop ledger를 최종 저장한 뒤 post-loop finalization도 실행한다.
+
+- `npm run control-plane:goal-checkpoint`
+- `npm run dashboard:build`
+- `npm run api:smoke`
+
+이 finalization은 dashboard와 goal checkpoint가 방금 완료된 `control-plane-loop.json`을 읽도록 맞추는 동기화 단계다. 필요하면 `node scripts/control-plane-loop.mjs --no-finalize`로 끌 수 있다.
+
 출력:
 
 - `control-plane-loop.json`: loop step별 command, exit code, artifact check ledger
+- `control-plane-loop-finalization.json`: 최종 loop artifact 저장 후 checkpoint/dashboard/API 재검증 결과
 - `summary.md`: 사람이 읽는 loop 요약
+- `finalization-summary.md`: finalization 요약
 
 ## 계약
 

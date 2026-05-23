@@ -38,6 +38,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
   controlPlaneHumanGatesPath: "artifacts/control-plane-human-gates/latest/control-plane-human-gates.json",
   controlPlaneHumanGateReceiptsPath: "artifacts/control-plane-human-gate-receipts/latest/control-plane-human-gate-receipt-drafts.json",
+  humanReviewPacketLedgerPath: "artifacts/human-review-packets/latest/human-review-packet-ledger.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -224,6 +225,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneHumanGateReceiptsPath",
     source_id: "control_plane_human_gate_receipts",
     label: "Control Plane Human Gate Receipts",
+  },
+  {
+    option: "humanReviewPacketLedgerPath",
+    source_id: "human_review_packet_ledger",
+    label: "Human Review Packet Ledger",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -494,6 +500,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
   if (sourceId === "control_plane_human_gates") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipts") return data.summary ?? {};
+  if (sourceId === "human_review_packet_ledger") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -571,6 +578,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
     buildControlPlaneHumanGatesStage(artifacts.control_plane_human_gates, sourceById.get("control_plane_human_gates")),
     buildControlPlaneHumanGateReceiptsStage(artifacts.control_plane_human_gate_receipts, sourceById.get("control_plane_human_gate_receipts")),
+    buildHumanReviewPacketLedgerStage(artifacts.human_review_packet_ledger, sourceById.get("human_review_packet_ledger")),
     buildControlPlaneHumanGateReceiptValidationStage(artifacts.control_plane_human_gate_receipt_validation, sourceById.get("control_plane_human_gate_receipt_validation")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
@@ -1532,6 +1540,40 @@ function buildControlPlaneHumanGateReceiptsStage(receipts, source) {
   };
 }
 
+function buildHumanReviewPacketLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("human_review_packet_ledger", "Human Review Packet Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const blocked = summary.blocked_packet_count ?? 0;
+  const pending = summary.pending_packet_count ?? 0;
+  const status = ledger.review_status === "blocked" || errorCount > 0 || blocked > 0
+    ? "blocked"
+    : pending > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "human_review_packet_ledger",
+    label: "Human Review Packet Ledger",
+    status,
+    message: `${summary.review_packet_count ?? 0} review packet(s), ${summary.review_item_count ?? 0} item(s), ${pending} pending packet(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      review_status: ledger.review_status ?? "unknown",
+      review_packet_count: summary.review_packet_count ?? 0,
+      review_item_count: summary.review_item_count ?? 0,
+      pending_packet_count: pending,
+      blocked_packet_count: blocked,
+      protected_packet_count: summary.protected_packet_count ?? 0,
+      human_required_packet_count: summary.human_required_packet_count ?? 0,
+      evidence_decision_packet_count: summary.evidence_decision_packet_count ?? 0,
+      command_packet_count: summary.command_packet_count ?? 0,
+      pending_receipt_count: summary.pending_receipt_count ?? 0,
+      missing_receipt_count: summary.missing_receipt_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -2023,6 +2065,24 @@ function buildActionItems(artifacts) {
         ? record.recommended_actions
         : ["review_budget_alert", "adjust_budget_thresholds", "rerun_budget_alerts"],
       source_ref: record.alert_record_id,
+    });
+  }
+
+  for (const error of artifacts.human_review_packet_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_packet_ledger";
+    items.push({
+      action_item_id: `dashboard.action.human_review_packet_ledger.${slugify(subjectId)}`,
+      source_stage: "human_review_packet_ledger",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review packet validation",
+      subject_ref: {
+        subject_type: "human_review_packet_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_gates", "rerun_human_gate_receipts", "rerun_human_review_packets"],
+      source_ref: subjectId,
     });
   }
 
@@ -2598,6 +2658,13 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_gate_receipt_protected_count: artifacts.control_plane_human_gate_receipts?.summary?.protected_receipt_count ?? 0,
     human_gate_receipt_evidence_decision_count: artifacts.control_plane_human_gate_receipts?.summary?.evidence_decision_receipt_count ?? 0,
     human_gate_receipt_command_count: artifacts.control_plane_human_gate_receipts?.summary?.command_receipt_count ?? 0,
+    human_review_packet_count: artifacts.human_review_packet_ledger?.summary?.review_packet_count ?? 0,
+    human_review_item_count: artifacts.human_review_packet_ledger?.summary?.review_item_count ?? 0,
+    human_review_pending_packet_count: artifacts.human_review_packet_ledger?.summary?.pending_packet_count ?? 0,
+    human_review_blocked_packet_count: artifacts.human_review_packet_ledger?.summary?.blocked_packet_count ?? 0,
+    human_review_protected_packet_count: artifacts.human_review_packet_ledger?.summary?.protected_packet_count ?? 0,
+    human_review_command_packet_count: artifacts.human_review_packet_ledger?.summary?.command_packet_count ?? 0,
+    human_review_validation_error_count: artifacts.human_review_packet_ledger?.summary?.validation_error_count ?? artifacts.human_review_packet_ledger?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -2742,6 +2809,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
       ${stat("Human Gates", dashboard.summary.human_gate_item_count)}
       ${stat("Gate Receipts", dashboard.summary.human_gate_receipt_draft_count)}
+      ${stat("Review Packets", dashboard.summary.human_review_packet_count)}
       ${stat("Gate Receipt Check", dashboard.summary.human_gate_receipt_validation_ready_count)}
       ${stat("Gate Receipt Apply", dashboard.summary.human_gate_receipt_application_applied_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
@@ -2865,6 +2933,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human gate receipt drafts: ${dashboard.summary.human_gate_receipt_draft_count ?? 0}`);
   lines.push(`- Human gate receipt protected: ${dashboard.summary.human_gate_receipt_protected_count ?? 0}`);
   lines.push(`- Human gate receipt evidence decisions: ${dashboard.summary.human_gate_receipt_evidence_decision_count ?? 0}`);
+  lines.push(`- Human review packets: ${dashboard.summary.human_review_packet_count ?? 0}`);
+  lines.push(`- Human review packet items: ${dashboard.summary.human_review_item_count ?? 0}`);
+  lines.push(`- Human review pending packets: ${dashboard.summary.human_review_pending_packet_count ?? 0}`);
   lines.push(`- Human gate receipts ready: ${dashboard.summary.human_gate_receipt_validation_ready_count ?? 0}`);
   lines.push(`- Human gate receipts pending: ${dashboard.summary.human_gate_receipt_validation_pending_count ?? 0}`);
   lines.push(`- Human gate receipts applied: ${dashboard.summary.human_gate_receipt_application_applied_count ?? 0}`);
@@ -3036,6 +3107,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-human-gates") parsed.controlPlaneHumanGatesPath = false;
     else if (arg === "--control-plane-human-gate-receipts") parsed.controlPlaneHumanGateReceiptsPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipts") parsed.controlPlaneHumanGateReceiptsPath = false;
+    else if (arg === "--human-review-packets") parsed.humanReviewPacketLedgerPath = argv[++index];
+    else if (arg === "--no-human-review-packets") parsed.humanReviewPacketLedgerPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -3145,6 +3218,8 @@ Options:
                                   control-plane-human-gate-receipt-drafts.json path.
   --no-control-plane-human-gate-receipts
                                   Do not include Control Plane Human Gate Receipts status.
+  --human-review-packets <path>  human-review-packet-ledger.json path.
+  --no-human-review-packets      Do not include Human Review Packet Ledger status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

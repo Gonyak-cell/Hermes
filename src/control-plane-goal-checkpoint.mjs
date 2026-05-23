@@ -23,6 +23,7 @@ const GOAL_ITEMS = [
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
   sourceItem("evidence_viewer", "Evidence viewer", "resource_evidence", "evidence_viewer", "control-plane-evidence-viewer", { acceptance_profile: "evidence_review_gate" }),
   sourceItem("approval_workflow", "Gate and approval workflow", "gate_approval", "approval_inbox", "control-plane-approval-workflow", { acceptance_profile: "approval_gate" }),
+  sourceItem("human_review_packets", "Human review packets", "gate_approval", "human_review_packet_ledger", "control-plane-human-review-packets", { acceptance_profile: "human_review_packet_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -307,6 +308,12 @@ function evaluateStageAcceptance(item, stage) {
   if (item.acceptance_profile === "approval_gate") {
     if ((metrics.inbox_item_count ?? 0) >= 0 && (metrics.approval_request_count ?? 0) >= 0) {
       return passedWithOperationalGate(stage, "Approval workflow is implemented; remaining items are human approval work.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_packet_gate") {
+    if ((metrics.review_packet_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
+      return passedWithOperationalGate(stage, "Human review packets are implemented and grouping pending gate receipts for human review.");
     }
   }
 

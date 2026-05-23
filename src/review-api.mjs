@@ -772,6 +772,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-packet-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_packet_ledgers", [ledgerResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-packets") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_packets", ledgerResult.artifact.review_packets ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-items") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_items", ledgerResult.artifact.review_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -958,7 +991,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -1046,6 +1079,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-gate-receipts", "Control Plane human gate receipt draft artifact"),
       route("GET", "/api/human-gate-receipt-requirements", "Control Plane human gate receipt requirements"),
       route("GET", "/api/human-gate-receipt-drafts", "Control Plane human gate receipt input drafts"),
+      route("GET", "/api/human-review-packet-ledgers", "Human review packet ledger artifacts"),
+      route("GET", "/api/human-review-packets", "Human review packets grouped by actor and gate type"),
+      route("GET", "/api/human-review-items", "Human review packet item details"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
@@ -1118,6 +1154,7 @@ function filterItems(items, searchParams) {
     "blocking_by_default",
     "ledger_id",
     "ledger_status",
+    "review_status",
     "policy_snapshot_id",
     "decision_id",
     "decision_status",
@@ -1230,9 +1267,17 @@ function filterItems(items, searchParams) {
     "source_type",
     "work_packet_id",
     "work_item_id",
+    "human_gate_id",
+    "gate_item_id",
+    "gate_type",
     "packet_type",
     "receipt_id",
     "receipt_requirement_id",
+    "review_packet_id",
+    "review_item_id",
+    "packet_type",
+    "packet_status",
+    "required_actor",
     "receipt_status",
     "requires_human",
     "protected_action",

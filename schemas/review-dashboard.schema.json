@@ -208,6 +208,13 @@
         "human_gate_receipt_protected_count",
         "human_gate_receipt_evidence_decision_count",
         "human_gate_receipt_command_count",
+        "human_review_packet_count",
+        "human_review_item_count",
+        "human_review_pending_packet_count",
+        "human_review_blocked_packet_count",
+        "human_review_protected_packet_count",
+        "human_review_command_packet_count",
+        "human_review_validation_error_count",
         "human_gate_receipt_validation_ready_count",
         "human_gate_receipt_validation_pending_count",
         "human_gate_receipt_validation_invalid_count",
@@ -990,6 +997,34 @@
           "minimum": 0
         },
         "human_gate_receipt_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_pending_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_blocked_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_protected_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_command_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_review_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

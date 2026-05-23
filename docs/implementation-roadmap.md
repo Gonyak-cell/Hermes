@@ -1442,3 +1442,33 @@
 - `/api/budget-alert-records?runtime_id=codex`로 Codex runtime budget alert를 조회할 수 있음
 - Dashboard summary가 alert record, active/critical/unbudgeted alert, human required, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run budget:alerts`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 56: Human Review Packet Ledger
+
+목표: Control Plane Human Gates와 Human Gate Receipt Drafts를 사람이 검토하기 쉬운 packet 단위로 묶어, 승인·증거판단·protected delivery·merge review를 actor/gate type 기준으로 운영할 수 있게 한다.
+
+- human gate item마다 receipt requirement와 receipt draft를 연결한 review item 생성
+- required actor와 gate type 기준으로 review packet 생성
+- protected action은 계속 manual/receipt-gated 상태로 유지하고 `auto_execute_allowed: false`를 강제
+- missing receipt draft나 source 누락은 validation error로 기록
+- Review Dashboard에 `human_review_packet_ledger` stage와 packet/item summary 추가
+- Review API에서 `/api/human-review-packet-ledgers`, `/api/human-review-packets`, `/api/human-review-items` route 제공
+- Control Plane Loop에 `npm run control-plane:review-packets` 포함
+- Goal Checkpoint에서 Human Review Packet Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-packets`
+- `src/human-review-packet-ledger.mjs`
+- `schemas/human-review-packet-ledger.schema.json`
+- `docs/human-review-packet-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review packet ledger artifact가 schema validation을 통과함
+- `/api/human-review-packets?required_actor=attorney_or_designated_reviewer`로 attorney review packet을 조회할 수 있음
+- `/api/human-review-items?gate_type=evidence_decision`로 evidence decision review item을 조회할 수 있음
+- Dashboard summary가 review packet, review item, pending packet, protected packet, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-packets`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

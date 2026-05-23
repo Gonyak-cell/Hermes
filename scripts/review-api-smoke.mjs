@@ -86,6 +86,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-requirements"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-drafts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-packet-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-packets"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
@@ -268,6 +271,18 @@ try {
   const pendingHumanGateReceiptDrafts = await fetchJson(`${url}/api/human-gate-receipt-drafts?receipt_status=pending&limit=5`);
   assert.equal(pendingHumanGateReceiptDrafts.collection, "human_gate_receipt_drafts");
   assert.ok(pendingHumanGateReceiptDrafts.count <= 5);
+
+  const humanReviewPacketLedgers = await fetchJson(`${url}/api/human-review-packet-ledgers?review_status=pending_review&limit=1`);
+  assert.equal(humanReviewPacketLedgers.collection, "human_review_packet_ledgers");
+  assert.ok(humanReviewPacketLedgers.count <= 1);
+
+  const attorneyReviewPackets = await fetchJson(`${url}/api/human-review-packets?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(attorneyReviewPackets.collection, "human_review_packets");
+  assert.ok(attorneyReviewPackets.count <= 5);
+
+  const evidenceHumanReviewItems = await fetchJson(`${url}/api/human-review-items?gate_type=evidence_decision&limit=5`);
+  assert.equal(evidenceHumanReviewItems.collection, "human_review_items");
+  assert.ok(evidenceHumanReviewItems.count <= 5);
 
   const pendingHumanGateReceiptValidations = await fetchJson(`${url}/api/human-gate-receipt-validations?validation_status=pending_receipt&limit=5`);
   assert.equal(pendingHumanGateReceiptValidations.collection, "human_gate_receipt_validations");

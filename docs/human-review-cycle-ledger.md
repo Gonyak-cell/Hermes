@@ -32,3 +32,7 @@ Safe handling:
 - It does not apply receipts.
 - It does not execute protected delivery, merge, ERP, command, or external actions.
 - Pending actor work stays pending until a human updates the relevant correction receipt input and validation passes.
+
+Next stage:
+
+- `npm run control-plane:review-cycle:work-orders` converts this ledger into actor-specific work orders and preserves the same draft-only/protected-action boundary.

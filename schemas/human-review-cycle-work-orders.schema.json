@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-work-orders.schema.json",
+  "title": "Hermes Human Review Cycle Work Orders",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "work_order_run_id",
+    "output_dir",
+    "work_order_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_work_orders",
+    "work_order_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-work-orders.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "work_order_run_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "work_order_status": { "$ref": "#/$defs/work_order_status" },
+    "safe_handling": { "$ref": "#/$defs/top_safe_handling" },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "work_order_status",
+        "source_count",
+        "unavailable_source_count",
+        "source_cycle_id",
+        "source_cycle_status",
+        "source_cycle_item_count",
+        "source_actor_cycle_count",
+        "actor_work_order_count",
+        "work_order_item_count",
+        "pending_human_review_count",
+        "ready_for_application_count",
+        "attention_count",
+        "clear_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "missing_target_path_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_gate_type",
+        "by_work_order_status",
+        "by_priority"
+      ],
+      "properties": {
+        "work_order_status": { "$ref": "#/$defs/work_order_status" },
+        "source_count": { "type": "integer", "minimum": 0 },
+        "unavailable_source_count": { "type": "integer", "minimum": 0 },
+        "source_cycle_id": { "type": ["string", "null"] },
+        "source_cycle_status": { "type": ["string", "null"] },
+        "source_cycle_item_count": { "type": "integer", "minimum": 0 },
+        "source_actor_cycle_count": { "type": "integer", "minimum": 0 },
+        "actor_work_order_count": { "type": "integer", "minimum": 0 },
+        "work_order_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_review_count": { "type": "integer", "minimum": 0 },
+        "ready_for_application_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "clear_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "missing_target_path_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_gate_type": { "type": "object" },
+        "by_work_order_status": { "type": "object" },
+        "by_priority": { "type": "object" }
+      }
+    },
+    "actor_work_orders": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_work_order" }
+    },
+    "work_order_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/work_order_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "work_order_status": {
+      "enum": ["clear", "pending_human_review", "ready_for_application", "attention", "blocked"]
+    },
+    "actor_status": {
+      "enum": ["clear", "pending_human_review", "ready_for_application", "attention"]
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_work_order": {
+      "type": "object",
+      "required": [
+        "work_order_id",
+        "cycle_id",
+        "actor_cycle_id",
+        "actor_feedback_id",
+        "required_actor",
+        "work_order_status",
+        "priority",
+        "work_order_item_count",
+        "pending_human_review_count",
+        "ready_for_application_count",
+        "attention_count",
+        "clear_count",
+        "protected_action_count",
+        "evidence_decision_count",
+        "work_order_item_ids",
+        "source_cycle_json_path",
+        "source_cycle_markdown_path",
+        "work_order_json_path",
+        "work_order_markdown_path",
+        "checklist",
+        "safe_handling"
+      ],
+      "properties": {
+        "work_order_id": { "type": "string" },
+        "cycle_id": { "type": ["string", "null"] },
+        "actor_cycle_id": { "type": ["string", "null"] },
+        "actor_feedback_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "work_order_status": { "$ref": "#/$defs/actor_status" },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "work_order_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_review_count": { "type": "integer", "minimum": 0 },
+        "ready_for_application_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "clear_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_count": { "type": "integer", "minimum": 0 },
+        "work_order_item_ids": { "type": "array", "items": { "type": "string" } },
+        "source_cycle_json_path": { "type": ["string", "null"] },
+        "source_cycle_markdown_path": { "type": ["string", "null"] },
+        "work_order_json_path": { "type": "string" },
+        "work_order_markdown_path": { "type": "string" },
+        "checklist": { "type": "array", "items": { "type": "string" } },
+        "safe_handling": { "$ref": "#/$defs/top_safe_handling" }
+      }
+    },
+    "work_order_item": {
+      "type": "object",
+      "required": [
+        "work_order_item_id",
+        "work_order_id",
+        "cycle_id",
+        "actor_cycle_id",
+        "cycle_item_id",
+        "gate_item_id",
+        "source_plan_item_id",
+        "required_actor",
+        "gate_type",
+        "priority",
+        "work_order_status",
+        "cycle_status",
+        "protected_action",
+        "evidence_decision",
+        "receipt_id",
+        "receipt_status",
+        "outcome",
+        "correction_feedback_item_id",
+        "correction_feedback_status",
+        "correction_validation_item_id",
+        "correction_validation_status",
+        "ready_to_apply",
+        "allowed_outcomes",
+        "required_receipt_fields",
+        "target_receipt_input_path",
+        "target_decision_json_path",
+        "next_actions",
+        "review_instructions",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "work_order_item_id": { "type": "string" },
+        "work_order_id": { "type": "string" },
+        "cycle_id": { "type": ["string", "null"] },
+        "actor_cycle_id": { "type": ["string", "null"] },
+        "cycle_item_id": { "type": "string" },
+        "gate_item_id": { "type": "string" },
+        "source_plan_item_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "gate_type": { "type": "string" },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "work_order_status": { "$ref": "#/$defs/actor_status" },
+        "cycle_status": { "type": "string" },
+        "protected_action": { "type": "boolean" },
+        "evidence_decision": { "type": "boolean" },
+        "receipt_id": { "type": ["string", "null"] },
+        "receipt_status": { "type": ["string", "null"] },
+        "outcome": { "type": ["string", "null"] },
+        "correction_feedback_item_id": { "type": ["string", "null"] },
+        "correction_feedback_status": { "type": ["string", "null"] },
+        "correction_validation_item_id": { "type": ["string", "null"] },
+        "correction_validation_status": { "type": ["string", "null"] },
+        "ready_to_apply": { "type": "boolean" },
+        "allowed_outcomes": { "type": "array", "items": { "type": "string" } },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "target_receipt_input_path": { "type": ["string", "null"] },
+        "target_decision_json_path": { "type": ["string", "null"] },
+        "next_actions": { "type": "array", "items": { "type": "string" } },
+        "review_instructions": { "type": "array", "items": { "type": "string" } },
+        "source_refs": {
+          "type": "object",
+          "required": [
+            "cycle_item_id",
+            "actor_cycle_id",
+            "correction_feedback_item_id",
+            "correction_item_id",
+            "correction_merge_item_id",
+            "correction_validation_item_id"
+          ],
+          "properties": {
+            "cycle_item_id": { "type": ["string", "null"] },
+            "actor_cycle_id": { "type": ["string", "null"] },
+            "correction_feedback_item_id": { "type": ["string", "null"] },
+            "correction_item_id": { "type": ["string", "null"] },
+            "correction_merge_item_id": { "type": ["string", "null"] },
+            "correction_validation_item_id": { "type": ["string", "null"] }
+          }
+        },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "protected_actions_executed", "work_order_only"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "protected_actions_executed": { "const": false },
+            "work_order_only": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "top_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "work_order_only", "protected_actions_executed"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "work_order_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

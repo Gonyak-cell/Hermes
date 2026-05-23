@@ -134,6 +134,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-cycles"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-work-orders"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-work-order-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-work-orders"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -504,6 +507,18 @@ try {
   const humanReviewActorCycles = await fetchJson(`${url}/api/human-review-actor-cycles?required_actor=attorney_or_designated_reviewer&limit=5`);
   assert.equal(humanReviewActorCycles.collection, "human_review_actor_cycles");
   assert.ok(humanReviewActorCycles.count <= 5);
+
+  const humanReviewCycleWorkOrders = await fetchJson(`${url}/api/human-review-cycle-work-orders?work_order_status=pending_human_review&limit=1`);
+  assert.equal(humanReviewCycleWorkOrders.collection, "human_review_cycle_work_orders");
+  assert.ok(humanReviewCycleWorkOrders.count <= 1);
+
+  const humanReviewCycleWorkOrderItems = await fetchJson(`${url}/api/human-review-cycle-work-order-items?work_order_status=pending_human_review&limit=5`);
+  assert.equal(humanReviewCycleWorkOrderItems.collection, "human_review_cycle_work_order_items");
+  assert.ok(humanReviewCycleWorkOrderItems.count <= 5);
+
+  const humanReviewActorWorkOrders = await fetchJson(`${url}/api/human-review-actor-work-orders?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewActorWorkOrders.collection, "human_review_actor_work_orders");
+  assert.ok(humanReviewActorWorkOrders.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

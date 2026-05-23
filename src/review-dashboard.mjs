@@ -52,6 +52,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCorrectionValidationPath: "artifacts/human-review-correction-validation/latest/control-plane-human-gate-receipt-validation.json",
   humanReviewCorrectionFeedbackPath: "artifacts/human-review-correction-feedback/latest/human-review-correction-feedback.json",
   humanReviewCycleLedgerPath: "artifacts/human-review-cycle-ledger/latest/human-review-cycle-ledger.json",
+  humanReviewCycleWorkOrdersPath: "artifacts/human-review-cycle-work-orders/latest/human-review-cycle-work-orders.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -308,6 +309,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewCycleLedgerPath",
     source_id: "human_review_cycle_ledger",
     label: "Human Review Cycle Ledger",
+  },
+  {
+    option: "humanReviewCycleWorkOrdersPath",
+    source_id: "human_review_cycle_work_orders",
+    label: "Human Review Cycle Work Orders",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -592,6 +598,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_correction_validation") return data.summary ?? {};
   if (sourceId === "human_review_correction_feedback") return data.summary ?? {};
   if (sourceId === "human_review_cycle_ledger") return data.summary ?? {};
+  if (sourceId === "human_review_cycle_work_orders") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -684,6 +691,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCorrectionValidationStage(artifacts.human_review_correction_validation, sourceById.get("human_review_correction_validation")),
     buildHumanReviewCorrectionFeedbackStage(artifacts.human_review_correction_feedback, sourceById.get("human_review_correction_feedback")),
     buildHumanReviewCycleLedgerStage(artifacts.human_review_cycle_ledger, sourceById.get("human_review_cycle_ledger")),
+    buildHumanReviewCycleWorkOrdersStage(artifacts.human_review_cycle_work_orders, sourceById.get("human_review_cycle_work_orders")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -2148,6 +2156,44 @@ function buildHumanReviewCycleLedgerStage(ledger, source) {
   };
 }
 
+function buildHumanReviewCycleWorkOrdersStage(workOrders, source) {
+  if (!workOrders) return missingStage("human_review_cycle_work_orders", "Human Review Cycle Work Orders", source);
+  const summary = workOrders.summary ?? {};
+  const errorCount = summary.validation_error_count ?? workOrders.validation?.errors?.length ?? 0;
+  const status = workOrders.work_order_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : workOrders.work_order_status === "attention" || (summary.attention_count ?? 0) > 0
+      ? "attention"
+      : (summary.pending_human_review_count ?? 0) > 0
+        ? "pending"
+        : (summary.ready_for_application_count ?? 0) > 0
+          ? "ready"
+          : "passed";
+  return {
+    stage_id: "human_review_cycle_work_orders",
+    label: "Human Review Cycle Work Orders",
+    status,
+    message: `${summary.actor_work_order_count ?? 0} actor work order(s), ${summary.work_order_item_count ?? 0} item(s), ${summary.pending_human_review_count ?? 0} pending.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      work_order_status: workOrders.work_order_status ?? "unknown",
+      actor_work_order_count: summary.actor_work_order_count ?? 0,
+      work_order_item_count: summary.work_order_item_count ?? 0,
+      pending_human_review_count: summary.pending_human_review_count ?? 0,
+      ready_for_application_count: summary.ready_for_application_count ?? 0,
+      attention_count: summary.attention_count ?? 0,
+      clear_count: summary.clear_count ?? 0,
+      unavailable_source_count: summary.unavailable_source_count ?? 0,
+      source_cycle_item_count: summary.source_cycle_item_count ?? 0,
+      source_actor_cycle_count: summary.source_actor_cycle_count ?? 0,
+      protected_action_count: summary.protected_action_count ?? 0,
+      evidence_decision_count: summary.evidence_decision_count ?? 0,
+      missing_target_path_count: summary.missing_target_path_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -2912,6 +2958,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_cycle_work_orders?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_cycle_work_orders";
+    items.push({
+      action_item_id: `dashboard.action.human_review_cycle_work_orders.${slugify(subjectId)}`,
+      source_stage: "human_review_cycle_work_orders",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review cycle work orders",
+      subject_ref: {
+        subject_type: "human_review_cycle_work_orders_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_cycle_ledger", "rerun_human_review_cycle_work_orders"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -3600,6 +3664,17 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_cycle_protected_count: artifacts.human_review_cycle_ledger?.summary?.protected_action_count ?? 0,
     human_review_cycle_evidence_count: artifacts.human_review_cycle_ledger?.summary?.evidence_decision_count ?? 0,
     human_review_cycle_validation_error_count: artifacts.human_review_cycle_ledger?.summary?.validation_error_count ?? artifacts.human_review_cycle_ledger?.validation?.errors?.length ?? 0,
+    human_review_cycle_work_order_actor_count: artifacts.human_review_cycle_work_orders?.summary?.actor_work_order_count ?? 0,
+    human_review_cycle_work_order_item_count: artifacts.human_review_cycle_work_orders?.summary?.work_order_item_count ?? 0,
+    human_review_cycle_work_order_pending_count: artifacts.human_review_cycle_work_orders?.summary?.pending_human_review_count ?? 0,
+    human_review_cycle_work_order_ready_count: artifacts.human_review_cycle_work_orders?.summary?.ready_for_application_count ?? 0,
+    human_review_cycle_work_order_attention_count: artifacts.human_review_cycle_work_orders?.summary?.attention_count ?? 0,
+    human_review_cycle_work_order_clear_count: artifacts.human_review_cycle_work_orders?.summary?.clear_count ?? 0,
+    human_review_cycle_work_order_unavailable_source_count: artifacts.human_review_cycle_work_orders?.summary?.unavailable_source_count ?? 0,
+    human_review_cycle_work_order_protected_count: artifacts.human_review_cycle_work_orders?.summary?.protected_action_count ?? 0,
+    human_review_cycle_work_order_evidence_count: artifacts.human_review_cycle_work_orders?.summary?.evidence_decision_count ?? 0,
+    human_review_cycle_work_order_missing_target_path_count: artifacts.human_review_cycle_work_orders?.summary?.missing_target_path_count ?? 0,
+    human_review_cycle_work_order_validation_error_count: artifacts.human_review_cycle_work_orders?.summary?.validation_error_count ?? artifacts.human_review_cycle_work_orders?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -4120,6 +4195,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-correction-feedback") parsed.humanReviewCorrectionFeedbackPath = false;
     else if (arg === "--human-review-cycle-ledger") parsed.humanReviewCycleLedgerPath = argv[++index];
     else if (arg === "--no-human-review-cycle-ledger") parsed.humanReviewCycleLedgerPath = false;
+    else if (arg === "--human-review-cycle-work-orders") parsed.humanReviewCycleWorkOrdersPath = argv[++index];
+    else if (arg === "--no-human-review-cycle-work-orders") parsed.humanReviewCycleWorkOrdersPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -4253,6 +4330,10 @@ Options:
                                   human-review-cycle-ledger.json path.
   --no-human-review-cycle-ledger
                                   Do not include Human Review Cycle Ledger status.
+  --human-review-cycle-work-orders <path>
+                                  human-review-cycle-work-orders.json path.
+  --no-human-review-cycle-work-orders
+                                  Do not include Human Review Cycle Work Orders status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

@@ -1910,3 +1910,38 @@
 - `/api/human-review-actor-cycles?required_actor=attorney_or_designated_reviewer`로 actor별 cycle rollup을 조회할 수 있음
 - Dashboard summary가 cycle actor, item, pending, ready, attention, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 70: Human Review Cycle Work Orders
+
+목표: Human Review Cycle Ledger의 gate item별 pending 상태를 actor별 work order queue로 변환해 사람이 다음에 무엇을 처리해야 하는지 바로 볼 수 있게 한다.
+
+- `Human Review Cycle Ledger`를 source of truth로 사용
+- `Human Review Correction Feedback`을 보조 입력으로 사용해 target receipt input path, required receipt fields, allowed outcomes를 work order item에 연결
+- actor별 work order와 gate item별 work order item을 생성
+- pending, ready, attention, clear 상태를 work order status로 정규화
+- protected action은 work order 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 cycle ledger 뒤, receipt application 전에 `npm run control-plane:review-cycle:work-orders` 실행
+- Review Dashboard에 `human_review_cycle_work_orders` stage와 actor/item/pending/ready/attention/error summary 추가
+- Review API에서 `/api/human-review-cycle-work-orders`, `/api/human-review-cycle-work-order-items`, `/api/human-review-actor-work-orders` route 제공
+- Goal Checkpoint에서 Human Review Cycle Work Orders를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:work-orders`
+- `src/human-review-cycle-work-orders.mjs`
+- `schemas/human-review-cycle-work-orders.schema.json`
+- `docs/human-review-cycle-work-orders.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle work orders artifact가 schema validation을 통과함
+- work order item count가 cycle ledger item count와 일치함
+- actor work order count가 cycle ledger actor count와 일치함
+- pending cycle item은 work order에서 `pending_human_review`로 유지됨
+- `/api/human-review-cycle-work-order-items?work_order_status=pending_human_review`로 pending work order item을 조회할 수 있음
+- `/api/human-review-actor-work-orders?required_actor=attorney_or_designated_reviewer`로 actor별 work order를 조회할 수 있음
+- Dashboard summary가 work order actor, item, pending, ready, attention, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:work-orders`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

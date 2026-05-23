@@ -17,6 +17,7 @@ import { runApprovalInbox } from "../src/approval-inbox.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.mjs";
 import { runDeliveryExecutionDraft } from "../src/delivery-execution-draft.mjs";
+import { runDeliveryReceipts } from "../src/delivery-receipts.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
 import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
@@ -482,6 +483,50 @@ describe("matter harness", () => {
       assert.ok(deliveryExecution.execution_candidates.some((candidate) => candidate.delivery_channel === "github"));
       assert.ok(deliveryExecution.execution_packets.some((packet) => packet.delivery_target === "supporting_document" && packet.candidate_count === 2));
 
+      const deliveryReceiptInputPath = path.join(outDir, "delivery-receipts-input.json");
+      const deliveryReceiptInput = {
+        schema_version: "delivery-receipts-input.v1",
+        generated_at: "2026-05-23T06:35:01.000Z",
+        execution_plan_id: deliveryExecution.execution_plan_id,
+        instructions: "Test receipts",
+        receipts: deliveryExecution.execution_packets.map((packet) => ({
+          receipt_id: `receipt.${packet.packet_id}`,
+          packet_id: packet.packet_id,
+          receipt_status: "delivered",
+          executed_by: "user.jws",
+          executed_at: "2026-05-23T06:35:01.500Z",
+          delivery_reference: `manual://${packet.packet_id}`,
+          notes: "Test delivery receipt",
+          delivered_artifact_ids: packet.artifact_ids,
+        })),
+      };
+      await writeFile(deliveryReceiptInputPath, `${JSON.stringify(deliveryReceiptInput, null, 2)}\n`, "utf8");
+      const deliveryReceipts = await runDeliveryReceipts({
+        executionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        receiptsPath: deliveryReceiptInputPath,
+        deliveryQueuePath: path.join(outDir, "approval-inbox-decisions", "patched-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "approval-inbox-decisions", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "delivery-receipts"),
+        runAt: "2026-05-23T06:35:02.000Z",
+      });
+      const deliveryReceiptSchema = JSON.parse(await readFile("schemas/delivery-receipt-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(deliveryReceipts, deliveryReceiptSchema, {}, "delivery_receipt_ledger"), []);
+      assert.equal(deliveryReceipts.summary.applied_receipt_count, 4);
+      assert.equal(deliveryReceipts.summary.pending_receipt_count, 0);
+      assert.equal(deliveryReceipts.summary.delivered_packet_count, 4);
+      assert.equal(deliveryReceipts.summary.delivered_artifact_count, 5);
+      assert.equal(deliveryReceipts.summary.patched_delivery_delivered_count, 5);
+      assert.equal(deliveryReceipts.summary.patched_output_delivered_count, 5);
+      assert.equal(deliveryReceipts.audit_events.length, 4);
+      assert.deepEqual(
+        validateAgainstSchema(deliveryReceipts.patched_delivery_queue, deliveryQueueSchema, {}, "receipt_patched_delivery_queue"),
+        [],
+      );
+      assert.deepEqual(
+        validateAgainstSchema(deliveryReceipts.patched_output_catalog, outputCatalogSchema, {}, "receipt_patched_output_catalog"),
+        [],
+      );
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -496,6 +541,7 @@ describe("matter harness", () => {
         protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
         matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
         deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        deliveryReceiptLedgerPath: path.join(outDir, "delivery-receipts", "delivery-receipt-ledger.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -525,6 +571,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.delivery_execution_packet_count, 4);
       assert.equal(dashboard.summary.delivery_execution_manual_required_count, 5);
       assert.equal(dashboard.summary.delivery_execution_blocked_candidate_count, 0);
+      assert.equal(dashboard.summary.delivery_receipt_applied_count, 4);
+      assert.equal(dashboard.summary.delivery_receipt_pending_count, 0);
+      assert.equal(dashboard.summary.delivery_receipt_delivered_artifact_count, 5);
+      assert.equal(dashboard.summary.delivery_receipt_error_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -547,6 +597,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "protected_delivery_queue"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_cockpit"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_execution_draft"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_receipt_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -581,6 +632,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-inbox-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-execution-candidates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-execution-packets"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-receipt-events"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -647,6 +700,15 @@ describe("matter harness", () => {
       assert.equal(supportingDocumentPackets.collection, "delivery_execution_packets");
       assert.equal(supportingDocumentPackets.count, 1);
       assert.equal(supportingDocumentPackets.items[0].candidate_count, 2);
+
+      const deliveredReceipts = JSON.parse((await buildReviewApiResponse("/api/delivery-receipts?receipt_status=delivered", apiOptions)).body);
+      assert.equal(deliveredReceipts.collection, "delivery_receipts");
+      assert.equal(deliveredReceipts.count, 4);
+      assert.ok(deliveredReceipts.items.some((receipt) => receipt.delivery_channel === "github"));
+
+      const deliveryEvents = JSON.parse((await buildReviewApiResponse("/api/delivery-receipt-events?type=delivery.executed", apiOptions)).body);
+      assert.equal(deliveryEvents.collection, "delivery_receipt_events");
+      assert.equal(deliveryEvents.count, 4);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

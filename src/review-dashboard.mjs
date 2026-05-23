@@ -16,6 +16,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   protectedDeliveryQueuePath: "artifacts/delivery-queue/latest/protected-delivery-queue.json",
   matterCockpitPath: "artifacts/matter-cockpit/latest/matter-cockpit.json",
   deliveryExecutionDraftPath: "artifacts/delivery-execution/latest/delivery-execution-draft.json",
+  deliveryReceiptLedgerPath: "artifacts/delivery-receipts/latest/delivery-receipt-ledger.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -86,6 +87,11 @@ const SOURCE_DEFINITIONS = [
     option: "deliveryExecutionDraftPath",
     source_id: "delivery_execution_draft",
     label: "Delivery Execution Draft",
+  },
+  {
+    option: "deliveryReceiptLedgerPath",
+    source_id: "delivery_receipt_ledger",
+    label: "Delivery Receipt Ledger",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -304,6 +310,7 @@ function summarizeSource(sourceId, data) {
     };
   }
   if (sourceId === "delivery_execution_draft") return data.summary ?? {};
+  if (sourceId === "delivery_receipt_ledger") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -353,6 +360,7 @@ function buildStageStatuses(artifacts, sources) {
     buildProtectedDeliveryQueueStage(artifacts.protected_delivery_queue, sourceById.get("protected_delivery_queue")),
     buildMatterCockpitStage(artifacts.matter_cockpit, sourceById.get("matter_cockpit")),
     buildDeliveryExecutionDraftStage(artifacts.delivery_execution_draft, sourceById.get("delivery_execution_draft")),
+    buildDeliveryReceiptLedgerStage(artifacts.delivery_receipt_ledger, sourceById.get("delivery_receipt_ledger")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -668,6 +676,31 @@ function buildDeliveryExecutionDraftStage(draft, source) {
   };
 }
 
+function buildDeliveryReceiptLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("delivery_receipt_ledger", "Delivery Receipt Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errors = summary.receipt_error_count ?? 0;
+  const pending = summary.pending_receipt_count ?? 0;
+  const delivered = summary.delivered_artifact_count ?? 0;
+  const status = errors > 0 ? "attention" : pending > 0 ? "pending" : delivered > 0 ? "passed" : "pending";
+  return {
+    stage_id: "delivery_receipt_ledger",
+    label: "Delivery Receipt Ledger",
+    status,
+    message: `${summary.applied_receipt_count ?? 0} receipt(s) applied, ${pending} pending, ${delivered} delivered artifact(s) recorded.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      execution_draft_packet_count: summary.execution_draft_packet_count ?? 0,
+      applied_receipt_count: summary.applied_receipt_count ?? 0,
+      pending_receipt_count: pending,
+      delivered_packet_count: summary.delivered_packet_count ?? 0,
+      delivered_artifact_count: delivered,
+      audit_event_count: summary.audit_event_count ?? 0,
+      receipt_error_count: errors,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -951,7 +984,12 @@ function buildActionItems(artifacts) {
     });
   }
 
+  const receiptLedgerPacketIds = new Set([
+    ...(artifacts.delivery_receipt_ledger?.applied_receipts ?? []).map((receipt) => receipt.packet_id),
+    ...(artifacts.delivery_receipt_ledger?.pending_receipts ?? []).map((receipt) => receipt.packet_id),
+  ]);
   for (const packet of artifacts.delivery_execution_draft?.execution_packets ?? []) {
+    if (receiptLedgerPacketIds.has(packet.packet_id)) continue;
     items.push({
       action_item_id: `dashboard.action.delivery_execution.${slugify(packet.packet_id)}`,
       source_stage: "delivery_execution_draft",
@@ -965,6 +1003,40 @@ function buildActionItems(artifacts) {
       reason: `${packet.candidate_count} ready artifact(s) require final manual execution via ${packet.delivery_channel}.`,
       recommended_actions: packet.checklist ?? [],
       source_ref: packet.packet_id,
+    });
+  }
+
+  for (const pending of artifacts.delivery_receipt_ledger?.pending_receipts ?? []) {
+    items.push({
+      action_item_id: `dashboard.action.delivery_receipt.${slugify(pending.packet_id)}`,
+      source_stage: "delivery_receipt_ledger",
+      priority: "high",
+      status: "receipt_pending",
+      title: `Record delivery receipt: ${pending.delivery_target}`,
+      subject_ref: {
+        subject_type: "delivery_receipt",
+        subject_id: pending.packet_id,
+      },
+      reason: `${pending.reason}; ${pending.artifact_ids?.length ?? 0} artifact(s) still need receipt recording.`,
+      recommended_actions: ["execute_manually_if_not_done", "fill_receipt_template", "rerun_delivery_receipts"],
+      source_ref: pending.packet_id,
+    });
+  }
+
+  for (const error of artifacts.delivery_receipt_ledger?.receipt_errors ?? []) {
+    items.push({
+      action_item_id: `dashboard.action.delivery_receipt_error.${slugify(error.packet_id)}`,
+      source_stage: "delivery_receipt_ledger",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix delivery receipt",
+      subject_ref: {
+        subject_type: "delivery_receipt_error",
+        subject_id: error.packet_id ?? "unknown",
+      },
+      reason: error.message,
+      recommended_actions: ["fix_receipt_file", "rerun_delivery_receipts", "rebuild_dashboard"],
+      source_ref: error.packet_id ?? null,
     });
   }
 
@@ -1030,6 +1102,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     delivery_execution_packet_count: artifacts.delivery_execution_draft?.summary?.execution_packet_count ?? 0,
     delivery_execution_manual_required_count: artifacts.delivery_execution_draft?.summary?.manual_execution_required_count ?? 0,
     delivery_execution_blocked_candidate_count: artifacts.delivery_execution_draft?.summary?.blocked_candidate_count ?? 0,
+    delivery_receipt_applied_count: artifacts.delivery_receipt_ledger?.summary?.applied_receipt_count ?? 0,
+    delivery_receipt_pending_count: artifacts.delivery_receipt_ledger?.summary?.pending_receipt_count ?? 0,
+    delivery_receipt_delivered_artifact_count: artifacts.delivery_receipt_ledger?.summary?.delivered_artifact_count ?? 0,
+    delivery_receipt_error_count: artifacts.delivery_receipt_ledger?.summary?.receipt_error_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1039,7 +1115,8 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     law_firm_citation_count: artifacts.law_firm_ldd_slice?.citation_count ?? 0,
     creative_slide_count: artifacts.creative_document_slice?.slide_count ?? 0,
     creative_artifact_count: artifacts.creative_document_slice?.artifact_count ?? 0,
-    audit_event_count: artifacts.approval_decisions?.audit_events?.length ?? 0,
+    audit_event_count: (artifacts.approval_decisions?.audit_events?.length ?? 0)
+      + (artifacts.delivery_receipt_ledger?.audit_events?.length ?? 0),
     follow_up_count: decisionSummary.follow_up_count ?? 0,
     decision_error_count: decisionErrorCount,
     action_item_count: actionItems.length,
@@ -1115,6 +1192,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
       ${stat("Execution Packets", dashboard.summary.delivery_execution_packet_count)}
+      ${stat("Receipts", dashboard.summary.delivery_receipt_applied_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1161,6 +1239,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Delivery ready: ${dashboard.summary.delivery_ready_action_count ?? 0}`);
   lines.push(`- Delivery execution ready candidates: ${dashboard.summary.delivery_execution_ready_candidate_count ?? 0}`);
   lines.push(`- Delivery execution packets: ${dashboard.summary.delivery_execution_packet_count ?? 0}`);
+  lines.push(`- Delivery receipts applied: ${dashboard.summary.delivery_receipt_applied_count ?? 0}`);
+  lines.push(`- Delivery receipts pending: ${dashboard.summary.delivery_receipt_pending_count ?? 0}`);
+  lines.push(`- Delivery receipt delivered artifacts: ${dashboard.summary.delivery_receipt_delivered_artifact_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1268,6 +1349,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-cockpit") parsed.matterCockpitPath = false;
     else if (arg === "--delivery-execution") parsed.deliveryExecutionDraftPath = argv[++index];
     else if (arg === "--no-delivery-execution") parsed.deliveryExecutionDraftPath = false;
+    else if (arg === "--delivery-receipts") parsed.deliveryReceiptLedgerPath = argv[++index];
+    else if (arg === "--no-delivery-receipts") parsed.deliveryReceiptLedgerPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1306,6 +1389,8 @@ Options:
   --no-matter-cockpit            Do not include Matter Cockpit status.
   --delivery-execution <path>    delivery-execution-draft.json path.
   --no-delivery-execution        Do not include Delivery Execution Draft status.
+  --delivery-receipts <path>     delivery-receipt-ledger.json path.
+  --no-delivery-receipts         Do not include Delivery Receipt Ledger status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

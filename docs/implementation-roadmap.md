@@ -565,3 +565,31 @@
 - matter/channel/target별 execution packet이 생성됨
 - `/api/delivery-execution-candidates?delivery_channel=github`로 GitHub 실행 후보를 조회할 수 있음
 - `npm test`, `delivery:execution:draft`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 24: Delivery Receipt Ledger
+
+목표: 사람이 실제로 수행한 수동 전달/merge/export 결과만 receipt로 기록하고, delivered 상태 patch와 audit event를 생성합니다.
+
+- Delivery Execution Draft의 packet별 receipt template 생성
+- receipt input이 없거나 `pending`이면 delivered patch를 만들지 않음
+- `delivered` receipt에 대해서만 delivery/output delivered patch 생성
+- 모든 적용 receipt를 `delivery.executed` audit event로 기록
+- Review Dashboard에 `delivery_receipt_ledger` stage와 receipt summary/action item 추가
+- Review API에서 `/api/delivery-receipts`, `/api/delivery-receipt-events` route 제공
+
+현재 구현:
+
+- `npm run delivery:receipts`
+- `src/delivery-receipts.mjs`
+- `schemas/delivery-receipt-ledger.schema.json`
+- `docs/delivery-receipts.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- receipt 미입력 상태에서는 template만 생성되고 delivered patch가 생성되지 않음
+- filled receipt 입력 시 delivered delivery/output patch와 audit event가 생성됨
+- delivery receipt ledger가 schema validation을 통과함
+- `/api/delivery-receipts?receipt_status=delivered`로 기록된 receipt를 조회할 수 있음
+- `npm test`, `delivery:receipts`, `dashboard:build`, `api:smoke`가 통과함

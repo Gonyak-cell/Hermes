@@ -234,6 +234,28 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/delivery-receipts") {
+    const receiptResult = await readDashboardSourceArtifact(dashboard, "delivery_receipt_ledger");
+    if (!receiptResult.available) {
+      return jsonResponse(503, buildError("delivery_receipt_ledger_unavailable", receiptResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_receipts", receiptResult.artifact.applied_receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/delivery-receipt-events") {
+    const receiptResult = await readDashboardSourceArtifact(dashboard, "delivery_receipt_ledger");
+    if (!receiptResult.available) {
+      return jsonResponse(503, buildError("delivery_receipt_ledger_unavailable", receiptResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_receipt_events", receiptResult.artifact.audit_events ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -255,7 +277,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -285,6 +307,8 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/approval-inbox-decisions", "Applied approval inbox decisions"),
       route("GET", "/api/delivery-execution-candidates", "Draft-only delivery execution candidates"),
       route("GET", "/api/delivery-execution-packets", "Draft-only delivery execution packets"),
+      route("GET", "/api/delivery-receipts", "Applied delivery receipts"),
+      route("GET", "/api/delivery-receipt-events", "Delivery receipt audit events"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -336,7 +360,9 @@ function filterItems(items, searchParams) {
     "run_id",
     "workflow_run_id",
     "runtime_id",
+    "type",
     "event_type",
+    "correlation_id",
     "cost_type",
     "delivery_action_id",
     "delivery_status",
@@ -353,6 +379,9 @@ function filterItems(items, searchParams) {
     "execution_candidate_id",
     "packet_id",
     "execution_status",
+    "receipt_id",
+    "receipt_status",
+    "executed_by",
     "enabled",
     "valid",
   ];

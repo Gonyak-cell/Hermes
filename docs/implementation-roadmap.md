@@ -734,3 +734,29 @@
 - 실패 단계는 dashboard action item으로 표시됨
 - `/api/pipeline-steps?status=passed`로 pipeline step 결과를 조회할 수 있음
 - `npm test`, `control-plane:pipeline`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 30: Control Plane Health Report
+
+목표: Review Dashboard와 Control Plane Pipeline을 종합해 현재 하네스의 운영 건강도를 단일 artifact로 판정합니다.
+
+- dashboard artifact와 pipeline artifact availability 확인
+- pipeline execution, dashboard overall status, blocking gate, approval backlog, action queue, closeout receipt 상태를 health check로 정규화
+- `healthy`, `attention`, `blocked`, `incomplete` 중 하나로 overall health 판정
+- Review Dashboard에 `control_plane_health` stage와 health action item 추가
+- Review API에서 `/api/control-plane-health`, `/api/health-checks` route 제공
+
+현재 구현:
+
+- `npm run control-plane:health`
+- `src/control-plane-health.mjs`
+- `schemas/control-plane-health.schema.json`
+- `docs/control-plane-health.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- health report가 dashboard와 pipeline 상태를 check별로 기록함
+- blocker/attention check가 dashboard action item으로 표시됨
+- `/api/health-checks?status=blocked`로 막힌 health check를 조회할 수 있음
+- `npm test`, `control-plane:health`, `dashboard:build`, `api:smoke`가 통과함

@@ -22,6 +22,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   closeoutReceiptValidationPath: "artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json",
   closeoutReceiptApplicationPath: "artifacts/delivery-closeout-application/latest/closeout-receipt-application.json",
   controlPlanePipelinePath: "artifacts/control-plane-pipeline/latest/control-plane-pipeline.json",
+  controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -122,6 +123,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlanePipelinePath",
     source_id: "control_plane_pipeline",
     label: "Control Plane Pipeline",
+  },
+  {
+    option: "controlPlaneHealthPath",
+    source_id: "control_plane_health",
+    label: "Control Plane Health",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -346,6 +352,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "closeout_receipt_validation") return data.summary ?? {};
   if (sourceId === "closeout_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_pipeline") return data.summary ?? {};
+  if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -401,6 +408,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCloseoutReceiptValidationStage(artifacts.closeout_receipt_validation, sourceById.get("closeout_receipt_validation")),
     buildCloseoutReceiptApplicationStage(artifacts.closeout_receipt_application, sourceById.get("closeout_receipt_application")),
     buildControlPlanePipelineStage(artifacts.control_plane_pipeline, sourceById.get("control_plane_pipeline")),
+    buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -890,6 +898,32 @@ function buildControlPlanePipelineStage(pipeline, source) {
   };
 }
 
+function buildControlPlaneHealthStage(health, source) {
+  if (!health) return missingStage("control_plane_health", "Control Plane Health", source);
+  const summary = health.summary ?? {};
+  const status = health.overall_health === "healthy"
+    ? "passed"
+    : health.overall_health === "attention"
+      ? "attention"
+      : "blocked";
+  return {
+    stage_id: "control_plane_health",
+    label: "Control Plane Health",
+    status,
+    message: `${summary.passed_check_count ?? 0}/${summary.check_count ?? 0} health check(s) passed, overall ${health.overall_health}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      overall_health: health.overall_health,
+      check_count: summary.check_count ?? 0,
+      passed_check_count: summary.passed_check_count ?? 0,
+      attention_check_count: summary.attention_check_count ?? 0,
+      blocked_check_count: summary.blocked_check_count ?? 0,
+      missing_check_count: summary.missing_check_count ?? 0,
+      action_item_count: summary.action_item_count ?? 0,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -1328,6 +1362,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const healthCheck of artifacts.control_plane_health?.health_checks ?? []) {
+    if (healthCheck.status === "passed") continue;
+    items.push({
+      action_item_id: `dashboard.action.control_plane_health.${slugify(healthCheck.check_id)}`,
+      source_stage: "control_plane_health",
+      priority: healthSeverityToPriority(healthCheck.severity),
+      status: healthCheck.status,
+      title: `Resolve health check: ${healthCheck.label}`,
+      subject_ref: {
+        subject_type: "control_plane_health_check",
+        subject_id: healthCheck.check_id,
+      },
+      reason: healthCheck.reason,
+      recommended_actions: healthCheck.recommended_actions ?? [],
+      source_ref: healthCheck.check_id,
+    });
+  }
+
   const ledgerPendingPacketIds = new Set((artifacts.delivery_receipt_ledger?.pending_receipts ?? []).map((pending) => pending.packet_id));
   for (const pending of artifacts.post_delivery_reconciliation?.outstanding_receipts ?? []) {
     if (ledgerPendingPacketIds.has(pending.packet_id)) continue;
@@ -1434,6 +1486,11 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     pipeline_passed_step_count: artifacts.control_plane_pipeline?.summary?.passed_step_count ?? 0,
     pipeline_failed_step_count: artifacts.control_plane_pipeline?.summary?.failed_step_count ?? 0,
     pipeline_missing_artifact_count: artifacts.control_plane_pipeline?.summary?.missing_artifact_count ?? 0,
+    health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
+    health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
+    health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
+    health_blocked_check_count: artifacts.control_plane_health?.summary?.blocked_check_count ?? 0,
+    health_missing_check_count: artifacts.control_plane_health?.summary?.missing_check_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1527,6 +1584,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Receipt Gate", dashboard.summary.closeout_receipt_ready_count)}
       ${stat("Closeout Applied", dashboard.summary.closeout_application_applied_count)}
       ${stat("Pipeline", dashboard.summary.pipeline_passed_step_count)}
+      ${stat("Health", dashboard.summary.health_passed_check_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1590,6 +1648,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Pipeline steps: ${dashboard.summary.pipeline_step_count ?? 0}`);
   lines.push(`- Pipeline steps passed: ${dashboard.summary.pipeline_passed_step_count ?? 0}`);
   lines.push(`- Pipeline steps failed: ${dashboard.summary.pipeline_failed_step_count ?? 0}`);
+  lines.push(`- Health checks: ${dashboard.summary.health_check_count ?? 0}`);
+  lines.push(`- Health checks passed: ${dashboard.summary.health_passed_check_count ?? 0}`);
+  lines.push(`- Health checks blocked: ${dashboard.summary.health_blocked_check_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1654,6 +1715,13 @@ function compareActionItems(a, b) {
   );
 }
 
+function healthSeverityToPriority(severity) {
+  if (severity === "critical") return "critical";
+  if (severity === "high") return "high";
+  if (severity === "medium") return "medium";
+  return "low";
+}
+
 function countReviewStatuses(evidenceItems) {
   return evidenceItems.reduce((counts, item) => {
     const status = item.review_status ?? "unknown";
@@ -1709,6 +1777,8 @@ function parseArgs(argv) {
     else if (arg === "--no-closeout-receipt-application") parsed.closeoutReceiptApplicationPath = false;
     else if (arg === "--control-plane-pipeline") parsed.controlPlanePipelinePath = argv[++index];
     else if (arg === "--no-control-plane-pipeline") parsed.controlPlanePipelinePath = false;
+    else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
+    else if (arg === "--no-control-plane-health") parsed.controlPlaneHealthPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1765,6 +1835,8 @@ Options:
                                   Do not include Closeout Receipt Application status.
   --control-plane-pipeline <path> control-plane-pipeline.json path.
   --no-control-plane-pipeline     Do not include Control Plane Pipeline status.
+  --control-plane-health <path>   control-plane-health.json path.
+  --no-control-plane-health       Do not include Control Plane Health status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

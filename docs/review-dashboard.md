@@ -25,6 +25,7 @@ npm run dashboard:build -- \
   --closeout-receipt-validation artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json \
   --closeout-receipt-application artifacts/delivery-closeout-application/latest/closeout-receipt-application.json \
   --control-plane-pipeline artifacts/control-plane-pipeline/latest/control-plane-pipeline.json \
+  --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --law-firm-ldd-summary artifacts/law-firm-ldd-slice/latest/summary.json \
   --personal-dev-summary artifacts/personal-dev-slice/latest/summary.json \
   --creative-document-summary artifacts/creative-document-slice/latest/summary.json \
@@ -58,6 +59,7 @@ npm run dashboard:build -- \
 - Closeout Receipt Validation의 ready/pending/invalid receipt 상태
 - Closeout Receipt Application의 applied receipt, delivered artifact, audit event 상태
 - Control Plane Pipeline의 단계별 실행 성공/실패와 artifact check 상태
+- Control Plane Health의 건강도 check, blocker, action 상태
 - Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 - Creative Document Slice의 slide, artifact, format validation, human approval 상태

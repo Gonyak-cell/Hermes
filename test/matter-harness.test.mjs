@@ -4,6 +4,7 @@ import { describe, it } from "node:test";
 import { mkdir, mkdtemp, readdir, readFile, realpath, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
+import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlanePipeline } from "../src/control-plane-pipeline.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
@@ -684,7 +685,7 @@ describe("matter harness", () => {
       assert.equal(controlPlanePipeline.summary.overall_status, "passed");
       assert.equal(controlPlanePipeline.summary.passed_step_count, 2);
 
-      const dashboard = await runReviewDashboard({
+      const dashboardInputs = {
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
@@ -707,6 +708,30 @@ describe("matter harness", () => {
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
+      };
+      await runReviewDashboard({
+        ...dashboardInputs,
+        controlPlaneHealthPath: false,
+        outDir: path.join(outDir, "dashboard-pre-health"),
+        runAt: "2026-05-23T06:35:00.000Z",
+      });
+      const controlPlaneHealth = await runControlPlaneHealth({
+        dashboardPath: path.join(outDir, "dashboard-pre-health", "review-dashboard.json"),
+        pipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
+        outDir: path.join(outDir, "control-plane-health"),
+        runAt: "2026-05-23T06:35:04.750Z",
+      });
+      const controlPlaneHealthSchema = JSON.parse(await readFile("schemas/control-plane-health.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneHealth, controlPlaneHealthSchema, {}, "control_plane_health"),
+        [],
+      );
+      assert.equal(controlPlaneHealth.overall_health, "blocked");
+      assert.ok(controlPlaneHealth.summary.blocked_check_count >= 1);
+
+      const dashboard = await runReviewDashboard({
+        ...dashboardInputs,
+        controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
         outDir: path.join(outDir, "dashboard"),
         runAt: "2026-05-23T06:35:00.000Z",
       });
@@ -755,6 +780,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.pipeline_passed_step_count, 2);
       assert.equal(dashboard.summary.pipeline_failed_step_count, 0);
       assert.equal(dashboard.summary.pipeline_missing_artifact_count, 0);
+      assert.equal(dashboard.summary.health_check_count, 8);
+      assert.ok(dashboard.summary.health_passed_check_count >= 1);
+      assert.ok(dashboard.summary.health_blocked_check_count >= 1);
+      assert.ok(dashboard.summary.health_attention_check_count >= 1);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -783,6 +812,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_validation"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_pipeline"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -831,6 +861,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-applied-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/pipeline-runs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/pipeline-steps"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-health"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/health-checks"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -954,6 +986,14 @@ describe("matter harness", () => {
       const pipelineSteps = JSON.parse((await buildReviewApiResponse("/api/pipeline-steps?status=passed", apiOptions)).body);
       assert.equal(pipelineSteps.collection, "pipeline_steps");
       assert.equal(pipelineSteps.count, 2);
+
+      const controlPlaneHealthItems = JSON.parse((await buildReviewApiResponse("/api/control-plane-health?health_id=control-plane-health.20260523T063504", apiOptions)).body);
+      assert.equal(controlPlaneHealthItems.collection, "control_plane_health");
+      assert.equal(controlPlaneHealthItems.count, 1);
+
+      const blockedHealthChecks = JSON.parse((await buildReviewApiResponse("/api/health-checks?status=blocked", apiOptions)).body);
+      assert.equal(blockedHealthChecks.collection, "health_checks");
+      assert.ok(blockedHealthChecks.count >= 1);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

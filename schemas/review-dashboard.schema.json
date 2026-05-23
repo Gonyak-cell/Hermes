@@ -88,6 +88,11 @@
         "pipeline_passed_step_count",
         "pipeline_failed_step_count",
         "pipeline_missing_artifact_count",
+        "health_check_count",
+        "health_passed_check_count",
+        "health_attention_check_count",
+        "health_blocked_check_count",
+        "health_missing_check_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -363,6 +368,26 @@
           "minimum": 0
         },
         "pipeline_missing_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "health_check_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "health_passed_check_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "health_attention_check_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "health_blocked_check_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "health_missing_check_count": {
           "type": "integer",
           "minimum": 0
         },

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-health.schema.json",
+  "title": "Hermes Control Plane Health",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "health_id",
+    "overall_health",
+    "summary",
+    "sources",
+    "health_checks"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-health.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "health_id": { "type": "string" },
+    "overall_health": { "enum": ["healthy", "attention", "blocked", "incomplete"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "overall_health",
+        "dashboard_available",
+        "pipeline_available",
+        "check_count",
+        "passed_check_count",
+        "attention_check_count",
+        "blocked_check_count",
+        "missing_check_count",
+        "action_item_count",
+        "pending_approval_count",
+        "blocking_gate_count",
+        "pipeline_step_count",
+        "pipeline_failed_step_count",
+        "pipeline_missing_artifact_count",
+        "by_status",
+        "by_severity"
+      ],
+      "properties": {
+        "overall_health": { "enum": ["healthy", "attention", "blocked", "incomplete"] },
+        "dashboard_available": { "type": "boolean" },
+        "pipeline_available": { "type": "boolean" },
+        "check_count": { "type": "integer", "minimum": 0 },
+        "passed_check_count": { "type": "integer", "minimum": 0 },
+        "attention_check_count": { "type": "integer", "minimum": 0 },
+        "blocked_check_count": { "type": "integer", "minimum": 0 },
+        "missing_check_count": { "type": "integer", "minimum": 0 },
+        "action_item_count": { "type": "integer", "minimum": 0 },
+        "pending_approval_count": { "type": "integer", "minimum": 0 },
+        "blocking_gate_count": { "type": "integer", "minimum": 0 },
+        "pipeline_step_count": { "type": "integer", "minimum": 0 },
+        "pipeline_failed_step_count": { "type": "integer", "minimum": 0 },
+        "pipeline_missing_artifact_count": { "type": "integer", "minimum": 0 },
+        "by_status": { "type": "object" },
+        "by_severity": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "health_checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "check_id",
+          "label",
+          "source_stage",
+          "status",
+          "severity",
+          "reason",
+          "metrics",
+          "recommended_actions"
+        ],
+        "properties": {
+          "check_id": { "type": "string" },
+          "label": { "type": "string" },
+          "source_stage": { "type": "string" },
+          "status": { "enum": ["passed", "attention", "blocked", "missing"] },
+          "severity": { "enum": ["critical", "high", "medium", "low"] },
+          "reason": { "type": "string" },
+          "metrics": { "type": "object" },
+          "recommended_actions": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@ npm run control-plane:pipeline
 - Policy Matrix Catalog
 - Policy Snapshot Ledger
 - Domain Pack Registry
+- Context Packet Ledger
 - Output Artifact Catalog
 - Observability Catalog
 - Protected Delivery Queue

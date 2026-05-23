@@ -37,6 +37,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-usages"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-packet-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-retrieval-filters"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -142,6 +146,22 @@ try {
   const workflowPolicyUsages = await fetchJson(`${url}/api/policy-usages?usage_type=workflow_run&limit=5`);
   assert.equal(workflowPolicyUsages.collection, "policy_usages");
   assert.ok(workflowPolicyUsages.count <= 5);
+
+  const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
+  assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");
+  assert.ok(contextPacketLedgers.count <= 1);
+
+  const contextPackets = await fetchJson(`${url}/api/context-packets?packet_status=ready&limit=5`);
+  assert.equal(contextPackets.collection, "context_packets");
+  assert.ok(contextPackets.count <= 5);
+
+  const resourceContextItems = await fetchJson(`${url}/api/context-items?item_type=resource_metadata&limit=5`);
+  assert.equal(resourceContextItems.collection, "context_items");
+  assert.ok(resourceContextItems.count <= 5);
+
+  const contextRetrievalFilters = await fetchJson(`${url}/api/context-retrieval-filters?filter_status=complete&limit=5`);
+  assert.equal(contextRetrievalFilters.collection, "context_retrieval_filters");
+  assert.ok(contextRetrievalFilters.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

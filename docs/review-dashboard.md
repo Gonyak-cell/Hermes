@@ -30,6 +30,7 @@ npm run dashboard:build -- \
   --control-plane-loop artifacts/control-plane-loop/latest/control-plane-loop.json \
   --control-plane-goal-checkpoint artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json \
   --control-plane-audit-trail artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json \
+  --context-packet-ledger artifacts/context-packets/latest/context-packet-ledger.json \
   --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --control-plane-action-plan artifacts/control-plane-action-plan/latest/control-plane-action-plan.json \
   --control-plane-human-gates artifacts/control-plane-human-gates/latest/control-plane-human-gates.json \
@@ -64,6 +65,7 @@ npm run dashboard:build -- \
 - Approval Inbox Decisions의 applied decision, patched ready delivery, decision error 상태
 - Policy Matrix Catalog의 classification, model/tool/output/gate policy와 validation 상태
 - Policy Snapshot Ledger의 snapshot, workflow/event/run ledger usage, matrix alignment 상태
+- Context Packet Ledger의 runtime별 context packet, redaction mode, retrieval filter 상태
 - Domain Pack Registry의 pack, capability, validation 상태
 - Output Artifact Catalog의 artifact, approval, delivery readiness 상태
 - Observability Catalog의 workflow run, event, runtime cost, blocked run 상태

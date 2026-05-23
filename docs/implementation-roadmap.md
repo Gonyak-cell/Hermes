@@ -1259,3 +1259,34 @@
 - `/api/policy-usages?usage_type=workflow_run`으로 workflow별 snapshot reference를 조회할 수 있음
 - Dashboard summary가 snapshot, workflow usage, event reference, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run policy:snapshots`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 50: Context Packet Ledger
+
+목표: 각 workflow/agent run에 전달 가능한 context를 capability, runtime, matter boundary, policy snapshot 기준으로 컴파일하고 검증합니다.
+
+- Domain Pack Registry의 capability manifest와 Runtime Adapter Registry의 input/data access contract를 교차 확인
+- workflow input resource와 matter/client/wall/classification을 기준으로 retrieval filter 생성
+- raw/redacted context mode를 classification, runtime, redaction policy로 결정
+- 로펌 P2 context는 redaction-required packet으로 표시하고 prompt injection handling을 `treat_untrusted_content_as_data`로 추적
+- Claude Code/Codex packet은 capability가 허용한 runtime인지 확인하고 worktree 개발 context를 최소화
+- Review Dashboard에 `context_packet_ledger` stage와 packet/item/filter summary 추가
+- Review API에서 `/api/context-packet-ledgers`, `/api/context-packets`, `/api/context-items`, `/api/context-retrieval-filters` route 제공
+- Control Plane Pipeline과 Loop에 `npm run context:packets` 포함
+- Goal Checkpoint에서 Context Builder와 Retrieval Filter를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run context:packets`
+- `src/context-packet-ledger.mjs`
+- `schemas/context-packet-ledger.schema.json`
+- `docs/context-packet-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- context packet ledger artifact가 schema validation을 통과함
+- blocked packet, missing retrieval filter, runtime mismatch, classification block이 validation/action item으로 드러남
+- `/api/context-packets?runtime_id=codex`와 `/api/context-packets?context_mode=redacted`로 runtime/redaction 상태를 조회할 수 있음
+- Dashboard summary가 context packet, context item, retrieval filter, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run context:packets`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

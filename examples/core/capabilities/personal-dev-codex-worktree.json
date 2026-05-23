@@ -24,7 +24,7 @@
       "description": "Existing failing test baseline if available."
     }
   ],
-  "allowed_runtimes": ["harness", "codex", "local_script", "manual"],
+  "allowed_runtimes": ["harness", "claude_code", "codex", "local_script", "manual"],
   "required_tools": ["filesystem.read", "filesystem.write", "terminal.exec", "github.merge"],
   "required_gates": {
     "pre_run": ["classification_gate", "tool_permission_gate", "protected_file_gate", "cost_budget_gate"],

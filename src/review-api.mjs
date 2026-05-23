@@ -216,6 +216,34 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_usages", ledgerResult.artifact.usage_records ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/context-packet-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("context_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("context_packet_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/context-packets") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("context_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("context_packets", ledgerResult.artifact.context_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/context-items") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("context_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("context_items", ledgerResult.artifact.context_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/context-retrieval-filters") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("context_packet_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("context_retrieval_filters", ledgerResult.artifact.retrieval_filters ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/packs") {
     const registryResult = await readDashboardSourceArtifact(dashboard, "domain_pack_registry");
     if (!registryResult.available) {
@@ -860,7 +888,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -892,6 +920,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-snapshot-instances", "Source-level policy snapshot instances"),
       route("GET", "/api/policy-decisions", "Policy decision summaries derived from snapshots"),
       route("GET", "/api/policy-usages", "Workflow, event, and run ledger policy snapshot references"),
+      route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
+      route("GET", "/api/context-packets", "Runtime-scoped context packets"),
+      route("GET", "/api/context-items", "Context items compiled for runtime packets"),
+      route("GET", "/api/context-retrieval-filters", "Matter and policy retrieval filters for context packets"),
       route("GET", "/api/packs", "Domain pack registry packs"),
       route("GET", "/api/capabilities", "Domain pack capability contracts"),
       route("GET", "/api/artifacts", "Output artifact catalog"),
@@ -1012,6 +1044,17 @@ function filterItems(items, searchParams) {
     "usage_id",
     "usage_type",
     "snapshot_declared_in_source",
+    "context_packet_id",
+    "context_item_id",
+    "retrieval_filter_id",
+    "packet_status",
+    "context_mode",
+    "redaction_required",
+    "redaction_applied",
+    "classification_allowed",
+    "runtime_allowed_by_capability",
+    "content_mode",
+    "filter_status",
     "pack_id",
     "capability_id",
     "artifact_id",

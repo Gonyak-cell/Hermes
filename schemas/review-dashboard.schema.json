@@ -68,6 +68,16 @@
         "policy_snapshot_missing_reference_count",
         "policy_snapshot_runtime_violation_count",
         "policy_snapshot_validation_error_count",
+        "context_packet_count",
+        "context_packet_ready_count",
+        "context_packet_blocked_count",
+        "context_packet_redacted_count",
+        "context_item_count",
+        "context_retrieval_filter_count",
+        "context_missing_filter_count",
+        "context_runtime_mismatch_count",
+        "context_classification_blocked_count",
+        "context_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -378,6 +388,46 @@
           "minimum": 0
         },
         "policy_snapshot_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_packet_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_packet_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_packet_redacted_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_retrieval_filter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_missing_filter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_runtime_mismatch_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_classification_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "context_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

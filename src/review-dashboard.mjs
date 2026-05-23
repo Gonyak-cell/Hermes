@@ -13,6 +13,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   approvalInboxDecisionPath: "artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json",
   policyMatrixCatalogPath: "artifacts/policy-matrix/latest/policy-matrix-catalog.json",
   policySnapshotLedgerPath: "artifacts/policy-snapshots/latest/policy-snapshot-ledger.json",
+  contextPacketLedgerPath: "artifacts/context-packets/latest/context-packet-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -93,6 +94,11 @@ const SOURCE_DEFINITIONS = [
     option: "policySnapshotLedgerPath",
     source_id: "policy_snapshot_ledger",
     label: "Policy Snapshot Ledger",
+  },
+  {
+    option: "contextPacketLedgerPath",
+    source_id: "context_packet_ledger",
+    label: "Context Packet Ledger",
   },
   {
     option: "domainPackRegistryPath",
@@ -375,6 +381,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "approval_inbox_decisions") return data.summary ?? {};
   if (sourceId === "policy_matrix_catalog") return data.summary ?? {};
   if (sourceId === "policy_snapshot_ledger") return data.summary ?? {};
+  if (sourceId === "context_packet_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -504,6 +511,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApprovalInboxDecisionStage(artifacts.approval_inbox_decisions, sourceById.get("approval_inbox_decisions")),
     buildPolicyMatrixCatalogStage(artifacts.policy_matrix_catalog, sourceById.get("policy_matrix_catalog")),
     buildPolicySnapshotLedgerStage(artifacts.policy_snapshot_ledger, sourceById.get("policy_snapshot_ledger")),
+    buildContextPacketLedgerStage(artifacts.context_packet_ledger, sourceById.get("context_packet_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -770,6 +778,36 @@ function buildPolicySnapshotLedgerStage(ledger, source) {
       missing_snapshot_reference_count: summary.missing_snapshot_reference_count ?? 0,
       external_model_forbidden_count: summary.external_model_forbidden_count ?? 0,
       runtime_violation_count: summary.runtime_violation_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildContextPacketLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("context_packet_ledger", "Context Packet Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const blocked = summary.blocked_packet_count ?? 0;
+  const status = ledger.ledger_status === "valid" && errorCount === 0 && blocked === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "context_packet_ledger",
+    label: "Context Packet Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.context_packet_count ?? 0} packet(s), ${summary.context_item_count ?? 0} context item(s), ${summary.redacted_packet_count ?? 0} redacted packet(s).`
+      : `${blocked} blocked packet(s), ${errorCount} validation error(s), ${summary.missing_filter_count ?? 0} missing retrieval filter(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: ledger.ledger_status ?? "unknown",
+      context_packet_count: summary.context_packet_count ?? 0,
+      ready_packet_count: summary.ready_packet_count ?? 0,
+      blocked_packet_count: blocked,
+      redacted_packet_count: summary.redacted_packet_count ?? 0,
+      context_item_count: summary.context_item_count ?? 0,
+      retrieval_filter_count: summary.retrieval_filter_count ?? 0,
+      missing_filter_count: summary.missing_filter_count ?? 0,
+      runtime_mismatch_count: summary.runtime_mismatch_count ?? 0,
+      classification_blocked_count: summary.classification_blocked_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -1654,6 +1692,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "context_packet_ledger";
+    items.push({
+      action_item_id: `dashboard.action.context_packet_ledger.${slugify(subjectId)}`,
+      source_stage: "context_packet_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix context packet validation",
+      subject_ref: {
+        subject_type: "context_packet_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_context_packet_contract", "rerun_context_packets", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -2086,6 +2142,16 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_snapshot_missing_reference_count: artifacts.policy_snapshot_ledger?.summary?.missing_snapshot_reference_count ?? 0,
     policy_snapshot_runtime_violation_count: artifacts.policy_snapshot_ledger?.summary?.runtime_violation_count ?? 0,
     policy_snapshot_validation_error_count: artifacts.policy_snapshot_ledger?.summary?.validation_error_count ?? artifacts.policy_snapshot_ledger?.validation?.errors?.length ?? 0,
+    context_packet_count: artifacts.context_packet_ledger?.summary?.context_packet_count ?? 0,
+    context_packet_ready_count: artifacts.context_packet_ledger?.summary?.ready_packet_count ?? 0,
+    context_packet_blocked_count: artifacts.context_packet_ledger?.summary?.blocked_packet_count ?? 0,
+    context_packet_redacted_count: artifacts.context_packet_ledger?.summary?.redacted_packet_count ?? 0,
+    context_item_count: artifacts.context_packet_ledger?.summary?.context_item_count ?? 0,
+    context_retrieval_filter_count: artifacts.context_packet_ledger?.summary?.retrieval_filter_count ?? 0,
+    context_missing_filter_count: artifacts.context_packet_ledger?.summary?.missing_filter_count ?? 0,
+    context_runtime_mismatch_count: artifacts.context_packet_ledger?.summary?.runtime_mismatch_count ?? 0,
+    context_classification_blocked_count: artifacts.context_packet_ledger?.summary?.classification_blocked_count ?? 0,
+    context_validation_error_count: artifacts.context_packet_ledger?.summary?.validation_error_count ?? artifacts.context_packet_ledger?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2290,6 +2356,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Policy Classes", dashboard.summary.policy_classification_count)}
       ${stat("Policy Gates", dashboard.summary.policy_gate_rule_count)}
       ${stat("Policy Snapshots", dashboard.summary.policy_snapshot_count)}
+      ${stat("Context Packets", dashboard.summary.context_packet_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2360,6 +2427,10 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Policy snapshot workflow usages: ${dashboard.summary.policy_snapshot_workflow_usage_count ?? 0}`);
   lines.push(`- Policy snapshot event references: ${dashboard.summary.policy_snapshot_event_reference_count ?? 0}`);
   lines.push(`- Policy snapshot validation errors: ${dashboard.summary.policy_snapshot_validation_error_count ?? 0}`);
+  lines.push(`- Context packets: ${dashboard.summary.context_packet_count ?? 0}`);
+  lines.push(`- Context packets ready: ${dashboard.summary.context_packet_ready_count ?? 0}`);
+  lines.push(`- Context packets redacted: ${dashboard.summary.context_packet_redacted_count ?? 0}`);
+  lines.push(`- Context packet validation errors: ${dashboard.summary.context_validation_error_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2528,6 +2599,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-matrix-catalog") parsed.policyMatrixCatalogPath = false;
     else if (arg === "--policy-snapshot-ledger") parsed.policySnapshotLedgerPath = argv[++index];
     else if (arg === "--no-policy-snapshot-ledger") parsed.policySnapshotLedgerPath = false;
+    else if (arg === "--context-packet-ledger") parsed.contextPacketLedgerPath = argv[++index];
+    else if (arg === "--no-context-packet-ledger") parsed.contextPacketLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2611,6 +2684,8 @@ Options:
   --policy-snapshot-ledger <path>
                                   policy-snapshot-ledger.json path.
   --no-policy-snapshot-ledger    Do not include Policy Snapshot Ledger status.
+  --context-packet-ledger <path> context-packet-ledger.json path.
+  --no-context-packet-ledger     Do not include Context Packet Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

@@ -18,6 +18,7 @@ import { runControlPlaneWorkPacketReceipts } from "../src/control-plane-work-pac
 import { runControlPlaneWorkPacketReceiptApplication } from "../src/control-plane-work-packet-receipt-application.mjs";
 import { runControlPlaneWorkPacketReceiptValidation } from "../src/control-plane-work-packet-receipt-validation.mjs";
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
+import { runContextPacketLedger } from "../src/context-packet-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -468,6 +469,43 @@ describe("matter harness", () => {
       assert.ok(policySnapshotLedger.policy_snapshots.some((snapshot) => snapshot.policy_snapshot_id === "policy.default.law_firm.v1"));
       assert.match(await readFile(path.join(outDir, "policy-snapshots", "summary.md"), "utf8"), /Policy Snapshot Ledger/);
 
+      const contextPacketLedger = await runContextPacketLedger({
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        runtimeAdaptersPath: "examples/core/runtime-adapters.json",
+        policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        sources: [
+          {
+            source_id: "law_firm_ldd_slice",
+            label: "Law Firm LDD Slice",
+            slice_path: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
+          },
+          {
+            source_id: "personal_dev_slice",
+            label: "Personal Dev Slice",
+            slice_path: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+          },
+          {
+            source_id: "creative_document_slice",
+            label: "Creative Document Slice",
+            slice_path: path.join(outDir, "creative-document", "creative-document-slice.json"),
+          },
+        ],
+        outDir: path.join(outDir, "context-packets"),
+        runAt: "2026-05-23T06:34:53.000Z",
+      });
+      const contextPacketLedgerSchema = JSON.parse(await readFile("schemas/context-packet-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(contextPacketLedger, contextPacketLedgerSchema, {}, "context_packet_ledger"), []);
+      assert.equal(contextPacketLedger.ledger_status, "valid");
+      assert.equal(contextPacketLedger.summary.context_packet_count, 6);
+      assert.equal(contextPacketLedger.summary.ready_packet_count, 6);
+      assert.equal(contextPacketLedger.summary.blocked_packet_count, 0);
+      assert.equal(contextPacketLedger.summary.redacted_packet_count, 3);
+      assert.equal(contextPacketLedger.summary.validation_error_count, 0);
+      assert.ok(contextPacketLedger.context_packets.some((packet) => packet.runtime_id === "codex"));
+      assert.ok(contextPacketLedger.context_packets.some((packet) => packet.runtime_id === "document_renderer"));
+      assert.ok(contextPacketLedger.context_items.some((item) => item.item_type === "resource_metadata"));
+      assert.match(await readFile(path.join(outDir, "context-packets", "summary.md"), "utf8"), /Context Packet Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -788,6 +826,7 @@ describe("matter harness", () => {
         approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -1129,6 +1168,12 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_snapshot_workflow_usage_count, policySnapshotLedger.summary.workflow_usage_count);
       assert.equal(dashboard.summary.policy_snapshot_event_reference_count, policySnapshotLedger.summary.event_reference_count);
       assert.equal(dashboard.summary.policy_snapshot_validation_error_count, 0);
+      assert.equal(dashboard.summary.context_packet_count, contextPacketLedger.summary.context_packet_count);
+      assert.equal(dashboard.summary.context_packet_ready_count, contextPacketLedger.summary.ready_packet_count);
+      assert.equal(dashboard.summary.context_packet_redacted_count, contextPacketLedger.summary.redacted_packet_count);
+      assert.equal(dashboard.summary.context_item_count, contextPacketLedger.summary.context_item_count);
+      assert.equal(dashboard.summary.context_retrieval_filter_count, contextPacketLedger.summary.retrieval_filter_count);
+      assert.equal(dashboard.summary.context_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
       assert.equal(dashboard.summary.domain_pack_error_count, 0);
@@ -1227,6 +1272,7 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.approval_inbox_decision_error_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_matrix_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1293,6 +1339,10 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-usages"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packet-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packets"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-retrieval-filters"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1401,6 +1451,27 @@ describe("matter harness", () => {
       const workflowPolicyUsages = JSON.parse((await buildReviewApiResponse("/api/policy-usages?usage_type=workflow_run", apiOptions)).body);
       assert.equal(workflowPolicyUsages.collection, "policy_usages");
       assert.equal(workflowPolicyUsages.count, policySnapshotLedger.summary.workflow_usage_count);
+
+      const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");
+      assert.equal(contextPacketLedgers.count, 1);
+
+      const codexContextPackets = JSON.parse((await buildReviewApiResponse("/api/context-packets?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexContextPackets.collection, "context_packets");
+      assert.equal(codexContextPackets.count, 1);
+      assert.equal(codexContextPackets.items[0].context_mode, "redacted");
+
+      const redactedContextPackets = JSON.parse((await buildReviewApiResponse("/api/context-packets?context_mode=redacted", apiOptions)).body);
+      assert.equal(redactedContextPackets.collection, "context_packets");
+      assert.equal(redactedContextPackets.count, contextPacketLedger.summary.redacted_packet_count);
+
+      const resourceContextItems = JSON.parse((await buildReviewApiResponse("/api/context-items?item_type=resource_metadata", apiOptions)).body);
+      assert.equal(resourceContextItems.collection, "context_items");
+      assert.ok(resourceContextItems.count >= 1);
+
+      const completeRetrievalFilters = JSON.parse((await buildReviewApiResponse("/api/context-retrieval-filters?filter_status=complete", apiOptions)).body);
+      assert.equal(completeRetrievalFilters.collection, "context_retrieval_filters");
+      assert.equal(completeRetrievalFilters.count, contextPacketLedger.summary.retrieval_filter_count);
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

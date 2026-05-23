@@ -99,6 +99,13 @@
         "action_plan_ready_to_run_count",
         "action_plan_protected_action_count",
         "action_plan_human_required_count",
+        "work_packet_count",
+        "work_item_count",
+        "work_packet_blocked_count",
+        "work_packet_human_count",
+        "work_packet_protected_count",
+        "work_packet_command_count",
+        "work_packet_next_command_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -418,6 +425,34 @@
           "minimum": 0
         },
         "action_plan_human_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_item_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_blocked_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_human_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_protected_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "work_packet_next_command_count": {
           "type": "integer",
           "minimum": 0
         },

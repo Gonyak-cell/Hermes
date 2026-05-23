@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-work-packets.schema.json",
+  "title": "Hermes Control Plane Work Packets",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "work_packet_run_id",
+    "output_dir",
+    "packet_status",
+    "sources",
+    "summary",
+    "work_packets",
+    "work_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-work-packets.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "work_packet_run_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "packet_status": { "enum": ["clear", "open", "blocked", "waiting_for_human", "ready_to_run"] },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "packet_status",
+        "action_plan_available",
+        "source_plan_id",
+        "source_plan_status",
+        "source_plan_item_count",
+        "work_packet_count",
+        "work_item_count",
+        "blocked_packet_count",
+        "human_packet_count",
+        "protected_packet_count",
+        "command_packet_count",
+        "ready_to_run_packet_count",
+        "waiting_for_human_packet_count",
+        "next_command_count",
+        "by_packet_type",
+        "by_status",
+        "by_source_stage"
+      ],
+      "properties": {
+        "packet_status": { "enum": ["clear", "open", "blocked", "waiting_for_human", "ready_to_run"] },
+        "action_plan_available": { "type": "boolean" },
+        "source_plan_id": { "type": ["string", "null"] },
+        "source_plan_status": { "type": ["string", "null"] },
+        "source_plan_item_count": { "type": "integer", "minimum": 0 },
+        "work_packet_count": { "type": "integer", "minimum": 0 },
+        "work_item_count": { "type": "integer", "minimum": 0 },
+        "blocked_packet_count": { "type": "integer", "minimum": 0 },
+        "human_packet_count": { "type": "integer", "minimum": 0 },
+        "protected_packet_count": { "type": "integer", "minimum": 0 },
+        "command_packet_count": { "type": "integer", "minimum": 0 },
+        "ready_to_run_packet_count": { "type": "integer", "minimum": 0 },
+        "waiting_for_human_packet_count": { "type": "integer", "minimum": 0 },
+        "next_command_count": { "type": "integer", "minimum": 0 },
+        "by_packet_type": { "type": "object" },
+        "by_status": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "work_packets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "work_packet_id",
+          "packet_type",
+          "source_stage",
+          "priority",
+          "status",
+          "title",
+          "reason",
+          "item_count",
+          "plan_item_ids",
+          "work_item_ids",
+          "recommended_actions",
+          "next_commands",
+          "requires_human",
+          "protected_action",
+          "checklist"
+        ],
+        "properties": {
+          "work_packet_id": { "type": "string" },
+          "packet_type": { "enum": ["source_recovery", "protected_action", "human_review", "command_rerun", "stage_recheck", "investigation", "source_review"] },
+          "source_stage": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "status": { "enum": ["blocked", "waiting_for_human", "ready_to_run", "open"] },
+          "title": { "type": "string" },
+          "reason": { "type": "string" },
+          "item_count": { "type": "integer", "minimum": 0 },
+          "plan_item_ids": { "type": "array", "items": { "type": "string" } },
+          "work_item_ids": { "type": "array", "items": { "type": "string" } },
+          "recommended_actions": { "type": "array", "items": { "type": "string" } },
+          "next_commands": { "type": "array", "items": { "type": "string" } },
+          "requires_human": { "type": "boolean" },
+          "protected_action": { "type": "boolean" },
+          "checklist": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "work_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "work_item_id",
+          "work_packet_id",
+          "plan_item_id",
+          "source_stage",
+          "priority",
+          "status",
+          "title",
+          "reason",
+          "next_commands",
+          "requires_human",
+          "protected_action"
+        ],
+        "properties": {
+          "work_item_id": { "type": "string" },
+          "work_packet_id": { "type": "string" },
+          "plan_item_id": { "type": "string" },
+          "source_stage": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "status": { "enum": ["blocked", "waiting_for_human", "ready_to_run", "open"] },
+          "title": { "type": "string" },
+          "reason": { "type": "string" },
+          "next_commands": { "type": "array", "items": { "type": "string" } },
+          "requires_human": { "type": "boolean" },
+          "protected_action": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}

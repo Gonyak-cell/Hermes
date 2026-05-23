@@ -24,6 +24,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlanePipelinePath: "artifacts/control-plane-pipeline/latest/control-plane-pipeline.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
+  controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -134,6 +135,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneActionPlanPath",
     source_id: "control_plane_action_plan",
     label: "Control Plane Action Plan",
+  },
+  {
+    option: "controlPlaneWorkPacketsPath",
+    source_id: "control_plane_work_packets",
+    label: "Control Plane Work Packets",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -360,6 +366,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_pipeline") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
+  if (sourceId === "control_plane_work_packets") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -417,6 +424,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlanePipelineStage(artifacts.control_plane_pipeline, sourceById.get("control_plane_pipeline")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
+    buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -954,6 +962,35 @@ function buildControlPlaneActionPlanStage(actionPlan, source) {
       ready_to_run_count: summary.ready_to_run_count ?? 0,
       protected_action_count: summary.protected_action_count ?? 0,
       human_required_count: summary.human_required_count ?? 0,
+    },
+  };
+}
+
+function buildControlPlaneWorkPacketsStage(workPackets, source) {
+  if (!workPackets) return missingStage("control_plane_work_packets", "Control Plane Work Packets", source);
+  const summary = workPackets.summary ?? {};
+  const status = workPackets.packet_status === "clear"
+    ? "passed"
+    : workPackets.packet_status === "blocked"
+      ? "blocked"
+      : workPackets.packet_status === "ready_to_run"
+        ? "ready"
+        : "pending";
+  return {
+    stage_id: "control_plane_work_packets",
+    label: "Control Plane Work Packets",
+    status,
+    message: `${summary.work_packet_count ?? 0} work packet(s), ${summary.human_packet_count ?? 0} human packet(s), ${summary.protected_packet_count ?? 0} protected packet(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      packet_status: workPackets.packet_status,
+      work_packet_count: summary.work_packet_count ?? 0,
+      work_item_count: summary.work_item_count ?? 0,
+      blocked_packet_count: summary.blocked_packet_count ?? 0,
+      human_packet_count: summary.human_packet_count ?? 0,
+      protected_packet_count: summary.protected_packet_count ?? 0,
+      command_packet_count: summary.command_packet_count ?? 0,
+      next_command_count: summary.next_command_count ?? 0,
     },
   };
 }
@@ -1531,6 +1568,13 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     action_plan_ready_to_run_count: artifacts.control_plane_action_plan?.summary?.ready_to_run_count ?? 0,
     action_plan_protected_action_count: artifacts.control_plane_action_plan?.summary?.protected_action_count ?? 0,
     action_plan_human_required_count: artifacts.control_plane_action_plan?.summary?.human_required_count ?? 0,
+    work_packet_count: artifacts.control_plane_work_packets?.summary?.work_packet_count ?? 0,
+    work_item_count: artifacts.control_plane_work_packets?.summary?.work_item_count ?? 0,
+    work_packet_blocked_count: artifacts.control_plane_work_packets?.summary?.blocked_packet_count ?? 0,
+    work_packet_human_count: artifacts.control_plane_work_packets?.summary?.human_packet_count ?? 0,
+    work_packet_protected_count: artifacts.control_plane_work_packets?.summary?.protected_packet_count ?? 0,
+    work_packet_command_count: artifacts.control_plane_work_packets?.summary?.command_packet_count ?? 0,
+    work_packet_next_command_count: artifacts.control_plane_work_packets?.summary?.next_command_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1626,6 +1670,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Pipeline", dashboard.summary.pipeline_passed_step_count)}
       ${stat("Health", dashboard.summary.health_passed_check_count)}
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
+      ${stat("Work Packets", dashboard.summary.work_packet_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1695,6 +1740,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Action plan items: ${dashboard.summary.action_plan_item_count ?? 0}`);
   lines.push(`- Action plan waiting for human: ${dashboard.summary.action_plan_waiting_for_human_count ?? 0}`);
   lines.push(`- Action plan ready to run: ${dashboard.summary.action_plan_ready_to_run_count ?? 0}`);
+  lines.push(`- Work packets: ${dashboard.summary.work_packet_count ?? 0}`);
+  lines.push(`- Work packet protected: ${dashboard.summary.work_packet_protected_count ?? 0}`);
+  lines.push(`- Work packet next commands: ${dashboard.summary.work_packet_next_command_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1825,6 +1873,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-health") parsed.controlPlaneHealthPath = false;
     else if (arg === "--control-plane-action-plan") parsed.controlPlaneActionPlanPath = argv[++index];
     else if (arg === "--no-control-plane-action-plan") parsed.controlPlaneActionPlanPath = false;
+    else if (arg === "--control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = argv[++index];
+    else if (arg === "--no-control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1886,6 +1936,9 @@ Options:
   --control-plane-action-plan <path>
                                   control-plane-action-plan.json path.
   --no-control-plane-action-plan  Do not include Control Plane Action Plan status.
+  --control-plane-work-packets <path>
+                                  control-plane-work-packets.json path.
+  --no-control-plane-work-packets Do not include Control Plane Work Packets status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

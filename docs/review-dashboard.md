@@ -27,6 +27,7 @@ npm run dashboard:build -- \
   --control-plane-pipeline artifacts/control-plane-pipeline/latest/control-plane-pipeline.json \
   --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --control-plane-action-plan artifacts/control-plane-action-plan/latest/control-plane-action-plan.json \
+  --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
   --law-firm-ldd-summary artifacts/law-firm-ldd-slice/latest/summary.json \
   --personal-dev-summary artifacts/personal-dev-slice/latest/summary.json \
   --creative-document-summary artifacts/creative-document-slice/latest/summary.json \
@@ -62,6 +63,7 @@ npm run dashboard:build -- \
 - Control Plane Pipeline의 단계별 실행 성공/실패와 artifact check 상태
 - Control Plane Health의 건강도 check, blocker, action 상태
 - Control Plane Action Plan의 우선순위별 처리 항목, 사람 검토 필요 여부, 다음 명령 상태
+- Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 - Creative Document Slice의 slide, artifact, format validation, human approval 상태

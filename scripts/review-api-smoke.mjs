@@ -46,6 +46,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plan-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/action-work-packets"));
+  assert.ok(index.routes.some((route) => route.path === "/api/action-work-items"));
 
   const dashboard = await fetchJson(`${url}/api/dashboard`);
   assert.equal(dashboard.schema_version, "review-dashboard.v1");
@@ -65,6 +67,10 @@ try {
   const actionPlanItems = await fetchJson(`${url}/api/action-plan-items?requires_human=true&limit=5`);
   assert.equal(actionPlanItems.collection, "action_plan_items");
   assert.ok(actionPlanItems.count <= 5);
+
+  const protectedWorkPackets = await fetchJson(`${url}/api/action-work-packets?protected_action=true&limit=5`);
+  assert.equal(protectedWorkPackets.collection, "action_work_packets");
+  assert.ok(protectedWorkPackets.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

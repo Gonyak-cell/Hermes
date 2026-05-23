@@ -786,3 +786,29 @@
 - 사람 검토가 필요한 항목과 protected action이 별도 flag로 구분됨
 - `/api/action-plan-items?requires_human=true`로 사람 처리 항목을 조회할 수 있음
 - `npm test`, `control-plane:plan`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 32: Control Plane Work Packets
+
+목표: Action Plan item을 protected action, human review, command rerun, investigation 단위의 운영 work packet으로 묶습니다.
+
+- `control-plane-action-plan.json`을 읽어 packet type별 작업 묶음 생성
+- protected action과 human review를 command rerun과 분리
+- 각 packet에 checklist, next_commands, item mapping 기록
+- Review Dashboard에 `control_plane_work_packets` stage와 packet summary 추가
+- Review API에서 `/api/action-work-packets`, `/api/action-work-items` route 제공
+
+현재 구현:
+
+- `npm run control-plane:work-packets`
+- `src/control-plane-work-packets.mjs`
+- `schemas/control-plane-work-packets.schema.json`
+- `docs/control-plane-work-packets.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- action plan item이 work packet과 work item으로 매핑됨
+- protected action packet은 자동 실행되지 않고 checklist로만 표시됨
+- `/api/action-work-packets?protected_action=true`로 보호 작업 묶음을 조회할 수 있음
+- `npm test`, `control-plane:work-packets`, `dashboard:build`, `api:smoke`가 통과함

@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/control-plane-human-gate-receipts.schema.json",
+  "title": "Hermes Control Plane Human Gate Receipt Drafts",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "receipt_draft_id",
+    "output_dir",
+    "receipt_status",
+    "sources",
+    "summary",
+    "receipt_requirements",
+    "receipt_input_draft"
+  ],
+  "properties": {
+    "schema_version": { "const": "control-plane-human-gate-receipt-drafts.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "receipt_draft_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "receipt_status": { "enum": ["clear", "pending_receipts", "blocked_missing_human_gates"] },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "receipt_status",
+        "human_gates_available",
+        "source_human_gate_id",
+        "source_gate_item_count",
+        "receipt_requirement_count",
+        "receipt_draft_count",
+        "pending_receipt_count",
+        "protected_receipt_count",
+        "human_receipt_count",
+        "evidence_decision_receipt_count",
+        "command_receipt_count",
+        "required_field_count",
+        "by_gate_type",
+        "by_source_stage"
+      ],
+      "properties": {
+        "receipt_status": { "enum": ["clear", "pending_receipts", "blocked_missing_human_gates"] },
+        "human_gates_available": { "type": "boolean" },
+        "source_human_gate_id": { "type": ["string", "null"] },
+        "source_gate_item_count": { "type": "integer", "minimum": 0 },
+        "receipt_requirement_count": { "type": "integer", "minimum": 0 },
+        "receipt_draft_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "protected_receipt_count": { "type": "integer", "minimum": 0 },
+        "human_receipt_count": { "type": "integer", "minimum": 0 },
+        "evidence_decision_receipt_count": { "type": "integer", "minimum": 0 },
+        "command_receipt_count": { "type": "integer", "minimum": 0 },
+        "required_field_count": { "type": "integer", "minimum": 0 },
+        "by_gate_type": { "type": "object" },
+        "by_source_stage": { "type": "object" }
+      }
+    },
+    "receipt_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "receipt_requirement_id",
+          "gate_item_id",
+          "source_plan_item_id",
+          "source_stage",
+          "gate_type",
+          "priority",
+          "gate_status",
+          "subject_ref",
+          "requires_human",
+          "protected_action",
+          "required_actor",
+          "receipt_required",
+          "decision_required",
+          "allowed_outcomes",
+          "required_receipt_fields",
+          "acceptance_criteria",
+          "next_commands",
+          "receipt_form_draft"
+        ],
+        "properties": {
+          "receipt_requirement_id": { "type": "string" },
+          "gate_item_id": { "type": "string" },
+          "source_plan_item_id": { "type": "string" },
+          "source_stage": { "type": "string" },
+          "gate_type": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "gate_status": { "type": "string" },
+          "subject_ref": { "type": "object" },
+          "requires_human": { "type": "boolean" },
+          "protected_action": { "type": "boolean" },
+          "required_actor": { "type": "string" },
+          "receipt_required": { "type": "boolean" },
+          "decision_required": { "type": "boolean" },
+          "allowed_outcomes": { "type": "array", "items": { "type": "string" } },
+          "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+          "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+          "next_commands": { "type": "array", "items": { "type": "string" } },
+          "receipt_form_draft": { "$ref": "#/$defs/receipt" }
+        }
+      }
+    },
+    "receipt_input_draft": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "human_gate_id", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "control-plane-human-gate-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "human_gate_id": { "type": "string" },
+        "instructions": { "type": "string" },
+        "receipts": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/receipt" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "receipt": {
+      "type": "object",
+      "required": [
+        "receipt_id",
+        "gate_item_id",
+        "source_plan_item_id",
+        "gate_type",
+        "receipt_status",
+        "outcome",
+        "decided_by",
+        "decided_at",
+        "reviewer",
+        "decision_reference",
+        "decision_notes",
+        "protected_action_reference",
+        "command_result",
+        "commands_run",
+        "completed_action_refs",
+        "required_receipt_fields",
+        "generated_at"
+      ],
+      "properties": {
+        "receipt_id": { "type": "string" },
+        "gate_item_id": { "type": "string" },
+        "source_plan_item_id": { "type": "string" },
+        "gate_type": { "type": "string" },
+        "receipt_status": { "type": "string" },
+        "outcome": { "type": "string" },
+        "decided_by": { "type": "string" },
+        "decided_at": { "type": "string" },
+        "reviewer": { "type": ["string", "null"] },
+        "decision_reference": { "type": "string" },
+        "decision_notes": { "type": "string" },
+        "protected_action_reference": { "type": ["string", "null"] },
+        "command_result": { "type": ["string", "null"] },
+        "commands_run": { "type": "array", "items": { "type": "string" } },
+        "completed_action_refs": { "type": "array", "items": { "type": "string" } },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    }
+  }
+}

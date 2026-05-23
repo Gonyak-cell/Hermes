@@ -28,6 +28,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
   controlPlaneHumanGatesPath: "artifacts/control-plane-human-gates/latest/control-plane-human-gates.json",
+  controlPlaneHumanGateReceiptsPath: "artifacts/control-plane-human-gate-receipts/latest/control-plane-human-gate-receipt-drafts.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
   controlPlaneWorkPacketReceiptsPath: "artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json",
   controlPlaneWorkPacketReceiptValidationPath: "artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json",
@@ -162,6 +163,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneHumanGatesPath",
     source_id: "control_plane_human_gates",
     label: "Control Plane Human Gates",
+  },
+  {
+    option: "controlPlaneHumanGateReceiptsPath",
+    source_id: "control_plane_human_gate_receipts",
+    label: "Control Plane Human Gate Receipts",
   },
   {
     option: "controlPlaneWorkPacketsPath",
@@ -412,6 +418,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
   if (sourceId === "control_plane_human_gates") return data.summary ?? {};
+  if (sourceId === "control_plane_human_gate_receipts") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
   if (sourceId === "control_plane_work_packet_receipts") return data.summary ?? {};
   if (sourceId === "control_plane_work_packet_receipt_validation") return data.summary ?? {};
@@ -477,6 +484,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
     buildControlPlaneHumanGatesStage(artifacts.control_plane_human_gates, sourceById.get("control_plane_human_gates")),
+    buildControlPlaneHumanGateReceiptsStage(artifacts.control_plane_human_gate_receipts, sourceById.get("control_plane_human_gate_receipts")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
     buildControlPlaneWorkPacketReceiptValidationStage(artifacts.control_plane_work_packet_receipt_validation, sourceById.get("control_plane_work_packet_receipt_validation")),
@@ -1127,6 +1135,33 @@ function buildControlPlaneHumanGatesStage(humanGates, source) {
       protected_action_count: protectedActions,
       evidence_decision_count: summary.evidence_decision_count ?? 0,
       auto_execute_allowed_count: summary.auto_execute_allowed_count ?? 0,
+    },
+  };
+}
+
+function buildControlPlaneHumanGateReceiptsStage(receipts, source) {
+  if (!receipts) return missingStage("control_plane_human_gate_receipts", "Control Plane Human Gate Receipts", source);
+  const summary = receipts.summary ?? {};
+  const status = receipts.receipt_status === "clear"
+    ? "passed"
+    : receipts.receipt_status === "blocked_missing_human_gates"
+      ? "blocked"
+      : "pending";
+  return {
+    stage_id: "control_plane_human_gate_receipts",
+    label: "Control Plane Human Gate Receipts",
+    status,
+    message: `${summary.receipt_draft_count ?? 0} human gate receipt draft(s), ${summary.evidence_decision_receipt_count ?? 0} evidence decision(s), ${summary.protected_receipt_count ?? 0} protected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      receipt_status: receipts.receipt_status,
+      receipt_requirement_count: summary.receipt_requirement_count ?? 0,
+      receipt_draft_count: summary.receipt_draft_count ?? 0,
+      pending_receipt_count: summary.pending_receipt_count ?? 0,
+      human_receipt_count: summary.human_receipt_count ?? 0,
+      protected_receipt_count: summary.protected_receipt_count ?? 0,
+      evidence_decision_receipt_count: summary.evidence_decision_receipt_count ?? 0,
+      command_receipt_count: summary.command_receipt_count ?? 0,
     },
   };
 }
@@ -1877,6 +1912,13 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_gate_protected_action_count: artifacts.control_plane_human_gates?.summary?.protected_action_count ?? 0,
     human_gate_evidence_decision_count: artifacts.control_plane_human_gates?.summary?.evidence_decision_count ?? 0,
     human_gate_auto_execute_allowed_count: artifacts.control_plane_human_gates?.summary?.auto_execute_allowed_count ?? 0,
+    human_gate_receipt_requirement_count: artifacts.control_plane_human_gate_receipts?.summary?.receipt_requirement_count ?? 0,
+    human_gate_receipt_draft_count: artifacts.control_plane_human_gate_receipts?.summary?.receipt_draft_count ?? 0,
+    human_gate_receipt_pending_count: artifacts.control_plane_human_gate_receipts?.summary?.pending_receipt_count ?? 0,
+    human_gate_receipt_human_count: artifacts.control_plane_human_gate_receipts?.summary?.human_receipt_count ?? 0,
+    human_gate_receipt_protected_count: artifacts.control_plane_human_gate_receipts?.summary?.protected_receipt_count ?? 0,
+    human_gate_receipt_evidence_decision_count: artifacts.control_plane_human_gate_receipts?.summary?.evidence_decision_receipt_count ?? 0,
+    human_gate_receipt_command_count: artifacts.control_plane_human_gate_receipts?.summary?.command_receipt_count ?? 0,
     work_packet_count: artifacts.control_plane_work_packets?.summary?.work_packet_count ?? 0,
     work_item_count: artifacts.control_plane_work_packets?.summary?.work_item_count ?? 0,
     work_packet_blocked_count: artifacts.control_plane_work_packets?.summary?.blocked_packet_count ?? 0,
@@ -1997,6 +2039,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Health", dashboard.summary.health_passed_check_count)}
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
       ${stat("Human Gates", dashboard.summary.human_gate_item_count)}
+      ${stat("Gate Receipts", dashboard.summary.human_gate_receipt_draft_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
       ${stat("Packet Receipts", dashboard.summary.work_packet_receipt_draft_count)}
       ${stat("Receipt Gate", dashboard.summary.work_packet_receipt_validation_ready_count)}
@@ -2081,6 +2124,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human gate items: ${dashboard.summary.human_gate_item_count ?? 0}`);
   lines.push(`- Human gate evidence decisions: ${dashboard.summary.human_gate_evidence_decision_count ?? 0}`);
   lines.push(`- Human gate protected actions: ${dashboard.summary.human_gate_protected_action_count ?? 0}`);
+  lines.push(`- Human gate receipt drafts: ${dashboard.summary.human_gate_receipt_draft_count ?? 0}`);
+  lines.push(`- Human gate receipt protected: ${dashboard.summary.human_gate_receipt_protected_count ?? 0}`);
+  lines.push(`- Human gate receipt evidence decisions: ${dashboard.summary.human_gate_receipt_evidence_decision_count ?? 0}`);
   lines.push(`- Work packets: ${dashboard.summary.work_packet_count ?? 0}`);
   lines.push(`- Work packet protected: ${dashboard.summary.work_packet_protected_count ?? 0}`);
   lines.push(`- Work packet next commands: ${dashboard.summary.work_packet_next_command_count ?? 0}`);
@@ -2228,6 +2274,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-action-plan") parsed.controlPlaneActionPlanPath = false;
     else if (arg === "--control-plane-human-gates") parsed.controlPlaneHumanGatesPath = argv[++index];
     else if (arg === "--no-control-plane-human-gates") parsed.controlPlaneHumanGatesPath = false;
+    else if (arg === "--control-plane-human-gate-receipts") parsed.controlPlaneHumanGateReceiptsPath = argv[++index];
+    else if (arg === "--no-control-plane-human-gate-receipts") parsed.controlPlaneHumanGateReceiptsPath = false;
     else if (arg === "--control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = argv[++index];
     else if (arg === "--no-control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = false;
     else if (arg === "--control-plane-work-packet-receipts") parsed.controlPlaneWorkPacketReceiptsPath = argv[++index];
@@ -2308,6 +2356,10 @@ Options:
   --control-plane-human-gates <path>
                                   control-plane-human-gates.json path.
   --no-control-plane-human-gates  Do not include Control Plane Human Gates status.
+  --control-plane-human-gate-receipts <path>
+                                  control-plane-human-gate-receipt-drafts.json path.
+  --no-control-plane-human-gate-receipts
+                                  Do not include Control Plane Human Gate Receipts status.
   --control-plane-work-packets <path>
                                   control-plane-work-packets.json path.
   --no-control-plane-work-packets Do not include Control Plane Work Packets status.

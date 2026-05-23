@@ -30,6 +30,8 @@ npm run dashboard:build -- \
   --control-plane-goal-checkpoint artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json \
   --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --control-plane-action-plan artifacts/control-plane-action-plan/latest/control-plane-action-plan.json \
+  --control-plane-human-gates artifacts/control-plane-human-gates/latest/control-plane-human-gates.json \
+  --control-plane-human-gate-receipts artifacts/control-plane-human-gate-receipts/latest/control-plane-human-gate-receipt-drafts.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
   --control-plane-work-packet-receipts artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json \
   --control-plane-work-packet-receipt-validation artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json \
@@ -73,6 +75,7 @@ npm run dashboard:build -- \
 - Control Plane Health의 건강도 check, blocker, action 상태
 - Control Plane Action Plan의 우선순위별 처리 항목, 사람 검토 필요 여부, 다음 명령 상태
 - Control Plane Human Gates의 evidence decision, approval, protected delivery agenda
+- Control Plane Human Gate Receipts의 pending receipt 입력 초안과 필수 확인값
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값
 - Control Plane Work Packet Receipt Validation의 pending/invalid/ready receipt gate 상태

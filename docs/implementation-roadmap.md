@@ -1084,3 +1084,29 @@
 - evidence decision과 protected delivery가 자동 실행 후보가 아니라 human gate agenda로 표시됨
 - `/api/human-gate-items?gate_type=evidence_decision`으로 evidence decision gate를 조회할 수 있음
 - `npm test`, `npm run validate`, `npm run control-plane:human-gates`, `npm run control-plane:loop`, `npm run api:smoke`가 통과함
+
+## Phase 44: Control Plane Human Gate Receipt Drafts
+
+목표: Human Gate agenda를 사람이 기록할 수 있는 receipt 입력 계약으로 변환합니다.
+
+- `control-plane-human-gates.v1`의 gate item을 `control-plane-human-gate-receipt-drafts.v1`로 변환
+- evidence decision, attorney review, merge review, protected delivery별 allowed outcome과 필수 receipt 필드 기록
+- 모든 receipt row를 기본 `pending`으로 생성하고, 어떠한 protected action도 자동 실행하지 않음
+- Review Dashboard와 Review API에서 human gate receipt artifact, requirement, draft row를 조회 가능하게 함
+- Control Plane Loop에 `npm run control-plane:human-gate-receipts`를 포함
+
+현재 구현:
+
+- `npm run control-plane:human-gate-receipts`
+- `src/control-plane-human-gate-receipts.mjs`
+- `schemas/control-plane-human-gate-receipts.schema.json`
+- `docs/control-plane-human-gate-receipts.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human gate item 수만큼 pending receipt draft가 생성됨
+- evidence decision gate가 `/api/human-gate-receipt-requirements?gate_type=evidence_decision`으로 조회됨
+- Dashboard summary가 human gate receipt draft/protected/evidence decision 수를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:human-gate-receipts`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

@@ -42,6 +42,8 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/closeout-applied-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/pipeline-runs"));
   assert.ok(index.routes.some((route) => route.path === "/api/pipeline-steps"));
+  assert.ok(index.routes.some((route) => route.path === "/api/control-plane-loops"));
+  assert.ok(index.routes.some((route) => route.path === "/api/control-plane-loop-steps"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -92,6 +94,10 @@ try {
 
   const appliedPacketReceipts = await fetchJson(`${url}/api/applied-work-packet-receipts`);
   assert.equal(appliedPacketReceipts.collection, "applied_work_packet_receipts");
+
+  const controlPlaneLoopSteps = await fetchJson(`${url}/api/control-plane-loop-steps?status=passed&limit=5`);
+  assert.equal(controlPlaneLoopSteps.collection, "control_plane_loop_steps");
+  assert.ok(controlPlaneLoopSteps.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

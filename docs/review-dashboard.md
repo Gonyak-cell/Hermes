@@ -25,6 +25,7 @@ npm run dashboard:build -- \
   --closeout-receipt-validation artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json \
   --closeout-receipt-application artifacts/delivery-closeout-application/latest/closeout-receipt-application.json \
   --control-plane-pipeline artifacts/control-plane-pipeline/latest/control-plane-pipeline.json \
+  --control-plane-loop artifacts/control-plane-loop/latest/control-plane-loop.json \
   --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --control-plane-action-plan artifacts/control-plane-action-plan/latest/control-plane-action-plan.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
@@ -64,6 +65,7 @@ npm run dashboard:build -- \
 - Closeout Receipt Validation의 ready/pending/invalid receipt 상태
 - Closeout Receipt Application의 applied receipt, delivered artifact, audit event 상태
 - Control Plane Pipeline의 단계별 실행 성공/실패와 artifact check 상태
+- Control Plane Loop의 heartbeat 운영 루프 실행 성공/실패와 artifact check 상태
 - Control Plane Health의 건강도 check, blocker, action 상태
 - Control Plane Action Plan의 우선순위별 처리 항목, 사람 검토 필요 여부, 다음 명령 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태

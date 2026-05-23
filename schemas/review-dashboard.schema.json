@@ -88,6 +88,10 @@
         "pipeline_passed_step_count",
         "pipeline_failed_step_count",
         "pipeline_missing_artifact_count",
+        "control_plane_loop_step_count",
+        "control_plane_loop_passed_step_count",
+        "control_plane_loop_failed_step_count",
+        "control_plane_loop_missing_artifact_count",
         "health_check_count",
         "health_passed_check_count",
         "health_attention_check_count",
@@ -395,6 +399,22 @@
           "minimum": 0
         },
         "pipeline_missing_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "control_plane_loop_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "control_plane_loop_passed_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "control_plane_loop_failed_step_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "control_plane_loop_missing_artifact_count": {
           "type": "integer",
           "minimum": 0
         },

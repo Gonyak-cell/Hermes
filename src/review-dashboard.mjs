@@ -22,6 +22,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   closeoutReceiptValidationPath: "artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json",
   closeoutReceiptApplicationPath: "artifacts/delivery-closeout-application/latest/closeout-receipt-application.json",
   controlPlanePipelinePath: "artifacts/control-plane-pipeline/latest/control-plane-pipeline.json",
+  controlPlaneLoopPath: "artifacts/control-plane-loop/latest/control-plane-loop.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -128,6 +129,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlanePipelinePath",
     source_id: "control_plane_pipeline",
     label: "Control Plane Pipeline",
+  },
+  {
+    option: "controlPlaneLoopPath",
+    source_id: "control_plane_loop",
+    label: "Control Plane Loop",
   },
   {
     option: "controlPlaneHealthPath",
@@ -382,6 +388,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "closeout_receipt_validation") return data.summary ?? {};
   if (sourceId === "closeout_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_pipeline") return data.summary ?? {};
+  if (sourceId === "control_plane_loop") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -443,6 +450,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCloseoutReceiptValidationStage(artifacts.closeout_receipt_validation, sourceById.get("closeout_receipt_validation")),
     buildCloseoutReceiptApplicationStage(artifacts.closeout_receipt_application, sourceById.get("closeout_receipt_application")),
     buildControlPlanePipelineStage(artifacts.control_plane_pipeline, sourceById.get("control_plane_pipeline")),
+    buildControlPlaneLoopStage(artifacts.control_plane_loop, sourceById.get("control_plane_loop")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
@@ -928,6 +936,35 @@ function buildControlPlanePipelineStage(pipeline, source) {
     source_path: source?.path ?? null,
     metrics: {
       overall_status: summary.overall_status ?? "unknown",
+      step_count: summary.step_count ?? 0,
+      passed_step_count: summary.passed_step_count ?? 0,
+      failed_step_count: failed,
+      skipped_step_count: skipped,
+      missing_artifact_count: missing,
+      total_duration_ms: summary.total_duration_ms ?? 0,
+    },
+  };
+}
+
+function buildControlPlaneLoopStage(loop, source) {
+  if (!loop) return missingStage("control_plane_loop", "Control Plane Loop", source);
+  const summary = loop.summary ?? {};
+  const failed = summary.failed_step_count ?? 0;
+  const missing = summary.missing_artifact_count ?? 0;
+  const skipped = summary.skipped_step_count ?? 0;
+  const status = failed > 0 || missing > 0
+    ? "attention"
+    : skipped > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "control_plane_loop",
+    label: "Control Plane Loop",
+    status,
+    message: `${summary.passed_step_count ?? 0}/${summary.step_count ?? 0} loop step(s) passed, ${failed} failed, ${missing} missing artifact(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      loop_status: loop.loop_status ?? summary.overall_status ?? "unknown",
       step_count: summary.step_count ?? 0,
       passed_step_count: summary.passed_step_count ?? 0,
       failed_step_count: failed,
@@ -1546,6 +1583,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const stepResult of artifacts.control_plane_loop?.step_results ?? []) {
+    if (stepResult.status === "passed" || stepResult.status === "skipped") continue;
+    items.push({
+      action_item_id: `dashboard.action.control_plane_loop.${slugify(stepResult.step_id)}`,
+      source_stage: "control_plane_loop",
+      priority: stepResult.status === "failed" ? "high" : "medium",
+      status: stepResult.status,
+      title: `Fix control plane loop step: ${stepResult.label}`,
+      subject_ref: {
+        subject_type: "control_plane_loop_step",
+        subject_id: stepResult.step_id,
+      },
+      reason: stepResult.error ?? stepResult.status,
+      recommended_actions: ["inspect_loop_step_logs", "fix_source_artifact_or_command", "rerun_control_plane_loop"],
+      source_ref: stepResult.step_id,
+    });
+  }
+
   for (const healthCheck of artifacts.control_plane_health?.health_checks ?? []) {
     if (healthCheck.status === "passed") continue;
     items.push({
@@ -1670,6 +1725,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     pipeline_passed_step_count: artifacts.control_plane_pipeline?.summary?.passed_step_count ?? 0,
     pipeline_failed_step_count: artifacts.control_plane_pipeline?.summary?.failed_step_count ?? 0,
     pipeline_missing_artifact_count: artifacts.control_plane_pipeline?.summary?.missing_artifact_count ?? 0,
+    control_plane_loop_step_count: artifacts.control_plane_loop?.summary?.step_count ?? 0,
+    control_plane_loop_passed_step_count: artifacts.control_plane_loop?.summary?.passed_step_count ?? 0,
+    control_plane_loop_failed_step_count: artifacts.control_plane_loop?.summary?.failed_step_count ?? 0,
+    control_plane_loop_missing_artifact_count: artifacts.control_plane_loop?.summary?.missing_artifact_count ?? 0,
     health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
     health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
     health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
@@ -1795,6 +1854,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Receipt Gate", dashboard.summary.closeout_receipt_ready_count)}
       ${stat("Closeout Applied", dashboard.summary.closeout_application_applied_count)}
       ${stat("Pipeline", dashboard.summary.pipeline_passed_step_count)}
+      ${stat("Loop", dashboard.summary.control_plane_loop_passed_step_count)}
       ${stat("Health", dashboard.summary.health_passed_check_count)}
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
@@ -1864,6 +1924,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Pipeline steps: ${dashboard.summary.pipeline_step_count ?? 0}`);
   lines.push(`- Pipeline steps passed: ${dashboard.summary.pipeline_passed_step_count ?? 0}`);
   lines.push(`- Pipeline steps failed: ${dashboard.summary.pipeline_failed_step_count ?? 0}`);
+  lines.push(`- Control loop steps: ${dashboard.summary.control_plane_loop_step_count ?? 0}`);
+  lines.push(`- Control loop steps passed: ${dashboard.summary.control_plane_loop_passed_step_count ?? 0}`);
+  lines.push(`- Control loop steps failed: ${dashboard.summary.control_plane_loop_failed_step_count ?? 0}`);
   lines.push(`- Health checks: ${dashboard.summary.health_check_count ?? 0}`);
   lines.push(`- Health checks passed: ${dashboard.summary.health_passed_check_count ?? 0}`);
   lines.push(`- Health checks blocked: ${dashboard.summary.health_blocked_check_count ?? 0}`);
@@ -2005,6 +2068,8 @@ function parseArgs(argv) {
     else if (arg === "--no-closeout-receipt-application") parsed.closeoutReceiptApplicationPath = false;
     else if (arg === "--control-plane-pipeline") parsed.controlPlanePipelinePath = argv[++index];
     else if (arg === "--no-control-plane-pipeline") parsed.controlPlanePipelinePath = false;
+    else if (arg === "--control-plane-loop") parsed.controlPlaneLoopPath = argv[++index];
+    else if (arg === "--no-control-plane-loop") parsed.controlPlaneLoopPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
     else if (arg === "--no-control-plane-health") parsed.controlPlaneHealthPath = false;
     else if (arg === "--control-plane-action-plan") parsed.controlPlaneActionPlanPath = argv[++index];
@@ -2073,6 +2138,8 @@ Options:
                                   Do not include Closeout Receipt Application status.
   --control-plane-pipeline <path> control-plane-pipeline.json path.
   --no-control-plane-pipeline     Do not include Control Plane Pipeline status.
+  --control-plane-loop <path>     control-plane-loop.json path.
+  --no-control-plane-loop         Do not include Control Plane Loop status.
   --control-plane-health <path>   control-plane-health.json path.
   --no-control-plane-health       Do not include Control Plane Health status.
   --control-plane-action-plan <path>

@@ -891,3 +891,30 @@
 - no-op 상황도 application artifact와 summary로 재현 가능함
 - `/api/work-packet-receipt-applications?application_status=nothing_to_apply`로 적용 상태를 조회할 수 있음
 - `npm test`, `control-plane:work-receipts:apply`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 36: Control Plane Loop
+
+목표: heartbeat에서 반복하던 전체 운영 검증 루프를 하나의 재현 가능한 ledger 명령으로 고정합니다.
+
+- pipeline, dashboard, health, action plan, work packet, receipt draft, receipt validation, receipt application, API smoke를 순서대로 실행
+- 각 단계의 command, exit code, stdout/stderr, duration, expected artifact check를 기록
+- 실패 후 계속 실행할지 또는 fail-fast로 멈출지 선택 가능
+- loop artifact를 진행 중에도 갱신해 dashboard가 현재 loop 상태를 읽을 수 있게 함
+- Review Dashboard에 `control_plane_loop` stage와 loop summary 추가
+- Review API에서 `/api/control-plane-loops`, `/api/control-plane-loop-steps` route 제공
+
+현재 구현:
+
+- `npm run control-plane:loop`
+- `src/control-plane-loop.mjs`
+- `schemas/control-plane-loop.schema.json`
+- `docs/control-plane-loop.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- heartbeat 운영 루프가 단일 명령과 artifact로 재현 가능함
+- loop step 실패나 missing artifact가 dashboard action item으로 표시됨
+- `/api/control-plane-loop-steps?status=passed`로 루프 단계 결과를 조회할 수 있음
+- `npm test`, `npm run validate`, `npm run control-plane:loop`가 통과함

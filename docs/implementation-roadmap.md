@@ -678,3 +678,32 @@
 - invalid/unknown receipt는 receipt error와 dashboard action item으로 드러남
 - `/api/closeout-receipt-validations?validation_status=ready_to_apply`로 검증 완료 receipt를 조회할 수 있음
 - `npm test`, `delivery:closeout:validate`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 28: Delivery Closeout Receipt Application
+
+목표: 검증 완료된 closeout receipt만 Delivery Receipt Ledger에 적용하고, 검증과 적용을 dashboard/API에서 분리해 추적합니다.
+
+- closeout receipt validation artifact를 읽음
+- validation error가 있으면 receipt 적용을 차단
+- `ready_to_apply` receipt만 Delivery Receipt Ledger에 전달
+- 적용 결과로 patched delivery queue, patched output catalog, audit event 생성
+- ready receipt가 없으면 `nothing_to_apply` no-op artifact 생성
+- Review Dashboard에 `closeout_receipt_application` stage와 application summary 추가
+- Review API에서 `/api/closeout-receipt-applications`, `/api/closeout-applied-receipts` route 제공
+
+현재 구현:
+
+- `npm run delivery:closeout:apply`
+- `src/delivery-closeout-receipt-application.mjs`
+- `schemas/delivery-closeout-receipt-application.schema.json`
+- `docs/delivery-closeout-receipt-application.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- validation error가 있는 receipt input은 적용되지 않음
+- ready receipt만 applied receipt와 audit event로 기록됨
+- 적용 결과가 Delivery Receipt Ledger schema를 통과함
+- `/api/closeout-applied-receipts?receipt_status=delivered`로 적용된 closeout receipt를 조회할 수 있음
+- `npm test`, `delivery:closeout:apply`, `dashboard:build`, `api:smoke`가 통과함

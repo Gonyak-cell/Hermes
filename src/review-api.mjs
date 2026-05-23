@@ -344,6 +344,28 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/closeout-receipt-applications") {
+    const applicationResult = await readDashboardSourceArtifact(dashboard, "closeout_receipt_application");
+    if (!applicationResult.available) {
+      return jsonResponse(503, buildError("closeout_receipt_application_unavailable", applicationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("closeout_receipt_applications", [applicationResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/closeout-applied-receipts") {
+    const applicationResult = await readDashboardSourceArtifact(dashboard, "closeout_receipt_application");
+    if (!applicationResult.available) {
+      return jsonResponse(503, buildError("closeout_receipt_application_unavailable", applicationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("closeout_applied_receipts", applicationResult.artifact.applied_receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -365,7 +387,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -405,6 +427,8 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/closeout-receipt-validations", "Closeout receipt validation items"),
       route("GET", "/api/closeout-receipt-errors", "Closeout receipt validation errors"),
       route("GET", "/api/validated-receipts-to-apply", "Validated receipt rows ready for delivery:receipts"),
+      route("GET", "/api/closeout-receipt-applications", "Closeout receipt application artifact"),
+      route("GET", "/api/closeout-applied-receipts", "Applied closeout receipts"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -483,6 +507,8 @@ function filterItems(items, searchParams) {
     "validation_status",
     "field",
     "primary_domain_pack",
+    "application_id",
+    "application_status",
     "enabled",
     "valid",
   ];

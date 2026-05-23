@@ -23,3 +23,5 @@ npm run delivery:receipts
 - `summary.md`
 
 receipt input이 없거나 `pending`이면 delivered patch를 만들지 않는다. 사람이 실제 작업을 마친 뒤 `receipt_status`, `executed_by`, `executed_at`, `delivery_reference`를 채운 경우에만 `delivery.executed` audit event와 delivered 상태 patch가 생성된다.
+
+Closeout 흐름에서는 `npm run delivery:closeout:validate`와 `npm run delivery:closeout:apply`가 검증 완료 receipt만 이 ledger에 전달한다.

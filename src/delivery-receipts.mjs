@@ -24,6 +24,7 @@ export async function buildDeliveryReceipts(options = {}) {
   const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
   const executionDraftPath = path.resolve(options.executionDraftPath ?? DEFAULT_DELIVERY_EXECUTION_DRAFT_PATH);
   const receiptsPath = options.receiptsPath === false ? null : path.resolve(options.receiptsPath ?? DEFAULT_DELIVERY_RECEIPTS_PATH);
+  const receiptsSourcePath = options.receiptsSourcePath ?? receiptsPath;
   const deliveryQueuePath = options.deliveryQueuePath === false
     ? null
     : path.resolve(options.deliveryQueuePath ?? DEFAULT_DELIVERY_RECEIPT_QUEUE_PATH);
@@ -31,7 +32,9 @@ export async function buildDeliveryReceipts(options = {}) {
     ? null
     : path.resolve(options.outputCatalogPath ?? DEFAULT_DELIVERY_RECEIPT_OUTPUT_CATALOG_PATH);
   const executionDraft = JSON.parse(await readFile(executionDraftPath, "utf8"));
-  const receiptsResult = receiptsPath ? await readJsonOrError(receiptsPath) : { ok: false, value: null, error: "disabled" };
+  const receiptsResult = options.receiptsInput
+    ? { ok: true, value: options.receiptsInput, error: null }
+    : receiptsPath ? await readJsonOrError(receiptsPath) : { ok: false, value: null, error: "disabled" };
   const deliveryQueue = deliveryQueuePath ? await readJsonIfExists(deliveryQueuePath) : null;
   const outputCatalog = outputCatalogPath ? await readJsonIfExists(outputCatalogPath) : null;
   const patchedDeliveryQueue = deliveryQueue ? structuredClone(deliveryQueue) : null;
@@ -81,14 +84,14 @@ export async function buildDeliveryReceipts(options = {}) {
     generated_at: generatedAt,
     ledger_id: `delivery-receipts.${dateStamp(generatedAt)}`,
     source_execution_draft: executionDraftPath,
-    source_receipts: receiptsPath,
+    source_receipts: receiptsSourcePath,
     source_delivery_queue: deliveryQueuePath,
     source_output_catalog: outputCatalogPath,
     output_dir: outputDir,
     summary: summarizeReceiptLedger(executionDraft, receiptsResult, appliedReceipts, pendingReceipts, receiptErrors, patchedDeliveryQueue, patchedOutputCatalog),
     sources: [
       buildSource("delivery_execution_draft", "Delivery Execution Draft", executionDraftPath, { ok: true, value: executionDraft, error: null }),
-      buildSource("delivery_receipts", "Delivery Receipt Input", receiptsPath, receiptsResult),
+      buildSource("delivery_receipts", "Delivery Receipt Input", receiptsSourcePath, receiptsResult),
       buildSource("delivery_queue", "Patched Delivery Queue", deliveryQueuePath, deliveryQueue ? { ok: true, value: deliveryQueue, error: null } : { ok: false, value: null, error: deliveryQueuePath ? "not_found" : "disabled" }),
       buildSource("output_catalog", "Patched Output Catalog", outputCatalogPath, outputCatalog ? { ok: true, value: outputCatalog, error: null } : { ok: false, value: null, error: outputCatalogPath ? "not_found" : "disabled" }),
     ],

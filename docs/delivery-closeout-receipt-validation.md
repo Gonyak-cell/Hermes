@@ -26,4 +26,4 @@ npm run delivery:closeout:validate
 - `delivered` receipt는 `delivery_reference`가 필요
 - `delivered_artifact_ids`는 closeout packet의 artifact ids와 일치해야 함
 
-`ready_to_apply` receipt만 `validated-receipts-to-apply.json`에 들어간다. 이후 `npm run delivery:receipts -- --receipts artifacts/delivery-closeout-validation/latest/validated-receipts-to-apply.json`를 실행한다.
+`ready_to_apply` receipt만 `validated-receipts-to-apply.json`에 들어간다. 이후 `npm run delivery:closeout:apply`를 실행하면 검증 완료 receipt만 Delivery Receipt Ledger에 적용된다.

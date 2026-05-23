@@ -20,6 +20,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   postDeliveryReconciliationPath: "artifacts/post-delivery-reconciliation/latest/post-delivery-reconciliation.json",
   deliveryCloseoutQueuePath: "artifacts/delivery-closeout/latest/delivery-closeout-queue.json",
   closeoutReceiptValidationPath: "artifacts/delivery-closeout-validation/latest/closeout-receipt-validation.json",
+  closeoutReceiptApplicationPath: "artifacts/delivery-closeout-application/latest/closeout-receipt-application.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -110,6 +111,11 @@ const SOURCE_DEFINITIONS = [
     option: "closeoutReceiptValidationPath",
     source_id: "closeout_receipt_validation",
     label: "Closeout Receipt Validation",
+  },
+  {
+    option: "closeoutReceiptApplicationPath",
+    source_id: "closeout_receipt_application",
+    label: "Closeout Receipt Application",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -332,6 +338,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "post_delivery_reconciliation") return data.summary ?? {};
   if (sourceId === "delivery_closeout_queue") return data.summary ?? {};
   if (sourceId === "closeout_receipt_validation") return data.summary ?? {};
+  if (sourceId === "closeout_receipt_application") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -385,6 +392,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPostDeliveryReconciliationStage(artifacts.post_delivery_reconciliation, sourceById.get("post_delivery_reconciliation")),
     buildDeliveryCloseoutQueueStage(artifacts.delivery_closeout_queue, sourceById.get("delivery_closeout_queue")),
     buildCloseoutReceiptValidationStage(artifacts.closeout_receipt_validation, sourceById.get("closeout_receipt_validation")),
+    buildCloseoutReceiptApplicationStage(artifacts.closeout_receipt_application, sourceById.get("closeout_receipt_application")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -819,6 +827,32 @@ function buildCloseoutReceiptValidationStage(validation, source) {
   };
 }
 
+function buildCloseoutReceiptApplicationStage(application, source) {
+  if (!application) return missingStage("closeout_receipt_application", "Closeout Receipt Application", source);
+  const summary = application.summary ?? {};
+  const status = application.application_status === "blocked_missing_validation" || application.application_status === "blocked_validation_errors"
+    ? "attention"
+    : application.application_status === "nothing_to_apply"
+      ? (summary.pending_receipt_count > 0 ? "pending" : "passed")
+      : "passed";
+  return {
+    stage_id: "closeout_receipt_application",
+    label: "Closeout Receipt Application",
+    status,
+    message: `${summary.applied_receipt_count ?? 0} applied receipt(s), ${summary.delivered_artifact_count ?? 0} delivered artifact(s), status ${application.application_status}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      application_status: application.application_status,
+      safe_to_apply: application.safe_to_apply ?? false,
+      ready_receipt_count: summary.ready_receipt_count ?? 0,
+      applied_receipt_count: summary.applied_receipt_count ?? 0,
+      delivered_artifact_count: summary.delivered_artifact_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? 0,
+      receipt_error_count: summary.receipt_error_count ?? 0,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -1185,7 +1219,9 @@ function buildActionItems(artifacts) {
   }
 
   const validationPacketIds = new Set(validationItems.map((item) => item.packet_id));
+  const appliedCloseoutPacketIds = new Set((artifacts.closeout_receipt_application?.applied_receipts ?? []).map((receipt) => receipt.packet_id));
   for (const item of validationItems) {
+    if (appliedCloseoutPacketIds.has(item.packet_id)) continue;
     if (item.validation_status === "ready_to_apply") {
       items.push({
         action_item_id: `dashboard.action.closeout_receipt_ready.${slugify(item.validation_item_id)}`,
@@ -1217,6 +1253,23 @@ function buildActionItems(artifacts) {
       reason: item.errors?.map((candidate) => candidate.message).join("; ") || item.validation_status,
       recommended_actions: ["fix_receipt_input", "rerun_delivery_closeout_validate"],
       source_ref: item.packet_id,
+    });
+  }
+
+  if (artifacts.closeout_receipt_application?.application_status === "blocked_validation_errors") {
+    items.push({
+      action_item_id: "dashboard.action.closeout_receipt_application.validation_errors",
+      source_stage: "closeout_receipt_application",
+      priority: "high",
+      status: "blocked_validation_errors",
+      title: "Fix closeout receipt application blockers",
+      subject_ref: {
+        subject_type: "closeout_receipt_application",
+        subject_id: artifacts.closeout_receipt_application.application_id ?? "closeout_receipt_application",
+      },
+      reason: `${artifacts.closeout_receipt_application.summary?.validation_error_count ?? 0} validation error(s) block receipt application.`,
+      recommended_actions: ["fix_closeout_receipts", "rerun_delivery_closeout_validate", "rerun_delivery_closeout_apply"],
+      source_ref: artifacts.closeout_receipt_application.application_id ?? null,
     });
   }
 
@@ -1318,6 +1371,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     closeout_receipt_pending_count: artifacts.closeout_receipt_validation?.summary?.pending_receipt_count ?? 0,
     closeout_receipt_invalid_count: artifacts.closeout_receipt_validation?.summary?.invalid_receipt_count ?? 0,
     closeout_receipt_error_count: artifacts.closeout_receipt_validation?.summary?.error_count ?? 0,
+    closeout_application_ready_count: artifacts.closeout_receipt_application?.summary?.ready_receipt_count ?? 0,
+    closeout_application_applied_count: artifacts.closeout_receipt_application?.summary?.applied_receipt_count ?? 0,
+    closeout_application_delivered_artifact_count: artifacts.closeout_receipt_application?.summary?.delivered_artifact_count ?? 0,
+    closeout_application_error_count: artifacts.closeout_receipt_application?.summary?.receipt_error_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1328,7 +1385,8 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     creative_slide_count: artifacts.creative_document_slice?.slide_count ?? 0,
     creative_artifact_count: artifacts.creative_document_slice?.artifact_count ?? 0,
     audit_event_count: (artifacts.approval_decisions?.audit_events?.length ?? 0)
-      + (artifacts.delivery_receipt_ledger?.audit_events?.length ?? 0),
+      + (artifacts.delivery_receipt_ledger?.audit_events?.length ?? 0)
+      + (artifacts.closeout_receipt_application?.audit_events?.length ?? 0),
     follow_up_count: decisionSummary.follow_up_count ?? 0,
     decision_error_count: decisionErrorCount,
     action_item_count: actionItems.length,
@@ -1408,6 +1466,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Post Delivery", dashboard.summary.post_delivery_delivered_artifact_count)}
       ${stat("Closeout", dashboard.summary.delivery_closeout_item_count)}
       ${stat("Receipt Gate", dashboard.summary.closeout_receipt_ready_count)}
+      ${stat("Closeout Applied", dashboard.summary.closeout_application_applied_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1465,6 +1524,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Closeout receipts ready: ${dashboard.summary.closeout_receipt_ready_count ?? 0}`);
   lines.push(`- Closeout receipts pending: ${dashboard.summary.closeout_receipt_pending_count ?? 0}`);
   lines.push(`- Closeout receipt errors: ${dashboard.summary.closeout_receipt_error_count ?? 0}`);
+  lines.push(`- Closeout application ready receipts: ${dashboard.summary.closeout_application_ready_count ?? 0}`);
+  lines.push(`- Closeout application applied receipts: ${dashboard.summary.closeout_application_applied_count ?? 0}`);
+  lines.push(`- Closeout application delivered artifacts: ${dashboard.summary.closeout_application_delivered_artifact_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1580,6 +1642,8 @@ function parseArgs(argv) {
     else if (arg === "--no-delivery-closeout") parsed.deliveryCloseoutQueuePath = false;
     else if (arg === "--closeout-receipt-validation") parsed.closeoutReceiptValidationPath = argv[++index];
     else if (arg === "--no-closeout-receipt-validation") parsed.closeoutReceiptValidationPath = false;
+    else if (arg === "--closeout-receipt-application") parsed.closeoutReceiptApplicationPath = argv[++index];
+    else if (arg === "--no-closeout-receipt-application") parsed.closeoutReceiptApplicationPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1630,6 +1694,10 @@ Options:
                                   closeout-receipt-validation.json path.
   --no-closeout-receipt-validation
                                   Do not include Closeout Receipt Validation status.
+  --closeout-receipt-application <path>
+                                  closeout-receipt-application.json path.
+  --no-closeout-receipt-application
+                                  Do not include Closeout Receipt Application status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

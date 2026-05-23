@@ -80,6 +80,10 @@
         "closeout_receipt_pending_count",
         "closeout_receipt_invalid_count",
         "closeout_receipt_error_count",
+        "closeout_application_ready_count",
+        "closeout_application_applied_count",
+        "closeout_application_delivered_artifact_count",
+        "closeout_application_error_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -323,6 +327,22 @@
           "minimum": 0
         },
         "closeout_receipt_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_application_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_application_applied_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_application_delivered_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "closeout_application_error_count": {
           "type": "integer",
           "minimum": 0
         },

@@ -18,6 +18,7 @@ import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.mjs";
 import { runDeliveryExecutionDraft } from "../src/delivery-execution-draft.mjs";
 import { runDeliveryCloseoutQueue } from "../src/delivery-closeout-queue.mjs";
+import { runDeliveryCloseoutReceiptApplication } from "../src/delivery-closeout-receipt-application.mjs";
 import { runDeliveryCloseoutReceiptValidation } from "../src/delivery-closeout-receipt-validation.mjs";
 import { runDeliveryReceipts } from "../src/delivery-receipts.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
@@ -570,14 +571,26 @@ describe("matter harness", () => {
       assert.equal(filledCloseoutReceiptValidation.summary.fully_ready_to_apply, true);
       assert.equal(filledCloseoutReceiptValidation.validated_receipts_to_apply.receipts.length, 4);
 
-      const deliveryReceipts = await runDeliveryReceipts({
+      const closeoutReceiptApplication = await runDeliveryCloseoutReceiptApplication({
+        validationPath: path.join(outDir, "closeout-receipt-validation-filled", "closeout-receipt-validation.json"),
         executionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
-        receiptsPath: path.join(outDir, "closeout-receipt-validation-filled", "validated-receipts-to-apply.json"),
         deliveryQueuePath: path.join(outDir, "approval-inbox-decisions", "patched-delivery-queue.json"),
         outputCatalogPath: path.join(outDir, "approval-inbox-decisions", "patched-output-catalog.json"),
-        outDir: path.join(outDir, "delivery-receipts"),
+        outDir: path.join(outDir, "closeout-receipt-application"),
         runAt: "2026-05-23T06:35:02.000Z",
       });
+      const closeoutReceiptApplicationSchema = JSON.parse(await readFile("schemas/delivery-closeout-receipt-application.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(closeoutReceiptApplication, closeoutReceiptApplicationSchema, {}, "closeout_receipt_application"),
+        [],
+      );
+      assert.equal(closeoutReceiptApplication.application_status, "applied");
+      assert.equal(closeoutReceiptApplication.summary.ready_receipt_count, 4);
+      assert.equal(closeoutReceiptApplication.summary.applied_receipt_count, 4);
+      assert.equal(closeoutReceiptApplication.summary.delivered_artifact_count, 5);
+      assert.equal(closeoutReceiptApplication.summary.validation_error_count, 0);
+
+      const deliveryReceipts = closeoutReceiptApplication.delivery_receipt_ledger;
       const deliveryReceiptSchema = JSON.parse(await readFile("schemas/delivery-receipt-ledger.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(deliveryReceipts, deliveryReceiptSchema, {}, "delivery_receipt_ledger"), []);
       assert.equal(deliveryReceipts.summary.applied_receipt_count, 4);
@@ -597,9 +610,9 @@ describe("matter harness", () => {
       );
 
       const postDeliveryReconciliation = await runPostDeliveryReconciliation({
-        receiptLedgerPath: path.join(outDir, "delivery-receipts", "delivery-receipt-ledger.json"),
-        deliveryQueuePath: path.join(outDir, "delivery-receipts", "patched-delivery-queue.json"),
-        outputCatalogPath: path.join(outDir, "delivery-receipts", "patched-output-catalog.json"),
+        receiptLedgerPath: path.join(outDir, "closeout-receipt-application", "delivery-receipt-ledger.json"),
+        deliveryQueuePath: path.join(outDir, "closeout-receipt-application", "patched-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "closeout-receipt-application", "patched-output-catalog.json"),
         outDir: path.join(outDir, "post-delivery-reconciliation"),
         runAt: "2026-05-23T06:35:03.000Z",
       });
@@ -617,8 +630,8 @@ describe("matter harness", () => {
       const finalCloseoutQueue = await runDeliveryCloseoutQueue({
         postDeliveryPath: path.join(outDir, "post-delivery-reconciliation", "post-delivery-reconciliation.json"),
         executionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
-        receiptTemplatePath: path.join(outDir, "delivery-receipts", "receipt-template.json"),
-        outputCatalogPath: path.join(outDir, "delivery-receipts", "patched-output-catalog.json"),
+        receiptTemplatePath: path.join(outDir, "closeout-receipt-application", "validated-receipts-to-apply.json"),
+        outputCatalogPath: path.join(outDir, "closeout-receipt-application", "patched-output-catalog.json"),
         outDir: path.join(outDir, "delivery-closeout"),
         runAt: "2026-05-23T06:35:04.000Z",
       });
@@ -655,10 +668,11 @@ describe("matter harness", () => {
         protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
         matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
         deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
-        deliveryReceiptLedgerPath: path.join(outDir, "delivery-receipts", "delivery-receipt-ledger.json"),
+        deliveryReceiptLedgerPath: path.join(outDir, "closeout-receipt-application", "delivery-receipt-ledger.json"),
         postDeliveryReconciliationPath: path.join(outDir, "post-delivery-reconciliation", "post-delivery-reconciliation.json"),
         deliveryCloseoutQueuePath: path.join(outDir, "delivery-closeout", "delivery-closeout-queue.json"),
         closeoutReceiptValidationPath: path.join(outDir, "closeout-receipt-validation", "closeout-receipt-validation.json"),
+        closeoutReceiptApplicationPath: path.join(outDir, "closeout-receipt-application", "closeout-receipt-application.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -702,6 +716,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.closeout_receipt_pending_count, 0);
       assert.equal(dashboard.summary.closeout_receipt_invalid_count, 0);
       assert.equal(dashboard.summary.closeout_receipt_error_count, 0);
+      assert.equal(dashboard.summary.closeout_application_ready_count, 4);
+      assert.equal(dashboard.summary.closeout_application_applied_count, 4);
+      assert.equal(dashboard.summary.closeout_application_delivered_artifact_count, 5);
+      assert.equal(dashboard.summary.closeout_application_error_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -728,6 +746,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "post_delivery_reconciliation"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_closeout_queue"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_validation"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "closeout_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -772,6 +791,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-receipt-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-receipt-errors"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-receipts-to-apply"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-receipt-applications"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/closeout-applied-receipts"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -879,6 +900,14 @@ describe("matter harness", () => {
       const validatedReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-receipts-to-apply", apiOptions)).body);
       assert.equal(validatedReceipts.collection, "validated_receipts_to_apply");
       assert.equal(validatedReceipts.count, 0);
+
+      const closeoutApplications = JSON.parse((await buildReviewApiResponse("/api/closeout-receipt-applications?application_status=applied", apiOptions)).body);
+      assert.equal(closeoutApplications.collection, "closeout_receipt_applications");
+      assert.equal(closeoutApplications.count, 1);
+
+      const closeoutAppliedReceipts = JSON.parse((await buildReviewApiResponse("/api/closeout-applied-receipts?receipt_status=delivered", apiOptions)).body);
+      assert.equal(closeoutAppliedReceipts.collection, "closeout_applied_receipts");
+      assert.equal(closeoutAppliedReceipts.count, 4);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

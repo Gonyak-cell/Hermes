@@ -18,6 +18,7 @@
     "creative-document:slice": "node scripts/run-creative-document-slice.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
+    "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",
     "delivery:closeout:validate": "node scripts/delivery-closeout-receipt-validation.mjs",
     "delivery:execution:draft": "node scripts/delivery-execution-draft.mjs",
     "delivery:queue": "node scripts/protected-delivery-queue.mjs",

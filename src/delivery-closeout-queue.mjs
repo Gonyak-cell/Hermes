@@ -130,7 +130,7 @@ function buildCloseoutItem(context) {
     execution_candidates: executionCandidates,
     closeout_checklist: buildCloseoutChecklist(packet, artifacts),
     receipt_form_draft: receiptForm,
-    next_commands: ["npm run delivery:receipts", "npm run delivery:reconcile", "npm run dashboard:build"],
+    next_commands: ["npm run delivery:closeout:validate", "npm run delivery:closeout:apply", "npm run delivery:reconcile", "npm run dashboard:build"],
     created_at: generatedAt,
   };
 }
@@ -204,7 +204,7 @@ function buildCloseoutChecklist(packet, artifacts) {
   if (artifacts.some((artifact) => Number(artifact.citation_count ?? 0) > 0)) {
     checklist.push("confirm_citation_spot_check_completed");
   }
-  checklist.push("rerun_delivery_receipts", "rerun_post_delivery_reconciliation", "rebuild_dashboard");
+  checklist.push("rerun_delivery_closeout_validate", "rerun_delivery_closeout_apply", "rerun_post_delivery_reconciliation", "rebuild_dashboard");
   return [...new Set(checklist)];
 }
 

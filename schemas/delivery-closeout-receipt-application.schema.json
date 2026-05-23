@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/delivery-closeout-receipt-application.schema.json",
+  "title": "Hermes Delivery Closeout Receipt Application",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "application_id",
+    "application_status",
+    "safe_to_apply",
+    "summary",
+    "sources",
+    "validated_receipts_to_apply",
+    "applied_receipts",
+    "pending_receipts",
+    "receipt_errors",
+    "audit_events",
+    "delivery_receipt_ledger",
+    "patched_delivery_queue",
+    "patched_output_catalog"
+  ],
+  "properties": {
+    "schema_version": { "const": "delivery-closeout-receipt-application.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "application_id": { "type": "string" },
+    "application_status": {
+      "enum": ["blocked_missing_validation", "blocked_validation_errors", "nothing_to_apply", "applied"]
+    },
+    "safe_to_apply": { "type": "boolean" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "validation_available",
+        "validation_error_count",
+        "closeout_item_count",
+        "ready_receipt_count",
+        "pending_receipt_count",
+        "invalid_receipt_count",
+        "application_status",
+        "applied_receipt_count",
+        "pending_application_receipt_count",
+        "delivered_packet_count",
+        "delivered_artifact_count",
+        "failed_packet_count",
+        "cancelled_packet_count",
+        "audit_event_count",
+        "receipt_error_count",
+        "patched_delivery_delivered_count",
+        "patched_output_delivered_count",
+        "by_receipt_status",
+        "by_delivery_channel",
+        "by_delivery_target"
+      ],
+      "properties": {
+        "validation_available": { "type": "boolean" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "closeout_item_count": { "type": "integer", "minimum": 0 },
+        "ready_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "invalid_receipt_count": { "type": "integer", "minimum": 0 },
+        "application_status": {
+          "enum": ["blocked_missing_validation", "blocked_validation_errors", "nothing_to_apply", "applied"]
+        },
+        "applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_application_receipt_count": { "type": "integer", "minimum": 0 },
+        "delivered_packet_count": { "type": "integer", "minimum": 0 },
+        "delivered_artifact_count": { "type": "integer", "minimum": 0 },
+        "failed_packet_count": { "type": "integer", "minimum": 0 },
+        "cancelled_packet_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "receipt_error_count": { "type": "integer", "minimum": 0 },
+        "patched_delivery_delivered_count": { "type": "integer", "minimum": 0 },
+        "patched_output_delivered_count": { "type": "integer", "minimum": 0 },
+        "by_receipt_status": { "type": "object" },
+        "by_delivery_channel": { "type": "object" },
+        "by_delivery_target": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "validated_receipts_to_apply": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "execution_plan_id", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "delivery-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "execution_plan_id": { "type": "string" },
+        "instructions": { "type": "string" },
+        "receipts": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "applied_receipts": { "type": "array", "items": { "type": "object" } },
+    "pending_receipts": { "type": "array", "items": { "type": "object" } },
+    "receipt_errors": { "type": "array", "items": { "type": "object" } },
+    "audit_events": { "type": "array", "items": { "type": "object" } },
+    "delivery_receipt_ledger": { "type": ["object", "null"] },
+    "patched_delivery_queue": { "type": ["object", "null"] },
+    "patched_output_catalog": { "type": ["object", "null"] }
+  }
+}

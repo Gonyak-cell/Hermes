@@ -2016,3 +2016,38 @@
 - `/api/human-review-actor-triage-inboxes?required_actor=attorney_or_designated_reviewer`로 actor별 triage inbox를 조회할 수 있음
 - Dashboard summary가 triage actor, item, ready, attention, blocked, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:triage`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 73: Human Review Cycle Reviewer Console
+
+목표: Human Review Cycle Triage Inbox를 사람이 바로 열어볼 수 있는 actor별 reviewer console로 렌더링한다.
+
+- `Human Review Cycle Triage Inbox`, `Human Review Context Bundle`, `Human Review Decision Register`를 입력으로 사용
+- triage item별 context card와 decision row를 결합해 title, reason, evidence/matter/approval context, required receipt fields, allowed outcomes를 한 항목으로 노출
+- actor별 static HTML/Markdown console과 top-level HTML console을 생성
+- console item별 target receipt input path와 manual next action을 명시
+- protected action은 console 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 triage 뒤, receipt application 전에 `npm run control-plane:review-cycle:console` 실행
+- Review Dashboard에 `human_review_cycle_reviewer_console` stage와 actor/item/ready/context-link/error summary 추가
+- Review API에서 `/api/human-review-cycle-reviewer-consoles`, `/api/human-review-cycle-console-items`, `/api/human-review-actor-consoles` route 제공
+- Goal Checkpoint에서 Human Review Cycle Reviewer Console을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:console`
+- `src/human-review-cycle-reviewer-console.mjs`
+- `schemas/human-review-cycle-reviewer-console.schema.json`
+- `docs/human-review-cycle-reviewer-console.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle reviewer console artifact가 schema validation을 통과함
+- console item count가 triage item count와 일치함
+- actor console count가 triage actor inbox count와 일치함
+- 모든 console item이 context card와 decision row에 연결됨
+- `/api/human-review-cycle-console-items?console_status=ready_for_human_review`로 ready console item을 조회할 수 있음
+- `/api/human-review-actor-consoles?required_actor=attorney_or_designated_reviewer`로 actor별 console을 조회할 수 있음
+- Dashboard summary가 console actor, item, ready, missing context/decision, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:console`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

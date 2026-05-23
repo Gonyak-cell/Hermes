@@ -55,6 +55,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCycleWorkOrdersPath: "artifacts/human-review-cycle-work-orders/latest/human-review-cycle-work-orders.json",
   humanReviewCycleTargetAuditPath: "artifacts/human-review-cycle-work-order-target-audit/latest/human-review-cycle-work-order-target-audit.json",
   humanReviewCycleTriageInboxPath: "artifacts/human-review-cycle-triage-inbox/latest/human-review-cycle-triage-inbox.json",
+  humanReviewCycleReviewerConsolePath: "artifacts/human-review-cycle-reviewer-console/latest/human-review-cycle-reviewer-console.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -326,6 +327,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewCycleTriageInboxPath",
     source_id: "human_review_cycle_triage_inbox",
     label: "Human Review Cycle Triage Inbox",
+  },
+  {
+    option: "humanReviewCycleReviewerConsolePath",
+    source_id: "human_review_cycle_reviewer_console",
+    label: "Human Review Cycle Reviewer Console",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -613,6 +619,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_cycle_work_orders") return data.summary ?? {};
   if (sourceId === "human_review_cycle_target_audit") return data.summary ?? {};
   if (sourceId === "human_review_cycle_triage_inbox") return data.summary ?? {};
+  if (sourceId === "human_review_cycle_reviewer_console") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -708,6 +715,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCycleWorkOrdersStage(artifacts.human_review_cycle_work_orders, sourceById.get("human_review_cycle_work_orders")),
     buildHumanReviewCycleTargetAuditStage(artifacts.human_review_cycle_target_audit, sourceById.get("human_review_cycle_target_audit")),
     buildHumanReviewCycleTriageInboxStage(artifacts.human_review_cycle_triage_inbox, sourceById.get("human_review_cycle_triage_inbox")),
+    buildHumanReviewCycleReviewerConsoleStage(artifacts.human_review_cycle_reviewer_console, sourceById.get("human_review_cycle_reviewer_console")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -2281,6 +2289,43 @@ function buildHumanReviewCycleTriageInboxStage(inbox, source) {
   };
 }
 
+function buildHumanReviewCycleReviewerConsoleStage(console, source) {
+  if (!console) return missingStage("human_review_cycle_reviewer_console", "Human Review Cycle Reviewer Console", source);
+  const summary = console.summary ?? {};
+  const errorCount = summary.validation_error_count ?? console.validation?.errors?.length ?? 0;
+  const status = console.console_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : console.console_status === "attention" || (summary.attention_count ?? 0) > 0
+      ? "attention"
+      : (summary.ready_for_human_review_count ?? 0) > 0
+        ? "pending"
+        : (summary.ready_for_application_count ?? 0) > 0
+          ? "ready"
+          : "passed";
+  return {
+    stage_id: "human_review_cycle_reviewer_console",
+    label: "Human Review Cycle Reviewer Console",
+    status,
+    message: `${summary.actor_console_count ?? 0} actor console(s), ${summary.console_item_count ?? 0} item(s), ${summary.ready_for_human_review_count ?? 0} ready for human review.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      console_status: console.console_status ?? "unknown",
+      actor_console_count: summary.actor_console_count ?? 0,
+      console_item_count: summary.console_item_count ?? 0,
+      ready_for_human_review_count: summary.ready_for_human_review_count ?? 0,
+      ready_for_application_count: summary.ready_for_application_count ?? 0,
+      attention_count: summary.attention_count ?? 0,
+      blocked_count: summary.blocked_count ?? 0,
+      protected_action_count: summary.protected_action_count ?? 0,
+      evidence_decision_count: summary.evidence_decision_count ?? 0,
+      target_file_count: summary.target_file_count ?? 0,
+      missing_context_card_count: summary.missing_context_card_count ?? 0,
+      missing_decision_row_count: summary.missing_decision_row_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -3099,6 +3144,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_cycle_reviewer_console?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_cycle_reviewer_console";
+    items.push({
+      action_item_id: `dashboard.action.human_review_cycle_reviewer_console.${slugify(subjectId)}`,
+      source_stage: "human_review_cycle_reviewer_console",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review cycle reviewer console",
+      subject_ref: {
+        subject_type: "human_review_cycle_reviewer_console_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_cycle_triage_inbox", "rerun_human_review_cycle_reviewer_console"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -3821,6 +3884,17 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_cycle_triage_target_file_count: artifacts.human_review_cycle_triage_inbox?.summary?.target_file_count ?? 0,
     human_review_cycle_triage_missing_target_audit_count: artifacts.human_review_cycle_triage_inbox?.summary?.missing_target_audit_count ?? 0,
     human_review_cycle_triage_validation_error_count: artifacts.human_review_cycle_triage_inbox?.summary?.validation_error_count ?? artifacts.human_review_cycle_triage_inbox?.validation?.errors?.length ?? 0,
+    human_review_cycle_console_actor_count: artifacts.human_review_cycle_reviewer_console?.summary?.actor_console_count ?? 0,
+    human_review_cycle_console_item_count: artifacts.human_review_cycle_reviewer_console?.summary?.console_item_count ?? 0,
+    human_review_cycle_console_ready_count: artifacts.human_review_cycle_reviewer_console?.summary?.ready_for_human_review_count ?? 0,
+    human_review_cycle_console_ready_application_count: artifacts.human_review_cycle_reviewer_console?.summary?.ready_for_application_count ?? 0,
+    human_review_cycle_console_attention_count: artifacts.human_review_cycle_reviewer_console?.summary?.attention_count ?? 0,
+    human_review_cycle_console_blocked_count: artifacts.human_review_cycle_reviewer_console?.summary?.blocked_count ?? 0,
+    human_review_cycle_console_protected_count: artifacts.human_review_cycle_reviewer_console?.summary?.protected_action_count ?? 0,
+    human_review_cycle_console_evidence_count: artifacts.human_review_cycle_reviewer_console?.summary?.evidence_decision_count ?? 0,
+    human_review_cycle_console_missing_context_count: artifacts.human_review_cycle_reviewer_console?.summary?.missing_context_card_count ?? 0,
+    human_review_cycle_console_missing_decision_count: artifacts.human_review_cycle_reviewer_console?.summary?.missing_decision_row_count ?? 0,
+    human_review_cycle_console_validation_error_count: artifacts.human_review_cycle_reviewer_console?.summary?.validation_error_count ?? artifacts.human_review_cycle_reviewer_console?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -4148,6 +4222,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human review cycle target audit ready: ${dashboard.summary.human_review_cycle_target_audit_ready_count ?? 0}`);
   lines.push(`- Human review cycle triage items: ${dashboard.summary.human_review_cycle_triage_item_count ?? 0}`);
   lines.push(`- Human review cycle triage ready: ${dashboard.summary.human_review_cycle_triage_ready_count ?? 0}`);
+  lines.push(`- Human review cycle reviewer console items: ${dashboard.summary.human_review_cycle_console_item_count ?? 0}`);
+  lines.push(`- Human review cycle reviewer console ready: ${dashboard.summary.human_review_cycle_console_ready_count ?? 0}`);
   lines.push(`- Human gate receipts applied: ${dashboard.summary.human_gate_receipt_application_applied_count ?? 0}`);
   lines.push(`- Human gate patched gates: ${dashboard.summary.human_gate_receipt_application_patched_gate_count ?? 0}`);
   lines.push(`- Work packets: ${dashboard.summary.work_packet_count ?? 0}`);
@@ -4351,6 +4427,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-cycle-target-audit") parsed.humanReviewCycleTargetAuditPath = false;
     else if (arg === "--human-review-cycle-triage") parsed.humanReviewCycleTriageInboxPath = argv[++index];
     else if (arg === "--no-human-review-cycle-triage") parsed.humanReviewCycleTriageInboxPath = false;
+    else if (arg === "--human-review-cycle-console") parsed.humanReviewCycleReviewerConsolePath = argv[++index];
+    else if (arg === "--no-human-review-cycle-console") parsed.humanReviewCycleReviewerConsolePath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -4496,6 +4574,10 @@ Options:
                                   human-review-cycle-triage-inbox.json path.
   --no-human-review-cycle-triage
                                   Do not include Human Review Cycle Triage Inbox status.
+  --human-review-cycle-console <path>
+                                  human-review-cycle-reviewer-console.json path.
+  --no-human-review-cycle-console
+                                  Do not include Human Review Cycle Reviewer Console status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

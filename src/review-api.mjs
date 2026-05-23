@@ -1400,6 +1400,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-reviewer-consoles") {
+    const consoleResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_reviewer_console");
+    if (!consoleResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_reviewer_console_unavailable", consoleResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_reviewer_consoles", [consoleResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-console-items") {
+    const consoleResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_reviewer_console");
+    if (!consoleResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_reviewer_console_unavailable", consoleResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_console_items", consoleResult.artifact.console_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-consoles") {
+    const consoleResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_reviewer_console");
+    if (!consoleResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_reviewer_console_unavailable", consoleResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_consoles", consoleResult.artifact.actor_consoles ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1709,6 +1742,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-triage-inboxes", "Human review cycle triage inbox artifacts"),
       route("GET", "/api/human-review-cycle-triage-items", "Human review cycle triage items"),
       route("GET", "/api/human-review-actor-triage-inboxes", "Actor-specific human review cycle triage inboxes"),
+      route("GET", "/api/human-review-cycle-reviewer-consoles", "Human review cycle reviewer console artifacts"),
+      route("GET", "/api/human-review-cycle-console-items", "Human review cycle reviewer console items"),
+      route("GET", "/api/human-review-actor-consoles", "Actor-specific human review cycle reviewer consoles"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -1954,6 +1990,11 @@ function filterItems(items, searchParams) {
     "triage_item_id",
     "triage_status",
     "triage_rank",
+    "console_id",
+    "actor_console_id",
+    "console_item_id",
+    "console_status",
+    "console_rank",
     "correction_workspace_id",
     "actor_correction_workspace_id",
     "correction_item_id",

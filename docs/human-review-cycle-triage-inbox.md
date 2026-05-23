@@ -32,4 +32,5 @@ Safe handling:
 
 Next stage:
 
+- `npm run control-plane:review-cycle:console` renders actor-specific reviewer consoles that join triage items with context cards and decision rows.
 - A human reviewer edits the referenced receipt input rows, then the validation/application stages can be rerun under the existing gates.

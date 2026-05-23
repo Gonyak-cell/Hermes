@@ -17,6 +17,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterCockpitPath: "artifacts/matter-cockpit/latest/matter-cockpit.json",
   deliveryExecutionDraftPath: "artifacts/delivery-execution/latest/delivery-execution-draft.json",
   deliveryReceiptLedgerPath: "artifacts/delivery-receipts/latest/delivery-receipt-ledger.json",
+  postDeliveryReconciliationPath: "artifacts/post-delivery-reconciliation/latest/post-delivery-reconciliation.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -92,6 +93,11 @@ const SOURCE_DEFINITIONS = [
     option: "deliveryReceiptLedgerPath",
     source_id: "delivery_receipt_ledger",
     label: "Delivery Receipt Ledger",
+  },
+  {
+    option: "postDeliveryReconciliationPath",
+    source_id: "post_delivery_reconciliation",
+    label: "Post-Delivery Reconciliation",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -311,6 +317,7 @@ function summarizeSource(sourceId, data) {
   }
   if (sourceId === "delivery_execution_draft") return data.summary ?? {};
   if (sourceId === "delivery_receipt_ledger") return data.summary ?? {};
+  if (sourceId === "post_delivery_reconciliation") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -361,6 +368,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterCockpitStage(artifacts.matter_cockpit, sourceById.get("matter_cockpit")),
     buildDeliveryExecutionDraftStage(artifacts.delivery_execution_draft, sourceById.get("delivery_execution_draft")),
     buildDeliveryReceiptLedgerStage(artifacts.delivery_receipt_ledger, sourceById.get("delivery_receipt_ledger")),
+    buildPostDeliveryReconciliationStage(artifacts.post_delivery_reconciliation, sourceById.get("post_delivery_reconciliation")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -696,6 +704,41 @@ function buildDeliveryReceiptLedgerStage(ledger, source) {
       delivered_packet_count: summary.delivered_packet_count ?? 0,
       delivered_artifact_count: delivered,
       audit_event_count: summary.audit_event_count ?? 0,
+      receipt_error_count: errors,
+    },
+  };
+}
+
+function buildPostDeliveryReconciliationStage(reconciliation, source) {
+  if (!reconciliation) return missingStage("post_delivery_reconciliation", "Post-Delivery Reconciliation", source);
+  const summary = reconciliation.summary ?? {};
+  const errors = summary.receipt_error_count ?? 0;
+  const blocked = summary.blocked_matter_count ?? 0;
+  const outstanding = summary.outstanding_receipt_count ?? 0;
+  const deliveredArtifacts = summary.delivered_artifact_count ?? 0;
+  const deliveredMatters = summary.delivered_matter_count ?? 0;
+  const status = errors > 0 || blocked > 0
+    ? "attention"
+    : outstanding > 0
+      ? "pending"
+      : deliveredArtifacts > 0
+        ? "passed"
+        : "pending";
+  return {
+    stage_id: "post_delivery_reconciliation",
+    label: "Post-Delivery Reconciliation",
+    status,
+    message: `${deliveredMatters} delivered matter(s), ${deliveredArtifacts} delivered artifact(s), ${outstanding} outstanding receipt(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      reconciled_matter_count: summary.reconciled_matter_count ?? 0,
+      delivered_matter_count: deliveredMatters,
+      ready_matter_count: summary.ready_matter_count ?? 0,
+      awaiting_receipt_matter_count: summary.awaiting_receipt_matter_count ?? 0,
+      blocked_matter_count: blocked,
+      delivered_artifact_count: deliveredArtifacts,
+      outstanding_receipt_count: outstanding,
+      applied_receipt_count: summary.applied_receipt_count ?? 0,
       receipt_error_count: errors,
     },
   };
@@ -1040,6 +1083,25 @@ function buildActionItems(artifacts) {
     });
   }
 
+  const ledgerPendingPacketIds = new Set((artifacts.delivery_receipt_ledger?.pending_receipts ?? []).map((pending) => pending.packet_id));
+  for (const pending of artifacts.post_delivery_reconciliation?.outstanding_receipts ?? []) {
+    if (ledgerPendingPacketIds.has(pending.packet_id)) continue;
+    items.push({
+      action_item_id: `dashboard.action.post_delivery_receipt.${slugify(pending.packet_id)}`,
+      source_stage: "post_delivery_reconciliation",
+      priority: "high",
+      status: "receipt_outstanding",
+      title: `Close post-delivery receipt: ${pending.delivery_target}`,
+      subject_ref: {
+        subject_type: "delivery_receipt",
+        subject_id: pending.packet_id ?? "unknown",
+      },
+      reason: `${pending.reason ?? "receipt_outstanding"}; reconciliation still sees ${pending.artifact_ids?.length ?? 0} artifact(s) without receipt.`,
+      recommended_actions: ["fill_receipt_template", "rerun_delivery_receipts", "rerun_delivery_reconcile"],
+      source_ref: pending.packet_id ?? null,
+    });
+  }
+
   return items;
 }
 
@@ -1106,6 +1168,10 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     delivery_receipt_pending_count: artifacts.delivery_receipt_ledger?.summary?.pending_receipt_count ?? 0,
     delivery_receipt_delivered_artifact_count: artifacts.delivery_receipt_ledger?.summary?.delivered_artifact_count ?? 0,
     delivery_receipt_error_count: artifacts.delivery_receipt_ledger?.summary?.receipt_error_count ?? 0,
+    post_delivery_delivered_artifact_count: artifacts.post_delivery_reconciliation?.summary?.delivered_artifact_count ?? 0,
+    post_delivery_delivered_matter_count: artifacts.post_delivery_reconciliation?.summary?.delivered_matter_count ?? 0,
+    post_delivery_ready_matter_count: artifacts.post_delivery_reconciliation?.summary?.ready_matter_count ?? 0,
+    post_delivery_outstanding_receipt_count: artifacts.post_delivery_reconciliation?.summary?.outstanding_receipt_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1193,6 +1259,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
       ${stat("Execution Packets", dashboard.summary.delivery_execution_packet_count)}
       ${stat("Receipts", dashboard.summary.delivery_receipt_applied_count)}
+      ${stat("Post Delivery", dashboard.summary.post_delivery_delivered_artifact_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1242,6 +1309,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Delivery receipts applied: ${dashboard.summary.delivery_receipt_applied_count ?? 0}`);
   lines.push(`- Delivery receipts pending: ${dashboard.summary.delivery_receipt_pending_count ?? 0}`);
   lines.push(`- Delivery receipt delivered artifacts: ${dashboard.summary.delivery_receipt_delivered_artifact_count ?? 0}`);
+  lines.push(`- Post-delivery delivered artifacts: ${dashboard.summary.post_delivery_delivered_artifact_count ?? 0}`);
+  lines.push(`- Post-delivery delivered matters: ${dashboard.summary.post_delivery_delivered_matter_count ?? 0}`);
+  lines.push(`- Post-delivery outstanding receipts: ${dashboard.summary.post_delivery_outstanding_receipt_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1351,6 +1421,8 @@ function parseArgs(argv) {
     else if (arg === "--no-delivery-execution") parsed.deliveryExecutionDraftPath = false;
     else if (arg === "--delivery-receipts") parsed.deliveryReceiptLedgerPath = argv[++index];
     else if (arg === "--no-delivery-receipts") parsed.deliveryReceiptLedgerPath = false;
+    else if (arg === "--post-delivery-reconciliation") parsed.postDeliveryReconciliationPath = argv[++index];
+    else if (arg === "--no-post-delivery-reconciliation") parsed.postDeliveryReconciliationPath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1391,6 +1463,10 @@ Options:
   --no-delivery-execution        Do not include Delivery Execution Draft status.
   --delivery-receipts <path>     delivery-receipt-ledger.json path.
   --no-delivery-receipts         Do not include Delivery Receipt Ledger status.
+  --post-delivery-reconciliation <path>
+                                  post-delivery-reconciliation.json path.
+  --no-post-delivery-reconciliation
+                                  Do not include Post-Delivery Reconciliation status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

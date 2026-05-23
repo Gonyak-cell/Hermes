@@ -19,6 +19,7 @@
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:execution:draft": "node scripts/delivery-execution-draft.mjs",
     "delivery:queue": "node scripts/protected-delivery-queue.mjs",
+    "delivery:reconcile": "node scripts/post-delivery-reconciliation.mjs",
     "delivery:receipts": "node scripts/delivery-receipts.mjs",
     "deal": "node scripts/deal-control.mjs examples/project-alpha-matter.json",
     "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",

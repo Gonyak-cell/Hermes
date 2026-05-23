@@ -593,3 +593,31 @@
 - delivery receipt ledger가 schema validation을 통과함
 - `/api/delivery-receipts?receipt_status=delivered`로 기록된 receipt를 조회할 수 있음
 - `npm test`, `delivery:receipts`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 25: Post-Delivery Reconciliation
+
+목표: receipt가 반영된 delivery/output 상태를 matter/project 관점으로 다시 합산하고, 아직 닫히지 않은 receipt를 운영 view에 노출합니다.
+
+- Delivery Receipt Ledger의 applied/pending receipt를 읽음
+- receipt-patched delivery queue와 output catalog를 함께 읽어 delivered/ready/blocked 상태를 재계산함
+- matter/project별 `reconciled_matters`와 delivered output artifact 목록 생성
+- outstanding receipt를 별도 collection으로 남겨 후속 수동 처리 대상을 명확히 함
+- Review Dashboard에 `post_delivery_reconciliation` stage와 post-delivery summary/action item 추가
+- Review API에서 `/api/post-delivery-matters`, `/api/delivered-artifacts`, `/api/outstanding-receipts` route 제공
+
+현재 구현:
+
+- `npm run delivery:reconcile`
+- `src/post-delivery-reconciliation.mjs`
+- `schemas/post-delivery-reconciliation.schema.json`
+- `docs/post-delivery-reconciliation.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- receipt-patched output catalog의 delivered artifact가 `delivered_artifacts`로 노출됨
+- matter/project별 delivered, ready, awaiting receipt, blocked 상태가 재계산됨
+- outstanding receipt가 dashboard action item과 `/api/outstanding-receipts`로 조회됨
+- `post-delivery-reconciliation.json`이 schema validation을 통과함
+- `npm test`, `delivery:reconcile`, `dashboard:build`, `api:smoke`가 통과함

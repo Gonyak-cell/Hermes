@@ -103,6 +103,7 @@
         "required": [
           "receipt_id",
           "packet_id",
+          "tenant_id",
           "delivery_channel",
           "delivery_target",
           "matter_id",
@@ -118,6 +119,7 @@
         "properties": {
           "receipt_id": { "type": "string" },
           "packet_id": { "type": "string" },
+          "tenant_id": { "type": "string" },
           "delivery_channel": { "type": "string" },
           "delivery_target": { "type": "string" },
           "matter_id": { "type": "string" },

@@ -191,6 +191,7 @@ function applyReceipt(packet, receipt, context) {
   return {
     receipt_id: receipt.receipt_id ?? `receipt.${packet.packet_id}`,
     packet_id: packet.packet_id,
+    tenant_id: packet.tenant_id,
     delivery_channel: packet.delivery_channel,
     delivery_target: packet.delivery_target,
     matter_id: packet.matter_id,
@@ -440,6 +441,7 @@ function renderDeliveryReceiptSummary(result) {
 function toPendingReceipt(packet, receipt, reason = null) {
   return {
     packet_id: packet.packet_id,
+    tenant_id: packet.tenant_id,
     delivery_channel: packet.delivery_channel,
     delivery_target: packet.delivery_target,
     matter_id: packet.matter_id,

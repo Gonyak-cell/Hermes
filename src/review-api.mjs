@@ -256,6 +256,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/post-delivery-matters") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "post_delivery_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("post_delivery_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("post_delivery_matters", reconciliationResult.artifact.reconciled_matters ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/delivered-artifacts") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "post_delivery_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("post_delivery_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivered_artifacts", reconciliationResult.artifact.delivered_artifacts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/outstanding-receipts") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "post_delivery_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("post_delivery_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("outstanding_receipts", reconciliationResult.artifact.outstanding_receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -277,7 +310,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -309,6 +342,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/delivery-execution-packets", "Draft-only delivery execution packets"),
       route("GET", "/api/delivery-receipts", "Applied delivery receipts"),
       route("GET", "/api/delivery-receipt-events", "Delivery receipt audit events"),
+      route("GET", "/api/post-delivery-matters", "Post-delivery matter reconciliation records"),
+      route("GET", "/api/delivered-artifacts", "Delivered output artifacts after receipt reconciliation"),
+      route("GET", "/api/outstanding-receipts", "Outstanding delivery receipts after reconciliation"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };

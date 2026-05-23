@@ -24,6 +24,7 @@ import { runLawFirmLddSlice } from "../src/law-firm-ldd-slice-runner.mjs";
 import { runMatterCockpit } from "../src/matter-cockpit.mjs";
 import { runObservabilityCatalog } from "../src/observability-catalog.mjs";
 import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
+import { runPostDeliveryReconciliation } from "../src/post-delivery-reconciliation.mjs";
 import { runProtectedDeliveryQueue } from "../src/protected-delivery-queue.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
@@ -527,6 +528,24 @@ describe("matter harness", () => {
         [],
       );
 
+      const postDeliveryReconciliation = await runPostDeliveryReconciliation({
+        receiptLedgerPath: path.join(outDir, "delivery-receipts", "delivery-receipt-ledger.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-receipts", "patched-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "delivery-receipts", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "post-delivery-reconciliation"),
+        runAt: "2026-05-23T06:35:03.000Z",
+      });
+      const postDeliverySchema = JSON.parse(await readFile("schemas/post-delivery-reconciliation.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(postDeliveryReconciliation, postDeliverySchema, {}, "post_delivery_reconciliation"),
+        [],
+      );
+      assert.equal(postDeliveryReconciliation.summary.delivered_artifact_count, 5);
+      assert.equal(postDeliveryReconciliation.summary.applied_receipt_count, 4);
+      assert.equal(postDeliveryReconciliation.summary.outstanding_receipt_count, 0);
+      assert.equal(postDeliveryReconciliation.summary.delivered_matter_count, 3);
+      assert.ok(postDeliveryReconciliation.reconciled_matters.every((matter) => matter.status === "delivered"));
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -542,6 +561,7 @@ describe("matter harness", () => {
         matterCockpitPath: path.join(outDir, "matter-cockpit", "matter-cockpit.json"),
         deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
         deliveryReceiptLedgerPath: path.join(outDir, "delivery-receipts", "delivery-receipt-ledger.json"),
+        postDeliveryReconciliationPath: path.join(outDir, "post-delivery-reconciliation", "post-delivery-reconciliation.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -575,6 +595,9 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.delivery_receipt_pending_count, 0);
       assert.equal(dashboard.summary.delivery_receipt_delivered_artifact_count, 5);
       assert.equal(dashboard.summary.delivery_receipt_error_count, 0);
+      assert.equal(dashboard.summary.post_delivery_delivered_artifact_count, 5);
+      assert.equal(dashboard.summary.post_delivery_delivered_matter_count, 3);
+      assert.equal(dashboard.summary.post_delivery_outstanding_receipt_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -598,6 +621,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_cockpit"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_execution_draft"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_receipt_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "post_delivery_reconciliation"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -634,6 +658,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-execution-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-receipt-events"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/post-delivery-matters"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivered-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/outstanding-receipts"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -709,6 +736,18 @@ describe("matter harness", () => {
       const deliveryEvents = JSON.parse((await buildReviewApiResponse("/api/delivery-receipt-events?type=delivery.executed", apiOptions)).body);
       assert.equal(deliveryEvents.collection, "delivery_receipt_events");
       assert.equal(deliveryEvents.count, 4);
+
+      const deliveredMatters = JSON.parse((await buildReviewApiResponse("/api/post-delivery-matters?status=delivered", apiOptions)).body);
+      assert.equal(deliveredMatters.collection, "post_delivery_matters");
+      assert.equal(deliveredMatters.count, 3);
+
+      const creativeDeliveredArtifacts = JSON.parse((await buildReviewApiResponse("/api/delivered-artifacts?domain_pack=creative-document", apiOptions)).body);
+      assert.equal(creativeDeliveredArtifacts.collection, "delivered_artifacts");
+      assert.equal(creativeDeliveredArtifacts.count, 3);
+
+      const outstandingReceipts = JSON.parse((await buildReviewApiResponse("/api/outstanding-receipts", apiOptions)).body);
+      assert.equal(outstandingReceipts.collection, "outstanding_receipts");
+      assert.equal(outstandingReceipts.count, 0);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

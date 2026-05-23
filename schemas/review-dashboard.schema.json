@@ -69,6 +69,10 @@
         "delivery_receipt_pending_count",
         "delivery_receipt_delivered_artifact_count",
         "delivery_receipt_error_count",
+        "post_delivery_delivered_artifact_count",
+        "post_delivery_delivered_matter_count",
+        "post_delivery_ready_matter_count",
+        "post_delivery_outstanding_receipt_count",
         "matter_count",
         "blocked_matter_count",
         "pending_review_matter_count",
@@ -268,6 +272,22 @@
           "minimum": 0
         },
         "delivery_receipt_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "post_delivery_delivered_artifact_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "post_delivery_delivered_matter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "post_delivery_ready_matter_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "post_delivery_outstanding_receipt_count": {
           "type": "integer",
           "minimum": 0
         },

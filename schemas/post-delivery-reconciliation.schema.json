@@ -1,0 +1,175 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/post-delivery-reconciliation.schema.json",
+  "title": "Hermes Post-Delivery Reconciliation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "summary",
+    "sources",
+    "reconciled_matters",
+    "delivered_artifacts",
+    "outstanding_receipts"
+  ],
+  "properties": {
+    "schema_version": { "const": "post-delivery-reconciliation.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "receipt_ledger_available",
+        "delivery_queue_available",
+        "output_catalog_available",
+        "reconciled_matter_count",
+        "delivered_matter_count",
+        "ready_matter_count",
+        "awaiting_receipt_matter_count",
+        "blocked_matter_count",
+        "delivered_artifact_count",
+        "ready_artifact_count",
+        "ready_delivery_count",
+        "delivered_delivery_count",
+        "applied_receipt_count",
+        "outstanding_receipt_count",
+        "receipt_error_count",
+        "by_status",
+        "by_primary_domain_pack"
+      ],
+      "properties": {
+        "receipt_ledger_available": { "type": "boolean" },
+        "delivery_queue_available": { "type": "boolean" },
+        "output_catalog_available": { "type": "boolean" },
+        "reconciled_matter_count": { "type": "integer", "minimum": 0 },
+        "delivered_matter_count": { "type": "integer", "minimum": 0 },
+        "ready_matter_count": { "type": "integer", "minimum": 0 },
+        "awaiting_receipt_matter_count": { "type": "integer", "minimum": 0 },
+        "blocked_matter_count": { "type": "integer", "minimum": 0 },
+        "delivered_artifact_count": { "type": "integer", "minimum": 0 },
+        "ready_artifact_count": { "type": "integer", "minimum": 0 },
+        "ready_delivery_count": { "type": "integer", "minimum": 0 },
+        "delivered_delivery_count": { "type": "integer", "minimum": 0 },
+        "applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "outstanding_receipt_count": { "type": "integer", "minimum": 0 },
+        "receipt_error_count": { "type": "integer", "minimum": 0 },
+        "by_status": { "type": "object" },
+        "by_primary_domain_pack": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "reconciled_matters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "matter_key",
+          "tenant_id",
+          "matter_id",
+          "status",
+          "domain_packs",
+          "delivery_channels",
+          "output_artifact_count",
+          "delivery_action_count",
+          "receipt_artifact_count",
+          "approved_artifact_count",
+          "delivered_artifact_count",
+          "ready_artifact_count",
+          "blocked_artifact_count",
+          "ready_delivery_count",
+          "delivered_delivery_count",
+          "blocked_delivery_count",
+          "applied_receipt_count",
+          "delivered_receipt_count",
+          "failed_receipt_count",
+          "cancelled_receipt_count",
+          "pending_receipt_count",
+          "latest_activity_at",
+          "output_artifact_ids",
+          "delivery_action_ids",
+          "receipt_artifact_ids"
+        ],
+        "properties": {
+          "matter_key": { "type": "string" },
+          "tenant_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "status": { "enum": ["active", "blocked", "awaiting_receipt", "ready_for_delivery", "delivered"] },
+          "domain_packs": { "type": "array", "items": { "type": "string" } },
+          "delivery_channels": { "type": "array", "items": { "type": "string" } },
+          "output_artifact_count": { "type": "integer", "minimum": 0 },
+          "delivery_action_count": { "type": "integer", "minimum": 0 },
+          "receipt_artifact_count": { "type": "integer", "minimum": 0 },
+          "approved_artifact_count": { "type": "integer", "minimum": 0 },
+          "delivered_artifact_count": { "type": "integer", "minimum": 0 },
+          "ready_artifact_count": { "type": "integer", "minimum": 0 },
+          "blocked_artifact_count": { "type": "integer", "minimum": 0 },
+          "ready_delivery_count": { "type": "integer", "minimum": 0 },
+          "delivered_delivery_count": { "type": "integer", "minimum": 0 },
+          "blocked_delivery_count": { "type": "integer", "minimum": 0 },
+          "applied_receipt_count": { "type": "integer", "minimum": 0 },
+          "delivered_receipt_count": { "type": "integer", "minimum": 0 },
+          "failed_receipt_count": { "type": "integer", "minimum": 0 },
+          "cancelled_receipt_count": { "type": "integer", "minimum": 0 },
+          "pending_receipt_count": { "type": "integer", "minimum": 0 },
+          "latest_activity_at": { "type": ["string", "null"], "format": "date-time" },
+          "output_artifact_ids": { "type": "array", "items": { "type": "string" } },
+          "delivery_action_ids": { "type": "array", "items": { "type": "string" } },
+          "receipt_artifact_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "delivered_artifacts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "artifact_id",
+          "artifact_type",
+          "artifact_uri",
+          "tenant_id",
+          "matter_id",
+          "domain_pack",
+          "delivery_state",
+          "status",
+          "approval_status",
+          "delivery_reference",
+          "delivered_at",
+          "delivered_by"
+        ],
+        "properties": {
+          "artifact_id": { "type": "string" },
+          "artifact_type": { "type": "string" },
+          "artifact_uri": { "type": ["string", "null"] },
+          "tenant_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "domain_pack": { "type": "string" },
+          "delivery_state": { "type": "string" },
+          "status": { "type": "string" },
+          "approval_status": { "type": ["string", "null"] },
+          "delivery_reference": { "type": "string" },
+          "delivered_at": { "type": ["string", "null"], "format": "date-time" },
+          "delivered_by": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "outstanding_receipts": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  }
+}

@@ -38,6 +38,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_correction_feedback", "Human review correction feedback", "gate_approval", "human_review_correction_feedback", "control-plane-human-review-correction-feedback", { acceptance_profile: "human_review_correction_feedback_gate" }),
   sourceItem("human_review_cycle_ledger", "Human review cycle ledger", "gate_approval", "human_review_cycle_ledger", "control-plane-human-review-cycle-ledger", { acceptance_profile: "human_review_cycle_ledger_gate" }),
   sourceItem("human_review_cycle_work_orders", "Human review cycle work orders", "gate_approval", "human_review_cycle_work_orders", "control-plane-human-review-cycle-work-orders", { acceptance_profile: "human_review_cycle_work_orders_gate" }),
+  sourceItem("human_review_cycle_target_audit", "Human review cycle target audit", "gate_approval", "human_review_cycle_target_audit", "control-plane-human-review-cycle-target-audit", { acceptance_profile: "human_review_cycle_target_audit_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -413,6 +414,13 @@ function evaluateStageAcceptance(item, stage) {
   if (item.acceptance_profile === "human_review_cycle_work_orders_gate") {
     if ((metrics.actor_work_order_count ?? 0) > 0 && (metrics.work_order_item_count ?? 0) > 0 && (metrics.validation_error_count ?? 0) === 0) {
       return passedWithOperationalGate(stage, "Human review cycle work orders are implemented and routing pending cycle items into actor-specific work queues.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_target_audit_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.blocked_count ?? 0) + (metrics.missing_target_file_count ?? 0) + (metrics.missing_receipt_row_count ?? 0);
+    if ((metrics.target_audit_item_count ?? 0) > 0 && errors === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle target audit is implemented and confirming work order receipt files and rows exist.");
     }
   }
 

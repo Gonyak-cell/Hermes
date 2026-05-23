@@ -1945,3 +1945,39 @@
 - `/api/human-review-actor-work-orders?required_actor=attorney_or_designated_reviewer`로 actor별 work order를 조회할 수 있음
 - Dashboard summary가 work order actor, item, pending, ready, attention, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:work-orders`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 71: Human Review Cycle Target Audit
+
+목표: Human Review Cycle Work Orders가 가리키는 actor별 receipt input file과 gate row가 실제로 존재하는지 audit해, 사람이 work order를 믿고 열 수 있게 한다.
+
+- `Human Review Cycle Work Orders`를 입력으로 사용
+- work order item별 `target_receipt_input_path` 파일을 읽고 `gate_item_id` 또는 `receipt_id`로 receipt row를 확인
+- target decision/correction JSON path 존재 여부도 함께 확인
+- missing file, missing row, missing required field, mismatch field를 audit item 상태로 기록
+- actor별 target audit rollup과 gate item별 target audit item을 생성
+- protected action은 audit 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 work orders 뒤, receipt application 전에 `npm run control-plane:review-cycle:target-audit` 실행
+- Review Dashboard에 `human_review_cycle_target_audit` stage와 item/ready/attention/blocked/error summary 추가
+- Review API에서 `/api/human-review-cycle-target-audits`, `/api/human-review-cycle-target-audit-items`, `/api/human-review-actor-target-audits` route 제공
+- Goal Checkpoint에서 Human Review Cycle Target Audit을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:target-audit`
+- `src/human-review-cycle-work-order-target-audit.mjs`
+- `schemas/human-review-cycle-work-order-target-audit.schema.json`
+- `docs/human-review-cycle-work-order-target-audit.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle work order target audit artifact가 schema validation을 통과함
+- target audit item count가 work order item count와 일치함
+- actor target audit count가 actor work order count와 일치함
+- 모든 pending work order target file과 receipt row가 존재하면 `ready_for_human_review`로 표시됨
+- `/api/human-review-cycle-target-audit-items?target_audit_status=ready_for_human_review`로 ready target audit item을 조회할 수 있음
+- `/api/human-review-actor-target-audits?required_actor=attorney_or_designated_reviewer`로 actor별 target audit을 조회할 수 있음
+- Dashboard summary가 target audit actor, item, ready, attention, blocked, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:target-audit`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

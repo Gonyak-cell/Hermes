@@ -1334,6 +1334,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-target-audits") {
+    const auditResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_target_audit");
+    if (!auditResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_target_audit_unavailable", auditResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_target_audits", [auditResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-target-audit-items") {
+    const auditResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_target_audit");
+    if (!auditResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_target_audit_unavailable", auditResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_target_audit_items", auditResult.artifact.target_audit_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-target-audits") {
+    const auditResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_target_audit");
+    if (!auditResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_target_audit_unavailable", auditResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_target_audits", auditResult.artifact.actor_target_audits ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1637,6 +1670,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-work-orders", "Human review cycle work order artifacts"),
       route("GET", "/api/human-review-cycle-work-order-items", "Actor-routed human review cycle work order items"),
       route("GET", "/api/human-review-actor-work-orders", "Actor-specific human review cycle work orders"),
+      route("GET", "/api/human-review-cycle-target-audits", "Human review cycle work order target audit artifacts"),
+      route("GET", "/api/human-review-cycle-target-audit-items", "Human review cycle work order target audit items"),
+      route("GET", "/api/human-review-actor-target-audits", "Actor-specific human review target audits"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -1871,6 +1907,12 @@ function filterItems(items, searchParams) {
     "work_order_id",
     "work_order_item_id",
     "work_order_status",
+    "target_audit_id",
+    "actor_target_audit_id",
+    "target_audit_item_id",
+    "target_audit_status",
+    "target_file_available",
+    "receipt_row_present",
     "correction_workspace_id",
     "actor_correction_workspace_id",
     "correction_item_id",

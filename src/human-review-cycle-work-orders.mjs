@@ -4,6 +4,7 @@ import path from "node:path";
 export const DEFAULT_HUMAN_REVIEW_CYCLE_WORK_ORDERS_OUT_DIR = "artifacts/human-review-cycle-work-orders/latest";
 export const DEFAULT_HUMAN_REVIEW_CYCLE_WORK_ORDERS_INPUTS = {
   cycleLedgerPath: "artifacts/human-review-cycle-ledger/latest/human-review-cycle-ledger.json",
+  correctionWorkspacePath: "artifacts/human-review-correction-workspace/latest/human-review-correction-workspace.json",
   correctionFeedbackPath: "artifacts/human-review-correction-feedback/latest/human-review-correction-feedback.json",
 };
 
@@ -39,10 +40,12 @@ export async function buildHumanReviewCycleWorkOrders(options = {}) {
   const inputPaths = resolveInputPaths(options);
   const sourceResults = {
     human_review_cycle_ledger: await readJsonOrError(inputPaths.cycleLedgerPath),
+    human_review_correction_workspace: await readJsonOrError(inputPaths.correctionWorkspacePath),
     human_review_correction_feedback: await readJsonOrError(inputPaths.correctionFeedbackPath),
   };
   const sources = [
     buildSource("human_review_cycle_ledger", "Human Review Cycle Ledger", inputPaths.cycleLedgerPath, sourceResults.human_review_cycle_ledger),
+    buildSource("human_review_correction_workspace", "Human Review Correction Workspace", inputPaths.correctionWorkspacePath, sourceResults.human_review_correction_workspace),
     buildSource("human_review_correction_feedback", "Human Review Correction Feedback", inputPaths.correctionFeedbackPath, sourceResults.human_review_correction_feedback),
   ];
   const workOrderItems = buildWorkOrderItems(sourceResults);
@@ -142,6 +145,7 @@ export async function runHumanReviewCycleWorkOrdersCli(argv = process.argv.slice
 function resolveInputPaths(options) {
   return {
     cycleLedgerPath: path.resolve(options.cycleLedgerPath ?? DEFAULT_HUMAN_REVIEW_CYCLE_WORK_ORDERS_INPUTS.cycleLedgerPath),
+    correctionWorkspacePath: path.resolve(options.correctionWorkspacePath ?? DEFAULT_HUMAN_REVIEW_CYCLE_WORK_ORDERS_INPUTS.correctionWorkspacePath),
     correctionFeedbackPath: path.resolve(options.correctionFeedbackPath ?? DEFAULT_HUMAN_REVIEW_CYCLE_WORK_ORDERS_INPUTS.correctionFeedbackPath),
   };
 }
@@ -150,10 +154,12 @@ function buildWorkOrderItems(sourceResults) {
   const ledger = sourceResults.human_review_cycle_ledger.value;
   if (!ledger) return [];
   const feedbackByGate = mapByGate(sourceResults.human_review_correction_feedback.value?.feedback_items ?? []);
+  const correctionWorkspaceByActor = new Map((sourceResults.human_review_correction_workspace.value?.actor_workspaces ?? []).map((actor) => [actor.required_actor, actor]));
   const actorCycleByActor = new Map((ledger.actor_cycles ?? []).map((actor) => [actor.required_actor, actor]));
   return (ledger.cycle_items ?? [])
     .map((cycleItem) => {
       const feedback = feedbackByGate.get(cycleItem.gate_item_id);
+      const correctionWorkspace = correctionWorkspaceByActor.get(cycleItem.required_actor);
       const actorCycle = actorCycleByActor.get(cycleItem.required_actor);
       const workOrderId = `human-review-cycle-work-order.${slugify(cycleItem.required_actor)}`;
       const workOrderStatus = normalizeWorkOrderStatus(cycleItem.cycle_status);
@@ -182,8 +188,8 @@ function buildWorkOrderItems(sourceResults) {
         ready_to_apply: Boolean(cycleItem.ready_to_apply),
         allowed_outcomes: feedback?.allowed_outcomes ?? [],
         required_receipt_fields: feedback?.required_receipt_fields ?? [],
-        target_receipt_input_path: feedback?.target_receipt_input_path ?? null,
-        target_decision_json_path: feedback?.target_decision_json_path ?? null,
+        target_receipt_input_path: correctionWorkspace?.receipt_input_path ?? feedback?.target_receipt_input_path ?? null,
+        target_decision_json_path: correctionWorkspace?.correction_json_path ?? feedback?.target_decision_json_path ?? null,
         next_actions: normalizeNextActions(cycleItem),
         review_instructions: buildReviewInstructions(cycleItem, feedback),
         source_refs: {
@@ -520,6 +526,7 @@ function parseArgs(argv) {
     else if (arg === "--check") args.check = true;
     else if (arg === "--out-dir") args.outDir = argv[++index];
     else if (arg === "--cycle-ledger") args.cycleLedgerPath = argv[++index];
+    else if (arg === "--correction-workspace") args.correctionWorkspacePath = argv[++index];
     else if (arg === "--correction-feedback") args.correctionFeedbackPath = argv[++index];
     else if (arg === "--run-at") args.runAt = argv[++index];
     else throw new Error(`Unknown argument: ${arg}`);
@@ -532,6 +539,7 @@ function printHelp() {
 
 Options:
   --cycle-ledger <path>          Human review cycle ledger artifact
+  --correction-workspace <path>  Human review correction workspace artifact for actor receipt paths
   --correction-feedback <path>   Human review correction feedback artifact for target receipt paths
   --out-dir <dir>                Output directory
   --run-at <iso>                 Override generated_at

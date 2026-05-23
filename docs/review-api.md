@@ -152,6 +152,9 @@ npm run api:serve
 - `GET /api/human-review-cycle-work-orders`: actor work order artifact
 - `GET /api/human-review-cycle-work-order-items`: cycle item에서 파생된 actor work order item
 - `GET /api/human-review-actor-work-orders`: required actor별 work order
+- `GET /api/human-review-cycle-target-audits`: work order target audit artifact
+- `GET /api/human-review-cycle-target-audit-items`: work order target receipt file/row audit item
+- `GET /api/human-review-actor-target-audits`: required actor별 target audit
 - `GET /api/validated-human-gate-receipts`: 향후 적용 가능한 검증 완료 human gate receipt
 - `GET /api/human-gate-receipt-applications`: human gate receipt application artifact
 - `GET /api/applied-human-gate-receipts`: 적용된 human gate receipt

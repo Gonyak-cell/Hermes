@@ -9,7 +9,8 @@ npm run control-plane:review-cycle:work-orders
 Useful options:
 
 - `--cycle-ledger <path>`: Human Review Cycle Ledger artifact.
-- `--correction-feedback <path>`: Human Review Correction Feedback artifact used for target receipt paths and required fields.
+- `--correction-workspace <path>`: Human Review Correction Workspace artifact used for actor correction receipt paths.
+- `--correction-feedback <path>`: Human Review Correction Feedback artifact used for required fields and fallback target paths.
 - `--out-dir <dir>`: output directory.
 - `--run-at <iso>`: override `generated_at`.
 - `--check`: fail when work orders cannot be built safely.
@@ -29,3 +30,7 @@ Safe handling:
 - It does not apply receipts.
 - It does not execute protected delivery, merge, ERP, command, or external actions.
 - Pending actor work stays pending until a human edits the relevant receipt input and the correction validation loop passes.
+
+Next stage:
+
+- `npm run control-plane:review-cycle:target-audit` verifies that each work order target receipt input exists and includes the expected gate row.

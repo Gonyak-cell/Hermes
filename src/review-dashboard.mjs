@@ -53,6 +53,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCorrectionFeedbackPath: "artifacts/human-review-correction-feedback/latest/human-review-correction-feedback.json",
   humanReviewCycleLedgerPath: "artifacts/human-review-cycle-ledger/latest/human-review-cycle-ledger.json",
   humanReviewCycleWorkOrdersPath: "artifacts/human-review-cycle-work-orders/latest/human-review-cycle-work-orders.json",
+  humanReviewCycleTargetAuditPath: "artifacts/human-review-cycle-work-order-target-audit/latest/human-review-cycle-work-order-target-audit.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -314,6 +315,11 @@ const SOURCE_DEFINITIONS = [
     option: "humanReviewCycleWorkOrdersPath",
     source_id: "human_review_cycle_work_orders",
     label: "Human Review Cycle Work Orders",
+  },
+  {
+    option: "humanReviewCycleTargetAuditPath",
+    source_id: "human_review_cycle_target_audit",
+    label: "Human Review Cycle Target Audit",
   },
   {
     option: "controlPlaneHumanGateReceiptValidationPath",
@@ -599,6 +605,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_correction_feedback") return data.summary ?? {};
   if (sourceId === "human_review_cycle_ledger") return data.summary ?? {};
   if (sourceId === "human_review_cycle_work_orders") return data.summary ?? {};
+  if (sourceId === "human_review_cycle_target_audit") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -692,6 +699,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCorrectionFeedbackStage(artifacts.human_review_correction_feedback, sourceById.get("human_review_correction_feedback")),
     buildHumanReviewCycleLedgerStage(artifacts.human_review_cycle_ledger, sourceById.get("human_review_cycle_ledger")),
     buildHumanReviewCycleWorkOrdersStage(artifacts.human_review_cycle_work_orders, sourceById.get("human_review_cycle_work_orders")),
+    buildHumanReviewCycleTargetAuditStage(artifacts.human_review_cycle_target_audit, sourceById.get("human_review_cycle_target_audit")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -2194,6 +2202,41 @@ function buildHumanReviewCycleWorkOrdersStage(workOrders, source) {
   };
 }
 
+function buildHumanReviewCycleTargetAuditStage(audit, source) {
+  if (!audit) return missingStage("human_review_cycle_target_audit", "Human Review Cycle Target Audit", source);
+  const summary = audit.summary ?? {};
+  const errorCount = summary.validation_error_count ?? audit.validation?.errors?.length ?? 0;
+  const status = audit.target_audit_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : audit.target_audit_status === "attention" || (summary.attention_count ?? 0) > 0
+      ? "attention"
+      : (summary.ready_target_count ?? 0) > 0
+        ? "pending"
+        : "passed";
+  return {
+    stage_id: "human_review_cycle_target_audit",
+    label: "Human Review Cycle Target Audit",
+    status,
+    message: `${summary.target_audit_item_count ?? 0} target audit item(s), ${summary.ready_target_count ?? 0} ready, ${summary.blocked_count ?? 0} blocked.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      target_audit_status: audit.target_audit_status ?? "unknown",
+      actor_target_audit_count: summary.actor_target_audit_count ?? 0,
+      target_audit_item_count: summary.target_audit_item_count ?? 0,
+      ready_target_count: summary.ready_target_count ?? 0,
+      attention_count: summary.attention_count ?? 0,
+      blocked_count: summary.blocked_count ?? 0,
+      target_file_count: summary.target_file_count ?? 0,
+      missing_target_file_count: summary.missing_target_file_count ?? 0,
+      missing_decision_file_count: summary.missing_decision_file_count ?? 0,
+      missing_receipt_row_count: summary.missing_receipt_row_count ?? 0,
+      missing_required_field_count: summary.missing_required_field_count ?? 0,
+      mismatch_count: summary.mismatch_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
   if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
   const summary = validation.summary ?? {};
@@ -2976,6 +3019,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_cycle_target_audit?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_cycle_target_audit";
+    items.push({
+      action_item_id: `dashboard.action.human_review_cycle_target_audit.${slugify(subjectId)}`,
+      source_stage: "human_review_cycle_target_audit",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix human review cycle target audit",
+      subject_ref: {
+        subject_type: "human_review_cycle_target_audit_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_cycle_work_orders", "rerun_human_review_cycle_target_audit"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -3675,6 +3736,17 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_cycle_work_order_evidence_count: artifacts.human_review_cycle_work_orders?.summary?.evidence_decision_count ?? 0,
     human_review_cycle_work_order_missing_target_path_count: artifacts.human_review_cycle_work_orders?.summary?.missing_target_path_count ?? 0,
     human_review_cycle_work_order_validation_error_count: artifacts.human_review_cycle_work_orders?.summary?.validation_error_count ?? artifacts.human_review_cycle_work_orders?.validation?.errors?.length ?? 0,
+    human_review_cycle_target_audit_actor_count: artifacts.human_review_cycle_target_audit?.summary?.actor_target_audit_count ?? 0,
+    human_review_cycle_target_audit_item_count: artifacts.human_review_cycle_target_audit?.summary?.target_audit_item_count ?? 0,
+    human_review_cycle_target_audit_ready_count: artifacts.human_review_cycle_target_audit?.summary?.ready_target_count ?? 0,
+    human_review_cycle_target_audit_attention_count: artifacts.human_review_cycle_target_audit?.summary?.attention_count ?? 0,
+    human_review_cycle_target_audit_blocked_count: artifacts.human_review_cycle_target_audit?.summary?.blocked_count ?? 0,
+    human_review_cycle_target_audit_file_count: artifacts.human_review_cycle_target_audit?.summary?.target_file_count ?? 0,
+    human_review_cycle_target_audit_missing_file_count: artifacts.human_review_cycle_target_audit?.summary?.missing_target_file_count ?? 0,
+    human_review_cycle_target_audit_missing_row_count: artifacts.human_review_cycle_target_audit?.summary?.missing_receipt_row_count ?? 0,
+    human_review_cycle_target_audit_missing_required_field_count: artifacts.human_review_cycle_target_audit?.summary?.missing_required_field_count ?? 0,
+    human_review_cycle_target_audit_mismatch_count: artifacts.human_review_cycle_target_audit?.summary?.mismatch_count ?? 0,
+    human_review_cycle_target_audit_validation_error_count: artifacts.human_review_cycle_target_audit?.summary?.validation_error_count ?? artifacts.human_review_cycle_target_audit?.validation?.errors?.length ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -4197,6 +4269,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-cycle-ledger") parsed.humanReviewCycleLedgerPath = false;
     else if (arg === "--human-review-cycle-work-orders") parsed.humanReviewCycleWorkOrdersPath = argv[++index];
     else if (arg === "--no-human-review-cycle-work-orders") parsed.humanReviewCycleWorkOrdersPath = false;
+    else if (arg === "--human-review-cycle-target-audit") parsed.humanReviewCycleTargetAuditPath = argv[++index];
+    else if (arg === "--no-human-review-cycle-target-audit") parsed.humanReviewCycleTargetAuditPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -4334,6 +4408,10 @@ Options:
                                   human-review-cycle-work-orders.json path.
   --no-human-review-cycle-work-orders
                                   Do not include Human Review Cycle Work Orders status.
+  --human-review-cycle-target-audit <path>
+                                  human-review-cycle-work-order-target-audit.json path.
+  --no-human-review-cycle-target-audit
+                                  Do not include Human Review Cycle Target Audit status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

@@ -1,0 +1,317 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-agenda.schema.json",
+  "title": "Hermes Human Review Agenda",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "agenda_id",
+    "output_dir",
+    "agenda_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "agenda_sections",
+    "agenda_items",
+    "decision_template",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-agenda.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "agenda_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "agenda_status": { "enum": ["clear", "pending_review", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "draft_only",
+        "receipts_must_be_validated_before_application",
+        "protected_actions_require_manual_receipt"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "receipts_must_be_validated_before_application": { "type": "boolean" },
+        "protected_actions_require_manual_receipt": { "type": "boolean" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "agenda_item_count",
+        "agenda_section_count",
+        "actor_count",
+        "review_packet_count",
+        "review_item_count",
+        "pending_agenda_item_count",
+        "blocked_agenda_item_count",
+        "protected_action_count",
+        "command_count",
+        "decision_template_row_count",
+        "validation_error_count",
+        "highest_priority",
+        "by_required_actor",
+        "by_packet_type",
+        "by_priority",
+        "by_agenda_status"
+      ],
+      "properties": {
+        "agenda_item_count": { "type": "integer", "minimum": 0 },
+        "agenda_section_count": { "type": "integer", "minimum": 0 },
+        "actor_count": { "type": "integer", "minimum": 0 },
+        "review_packet_count": { "type": "integer", "minimum": 0 },
+        "review_item_count": { "type": "integer", "minimum": 0 },
+        "pending_agenda_item_count": { "type": "integer", "minimum": 0 },
+        "blocked_agenda_item_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "command_count": { "type": "integer", "minimum": 0 },
+        "decision_template_row_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "highest_priority": { "type": "string" },
+        "by_required_actor": { "type": "object" },
+        "by_packet_type": { "type": "object" },
+        "by_priority": { "type": "object" },
+        "by_agenda_status": { "type": "object" }
+      }
+    },
+    "agenda_sections": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/agenda_section" }
+    },
+    "agenda_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/agenda_item" }
+    },
+    "decision_template": { "$ref": "#/$defs/decision_template" },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": ["string", "null"] },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "agenda_section": {
+      "type": "object",
+      "required": [
+        "agenda_section_id",
+        "required_actor",
+        "section_status",
+        "priority",
+        "agenda_item_count",
+        "review_item_count",
+        "protected_action_count",
+        "pending_receipt_count",
+        "agenda_item_ids",
+        "review_packet_ids",
+        "packet_types",
+        "recommended_actions",
+        "next_commands"
+      ],
+      "properties": {
+        "agenda_section_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "section_status": { "enum": ["clear", "pending_review", "blocked"] },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "agenda_item_count": { "type": "integer", "minimum": 0 },
+        "review_item_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "agenda_item_ids": { "type": "array", "items": { "type": "string" } },
+        "review_packet_ids": { "type": "array", "items": { "type": "string" } },
+        "packet_types": { "type": "object" },
+        "recommended_actions": { "type": "array", "items": { "type": "string" } },
+        "next_commands": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "agenda_item": {
+      "type": "object",
+      "required": [
+        "agenda_item_id",
+        "review_packet_id",
+        "packet_type",
+        "required_actor",
+        "priority",
+        "agenda_status",
+        "title",
+        "reason",
+        "item_count",
+        "protected_action_count",
+        "human_required_count",
+        "pending_receipt_count",
+        "missing_receipt_count",
+        "command_count",
+        "gate_item_ids",
+        "receipt_ids",
+        "review_item_ids",
+        "source_plan_item_ids",
+        "source_stages",
+        "subject_refs",
+        "recommended_actions",
+        "next_commands",
+        "checklist",
+        "safe_handling",
+        "receipt_template_refs",
+        "related_plan_item_ids",
+        "agenda_hash"
+      ],
+      "properties": {
+        "agenda_item_id": { "type": "string" },
+        "review_packet_id": { "type": "string" },
+        "packet_type": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "agenda_status": { "enum": ["clear", "pending_human_review", "blocked_missing_receipt"] },
+        "title": { "type": "string" },
+        "reason": { "type": "string" },
+        "item_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "human_required_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "missing_receipt_count": { "type": "integer", "minimum": 0 },
+        "command_count": { "type": "integer", "minimum": 0 },
+        "gate_item_ids": { "type": "array", "items": { "type": "string" } },
+        "receipt_ids": { "type": "array", "items": { "type": "string" } },
+        "review_item_ids": { "type": "array", "items": { "type": "string" } },
+        "source_plan_item_ids": { "type": "array", "items": { "type": "string" } },
+        "source_stages": { "type": "object" },
+        "subject_refs": { "type": "array", "items": { "type": "object" } },
+        "recommended_actions": { "type": "array", "items": { "type": "string" } },
+        "next_commands": { "type": "array", "items": { "type": "string" } },
+        "checklist": { "type": "array", "items": { "type": "string" } },
+        "safe_handling": {
+          "type": "object",
+          "required": [
+            "auto_execute_allowed",
+            "draft_only",
+            "receipt_gate_required",
+            "protected_actions_require_manual_receipt"
+          ],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "draft_only": { "type": "boolean" },
+            "receipt_gate_required": { "type": "boolean" },
+            "protected_actions_require_manual_receipt": { "type": "boolean" }
+          }
+        },
+        "receipt_template_refs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["receipt_id", "template_path"],
+            "properties": {
+              "receipt_id": { "type": "string" },
+              "template_path": { "type": "string" }
+            }
+          }
+        },
+        "related_plan_item_ids": { "type": "array", "items": { "type": "string" } },
+        "agenda_hash": { "type": "string" }
+      }
+    },
+    "decision_template": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "instructions", "safe_handling", "receipts"],
+      "properties": {
+        "schema_version": { "const": "human-review-decision-template.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "instructions": { "type": "string" },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "validate_with", "apply_with"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "validate_with": { "type": "string" },
+            "apply_with": { "type": "string" }
+          }
+        },
+        "receipts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "review_item_id",
+              "agenda_item_id",
+              "review_packet_id",
+              "receipt_id",
+              "gate_item_id",
+              "gate_type",
+              "required_actor",
+              "subject_ref",
+              "allowed_outcomes",
+              "receipt_status",
+              "outcome",
+              "decided_by",
+              "decided_at",
+              "reviewer",
+              "decision_reference",
+              "decision_notes",
+              "protected_action_reference",
+              "command_result",
+              "commands_run",
+              "completed_action_refs",
+              "required_receipt_fields"
+            ],
+            "properties": {
+              "review_item_id": { "type": "string" },
+              "agenda_item_id": { "type": ["string", "null"] },
+              "review_packet_id": { "type": ["string", "null"] },
+              "receipt_id": { "type": ["string", "null"] },
+              "gate_item_id": { "type": "string" },
+              "gate_type": { "type": "string" },
+              "required_actor": { "type": "string" },
+              "subject_ref": { "type": "object" },
+              "allowed_outcomes": { "type": "array", "items": { "type": "string" } },
+              "receipt_status": { "type": "string" },
+              "outcome": { "type": "string" },
+              "decided_by": { "type": "string" },
+              "decided_at": { "type": "string" },
+              "reviewer": { "type": ["string", "null"] },
+              "decision_reference": { "type": "string" },
+              "decision_notes": { "type": "string" },
+              "protected_action_reference": { "type": ["string", "null"] },
+              "command_result": { "type": ["string", "null"] },
+              "commands_run": { "type": "array", "items": { "type": "string" } },
+              "completed_action_refs": { "type": "array", "items": { "type": "string" } },
+              "required_receipt_fields": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

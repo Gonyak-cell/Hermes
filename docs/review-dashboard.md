@@ -41,6 +41,7 @@ npm run dashboard:build -- \
   --control-plane-human-gates artifacts/control-plane-human-gates/latest/control-plane-human-gates.json \
   --control-plane-human-gate-receipts artifacts/control-plane-human-gate-receipts/latest/control-plane-human-gate-receipt-drafts.json \
   --human-review-packets artifacts/human-review-packets/latest/human-review-packet-ledger.json \
+  --human-review-agenda artifacts/human-review-agenda/latest/human-review-agenda.json \
   --control-plane-human-gate-receipt-validation artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json \
   --control-plane-human-gate-receipt-application artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json \
   --control-plane-work-packets artifacts/control-plane-work-packets/latest/control-plane-work-packets.json \
@@ -97,6 +98,7 @@ npm run dashboard:build -- \
 - Control Plane Human Gates의 evidence decision, approval, protected delivery agenda
 - Control Plane Human Gate Receipts의 pending receipt 입력 초안과 필수 확인값
 - Human Review Packet Ledger의 actor/gate type별 review packet과 receipt readiness 상태
+- Human Review Agenda의 required actor별 agenda section과 receipt decision template 상태
 - Control Plane Human Gate Receipt Validation의 pending/invalid/ready receipt gate 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태

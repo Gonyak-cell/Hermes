@@ -28,6 +28,7 @@
     "control-plane:human-gate-receipts:apply": "node scripts/control-plane-human-gate-receipt-application.mjs",
     "control-plane:human-gate-receipts:validate": "node scripts/control-plane-human-gate-receipt-validation.mjs",
     "control-plane:review-packets": "node scripts/human-review-packet-ledger.mjs",
+    "control-plane:review-agenda": "node scripts/human-review-agenda.mjs",
     "control-plane:loop": "node scripts/control-plane-loop.mjs",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",

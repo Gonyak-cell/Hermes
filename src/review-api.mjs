@@ -805,6 +805,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-agendas") {
+    const agendaResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda");
+    if (!agendaResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_unavailable", agendaResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_agendas", [agendaResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-agenda-sections") {
+    const agendaResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda");
+    if (!agendaResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_unavailable", agendaResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_agenda_sections", agendaResult.artifact.agenda_sections ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-agenda-items") {
+    const agendaResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda");
+    if (!agendaResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_unavailable", agendaResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_agenda_items", agendaResult.artifact.agenda_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-decision-template") {
+    const agendaResult = await readDashboardSourceArtifact(dashboard, "human_review_agenda");
+    if (!agendaResult.available) {
+      return jsonResponse(503, buildError("human_review_agenda_unavailable", agendaResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_decision_template", agendaResult.artifact.decision_template?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/human-gate-receipt-validations") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1082,6 +1126,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-packet-ledgers", "Human review packet ledger artifacts"),
       route("GET", "/api/human-review-packets", "Human review packets grouped by actor and gate type"),
       route("GET", "/api/human-review-items", "Human review packet item details"),
+      route("GET", "/api/human-review-agendas", "Human review agenda artifacts"),
+      route("GET", "/api/human-review-agenda-sections", "Human review agenda sections by required actor"),
+      route("GET", "/api/human-review-agenda-items", "Human review agenda packet items"),
+      route("GET", "/api/human-review-decision-template", "Human review receipt decision template rows"),
       route("GET", "/api/human-gate-receipt-validations", "Control Plane human gate receipt validation items"),
       route("GET", "/api/human-gate-receipt-errors", "Control Plane human gate receipt validation errors"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
@@ -1278,6 +1326,11 @@ function filterItems(items, searchParams) {
     "packet_type",
     "packet_status",
     "required_actor",
+    "agenda_id",
+    "agenda_item_id",
+    "agenda_section_id",
+    "agenda_status",
+    "section_status",
     "receipt_status",
     "requires_human",
     "protected_action",

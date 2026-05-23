@@ -42,6 +42,7 @@ npm run control-plane:goal-checkpoint -- \
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow
 - Human review packets
+- Human review agenda
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
@@ -54,6 +55,7 @@ npm run control-plane:goal-checkpoint -- \
 - Evidence Viewer: evidence queue가 생성되고 blocking ingest gate가 없으면 구현 통과
 - Approval Workflow: approval inbox와 gate review 항목이 생성되면 구현 통과
 - Human Review Packets: review packet과 receipt item 연결이 생성되고 validation error가 없으면 구현 통과
+- Human Review Agenda: reviewer별 agenda와 receipt decision template이 생성되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

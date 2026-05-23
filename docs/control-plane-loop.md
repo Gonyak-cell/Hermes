@@ -19,12 +19,13 @@ npm run control-plane:loop
 - `npm run token:usage`
 - `npm run cost:attribution`
 - `npm run budget:alerts`
-- `npm run dashboard:build`
+- `node scripts/review-dashboard.mjs --no-human-review-agenda`
 - `npm run control-plane:health`
 - `npm run control-plane:plan`
 - `npm run control-plane:human-gates`
 - `npm run control-plane:human-gate-receipts`
 - `npm run control-plane:review-packets`
+- `npm run control-plane:review-agenda`
 - `npm run control-plane:human-gate-receipts:validate`
 - `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`

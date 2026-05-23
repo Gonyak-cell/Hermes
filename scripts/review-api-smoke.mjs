@@ -89,6 +89,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-packet-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-agendas"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-agenda-sections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-agenda-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-decision-template"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
@@ -283,6 +287,22 @@ try {
   const evidenceHumanReviewItems = await fetchJson(`${url}/api/human-review-items?gate_type=evidence_decision&limit=5`);
   assert.equal(evidenceHumanReviewItems.collection, "human_review_items");
   assert.ok(evidenceHumanReviewItems.count <= 5);
+
+  const humanReviewAgendas = await fetchJson(`${url}/api/human-review-agendas?agenda_status=pending_review&limit=1`);
+  assert.equal(humanReviewAgendas.collection, "human_review_agendas");
+  assert.ok(humanReviewAgendas.count <= 1);
+
+  const humanReviewAgendaSections = await fetchJson(`${url}/api/human-review-agenda-sections?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewAgendaSections.collection, "human_review_agenda_sections");
+  assert.ok(humanReviewAgendaSections.count <= 5);
+
+  const humanReviewAgendaItems = await fetchJson(`${url}/api/human-review-agenda-items?agenda_status=pending_human_review&limit=5`);
+  assert.equal(humanReviewAgendaItems.collection, "human_review_agenda_items");
+  assert.ok(humanReviewAgendaItems.count <= 5);
+
+  const humanReviewDecisionTemplate = await fetchJson(`${url}/api/human-review-decision-template?receipt_status=pending&limit=5`);
+  assert.equal(humanReviewDecisionTemplate.collection, "human_review_decision_template");
+  assert.ok(humanReviewDecisionTemplate.count <= 5);
 
   const pendingHumanGateReceiptValidations = await fetchJson(`${url}/api/human-gate-receipt-validations?validation_status=pending_receipt&limit=5`);
   assert.equal(pendingHumanGateReceiptValidations.collection, "human_gate_receipt_validations");

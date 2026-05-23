@@ -1472,3 +1472,34 @@
 - `/api/human-review-items?gate_type=evidence_decision`로 evidence decision review item을 조회할 수 있음
 - Dashboard summary가 review packet, review item, pending packet, protected packet, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-packets`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 57: Human Review Agenda
+
+목표: Human Review Packet Ledger를 required actor별 agenda와 receipt decision template로 정리해, 사람이 다음 결정을 어디서 어떻게 채워야 하는지 안전하게 볼 수 있게 한다.
+
+- review packet마다 agenda item 생성
+- required actor별 agenda section 생성
+- review item마다 pending receipt decision template row 생성
+- protected action은 agenda에서도 `auto_execute_allowed: false`와 manual receipt gate를 강제
+- Review Dashboard에 `human_review_agenda` stage와 agenda/actor/decision row summary 추가
+- Review API에서 `/api/human-review-agendas`, `/api/human-review-agenda-sections`, `/api/human-review-agenda-items`, `/api/human-review-decision-template` route 제공
+- Control Plane Loop에 `npm run control-plane:review-agenda` 포함
+- Goal Checkpoint에서 Human Review Agenda를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-agenda`
+- `src/human-review-agenda.mjs`
+- `schemas/human-review-agenda.schema.json`
+- `docs/human-review-agenda.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review agenda artifact가 schema validation을 통과함
+- `/api/human-review-agenda-sections?required_actor=attorney_or_designated_reviewer`로 attorney agenda section을 조회할 수 있음
+- `/api/human-review-agenda-items?agenda_status=pending_human_review`로 pending agenda item을 조회할 수 있음
+- `/api/human-review-decision-template?receipt_status=pending`으로 사람이 채울 receipt row를 조회할 수 있음
+- Dashboard summary가 agenda item, actor, decision row, protected action, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-agenda`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

@@ -2166,3 +2166,41 @@
 - `/api/human-review-actor-completion-verifications?required_actor=attorney_or_designated_reviewer`로 actor별 verification을 조회할 수 있음
 - Dashboard summary가 completion verification actor, item, pending input, pending prompt, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-verify`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 77: Human Review Cycle Receipt Completion Workbench
+
+목표: Human Review Cycle Receipt Completion Verification의 pending human input을 actor별 read-only 작업판으로 렌더링해, 사람이 어떤 target receipt input의 어떤 필드를 채워야 하는지 한 화면에서 볼 수 있게 한다.
+
+- `Human Review Cycle Receipt Completion Verification`과 `Human Review Cycle Receipt Completion Pack`을 입력으로 사용
+- verification item별 pending/invalid/completed field 목록을 workbench item으로 변환
+- actor별 completion template path와 target receipt input path를 함께 표시
+- 전체 `index.html`과 actor별 `completion-workbench.html`을 생성
+- target `receipt-input.json`은 수정하지 않으며 workbench-only로 유지
+- protected action은 workbench 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 completion verification 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-workbench` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_workbench` stage와 actor/item/pending/template/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-workbenches`, `/api/human-review-cycle-completion-workbench-items`, `/api/human-review-actor-completion-workbenches` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Workbench를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-workbench`
+- `src/human-review-cycle-receipt-completion-workbench.mjs`
+- `schemas/human-review-cycle-receipt-completion-workbench.schema.json`
+- `docs/human-review-cycle-receipt-completion-workbench.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt completion workbench artifact가 schema validation을 통과함
+- workbench item count가 completion verification item count와 일치함
+- actor workbench count가 actor verification count와 일치함
+- actor별 completion template path와 target receipt input path가 연결됨
+- pending receipt row는 `pending_human_input` workbench item으로 유지됨
+- 전체 HTML과 actor별 HTML workbench가 생성됨
+- `/api/human-review-cycle-completion-workbench-items?workbench_status=pending_human_input`으로 pending workbench item을 조회할 수 있음
+- `/api/human-review-actor-completion-workbenches?required_actor=attorney_or_designated_reviewer`로 actor별 workbench를 조회할 수 있음
+- Dashboard summary가 completion workbench actor, item, pending prompt, template count, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-workbench`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

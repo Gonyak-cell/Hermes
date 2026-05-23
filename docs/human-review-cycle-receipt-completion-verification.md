@@ -52,3 +52,5 @@ This stage enforces:
 - `receipt_edits_must_be_manual: true`
 
 The next safe path after `ready_for_validation` is to rerun correction merge, correction validation, receipt field audit, and completion verification before any receipt application.
+
+When the status is still `pending_human_input`, run `npm run control-plane:review-cycle:completion-workbench` to render actor-specific manual input workbenches.

@@ -1532,6 +1532,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-workbenches") {
+    const workbenchResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_workbench");
+    if (!workbenchResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_workbench_unavailable", workbenchResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_workbenches", [workbenchResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-workbench-items") {
+    const workbenchResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_workbench");
+    if (!workbenchResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_workbench_unavailable", workbenchResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_workbench_items", workbenchResult.artifact.workbench_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-completion-workbenches") {
+    const workbenchResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_workbench");
+    if (!workbenchResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_workbench_unavailable", workbenchResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_completion_workbenches", workbenchResult.artifact.actor_workbenches ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1853,6 +1886,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-verifications", "Human review cycle receipt completion verification artifacts"),
       route("GET", "/api/human-review-cycle-completion-verification-items", "Human review cycle receipt completion verification items"),
       route("GET", "/api/human-review-actor-completion-verifications", "Actor-specific human review receipt completion verifications"),
+      route("GET", "/api/human-review-cycle-completion-workbenches", "Human review cycle receipt completion workbench artifacts"),
+      route("GET", "/api/human-review-cycle-completion-workbench-items", "Human review cycle receipt completion workbench items"),
+      route("GET", "/api/human-review-actor-completion-workbenches", "Actor-specific human review receipt completion workbenches"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2117,6 +2153,11 @@ function filterItems(items, searchParams) {
     "verification_item_id",
     "verification_status",
     "verification_rank",
+    "workbench_id",
+    "actor_workbench_id",
+    "workbench_item_id",
+    "workbench_status",
+    "workbench_rank",
     "field_status",
     "correction_workspace_id",
     "actor_correction_workspace_id",

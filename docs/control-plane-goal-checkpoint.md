@@ -62,6 +62,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human review cycle receipt field audit
 - Human review cycle receipt completion pack
 - Human review cycle receipt completion verification
+- Human review cycle receipt completion workbench
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
@@ -94,6 +95,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Cycle Receipt Field Audit: reviewer console이 가리키는 receipt row와 required field 상태가 audit되고 validation error가 없으면 구현 통과
 - Human Review Cycle Receipt Completion Pack: receipt field audit이 actor별 manual completion template로 변환되고 validation error가 없으면 구현 통과
 - Human Review Cycle Receipt Completion Verification: completion template가 target receipt input에 수동 반영됐는지 read-only로 검증하고 validation error가 없으면 구현 통과
+- Human Review Cycle Receipt Completion Workbench: actor별 manual receipt input 작업판과 template link가 생성되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

@@ -35,4 +35,5 @@ Safe handling:
 
 Next stage:
 
+- `npm run control-plane:review-cycle:field-audit` audits the referenced receipt rows and shows which required human decision fields are still pending.
 - A human reviewer opens the actor console, edits the referenced receipt input manually, then reruns the correction merge, validation, and application gates.

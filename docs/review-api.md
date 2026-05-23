@@ -161,6 +161,9 @@ npm run api:serve
 - `GET /api/human-review-cycle-reviewer-consoles`: reviewer console artifact
 - `GET /api/human-review-cycle-console-items`: reviewer console item
 - `GET /api/human-review-actor-consoles`: required actor별 reviewer console
+- `GET /api/human-review-cycle-field-audits`: receipt field audit artifact
+- `GET /api/human-review-cycle-field-audit-items`: required receipt field completion audit item
+- `GET /api/human-review-actor-field-audits`: required actor별 receipt field audit
 - `GET /api/validated-human-gate-receipts`: 향후 적용 가능한 검증 완료 human gate receipt
 - `GET /api/human-gate-receipt-applications`: human gate receipt application artifact
 - `GET /api/applied-human-gate-receipts`: 적용된 human gate receipt

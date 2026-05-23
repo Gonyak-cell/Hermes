@@ -2051,3 +2051,41 @@
 - `/api/human-review-actor-consoles?required_actor=attorney_or_designated_reviewer`로 actor별 console을 조회할 수 있음
 - Dashboard summary가 console actor, item, ready, missing context/decision, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:console`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 74: Human Review Cycle Receipt Field Audit
+
+목표: Human Review Cycle Reviewer Console이 가리키는 actor별 receipt input row의 required field 값 상태를 audit해, 사람이 어떤 필드를 채워야 하는지 구조적으로 확인한다.
+
+- `Human Review Cycle Reviewer Console`을 입력으로 사용
+- console item별 `target_receipt_input_path`와 `receipt_id` 또는 `gate_item_id`로 receipt row를 다시 읽음
+- required receipt field가 key로 존재하는지와 값이 비어 있는지를 분리해서 기록
+- pending receipt의 빈 human decision field는 validation error가 아니라 `pending_human_review`로 표시
+- terminal receipt가 빈 required field를 갖고 있으면 `attention`으로 표시
+- missing file, missing row, missing required field key는 validation error로 표시
+- protected action은 field audit 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 reviewer console 뒤, receipt application 전에 `npm run control-plane:review-cycle:field-audit` 실행
+- Review Dashboard에 `human_review_cycle_receipt_field_audit` stage와 actor/item/pending/missing-field/error summary 추가
+- Review API에서 `/api/human-review-cycle-field-audits`, `/api/human-review-cycle-field-audit-items`, `/api/human-review-actor-field-audits` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Field Audit을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:field-audit`
+- `src/human-review-cycle-receipt-field-audit.mjs`
+- `schemas/human-review-cycle-receipt-field-audit.schema.json`
+- `docs/human-review-cycle-receipt-field-audit.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt field audit artifact가 schema validation을 통과함
+- field audit item count가 console item count와 일치함
+- actor field audit count가 actor console count와 일치함
+- pending receipt row는 `pending_human_review`로 유지되고 missing human field value를 노출함
+- missing target file/row/key가 없으면 validation error가 0임
+- `/api/human-review-cycle-field-audit-items?field_audit_status=pending_human_review`로 pending field audit item을 조회할 수 있음
+- `/api/human-review-actor-field-audits?required_actor=attorney_or_designated_reviewer`로 actor별 field audit을 조회할 수 있음
+- Dashboard summary가 field audit actor, item, pending, ready, attention, missing field, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:field-audit`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

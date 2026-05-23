@@ -64,6 +64,9 @@ npm run control-plane:goal-checkpoint -- \
 - Human review cycle receipt completion verification
 - Human review cycle receipt completion workbench
 - Human review cycle receipt completion runbook
+- Human review cycle receipt completion readiness
+- Human review cycle receipt completion command queue
+- Human review cycle receipt completion command receipts
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop
@@ -100,6 +103,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Cycle Receipt Completion Runbook: manual receipt input 이후의 검증 명령과 actor별 runbook이 생성되고 validation error가 없으면 구현 통과
 - Human Review Cycle Receipt Completion Readiness: manual input 전 실행 가능한 refresh command와 보류해야 할 command가 분리되고 validation error가 없으면 구현 통과
 - Human Review Cycle Receipt Completion Command Queue: 실행 가능한 manual refresh command와 held command가 별도 queue로 노출되고 validation error가 없으면 구현 통과
+- Human Review Cycle Receipt Completion Command Receipts: ready command의 manual execution receipt draft와 held command reference가 생성되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

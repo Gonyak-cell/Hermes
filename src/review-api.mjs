@@ -1675,6 +1675,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-command-receipts") {
+    const commandReceiptsResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipts");
+    if (!commandReceiptsResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipts_unavailable", commandReceiptsResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipts", [commandReceiptsResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-requirements") {
+    const commandReceiptsResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipts");
+    if (!commandReceiptsResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipts_unavailable", commandReceiptsResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_requirements", commandReceiptsResult.artifact.receipt_requirements ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-drafts") {
+    const commandReceiptsResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipts");
+    if (!commandReceiptsResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipts_unavailable", commandReceiptsResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_drafts", commandReceiptsResult.artifact.receipt_input_draft?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-held-command-references") {
+    const commandReceiptsResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipts");
+    if (!commandReceiptsResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipts_unavailable", commandReceiptsResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_held_command_references", commandReceiptsResult.artifact.held_command_references ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2009,6 +2053,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-command-queue-items", "Ready manual receipt completion commands"),
       route("GET", "/api/human-review-cycle-completion-held-commands", "Held receipt completion commands"),
       route("GET", "/api/human-review-actor-completion-command-queues", "Actor-specific human review receipt completion command queues"),
+      route("GET", "/api/human-review-cycle-completion-command-receipts", "Human review cycle receipt completion command receipt draft artifacts"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-requirements", "Human review cycle receipt completion command receipt requirements"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-drafts", "Human review cycle receipt completion command receipt draft rows"),
+      route("GET", "/api/human-review-cycle-completion-held-command-references", "Held command references for manual receipt completion"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2296,10 +2344,19 @@ function filterItems(items, searchParams) {
     "command_queue_id",
     "queue_item_id",
     "held_command_id",
+    "command_receipt_draft_id",
+    "receipt_requirement_id",
+    "receipt_id",
+    "held_command_ref_id",
     "actor_command_queue_id",
     "queue_status",
     "hold_status",
     "command_kind",
+    "command",
+    "command_result",
+    "executed_by",
+    "output_reference",
+    "requires_explicit_human_approval",
     "field_status",
     "correction_workspace_id",
     "actor_correction_workspace_id",

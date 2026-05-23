@@ -31,3 +31,5 @@ Typical query points:
 - `/api/human-review-actor-completion-command-queues?required_actor=attorney_or_designated_reviewer`
 
 This queue is a visibility layer only. A human may use it to decide which refresh commands to run, but the harness itself does not run them.
+
+The next read-only layer is `npm run control-plane:review-cycle:completion-command-receipts`, which creates pending receipt draft rows for commands the human reviewer manually runs.

@@ -48,6 +48,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_runbook", "Human review cycle receipt completion runbook", "gate_approval", "human_review_cycle_receipt_completion_runbook", "control-plane-human-review-cycle-receipt-completion-runbook", { acceptance_profile: "human_review_cycle_receipt_completion_runbook_gate" }),
   sourceItem("human_review_cycle_receipt_completion_readiness", "Human review cycle receipt completion readiness", "gate_approval", "human_review_cycle_receipt_completion_readiness", "control-plane-human-review-cycle-receipt-completion-readiness", { acceptance_profile: "human_review_cycle_receipt_completion_readiness_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_queue", "Human review cycle receipt completion command queue", "gate_approval", "human_review_cycle_receipt_completion_command_queue", "control-plane-human-review-cycle-receipt-completion-command-queue", { acceptance_profile: "human_review_cycle_receipt_completion_command_queue_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_command_receipts", "Human review cycle receipt completion command receipts", "gate_approval", "human_review_cycle_receipt_completion_command_receipts", "control-plane-human-review-cycle-receipt-completion-command-receipts", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipts_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -505,6 +506,15 @@ function evaluateStageAcceptance(item, stage) {
     const hasActors = (metrics.actor_command_queue_count ?? 0) > 0;
     if (hasReadyCommands && hasHeldCommands && hasActors && errors === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion command queue is implemented and surfacing safe manual refresh commands while holding protected and post-input commands.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_command_receipts_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasReceipts = (metrics.receipt_draft_count ?? 0) > 0 && (metrics.receipt_requirement_count ?? 0) > 0;
+    const hasHeldReferences = (metrics.held_command_reference_count ?? 0) > 0;
+    if (hasReceipts && hasHeldReferences && errors === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion command receipts are implemented and drafting manual command-run receipts while keeping held commands as references.");
     }
   }
 

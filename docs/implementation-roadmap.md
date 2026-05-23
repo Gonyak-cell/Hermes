@@ -2243,3 +2243,44 @@
 - `/api/human-review-actor-completion-runbooks?required_actor=attorney_or_designated_reviewer`로 actor별 runbook을 조회할 수 있음
 - Dashboard summary가 completion runbook actor, step, command, manual, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-runbook`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 79: Human Review Cycle Receipt Completion Readiness
+
+목표: Human Review Cycle Receipt Completion Runbook의 command step을 read-only readiness gate로 분류해, 사람이 receipt input을 채우기 전 실행 가능한 refresh command와 보류해야 할 command를 명확히 분리한다.
+
+- `Human Review Cycle Receipt Completion Runbook`과 `Human Review Cycle Receipt Completion Verification`을 입력으로 사용
+- command-bearing runbook step을 `command_gates`로 변환
+- actor별 readiness와 manual requirement를 별도 JSON으로 생성
+- verification/workbench/runbook/dashboard/API refresh command는 `available_now`로 표시
+- correction merge, correction validation, receipt field audit, protected apply command는 manual input 완료 전 `blocked_until_manual_input`으로 표시
+- protected application command는 manual input 완료 후에도 explicit human approval 대상으로만 유지
+- target `receipt-input.json`은 수정하지 않으며 readiness-only로 유지
+- Control Plane Loop에서 completion runbook 뒤, receipt application 전에 `npm run control-plane:review-cycle:completion-readiness` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_readiness` stage와 command gate/manual hold summary 추가
+- Review API에서 `/api/human-review-cycle-completion-readiness`, `/api/human-review-cycle-completion-command-gates`, `/api/human-review-actor-completion-readiness` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Readiness를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-readiness`
+- `src/human-review-cycle-receipt-completion-readiness.mjs`
+- `schemas/human-review-cycle-receipt-completion-readiness.schema.json`
+- `docs/human-review-cycle-receipt-completion-readiness.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle receipt completion readiness artifact가 schema validation을 통과함
+- actor readiness count가 actor runbook count와 일치함
+- command gate count가 command-bearing runbook step 수와 일치함
+- manual requirement count가 manual runbook step 수와 일치함
+- available command와 blocked command가 모두 존재함
+- protected command는 `command_allowed_now: false`로 유지됨
+- pending receipt row는 `waiting_for_human_input` readiness status로 유지됨
+- 전체 HTML과 summary markdown이 생성됨
+- `/api/human-review-cycle-completion-command-gates?command_status=available_now`로 즉시 실행 가능 command를 조회할 수 있음
+- `/api/human-review-actor-completion-readiness?required_actor=attorney_or_designated_reviewer`로 actor별 readiness를 조회할 수 있음
+- Dashboard summary가 completion readiness actor, command gate, manual requirement, blocked/allowed command count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-readiness`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

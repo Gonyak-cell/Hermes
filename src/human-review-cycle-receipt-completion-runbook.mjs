@@ -151,12 +151,13 @@ function buildRunbookSteps(workbench, verification) {
     }),
     commandStep(4, "rerun_completion_verification", commandStatus, "Rerun completion verification after manual receipt edits.", "npm run control-plane:review-cycle:completion-verify"),
     commandStep(5, "rerun_completion_workbench", commandStatus, "Regenerate the workbench so pending fields and actor views reflect the manual edits.", "npm run control-plane:review-cycle:completion-workbench"),
-    commandStep(6, "rerun_correction_merge", commandStatus, "Merge the corrected human-review receipt inputs only after the completion verification is ready.", "npm run control-plane:review-corrections:merge"),
-    commandStep(7, "rerun_correction_validation", commandStatus, "Validate corrected receipts before any future application.", "npm run control-plane:review-corrections:validate"),
-    commandStep(8, "rerun_receipt_field_audit", commandStatus, "Re-audit required receipt fields to catch missing or invalid values after correction merge.", "npm run control-plane:review-cycle:field-audit"),
-    commandStep(9, "rebuild_dashboard", commandStatus, "Rebuild dashboard status after manual input and validation artifacts are refreshed.", "npm run dashboard:build"),
-    commandStep(10, "rerun_api_smoke", commandStatus, "Smoke-test the read-only API surface after dashboard rebuild.", "npm run api:smoke"),
-    protectedManualStep(11, "apply_human_gate_receipts_after_explicit_approval", pendingHumanInput > 0 ? "pending_human_input" : "ready_for_validation", "Only after explicit human approval, apply validated human gate receipts. This runbook never performs the application step automatically.", "npm run control-plane:human-gate-receipts:apply"),
+    commandStep(6, "rerun_completion_runbook", commandStatus, "Regenerate this runbook after the workbench is refreshed.", "npm run control-plane:review-cycle:completion-runbook"),
+    commandStep(7, "rerun_correction_merge", commandStatus, "Merge the corrected human-review receipt inputs only after the completion verification is ready.", "npm run control-plane:review-corrections:merge"),
+    commandStep(8, "rerun_correction_validation", commandStatus, "Validate corrected receipts before any future application.", "npm run control-plane:review-corrections:validate"),
+    commandStep(9, "rerun_receipt_field_audit", commandStatus, "Re-audit required receipt fields to catch missing or invalid values after correction merge.", "npm run control-plane:review-cycle:field-audit"),
+    commandStep(10, "rebuild_dashboard", commandStatus, "Rebuild dashboard status after manual input and validation artifacts are refreshed.", "npm run dashboard:build"),
+    commandStep(11, "rerun_api_smoke", commandStatus, "Smoke-test the read-only API surface after dashboard rebuild.", "npm run api:smoke"),
+    protectedManualStep(12, "apply_human_gate_receipts_after_explicit_approval", pendingHumanInput > 0 ? "pending_human_input" : "ready_for_validation", "Only after explicit human approval, apply validated human gate receipts. This runbook never performs the application step automatically.", "npm run control-plane:human-gate-receipts:apply"),
   ];
 }
 

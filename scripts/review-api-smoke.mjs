@@ -161,6 +161,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-runbooks"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-runbook-steps"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-runbooks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-readiness"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-actor-completion-readiness"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -639,6 +642,18 @@ try {
   const humanReviewActorCompletionRunbooks = await fetchJson(`${url}/api/human-review-actor-completion-runbooks?required_actor=attorney_or_designated_reviewer&limit=5`);
   assert.equal(humanReviewActorCompletionRunbooks.collection, "human_review_actor_completion_runbooks");
   assert.ok(humanReviewActorCompletionRunbooks.count <= 5);
+
+  const humanReviewCycleCompletionReadiness = await fetchJson(`${url}/api/human-review-cycle-completion-readiness?readiness_status=waiting_for_human_input&limit=1`);
+  assert.equal(humanReviewCycleCompletionReadiness.collection, "human_review_cycle_completion_readiness");
+  assert.ok(humanReviewCycleCompletionReadiness.count <= 1);
+
+  const humanReviewCycleCompletionCommandGates = await fetchJson(`${url}/api/human-review-cycle-completion-command-gates?command_status=available_now&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandGates.collection, "human_review_cycle_completion_command_gates");
+  assert.ok(humanReviewCycleCompletionCommandGates.count <= 5);
+
+  const humanReviewActorCompletionReadiness = await fetchJson(`${url}/api/human-review-actor-completion-readiness?required_actor=attorney_or_designated_reviewer&limit=5`);
+  assert.equal(humanReviewActorCompletionReadiness.collection, "human_review_actor_completion_readiness");
+  assert.ok(humanReviewActorCompletionReadiness.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

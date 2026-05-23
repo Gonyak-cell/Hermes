@@ -9,6 +9,7 @@ It is intentionally conservative:
 - It does not execute protected actions.
 - It lists the manual receipt fields that still need human input.
 - It records the exact verification, dashboard, and API commands to rerun after the human edits are done.
+- It includes the command to regenerate the completion readiness gate after the runbook is refreshed.
 
 Default input:
 
@@ -30,6 +31,7 @@ After manual receipt edits, rerun:
 npm run control-plane:review-cycle:completion-verify
 npm run control-plane:review-cycle:completion-workbench
 npm run control-plane:review-cycle:completion-runbook
+npm run control-plane:review-cycle:completion-readiness
 npm run dashboard:build
 npm run api:smoke
 ```

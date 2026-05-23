@@ -1598,6 +1598,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-readiness") {
+    const readinessResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_readiness");
+    if (!readinessResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_readiness_unavailable", readinessResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_readiness", [readinessResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-gates") {
+    const readinessResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_readiness");
+    if (!readinessResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_readiness_unavailable", readinessResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_gates", readinessResult.artifact.command_gates ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-actor-completion-readiness") {
+    const readinessResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_readiness");
+    if (!readinessResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_readiness_unavailable", readinessResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_actor_completion_readiness", readinessResult.artifact.actor_readiness ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -1925,6 +1958,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-runbooks", "Human review cycle receipt completion runbook artifacts"),
       route("GET", "/api/human-review-cycle-completion-runbook-steps", "Human review cycle receipt completion runbook steps"),
       route("GET", "/api/human-review-actor-completion-runbooks", "Actor-specific human review receipt completion runbooks"),
+      route("GET", "/api/human-review-cycle-completion-readiness", "Human review cycle receipt completion readiness artifacts"),
+      route("GET", "/api/human-review-cycle-completion-command-gates", "Human review cycle receipt completion command readiness gates"),
+      route("GET", "/api/human-review-actor-completion-readiness", "Actor-specific human review receipt completion readiness"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2201,6 +2237,14 @@ function filterItems(items, searchParams) {
     "step_status",
     "step_type",
     "step_key",
+    "readiness_id",
+    "actor_readiness_id",
+    "command_gate_id",
+    "manual_requirement_id",
+    "readiness_status",
+    "command_status",
+    "command_allowed_now",
+    "requirement_status",
     "field_status",
     "correction_workspace_id",
     "actor_correction_workspace_id",

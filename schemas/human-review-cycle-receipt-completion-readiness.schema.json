@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-readiness.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Readiness",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "readiness_id",
+    "output_dir",
+    "readiness_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_readiness",
+    "command_gates",
+    "manual_requirements",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-readiness.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "readiness_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "readiness_status": { "$ref": "#/$defs/readiness_status" },
+    "safe_handling": { "$ref": "#/$defs/top_safe_handling" },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "readiness_status",
+        "source_available",
+        "source_runbook_status",
+        "source_verification_status",
+        "source_runbook_step_count",
+        "source_actor_runbook_count",
+        "actor_readiness_count",
+        "command_gate_count",
+        "manual_requirement_count",
+        "allowed_command_count",
+        "blocked_command_count",
+        "blocked_until_manual_input_count",
+        "protected_command_count",
+        "manual_input_required_count",
+        "pending_human_input_count",
+        "ready_for_validation_count",
+        "pending_prompt_count",
+        "protected_action_count",
+        "validation_error_count",
+        "by_required_actor",
+        "by_readiness_status",
+        "by_command_status",
+        "by_priority"
+      ],
+      "properties": {
+        "readiness_status": { "$ref": "#/$defs/readiness_status" },
+        "source_available": { "type": "boolean" },
+        "source_runbook_status": { "type": ["string", "null"] },
+        "source_verification_status": { "type": ["string", "null"] },
+        "source_runbook_step_count": { "type": "integer", "minimum": 0 },
+        "source_actor_runbook_count": { "type": "integer", "minimum": 0 },
+        "actor_readiness_count": { "type": "integer", "minimum": 0 },
+        "command_gate_count": { "type": "integer", "minimum": 0 },
+        "manual_requirement_count": { "type": "integer", "minimum": 0 },
+        "allowed_command_count": { "type": "integer", "minimum": 0 },
+        "blocked_command_count": { "type": "integer", "minimum": 0 },
+        "blocked_until_manual_input_count": { "type": "integer", "minimum": 0 },
+        "protected_command_count": { "type": "integer", "minimum": 0 },
+        "manual_input_required_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_readiness_status": { "type": "object" },
+        "by_command_status": { "type": "object" },
+        "by_priority": { "type": "object" }
+      }
+    },
+    "actor_readiness": { "type": "array", "items": { "$ref": "#/$defs/actor_readiness" } },
+    "command_gates": { "type": "array", "items": { "$ref": "#/$defs/command_gate" } },
+    "manual_requirements": { "type": "array", "items": { "$ref": "#/$defs/manual_requirement" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "readiness_status": {
+      "enum": ["clear", "waiting_for_human_input", "ready_for_validation", "attention", "blocked"]
+    },
+    "priority": {
+      "enum": ["critical", "high", "medium", "low"]
+    },
+    "command_status": {
+      "enum": ["available_now", "blocked_until_manual_input", "blocked_by_validation_errors", "requires_explicit_human_approval"]
+    },
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_readiness": {
+      "type": "object",
+      "required": [
+        "actor_readiness_id",
+        "actor_runbook_id",
+        "required_actor",
+        "readiness_status",
+        "priority",
+        "workbench_item_count",
+        "pending_human_input_count",
+        "ready_for_validation_count",
+        "pending_prompt_count",
+        "target_file_count",
+        "allowed_command_count",
+        "blocked_command_count",
+        "next_allowed_commands",
+        "blocked_commands",
+        "actor_runbook_html_path",
+        "workbench_html_path",
+        "receipt_completion_template_path",
+        "readiness_json_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_readiness_id": { "type": "string" },
+        "actor_runbook_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "readiness_status": { "$ref": "#/$defs/readiness_status" },
+        "priority": { "$ref": "#/$defs/priority" },
+        "workbench_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "ready_for_validation_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "allowed_command_count": { "type": "integer", "minimum": 0 },
+        "blocked_command_count": { "type": "integer", "minimum": 0 },
+        "next_allowed_commands": { "type": "array", "items": { "type": "string" } },
+        "blocked_commands": { "type": "array", "items": { "type": "object" } },
+        "actor_runbook_html_path": { "type": ["string", "null"] },
+        "workbench_html_path": { "type": ["string", "null"] },
+        "receipt_completion_template_path": { "type": ["string", "null"] },
+        "readiness_json_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/top_safe_handling" }
+      }
+    },
+    "command_gate": {
+      "type": "object",
+      "required": [
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "step_type",
+        "step_rank",
+        "command",
+        "command_status",
+        "command_allowed_now",
+        "blocked_reason",
+        "requires_explicit_human_approval",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "step_type": { "type": "string" },
+        "step_rank": { "type": "integer", "minimum": 1 },
+        "command": { "type": "string" },
+        "command_status": { "$ref": "#/$defs/command_status" },
+        "command_allowed_now": { "type": "boolean" },
+        "blocked_reason": { "type": ["string", "null"] },
+        "requires_explicit_human_approval": { "type": "boolean" },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "$ref": "#/$defs/step_safe_handling" }
+      }
+    },
+    "manual_requirement": {
+      "type": "object",
+      "required": [
+        "manual_requirement_id",
+        "runbook_step_id",
+        "step_key",
+        "step_rank",
+        "requirement_status",
+        "instruction",
+        "pending_human_input_count",
+        "pending_prompt_count",
+        "target_file_count",
+        "safe_handling"
+      ],
+      "properties": {
+        "manual_requirement_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "step_rank": { "type": "integer", "minimum": 1 },
+        "requirement_status": { "enum": ["manual_input_required", "complete"] },
+        "instruction": { "type": "string" },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "target_file_count": { "type": "integer", "minimum": 0 },
+        "safe_handling": { "$ref": "#/$defs/step_safe_handling" }
+      }
+    },
+    "top_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "readiness_gate_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "const": true },
+        "readiness_gate_only": { "const": true },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "step_safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "readiness_gate_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "readiness_gate_only": { "const": true },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

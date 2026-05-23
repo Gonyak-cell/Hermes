@@ -98,6 +98,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Cycle Receipt Completion Verification: completion template가 target receipt input에 수동 반영됐는지 read-only로 검증하고 validation error가 없으면 구현 통과
 - Human Review Cycle Receipt Completion Workbench: actor별 manual receipt input 작업판과 template link가 생성되고 validation error가 없으면 구현 통과
 - Human Review Cycle Receipt Completion Runbook: manual receipt input 이후의 검증 명령과 actor별 runbook이 생성되고 validation error가 없으면 구현 통과
+- Human Review Cycle Receipt Completion Readiness: manual input 전 실행 가능한 refresh command와 보류해야 할 command가 분리되고 validation error가 없으면 구현 통과
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과

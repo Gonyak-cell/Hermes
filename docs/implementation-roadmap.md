@@ -1875,3 +1875,38 @@
 - `/api/human-review-correction-actor-feedback?required_actor=attorney_or_designated_reviewer`로 actor별 correction feedback bundle을 조회할 수 있음
 - Dashboard summary가 correction feedback actor, item, pending, ready, correction, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-corrections:feedback`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 69: Human Review Cycle Ledger
+
+목표: validation feedback → correction workspace → correction merge → correction validation → correction feedback의 한 바퀴를 gate item 단위 ledger로 묶어 운영자가 actor별 남은 작업과 loop 상태를 한 번에 볼 수 있게 한다.
+
+- `Human Review Validation Feedback`, `Human Review Correction Workspace`, `Human Review Correction Workspace Merge`, `Human Review Correction Validation`, `Human Review Correction Feedback`을 입력으로 사용
+- `gate_item_id` 기준으로 원 feedback, correction item, merge item, validation item, correction feedback item을 연결
+- actor별 cycle rollup과 gate item별 cycle item을 생성
+- pending, ready, attention, clear 상태를 cycle status로 정규화
+- protected action은 cycle ledger 단계에서도 실행하지 않고 `auto_execute_allowed: false`와 `protected_actions_executed: false`를 강제
+- Control Plane Loop에서 correction feedback 뒤, receipt application 전에 `npm run control-plane:review-cycle` 실행
+- Review Dashboard에 `human_review_cycle_ledger` stage와 actor/item/pending/ready/attention/error summary 추가
+- Review API에서 `/api/human-review-cycle-ledgers`, `/api/human-review-cycle-items`, `/api/human-review-actor-cycles` route 제공
+- Goal Checkpoint에서 Human Review Cycle Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle`
+- `src/human-review-cycle-ledger.mjs`
+- `schemas/human-review-cycle-ledger.schema.json`
+- `docs/human-review-cycle-ledger.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- human review cycle ledger artifact가 schema validation을 통과함
+- cycle item count가 correction feedback item count와 일치함
+- actor cycle count가 correction feedback actor count와 일치함
+- pending correction feedback item은 cycle ledger에서 `pending_human_review`로 유지됨
+- `/api/human-review-cycle-items?cycle_status=pending_human_review`로 pending cycle item을 조회할 수 있음
+- `/api/human-review-actor-cycles?required_actor=attorney_or_designated_reviewer`로 actor별 cycle rollup을 조회할 수 있음
+- Dashboard summary가 cycle actor, item, pending, ready, attention, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

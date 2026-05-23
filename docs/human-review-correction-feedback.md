@@ -29,3 +29,5 @@ Safe handling:
 - It does not apply receipts.
 - It does not execute protected delivery, merge, ERP, or external actions.
 - Pending correction receipts stay pending until a human fills the required decision fields and validation passes.
+
+The next stage is `npm run control-plane:review-cycle`, which links the full feedback/correction loop into one actor-aware cycle ledger.

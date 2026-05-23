@@ -63,6 +63,7 @@ npm run dashboard:build -- \
 - Approval Inbox의 output/delivery approval request와 gate blocker review 상태
 - Approval Inbox Decisions의 applied decision, patched ready delivery, decision error 상태
 - Policy Matrix Catalog의 classification, model/tool/output/gate policy와 validation 상태
+- Policy Snapshot Ledger의 snapshot, workflow/event/run ledger usage, matrix alignment 상태
 - Domain Pack Registry의 pack, capability, validation 상태
 - Output Artifact Catalog의 artifact, approval, delivery readiness 상태
 - Observability Catalog의 workflow run, event, runtime cost, blocked run 상태

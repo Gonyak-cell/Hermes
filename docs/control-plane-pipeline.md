@@ -9,6 +9,7 @@ npm run control-plane:pipeline
 기본 실행 단계:
 
 - Policy Matrix Catalog
+- Policy Snapshot Ledger
 - Domain Pack Registry
 - Output Artifact Catalog
 - Observability Catalog

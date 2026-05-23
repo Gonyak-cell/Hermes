@@ -181,6 +181,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("gate_policies", policyResult.artifact.gate_rules ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-snapshot-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshot_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-snapshots") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshots", ledgerResult.artifact.policy_snapshots ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-snapshot-instances") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshot_instances", ledgerResult.artifact.snapshot_instances ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_decisions", ledgerResult.artifact.policy_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-usages") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_usages", ledgerResult.artifact.usage_records ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/packs") {
     const registryResult = await readDashboardSourceArtifact(dashboard, "domain_pack_registry");
     if (!registryResult.available) {
@@ -825,7 +860,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -852,6 +887,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/tool-policies", "Policy tool permission rules"),
       route("GET", "/api/output-policies", "Policy output delivery rules"),
       route("GET", "/api/gate-policies", "Policy gate rules"),
+      route("GET", "/api/policy-snapshot-ledgers", "Policy snapshot ledger artifacts"),
+      route("GET", "/api/policy-snapshots", "Canonical policy snapshots used by workflow runs"),
+      route("GET", "/api/policy-snapshot-instances", "Source-level policy snapshot instances"),
+      route("GET", "/api/policy-decisions", "Policy decision summaries derived from snapshots"),
+      route("GET", "/api/policy-usages", "Workflow, event, and run ledger policy snapshot references"),
       route("GET", "/api/packs", "Domain pack registry packs"),
       route("GET", "/api/capabilities", "Domain pack capability contracts"),
       route("GET", "/api/artifacts", "Output artifact catalog"),
@@ -964,6 +1004,14 @@ function filterItems(items, searchParams) {
     "gate_id",
     "stage",
     "blocking_by_default",
+    "ledger_id",
+    "ledger_status",
+    "policy_snapshot_id",
+    "decision_id",
+    "decision_status",
+    "usage_id",
+    "usage_type",
+    "snapshot_declared_in_source",
     "pack_id",
     "capability_id",
     "artifact_id",

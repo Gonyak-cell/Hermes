@@ -32,6 +32,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/tool-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/output-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/gate-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshots"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-usages"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-actions"));
@@ -121,6 +126,22 @@ try {
   const blockingGatePolicies = await fetchJson(`${url}/api/gate-policies?blocking_by_default=true&limit=5`);
   assert.equal(blockingGatePolicies.collection, "gate_policies");
   assert.ok(blockingGatePolicies.count <= 5);
+
+  const policySnapshotLedgers = await fetchJson(`${url}/api/policy-snapshot-ledgers?ledger_status=valid&limit=1`);
+  assert.equal(policySnapshotLedgers.collection, "policy_snapshot_ledgers");
+  assert.ok(policySnapshotLedgers.count <= 1);
+
+  const lawFirmPolicySnapshots = await fetchJson(`${url}/api/policy-snapshots?policy_snapshot_id=policy.default.law_firm.v1&limit=5`);
+  assert.equal(lawFirmPolicySnapshots.collection, "policy_snapshots");
+  assert.ok(lawFirmPolicySnapshots.count <= 5);
+
+  const p2PolicyDecisions = await fetchJson(`${url}/api/policy-decisions?classification=P2_CLIENT_CONFIDENTIAL&limit=5`);
+  assert.equal(p2PolicyDecisions.collection, "policy_decisions");
+  assert.ok(p2PolicyDecisions.count <= 5);
+
+  const workflowPolicyUsages = await fetchJson(`${url}/api/policy-usages?usage_type=workflow_run&limit=5`);
+  assert.equal(workflowPolicyUsages.collection, "policy_usages");
+  assert.ok(workflowPolicyUsages.count <= 5);
 
   const evidenceReviewDrafts = await fetchJson(`${url}/api/evidence-review-drafts`);
   assert.equal(evidenceReviewDrafts.collection, "evidence_review_drafts");

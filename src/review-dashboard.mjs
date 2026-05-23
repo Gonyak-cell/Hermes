@@ -12,6 +12,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   approvalInboxPath: "artifacts/approval-inbox/latest/approval-inbox.json",
   approvalInboxDecisionPath: "artifacts/approval-inbox-decisions/latest/approval-inbox-decision-result.json",
   policyMatrixCatalogPath: "artifacts/policy-matrix/latest/policy-matrix-catalog.json",
+  policySnapshotLedgerPath: "artifacts/policy-snapshots/latest/policy-snapshot-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -87,6 +88,11 @@ const SOURCE_DEFINITIONS = [
     option: "policyMatrixCatalogPath",
     source_id: "policy_matrix_catalog",
     label: "Policy Matrix Catalog",
+  },
+  {
+    option: "policySnapshotLedgerPath",
+    source_id: "policy_snapshot_ledger",
+    label: "Policy Snapshot Ledger",
   },
   {
     option: "domainPackRegistryPath",
@@ -368,6 +374,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "approval_inbox") return data.summary ?? {};
   if (sourceId === "approval_inbox_decisions") return data.summary ?? {};
   if (sourceId === "policy_matrix_catalog") return data.summary ?? {};
+  if (sourceId === "policy_snapshot_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -496,6 +503,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApprovalInboxStage(artifacts.approval_inbox, sourceById.get("approval_inbox")),
     buildApprovalInboxDecisionStage(artifacts.approval_inbox_decisions, sourceById.get("approval_inbox_decisions")),
     buildPolicyMatrixCatalogStage(artifacts.policy_matrix_catalog, sourceById.get("policy_matrix_catalog")),
+    buildPolicySnapshotLedgerStage(artifacts.policy_snapshot_ledger, sourceById.get("policy_snapshot_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -734,6 +742,34 @@ function buildPolicyMatrixCatalogStage(catalog, source) {
       gate_rule_count: summary.gate_rule_count ?? 0,
       external_model_forbidden_count: summary.external_model_forbidden_count ?? 0,
       external_model_approval_required_count: summary.external_model_approval_required_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildPolicySnapshotLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("policy_snapshot_ledger", "Policy Snapshot Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const status = ledger.ledger_status === "valid" && errorCount === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "policy_snapshot_ledger",
+    label: "Policy Snapshot Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.policy_snapshot_count ?? 0} snapshot(s), ${summary.workflow_usage_count ?? 0} workflow usage(s), ${summary.event_reference_count ?? 0} event reference(s).`
+      : `${errorCount} policy snapshot validation error(s) require contract repair.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: ledger.ledger_status ?? "unknown",
+      policy_snapshot_count: summary.policy_snapshot_count ?? 0,
+      snapshot_instance_count: summary.snapshot_instance_count ?? 0,
+      workflow_usage_count: summary.workflow_usage_count ?? 0,
+      event_reference_count: summary.event_reference_count ?? 0,
+      run_ledger_reference_count: summary.run_ledger_reference_count ?? 0,
+      missing_snapshot_reference_count: summary.missing_snapshot_reference_count ?? 0,
+      external_model_forbidden_count: summary.external_model_forbidden_count ?? 0,
+      runtime_violation_count: summary.runtime_violation_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -1600,6 +1636,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.policy_snapshot_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "policy_snapshot_ledger";
+    items.push({
+      action_item_id: `dashboard.action.policy_snapshot_ledger.${slugify(subjectId)}`,
+      source_stage: "policy_snapshot_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix policy snapshot ledger validation",
+      subject_ref: {
+        subject_type: "policy_snapshot_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_policy_snapshot", "rerun_policy_snapshots", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -2024,6 +2078,14 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_approval_required_tool_count: artifacts.policy_matrix_catalog?.summary?.approval_required_tool_count ?? 0,
     policy_approval_required_output_count: artifacts.policy_matrix_catalog?.summary?.approval_required_output_count ?? 0,
     policy_validation_error_count: artifacts.policy_matrix_catalog?.summary?.validation_error_count ?? artifacts.policy_matrix_catalog?.validation?.errors?.length ?? 0,
+    policy_snapshot_count: artifacts.policy_snapshot_ledger?.summary?.policy_snapshot_count ?? 0,
+    policy_snapshot_instance_count: artifacts.policy_snapshot_ledger?.summary?.snapshot_instance_count ?? 0,
+    policy_snapshot_workflow_usage_count: artifacts.policy_snapshot_ledger?.summary?.workflow_usage_count ?? 0,
+    policy_snapshot_event_reference_count: artifacts.policy_snapshot_ledger?.summary?.event_reference_count ?? 0,
+    policy_snapshot_run_ledger_reference_count: artifacts.policy_snapshot_ledger?.summary?.run_ledger_reference_count ?? 0,
+    policy_snapshot_missing_reference_count: artifacts.policy_snapshot_ledger?.summary?.missing_snapshot_reference_count ?? 0,
+    policy_snapshot_runtime_violation_count: artifacts.policy_snapshot_ledger?.summary?.runtime_violation_count ?? 0,
+    policy_snapshot_validation_error_count: artifacts.policy_snapshot_ledger?.summary?.validation_error_count ?? artifacts.policy_snapshot_ledger?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2227,6 +2289,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Matters", dashboard.summary.matter_count)}
       ${stat("Policy Classes", dashboard.summary.policy_classification_count)}
       ${stat("Policy Gates", dashboard.summary.policy_gate_rule_count)}
+      ${stat("Policy Snapshots", dashboard.summary.policy_snapshot_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2293,6 +2356,10 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Policy gate rules: ${dashboard.summary.policy_gate_rule_count ?? 0}`);
   lines.push(`- Policy external-model forbidden: ${dashboard.summary.policy_external_model_forbidden_count ?? 0}`);
   lines.push(`- Policy validation errors: ${dashboard.summary.policy_validation_error_count ?? 0}`);
+  lines.push(`- Policy snapshots: ${dashboard.summary.policy_snapshot_count ?? 0}`);
+  lines.push(`- Policy snapshot workflow usages: ${dashboard.summary.policy_snapshot_workflow_usage_count ?? 0}`);
+  lines.push(`- Policy snapshot event references: ${dashboard.summary.policy_snapshot_event_reference_count ?? 0}`);
+  lines.push(`- Policy snapshot validation errors: ${dashboard.summary.policy_snapshot_validation_error_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2459,6 +2526,8 @@ function parseArgs(argv) {
     else if (arg === "--no-approval-inbox-decisions") parsed.approvalInboxDecisionPath = false;
     else if (arg === "--policy-matrix-catalog") parsed.policyMatrixCatalogPath = argv[++index];
     else if (arg === "--no-policy-matrix-catalog") parsed.policyMatrixCatalogPath = false;
+    else if (arg === "--policy-snapshot-ledger") parsed.policySnapshotLedgerPath = argv[++index];
+    else if (arg === "--no-policy-snapshot-ledger") parsed.policySnapshotLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2539,6 +2608,9 @@ Options:
   --no-approval-inbox-decisions  Do not include Approval Inbox Decisions status.
   --policy-matrix-catalog <path> policy-matrix-catalog.json path.
   --no-policy-matrix-catalog     Do not include Policy Matrix Catalog status.
+  --policy-snapshot-ledger <path>
+                                  policy-snapshot-ledger.json path.
+  --no-policy-snapshot-ledger    Do not include Policy Snapshot Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

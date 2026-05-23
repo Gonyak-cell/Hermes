@@ -45,6 +45,7 @@ import { runOutputArtifactCatalog } from "../src/output-artifact-catalog.mjs";
 import { runPostDeliveryReconciliation } from "../src/post-delivery-reconciliation.mjs";
 import { runProtectedDeliveryQueue } from "../src/protected-delivery-queue.mjs";
 import { runPolicyMatrixCatalog } from "../src/policy-matrix-catalog.mjs";
+import { runPolicySnapshotLedger } from "../src/policy-snapshot-ledger.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
@@ -431,6 +432,42 @@ describe("matter harness", () => {
       assert.equal(observabilityCatalog.summary.blocked_run_count, 3);
       assert.equal(observabilityCatalog.summary.by_runtime_id.codex, 1);
 
+      const policySnapshotLedger = await runPolicySnapshotLedger({
+        matrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        sources: [
+          {
+            source_id: "law_firm_ldd_slice",
+            label: "Law Firm LDD Slice",
+            slice_path: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
+            event_ledger_path: path.join(outDir, "law-firm-ldd", "event-ledger.json"),
+          },
+          {
+            source_id: "personal_dev_slice",
+            label: "Personal Dev Slice",
+            slice_path: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+            event_ledger_path: path.join(outDir, "personal-dev", "event-ledger.json"),
+          },
+          {
+            source_id: "creative_document_slice",
+            label: "Creative Document Slice",
+            slice_path: path.join(outDir, "creative-document", "creative-document-slice.json"),
+            event_ledger_path: path.join(outDir, "creative-document", "event-ledger.json"),
+          },
+        ],
+        outDir: path.join(outDir, "policy-snapshots"),
+        runAt: "2026-05-23T06:34:52.000Z",
+      });
+      const policySnapshotLedgerSchema = JSON.parse(await readFile("schemas/policy-snapshot-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(policySnapshotLedger, policySnapshotLedgerSchema, {}, "policy_snapshot_ledger"), []);
+      assert.equal(policySnapshotLedger.ledger_status, "valid");
+      assert.equal(policySnapshotLedger.summary.policy_snapshot_count, 3);
+      assert.equal(policySnapshotLedger.summary.workflow_usage_count, 3);
+      assert.equal(policySnapshotLedger.summary.event_reference_count, observabilityCatalog.summary.event_count);
+      assert.equal(policySnapshotLedger.summary.runtime_violation_count, 0);
+      assert.equal(policySnapshotLedger.summary.validation_error_count, 0);
+      assert.ok(policySnapshotLedger.policy_snapshots.some((snapshot) => snapshot.policy_snapshot_id === "policy.default.law_firm.v1"));
+      assert.match(await readFile(path.join(outDir, "policy-snapshots", "summary.md"), "utf8"), /Policy Snapshot Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -750,6 +787,7 @@ describe("matter harness", () => {
         approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
         approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -785,6 +823,7 @@ describe("matter harness", () => {
         controlPlaneGoalCheckpointPath: false,
         controlPlaneAuditTrailPath: false,
         policyMatrixCatalogPath: false,
+        policySnapshotLedgerPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -1086,6 +1125,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_gate_rule_count, policyMatrixCatalog.summary.gate_rule_count);
       assert.equal(dashboard.summary.policy_external_model_forbidden_count, policyMatrixCatalog.summary.external_model_forbidden_count);
       assert.equal(dashboard.summary.policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.policy_snapshot_count, policySnapshotLedger.summary.policy_snapshot_count);
+      assert.equal(dashboard.summary.policy_snapshot_workflow_usage_count, policySnapshotLedger.summary.workflow_usage_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_reference_count, policySnapshotLedger.summary.event_reference_count);
+      assert.equal(dashboard.summary.policy_snapshot_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
       assert.equal(dashboard.summary.domain_pack_error_count, 0);
@@ -1183,6 +1226,7 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.approval_inbox_ready_for_delivery_count, 5);
       assert.equal(dashboard.summary.approval_inbox_decision_error_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_matrix_catalog"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1244,6 +1288,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-policies"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-policies"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-snapshot-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-snapshots"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-usages"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1335,6 +1384,23 @@ describe("matter harness", () => {
       const blockingGatePolicies = JSON.parse((await buildReviewApiResponse("/api/gate-policies?blocking_by_default=true", apiOptions)).body);
       assert.equal(blockingGatePolicies.collection, "gate_policies");
       assert.equal(blockingGatePolicies.count, policyMatrixCatalog.summary.blocking_gate_count);
+
+      const policySnapshotLedgers = JSON.parse((await buildReviewApiResponse("/api/policy-snapshot-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(policySnapshotLedgers.collection, "policy_snapshot_ledgers");
+      assert.equal(policySnapshotLedgers.count, 1);
+
+      const lawFirmPolicySnapshots = JSON.parse((await buildReviewApiResponse("/api/policy-snapshots?policy_snapshot_id=policy.default.law_firm.v1", apiOptions)).body);
+      assert.equal(lawFirmPolicySnapshots.collection, "policy_snapshots");
+      assert.equal(lawFirmPolicySnapshots.count, 1);
+
+      const p2PolicyDecisions = JSON.parse((await buildReviewApiResponse("/api/policy-decisions?classification=P2_CLIENT_CONFIDENTIAL", apiOptions)).body);
+      assert.equal(p2PolicyDecisions.collection, "policy_decisions");
+      assert.equal(p2PolicyDecisions.count, 1);
+      assert.equal(p2PolicyDecisions.items[0].external_model_policy, "approval_required");
+
+      const workflowPolicyUsages = JSON.parse((await buildReviewApiResponse("/api/policy-usages?usage_type=workflow_run", apiOptions)).body);
+      assert.equal(workflowPolicyUsages.collection, "policy_usages");
+      assert.equal(workflowPolicyUsages.count, policySnapshotLedger.summary.workflow_usage_count);
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

@@ -1227,3 +1227,35 @@
 - `/api/tool-policies?default_policy=approval_required`와 `/api/gate-policies?blocking_by_default=true`가 동작함
 - Dashboard summary가 classification/gate/external-model restriction/validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run policy:catalog`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 49: Policy Snapshot Ledger
+
+목표: 각 slice의 `policy-snapshot.v1`과 workflow/event/run ledger reference를 하나의 실행 재현성 ledger로 정규화합니다.
+
+- Law Firm, Personal Dev, Creative Document, First Vertical Slice의 `identity_policy.policy_snapshots` 수집
+- 같은 `policy_snapshot_id`가 동일한 rule body를 갖는지 conflict 검사
+- workflow run, event, run ledger의 `policy_snapshot_id` reference를 usage record로 정규화
+- Policy Matrix Catalog와 snapshot의 default classification, external model policy, runtime permission을 대조
+- forbidden runtime 허용, 외부 모델 정책 불일치, 선언되지 않은 snapshot reference를 validation error로 기록
+- Review Dashboard에 `policy_snapshot_ledger` stage와 snapshot/usage/violation summary 추가
+- Review API에서 `/api/policy-snapshot-ledgers`, `/api/policy-snapshots`, `/api/policy-snapshot-instances`, `/api/policy-decisions`, `/api/policy-usages` route 제공
+- Control Plane Pipeline과 Loop에 `npm run policy:snapshots` 포함
+- Goal Checkpoint에서 Policy Snapshot Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run policy:snapshots`
+- `src/policy-snapshot-ledger.mjs`
+- `schemas/policy-snapshot-ledger.schema.json`
+- `docs/policy-snapshot-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- policy snapshot ledger artifact가 schema validation을 통과함
+- `/api/policy-snapshots?policy_snapshot_id=policy.default.law_firm.v1`로 law-firm snapshot을 조회할 수 있음
+- `/api/policy-decisions?classification=P2_CLIENT_CONFIDENTIAL`로 P2 외부모델 승인 필요 정책을 조회할 수 있음
+- `/api/policy-usages?usage_type=workflow_run`으로 workflow별 snapshot reference를 조회할 수 있음
+- Dashboard summary가 snapshot, workflow usage, event reference, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run policy:snapshots`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

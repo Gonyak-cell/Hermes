@@ -60,6 +60,14 @@
         "policy_approval_required_tool_count",
         "policy_approval_required_output_count",
         "policy_validation_error_count",
+        "policy_snapshot_count",
+        "policy_snapshot_instance_count",
+        "policy_snapshot_workflow_usage_count",
+        "policy_snapshot_event_reference_count",
+        "policy_snapshot_run_ledger_reference_count",
+        "policy_snapshot_missing_reference_count",
+        "policy_snapshot_runtime_violation_count",
+        "policy_snapshot_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -338,6 +346,38 @@
           "minimum": 0
         },
         "policy_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_instance_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_workflow_usage_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_event_reference_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_run_ledger_reference_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_missing_reference_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_runtime_violation_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "policy_snapshot_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

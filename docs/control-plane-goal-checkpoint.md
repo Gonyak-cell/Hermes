@@ -31,6 +31,7 @@ npm run control-plane:goal-checkpoint -- \
 
 - Core contracts
 - Identity/Policy matrix
+- Policy snapshot ledger
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Gate and approval workflow

@@ -17,6 +17,7 @@
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "creative-document:slice": "node scripts/run-creative-document-slice.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
+    "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:execution:draft": "node scripts/delivery-execution-draft.mjs",
     "delivery:queue": "node scripts/protected-delivery-queue.mjs",
     "delivery:reconcile": "node scripts/post-delivery-reconciliation.mjs",

@@ -17,6 +17,7 @@ import { runApprovalInbox } from "../src/approval-inbox.mjs";
 import { runApprovalQueue } from "../src/approval-queue.mjs";
 import { runCreativeDocumentSlice } from "../src/creative-document-slice-runner.mjs";
 import { runDeliveryExecutionDraft } from "../src/delivery-execution-draft.mjs";
+import { runDeliveryCloseoutQueue } from "../src/delivery-closeout-queue.mjs";
 import { runDeliveryReceipts } from "../src/delivery-receipts.mjs";
 import { runDomainPackRegistry } from "../src/domain-pack-registry.mjs";
 import { runEvidenceViewer } from "../src/evidence-viewer.mjs";
@@ -484,6 +485,43 @@ describe("matter harness", () => {
       assert.ok(deliveryExecution.execution_candidates.some((candidate) => candidate.delivery_channel === "github"));
       assert.ok(deliveryExecution.execution_packets.some((packet) => packet.delivery_target === "supporting_document" && packet.candidate_count === 2));
 
+      const pendingDeliveryReceipts = await runDeliveryReceipts({
+        executionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        receiptsPath: false,
+        deliveryQueuePath: path.join(outDir, "approval-inbox-decisions", "patched-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "approval-inbox-decisions", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "delivery-receipts-pending"),
+        runAt: "2026-05-23T06:35:00.750Z",
+      });
+      assert.equal(pendingDeliveryReceipts.summary.applied_receipt_count, 0);
+      assert.equal(pendingDeliveryReceipts.summary.pending_receipt_count, 4);
+
+      const pendingPostDeliveryReconciliation = await runPostDeliveryReconciliation({
+        receiptLedgerPath: path.join(outDir, "delivery-receipts-pending", "delivery-receipt-ledger.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-receipts-pending", "patched-delivery-queue.json"),
+        outputCatalogPath: path.join(outDir, "delivery-receipts-pending", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "post-delivery-reconciliation-pending"),
+        runAt: "2026-05-23T06:35:00.900Z",
+      });
+      assert.equal(pendingPostDeliveryReconciliation.summary.outstanding_receipt_count, 4);
+
+      const pendingCloseoutQueue = await runDeliveryCloseoutQueue({
+        postDeliveryPath: path.join(outDir, "post-delivery-reconciliation-pending", "post-delivery-reconciliation.json"),
+        executionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        receiptTemplatePath: path.join(outDir, "delivery-receipts-pending", "receipt-template.json"),
+        outputCatalogPath: path.join(outDir, "delivery-receipts-pending", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "delivery-closeout-pending"),
+        runAt: "2026-05-23T06:35:01.000Z",
+      });
+      const deliveryCloseoutSchema = JSON.parse(await readFile("schemas/delivery-closeout-queue.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(pendingCloseoutQueue, deliveryCloseoutSchema, {}, "delivery_closeout_queue"), []);
+      assert.equal(pendingCloseoutQueue.summary.closeout_item_count, 4);
+      assert.equal(pendingCloseoutQueue.summary.awaiting_execution_count, 4);
+      assert.equal(pendingCloseoutQueue.summary.artifact_count, 5);
+      assert.equal(pendingCloseoutQueue.receipt_input_draft.receipts.length, 4);
+      assert.ok(pendingCloseoutQueue.closeout_items.every((item) => item.auto_execute === false));
+      assert.ok(pendingCloseoutQueue.closeout_items.some((item) => item.delivery_channel === "github"));
+
       const deliveryReceiptInputPath = path.join(outDir, "delivery-receipts-input.json");
       const deliveryReceiptInput = {
         schema_version: "delivery-receipts-input.v1",
@@ -546,6 +584,19 @@ describe("matter harness", () => {
       assert.equal(postDeliveryReconciliation.summary.delivered_matter_count, 3);
       assert.ok(postDeliveryReconciliation.reconciled_matters.every((matter) => matter.status === "delivered"));
 
+      const finalCloseoutQueue = await runDeliveryCloseoutQueue({
+        postDeliveryPath: path.join(outDir, "post-delivery-reconciliation", "post-delivery-reconciliation.json"),
+        executionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        receiptTemplatePath: path.join(outDir, "delivery-receipts", "receipt-template.json"),
+        outputCatalogPath: path.join(outDir, "delivery-receipts", "patched-output-catalog.json"),
+        outDir: path.join(outDir, "delivery-closeout"),
+        runAt: "2026-05-23T06:35:04.000Z",
+      });
+      assert.deepEqual(validateAgainstSchema(finalCloseoutQueue, deliveryCloseoutSchema, {}, "final_delivery_closeout_queue"), []);
+      assert.equal(finalCloseoutQueue.summary.closeout_item_count, 0);
+      assert.equal(finalCloseoutQueue.summary.awaiting_execution_count, 0);
+      assert.equal(finalCloseoutQueue.receipt_input_draft.receipts.length, 0);
+
       const dashboard = await runReviewDashboard({
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -562,6 +613,7 @@ describe("matter harness", () => {
         deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
         deliveryReceiptLedgerPath: path.join(outDir, "delivery-receipts", "delivery-receipt-ledger.json"),
         postDeliveryReconciliationPath: path.join(outDir, "post-delivery-reconciliation", "post-delivery-reconciliation.json"),
+        deliveryCloseoutQueuePath: path.join(outDir, "delivery-closeout", "delivery-closeout-queue.json"),
         lawFirmLddSummaryPath: path.join(outDir, "law-firm-ldd", "summary.json"),
         personalDevSummaryPath: path.join(outDir, "personal-dev", "summary.json"),
         creativeDocumentSummaryPath: path.join(outDir, "creative-document", "summary.json"),
@@ -598,6 +650,9 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.post_delivery_delivered_artifact_count, 5);
       assert.equal(dashboard.summary.post_delivery_delivered_matter_count, 3);
       assert.equal(dashboard.summary.post_delivery_outstanding_receipt_count, 0);
+      assert.equal(dashboard.summary.delivery_closeout_item_count, 0);
+      assert.equal(dashboard.summary.delivery_closeout_awaiting_count, 0);
+      assert.equal(dashboard.summary.delivery_closeout_blocked_count, 0);
       assert.equal(dashboard.summary.matter_count, 3);
       assert.equal(dashboard.summary.blocked_matter_count, 3);
       assert.equal(dashboard.summary.pending_review_matter_count, 0);
@@ -622,6 +677,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_execution_draft"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_receipt_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "post_delivery_reconciliation"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "delivery_closeout_queue"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_inbox_decisions"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "law_firm_ldd_slice"));
@@ -661,6 +717,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/post-delivery-matters"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivered-artifacts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/outstanding-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-closeout-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/receipt-input-drafts"));
 
       const apiDashboard = JSON.parse((await buildReviewApiResponse("/api/dashboard", apiOptions)).body);
       assert.equal(apiDashboard.schema_version, "review-dashboard.v1");
@@ -748,6 +806,14 @@ describe("matter harness", () => {
       const outstandingReceipts = JSON.parse((await buildReviewApiResponse("/api/outstanding-receipts", apiOptions)).body);
       assert.equal(outstandingReceipts.collection, "outstanding_receipts");
       assert.equal(outstandingReceipts.count, 0);
+
+      const closeoutItems = JSON.parse((await buildReviewApiResponse("/api/delivery-closeout-items", apiOptions)).body);
+      assert.equal(closeoutItems.collection, "delivery_closeout_items");
+      assert.equal(closeoutItems.count, 0);
+
+      const receiptDraftRows = JSON.parse((await buildReviewApiResponse("/api/receipt-input-drafts", apiOptions)).body);
+      assert.equal(receiptDraftRows.collection, "receipt_input_drafts");
+      assert.equal(receiptDraftRows.count, 0);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

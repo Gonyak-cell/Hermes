@@ -621,3 +621,31 @@
 - outstanding receipt가 dashboard action item과 `/api/outstanding-receipts`로 조회됨
 - `post-delivery-reconciliation.json`이 schema validation을 통과함
 - `npm test`, `delivery:reconcile`, `dashboard:build`, `api:smoke`가 통과함
+
+## Phase 26: Delivery Closeout Queue
+
+목표: post-delivery reconciliation의 outstanding receipt를 사람이 처리할 수 있는 closeout queue와 receipt input draft로 바꿉니다.
+
+- outstanding receipt packet별 `closeout_items` 생성
+- delivery execution packet의 manual checklist, candidate, artifact context 연결
+- 사람이 채울 수 있는 `receipt_input_draft` 생성
+- 어떤 항목도 자동 실행하지 않고 `protected_action`, `requires_manual_execution`, `auto_execute: false` 유지
+- Review Dashboard에 `delivery_closeout_queue` stage와 closeout action item 추가
+- Review API에서 `/api/delivery-closeout-items`, `/api/receipt-input-drafts` route 제공
+
+현재 구현:
+
+- `npm run delivery:closeout`
+- `src/delivery-closeout-queue.mjs`
+- `schemas/delivery-closeout-queue.schema.json`
+- `docs/delivery-closeout-queue.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- outstanding receipt가 closeout item으로 정규화됨
+- closeout item마다 artifact context, execution candidate, manual checklist, receipt form draft가 포함됨
+- `receipt-input-draft.json`이 delivery receipt input 계약을 따른다
+- `/api/delivery-closeout-items?status=awaiting_manual_execution`으로 수동 closeout 대상을 조회할 수 있음
+- `npm test`, `delivery:closeout`, `dashboard:build`, `api:smoke`가 통과함

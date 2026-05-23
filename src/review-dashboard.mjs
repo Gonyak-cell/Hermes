@@ -18,6 +18,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   deliveryExecutionDraftPath: "artifacts/delivery-execution/latest/delivery-execution-draft.json",
   deliveryReceiptLedgerPath: "artifacts/delivery-receipts/latest/delivery-receipt-ledger.json",
   postDeliveryReconciliationPath: "artifacts/post-delivery-reconciliation/latest/post-delivery-reconciliation.json",
+  deliveryCloseoutQueuePath: "artifacts/delivery-closeout/latest/delivery-closeout-queue.json",
   lawFirmLddSummaryPath: "artifacts/law-firm-ldd-slice/latest/summary.json",
   personalDevSummaryPath: "artifacts/personal-dev-slice/latest/summary.json",
   creativeDocumentSummaryPath: "artifacts/creative-document-slice/latest/summary.json",
@@ -98,6 +99,11 @@ const SOURCE_DEFINITIONS = [
     option: "postDeliveryReconciliationPath",
     source_id: "post_delivery_reconciliation",
     label: "Post-Delivery Reconciliation",
+  },
+  {
+    option: "deliveryCloseoutQueuePath",
+    source_id: "delivery_closeout_queue",
+    label: "Delivery Closeout Queue",
   },
   {
     option: "lawFirmLddSummaryPath",
@@ -318,6 +324,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "delivery_execution_draft") return data.summary ?? {};
   if (sourceId === "delivery_receipt_ledger") return data.summary ?? {};
   if (sourceId === "post_delivery_reconciliation") return data.summary ?? {};
+  if (sourceId === "delivery_closeout_queue") return data.summary ?? {};
   if (sourceId === "law_firm_ldd_slice") {
     return {
       status: data.status ?? "unknown",
@@ -369,6 +376,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDeliveryExecutionDraftStage(artifacts.delivery_execution_draft, sourceById.get("delivery_execution_draft")),
     buildDeliveryReceiptLedgerStage(artifacts.delivery_receipt_ledger, sourceById.get("delivery_receipt_ledger")),
     buildPostDeliveryReconciliationStage(artifacts.post_delivery_reconciliation, sourceById.get("post_delivery_reconciliation")),
+    buildDeliveryCloseoutQueueStage(artifacts.delivery_closeout_queue, sourceById.get("delivery_closeout_queue")),
     buildLawFirmLddStage(artifacts.law_firm_ldd_slice, sourceById.get("law_firm_ldd_slice")),
     buildPersonalDevStage(artifacts.personal_dev_slice, sourceById.get("personal_dev_slice")),
     buildCreativeDocumentStage(artifacts.creative_document_slice, sourceById.get("creative_document_slice")),
@@ -744,6 +752,30 @@ function buildPostDeliveryReconciliationStage(reconciliation, source) {
   };
 }
 
+function buildDeliveryCloseoutQueueStage(queue, source) {
+  if (!queue) return missingStage("delivery_closeout_queue", "Delivery Closeout Queue", source);
+  const summary = queue.summary ?? {};
+  const blocked = summary.blocked_closeout_count ?? 0;
+  const awaiting = summary.awaiting_execution_count ?? 0;
+  const items = summary.closeout_item_count ?? 0;
+  const status = blocked > 0 ? "attention" : awaiting > 0 ? "pending" : "passed";
+  return {
+    stage_id: "delivery_closeout_queue",
+    label: "Delivery Closeout Queue",
+    status,
+    message: `${items} closeout item(s), ${awaiting} awaiting manual execution, ${blocked} blocked.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      closeout_item_count: items,
+      awaiting_execution_count: awaiting,
+      blocked_closeout_count: blocked,
+      receipt_form_count: summary.receipt_form_count ?? 0,
+      high_priority_count: summary.high_priority_count ?? 0,
+      artifact_count: summary.artifact_count ?? 0,
+    },
+  };
+}
+
 function buildLawFirmLddStage(summary, source) {
   if (!summary) return missingStage("law_firm_ldd_slice", "Law Firm LDD Slice", source);
   const status = summary.status === "blocked" ? "blocked" : summary.status === "completed" ? "passed" : summary.status ?? "attention";
@@ -1049,7 +1081,9 @@ function buildActionItems(artifacts) {
     });
   }
 
+  const closeoutPacketIds = new Set((artifacts.delivery_closeout_queue?.closeout_items ?? []).map((item) => item.packet_id));
   for (const pending of artifacts.delivery_receipt_ledger?.pending_receipts ?? []) {
+    if (closeoutPacketIds.has(pending.packet_id)) continue;
     items.push({
       action_item_id: `dashboard.action.delivery_receipt.${slugify(pending.packet_id)}`,
       source_stage: "delivery_receipt_ledger",
@@ -1083,9 +1117,27 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const item of artifacts.delivery_closeout_queue?.closeout_items ?? []) {
+    items.push({
+      action_item_id: `dashboard.action.delivery_closeout.${slugify(item.closeout_item_id)}`,
+      source_stage: "delivery_closeout_queue",
+      priority: item.priority,
+      status: item.status,
+      title: `Execute delivery closeout: ${item.delivery_target}`,
+      subject_ref: {
+        subject_type: "delivery_closeout_item",
+        subject_id: item.closeout_item_id,
+      },
+      reason: `${item.reason}; ${item.artifact_count} artifact(s) need manual closeout and receipt recording.`,
+      recommended_actions: item.closeout_checklist ?? [],
+      source_ref: item.packet_id,
+    });
+  }
+
   const ledgerPendingPacketIds = new Set((artifacts.delivery_receipt_ledger?.pending_receipts ?? []).map((pending) => pending.packet_id));
   for (const pending of artifacts.post_delivery_reconciliation?.outstanding_receipts ?? []) {
     if (ledgerPendingPacketIds.has(pending.packet_id)) continue;
+    if (closeoutPacketIds.has(pending.packet_id)) continue;
     items.push({
       action_item_id: `dashboard.action.post_delivery_receipt.${slugify(pending.packet_id)}`,
       source_stage: "post_delivery_reconciliation",
@@ -1172,6 +1224,9 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     post_delivery_delivered_matter_count: artifacts.post_delivery_reconciliation?.summary?.delivered_matter_count ?? 0,
     post_delivery_ready_matter_count: artifacts.post_delivery_reconciliation?.summary?.ready_matter_count ?? 0,
     post_delivery_outstanding_receipt_count: artifacts.post_delivery_reconciliation?.summary?.outstanding_receipt_count ?? 0,
+    delivery_closeout_item_count: artifacts.delivery_closeout_queue?.summary?.closeout_item_count ?? 0,
+    delivery_closeout_awaiting_count: artifacts.delivery_closeout_queue?.summary?.awaiting_execution_count ?? 0,
+    delivery_closeout_blocked_count: artifacts.delivery_closeout_queue?.summary?.blocked_closeout_count ?? 0,
     matter_count: artifacts.matter_cockpit?.summary?.matter_count ?? 0,
     blocked_matter_count: artifacts.matter_cockpit?.summary?.blocked_matter_count ?? 0,
     pending_review_matter_count: artifacts.matter_cockpit?.summary?.pending_review_matter_count ?? 0,
@@ -1260,6 +1315,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Execution Packets", dashboard.summary.delivery_execution_packet_count)}
       ${stat("Receipts", dashboard.summary.delivery_receipt_applied_count)}
       ${stat("Post Delivery", dashboard.summary.post_delivery_delivered_artifact_count)}
+      ${stat("Closeout", dashboard.summary.delivery_closeout_item_count)}
       ${stat("Runs", dashboard.summary.observability_run_count)}
       ${stat("Blocking Gates", dashboard.summary.blocking_gate_count)}
       ${stat("Action Items", dashboard.summary.action_item_count)}
@@ -1312,6 +1368,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Post-delivery delivered artifacts: ${dashboard.summary.post_delivery_delivered_artifact_count ?? 0}`);
   lines.push(`- Post-delivery delivered matters: ${dashboard.summary.post_delivery_delivered_matter_count ?? 0}`);
   lines.push(`- Post-delivery outstanding receipts: ${dashboard.summary.post_delivery_outstanding_receipt_count ?? 0}`);
+  lines.push(`- Delivery closeout items: ${dashboard.summary.delivery_closeout_item_count ?? 0}`);
+  lines.push(`- Delivery closeout awaiting execution: ${dashboard.summary.delivery_closeout_awaiting_count ?? 0}`);
   lines.push(`- Observability runs: ${dashboard.summary.observability_run_count ?? 0}`);
   lines.push(`- Observability events: ${dashboard.summary.observability_event_count ?? 0}`);
   lines.push(`- Runtime seconds: ${dashboard.summary.observability_runtime_seconds ?? 0}`);
@@ -1423,6 +1481,8 @@ function parseArgs(argv) {
     else if (arg === "--no-delivery-receipts") parsed.deliveryReceiptLedgerPath = false;
     else if (arg === "--post-delivery-reconciliation") parsed.postDeliveryReconciliationPath = argv[++index];
     else if (arg === "--no-post-delivery-reconciliation") parsed.postDeliveryReconciliationPath = false;
+    else if (arg === "--delivery-closeout") parsed.deliveryCloseoutQueuePath = argv[++index];
+    else if (arg === "--no-delivery-closeout") parsed.deliveryCloseoutQueuePath = false;
     else if (arg === "--law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = argv[++index];
     else if (arg === "--no-law-firm-ldd-summary") parsed.lawFirmLddSummaryPath = false;
     else if (arg === "--personal-dev-summary") parsed.personalDevSummaryPath = argv[++index];
@@ -1467,6 +1527,8 @@ Options:
                                   post-delivery-reconciliation.json path.
   --no-post-delivery-reconciliation
                                   Do not include Post-Delivery Reconciliation status.
+  --delivery-closeout <path>      delivery-closeout-queue.json path.
+  --no-delivery-closeout          Do not include Delivery Closeout Queue status.
   --law-firm-ldd-summary <path>  Law Firm LDD summary.json path.
   --no-law-firm-ldd-summary      Do not include Law Firm LDD slice status.
   --personal-dev-summary <path>  personal-dev summary.json path.

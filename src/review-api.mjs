@@ -289,6 +289,28 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/delivery-closeout-items") {
+    const closeoutResult = await readDashboardSourceArtifact(dashboard, "delivery_closeout_queue");
+    if (!closeoutResult.available) {
+      return jsonResponse(503, buildError("delivery_closeout_queue_unavailable", closeoutResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_closeout_items", closeoutResult.artifact.closeout_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/receipt-input-drafts") {
+    const closeoutResult = await readDashboardSourceArtifact(dashboard, "delivery_closeout_queue");
+    if (!closeoutResult.available) {
+      return jsonResponse(503, buildError("delivery_closeout_queue_unavailable", closeoutResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("receipt_input_drafts", closeoutResult.artifact.receipt_input_draft?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
 
   return jsonResponse(404, buildError("not_found", `Unknown Review API route: ${pathname}`), method);
 }
@@ -310,7 +332,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -345,6 +367,8 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/post-delivery-matters", "Post-delivery matter reconciliation records"),
       route("GET", "/api/delivered-artifacts", "Delivered output artifacts after receipt reconciliation"),
       route("GET", "/api/outstanding-receipts", "Outstanding delivery receipts after reconciliation"),
+      route("GET", "/api/delivery-closeout-items", "Manual delivery closeout queue"),
+      route("GET", "/api/receipt-input-drafts", "Receipt input draft rows for closeout items"),
       route("GET", "/summary.md", "Markdown summary"),
     ],
   };
@@ -418,6 +442,8 @@ function filterItems(items, searchParams) {
     "receipt_id",
     "receipt_status",
     "executed_by",
+    "closeout_item_id",
+    "primary_domain_pack",
     "enabled",
     "valid",
   ];

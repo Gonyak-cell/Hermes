@@ -1,0 +1,169 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/delivery-closeout-queue.schema.json",
+  "title": "Hermes Delivery Closeout Queue",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "closeout_queue_id",
+    "summary",
+    "sources",
+    "closeout_items",
+    "receipt_input_draft"
+  ],
+  "properties": {
+    "schema_version": { "const": "delivery-closeout-queue.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "closeout_queue_id": { "type": "string" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "post_delivery_available",
+        "execution_draft_available",
+        "receipt_template_available",
+        "output_catalog_available",
+        "closeout_item_count",
+        "awaiting_execution_count",
+        "blocked_closeout_count",
+        "high_priority_count",
+        "artifact_count",
+        "receipt_form_count",
+        "law_firm_count",
+        "personal_dev_count",
+        "creative_document_count",
+        "by_status",
+        "by_delivery_channel",
+        "by_delivery_target",
+        "by_primary_domain_pack"
+      ],
+      "properties": {
+        "post_delivery_available": { "type": "boolean" },
+        "execution_draft_available": { "type": "boolean" },
+        "receipt_template_available": { "type": "boolean" },
+        "output_catalog_available": { "type": "boolean" },
+        "closeout_item_count": { "type": "integer", "minimum": 0 },
+        "awaiting_execution_count": { "type": "integer", "minimum": 0 },
+        "blocked_closeout_count": { "type": "integer", "minimum": 0 },
+        "high_priority_count": { "type": "integer", "minimum": 0 },
+        "artifact_count": { "type": "integer", "minimum": 0 },
+        "receipt_form_count": { "type": "integer", "minimum": 0 },
+        "law_firm_count": { "type": "integer", "minimum": 0 },
+        "personal_dev_count": { "type": "integer", "minimum": 0 },
+        "creative_document_count": { "type": "integer", "minimum": 0 },
+        "by_status": { "type": "object" },
+        "by_delivery_channel": { "type": "object" },
+        "by_delivery_target": { "type": "object" },
+        "by_primary_domain_pack": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+        "properties": {
+          "source_id": { "type": "string" },
+          "label": { "type": "string" },
+          "path": { "type": ["string", "null"] },
+          "available": { "type": "boolean" },
+          "schema_version": { "type": ["string", "null"] },
+          "generated_at": { "type": ["string", "null"], "format": "date-time" },
+          "summary": { "type": ["object", "null"] },
+          "error": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "closeout_items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "closeout_item_id",
+          "packet_id",
+          "tenant_id",
+          "matter_id",
+          "delivery_channel",
+          "delivery_target",
+          "priority",
+          "status",
+          "reason",
+          "protected_action",
+          "requires_manual_execution",
+          "auto_execute",
+          "candidate_count",
+          "artifact_count",
+          "artifact_ids",
+          "domain_packs",
+          "primary_domain_pack",
+          "execution_candidate_ids",
+          "final_check_required",
+          "receipt_template_available",
+          "execution_packet_available",
+          "artifacts",
+          "execution_candidates",
+          "closeout_checklist",
+          "receipt_form_draft",
+          "next_commands",
+          "created_at"
+        ],
+        "properties": {
+          "closeout_item_id": { "type": "string" },
+          "packet_id": { "type": "string" },
+          "tenant_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "delivery_channel": { "type": "string" },
+          "delivery_target": { "type": "string" },
+          "priority": { "enum": ["critical", "high", "medium", "low"] },
+          "status": {
+            "enum": [
+              "awaiting_manual_execution",
+              "blocked_receipt_error",
+              "blocked_missing_execution_packet",
+              "blocked_missing_receipt_template"
+            ]
+          },
+          "reason": { "type": "string" },
+          "protected_action": { "const": true },
+          "requires_manual_execution": { "const": true },
+          "auto_execute": { "const": false },
+          "candidate_count": { "type": "integer", "minimum": 0 },
+          "artifact_count": { "type": "integer", "minimum": 0 },
+          "artifact_ids": { "type": "array", "items": { "type": "string" } },
+          "domain_packs": { "type": "array", "items": { "type": "string" } },
+          "primary_domain_pack": { "type": "string" },
+          "execution_candidate_ids": { "type": "array", "items": { "type": "string" } },
+          "final_check_required": { "type": "boolean" },
+          "receipt_template_available": { "type": "boolean" },
+          "execution_packet_available": { "type": "boolean" },
+          "artifacts": {
+            "type": "array",
+            "items": { "type": "object" }
+          },
+          "execution_candidates": {
+            "type": "array",
+            "items": { "type": "object" }
+          },
+          "closeout_checklist": { "type": "array", "items": { "type": "string" } },
+          "receipt_form_draft": { "type": "object" },
+          "next_commands": { "type": "array", "items": { "type": "string" } },
+          "created_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    },
+    "receipt_input_draft": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "execution_plan_id", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "delivery-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "execution_plan_id": { "type": "string" },
+        "instructions": { "type": "string" },
+        "receipts": {
+          "type": "array",
+          "items": { "type": "object" }
+        }
+      }
+    }
+  }
+}

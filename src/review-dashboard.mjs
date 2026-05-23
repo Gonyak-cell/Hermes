@@ -18,6 +18,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   tokenUsageLedgerPath: "artifacts/token-usage/latest/token-usage-ledger.json",
   costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
+  budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
   observabilityCatalogPath: "artifacts/observability/latest/observability-catalog.json",
@@ -123,6 +124,11 @@ const SOURCE_DEFINITIONS = [
     option: "costAttributionLedgerPath",
     source_id: "cost_attribution_ledger",
     label: "Cost Attribution Ledger",
+  },
+  {
+    option: "budgetAlertLedgerPath",
+    source_id: "budget_alert_ledger",
+    label: "Budget Alert Ledger",
   },
   {
     option: "domainPackRegistryPath",
@@ -410,6 +416,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "token_usage_ledger") return data.summary ?? {};
   if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
+  if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
       valid: data.validation?.valid ?? false,
@@ -544,6 +551,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildTokenUsageLedgerStage(artifacts.token_usage_ledger, sourceById.get("token_usage_ledger")),
     buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
+    buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
     buildObservabilityCatalogStage(artifacts.observability_catalog, sourceById.get("observability_catalog")),
@@ -969,6 +977,43 @@ function buildCostAttributionLedgerStage(ledger, source) {
       total_projected_usd: summary.total_projected_usd ?? 0,
       total_budget_remaining_usd: summary.total_budget_remaining_usd ?? 0,
       total_token_count: summary.total_token_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildBudgetAlertLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("budget_alert_ledger", "Budget Alert Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const critical = summary.critical_count ?? 0;
+  const warnings = summary.warning_count ?? 0;
+  const unbudgeted = summary.unbudgeted_count ?? 0;
+  const activeAlerts = summary.active_alert_count ?? 0;
+  const status = ledger.ledger_status !== "valid" || errorCount > 0 || critical > 0 || unbudgeted > 0
+    ? "blocked"
+    : warnings > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "budget_alert_ledger",
+    label: "Budget Alert Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.alert_record_count ?? 0} budget alert record(s), no active alerts.`
+      : `${activeAlerts} active alert(s), ${critical} critical, ${warnings} warning, ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: ledger.ledger_status ?? "unknown",
+      alert_record_count: summary.alert_record_count ?? 0,
+      clear_count: summary.clear_count ?? 0,
+      warning_count: warnings,
+      critical_count: critical,
+      unbudgeted_count: unbudgeted,
+      active_alert_count: activeAlerts,
+      human_required_count: summary.human_required_count ?? 0,
+      total_projected_usd: summary.total_projected_usd ?? 0,
+      total_budget_remaining_usd: summary.total_budget_remaining_usd ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -1943,6 +1988,44 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.budget_alert_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "budget_alert_ledger";
+    items.push({
+      action_item_id: `dashboard.action.budget_alert_ledger.${slugify(subjectId)}`,
+      source_stage: "budget_alert_ledger",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix budget alert validation",
+      subject_ref: {
+        subject_type: "budget_alert_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["review_budget_alert", "adjust_budget_thresholds", "rerun_budget_alerts"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const record of artifacts.budget_alert_ledger?.alert_records ?? []) {
+    if (!["warning", "critical", "unbudgeted"].includes(record.alert_status)) continue;
+    items.push({
+      action_item_id: `dashboard.action.budget_alert_record.${slugify(record.alert_record_id)}`,
+      source_stage: "budget_alert_ledger",
+      priority: record.alert_status === "warning" ? "high" : "critical",
+      status: "needs_review",
+      title: "Review budget alert",
+      subject_ref: {
+        subject_type: "budget_alert_record",
+        subject_id: record.alert_record_id,
+      },
+      reason: `${record.alert_status} budget alert for ${record.capability_id}: projected $${record.projected_usd}, remaining $${record.budget_remaining_usd ?? "n/a"}.`,
+      recommended_actions: record.recommended_actions?.length > 0
+        ? record.recommended_actions
+        : ["review_budget_alert", "adjust_budget_thresholds", "rerun_budget_alerts"],
+      source_ref: record.alert_record_id,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -2422,6 +2505,16 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     cost_attribution_total_projected_usd: artifacts.cost_attribution_ledger?.summary?.total_projected_usd ?? 0,
     cost_attribution_total_remaining_usd: artifacts.cost_attribution_ledger?.summary?.total_budget_remaining_usd ?? 0,
     cost_attribution_validation_error_count: artifacts.cost_attribution_ledger?.summary?.validation_error_count ?? artifacts.cost_attribution_ledger?.validation?.errors?.length ?? 0,
+    budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
+    budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
+    budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
+    budget_alert_critical_count: artifacts.budget_alert_ledger?.summary?.critical_count ?? 0,
+    budget_alert_unbudgeted_count: artifacts.budget_alert_ledger?.summary?.unbudgeted_count ?? 0,
+    budget_alert_active_count: artifacts.budget_alert_ledger?.summary?.active_alert_count ?? 0,
+    budget_alert_human_required_count: artifacts.budget_alert_ledger?.summary?.human_required_count ?? 0,
+    budget_alert_total_projected_usd: artifacts.budget_alert_ledger?.summary?.total_projected_usd ?? 0,
+    budget_alert_total_remaining_usd: artifacts.budget_alert_ledger?.summary?.total_budget_remaining_usd ?? 0,
+    budget_alert_validation_error_count: artifacts.budget_alert_ledger?.summary?.validation_error_count ?? artifacts.budget_alert_ledger?.validation?.errors?.length ?? 0,
     domain_pack_count: artifacts.domain_pack_registry?.summary?.pack_count ?? 0,
     domain_pack_capability_count: artifacts.domain_pack_registry?.summary?.capability_count ?? 0,
     invalid_domain_pack_count: artifacts.domain_pack_registry?.summary?.invalid_pack_count ?? 0,
@@ -2631,6 +2724,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Cost Budgets", dashboard.summary.cost_budget_decision_count)}
       ${stat("Token Usage", dashboard.summary.token_usage_record_count)}
       ${stat("Cost Attribution", dashboard.summary.cost_attribution_record_count)}
+      ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
       ${stat("Delivery", dashboard.summary.delivery_action_count)}
@@ -2721,6 +2815,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Cost attribution records: ${dashboard.summary.cost_attribution_record_count ?? 0}`);
   lines.push(`- Cost attribution projected USD: ${dashboard.summary.cost_attribution_total_projected_usd ?? 0}`);
   lines.push(`- Cost attribution remaining USD: ${dashboard.summary.cost_attribution_total_remaining_usd ?? 0}`);
+  lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
+  lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
+  lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
   lines.push(`- Domain packs: ${dashboard.summary.domain_pack_count ?? 0}`);
   lines.push(`- Domain pack capabilities: ${dashboard.summary.domain_pack_capability_count ?? 0}`);
   lines.push(`- Output artifacts: ${dashboard.summary.output_artifact_count ?? 0}`);
@@ -2899,6 +2996,8 @@ function parseArgs(argv) {
     else if (arg === "--no-token-usage-ledger") parsed.tokenUsageLedgerPath = false;
     else if (arg === "--cost-attribution-ledger") parsed.costAttributionLedgerPath = argv[++index];
     else if (arg === "--no-cost-attribution-ledger") parsed.costAttributionLedgerPath = false;
+    else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
+    else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
     else if (arg === "--no-domain-pack-registry") parsed.domainPackRegistryPath = false;
     else if (arg === "--output-catalog") parsed.outputArtifactCatalogPath = argv[++index];
@@ -2993,6 +3092,8 @@ Options:
   --cost-attribution-ledger <path>
                                   cost-attribution-ledger.json path.
   --no-cost-attribution-ledger   Do not include Cost Attribution Ledger status.
+  --budget-alert-ledger <path>   budget-alert-ledger.json path.
+  --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.
   --no-domain-pack-registry      Do not include Domain Pack Registry status.
   --output-catalog <path>        output-catalog.json path.

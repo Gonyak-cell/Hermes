@@ -18,6 +18,7 @@ npm run control-plane:loop
 - `npm run cost:budgets`
 - `npm run token:usage`
 - `npm run cost:attribution`
+- `npm run budget:alerts`
 - `npm run dashboard:build`
 - `npm run control-plane:health`
 - `npm run control-plane:plan`

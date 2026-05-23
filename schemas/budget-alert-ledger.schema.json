@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/budget-alert-ledger.schema.json",
+  "title": "Hermes Budget Alert Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_id",
+    "output_dir",
+    "cost_attribution_ledger_path",
+    "warning_threshold",
+    "critical_threshold",
+    "ledger_status",
+    "summary",
+    "sources",
+    "alert_records",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "budget-alert-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "cost_attribution_ledger_path": { "type": "string" },
+    "warning_threshold": { "type": "number", "minimum": 0 },
+    "critical_threshold": { "type": "number", "minimum": 0 },
+    "ledger_status": { "enum": ["valid", "blocked"] },
+    "summary": {
+      "type": "object",
+      "required": [
+        "alert_record_count",
+        "clear_count",
+        "warning_count",
+        "critical_count",
+        "unbudgeted_count",
+        "active_alert_count",
+        "human_required_count",
+        "total_projected_usd",
+        "total_budget_remaining_usd",
+        "validation_error_count",
+        "by_alert_status",
+        "by_runtime_id",
+        "by_capability_id",
+        "by_matter_id"
+      ],
+      "properties": {
+        "alert_record_count": { "type": "integer", "minimum": 0 },
+        "clear_count": { "type": "integer", "minimum": 0 },
+        "warning_count": { "type": "integer", "minimum": 0 },
+        "critical_count": { "type": "integer", "minimum": 0 },
+        "unbudgeted_count": { "type": "integer", "minimum": 0 },
+        "active_alert_count": { "type": "integer", "minimum": 0 },
+        "human_required_count": { "type": "integer", "minimum": 0 },
+        "total_projected_usd": { "type": "number" },
+        "total_budget_remaining_usd": { "type": "number" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_alert_status": { "type": "object" },
+        "by_runtime_id": { "type": "object" },
+        "by_capability_id": { "type": "object" },
+        "by_matter_id": { "type": "object" }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "alert_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/alert_record" }
+    },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "alert_record": {
+      "type": "object",
+      "required": [
+        "alert_record_id",
+        "attribution_id",
+        "budget_decision_id",
+        "token_usage_id",
+        "routing_decision_id",
+        "workflow_run_id",
+        "agent_run_id",
+        "runtime_id",
+        "capability_id",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "alert_status",
+        "alert_reasons",
+        "max_usd",
+        "projected_usd",
+        "budget_remaining_usd",
+        "budget_usage_ratio",
+        "warning_threshold",
+        "critical_threshold",
+        "over_budget",
+        "untracked_cost",
+        "requires_human",
+        "recommended_actions",
+        "audit_required",
+        "alert_hash",
+        "metadata"
+      ],
+      "properties": {
+        "alert_record_id": { "type": "string" },
+        "attribution_id": { "type": "string" },
+        "budget_decision_id": { "type": "string" },
+        "token_usage_id": { "type": ["string", "null"] },
+        "routing_decision_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "alert_status": { "enum": ["clear", "warning", "critical", "unbudgeted"] },
+        "alert_reasons": { "type": "array", "items": { "type": "string" } },
+        "max_usd": { "type": ["number", "null"], "minimum": 0 },
+        "projected_usd": { "type": "number", "minimum": 0 },
+        "budget_remaining_usd": { "type": ["number", "null"] },
+        "budget_usage_ratio": { "type": ["number", "null"], "minimum": 0 },
+        "warning_threshold": { "type": "number", "minimum": 0 },
+        "critical_threshold": { "type": "number", "minimum": 0 },
+        "over_budget": { "type": "boolean" },
+        "untracked_cost": { "type": "boolean" },
+        "requires_human": { "type": "boolean" },
+        "recommended_actions": { "type": "array", "items": { "type": "string" } },
+        "audit_required": { "type": "boolean" },
+        "alert_hash": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

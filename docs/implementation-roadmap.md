@@ -1412,3 +1412,33 @@
 - `/api/cost-attribution-records?runtime_id=codex`로 Codex runtime cost attribution을 조회할 수 있음
 - Dashboard summary가 attribution record, projected USD, budget remaining, over-budget, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run cost:attribution`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 55: Budget Alert Ledger
+
+목표: Cost Attribution Ledger의 projected cost와 budget remaining을 기준으로 warning/critical/unbudgeted 예산 경보를 정규화하고, Dashboard/API/Control Plane Loop가 바로 확인할 수 있게 한다.
+
+- cost attribution record마다 budget alert record 생성
+- 기본 warning threshold 80%, critical threshold 100%로 예산 사용률 계산
+- critical 또는 unbudgeted alert는 validation error와 blocked stage로 기록
+- warning alert는 pending stage와 action queue review 항목으로 기록
+- Review Dashboard에 `budget_alert_ledger` stage와 active/critical/unbudgeted summary 추가
+- Review API에서 `/api/budget-alert-ledgers`, `/api/budget-alert-records` route 제공
+- Control Plane Pipeline과 Loop에 `npm run budget:alerts` 포함
+- Goal Checkpoint에서 Budget Alert Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run budget:alerts`
+- `src/budget-alert-ledger.mjs`
+- `schemas/budget-alert-ledger.schema.json`
+- `docs/budget-alert-ledger.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- budget alert ledger artifact가 schema validation을 통과함
+- `/api/budget-alert-records?alert_status=clear`로 정상 budget alert record를 조회할 수 있음
+- `/api/budget-alert-records?runtime_id=codex`로 Codex runtime budget alert를 조회할 수 있음
+- Dashboard summary가 alert record, active/critical/unbudgeted alert, human required, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run budget:alerts`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

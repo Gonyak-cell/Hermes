@@ -13,6 +13,7 @@ export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("cost_budget_ledger", "Cost Budget Ledger", "gate", ["npm", "run", "cost:budgets"], ["artifacts/cost-budget/latest/cost-budget-ledger.json"]),
   step("token_usage_ledger", "Token Usage Ledger", "observability", ["npm", "run", "token:usage"], ["artifacts/token-usage/latest/token-usage-ledger.json"]),
   step("cost_attribution_ledger", "Cost Attribution Ledger", "observability", ["npm", "run", "cost:attribution"], ["artifacts/cost-attribution/latest/cost-attribution-ledger.json"]),
+  step("budget_alert_ledger", "Budget Alert Ledger", "observability", ["npm", "run", "budget:alerts"], ["artifacts/budget-alerts/latest/budget-alert-ledger.json"]),
   step("dashboard_pre_health", "Dashboard Pre-Health", "dashboard", ["npm", "run", "dashboard:build"], ["artifacts/dashboard/latest/review-dashboard.json"]),
   step("control_plane_health", "Control Plane Health", "health", ["npm", "run", "control-plane:health"], ["artifacts/control-plane-health/latest/control-plane-health.json"]),
   step("control_plane_action_plan", "Control Plane Action Plan", "planning", ["npm", "run", "control-plane:plan"], ["artifacts/control-plane-action-plan/latest/control-plane-action-plan.json"]),

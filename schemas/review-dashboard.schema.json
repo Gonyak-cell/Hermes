@@ -115,6 +115,16 @@
         "cost_attribution_total_projected_usd",
         "cost_attribution_total_remaining_usd",
         "cost_attribution_validation_error_count",
+        "budget_alert_record_count",
+        "budget_alert_clear_count",
+        "budget_alert_warning_count",
+        "budget_alert_critical_count",
+        "budget_alert_unbudgeted_count",
+        "budget_alert_active_count",
+        "budget_alert_human_required_count",
+        "budget_alert_total_projected_usd",
+        "budget_alert_total_remaining_usd",
+        "budget_alert_validation_error_count",
         "domain_pack_count",
         "domain_pack_capability_count",
         "invalid_domain_pack_count",
@@ -610,6 +620,44 @@
           "type": "number"
         },
         "cost_attribution_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_clear_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_warning_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_critical_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_unbudgeted_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_active_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_human_required_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "budget_alert_total_projected_usd": {
+          "type": "number"
+        },
+        "budget_alert_total_remaining_usd": {
+          "type": "number"
+        },
+        "budget_alert_validation_error_count": {
           "type": "integer",
           "minimum": 0
         },

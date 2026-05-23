@@ -20,6 +20,7 @@ import { runControlPlaneWorkPacketReceiptValidation } from "../src/control-plane
 import { runControlPlaneWorkPackets } from "../src/control-plane-work-packets.mjs";
 import { runContextPacketLedger } from "../src/context-packet-ledger.mjs";
 import { runCostAttributionLedger } from "../src/cost-attribution-ledger.mjs";
+import { runBudgetAlertLedger } from "../src/budget-alert-ledger.mjs";
 import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
 import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
@@ -591,6 +592,24 @@ describe("matter harness", () => {
       assert.ok(costAttributionLedger.rollups.by_runtime_id.some((rollup) => rollup.key === "codex"));
       assert.match(await readFile(path.join(outDir, "cost-attribution", "summary.md"), "utf8"), /Cost Attribution Ledger/);
 
+      const budgetAlertLedger = await runBudgetAlertLedger({
+        costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
+        outDir: path.join(outDir, "budget-alerts"),
+        runAt: "2026-05-23T06:34:54.950Z",
+      });
+      const budgetAlertLedgerSchema = JSON.parse(await readFile("schemas/budget-alert-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(budgetAlertLedger, budgetAlertLedgerSchema, {}, "budget_alert_ledger"), []);
+      assert.equal(budgetAlertLedger.ledger_status, "valid");
+      assert.equal(budgetAlertLedger.summary.alert_record_count, costAttributionLedger.summary.attribution_record_count);
+      assert.equal(budgetAlertLedger.summary.clear_count, budgetAlertLedger.summary.alert_record_count);
+      assert.equal(budgetAlertLedger.summary.active_alert_count, 0);
+      assert.equal(budgetAlertLedger.summary.critical_count, 0);
+      assert.equal(budgetAlertLedger.summary.validation_error_count, 0);
+      assert.ok(budgetAlertLedger.alert_records.some((record) => (
+        record.runtime_id === "codex" && record.alert_status === "clear"
+      )));
+      assert.match(await readFile(path.join(outDir, "budget-alerts", "summary.md"), "utf8"), /Budget Alert Ledger/);
+
       const deliveryQueue = await runProtectedDeliveryQueue({
         outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -916,6 +935,7 @@ describe("matter harness", () => {
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
         tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
         costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
+        budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
@@ -1282,6 +1302,10 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.cost_attribution_total_projected_usd, costAttributionLedger.summary.total_projected_usd);
       assert.equal(dashboard.summary.cost_attribution_total_remaining_usd, costAttributionLedger.summary.total_budget_remaining_usd);
       assert.equal(dashboard.summary.cost_attribution_validation_error_count, 0);
+      assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
+      assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
+      assert.equal(dashboard.summary.budget_alert_active_count, 0);
+      assert.equal(dashboard.summary.budget_alert_validation_error_count, 0);
       assert.equal(dashboard.summary.context_validation_error_count, 0);
       assert.equal(dashboard.summary.domain_pack_count, 4);
       assert.equal(dashboard.summary.domain_pack_capability_count, 4);
@@ -1386,6 +1410,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
       assert.equal(dashboard.summary.creative_slide_count, 5);
@@ -1464,6 +1489,8 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-attribution-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-attribution-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/budget-alert-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/packs"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/capabilities"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifacts"));
@@ -1649,6 +1676,19 @@ describe("matter harness", () => {
       assert.equal(codexCostAttribution.collection, "cost_attribution_records");
       assert.equal(codexCostAttribution.count, 1);
       assert.equal(codexCostAttribution.items[0].attribution_status, "attributed");
+
+      const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
+      assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");
+      assert.equal(budgetAlertLedgers.count, 1);
+
+      const clearBudgetAlerts = JSON.parse((await buildReviewApiResponse("/api/budget-alert-records?alert_status=clear", apiOptions)).body);
+      assert.equal(clearBudgetAlerts.collection, "budget_alert_records");
+      assert.equal(clearBudgetAlerts.count, budgetAlertLedger.summary.clear_count);
+
+      const codexBudgetAlerts = JSON.parse((await buildReviewApiResponse("/api/budget-alert-records?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexBudgetAlerts.collection, "budget_alert_records");
+      assert.equal(codexBudgetAlerts.count, 1);
+      assert.equal(codexBudgetAlerts.items[0].alert_status, "clear");
 
       const lawFirmPacks = JSON.parse((await buildReviewApiResponse("/api/packs?pack_id=law-firm", apiOptions)).body);
       assert.equal(lawFirmPacks.collection, "domain_packs");

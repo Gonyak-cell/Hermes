@@ -18,6 +18,7 @@ npm run control-plane:pipeline
 - Cost Budget Ledger
 - Token Usage Ledger
 - Cost Attribution Ledger
+- Budget Alert Ledger
 - Protected Delivery Queue
 - Matter Cockpit
 - Approval Inbox

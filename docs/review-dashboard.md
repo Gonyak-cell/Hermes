@@ -35,6 +35,7 @@ npm run dashboard:build -- \
   --cost-budget-ledger artifacts/cost-budget/latest/cost-budget-ledger.json \
   --token-usage-ledger artifacts/token-usage/latest/token-usage-ledger.json \
   --cost-attribution-ledger artifacts/cost-attribution/latest/cost-attribution-ledger.json \
+  --budget-alert-ledger artifacts/budget-alerts/latest/budget-alert-ledger.json \
   --control-plane-health artifacts/control-plane-health/latest/control-plane-health.json \
   --control-plane-action-plan artifacts/control-plane-action-plan/latest/control-plane-action-plan.json \
   --control-plane-human-gates artifacts/control-plane-human-gates/latest/control-plane-human-gates.json \
@@ -74,6 +75,7 @@ npm run dashboard:build -- \
 - Cost Budget Ledger의 capability cost policy, observed cost, token tracking 상태
 - Token Usage Ledger의 recorded/estimated token usage와 validation 상태
 - Cost Attribution Ledger의 matter/runtime/capability별 projected cost와 budget remaining 상태
+- Budget Alert Ledger의 active, warning, critical, unbudgeted 예산 경보 상태
 - Domain Pack Registry의 pack, capability, validation 상태
 - Output Artifact Catalog의 artifact, approval, delivery readiness 상태
 - Observability Catalog의 workflow run, event, runtime cost, blocked run 상태

@@ -44,6 +44,8 @@ Dashboard는 `control_plane_human_gate_receipts` stage를 표시하고 summary�
 - `GET /api/human-gate-receipt-requirements`
 - `GET /api/human-gate-receipt-drafts`
 
+다음 검증 단계는 `npm run control-plane:human-gate-receipts:validate`가 담당한다.
+
 ## Goal 내 위치
 
 이 단계는 `/goal`의 Human Approval, Gate/Approval, Audit 원칙을 연결한다. 사람이 내린 결정이 나중에 ledger로 적용될 수 있도록 입력 계약을 먼저 만들고, 실행은 별도 검증 단계 전까지 막아둔다.

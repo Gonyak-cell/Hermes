@@ -125,6 +125,11 @@
         "human_gate_receipt_protected_count",
         "human_gate_receipt_evidence_decision_count",
         "human_gate_receipt_command_count",
+        "human_gate_receipt_validation_ready_count",
+        "human_gate_receipt_validation_pending_count",
+        "human_gate_receipt_validation_invalid_count",
+        "human_gate_receipt_validation_error_count",
+        "human_gate_receipt_validation_evidence_decision_ready_count",
         "work_packet_count",
         "work_item_count",
         "work_packet_blocked_count",
@@ -569,6 +574,26 @@
           "minimum": 0
         },
         "human_gate_receipt_command_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_receipt_validation_ready_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_receipt_validation_pending_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_receipt_validation_invalid_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_receipt_validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "human_gate_receipt_validation_evidence_decision_ready_count": {
           "type": "integer",
           "minimum": 0
         },

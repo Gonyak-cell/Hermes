@@ -1110,3 +1110,31 @@
 - evidence decision gate가 `/api/human-gate-receipt-requirements?gate_type=evidence_decision`으로 조회됨
 - Dashboard summary가 human gate receipt draft/protected/evidence decision 수를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:human-gate-receipts`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 45: Control Plane Human Gate Receipt Validation
+
+목표: 사람이 채운 Human Gate receipt를 적용하기 전에 contract와 allowed outcome 기준으로 검증합니다.
+
+- `control-plane-human-gate-receipt-drafts.v1`와 receipt input을 비교해 gate별 validation item 생성
+- pending/missing/invalid/unknown/ready 상태를 분리하고 pending은 적용 대상으로 보지 않음
+- evidence decision, protected delivery, merge review 등 gate type별 allowed outcome을 검사
+- 검증 완료 receipt만 `validated-human-gate-receipts.json`으로 분리하되 protected action은 실행하지 않음
+- Review Dashboard와 Review API에서 validation item, error, validated receipt를 조회 가능하게 함
+- Control Plane Loop에 `npm run control-plane:human-gate-receipts:validate`를 포함
+
+현재 구현:
+
+- `npm run control-plane:human-gate-receipts:validate`
+- `src/control-plane-human-gate-receipt-validation.mjs`
+- `schemas/control-plane-human-gate-receipt-validation.schema.json`
+- `docs/control-plane-human-gate-receipt-validation.md`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- 기본 pending receipt draft는 validation에서 `pending_receipts`로 남고 적용 대상이 0개임
+- 사람이 채운 valid receipt는 `ready_to_apply`로 분리됨
+- `/api/human-gate-receipt-validations?validation_status=pending_receipt`와 `/api/validated-human-gate-receipts`가 동작함
+- Dashboard summary가 human gate receipt validation ready/pending/error 수를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:human-gate-receipts:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

@@ -7,6 +7,7 @@ import path from "node:path";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
+import { runControlPlaneHumanGateReceiptValidation } from "../src/control-plane-human-gate-receipt-validation.mjs";
 import { runControlPlaneHumanGateReceipts } from "../src/control-plane-human-gate-receipts.mjs";
 import { runControlPlaneHumanGates } from "../src/control-plane-human-gates.mjs";
 import { runControlPlaneLoop, runControlPlaneLoopFinalization } from "../src/control-plane-loop.mjs";
@@ -749,6 +750,7 @@ describe("matter harness", () => {
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
         controlPlaneHumanGateReceiptsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
+        controlPlaneHumanGateReceiptValidationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
         controlPlaneWorkPacketReceiptsPath: path.join(outDir, "control-plane-work-packet-receipts", "control-plane-work-packet-receipt-drafts.json"),
         controlPlaneWorkPacketReceiptValidationPath: path.join(outDir, "control-plane-work-packet-receipt-validation", "control-plane-work-packet-receipt-validation.json"),
@@ -765,6 +767,7 @@ describe("matter harness", () => {
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         controlPlaneHumanGateReceiptsPath: false,
+        controlPlaneHumanGateReceiptValidationPath: false,
         controlPlaneWorkPacketsPath: false,
         controlPlaneWorkPacketReceiptsPath: false,
         controlPlaneWorkPacketReceiptValidationPath: false,
@@ -833,6 +836,23 @@ describe("matter harness", () => {
       assert.equal(controlPlaneHumanGateReceipts.summary.evidence_decision_receipt_count, controlPlaneHumanGates.summary.evidence_decision_count);
       assert.ok(controlPlaneHumanGateReceipts.summary.protected_receipt_count >= controlPlaneHumanGates.summary.protected_action_count);
       assert.match(await readFile(path.join(outDir, "control-plane-human-gate-receipts", "summary.md"), "utf8"), /Control Plane Human Gate Receipt Drafts/);
+
+      const controlPlaneHumanGateReceiptValidation = await runControlPlaneHumanGateReceiptValidation({
+        receiptDraftsPath: path.join(outDir, "control-plane-human-gate-receipts", "control-plane-human-gate-receipt-drafts.json"),
+        receiptInputPath: path.join(outDir, "control-plane-human-gate-receipts", "receipt-input-draft.json"),
+        outDir: path.join(outDir, "control-plane-human-gate-receipt-validation"),
+        runAt: "2026-05-23T06:35:06.050Z",
+      });
+      const controlPlaneHumanGateReceiptValidationSchema = JSON.parse(await readFile("schemas/control-plane-human-gate-receipt-validation.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(controlPlaneHumanGateReceiptValidation, controlPlaneHumanGateReceiptValidationSchema, {}, "control_plane_human_gate_receipt_validation"),
+        [],
+      );
+      assert.equal(controlPlaneHumanGateReceiptValidation.validation_status, "pending_receipts");
+      assert.equal(controlPlaneHumanGateReceiptValidation.summary.pending_receipt_count, controlPlaneHumanGateReceipts.summary.receipt_draft_count);
+      assert.equal(controlPlaneHumanGateReceiptValidation.summary.ready_to_apply_count, 0);
+      assert.equal(controlPlaneHumanGateReceiptValidation.summary.error_count, 0);
+      assert.match(await readFile(path.join(outDir, "control-plane-human-gate-receipt-validation", "summary.md"), "utf8"), /Control Plane Human Gate Receipt Validation/);
 
       const controlPlaneWorkPackets = await runControlPlaneWorkPackets({
         actionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
@@ -1057,6 +1077,9 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.human_gate_receipt_evidence_decision_count, controlPlaneHumanGateReceipts.summary.evidence_decision_receipt_count);
       assert.ok(dashboard.summary.human_gate_receipt_human_count >= 1);
       assert.ok(dashboard.summary.human_gate_receipt_protected_count >= controlPlaneHumanGates.summary.protected_action_count);
+      assert.equal(dashboard.summary.human_gate_receipt_validation_pending_count, controlPlaneHumanGateReceiptValidation.summary.pending_receipt_count);
+      assert.equal(dashboard.summary.human_gate_receipt_validation_ready_count, 0);
+      assert.equal(dashboard.summary.human_gate_receipt_validation_error_count, 0);
       assert.equal(dashboard.summary.work_packet_count, controlPlaneWorkPackets.summary.work_packet_count);
       assert.ok(dashboard.summary.work_packet_human_count >= 1);
       assert.equal(dashboard.summary.work_packet_receipt_draft_count, controlPlaneWorkPacketReceipts.summary.receipt_draft_count);
@@ -1100,6 +1123,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gates"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipts"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipt_validation"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipt_validation"));
@@ -1168,6 +1192,9 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-requirements"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-drafts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-errors"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-work-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-work-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/work-packet-receipt-requirements"));
@@ -1360,6 +1387,18 @@ describe("matter harness", () => {
       const humanGateReceiptDrafts = JSON.parse((await buildReviewApiResponse("/api/human-gate-receipt-drafts?receipt_status=pending", apiOptions)).body);
       assert.equal(humanGateReceiptDrafts.collection, "human_gate_receipt_drafts");
       assert.ok(humanGateReceiptDrafts.count >= 1);
+
+      const pendingHumanGateReceiptValidations = JSON.parse((await buildReviewApiResponse("/api/human-gate-receipt-validations?validation_status=pending_receipt", apiOptions)).body);
+      assert.equal(pendingHumanGateReceiptValidations.collection, "human_gate_receipt_validations");
+      assert.ok(pendingHumanGateReceiptValidations.count >= 1);
+
+      const humanGateReceiptErrors = JSON.parse((await buildReviewApiResponse("/api/human-gate-receipt-errors", apiOptions)).body);
+      assert.equal(humanGateReceiptErrors.collection, "human_gate_receipt_errors");
+      assert.equal(humanGateReceiptErrors.count, 0);
+
+      const validatedHumanGateReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-human-gate-receipts", apiOptions)).body);
+      assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
+      assert.equal(validatedHumanGateReceipts.count, 0);
 
       const humanWorkPackets = JSON.parse((await buildReviewApiResponse("/api/action-work-packets?requires_human=true", apiOptions)).body);
       assert.equal(humanWorkPackets.collection, "action_work_packets");
@@ -1585,6 +1624,136 @@ describe("matter harness", () => {
       assert.equal(actionPlan.plan_items[0].next_commands.length, 0);
     } finally {
       await rm(outDir, { recursive: true, force: true });
+    }
+  });
+
+  it("validates filled control plane human gate receipts", async () => {
+    const root = await mkdtemp(path.join(tmpdir(), "hermes-human-gate-validation-"));
+    try {
+      const receiptDraftsPath = path.join(root, "human-gate-receipts.json");
+      const receiptInputPath = path.join(root, "receipt-input.json");
+      await writeFile(
+        receiptDraftsPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-human-gate-receipt-drafts.v1",
+          generated_at: "2026-05-23T13:20:00.000Z",
+          receipt_draft_id: "control-plane-human-gate-receipts.test",
+          output_dir: root,
+          receipt_status: "pending_receipts",
+          sources: [],
+          summary: {
+            receipt_status: "pending_receipts",
+            human_gates_available: true,
+            source_human_gate_id: "control-plane-human-gates.test",
+            source_gate_item_count: 1,
+            receipt_requirement_count: 1,
+            receipt_draft_count: 1,
+            pending_receipt_count: 1,
+            protected_receipt_count: 0,
+            human_receipt_count: 1,
+            evidence_decision_receipt_count: 1,
+            command_receipt_count: 0,
+            required_field_count: 7,
+            by_gate_type: { evidence_decision: 1 },
+            by_source_stage: { evidence_viewer: 1 },
+          },
+          receipt_requirements: [
+            {
+              receipt_requirement_id: "human-gate-receipt-requirement.test",
+              gate_item_id: "human-gate.test",
+              source_plan_item_id: "plan-item.test",
+              source_stage: "evidence_viewer",
+              gate_type: "evidence_decision",
+              priority: "high",
+              gate_status: "waiting_for_human",
+              subject_ref: { subject_type: "evidence", subject_id: "evidence.test" },
+              requires_human: true,
+              protected_action: false,
+              required_actor: "attorney_or_owner",
+              receipt_required: false,
+              decision_required: true,
+              allowed_outcomes: ["approve_evidence", "reject_evidence", "request_reextract", "assign_matter", "defer"],
+              required_receipt_fields: ["receipt_status", "outcome", "decided_by", "decided_at", "decision_reference", "decision_notes", "reviewer", "completed_action_refs"],
+              acceptance_criteria: ["decision_reference points to the evidence review record"],
+              next_commands: [],
+              receipt_form_draft: {
+                receipt_id: "human-gate-receipt.test",
+                gate_item_id: "human-gate.test",
+                source_plan_item_id: "plan-item.test",
+                gate_type: "evidence_decision",
+                receipt_status: "pending",
+                outcome: "pending",
+                decided_by: "",
+                decided_at: "",
+                reviewer: "",
+                decision_reference: "",
+                decision_notes: "",
+                protected_action_reference: null,
+                command_result: null,
+                commands_run: [],
+                completed_action_refs: [],
+                required_receipt_fields: ["receipt_status", "outcome", "decided_by", "decided_at", "decision_reference", "decision_notes", "reviewer", "completed_action_refs"],
+                generated_at: "2026-05-23T13:20:00.000Z",
+              },
+            },
+          ],
+          receipt_input_draft: {
+            schema_version: "control-plane-human-gate-receipts-input.v1",
+            generated_at: "2026-05-23T13:20:00.000Z",
+            human_gate_id: "control-plane-human-gates.test",
+            instructions: "test",
+            receipts: [],
+          },
+        }, null, 2)}\n`,
+        "utf8",
+      );
+      await writeFile(
+        receiptInputPath,
+        `${JSON.stringify({
+          schema_version: "control-plane-human-gate-receipts-input.v1",
+          generated_at: "2026-05-23T13:21:00.000Z",
+          human_gate_id: "control-plane-human-gates.test",
+          instructions: "filled test receipt",
+          receipts: [
+            {
+              receipt_id: "human-gate-receipt.test",
+              gate_item_id: "human-gate.test",
+              source_plan_item_id: "plan-item.test",
+              gate_type: "evidence_decision",
+              receipt_status: "resolved",
+              outcome: "approve_evidence",
+              decided_by: "jws",
+              decided_at: "2026-05-23T13:21:30.000Z",
+              reviewer: "jws",
+              decision_reference: "approval-decisions.test",
+              decision_notes: "Evidence reviewed and approved.",
+              protected_action_reference: null,
+              command_result: null,
+              commands_run: [],
+              completed_action_refs: ["approval-decisions.test"],
+              required_receipt_fields: ["receipt_status", "outcome", "decided_by", "decided_at", "decision_reference", "decision_notes", "reviewer", "completed_action_refs"],
+              generated_at: "2026-05-23T13:21:00.000Z",
+            },
+          ],
+        }, null, 2)}\n`,
+        "utf8",
+      );
+
+      const validation = await runControlPlaneHumanGateReceiptValidation({
+        receiptDraftsPath,
+        receiptInputPath,
+        outDir: path.join(root, "validation"),
+        runAt: "2026-05-23T13:22:00.000Z",
+      });
+      const schema = JSON.parse(await readFile("schemas/control-plane-human-gate-receipt-validation.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(validation, schema, {}, "control_plane_human_gate_receipt_validation_ready"), []);
+      assert.equal(validation.validation_status, "ready_to_apply");
+      assert.equal(validation.summary.ready_to_apply_count, 1);
+      assert.equal(validation.summary.pending_receipt_count, 0);
+      assert.equal(validation.summary.evidence_decision_ready_count, 1);
+      assert.equal(validation.validated_receipts_to_apply.receipts[0].outcome, "approve_evidence");
+    } finally {
+      await rm(root, { recursive: true, force: true });
     }
   });
 

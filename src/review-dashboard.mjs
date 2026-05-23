@@ -29,6 +29,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
   controlPlaneHumanGatesPath: "artifacts/control-plane-human-gates/latest/control-plane-human-gates.json",
   controlPlaneHumanGateReceiptsPath: "artifacts/control-plane-human-gate-receipts/latest/control-plane-human-gate-receipt-drafts.json",
+  controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
   controlPlaneWorkPacketReceiptsPath: "artifacts/control-plane-work-packet-receipts/latest/control-plane-work-packet-receipt-drafts.json",
   controlPlaneWorkPacketReceiptValidationPath: "artifacts/control-plane-work-packet-receipt-validation/latest/control-plane-work-packet-receipt-validation.json",
@@ -168,6 +169,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneHumanGateReceiptsPath",
     source_id: "control_plane_human_gate_receipts",
     label: "Control Plane Human Gate Receipts",
+  },
+  {
+    option: "controlPlaneHumanGateReceiptValidationPath",
+    source_id: "control_plane_human_gate_receipt_validation",
+    label: "Control Plane Human Gate Receipt Validation",
   },
   {
     option: "controlPlaneWorkPacketsPath",
@@ -419,6 +425,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
   if (sourceId === "control_plane_human_gates") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipts") return data.summary ?? {};
+  if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
   if (sourceId === "control_plane_work_packet_receipts") return data.summary ?? {};
   if (sourceId === "control_plane_work_packet_receipt_validation") return data.summary ?? {};
@@ -485,6 +492,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
     buildControlPlaneHumanGatesStage(artifacts.control_plane_human_gates, sourceById.get("control_plane_human_gates")),
     buildControlPlaneHumanGateReceiptsStage(artifacts.control_plane_human_gate_receipts, sourceById.get("control_plane_human_gate_receipts")),
+    buildControlPlaneHumanGateReceiptValidationStage(artifacts.control_plane_human_gate_receipt_validation, sourceById.get("control_plane_human_gate_receipt_validation")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
     buildControlPlaneWorkPacketReceiptValidationStage(artifacts.control_plane_work_packet_receipt_validation, sourceById.get("control_plane_work_packet_receipt_validation")),
@@ -1162,6 +1170,41 @@ function buildControlPlaneHumanGateReceiptsStage(receipts, source) {
       protected_receipt_count: summary.protected_receipt_count ?? 0,
       evidence_decision_receipt_count: summary.evidence_decision_receipt_count ?? 0,
       command_receipt_count: summary.command_receipt_count ?? 0,
+    },
+  };
+}
+
+function buildControlPlaneHumanGateReceiptValidationStage(validation, source) {
+  if (!validation) return missingStage("control_plane_human_gate_receipt_validation", "Control Plane Human Gate Receipt Validation", source);
+  const summary = validation.summary ?? {};
+  const errors = summary.error_count ?? 0;
+  const invalid = summary.invalid_receipt_count ?? 0;
+  const pending = summary.pending_receipt_count ?? 0;
+  const missing = summary.missing_receipt_count ?? 0;
+  const ready = summary.ready_to_apply_count ?? 0;
+  const status = errors > 0 || invalid > 0
+    ? "attention"
+    : pending > 0 || missing > 0
+      ? "pending"
+      : ready > 0
+        ? "ready"
+        : "passed";
+  return {
+    stage_id: "control_plane_human_gate_receipt_validation",
+    label: "Control Plane Human Gate Receipt Validation",
+    status,
+    message: `${ready} ready receipt(s), ${pending} pending, ${invalid} invalid, ${missing} missing.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      validation_status: validation.validation_status,
+      receipt_requirement_count: summary.receipt_requirement_count ?? 0,
+      receipt_count: summary.receipt_count ?? 0,
+      ready_to_apply_count: ready,
+      pending_receipt_count: pending,
+      missing_receipt_count: missing,
+      invalid_receipt_count: invalid,
+      error_count: errors,
+      evidence_decision_ready_count: summary.evidence_decision_ready_count ?? 0,
     },
   };
 }
@@ -1919,6 +1962,11 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_gate_receipt_protected_count: artifacts.control_plane_human_gate_receipts?.summary?.protected_receipt_count ?? 0,
     human_gate_receipt_evidence_decision_count: artifacts.control_plane_human_gate_receipts?.summary?.evidence_decision_receipt_count ?? 0,
     human_gate_receipt_command_count: artifacts.control_plane_human_gate_receipts?.summary?.command_receipt_count ?? 0,
+    human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
+    human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
+    human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
+    human_gate_receipt_validation_error_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.error_count ?? 0,
+    human_gate_receipt_validation_evidence_decision_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.evidence_decision_ready_count ?? 0,
     work_packet_count: artifacts.control_plane_work_packets?.summary?.work_packet_count ?? 0,
     work_item_count: artifacts.control_plane_work_packets?.summary?.work_item_count ?? 0,
     work_packet_blocked_count: artifacts.control_plane_work_packets?.summary?.blocked_packet_count ?? 0,
@@ -2040,6 +2088,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Action Plan", dashboard.summary.action_plan_item_count)}
       ${stat("Human Gates", dashboard.summary.human_gate_item_count)}
       ${stat("Gate Receipts", dashboard.summary.human_gate_receipt_draft_count)}
+      ${stat("Gate Receipt Check", dashboard.summary.human_gate_receipt_validation_ready_count)}
       ${stat("Work Packets", dashboard.summary.work_packet_count)}
       ${stat("Packet Receipts", dashboard.summary.work_packet_receipt_draft_count)}
       ${stat("Receipt Gate", dashboard.summary.work_packet_receipt_validation_ready_count)}
@@ -2127,6 +2176,8 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Human gate receipt drafts: ${dashboard.summary.human_gate_receipt_draft_count ?? 0}`);
   lines.push(`- Human gate receipt protected: ${dashboard.summary.human_gate_receipt_protected_count ?? 0}`);
   lines.push(`- Human gate receipt evidence decisions: ${dashboard.summary.human_gate_receipt_evidence_decision_count ?? 0}`);
+  lines.push(`- Human gate receipts ready: ${dashboard.summary.human_gate_receipt_validation_ready_count ?? 0}`);
+  lines.push(`- Human gate receipts pending: ${dashboard.summary.human_gate_receipt_validation_pending_count ?? 0}`);
   lines.push(`- Work packets: ${dashboard.summary.work_packet_count ?? 0}`);
   lines.push(`- Work packet protected: ${dashboard.summary.work_packet_protected_count ?? 0}`);
   lines.push(`- Work packet next commands: ${dashboard.summary.work_packet_next_command_count ?? 0}`);
@@ -2276,6 +2327,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-human-gates") parsed.controlPlaneHumanGatesPath = false;
     else if (arg === "--control-plane-human-gate-receipts") parsed.controlPlaneHumanGateReceiptsPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipts") parsed.controlPlaneHumanGateReceiptsPath = false;
+    else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
+    else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = argv[++index];
     else if (arg === "--no-control-plane-work-packets") parsed.controlPlaneWorkPacketsPath = false;
     else if (arg === "--control-plane-work-packet-receipts") parsed.controlPlaneWorkPacketReceiptsPath = argv[++index];
@@ -2360,6 +2413,10 @@ Options:
                                   control-plane-human-gate-receipt-drafts.json path.
   --no-control-plane-human-gate-receipts
                                   Do not include Control Plane Human Gate Receipts status.
+  --control-plane-human-gate-receipt-validation <path>
+                                  control-plane-human-gate-receipt-validation.json path.
+  --no-control-plane-human-gate-receipt-validation
+                                  Do not include Control Plane Human Gate Receipt Validation status.
   --control-plane-work-packets <path>
                                   control-plane-work-packets.json path.
   --no-control-plane-work-packets Do not include Control Plane Work Packets status.

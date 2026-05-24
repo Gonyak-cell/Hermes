@@ -77,6 +77,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-loop-steps"));
   assert.ok(index.routes.some((route) => route.path === "/api/goal-checkpoints"));
   assert.ok(index.routes.some((route) => route.path === "/api/goal-checkpoint-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-inventories"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-inventory-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-schemas"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-artifacts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-owner-map"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -947,6 +952,26 @@ try {
   assert.equal(goalCheckpointItems.collection, "goal_checkpoint_items");
   assert.ok(goalCheckpointItems.count >= 1);
   assert.ok(goalCheckpointItems.count <= 5);
+
+  const contractInventories = await fetchJson(`${url}/api/contract-inventories?inventory_status=complete&limit=1`);
+  assert.equal(contractInventories.collection, "contract_inventories");
+  assert.ok(contractInventories.count <= 1);
+
+  const contractInventoryItems = await fetchJson(`${url}/api/contract-inventory-items?item_type=schema&limit=5`);
+  assert.equal(contractInventoryItems.collection, "contract_inventory_items");
+  assert.ok(contractInventoryItems.count <= 5);
+
+  const contractSchemas = await fetchJson(`${url}/api/contract-schemas?parse_status=parsed&limit=5`);
+  assert.equal(contractSchemas.collection, "contract_schemas");
+  assert.ok(contractSchemas.count <= 5);
+
+  const contractArtifacts = await fetchJson(`${url}/api/contract-artifacts?owner_area=gate_approval&limit=5`);
+  assert.equal(contractArtifacts.collection, "contract_artifacts");
+  assert.ok(contractArtifacts.count <= 5);
+
+  const contractOwnerMap = await fetchJson(`${url}/api/contract-owner-map?owner_area=core_contracts&limit=5`);
+  assert.equal(contractOwnerMap.collection, "contract_owner_map");
+  assert.ok(contractOwnerMap.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

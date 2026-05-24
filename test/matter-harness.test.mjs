@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { runControlPlaneAuditTrail } from "../src/control-plane-audit-trail.mjs";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
+import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlaneHumanGateReceiptApplication } from "../src/control-plane-human-gate-receipt-application.mjs";
@@ -989,6 +990,7 @@ describe("matter harness", () => {
         controlPlanePipelinePath: path.join(outDir, "control-plane-pipeline", "control-plane-pipeline.json"),
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
+        contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
         controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2461,6 +2463,31 @@ describe("matter harness", () => {
       assert.ok(humanReviewV1RegressionFreeze.regression_fixture.artifact_refs.every((artifactRef) => artifactRef.content_hash?.startsWith("sha256:")));
       assert.match(await readFile(path.join(outDir, "human-review-v1-regression-freeze", "summary.md"), "utf8"), /Human Review v1 Regression Freeze/);
 
+      const contractInventory = await runContractInventory({
+        outDir: path.join(outDir, "contract-inventory"),
+        runAt: "2026-05-23T06:35:07.990Z",
+      });
+      const contractInventorySchema = JSON.parse(await readFile("schemas/contract-inventory.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(contractInventory, contractInventorySchema, {}, "contract_inventory"),
+        [],
+      );
+      assert.equal(contractInventory.summary.inventory_status, "complete");
+      assert.ok(contractInventory.summary.schema_count >= 80);
+      assert.equal(contractInventory.summary.schema_parse_error_count, 0);
+      assert.ok(contractInventory.summary.package_script_count >= 100);
+      assert.ok(contractInventory.summary.loop_output_contract_count >= 60);
+      assert.ok(contractInventory.summary.dashboard_source_count >= 80);
+      assert.ok(contractInventory.summary.api_route_count >= 200);
+      assert.ok(contractInventory.summary.artifact_contract_count >= contractInventory.summary.dashboard_source_count);
+      assert.equal(contractInventory.summary.owner_mapped_item_count, contractInventory.summary.inventory_item_count);
+      assert.equal(contractInventory.summary.validation_error_count, 0);
+      assert.ok(contractInventory.schemas.some((schema) => schema.schema_id === "contract-inventory"));
+      assert.ok(contractInventory.dashboard_sources.some((source) => source.source_id === "contract_inventory"));
+      assert.ok(contractInventory.api_routes.some((route) => route.path === "/api/contract-inventories"));
+      assert.ok(contractInventory.owner_map.every((entry) => entry.owner_area && entry.plane && entry.stability_tier));
+      assert.match(await readFile(path.join(outDir, "contract-inventory", "summary.md"), "utf8"), /Contract Inventory/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -2495,6 +2522,10 @@ describe("matter harness", () => {
       assert.ok(controlPlaneGoalCheckpoint.summary.passed_item_count >= 1);
       assert.ok(controlPlaneGoalCheckpoint.summary.implementation_gate_pass_count >= 1);
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.checkpoint_item_id === "control-plane-loop"));
+      const contractInventoryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-contract-inventory");
+      assert.equal(contractInventoryCheckpoint?.acceptance_profile, "contract_inventory_gate");
+      assert.equal(contractInventoryCheckpoint?.status, "passed");
+      assert.equal(contractInventoryCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2722,6 +2753,16 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.goal_checkpoint_attention_item_count, controlPlaneGoalCheckpoint.summary.attention_item_count);
       assert.equal(dashboard.summary.goal_checkpoint_blocked_item_count, controlPlaneGoalCheckpoint.summary.blocked_item_count);
       assert.equal(dashboard.summary.goal_checkpoint_missing_item_count, controlPlaneGoalCheckpoint.summary.missing_item_count);
+      assert.equal(dashboard.summary.contract_inventory_schema_count, contractInventory.summary.schema_count);
+      assert.equal(dashboard.summary.contract_inventory_parsed_schema_count, contractInventory.summary.parsed_schema_count);
+      assert.equal(dashboard.summary.contract_inventory_package_script_count, contractInventory.summary.package_script_count);
+      assert.equal(dashboard.summary.contract_inventory_loop_output_contract_count, contractInventory.summary.loop_output_contract_count);
+      assert.equal(dashboard.summary.contract_inventory_dashboard_source_count, contractInventory.summary.dashboard_source_count);
+      assert.equal(dashboard.summary.contract_inventory_api_route_count, contractInventory.summary.api_route_count);
+      assert.equal(dashboard.summary.contract_inventory_artifact_contract_count, contractInventory.summary.artifact_contract_count);
+      assert.equal(dashboard.summary.contract_inventory_owner_mapped_item_count, contractInventory.summary.owner_mapped_item_count);
+      assert.equal(dashboard.summary.contract_inventory_owner_area_count, contractInventory.summary.owner_area_count);
+      assert.equal(dashboard.summary.contract_inventory_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3094,6 +3135,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_pipeline"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_loop"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_inventory"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3230,6 +3272,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-loop-steps"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/goal-checkpoints"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/goal-checkpoint-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-inventories"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-inventory-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-schemas"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-owner-map"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-health"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/health-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-plans"));
@@ -4310,6 +4357,26 @@ describe("matter harness", () => {
       const appliedPacketReceipts = JSON.parse((await buildReviewApiResponse("/api/applied-work-packet-receipts", apiOptions)).body);
       assert.equal(appliedPacketReceipts.collection, "applied_work_packet_receipts");
       assert.equal(appliedPacketReceipts.count, 0);
+
+      const contractInventories = JSON.parse((await buildReviewApiResponse("/api/contract-inventories?inventory_status=complete", apiOptions)).body);
+      assert.equal(contractInventories.collection, "contract_inventories");
+      assert.equal(contractInventories.count, 1);
+
+      const contractInventoryItems = JSON.parse((await buildReviewApiResponse("/api/contract-inventory-items?item_type=schema", apiOptions)).body);
+      assert.equal(contractInventoryItems.collection, "contract_inventory_items");
+      assert.equal(contractInventoryItems.count, contractInventory.summary.schema_count);
+
+      const contractSchemas = JSON.parse((await buildReviewApiResponse("/api/contract-schemas?parse_status=parsed", apiOptions)).body);
+      assert.equal(contractSchemas.collection, "contract_schemas");
+      assert.equal(contractSchemas.count, contractInventory.summary.parsed_schema_count);
+
+      const contractArtifacts = JSON.parse((await buildReviewApiResponse("/api/contract-artifacts?owner_area=gate_approval", apiOptions)).body);
+      assert.equal(contractArtifacts.collection, "contract_artifacts");
+      assert.ok(contractArtifacts.count >= 1);
+
+      const contractOwnerMap = JSON.parse((await buildReviewApiResponse("/api/contract-owner-map?owner_area=core_contracts", apiOptions)).body);
+      assert.equal(contractOwnerMap.collection, "contract_owner_map");
+      assert.ok(contractOwnerMap.count >= 1);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

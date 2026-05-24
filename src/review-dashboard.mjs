@@ -33,6 +33,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlanePipelinePath: "artifacts/control-plane-pipeline/latest/control-plane-pipeline.json",
   controlPlaneLoopPath: "artifacts/control-plane-loop/latest/control-plane-loop.json",
   controlPlaneGoalCheckpointPath: "artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json",
+  contractInventoryPath: "artifacts/contract-inventory/latest/contract-inventory.json",
   controlPlaneAuditTrailPath: "artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
@@ -240,6 +241,11 @@ const SOURCE_DEFINITIONS = [
     option: "controlPlaneGoalCheckpointPath",
     source_id: "control_plane_goal_checkpoint",
     label: "Control Plane Goal Checkpoint",
+  },
+  {
+    option: "contractInventoryPath",
+    source_id: "contract_inventory",
+    label: "Contract Inventory",
   },
   {
     option: "controlPlaneAuditTrailPath",
@@ -735,6 +741,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_pipeline") return data.summary ?? {};
   if (sourceId === "control_plane_loop") return data.summary ?? {};
   if (sourceId === "control_plane_goal_checkpoint") return data.summary ?? {};
+  if (sourceId === "contract_inventory") return data.summary ?? {};
   if (sourceId === "control_plane_audit_trail") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
@@ -853,6 +860,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlanePipelineStage(artifacts.control_plane_pipeline, sourceById.get("control_plane_pipeline")),
     buildControlPlaneLoopStage(artifacts.control_plane_loop, sourceById.get("control_plane_loop")),
     buildControlPlaneGoalCheckpointStage(artifacts.control_plane_goal_checkpoint, sourceById.get("control_plane_goal_checkpoint")),
+    buildContractInventoryStage(artifacts.contract_inventory, sourceById.get("contract_inventory")),
     buildControlPlaneAuditTrailStage(artifacts.control_plane_audit_trail, sourceById.get("control_plane_audit_trail")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
@@ -1724,6 +1732,41 @@ function buildControlPlaneGoalCheckpointStage(checkpoint, source) {
       blocked_item_count: summary.blocked_item_count ?? 0,
       missing_item_count: summary.missing_item_count ?? 0,
       latest_roadmap_phase: summary.latest_roadmap_phase ?? null,
+    },
+  };
+}
+
+function buildContractInventoryStage(inventory, source) {
+  if (!inventory) return missingStage("contract_inventory", "Contract Inventory", source);
+  const summary = inventory.summary ?? {};
+  const status = summary.validation_error_count > 0 || inventory.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "contract_inventory",
+    label: "Contract Inventory",
+    status,
+    message: `${summary.schema_count ?? 0} schema(s), ${summary.package_script_count ?? 0} package script(s), ${summary.dashboard_source_count ?? 0} dashboard source(s), ${summary.api_route_count ?? 0} API route(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      inventory_status: summary.inventory_status ?? "unknown",
+      schema_count: summary.schema_count ?? 0,
+      parsed_schema_count: summary.parsed_schema_count ?? 0,
+      schema_parse_error_count: summary.schema_parse_error_count ?? 0,
+      package_script_count: summary.package_script_count ?? 0,
+      package_script_with_file_ref_count: summary.package_script_with_file_ref_count ?? 0,
+      loop_output_contract_count: summary.loop_output_contract_count ?? 0,
+      loop_expected_artifact_count: summary.loop_expected_artifact_count ?? 0,
+      dashboard_source_count: summary.dashboard_source_count ?? 0,
+      dashboard_source_with_schema_count: summary.dashboard_source_with_schema_count ?? 0,
+      api_route_count: summary.api_route_count ?? 0,
+      artifact_contract_count: summary.artifact_contract_count ?? 0,
+      artifact_contract_with_schema_count: summary.artifact_contract_with_schema_count ?? 0,
+      doc_count: summary.doc_count ?? 0,
+      inventory_item_count: summary.inventory_item_count ?? 0,
+      owner_mapped_item_count: summary.owner_mapped_item_count ?? 0,
+      owner_area_count: summary.owner_area_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? inventory.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5169,6 +5212,17 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     goal_checkpoint_attention_item_count: artifacts.control_plane_goal_checkpoint?.summary?.attention_item_count ?? 0,
     goal_checkpoint_blocked_item_count: artifacts.control_plane_goal_checkpoint?.summary?.blocked_item_count ?? 0,
     goal_checkpoint_missing_item_count: artifacts.control_plane_goal_checkpoint?.summary?.missing_item_count ?? 0,
+    contract_inventory_schema_count: artifacts.contract_inventory?.summary?.schema_count ?? 0,
+    contract_inventory_parsed_schema_count: artifacts.contract_inventory?.summary?.parsed_schema_count ?? 0,
+    contract_inventory_package_script_count: artifacts.contract_inventory?.summary?.package_script_count ?? 0,
+    contract_inventory_loop_output_contract_count: artifacts.contract_inventory?.summary?.loop_output_contract_count ?? 0,
+    contract_inventory_dashboard_source_count: artifacts.contract_inventory?.summary?.dashboard_source_count ?? 0,
+    contract_inventory_api_route_count: artifacts.contract_inventory?.summary?.api_route_count ?? 0,
+    contract_inventory_artifact_contract_count: artifacts.contract_inventory?.summary?.artifact_contract_count ?? 0,
+    contract_inventory_inventory_item_count: artifacts.contract_inventory?.summary?.inventory_item_count ?? 0,
+    contract_inventory_owner_mapped_item_count: artifacts.contract_inventory?.summary?.owner_mapped_item_count ?? 0,
+    contract_inventory_owner_area_count: artifacts.contract_inventory?.summary?.owner_area_count ?? 0,
+    contract_inventory_validation_error_count: artifacts.contract_inventory?.summary?.validation_error_count ?? artifacts.contract_inventory?.validation?.errors?.length ?? 0,
     health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
     health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
     health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
@@ -6091,6 +6145,8 @@ function parseArgs(argv) {
     else if (arg === "--no-control-plane-loop") parsed.controlPlaneLoopPath = false;
     else if (arg === "--control-plane-goal-checkpoint") parsed.controlPlaneGoalCheckpointPath = argv[++index];
     else if (arg === "--no-control-plane-goal-checkpoint") parsed.controlPlaneGoalCheckpointPath = false;
+    else if (arg === "--contract-inventory") parsed.contractInventoryPath = argv[++index];
+    else if (arg === "--no-contract-inventory") parsed.contractInventoryPath = false;
     else if (arg === "--control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = argv[++index];
     else if (arg === "--no-control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
@@ -6277,6 +6333,8 @@ Options:
                                   control-plane-goal-checkpoint.json path.
   --no-control-plane-goal-checkpoint
                                   Do not include Control Plane Goal Checkpoint status.
+  --contract-inventory <path>    contract-inventory.json path.
+  --no-contract-inventory        Do not include Contract Inventory status.
   --control-plane-audit-trail <path>
                                   control-plane-audit-trail.json path.
   --no-control-plane-audit-trail  Do not include Control Plane Audit Trail status.

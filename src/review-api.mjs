@@ -673,6 +673,61 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/contract-inventories") {
+    const inventoryResult = await readDashboardSourceArtifact(dashboard, "contract_inventory");
+    if (!inventoryResult.available) {
+      return jsonResponse(503, buildError("contract_inventory_unavailable", inventoryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_inventories", [inventoryResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-inventory-items") {
+    const inventoryResult = await readDashboardSourceArtifact(dashboard, "contract_inventory");
+    if (!inventoryResult.available) {
+      return jsonResponse(503, buildError("contract_inventory_unavailable", inventoryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_inventory_items", inventoryResult.artifact.inventory_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-schemas") {
+    const inventoryResult = await readDashboardSourceArtifact(dashboard, "contract_inventory");
+    if (!inventoryResult.available) {
+      return jsonResponse(503, buildError("contract_inventory_unavailable", inventoryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_schemas", inventoryResult.artifact.schemas ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-artifacts") {
+    const inventoryResult = await readDashboardSourceArtifact(dashboard, "contract_inventory");
+    if (!inventoryResult.available) {
+      return jsonResponse(503, buildError("contract_inventory_unavailable", inventoryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_artifacts", inventoryResult.artifact.artifact_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-owner-map") {
+    const inventoryResult = await readDashboardSourceArtifact(dashboard, "contract_inventory");
+    if (!inventoryResult.available) {
+      return jsonResponse(503, buildError("contract_inventory_unavailable", inventoryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_owner_map", inventoryResult.artifact.owner_map ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -2545,6 +2600,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/control-plane-loop-steps", "Control Plane loop step results"),
       route("GET", "/api/goal-checkpoints", "Control Plane goal checkpoint artifacts"),
       route("GET", "/api/goal-checkpoint-items", "Control Plane goal checkpoint items"),
+      route("GET", "/api/contract-inventories", "Contract inventory artifacts"),
+      route("GET", "/api/contract-inventory-items", "Unified contract inventory items"),
+      route("GET", "/api/contract-schemas", "Contract schema inventory records"),
+      route("GET", "/api/contract-artifacts", "Dashboard and loop artifact contract records"),
+      route("GET", "/api/contract-owner-map", "Contract owner map entries"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -2746,6 +2806,15 @@ function filterItems(items, searchParams) {
     "source_stage",
     "stage_id",
     "source_id",
+    "inventory_id",
+    "inventory_status",
+    "inventory_item_id",
+    "item_type",
+    "owner_area",
+    "schema_id",
+    "parse_status",
+    "route_id",
+    "artifact_id",
     "available",
     "catalog_id",
     "policy_status",
@@ -3070,6 +3139,7 @@ function filterItems(items, searchParams) {
 
 function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
+  if (key === "inventory_status") return item.summary?.inventory_status ?? item.inventory_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;

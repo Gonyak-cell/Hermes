@@ -16,6 +16,7 @@
     "api:smoke": "node scripts/review-api-smoke.mjs",
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "context:packets": "node scripts/context-packet-ledger.mjs",
+    "contracts:inventory": "node scripts/contract-inventory.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",

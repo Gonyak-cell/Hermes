@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/contract-inventory.schema.json",
+  "title": "Hermes Contract Inventory",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "inventory_id",
+    "output_dir",
+    "inputs",
+    "summary",
+    "schemas",
+    "package_scripts",
+    "loop_output_contracts",
+    "dashboard_sources",
+    "api_routes",
+    "artifact_contracts",
+    "docs",
+    "inventory_items",
+    "owner_map",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "contract-inventory.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "inventory_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "inventory_status",
+        "schema_count",
+        "parsed_schema_count",
+        "schema_parse_error_count",
+        "package_script_count",
+        "package_script_with_file_ref_count",
+        "loop_output_contract_count",
+        "loop_expected_artifact_count",
+        "dashboard_source_count",
+        "dashboard_source_with_schema_count",
+        "api_route_count",
+        "artifact_contract_count",
+        "artifact_contract_with_schema_count",
+        "doc_count",
+        "inventory_item_count",
+        "owner_mapped_item_count",
+        "owner_area_count",
+        "validation_error_count",
+        "by_item_type",
+        "by_owner_area"
+      ],
+      "properties": {
+        "inventory_status": { "enum": ["complete", "blocked"] },
+        "schema_count": { "type": "integer", "minimum": 0 },
+        "parsed_schema_count": { "type": "integer", "minimum": 0 },
+        "schema_parse_error_count": { "type": "integer", "minimum": 0 },
+        "package_script_count": { "type": "integer", "minimum": 0 },
+        "package_script_with_file_ref_count": { "type": "integer", "minimum": 0 },
+        "loop_output_contract_count": { "type": "integer", "minimum": 0 },
+        "loop_expected_artifact_count": { "type": "integer", "minimum": 0 },
+        "dashboard_source_count": { "type": "integer", "minimum": 0 },
+        "dashboard_source_with_schema_count": { "type": "integer", "minimum": 0 },
+        "api_route_count": { "type": "integer", "minimum": 0 },
+        "artifact_contract_count": { "type": "integer", "minimum": 0 },
+        "artifact_contract_with_schema_count": { "type": "integer", "minimum": 0 },
+        "doc_count": { "type": "integer", "minimum": 0 },
+        "inventory_item_count": { "type": "integer", "minimum": 0 },
+        "owner_mapped_item_count": { "type": "integer", "minimum": 0 },
+        "owner_area_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_item_type": { "type": "object" },
+        "by_owner_area": { "type": "object" }
+      }
+    },
+    "schemas": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/schema_record" }
+    },
+    "package_scripts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/package_script" }
+    },
+    "loop_output_contracts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/loop_output_contract" }
+    },
+    "dashboard_sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dashboard_source" }
+    },
+    "api_routes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/api_route" }
+    },
+    "artifact_contracts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/artifact_contract" }
+    },
+    "docs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/doc_record" }
+    },
+    "inventory_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/inventory_item" }
+    },
+    "owner_map": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/owner_map_entry" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "schema_record": {
+      "type": "object",
+      "required": ["schema_id", "inventory_item_id", "path", "file_name", "parse_status", "content_hash", "owner_area", "validation"],
+      "properties": {
+        "schema_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "file_name": { "type": "string" },
+        "title": { "type": ["string", "null"] },
+        "json_schema_uri": { "type": ["string", "null"] },
+        "id_uri": { "type": ["string", "null"] },
+        "schema_version_const": { "type": ["string", "null"] },
+        "required_count": { "type": "integer", "minimum": 0 },
+        "top_level_property_count": { "type": "integer", "minimum": 0 },
+        "parse_status": { "enum": ["parsed", "parse_error"] },
+        "content_hash": { "type": "string" },
+        "owner_area": { "type": "string" },
+        "validation": { "type": "object" }
+      }
+    },
+    "package_script": {
+      "type": "object",
+      "required": ["script_name", "inventory_item_id", "command", "script_refs", "script_ref_count", "script_paths", "owner_area"],
+      "properties": {
+        "script_name": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "command": { "type": "string" },
+        "script_refs": { "type": "array", "items": { "type": "string" } },
+        "script_ref_count": { "type": "integer", "minimum": 0 },
+        "script_paths": { "type": "array", "items": { "type": "string" } },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "loop_output_contract": {
+      "type": "object",
+      "required": ["step_id", "inventory_item_id", "label", "category", "command", "command_display", "expected_artifacts", "expected_artifact_count", "owner_area"],
+      "properties": {
+        "step_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "label": { "type": "string" },
+        "category": { "type": "string" },
+        "command": { "type": "array", "items": { "type": "string" } },
+        "command_display": { "type": "string" },
+        "expected_artifacts": { "type": "array", "items": { "type": "string" } },
+        "expected_artifact_count": { "type": "integer", "minimum": 0 },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "dashboard_source": {
+      "type": "object",
+      "required": ["source_id", "inventory_item_id", "option", "label", "default_path", "artifact_file", "schema_candidate_ids", "mapped_schema_id", "owner_area"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "option": { "type": "string" },
+        "label": { "type": "string" },
+        "default_path": { "type": ["string", "null"] },
+        "artifact_file": { "type": ["string", "null"] },
+        "schema_candidate_ids": { "type": "array", "items": { "type": "string" } },
+        "mapped_schema_id": { "type": ["string", "null"] },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "api_route": {
+      "type": "object",
+      "required": ["route_id", "inventory_item_id", "method", "path", "description", "owner_area"],
+      "properties": {
+        "route_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "method": { "type": "string" },
+        "path": { "type": "string" },
+        "description": { "type": "string" },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "artifact_contract": {
+      "type": "object",
+      "required": ["artifact_id", "inventory_item_id", "path", "artifact_file", "schema_candidate_ids", "mapped_schema_id", "dashboard_source_ids", "loop_step_ids", "owner_area"],
+      "properties": {
+        "artifact_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "artifact_file": { "type": "string" },
+        "schema_candidate_ids": { "type": "array", "items": { "type": "string" } },
+        "mapped_schema_id": { "type": ["string", "null"] },
+        "dashboard_source_ids": { "type": "array", "items": { "type": "string" } },
+        "loop_step_ids": { "type": "array", "items": { "type": "string" } },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "doc_record": {
+      "type": "object",
+      "required": ["doc_id", "inventory_item_id", "path", "file_name", "owner_area"],
+      "properties": {
+        "doc_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "file_name": { "type": "string" },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "inventory_item": {
+      "type": "object",
+      "required": ["inventory_item_id", "item_type", "name", "source_ref", "owner_area"],
+      "properties": {
+        "inventory_item_id": { "type": "string" },
+        "item_type": { "type": "string" },
+        "name": { "type": "string" },
+        "source_ref": { "type": ["string", "null"] },
+        "owner_area": { "type": "string" }
+      }
+    },
+    "owner_map_entry": {
+      "type": "object",
+      "required": ["owner_map_id", "inventory_item_id", "item_type", "name", "owner_area", "plane", "domain_pack", "stability_tier", "owner_team", "rationale"],
+      "properties": {
+        "owner_map_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "item_type": { "type": "string" },
+        "name": { "type": "string" },
+        "owner_area": { "type": "string" },
+        "plane": { "type": "string" },
+        "domain_pack": { "type": ["string", "null"] },
+        "stability_tier": { "type": "string" },
+        "owner_team": { "type": "string" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

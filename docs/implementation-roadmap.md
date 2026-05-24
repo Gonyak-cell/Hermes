@@ -2950,6 +2950,38 @@ Phase 96은 Human Review Cycle Closure v1을 다음 트랙으로 넘기기 전�
 - `/api/human-review-v1-freeze-notes?freeze_status=frozen_with_pending_human_actions`로 freeze note를 조회할 수 있음
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:freeze`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 97: Contract Inventory and Owner Map
+
+Phase 97은 Core Contracts, Schema, Migration Spine 트랙의 첫 단계로 현재 계약 표면을 전수 inventory화했다.
+
+구현:
+
+- `npm run contracts:inventory`
+- `src/contract-inventory.mjs`
+- `scripts/contract-inventory.mjs`
+- `schemas/contract-inventory.schema.json`
+- `docs/contract-inventory.md`
+
+핵심 산출물:
+
+- `artifacts/contract-inventory/latest/contract-inventory.json`
+- `artifacts/contract-inventory/latest/schema-inventory.json`
+- `artifacts/contract-inventory/latest/script-output-contracts.json`
+- `artifacts/contract-inventory/latest/dashboard-api-artifacts.json`
+- `artifacts/contract-inventory/latest/owner-map.json`
+- `artifacts/contract-inventory/latest/summary.md`
+
+완료 기준:
+
+- `schemas/`의 모든 JSON schema가 목록화되고 parse 상태와 content hash가 기록됨
+- `package.json`의 모든 script와 `src/control-plane-loop.mjs`의 expected artifact contract가 목록화됨
+- Review Dashboard source와 Review API route index가 목록화됨
+- dashboard/loop artifact path가 artifact contract로 중복 제거되어 기록됨
+- 모든 inventory item에 owner area, plane, domain pack, stability tier가 포함된 owner map entry가 존재함
+- Dashboard stage와 goal checkpoint가 `contract_inventory`를 추적함
+- Review API에서 `/api/contract-inventories`, `/api/contract-inventory-items`, `/api/contract-schemas`, `/api/contract-artifacts`, `/api/contract-owner-map` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2958,9 +2990,9 @@ Phase 96은 Human Review Cycle Closure v1을 다음 트랙으로 넘기기 전�
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 96이다.
+- 현재 완료 기준점은 Phase 97이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P097-P312, 총 216개다.
+- 남은 계획 슬롯은 P098-P312, 총 215개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

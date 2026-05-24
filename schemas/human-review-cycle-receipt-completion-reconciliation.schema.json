@@ -1,0 +1,214 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-reconciliation.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Reconciliation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "reconciliation_id",
+    "output_dir",
+    "reconciliation_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "reconciliation_items",
+    "actor_statuses",
+    "recommended_next_actions",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-reconciliation.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "reconciliation_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "reconciliation_status": {
+      "enum": [
+        "blocked",
+        "waiting_for_manual_command_receipts",
+        "waiting_for_explicit_human_approval",
+        "waiting_for_manual_input",
+        "ready_for_follow_on_application",
+        "clear"
+      ]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "reconciliation_only",
+        "receipt_edits_must_be_manual",
+        "refresh_commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "reconciliation_only": { "const": true },
+        "receipt_edits_must_be_manual": { "const": true },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "reconciliation_status",
+        "readiness_available",
+        "command_queue_available",
+        "command_receipt_application_available",
+        "readiness_status",
+        "queue_status",
+        "command_receipt_application_status",
+        "reconciliation_item_count",
+        "actor_status_count",
+        "pending_command_receipt_count",
+        "applied_command_receipt_count",
+        "held_command_count",
+        "protected_held_command_count",
+        "pending_human_input_count",
+        "pending_prompt_count",
+        "ready_follow_on_count",
+        "blocked_follow_on_count",
+        "validation_error_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_reconciliation_status",
+        "by_item_type",
+        "by_required_actor"
+      ],
+      "properties": {
+        "reconciliation_status": { "type": "string" },
+        "readiness_available": { "type": "boolean" },
+        "command_queue_available": { "type": "boolean" },
+        "command_receipt_application_available": { "type": "boolean" },
+        "readiness_status": { "type": ["string", "null"] },
+        "queue_status": { "type": ["string", "null"] },
+        "command_receipt_application_status": { "type": ["string", "null"] },
+        "reconciliation_item_count": { "type": "integer", "minimum": 0 },
+        "actor_status_count": { "type": "integer", "minimum": 0 },
+        "pending_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "applied_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "held_command_count": { "type": "integer", "minimum": 0 },
+        "protected_held_command_count": { "type": "integer", "minimum": 0 },
+        "pending_human_input_count": { "type": "integer", "minimum": 0 },
+        "pending_prompt_count": { "type": "integer", "minimum": 0 },
+        "ready_follow_on_count": { "type": "integer", "minimum": 0 },
+        "blocked_follow_on_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_reconciliation_status": { "type": "object" },
+        "by_item_type": { "type": "object" },
+        "by_required_actor": { "type": "object" }
+      }
+    },
+    "reconciliation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/reconciliation_item" }
+    },
+    "actor_statuses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_status" }
+    },
+    "recommended_next_actions": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "reconciliation_item": {
+      "type": "object",
+      "required": [
+        "reconciliation_item_id",
+        "item_type",
+        "reconciliation_status",
+        "priority",
+        "required_actor",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "receipt_status",
+        "command_result",
+        "source_ref",
+        "recommended_action"
+      ],
+      "properties": {
+        "reconciliation_item_id": { "type": "string" },
+        "item_type": { "type": "string" },
+        "reconciliation_status": { "type": "string" },
+        "priority": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "queue_item_id": { "type": ["string", "null"] },
+        "command_gate_id": { "type": ["string", "null"] },
+        "runbook_step_id": { "type": ["string", "null"] },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "receipt_status": { "type": ["string", "null"] },
+        "command_result": { "type": ["string", "null"] },
+        "source_ref": { "type": "string" },
+        "recommended_action": { "type": "string" }
+      }
+    },
+    "actor_status": {
+      "type": "object",
+      "required": [
+        "actor_status_id",
+        "required_actor",
+        "readiness_status",
+        "reconciliation_status",
+        "priority",
+        "command_queue_item_count",
+        "held_command_item_count",
+        "pending_command_receipt_count",
+        "applied_command_receipt_count",
+        "next_commands",
+        "held_commands",
+        "recommended_action"
+      ],
+      "properties": {
+        "actor_status_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "readiness_status": { "type": "string" },
+        "reconciliation_status": { "type": "string" },
+        "priority": { "type": "string" },
+        "command_queue_item_count": { "type": "integer", "minimum": 0 },
+        "held_command_item_count": { "type": "integer", "minimum": 0 },
+        "pending_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "applied_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "next_commands": { "type": "array", "items": { "type": "string" } },
+        "held_commands": { "type": "array", "items": { "type": "object" } },
+        "recommended_action": { "type": "string" }
+      }
+    }
+  }
+}

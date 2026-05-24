@@ -793,6 +793,18 @@ try {
   assert.equal(humanReviewCycleCompletionCommandReceiptApplicationAuditEvents.collection, "human_review_cycle_completion_command_receipt_application_audit_events");
   assert.ok(humanReviewCycleCompletionCommandReceiptApplicationAuditEvents.count <= 5);
 
+  const humanReviewCycleCompletionReconciliations = await fetchJson(`${url}/api/human-review-cycle-completion-reconciliations?reconciliation_status=waiting_for_manual_command_receipts&limit=1`);
+  assert.equal(humanReviewCycleCompletionReconciliations.collection, "human_review_cycle_completion_reconciliations");
+  assert.ok(humanReviewCycleCompletionReconciliations.count <= 1);
+
+  const humanReviewCycleCompletionReconciliationItems = await fetchJson(`${url}/api/human-review-cycle-completion-reconciliation-items?reconciliation_status=waiting_for_manual_command_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionReconciliationItems.collection, "human_review_cycle_completion_reconciliation_items");
+  assert.ok(humanReviewCycleCompletionReconciliationItems.count <= 5);
+
+  const humanReviewCycleCompletionReconciliationActors = await fetchJson(`${url}/api/human-review-cycle-completion-reconciliation-actors?limit=5`);
+  assert.equal(humanReviewCycleCompletionReconciliationActors.collection, "human_review_cycle_completion_reconciliation_actors");
+  assert.ok(humanReviewCycleCompletionReconciliationActors.count <= 5);
+
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
 

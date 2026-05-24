@@ -57,6 +57,7 @@ npm run control-plane:loop
 - `npm run control-plane:review-cycle:completion-command-receipts:workspace:merge`
 - `npm run control-plane:review-cycle:completion-command-receipts:workspace:validate`
 - `npm run control-plane:review-cycle:completion-command-receipts:apply`
+- `npm run control-plane:review-cycle:completion-reconcile`
 - `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`
 - `npm run control-plane:work-receipts`

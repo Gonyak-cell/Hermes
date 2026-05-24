@@ -1961,6 +1961,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-reconciliations") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_reconciliations", [reconciliationResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-reconciliation-items") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_reconciliation_items", reconciliationResult.artifact.reconciliation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-reconciliation-actors") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_reconciliation_actors", reconciliationResult.artifact.actor_statuses ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2321,6 +2354,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/applied-human-review-cycle-completion-command-receipts", "Applied human review cycle completion command receipts"),
       route("GET", "/api/human-review-cycle-completion-command-receipt-application-pending-receipts", "Pending command receipts held by command receipt application"),
       route("GET", "/api/human-review-cycle-completion-command-receipt-application-audit-events", "Command receipt application audit events"),
+      route("GET", "/api/human-review-cycle-completion-reconciliations", "Human review cycle receipt completion reconciliation artifacts"),
+      route("GET", "/api/human-review-cycle-completion-reconciliation-items", "Receipt completion reconciliation items"),
+      route("GET", "/api/human-review-cycle-completion-reconciliation-actors", "Receipt completion reconciliation actor statuses"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

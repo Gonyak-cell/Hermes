@@ -2584,3 +2584,40 @@
 - `/api/human-review-cycle-completion-command-receipt-application-pending-receipts?validation_status=pending_receipt`로 보류 중인 command receipt를 조회할 수 있음
 - Dashboard summary가 command receipt application ready, pending, applied, patched queue, audit, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:apply`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 88: Human Review Cycle Receipt Completion Reconciliation
+
+목표: command receipt application 이후에도 남아 있는 completion blocker를 한 장부에 모은다. pending command receipt, held command, explicit approval hold, actor follow-up을 read-only로 정리하되, command 실행, receipt input 수정, protected action 실행은 하지 않는다.
+
+- Completion Readiness, Command Queue, Command Receipt Application artifact를 입력으로 사용
+- pending command receipt를 `waiting_for_manual_command_receipt` reconciliation item으로 기록
+- held command를 `waiting_for_manual_input` 또는 `waiting_for_explicit_human_approval` reconciliation item으로 기록
+- actor별 command queue, held command, pending receipt 상태를 `actor_statuses`로 정규화
+- safe handling은 `auto_execute_allowed: false`, `reconciliation_only: true`, `receipt_edits_must_be_manual: true`, `refresh_commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 command receipt application 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-reconcile` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_reconciliation` stage와 item/actor/pending/held/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-reconciliations`, `/api/human-review-cycle-completion-reconciliation-items`, `/api/human-review-cycle-completion-reconciliation-actors` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Reconciliation을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-reconcile`
+- `src/human-review-cycle-receipt-completion-reconciliation.mjs`
+- `scripts/human-review-cycle-receipt-completion-reconciliation.mjs`
+- `schemas/human-review-cycle-receipt-completion-reconciliation.schema.json`
+- `docs/human-review-cycle-receipt-completion-reconciliation.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- reconciliation artifact가 schema validation을 통과함
+- 현재 pending-only command receipt 상태에서는 `waiting_for_manual_command_receipts`를 기록함
+- pending command receipt count가 command receipt application의 pending count와 일치함
+- held command count와 protected held command count가 command queue summary와 일치함
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-reconciliations?reconciliation_status=waiting_for_manual_command_receipts`로 reconciliation artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-reconciliation-items?reconciliation_status=waiting_for_manual_command_receipt`로 pending command receipt item을 조회할 수 있음
+- Dashboard summary가 reconciliation item, actor, pending command receipt, held command, blocked follow-on, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-reconcile`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

@@ -53,6 +53,7 @@ npm run control-plane:loop
 - `npm run control-plane:review-cycle:completion-command-receipts`
 - `npm run control-plane:review-cycle:completion-command-receipts:validate`
 - `npm run control-plane:review-cycle:completion-command-receipts:feedback`
+- `npm run control-plane:review-cycle:completion-command-receipts:workspace`
 - `npm run control-plane:human-gate-receipts:apply`
 - `npm run control-plane:work-packets`
 - `npm run control-plane:work-receipts`

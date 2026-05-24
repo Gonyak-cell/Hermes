@@ -51,6 +51,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_command_receipts", "Human review cycle receipt completion command receipts", "gate_approval", "human_review_cycle_receipt_completion_command_receipts", "control-plane-human-review-cycle-receipt-completion-command-receipts", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipts_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_receipt_validation", "Human review cycle receipt completion command receipt validation", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_validation", "control-plane-human-review-cycle-receipt-completion-command-receipt-validation", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_validation_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_receipt_feedback", "Human review cycle receipt completion command receipt feedback", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_feedback", "control-plane-human-review-cycle-receipt-completion-command-receipt-feedback", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_feedback_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_command_receipt_workspace", "Human review cycle receipt completion command receipt workspace", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_workspace", "control-plane-human-review-cycle-receipt-completion-command-receipt-workspace", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_workspace_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -535,6 +536,16 @@ function evaluateStageAcceptance(item, stage) {
     const hasPendingGate = (metrics.pending_receipt_count ?? 0) > 0;
     if (hasFeedback && hasPendingGate && errors === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion command receipt feedback is implemented and routing pending command receipt work back to actors without executing commands or protected actions.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_command_receipt_workspace_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasWorkspace = (metrics.workspace_item_count ?? 0) > 0 && (metrics.actor_workspace_count ?? 0) > 0;
+    const hasEditableReceipts = (metrics.receipt_row_count ?? 0) > 0 && (metrics.editable_file_count ?? 0) > 0;
+    const hasPendingGate = (metrics.pending_receipt_count ?? 0) > 0;
+    if (hasWorkspace && hasEditableReceipts && hasPendingGate && errors === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion command receipt workspace is implemented and preparing actor-specific editable command receipt inputs without running commands or protected actions.");
     }
   }
 

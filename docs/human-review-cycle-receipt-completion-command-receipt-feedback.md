@@ -46,3 +46,5 @@ The Control Plane Loop runs this stage after command receipt validation and befo
 - `/api/human-review-cycle-completion-command-receipt-feedbacks`
 - `/api/human-review-cycle-completion-command-receipt-feedback-items`
 - `/api/human-review-cycle-completion-command-receipt-actor-feedback`
+
+The next stage, `control-plane:review-cycle:completion-command-receipts:workspace`, turns this feedback into actor-specific editable command receipt input files.

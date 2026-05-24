@@ -179,6 +179,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-feedbacks"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-feedback-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-actor-feedback"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-workspaces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-workspace-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-actor-workspaces"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -729,6 +732,18 @@ try {
   const humanReviewCycleCompletionCommandReceiptActorFeedback = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-actor-feedback?required_actor=human_reviewer&limit=5`);
   assert.equal(humanReviewCycleCompletionCommandReceiptActorFeedback.collection, "human_review_cycle_completion_command_receipt_actor_feedback");
   assert.ok(humanReviewCycleCompletionCommandReceiptActorFeedback.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptWorkspaces = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-workspaces?workspace_status=pending_human_review&limit=1`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptWorkspaces.collection, "human_review_cycle_completion_command_receipt_workspaces");
+  assert.ok(humanReviewCycleCompletionCommandReceiptWorkspaces.count <= 1);
+
+  const humanReviewCycleCompletionCommandReceiptWorkspaceItems = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-workspace-items?workspace_status=needs_command_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptWorkspaceItems.collection, "human_review_cycle_completion_command_receipt_workspace_items");
+  assert.ok(humanReviewCycleCompletionCommandReceiptWorkspaceItems.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptActorWorkspaces = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-actor-workspaces?required_actor=human_reviewer&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptActorWorkspaces.collection, "human_review_cycle_completion_command_receipt_actor_workspaces");
+  assert.ok(humanReviewCycleCompletionCommandReceiptActorWorkspaces.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

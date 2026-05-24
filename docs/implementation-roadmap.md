@@ -2435,3 +2435,41 @@
 - `/api/human-review-cycle-completion-command-receipt-actor-feedback?required_actor=human_reviewer`로 actor feedback을 조회할 수 있음
 - Dashboard summary가 command receipt feedback actor, item, pending, correction, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:feedback`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 84: Human Review Cycle Receipt Completion Command Receipt Workspace
+
+목표: command receipt feedback을 actor별 editable command receipt input workspace로 변환한다. 사람이 수동으로 refresh command를 실행하고 그 결과를 기록할 수 있는 파일을 만들되, harness는 command 실행, actor input merge, receipt application, protected action을 수행하지 않는다.
+
+- Command Receipt Feedback과 Command Receipts artifact를 입력으로 사용
+- feedback item을 `workspace_items`로 변환하고 `required_actor`별 `actor_workspaces` 생성
+- actor별 `receipt-input.json`은 `human-review-cycle-receipt-completion-command-receipts-input.v1` 형식을 유지
+- editable receipt에는 `receipt_status`, `command_result`, `executed_by`, `executed_at`, `output_reference`, `notes`, `commands_run` placeholder를 유지
+- `commands_run`에는 원래 queued command가 포함됨
+- actor별 `command-receipt-workspace.json`, `receipt-input.json`, `workspace.md` 생성
+- safe handling은 `auto_execute_allowed: false`, `command_receipt_workspace_only: true`, `receipt_edits_must_be_manual: true`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 command receipt feedback 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-command-receipts:workspace` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_receipt_workspace` stage와 actor/workspace/pending summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-receipt-workspaces`, `/api/human-review-cycle-completion-command-receipt-workspace-items`, `/api/human-review-cycle-completion-command-receipt-actor-workspaces` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Command Receipt Workspace를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-receipts:workspace`
+- `src/human-review-cycle-receipt-completion-command-receipt-workspace.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-receipt-workspace.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-receipt-workspace.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- command receipt workspace artifact가 schema validation을 통과함
+- workspace item count가 command receipt feedback item count와 일치함
+- actor workspace count가 command receipt feedback actor count와 일치함
+- actor별 editable `receipt-input.json`이 생성되고 receipt row count가 workspace item count와 일치함
+- editable receipt의 `commands_run`이 queued command를 포함함
+- `/api/human-review-cycle-completion-command-receipt-workspace-items?workspace_status=needs_command_receipt`로 pending workspace item을 조회할 수 있음
+- `/api/human-review-cycle-completion-command-receipt-actor-workspaces?required_actor=human_reviewer`로 actor workspace를 조회할 수 있음
+- Dashboard summary가 command receipt workspace actor, item, receipt row, pending, editable file, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:workspace`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

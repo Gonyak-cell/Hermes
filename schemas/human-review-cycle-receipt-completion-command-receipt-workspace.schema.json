@@ -1,0 +1,212 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-command-receipt-workspace.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Command Receipt Workspace",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workspace_id",
+    "output_dir",
+    "workspace_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_workspaces",
+    "workspace_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-command-receipt-workspace.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workspace_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "workspace_status": { "enum": ["clear", "pending_human_review", "ready_for_confirmation", "attention", "blocked"] },
+    "safe_handling": { "$ref": "#/$defs/safe_handling" },
+    "sources": { "type": "array", "items": { "$ref": "#/$defs/source" } },
+    "summary": {
+      "type": "object",
+      "required": [
+        "actor_workspace_count",
+        "workspace_item_count",
+        "receipt_row_count",
+        "pending_receipt_count",
+        "needs_correction_count",
+        "ready_for_confirmation_count",
+        "validation_error_count",
+        "editable_file_count",
+        "by_required_actor",
+        "by_workspace_status",
+        "by_feedback_status",
+        "by_command_kind"
+      ],
+      "properties": {
+        "actor_workspace_count": { "type": "integer", "minimum": 0 },
+        "workspace_item_count": { "type": "integer", "minimum": 0 },
+        "receipt_row_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "needs_correction_count": { "type": "integer", "minimum": 0 },
+        "ready_for_confirmation_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "editable_file_count": { "type": "integer", "minimum": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_workspace_status": { "type": "object" },
+        "by_feedback_status": { "type": "object" },
+        "by_command_kind": { "type": "object" }
+      }
+    },
+    "actor_workspaces": { "type": "array", "items": { "$ref": "#/$defs/actor_workspace" } },
+    "workspace_items": { "type": "array", "items": { "$ref": "#/$defs/workspace_item" } },
+    "validation": { "$ref": "#/$defs/validation" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_workspace": {
+      "type": "object",
+      "required": [
+        "actor_workspace_id",
+        "required_actor",
+        "workspace_status",
+        "priority",
+        "workspace_item_count",
+        "receipt_row_count",
+        "pending_receipt_count",
+        "needs_correction_count",
+        "ready_for_confirmation_count",
+        "workspace_item_ids",
+        "receipt_input_path",
+        "workspace_json_path",
+        "workspace_markdown_path",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_workspace_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "workspace_status": { "enum": ["clear", "pending_human_review", "ready_for_confirmation", "attention"] },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "workspace_item_count": { "type": "integer", "minimum": 0 },
+        "receipt_row_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "needs_correction_count": { "type": "integer", "minimum": 0 },
+        "ready_for_confirmation_count": { "type": "integer", "minimum": 0 },
+        "workspace_item_ids": { "type": "array", "items": { "type": "string" } },
+        "receipt_input_path": { "type": "string" },
+        "workspace_json_path": { "type": "string" },
+        "workspace_markdown_path": { "type": "string" },
+        "safe_handling": { "$ref": "#/$defs/safe_handling" }
+      }
+    },
+    "workspace_item": {
+      "type": "object",
+      "required": [
+        "workspace_item_id",
+        "feedback_item_id",
+        "validation_item_id",
+        "receipt_requirement_id",
+        "receipt_id",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "required_actor",
+        "priority",
+        "workspace_status",
+        "feedback_status",
+        "validation_status",
+        "receipt_status",
+        "command_result",
+        "ready_to_confirm",
+        "error_count",
+        "errors",
+        "required_receipt_fields",
+        "acceptance_criteria",
+        "next_actions",
+        "source_receipt_input_path",
+        "actor_receipt_input_path",
+        "editable_receipt",
+        "safe_handling"
+      ],
+      "properties": {
+        "workspace_item_id": { "type": "string" },
+        "feedback_item_id": { "type": "string" },
+        "validation_item_id": { "type": "string" },
+        "receipt_requirement_id": { "type": ["string", "null"] },
+        "receipt_id": { "type": ["string", "null"] },
+        "queue_item_id": { "type": "string" },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "priority": { "enum": ["critical", "high", "medium", "low"] },
+        "workspace_status": { "enum": ["needs_command_receipt", "needs_correction", "ready_for_confirmation", "attention"] },
+        "feedback_status": { "enum": ["needs_command_receipt", "ready_for_confirmation", "needs_correction", "attention"] },
+        "validation_status": { "enum": ["pending_receipt", "ready_to_confirm", "invalid_receipt", "missing_receipt", "unknown_command_receipt"] },
+        "receipt_status": { "type": "string" },
+        "command_result": { "type": "string" },
+        "ready_to_confirm": { "type": "boolean" },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array", "items": { "type": "object" } },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "acceptance_criteria": { "type": "array", "items": { "type": "string" } },
+        "next_actions": { "type": "array", "items": { "type": "string" } },
+        "source_receipt_input_path": { "type": ["string", "null"] },
+        "actor_receipt_input_path": { "type": "string" },
+        "editable_receipt": { "type": "object" },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "command_receipt_workspace_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "command_receipt_workspace_only": { "type": "boolean" },
+            "protected_actions_executed": { "const": false },
+            "receipt_edits_must_be_manual": { "type": "boolean" }
+          }
+        }
+      }
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": ["auto_execute_allowed", "draft_only", "command_receipt_workspace_only", "protected_actions_executed", "receipt_edits_must_be_manual"],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "draft_only": { "type": "boolean" },
+        "command_receipt_workspace_only": { "type": "boolean" },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "type": "boolean" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/error" } }
+      }
+    },
+    "error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

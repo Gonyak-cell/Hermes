@@ -2547,3 +2547,40 @@
 - `/api/validated-human-review-cycle-completion-command-workspace-receipts`로 검증 완료 merged command receipt를 조회할 수 있음
 - Dashboard summary가 command receipt workspace validation item, receipt, pending, ready, invalid, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:workspace:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 87: Human Review Cycle Receipt Completion Command Receipt Application
+
+목표: merged command receipt validation에서 검증 완료된 manual command receipt만 command queue ledger에 반영한다. 이 단계는 command 실행, receipt input 수정, protected action 실행을 하지 않고, 적용 가능한 receipt가 있을 때 derived patch와 audit event만 생성한다.
+
+- Command Receipt Workspace Validation artifact와 Command Queue artifact를 입력으로 사용
+- `validated_command_receipts.receipts`만 application 대상으로 사용
+- pending command receipt는 `pending_command_receipts`로 보존
+- ready receipt가 없으면 `application_status: nothing_to_apply`로 안전하게 종료
+- ready receipt가 있으면 applied command receipt, patched command queue item, audit event artifact 생성
+- safe handling은 `auto_execute_allowed: false`, `command_receipt_application_only: true`, `refresh_commands_executed: false`, `protected_actions_executed: false`, `receipt_edits_must_be_manual: true`로 고정
+- Control Plane Loop에서 command receipt workspace validation 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-command-receipts:apply` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_receipt_application` stage와 ready/pending/applied/patched/audit/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-receipt-applications`, `/api/applied-human-review-cycle-completion-command-receipts`, `/api/human-review-cycle-completion-command-receipt-application-pending-receipts`, `/api/human-review-cycle-completion-command-receipt-application-audit-events` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Command Receipt Application을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-receipts:apply`
+- `src/human-review-cycle-receipt-completion-command-receipt-application.mjs`
+- `scripts/human-review-cycle-receipt-completion-command-receipt-application.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-receipt-application.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-receipt-application.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- command receipt application artifact가 schema validation을 통과함
+- 현재 pending-only command receipt 상태에서는 `nothing_to_apply`와 applied count 0을 기록함
+- pending count가 workspace validation의 pending receipt count와 일치함
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-command-receipt-applications?application_status=nothing_to_apply`로 application artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-command-receipt-application-pending-receipts?validation_status=pending_receipt`로 보류 중인 command receipt를 조회할 수 있음
+- Dashboard summary가 command receipt application ready, pending, applied, patched queue, audit, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:apply`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

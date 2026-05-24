@@ -38,7 +38,7 @@ This stage is validation-only.
 
 ## Control Plane Integration
 
-The Control Plane Loop runs this stage after command receipt workspace merge and before human gate receipt application. The Review Dashboard exposes the stage as `human_review_cycle_receipt_completion_command_receipt_workspace_validation`, the Goal Checkpoint tracks it with `human_review_cycle_receipt_completion_command_receipt_workspace_validation_gate`, and the Review API exposes:
+The Control Plane Loop runs this stage after command receipt workspace merge and before command receipt application. The Review Dashboard exposes the stage as `human_review_cycle_receipt_completion_command_receipt_workspace_validation`, the Goal Checkpoint tracks it with `human_review_cycle_receipt_completion_command_receipt_workspace_validation_gate`, and the Review API exposes:
 
 - `/api/human-review-cycle-completion-command-receipt-workspace-validations`
 - `/api/human-review-cycle-completion-command-receipt-workspace-validation-items`

@@ -1,0 +1,223 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-command-receipt-application.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Command Receipt Application",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "application_id",
+    "output_dir",
+    "application_status",
+    "safe_to_apply",
+    "safe_handling",
+    "sources",
+    "summary",
+    "validated_command_receipts_to_apply",
+    "applied_command_receipts",
+    "pending_command_receipts",
+    "receipt_errors",
+    "audit_events",
+    "patched_command_queue_items"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-command-receipt-application.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "application_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "application_status": {
+      "enum": [
+        "applied",
+        "nothing_to_apply",
+        "blocked_missing_validation",
+        "blocked_missing_command_queue",
+        "blocked_validation_errors"
+      ]
+    },
+    "safe_to_apply": { "type": "boolean" },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "command_receipt_application_only",
+        "refresh_commands_executed",
+        "protected_actions_executed",
+        "receipt_edits_must_be_manual"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "command_receipt_application_only": { "const": true },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "application_status",
+        "validation_available",
+        "command_queue_available",
+        "validation_status",
+        "validation_error_count",
+        "ready_receipt_count",
+        "pending_receipt_count",
+        "invalid_receipt_count",
+        "applied_receipt_count",
+        "patched_command_queue_item_count",
+        "audit_event_count",
+        "receipt_error_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_receipt_status",
+        "by_command_result",
+        "by_command_kind",
+        "by_applied_command_status"
+      ],
+      "properties": {
+        "application_status": {
+          "enum": [
+            "applied",
+            "nothing_to_apply",
+            "blocked_missing_validation",
+            "blocked_missing_command_queue",
+            "blocked_validation_errors"
+          ]
+        },
+        "validation_available": { "type": "boolean" },
+        "command_queue_available": { "type": "boolean" },
+        "validation_status": { "type": ["string", "null"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "ready_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "invalid_receipt_count": { "type": "integer", "minimum": 0 },
+        "applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "patched_command_queue_item_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "receipt_error_count": { "type": "integer", "minimum": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_receipt_status": { "type": "object" },
+        "by_command_result": { "type": "object" },
+        "by_command_kind": { "type": "object" },
+        "by_applied_command_status": { "type": "object" }
+      }
+    },
+    "validated_command_receipts_to_apply": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "command_queue_id", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "human-review-cycle-receipt-completion-command-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "command_queue_id": { "type": "string" },
+        "instructions": { "type": "string" },
+        "receipts": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "applied_command_receipts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/applied_command_receipt" }
+    },
+    "pending_command_receipts": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "receipt_errors": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "audit_events": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/audit_event" }
+    },
+    "patched_command_queue_items": {
+      "type": "array",
+      "items": { "type": "object" }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "applied_command_receipt": {
+      "type": "object",
+      "required": [
+        "receipt_id",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "receipt_status",
+        "command_result",
+        "applied_command_status",
+        "executed_by",
+        "executed_at",
+        "output_reference",
+        "notes",
+        "commands_run",
+        "queue_item_found",
+        "source_refs",
+        "safe_handling",
+        "refresh_command_executed_by_harness",
+        "protected_action_executed"
+      ],
+      "properties": {
+        "receipt_id": { "type": "string" },
+        "queue_item_id": { "type": "string" },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "receipt_status": { "type": "string" },
+        "command_result": { "type": "string" },
+        "applied_command_status": { "type": "string" },
+        "executed_by": { "type": "string" },
+        "executed_at": { "type": "string", "format": "date-time" },
+        "output_reference": { "type": "string" },
+        "notes": { "type": "string" },
+        "commands_run": { "type": "array", "items": { "type": "string" } },
+        "queue_item_found": { "type": "boolean" },
+        "source_refs": { "type": "object" },
+        "safe_handling": {
+          "type": "object",
+          "required": ["auto_execute_allowed", "protected_actions_executed"],
+          "properties": {
+            "auto_execute_allowed": { "const": false },
+            "protected_actions_executed": { "const": false }
+          }
+        },
+        "refresh_command_executed_by_harness": { "const": false },
+        "protected_action_executed": { "const": false }
+      }
+    },
+    "audit_event": {
+      "type": "object",
+      "required": ["type", "time", "actor", "correlation_id", "subject"],
+      "properties": {
+        "type": { "const": "human_review_cycle.command_receipt.applied" },
+        "time": { "type": "string", "format": "date-time" },
+        "actor": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "subject": { "type": "object" }
+      }
+    }
+  }
+}

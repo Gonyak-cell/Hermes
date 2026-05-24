@@ -777,6 +777,22 @@ try {
   assert.equal(validatedHumanReviewCycleCompletionCommandWorkspaceReceipts.collection, "validated_human_review_cycle_completion_command_workspace_receipts");
   assert.ok(validatedHumanReviewCycleCompletionCommandWorkspaceReceipts.count <= 5);
 
+  const humanReviewCycleCompletionCommandReceiptApplications = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-applications?application_status=nothing_to_apply&limit=1`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptApplications.collection, "human_review_cycle_completion_command_receipt_applications");
+  assert.ok(humanReviewCycleCompletionCommandReceiptApplications.count <= 1);
+
+  const appliedHumanReviewCycleCompletionCommandReceipts = await fetchJson(`${url}/api/applied-human-review-cycle-completion-command-receipts?limit=5`);
+  assert.equal(appliedHumanReviewCycleCompletionCommandReceipts.collection, "applied_human_review_cycle_completion_command_receipts");
+  assert.ok(appliedHumanReviewCycleCompletionCommandReceipts.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptApplicationPendingReceipts = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-application-pending-receipts?validation_status=pending_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptApplicationPendingReceipts.collection, "human_review_cycle_completion_command_receipt_application_pending_receipts");
+  assert.ok(humanReviewCycleCompletionCommandReceiptApplicationPendingReceipts.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptApplicationAuditEvents = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-application-audit-events?limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptApplicationAuditEvents.collection, "human_review_cycle_completion_command_receipt_application_audit_events");
+  assert.ok(humanReviewCycleCompletionCommandReceiptApplicationAuditEvents.count <= 5);
+
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
 

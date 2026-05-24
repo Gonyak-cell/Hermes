@@ -54,6 +54,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_command_receipt_workspace", "Human review cycle receipt completion command receipt workspace", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_workspace", "control-plane-human-review-cycle-receipt-completion-command-receipt-workspace", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_workspace_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_receipt_workspace_merge", "Human review cycle receipt completion command receipt workspace merge", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_workspace_merge", "control-plane-human-review-cycle-receipt-completion-command-receipt-workspace-merge", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_workspace_merge_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_receipt_workspace_validation", "Human review cycle receipt completion command receipt workspace validation", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_workspace_validation", "control-plane-human-review-cycle-receipt-completion-command-receipt-workspace-validation", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_workspace_validation_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_command_receipt_application", "Human review cycle receipt completion command receipt application", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_application", "control-plane-human-review-cycle-receipt-completion-command-receipt-application", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_application_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -567,6 +568,17 @@ function evaluateStageAcceptance(item, stage) {
     const hasPendingGate = (metrics.pending_receipt_count ?? 0) > 0;
     if (hasValidation && hasPendingGate && errors === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion command receipt workspace validation is implemented and validating merged actor command receipt inputs before any confirmation or protected action.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_command_receipt_application_gate") {
+    const errors = metrics.validation_error_count ?? metrics.receipt_error_count ?? 0;
+    const hasApplicationDecision = ["nothing_to_apply", "applied"].includes(metrics.application_status);
+    const hasPendingGate = (metrics.pending_receipt_count ?? 0) > 0;
+    const protectedActionsExecuted = metrics.protected_action_executed_count ?? 0;
+    const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
+    if (hasApplicationDecision && hasPendingGate && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion command receipt application is implemented and can apply validated manual command receipts while preserving no-execution safety.");
     }
   }
 

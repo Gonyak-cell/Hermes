@@ -154,6 +154,7 @@ npm run dashboard:build -- \
 - Human Review Cycle Receipt Completion Command Receipt Workspace의 actor별 editable command receipt input 상태
 - Human Review Cycle Receipt Completion Command Receipt Workspace Merge의 merged receipt input과 validation-ready 상태
 - Human Review Cycle Receipt Completion Command Receipt Workspace Validation의 merged input validation 상태
+- Human Review Cycle Receipt Completion Command Receipt Application의 applied command receipt, patched command queue, audit event 상태
 - Control Plane Human Gate Receipt Application의 applied receipt, patched gate, audit event 상태
 - Control Plane Work Packets의 protected action, human review, command rerun 묶음 상태
 - Control Plane Work Packet Receipts의 pending receipt 입력 초안과 필수 확인값

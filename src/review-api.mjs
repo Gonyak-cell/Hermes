@@ -1917,6 +1917,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-applications") {
+    const applicationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_application");
+    if (!applicationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_application_unavailable", applicationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_applications", [applicationResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/applied-human-review-cycle-completion-command-receipts") {
+    const applicationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_application");
+    if (!applicationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_application_unavailable", applicationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("applied_human_review_cycle_completion_command_receipts", applicationResult.artifact.applied_command_receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-application-pending-receipts") {
+    const applicationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_application");
+    if (!applicationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_application_unavailable", applicationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_application_pending_receipts", applicationResult.artifact.pending_command_receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-application-audit-events") {
+    const applicationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_application");
+    if (!applicationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_application_unavailable", applicationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_application_audit_events", applicationResult.artifact.audit_events ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2273,6 +2317,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-validation-items", "Merged command receipt workspace validation items"),
       route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-validation-errors", "Merged command receipt workspace validation errors"),
       route("GET", "/api/validated-human-review-cycle-completion-command-workspace-receipts", "Validated command receipts from merged actor workspace inputs"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-applications", "Command receipt application artifacts"),
+      route("GET", "/api/applied-human-review-cycle-completion-command-receipts", "Applied human review cycle completion command receipts"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-application-pending-receipts", "Pending command receipts held by command receipt application"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-application-audit-events", "Command receipt application audit events"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

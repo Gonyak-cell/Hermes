@@ -63,6 +63,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_manual_revalidation", "Human review cycle receipt completion manual revalidation", "gate_approval", "human_review_cycle_receipt_completion_manual_revalidation", "control-plane-human-review-cycle-receipt-completion-manual-revalidation", { acceptance_profile: "human_review_cycle_receipt_completion_manual_revalidation_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_queue_patch_projection", "Human review cycle receipt completion command queue patch projection", "gate_approval", "human_review_cycle_receipt_completion_command_queue_patch_projection", "control-plane-human-review-cycle-receipt-completion-command-queue-patch-projection", { acceptance_profile: "human_review_cycle_receipt_completion_command_queue_patch_projection_gate" }),
   sourceItem("human_review_cycle_receipt_completion_closeout_ledger", "Human review cycle receipt completion closeout ledger", "gate_approval", "human_review_cycle_receipt_completion_closeout_ledger", "control-plane-human-review-cycle-receipt-completion-closeout-ledger", { acceptance_profile: "human_review_cycle_receipt_completion_closeout_ledger_gate" }),
+  sourceItem("human_review_v1_regression_freeze", "Human Review v1 regression freeze", "gate_approval", "human_review_v1_regression_freeze", "control-plane-human-review-v1-regression-freeze", { acceptance_profile: "human_review_v1_regression_freeze_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -729,6 +730,28 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 0) === 0;
     if (hasCloseout && matchesBaseline && statusesExhaustive && errors === 0 && noExecution) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion closeout ledger is implemented and normalizing every blocker into pending, approved, rejected, or superseded without mutating sources or executing commands.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_v1_regression_freeze_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const sourcesAvailable = (metrics.required_source_count ?? 0) > 0
+      && (metrics.available_required_source_count ?? 0) === (metrics.required_source_count ?? -1);
+    const fixtureHasHashes = (metrics.regression_fixture_artifact_count ?? 0) > 0
+      && (metrics.regression_fixture_hash_count ?? 0) === (metrics.regression_fixture_artifact_count ?? -1);
+    const checkpointsPassed = (metrics.verification_checkpoint_count ?? 0) > 0
+      && (metrics.failed_verification_checkpoint_count ?? 1) === 0;
+    const loopClean = metrics.loop_status === "passed"
+      && (metrics.loop_failed_step_count ?? 1) === 0
+      && (metrics.loop_missing_artifact_count ?? 1) === 0;
+    const closeoutFrozen = (metrics.closeout_item_count ?? 0) > 0
+      && (metrics.closeout_unknown_status_count ?? 1) === 0;
+    const noExecution = (metrics.command_executed_count ?? 0) === 0
+      && (metrics.patch_applied_count ?? 0) === 0
+      && (metrics.audit_event_emitted_count ?? 0) === 0
+      && (metrics.protected_action_executed_count ?? 0) === 0;
+    if (sourcesAvailable && fixtureHasHashes && checkpointsPassed && loopClean && closeoutFrozen && errors === 0 && noExecution) {
+      return passedWithOperationalGate(stage, "Human Review v1 regression freeze is implemented and locking the closure fixture, checkpoint contract, and no-execution handling before P097.");
     }
   }
 

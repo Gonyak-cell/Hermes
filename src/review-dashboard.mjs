@@ -78,6 +78,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCycleReceiptCompletionManualRevalidationPath: "artifacts/human-review-cycle-receipt-completion-manual-revalidation/latest/human-review-cycle-receipt-completion-manual-revalidation.json",
   humanReviewCycleReceiptCompletionCommandQueuePatchProjectionPath: "artifacts/human-review-cycle-receipt-completion-command-queue-patch-projection/latest/human-review-cycle-receipt-completion-command-queue-patch-projection.json",
   humanReviewCycleReceiptCompletionCloseoutLedgerPath: "artifacts/human-review-cycle-receipt-completion-closeout-ledger/latest/human-review-cycle-receipt-completion-closeout-ledger.json",
+  humanReviewV1RegressionFreezePath: "artifacts/human-review-v1-regression-freeze/latest/human-review-v1-regression-freeze.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -466,6 +467,11 @@ const SOURCE_DEFINITIONS = [
     label: "Human Review Cycle Receipt Completion Closeout Ledger",
   },
   {
+    option: "humanReviewV1RegressionFreezePath",
+    source_id: "human_review_v1_regression_freeze",
+    label: "Human Review v1 Regression Freeze",
+  },
+  {
     option: "controlPlaneHumanGateReceiptValidationPath",
     source_id: "control_plane_human_gate_receipt_validation",
     label: "Control Plane Human Gate Receipt Validation",
@@ -774,6 +780,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_cycle_receipt_completion_manual_revalidation") return data.summary ?? {};
   if (sourceId === "human_review_cycle_receipt_completion_command_queue_patch_projection") return data.summary ?? {};
   if (sourceId === "human_review_cycle_receipt_completion_closeout_ledger") return data.summary ?? {};
+  if (sourceId === "human_review_v1_regression_freeze") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -892,6 +899,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCycleReceiptCompletionManualRevalidationStage(artifacts.human_review_cycle_receipt_completion_manual_revalidation, sourceById.get("human_review_cycle_receipt_completion_manual_revalidation")),
     buildHumanReviewCycleReceiptCompletionCommandQueuePatchProjectionStage(artifacts.human_review_cycle_receipt_completion_command_queue_patch_projection, sourceById.get("human_review_cycle_receipt_completion_command_queue_patch_projection")),
     buildHumanReviewCycleReceiptCompletionCloseoutLedgerStage(artifacts.human_review_cycle_receipt_completion_closeout_ledger, sourceById.get("human_review_cycle_receipt_completion_closeout_ledger")),
+    buildHumanReviewV1RegressionFreezeStage(artifacts.human_review_v1_regression_freeze, sourceById.get("human_review_v1_regression_freeze")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -3357,6 +3365,47 @@ function buildHumanReviewCycleReceiptCompletionCloseoutLedgerStage(ledger, sourc
   };
 }
 
+function buildHumanReviewV1RegressionFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("human_review_v1_regression_freeze", "Human Review v1 Regression Freeze", source);
+  const summary = freeze.summary ?? {};
+  const errorCount = summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0;
+  const status = freeze.freeze_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : summary.closeout_pending_count > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "human_review_v1_regression_freeze",
+    label: "Human Review v1 Regression Freeze",
+    status,
+    message: `${summary.regression_fixture_artifact_count ?? 0} fixture artifact(s), ${summary.passed_verification_checkpoint_count ?? 0}/${summary.verification_checkpoint_count ?? 0} checkpoint(s), ${summary.closeout_pending_count ?? 0} pending.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: freeze.freeze_status ?? "unknown",
+      required_source_count: summary.required_source_count ?? 0,
+      available_required_source_count: summary.available_required_source_count ?? 0,
+      regression_fixture_artifact_count: summary.regression_fixture_artifact_count ?? 0,
+      regression_fixture_hash_count: summary.regression_fixture_hash_count ?? 0,
+      verification_checkpoint_count: summary.verification_checkpoint_count ?? 0,
+      passed_verification_checkpoint_count: summary.passed_verification_checkpoint_count ?? 0,
+      failed_verification_checkpoint_count: summary.failed_verification_checkpoint_count ?? 0,
+      closeout_item_count: summary.closeout_item_count ?? 0,
+      closeout_pending_count: summary.closeout_pending_count ?? 0,
+      closeout_unknown_status_count: summary.closeout_unknown_status_count ?? 0,
+      loop_status: summary.loop_status ?? "unknown",
+      loop_step_count: summary.loop_step_count ?? 0,
+      loop_passed_step_count: summary.loop_passed_step_count ?? 0,
+      loop_failed_step_count: summary.loop_failed_step_count ?? 0,
+      loop_missing_artifact_count: summary.loop_missing_artifact_count ?? 0,
+      validation_error_count: errorCount,
+      command_executed_count: summary.command_executed_count ?? 0,
+      patch_applied_count: summary.patch_applied_count ?? 0,
+      audit_event_emitted_count: summary.audit_event_emitted_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+    },
+  };
+}
+
 function buildControlPlaneHumanGateReceiptApplicationStage(application, source) {
   if (!application) return missingStage("control_plane_human_gate_receipt_application", "Control Plane Human Gate Receipt Application", source);
   const summary = application.summary ?? {};
@@ -4554,6 +4603,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_v1_regression_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_v1_regression_freeze";
+    items.push({
+      action_item_id: `dashboard.action.human_review_v1_regression_freeze.${slugify(subjectId)}`,
+      source_stage: "human_review_v1_regression_freeze",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix Human Review v1 regression freeze",
+      subject_ref: {
+        subject_type: "human_review_v1_regression_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_human_review_v1_regression_freeze", "rerun_dashboard_build", "rerun_control_plane_loop"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -5519,6 +5586,23 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_cycle_completion_closeout_command_executed_count: artifacts.human_review_cycle_receipt_completion_closeout_ledger?.summary?.command_executed_count ?? 0,
     human_review_cycle_completion_closeout_refresh_executed_count: artifacts.human_review_cycle_receipt_completion_closeout_ledger?.summary?.refresh_command_executed_by_harness_count ?? 0,
     human_review_cycle_completion_closeout_protected_executed_count: artifacts.human_review_cycle_receipt_completion_closeout_ledger?.summary?.protected_action_executed_count ?? 0,
+    human_review_v1_freeze_required_source_count: artifacts.human_review_v1_regression_freeze?.summary?.required_source_count ?? 0,
+    human_review_v1_freeze_available_required_source_count: artifacts.human_review_v1_regression_freeze?.summary?.available_required_source_count ?? 0,
+    human_review_v1_freeze_artifact_count: artifacts.human_review_v1_regression_freeze?.summary?.regression_fixture_artifact_count ?? 0,
+    human_review_v1_freeze_content_hash_count: artifacts.human_review_v1_regression_freeze?.summary?.regression_fixture_hash_count ?? 0,
+    human_review_v1_freeze_verification_checkpoint_count: artifacts.human_review_v1_regression_freeze?.summary?.verification_checkpoint_count ?? 0,
+    human_review_v1_freeze_failed_checkpoint_count: artifacts.human_review_v1_regression_freeze?.summary?.failed_verification_checkpoint_count ?? 0,
+    human_review_v1_freeze_loop_step_count: artifacts.human_review_v1_regression_freeze?.summary?.loop_step_count ?? 0,
+    human_review_v1_freeze_loop_failed_count: artifacts.human_review_v1_regression_freeze?.summary?.loop_failed_step_count ?? 0,
+    human_review_v1_freeze_loop_missing_artifact_count: artifacts.human_review_v1_regression_freeze?.summary?.loop_missing_artifact_count ?? 0,
+    human_review_v1_freeze_closeout_item_count: artifacts.human_review_v1_regression_freeze?.summary?.closeout_item_count ?? 0,
+    human_review_v1_freeze_pending_count: artifacts.human_review_v1_regression_freeze?.summary?.closeout_pending_count ?? 0,
+    human_review_v1_freeze_unknown_status_count: artifacts.human_review_v1_regression_freeze?.summary?.closeout_unknown_status_count ?? 0,
+    human_review_v1_freeze_error_count: artifacts.human_review_v1_regression_freeze?.summary?.validation_error_count ?? artifacts.human_review_v1_regression_freeze?.validation?.errors?.length ?? 0,
+    human_review_v1_freeze_command_executed_count: artifacts.human_review_v1_regression_freeze?.summary?.command_executed_count ?? 0,
+    human_review_v1_freeze_patch_applied_count: artifacts.human_review_v1_regression_freeze?.summary?.patch_applied_count ?? 0,
+    human_review_v1_freeze_emitted_count: artifacts.human_review_v1_regression_freeze?.summary?.audit_event_emitted_count ?? 0,
+    human_review_v1_freeze_protected_executed_count: artifacts.human_review_v1_regression_freeze?.summary?.protected_action_executed_count ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -6097,6 +6181,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-cycle-completion-command-queue-patch-projection") parsed.humanReviewCycleReceiptCompletionCommandQueuePatchProjectionPath = false;
     else if (arg === "--human-review-cycle-completion-closeout-ledger") parsed.humanReviewCycleReceiptCompletionCloseoutLedgerPath = argv[++index];
     else if (arg === "--no-human-review-cycle-completion-closeout-ledger") parsed.humanReviewCycleReceiptCompletionCloseoutLedgerPath = false;
+    else if (arg === "--human-review-v1-regression-freeze") parsed.humanReviewV1RegressionFreezePath = argv[++index];
+    else if (arg === "--no-human-review-v1-regression-freeze") parsed.humanReviewV1RegressionFreezePath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -6334,6 +6420,10 @@ Options:
                                   closeout ledger artifact path.
   --no-human-review-cycle-completion-closeout-ledger
                                   Do not include Human Review Cycle Receipt Completion Closeout Ledger status.
+  --human-review-v1-regression-freeze <path>
+                                  human-review-v1-regression-freeze.json path.
+  --no-human-review-v1-regression-freeze
+                                  Do not include Human Review v1 Regression Freeze status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

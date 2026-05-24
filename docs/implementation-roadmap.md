@@ -2915,6 +2915,41 @@
 - Dashboard summary가 closeout item, actor, pending/approved/rejected/superseded, unknown, source baseline, execution count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-closeout-ledger`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 96: Human Review v1 Regression Freeze
+
+Phase 96은 Human Review Cycle Closure v1을 다음 트랙으로 넘기기 전에 회귀 기준으로 동결했다.
+
+구현:
+
+- `npm run control-plane:review-cycle:freeze`
+- `src/human-review-v1-regression-freeze.mjs`
+- `scripts/human-review-v1-regression-freeze.mjs`
+- `schemas/human-review-v1-regression-freeze.schema.json`
+- `docs/human-review-v1-regression-freeze.md`
+
+핵심 산출물:
+
+- `artifacts/human-review-v1-regression-freeze/latest/human-review-v1-regression-freeze.json`
+- `artifacts/human-review-v1-regression-freeze/latest/regression-fixture.json`
+- `artifacts/human-review-v1-regression-freeze/latest/artifact-manifest.json`
+- `artifacts/human-review-v1-regression-freeze/latest/verification-checkpoints.json`
+- `artifacts/human-review-v1-regression-freeze/latest/freeze-note.json`
+- `artifacts/human-review-v1-regression-freeze/latest/summary.md`
+
+완료 기준:
+
+- Phase 89-95 closure artifact의 hash manifest와 invariant snapshot을 생성함
+- `frozen_with_pending_human_actions` 상태로 수동 처리 필요 항목을 유지하면서 P097 진행 가능성을 명시함
+- closeout item count, baseline blocker count, manual pack, held command, protected approval, revalidation, patch projection count가 서로 일치함
+- control-plane loop가 passed이고 failed/missing artifact step이 0임
+- freeze command가 source artifact 수정, command execution, patch application, audit event emission, protected action execution을 수행하지 않음
+- Dashboard stage, goal checkpoint, Review API route가 freeze artifact를 노출함
+- `/api/human-review-v1-regression-freezes?freeze_status=frozen_with_pending_human_actions`로 freeze artifact를 조회할 수 있음
+- `/api/human-review-v1-regression-fixture-artifacts?available=true`로 frozen fixture source refs를 조회할 수 있음
+- `/api/human-review-v1-regression-checkpoints?checkpoint_status=passed`로 verification checkpoint를 조회할 수 있음
+- `/api/human-review-v1-freeze-notes?freeze_status=frozen_with_pending_human_actions`로 freeze note를 조회할 수 있음
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:freeze`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2923,9 +2958,9 @@
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 95이다.
+- 현재 완료 기준점은 Phase 96이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P096-P312, 총 217개다.
+- 남은 계획 슬롯은 P097-P312, 총 216개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

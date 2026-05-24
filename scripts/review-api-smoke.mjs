@@ -206,6 +206,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-actors"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-normalized-blocker-statuses"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-v1-regression-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-v1-regression-fixture-artifacts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-v1-regression-checkpoints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-v1-freeze-notes"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -884,6 +888,22 @@ try {
   const humanReviewCycleCompletionNormalizedBlockerStatuses = await fetchJson(`${url}/api/human-review-cycle-completion-normalized-blocker-statuses?normalized_status=pending&limit=5`);
   assert.equal(humanReviewCycleCompletionNormalizedBlockerStatuses.collection, "human_review_cycle_completion_normalized_blocker_statuses");
   assert.ok(humanReviewCycleCompletionNormalizedBlockerStatuses.count <= 5);
+
+  const humanReviewV1RegressionFreezes = await fetchJson(`${url}/api/human-review-v1-regression-freezes?freeze_status=frozen_with_pending_human_actions&limit=1`);
+  assert.equal(humanReviewV1RegressionFreezes.collection, "human_review_v1_regression_freezes");
+  assert.ok(humanReviewV1RegressionFreezes.count <= 1);
+
+  const humanReviewV1RegressionFixtureArtifacts = await fetchJson(`${url}/api/human-review-v1-regression-fixture-artifacts?available=true&limit=5`);
+  assert.equal(humanReviewV1RegressionFixtureArtifacts.collection, "human_review_v1_regression_fixture_artifacts");
+  assert.ok(humanReviewV1RegressionFixtureArtifacts.count <= 5);
+
+  const humanReviewV1RegressionCheckpoints = await fetchJson(`${url}/api/human-review-v1-regression-checkpoints?checkpoint_status=passed&limit=5`);
+  assert.equal(humanReviewV1RegressionCheckpoints.collection, "human_review_v1_regression_checkpoints");
+  assert.ok(humanReviewV1RegressionCheckpoints.count <= 5);
+
+  const humanReviewV1FreezeNotes = await fetchJson(`${url}/api/human-review-v1-freeze-notes?freeze_status=frozen_with_pending_human_actions&limit=1`);
+  assert.equal(humanReviewV1FreezeNotes.collection, "human_review_v1_freeze_notes");
+  assert.ok(humanReviewV1FreezeNotes.count <= 1);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

@@ -45,6 +45,7 @@ import { runHumanReviewCycleReceiptCompletionProtectedApprovalRequestPack } from
 import { runHumanReviewCycleReceiptCompletionManualRevalidation } from "../src/human-review-cycle-receipt-completion-manual-revalidation.mjs";
 import { runHumanReviewCycleReceiptCompletionCommandQueuePatchProjection } from "../src/human-review-cycle-receipt-completion-command-queue-patch-projection.mjs";
 import { runHumanReviewCycleReceiptCompletionCloseoutLedger } from "../src/human-review-cycle-receipt-completion-closeout-ledger.mjs";
+import { runHumanReviewV1RegressionFreeze } from "../src/human-review-v1-regression-freeze.mjs";
 import { runHumanReviewCorrectionWorkspace } from "../src/human-review-correction-workspace.mjs";
 import { runHumanReviewCorrectionWorkspaceMerge } from "../src/human-review-correction-workspace-merge.mjs";
 import { runHumanReviewReceiptWorkspace } from "../src/human-review-receipt-workspace.mjs";
@@ -1032,6 +1033,7 @@ describe("matter harness", () => {
         humanReviewCycleReceiptCompletionManualRevalidationPath: path.join(outDir, "human-review-cycle-receipt-completion-manual-revalidation", "human-review-cycle-receipt-completion-manual-revalidation.json"),
         humanReviewCycleReceiptCompletionCommandQueuePatchProjectionPath: path.join(outDir, "human-review-cycle-receipt-completion-command-queue-patch-projection", "human-review-cycle-receipt-completion-command-queue-patch-projection.json"),
         humanReviewCycleReceiptCompletionCloseoutLedgerPath: path.join(outDir, "human-review-cycle-receipt-completion-closeout-ledger", "human-review-cycle-receipt-completion-closeout-ledger.json"),
+        humanReviewV1RegressionFreezePath: path.join(outDir, "human-review-v1-regression-freeze", "human-review-v1-regression-freeze.json"),
         controlPlaneHumanGateReceiptValidationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         controlPlaneHumanGateReceiptApplicationPath: path.join(outDir, "control-plane-human-gate-receipt-application", "control-plane-human-gate-receipt-application.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
@@ -2417,6 +2419,48 @@ describe("matter harness", () => {
       assert.equal(controlPlaneLoopFinalization.summary.passed_step_count, 1);
       assert.match(await readFile(path.join(outDir, "control-plane-loop", "finalization-summary.md"), "utf8"), /Control Plane Loop Finalization/);
 
+      const humanReviewV1RegressionFreeze = await runHumanReviewV1RegressionFreeze({
+        reconciliationPath: path.join(outDir, "human-review-cycle-receipt-completion-reconciliation", "human-review-cycle-receipt-completion-reconciliation.json"),
+        baselinePath: path.join(outDir, "human-review-cycle-receipt-completion-baseline", "human-review-cycle-receipt-completion-baseline.json"),
+        manualCommandReceiptPackPath: path.join(outDir, "human-review-cycle-receipt-completion-manual-command-receipt-pack", "human-review-cycle-receipt-completion-manual-command-receipt-pack.json"),
+        heldCommandResolutionPath: path.join(outDir, "human-review-cycle-receipt-completion-held-command-resolution", "human-review-cycle-receipt-completion-held-command-resolution.json"),
+        protectedApprovalRequestPackPath: path.join(outDir, "human-review-cycle-receipt-completion-protected-approval-request-pack", "human-review-cycle-receipt-completion-protected-approval-request-pack.json"),
+        manualRevalidationPath: path.join(outDir, "human-review-cycle-receipt-completion-manual-revalidation", "human-review-cycle-receipt-completion-manual-revalidation.json"),
+        commandQueuePatchProjectionPath: path.join(outDir, "human-review-cycle-receipt-completion-command-queue-patch-projection", "human-review-cycle-receipt-completion-command-queue-patch-projection.json"),
+        closeoutLedgerPath: path.join(outDir, "human-review-cycle-receipt-completion-closeout-ledger", "human-review-cycle-receipt-completion-closeout-ledger.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        dashboardPath: false,
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "human-review-v1-regression-freeze"),
+        runAt: "2026-05-23T06:35:07.980Z",
+      });
+      const humanReviewV1RegressionFreezeSchema = JSON.parse(await readFile("schemas/human-review-v1-regression-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(humanReviewV1RegressionFreeze, humanReviewV1RegressionFreezeSchema, {}, "human_review_v1_regression_freeze"),
+        [],
+      );
+      assert.equal(humanReviewV1RegressionFreeze.freeze_status, "frozen_with_pending_human_actions");
+      assert.equal(humanReviewV1RegressionFreeze.safe_handling.regression_freeze_only, true);
+      assert.equal(humanReviewV1RegressionFreeze.safe_handling.commands_executed, false);
+      assert.equal(humanReviewV1RegressionFreeze.safe_handling.protected_actions_executed, false);
+      assert.equal(humanReviewV1RegressionFreeze.summary.regression_fixture_artifact_count, 8);
+      assert.equal(humanReviewV1RegressionFreeze.summary.regression_fixture_hash_count, humanReviewV1RegressionFreeze.summary.regression_fixture_artifact_count);
+      assert.equal(humanReviewV1RegressionFreeze.summary.failed_verification_checkpoint_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.validation_error_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.loop_status, "passed");
+      assert.equal(humanReviewV1RegressionFreeze.summary.loop_failed_step_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.loop_missing_artifact_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.closeout_item_count, humanReviewCycleReceiptCompletionCloseoutLedger.summary.closeout_item_count);
+      assert.equal(humanReviewV1RegressionFreeze.summary.closeout_pending_count, humanReviewCycleReceiptCompletionCloseoutLedger.summary.pending_count);
+      assert.equal(humanReviewV1RegressionFreeze.summary.closeout_unknown_status_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.command_executed_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.patch_applied_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.audit_event_emitted_count, 0);
+      assert.equal(humanReviewV1RegressionFreeze.summary.protected_action_executed_count, 0);
+      assert.ok(humanReviewV1RegressionFreeze.regression_fixture.artifact_refs.every((artifactRef) => artifactRef.content_hash?.startsWith("sha256:")));
+      assert.match(await readFile(path.join(outDir, "human-review-v1-regression-freeze", "summary.md"), "utf8"), /Human Review v1 Regression Freeze/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -2559,6 +2603,9 @@ describe("matter harness", () => {
       const cycleReceiptCompletionCloseoutLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-cycle-receipt-completion-closeout-ledger");
       assert.equal(cycleReceiptCompletionCloseoutLedgerCheckpoint?.acceptance_profile, "human_review_cycle_receipt_completion_closeout_ledger_gate");
       assert.equal(cycleReceiptCompletionCloseoutLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const humanReviewV1RegressionFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-v1-regression-freeze");
+      assert.equal(humanReviewV1RegressionFreezeCheckpoint?.acceptance_profile, "human_review_v1_regression_freeze_gate");
+      assert.equal(humanReviewV1RegressionFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.implementation_status === "passed_with_operational_gate"));
       assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
 
@@ -2978,6 +3025,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.human_review_cycle_completion_closeout_command_executed_count, 0);
       assert.equal(dashboard.summary.human_review_cycle_completion_closeout_refresh_executed_count, 0);
       assert.equal(dashboard.summary.human_review_cycle_completion_closeout_protected_executed_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_required_source_count, humanReviewV1RegressionFreeze.summary.required_source_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_available_required_source_count, humanReviewV1RegressionFreeze.summary.available_required_source_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_artifact_count, humanReviewV1RegressionFreeze.summary.regression_fixture_artifact_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_content_hash_count, humanReviewV1RegressionFreeze.summary.regression_fixture_hash_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_verification_checkpoint_count, humanReviewV1RegressionFreeze.summary.verification_checkpoint_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_loop_failed_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_loop_missing_artifact_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_closeout_item_count, humanReviewCycleReceiptCompletionCloseoutLedger.summary.closeout_item_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_pending_count, humanReviewCycleReceiptCompletionCloseoutLedger.summary.pending_count);
+      assert.equal(dashboard.summary.human_review_v1_freeze_unknown_status_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_error_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_command_executed_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_patch_applied_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_emitted_count, 0);
+      assert.equal(dashboard.summary.human_review_v1_freeze_protected_executed_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_application_ready_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_application_applied_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_application_patched_gate_count, 0);
@@ -3077,6 +3140,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_manual_revalidation"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_command_queue_patch_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_closeout_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_v1_regression_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
@@ -3310,6 +3374,10 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-actors"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-normalized-blocker-statuses"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-v1-regression-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-v1-regression-fixture-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-v1-regression-checkpoints"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-v1-freeze-notes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -4174,6 +4242,22 @@ describe("matter harness", () => {
       const humanReviewCycleCompletionNormalizedBlockerStatuses = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-completion-normalized-blocker-statuses?normalized_status=pending", apiOptions)).body);
       assert.equal(humanReviewCycleCompletionNormalizedBlockerStatuses.collection, "human_review_cycle_completion_normalized_blocker_statuses");
       assert.equal(humanReviewCycleCompletionNormalizedBlockerStatuses.count, 1);
+
+      const humanReviewV1RegressionFreezes = JSON.parse((await buildReviewApiResponse("/api/human-review-v1-regression-freezes?freeze_status=frozen_with_pending_human_actions", apiOptions)).body);
+      assert.equal(humanReviewV1RegressionFreezes.collection, "human_review_v1_regression_freezes");
+      assert.equal(humanReviewV1RegressionFreezes.count, 1);
+
+      const humanReviewV1RegressionFixtureArtifacts = JSON.parse((await buildReviewApiResponse("/api/human-review-v1-regression-fixture-artifacts?available=true", apiOptions)).body);
+      assert.equal(humanReviewV1RegressionFixtureArtifacts.collection, "human_review_v1_regression_fixture_artifacts");
+      assert.equal(humanReviewV1RegressionFixtureArtifacts.count, humanReviewV1RegressionFreeze.summary.regression_fixture_artifact_count);
+
+      const humanReviewV1RegressionCheckpoints = JSON.parse((await buildReviewApiResponse("/api/human-review-v1-regression-checkpoints?checkpoint_status=passed", apiOptions)).body);
+      assert.equal(humanReviewV1RegressionCheckpoints.collection, "human_review_v1_regression_checkpoints");
+      assert.equal(humanReviewV1RegressionCheckpoints.count, humanReviewV1RegressionFreeze.summary.verification_checkpoint_count);
+
+      const humanReviewV1FreezeNotes = JSON.parse((await buildReviewApiResponse("/api/human-review-v1-freeze-notes?freeze_status=frozen_with_pending_human_actions", apiOptions)).body);
+      assert.equal(humanReviewV1FreezeNotes.collection, "human_review_v1_freeze_notes");
+      assert.equal(humanReviewV1FreezeNotes.count, 1);
 
       const validatedHumanGateReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-human-gate-receipts", apiOptions)).body);
       assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

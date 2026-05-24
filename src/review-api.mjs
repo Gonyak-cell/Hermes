@@ -2258,6 +2258,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-v1-regression-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "human_review_v1_regression_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("human_review_v1_regression_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_v1_regression_freezes", [freezeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-v1-regression-fixture-artifacts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "human_review_v1_regression_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("human_review_v1_regression_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_v1_regression_fixture_artifacts", freezeResult.artifact.regression_fixture?.artifact_refs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-v1-regression-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "human_review_v1_regression_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("human_review_v1_regression_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_v1_regression_checkpoints", freezeResult.artifact.verification_checkpoints ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-v1-freeze-notes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "human_review_v1_regression_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("human_review_v1_regression_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_v1_freeze_notes", freezeResult.artifact.freeze_note ? [freezeResult.artifact.freeze_note] : [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2645,6 +2689,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-closeout-items", "Receipt completion closeout items normalized to closeout statuses"),
       route("GET", "/api/human-review-cycle-completion-closeout-actors", "Actor-specific receipt completion closeout summaries"),
       route("GET", "/api/human-review-cycle-completion-normalized-blocker-statuses", "Receipt completion normalized blocker status summaries"),
+      route("GET", "/api/human-review-v1-regression-freezes", "Human Review v1 regression freeze artifacts"),
+      route("GET", "/api/human-review-v1-regression-fixture-artifacts", "Frozen Human Review v1 regression fixture artifact refs"),
+      route("GET", "/api/human-review-v1-regression-checkpoints", "Human Review v1 regression verification checkpoints"),
+      route("GET", "/api/human-review-v1-freeze-notes", "Human Review v1 freeze notes"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2977,6 +3025,14 @@ function filterItems(items, searchParams) {
     "closeout_item_id",
     "actor_closeout_id",
     "closeout_status",
+    "freeze_id",
+    "freeze_status",
+    "fixture_id",
+    "fixture_scope",
+    "checkpoint_id",
+    "checkpoint_key",
+    "checkpoint_status",
+    "source_id",
     "normalized_status",
     "blocker_type",
     "raw_status",
@@ -3014,6 +3070,8 @@ function filterItems(items, searchParams) {
 
 function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
+  if (key === "checkpoint_key") return item.key;
+  if (key === "checkpoint_status") return item.status;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;
   if (key === "matrix_id") return item.policy_matrix?.matrix_id ?? item.matrix_id;
   if (key === "subject_type") return item.subject_ref?.subject_type ?? item[key];

@@ -202,6 +202,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-projection-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-operations"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-audit-candidates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-closeout-actors"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-normalized-blocker-statuses"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -864,6 +868,22 @@ try {
   const humanReviewCycleCompletionCommandQueuePatchAuditCandidates = await fetchJson(`${url}/api/human-review-cycle-completion-command-queue-patch-audit-candidates?event_status=held_pending_manual_receipt&limit=5`);
   assert.equal(humanReviewCycleCompletionCommandQueuePatchAuditCandidates.collection, "human_review_cycle_completion_command_queue_patch_audit_candidates");
   assert.ok(humanReviewCycleCompletionCommandQueuePatchAuditCandidates.count <= 5);
+
+  const humanReviewCycleCompletionCloseoutLedgers = await fetchJson(`${url}/api/human-review-cycle-completion-closeout-ledgers?closeout_status=open_pending&limit=1`);
+  assert.equal(humanReviewCycleCompletionCloseoutLedgers.collection, "human_review_cycle_completion_closeout_ledgers");
+  assert.ok(humanReviewCycleCompletionCloseoutLedgers.count <= 1);
+
+  const humanReviewCycleCompletionCloseoutItems = await fetchJson(`${url}/api/human-review-cycle-completion-closeout-items?normalized_status=pending&limit=5`);
+  assert.equal(humanReviewCycleCompletionCloseoutItems.collection, "human_review_cycle_completion_closeout_items");
+  assert.ok(humanReviewCycleCompletionCloseoutItems.count <= 5);
+
+  const humanReviewCycleCompletionCloseoutActors = await fetchJson(`${url}/api/human-review-cycle-completion-closeout-actors?required_actor=human_reviewer&limit=5`);
+  assert.equal(humanReviewCycleCompletionCloseoutActors.collection, "human_review_cycle_completion_closeout_actors");
+  assert.ok(humanReviewCycleCompletionCloseoutActors.count <= 5);
+
+  const humanReviewCycleCompletionNormalizedBlockerStatuses = await fetchJson(`${url}/api/human-review-cycle-completion-normalized-blocker-statuses?normalized_status=pending&limit=5`);
+  assert.equal(humanReviewCycleCompletionNormalizedBlockerStatuses.collection, "human_review_cycle_completion_normalized_blocker_statuses");
+  assert.ok(humanReviewCycleCompletionNormalizedBlockerStatuses.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 94이다.
-- 남은 planned slot은 P095-P312, 총 218개다.
+- 현재 완료 기준점은 Phase 95이다.
+- 남은 planned slot은 P096-P312, 총 217개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -20,7 +20,7 @@
 | P092 | protected approval request를 별도 승인 pack으로 분리 | protected approval request pack | Promoted to Phase 92; protected action이 command receipt와 섞이지 않고 explicit approval 상태로 추적 |
 | P093 | 수동 receipt 재검증 루프를 닫음 | manual receipt revalidation stage | Promoted to Phase 93; 사람이 입력한 receipt만 ready/applied 후보가 되고 자동 실행은 0으로 유지 |
 | P094 | command queue patch를 실행 전 projection으로 검증 | command queue patch projection | Promoted to Phase 94; patch 대상, 변경 전후 상태, audit event 후보가 schema 검증 통과 |
-| P095 | Human Review Cycle closeout ledger 생성 | closeout ledger, actor closeout summary | 모든 blocker가 pending, approved, rejected, superseded 중 하나로 정규화 |
+| P095 | Human Review Cycle closeout ledger 생성 | closeout ledger, actor closeout summary | Promoted to Phase 95; 모든 blocker가 pending, approved, rejected, superseded 중 하나로 정규화 |
 | P096 | Human Review v1 regression freeze | regression fixture, freeze note | human review loop 관련 test/validate/control-plane loop가 통과 |
 
 ## P097-P112 Core Contracts, Schema, Migration Spine

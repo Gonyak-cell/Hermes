@@ -62,6 +62,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_protected_approval_request_pack", "Human review cycle receipt completion protected approval request pack", "gate_approval", "human_review_cycle_receipt_completion_protected_approval_request_pack", "control-plane-human-review-cycle-receipt-completion-protected-approval-request-pack", { acceptance_profile: "human_review_cycle_receipt_completion_protected_approval_request_pack_gate" }),
   sourceItem("human_review_cycle_receipt_completion_manual_revalidation", "Human review cycle receipt completion manual revalidation", "gate_approval", "human_review_cycle_receipt_completion_manual_revalidation", "control-plane-human-review-cycle-receipt-completion-manual-revalidation", { acceptance_profile: "human_review_cycle_receipt_completion_manual_revalidation_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_queue_patch_projection", "Human review cycle receipt completion command queue patch projection", "gate_approval", "human_review_cycle_receipt_completion_command_queue_patch_projection", "control-plane-human-review-cycle-receipt-completion-command-queue-patch-projection", { acceptance_profile: "human_review_cycle_receipt_completion_command_queue_patch_projection_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_closeout_ledger", "Human review cycle receipt completion closeout ledger", "gate_approval", "human_review_cycle_receipt_completion_closeout_ledger", "control-plane-human-review-cycle-receipt-completion-closeout-ledger", { acceptance_profile: "human_review_cycle_receipt_completion_closeout_ledger_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -707,6 +708,27 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 0) === 0;
     if (hasProjection && matchesRevalidation && targetsCovered && readyPatchMatchesSource && unsafeCandidates === 0 && errors === 0 && noExecution) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion command queue patch projection is implemented and verifying patch targets, before/after states, and audit event candidates without applying them.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_closeout_ledger_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasCloseout = (metrics.closeout_item_count ?? 0) > 0 && (metrics.actor_closeout_count ?? 0) > 0;
+    const matchesBaseline = (metrics.closeout_item_count ?? 0) === (metrics.source_baseline_blocker_count ?? -1);
+    const normalizedStatuses = (metrics.pending_count ?? 0)
+      + (metrics.approved_count ?? 0)
+      + (metrics.rejected_count ?? 0)
+      + (metrics.superseded_count ?? 0);
+    const statusesExhaustive = normalizedStatuses === (metrics.closeout_item_count ?? -1)
+      && (metrics.normalized_status_total_count ?? 0) === (metrics.closeout_item_count ?? -1)
+      && (metrics.unknown_status_count ?? 0) === 0;
+    const noExecution = (metrics.patch_applied_count ?? 0) === 0
+      && (metrics.audit_event_emitted_count ?? 0) === 0
+      && (metrics.command_executed_count ?? 0) === 0
+      && (metrics.refresh_command_executed_by_harness_count ?? 0) === 0
+      && (metrics.protected_action_executed_count ?? 0) === 0;
+    if (hasCloseout && matchesBaseline && statusesExhaustive && errors === 0 && noExecution) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion closeout ledger is implemented and normalizing every blocker into pending, approved, rejected, or superseded without mutating sources or executing commands.");
     }
   }
 

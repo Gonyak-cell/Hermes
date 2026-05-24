@@ -1,0 +1,253 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-closeout-ledger.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Closeout Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "closeout_id",
+    "output_dir",
+    "closeout_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "normalized_blocker_statuses",
+    "closeout_items",
+    "actor_closeouts",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-closeout-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "closeout_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "closeout_status": {
+      "enum": ["blocked", "open_pending", "closed_with_rejections", "ready_for_freeze"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "closeout_ledger_only",
+        "source_artifact_mutation_allowed",
+        "command_queue_patch_applied",
+        "commands_executed",
+        "audit_events_emitted",
+        "refresh_commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "closeout_ledger_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "command_queue_patch_applied": { "const": false },
+        "commands_executed": { "const": false },
+        "audit_events_emitted": { "const": false },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "closeout_status",
+        "source_baseline_status",
+        "source_manual_revalidation_status",
+        "source_protected_approval_status",
+        "source_projection_status",
+        "source_resolution_status",
+        "source_baseline_blocker_count",
+        "closeout_item_count",
+        "actor_closeout_count",
+        "pending_count",
+        "approved_count",
+        "rejected_count",
+        "superseded_count",
+        "normalized_status_total_count",
+        "unknown_status_count",
+        "pending_command_receipt_count",
+        "pending_held_command_count",
+        "pending_protected_approval_count",
+        "approved_command_receipt_count",
+        "approved_protected_approval_count",
+        "validation_error_count",
+        "patch_applied_count",
+        "audit_event_emitted_count",
+        "command_executed_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_normalized_status",
+        "by_blocker_type",
+        "by_required_actor"
+      ],
+      "properties": {
+        "closeout_status": { "type": "string" },
+        "source_baseline_status": { "type": ["string", "null"] },
+        "source_manual_revalidation_status": { "type": ["string", "null"] },
+        "source_protected_approval_status": { "type": ["string", "null"] },
+        "source_projection_status": { "type": ["string", "null"] },
+        "source_resolution_status": { "type": ["string", "null"] },
+        "source_baseline_blocker_count": { "type": "integer", "minimum": 0 },
+        "closeout_item_count": { "type": "integer", "minimum": 0 },
+        "actor_closeout_count": { "type": "integer", "minimum": 0 },
+        "pending_count": { "type": "integer", "minimum": 0 },
+        "approved_count": { "type": "integer", "minimum": 0 },
+        "rejected_count": { "type": "integer", "minimum": 0 },
+        "superseded_count": { "type": "integer", "minimum": 0 },
+        "normalized_status_total_count": { "type": "integer", "minimum": 0 },
+        "unknown_status_count": { "type": "integer", "minimum": 0 },
+        "pending_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_held_command_count": { "type": "integer", "minimum": 0 },
+        "pending_protected_approval_count": { "type": "integer", "minimum": 0 },
+        "approved_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "approved_protected_approval_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "patch_applied_count": { "const": 0 },
+        "audit_event_emitted_count": { "const": 0 },
+        "command_executed_count": { "const": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_normalized_status": { "type": "object" },
+        "by_blocker_type": { "type": "object" },
+        "by_required_actor": { "type": "object" }
+      }
+    },
+    "normalized_blocker_statuses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/normalized_blocker_status" }
+    },
+    "closeout_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/closeout_item" }
+    },
+    "actor_closeouts": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_closeout" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "normalized_blocker_status": {
+      "type": "object",
+      "required": ["normalized_status", "count", "total_count", "blocker_ids", "closeout_item_ids", "required_actors"],
+      "properties": {
+        "normalized_status": { "enum": ["pending", "approved", "rejected", "superseded"] },
+        "count": { "type": "integer", "minimum": 0 },
+        "total_count": { "type": "integer", "minimum": 0 },
+        "blocker_ids": { "type": "array", "items": { "type": "string" } },
+        "closeout_item_ids": { "type": "array", "items": { "type": "string" } },
+        "required_actors": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "closeout_item": {
+      "type": "object",
+      "required": [
+        "closeout_item_id",
+        "source_blocker_id",
+        "source_reconciliation_item_id",
+        "blocker_type",
+        "raw_status",
+        "normalized_status",
+        "status_reason",
+        "pending_reason",
+        "priority",
+        "required_actor",
+        "protected_hold",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "next_action",
+        "source_refs",
+        "source_state",
+        "safe_handling"
+      ],
+      "properties": {
+        "closeout_item_id": { "type": "string" },
+        "source_blocker_id": { "type": "string" },
+        "source_reconciliation_item_id": { "type": "string" },
+        "blocker_type": { "type": "string" },
+        "raw_status": { "type": ["string", "null"] },
+        "normalized_status": { "enum": ["pending", "approved", "rejected", "superseded"] },
+        "status_reason": { "type": "string" },
+        "pending_reason": { "type": ["string", "null"] },
+        "priority": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "protected_hold": { "type": "boolean" },
+        "queue_item_id": { "type": ["string", "null"] },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "next_action": { "type": "string" },
+        "source_refs": { "type": "object" },
+        "source_state": { "type": "object" },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "actor_closeout": {
+      "type": "object",
+      "required": [
+        "actor_closeout_id",
+        "required_actor",
+        "closeout_status",
+        "closeout_item_count",
+        "pending_count",
+        "approved_count",
+        "rejected_count",
+        "superseded_count",
+        "priority_order",
+        "closeout_item_ids",
+        "commands",
+        "next_actions",
+        "normalized_statuses",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_closeout_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "closeout_status": { "enum": ["pending", "closed"] },
+        "closeout_item_count": { "type": "integer", "minimum": 0 },
+        "pending_count": { "type": "integer", "minimum": 0 },
+        "approved_count": { "type": "integer", "minimum": 0 },
+        "rejected_count": { "type": "integer", "minimum": 0 },
+        "superseded_count": { "type": "integer", "minimum": 0 },
+        "priority_order": { "type": "array", "items": { "type": "string" } },
+        "closeout_item_ids": { "type": "array", "items": { "type": "string" } },
+        "commands": { "type": "array", "items": { "type": "string" } },
+        "next_actions": { "type": "array", "items": { "type": "string" } },
+        "normalized_statuses": { "type": "array", "items": { "type": "object" } },
+        "safe_handling": { "type": "object" }
+      }
+    }
+  }
+}

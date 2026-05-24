@@ -2873,6 +2873,48 @@
 - Dashboard summary가 projection item, target, ready/waiting, patch operation, audit candidate, missing target, error, execution count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-queue-patch-projection`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 95: Human Review Cycle Receipt Completion Closeout Ledger
+
+목표: Human Review Cycle receipt completion의 모든 blocker를 closeout ledger로 정규화한다. Baseline blocker를 기준으로 pending command receipt, held command, protected approval request를 하나의 ledger에 묶고, 각 blocker를 `pending`, `approved`, `rejected`, `superseded` 중 하나로만 표시한다. 이 단계는 closeout ledger만 생성하며 source artifact를 수정하거나 command, patch, audit event, protected action을 실행하지 않는다.
+
+- Baseline, Manual Revalidation, Protected Approval Request Pack, Command Queue Patch Projection, Held Command Resolution artifact를 입력으로 사용
+- baseline blocker마다 closeout item을 만들고 source blocker, reconciliation item, revalidation item, projection item, resolution plan, approval request 참조를 연결
+- actor별 closeout summary를 만들어 human reviewer와 authorized operator의 남은 pending action을 분리
+- normalized blocker status summary를 `pending`, `approved`, `rejected`, `superseded` 네 상태로 고정
+- 현재 상태에서는 9개 blocker가 모두 `pending`이며, pending command receipt 5개, held command 4개, protected approval 1개를 dashboard/API/checkpoint가 그대로 반영
+- safe handling은 `auto_execute_allowed: false`, `closeout_ledger_only: true`, `source_artifact_mutation_allowed: false`, `command_queue_patch_applied: false`, `commands_executed: false`, `audit_events_emitted: false`, `refresh_commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 command queue patch projection 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-closeout-ledger` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_closeout_ledger` stage와 closeout item, actor, normalized status, error, execution count summary 추가
+- Review API에서 `/api/human-review-cycle-completion-closeout-ledgers`, `/api/human-review-cycle-completion-closeout-items`, `/api/human-review-cycle-completion-closeout-actors`, `/api/human-review-cycle-completion-normalized-blocker-statuses` route 제공
+- Goal Checkpoint에서 Closeout Ledger를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-closeout-ledger`
+- `src/human-review-cycle-receipt-completion-closeout-ledger.mjs`
+- `scripts/human-review-cycle-receipt-completion-closeout-ledger.mjs`
+- `schemas/human-review-cycle-receipt-completion-closeout-ledger.schema.json`
+- `docs/human-review-cycle-receipt-completion-closeout-ledger.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- closeout ledger artifact가 schema validation을 통과함
+- closeout item count가 baseline blocker count와 일치함
+- actor closeout이 모든 required actor를 포함함
+- `pending`, `approved`, `rejected`, `superseded` count 합계가 closeout item count와 일치하고 unknown status count가 0임
+- 현재 pending 상태에서 pending count가 closeout item count와 일치하고 approved/rejected/superseded count가 0임
+- pending command receipt, held command, protected approval count가 source artifact count와 일치함
+- patch application, command execution, audit event emission, protected action execution count가 항상 0임
+- `/api/human-review-cycle-completion-closeout-ledgers?closeout_status=open_pending`로 ledger artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-closeout-items?normalized_status=pending`으로 pending closeout item을 조회할 수 있음
+- `/api/human-review-cycle-completion-closeout-actors?required_actor=human_reviewer`로 actor closeout을 조회할 수 있음
+- `/api/human-review-cycle-completion-normalized-blocker-statuses?normalized_status=pending`으로 normalized status summary를 조회할 수 있음
+- Dashboard summary가 closeout item, actor, pending/approved/rejected/superseded, unknown, source baseline, execution count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-closeout-ledger`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2881,9 +2923,9 @@
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 94이다.
+- 현재 완료 기준점은 Phase 95이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P095-P312, 총 218개다.
+- 남은 계획 슬롯은 P096-P312, 총 217개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

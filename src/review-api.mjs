@@ -2214,6 +2214,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-closeout-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_closeout_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_closeout_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_closeout_ledgers", [ledgerResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-closeout-items") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_closeout_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_closeout_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_closeout_items", ledgerResult.artifact.closeout_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-closeout-actors") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_closeout_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_closeout_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_closeout_actors", ledgerResult.artifact.actor_closeouts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-normalized-blocker-statuses") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_closeout_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_closeout_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_normalized_blocker_statuses", ledgerResult.artifact.normalized_blocker_statuses ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2597,6 +2641,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-command-queue-patch-projection-items", "Projected command queue patch items"),
       route("GET", "/api/human-review-cycle-completion-command-queue-patch-operations", "Projected command queue patch operations"),
       route("GET", "/api/human-review-cycle-completion-command-queue-patch-audit-candidates", "Projected command queue patch audit event candidates"),
+      route("GET", "/api/human-review-cycle-completion-closeout-ledgers", "Receipt completion closeout ledger artifacts"),
+      route("GET", "/api/human-review-cycle-completion-closeout-items", "Receipt completion closeout items normalized to closeout statuses"),
+      route("GET", "/api/human-review-cycle-completion-closeout-actors", "Actor-specific receipt completion closeout summaries"),
+      route("GET", "/api/human-review-cycle-completion-normalized-blocker-statuses", "Receipt completion normalized blocker status summaries"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2925,6 +2973,14 @@ function filterItems(items, searchParams) {
     "patch_ready",
     "patch_applied",
     "audit_event_emitted",
+    "closeout_id",
+    "closeout_item_id",
+    "actor_closeout_id",
+    "closeout_status",
+    "normalized_status",
+    "blocker_type",
+    "raw_status",
+    "pending_reason",
     "event_status",
     "would_emit_on_apply",
     "emitted",

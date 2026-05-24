@@ -43,6 +43,7 @@ import { runHumanReviewCycleReceiptCompletionManualCommandReceiptPack } from "..
 import { runHumanReviewCycleReceiptCompletionHeldCommandResolution } from "../src/human-review-cycle-receipt-completion-held-command-resolution.mjs";
 import { runHumanReviewCycleReceiptCompletionProtectedApprovalRequestPack } from "../src/human-review-cycle-receipt-completion-protected-approval-request-pack.mjs";
 import { runHumanReviewCycleReceiptCompletionManualRevalidation } from "../src/human-review-cycle-receipt-completion-manual-revalidation.mjs";
+import { runHumanReviewCycleReceiptCompletionCommandQueuePatchProjection } from "../src/human-review-cycle-receipt-completion-command-queue-patch-projection.mjs";
 import { runHumanReviewCorrectionWorkspace } from "../src/human-review-correction-workspace.mjs";
 import { runHumanReviewCorrectionWorkspaceMerge } from "../src/human-review-correction-workspace-merge.mjs";
 import { runHumanReviewReceiptWorkspace } from "../src/human-review-receipt-workspace.mjs";
@@ -1028,6 +1029,7 @@ describe("matter harness", () => {
         humanReviewCycleReceiptCompletionHeldCommandResolutionPath: path.join(outDir, "human-review-cycle-receipt-completion-held-command-resolution", "human-review-cycle-receipt-completion-held-command-resolution.json"),
         humanReviewCycleReceiptCompletionProtectedApprovalRequestPackPath: path.join(outDir, "human-review-cycle-receipt-completion-protected-approval-request-pack", "human-review-cycle-receipt-completion-protected-approval-request-pack.json"),
         humanReviewCycleReceiptCompletionManualRevalidationPath: path.join(outDir, "human-review-cycle-receipt-completion-manual-revalidation", "human-review-cycle-receipt-completion-manual-revalidation.json"),
+        humanReviewCycleReceiptCompletionCommandQueuePatchProjectionPath: path.join(outDir, "human-review-cycle-receipt-completion-command-queue-patch-projection", "human-review-cycle-receipt-completion-command-queue-patch-projection.json"),
         controlPlaneHumanGateReceiptValidationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         controlPlaneHumanGateReceiptApplicationPath: path.join(outDir, "control-plane-human-gate-receipt-application", "control-plane-human-gate-receipt-application.json"),
         controlPlaneWorkPacketsPath: path.join(outDir, "control-plane-work-packets", "control-plane-work-packets.json"),
@@ -2190,6 +2192,44 @@ describe("matter harness", () => {
       assert.ok(humanReviewCycleReceiptCompletionManualRevalidation.revalidation_items.every((item) => !item.ready_or_applied_candidate || item.human_entered_receipt));
       assert.match(await readFile(path.join(outDir, "human-review-cycle-receipt-completion-manual-revalidation", "summary.md"), "utf8"), /Human Review Cycle Receipt Completion Manual Revalidation/);
 
+      const humanReviewCycleReceiptCompletionCommandQueuePatchProjection = await runHumanReviewCycleReceiptCompletionCommandQueuePatchProjection({
+        commandQueuePath: path.join(outDir, "human-review-cycle-receipt-completion-command-queue", "human-review-cycle-receipt-completion-command-queue.json"),
+        manualRevalidationPath: path.join(outDir, "human-review-cycle-receipt-completion-manual-revalidation", "human-review-cycle-receipt-completion-manual-revalidation.json"),
+        commandReceiptApplicationPath: path.join(outDir, "human-review-cycle-receipt-completion-command-receipt-application", "human-review-cycle-receipt-completion-command-receipt-application.json"),
+        outDir: path.join(outDir, "human-review-cycle-receipt-completion-command-queue-patch-projection"),
+        runAt: "2026-05-23T06:35:06.170Z",
+      });
+      const humanReviewCycleReceiptCompletionCommandQueuePatchProjectionSchema = JSON.parse(await readFile("schemas/human-review-cycle-receipt-completion-command-queue-patch-projection.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(humanReviewCycleReceiptCompletionCommandQueuePatchProjection, humanReviewCycleReceiptCompletionCommandQueuePatchProjectionSchema, {}, "human_review_cycle_receipt_completion_command_queue_patch_projection"),
+        [],
+      );
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.projection_status, "waiting_for_human_receipts");
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.safe_handling.patch_projection_only, true);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.safe_handling.command_queue_patch_applied, false);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.safe_handling.audit_events_emitted, false);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.projection_item_count, humanReviewCycleReceiptCompletionManualRevalidation.summary.revalidation_item_count);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.source_revalidation_item_count, humanReviewCycleReceiptCompletionManualRevalidation.summary.revalidation_item_count);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.patch_target_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.projection_item_count);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.ready_patch_count, humanReviewCycleReceiptCompletionManualRevalidation.summary.ready_or_applied_candidate_count);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.waiting_patch_count, humanReviewCycleReceiptCompletionManualRevalidation.summary.pending_human_receipt_count);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.patch_operation_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.audit_event_candidate_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.projection_item_count);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.emittable_audit_event_candidate_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.missing_queue_item_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.non_human_patch_candidate_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.protected_overlap_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.auto_executed_receipt_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.patch_applied_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.audit_event_emitted_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.command_executed_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.refresh_command_executed_by_harness_count, 0);
+      assert.equal(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.protected_action_executed_count, 0);
+      assert.ok(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.projection_items.every((item) => item.before_state && item.after_state && item.audit_event_candidate));
+      assert.ok(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.projection_items.every((item) => item.projection_status === "waiting_for_human_receipt"));
+      assert.ok(humanReviewCycleReceiptCompletionCommandQueuePatchProjection.audit_event_candidates.every((event) => event.event_status === "held_pending_manual_receipt" && !event.emitted));
+      assert.match(await readFile(path.join(outDir, "human-review-cycle-receipt-completion-command-queue-patch-projection", "summary.md"), "utf8"), /Human Review Cycle Receipt Completion Command Queue Patch Projection/);
+
       const controlPlaneHumanGateReceiptApplication = await runControlPlaneHumanGateReceiptApplication({
         validationPath: path.join(outDir, "control-plane-human-gate-receipt-validation", "control-plane-human-gate-receipt-validation.json"),
         humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2470,6 +2510,9 @@ describe("matter harness", () => {
       const cycleReceiptCompletionManualRevalidationCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-cycle-receipt-completion-manual-revalidation");
       assert.equal(cycleReceiptCompletionManualRevalidationCheckpoint?.acceptance_profile, "human_review_cycle_receipt_completion_manual_revalidation_gate");
       assert.equal(cycleReceiptCompletionManualRevalidationCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const cycleReceiptCompletionCommandQueuePatchProjectionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-human-review-cycle-receipt-completion-command-queue-patch-projection");
+      assert.equal(cycleReceiptCompletionCommandQueuePatchProjectionCheckpoint?.acceptance_profile, "human_review_cycle_receipt_completion_command_queue_patch_projection_gate");
+      assert.equal(cycleReceiptCompletionCommandQueuePatchProjectionCheckpoint?.implementation_status, "passed_with_operational_gate");
       assert.ok(controlPlaneGoalCheckpoint.checkpoint_items.some((item) => item.implementation_status === "passed_with_operational_gate"));
       assert.match(await readFile(path.join(outDir, "control-plane-goal-checkpoint", "summary.md"), "utf8"), /Control Plane Goal Checkpoint/);
 
@@ -2852,6 +2895,25 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.human_review_cycle_completion_manual_revalidation_error_count, 0);
       assert.equal(dashboard.summary.human_review_cycle_completion_manual_revalidation_refresh_executed_count, 0);
       assert.equal(dashboard.summary.human_review_cycle_completion_manual_revalidation_protected_executed_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_item_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.projection_item_count);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_source_revalidation_item_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.source_revalidation_item_count);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_target_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.patch_target_count);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_ready_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_waiting_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.waiting_patch_count);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_blocked_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_operation_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_audit_candidate_count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.audit_event_candidate_count);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_emittable_audit_candidate_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_missing_target_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_non_human_candidate_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_protected_overlap_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_auto_executed_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_error_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_applied_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_emitted_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_command_executed_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_refresh_executed_count, 0);
+      assert.equal(dashboard.summary.human_review_cycle_completion_command_queue_patch_projection_protected_executed_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_application_ready_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_application_applied_count, 0);
       assert.equal(dashboard.summary.human_gate_receipt_application_patched_gate_count, 0);
@@ -2949,6 +3011,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_held_command_resolution"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_protected_approval_request_pack"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_manual_revalidation"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "human_review_cycle_receipt_completion_command_queue_patch_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_human_gate_receipt_application"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packets"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_work_packet_receipts"));
@@ -3174,6 +3237,10 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-manual-revalidation-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-manual-revalidation-actors"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-ready-manual-receipts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-projections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-projection-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-operations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-queue-patch-audit-candidates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -4006,6 +4073,22 @@ describe("matter harness", () => {
       const humanReviewCycleCompletionReadyManualReceipts = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-completion-ready-manual-receipts", apiOptions)).body);
       assert.equal(humanReviewCycleCompletionReadyManualReceipts.collection, "human_review_cycle_completion_ready_manual_receipts");
       assert.equal(humanReviewCycleCompletionReadyManualReceipts.count, 0);
+
+      const humanReviewCycleCompletionCommandQueuePatchProjections = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-completion-command-queue-patch-projections?projection_status=waiting_for_human_receipts", apiOptions)).body);
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchProjections.collection, "human_review_cycle_completion_command_queue_patch_projections");
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchProjections.count, 1);
+
+      const humanReviewCycleCompletionCommandQueuePatchProjectionItems = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-completion-command-queue-patch-projection-items?projection_status=waiting_for_human_receipt", apiOptions)).body);
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchProjectionItems.collection, "human_review_cycle_completion_command_queue_patch_projection_items");
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchProjectionItems.count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.waiting_patch_count);
+
+      const humanReviewCycleCompletionCommandQueuePatchOperations = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-completion-command-queue-patch-operations", apiOptions)).body);
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchOperations.collection, "human_review_cycle_completion_command_queue_patch_operations");
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchOperations.count, 0);
+
+      const humanReviewCycleCompletionCommandQueuePatchAuditCandidates = JSON.parse((await buildReviewApiResponse("/api/human-review-cycle-completion-command-queue-patch-audit-candidates?event_status=held_pending_manual_receipt", apiOptions)).body);
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchAuditCandidates.collection, "human_review_cycle_completion_command_queue_patch_audit_candidates");
+      assert.equal(humanReviewCycleCompletionCommandQueuePatchAuditCandidates.count, humanReviewCycleReceiptCompletionCommandQueuePatchProjection.summary.audit_event_candidate_count);
 
       const validatedHumanGateReceipts = JSON.parse((await buildReviewApiResponse("/api/validated-human-gate-receipts", apiOptions)).body);
       assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

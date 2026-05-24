@@ -1,0 +1,263 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-command-queue-patch-projection.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Command Queue Patch Projection",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "projection_id",
+    "output_dir",
+    "projection_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "projection_items",
+    "patch_operations",
+    "audit_event_candidates",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-command-queue-patch-projection.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "projection_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "projection_status": {
+      "enum": ["blocked", "waiting_for_human_receipts", "ready_for_patch_projection", "projected_clear"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "patch_projection_only",
+        "source_artifact_mutation_allowed",
+        "command_queue_patch_applied",
+        "commands_executed",
+        "audit_events_emitted",
+        "refresh_commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "patch_projection_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "command_queue_patch_applied": { "const": false },
+        "commands_executed": { "const": false },
+        "audit_events_emitted": { "const": false },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "projection_status",
+        "source_command_queue_status",
+        "source_revalidation_status",
+        "source_application_status",
+        "source_revalidation_item_count",
+        "source_ready_or_applied_candidate_count",
+        "projection_item_count",
+        "patch_target_count",
+        "ready_patch_count",
+        "waiting_patch_count",
+        "blocked_patch_count",
+        "unchanged_projection_count",
+        "patch_operation_count",
+        "audit_event_candidate_count",
+        "emittable_audit_event_candidate_count",
+        "missing_queue_item_count",
+        "non_human_patch_candidate_count",
+        "protected_overlap_count",
+        "auto_executed_receipt_count",
+        "validation_error_count",
+        "patch_applied_count",
+        "audit_event_emitted_count",
+        "command_executed_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_projection_status",
+        "by_command_kind"
+      ],
+      "properties": {
+        "projection_status": { "type": "string" },
+        "source_command_queue_status": { "type": ["string", "null"] },
+        "source_revalidation_status": { "type": ["string", "null"] },
+        "source_application_status": { "type": ["string", "null"] },
+        "source_revalidation_item_count": { "type": "integer", "minimum": 0 },
+        "source_ready_or_applied_candidate_count": { "type": "integer", "minimum": 0 },
+        "projection_item_count": { "type": "integer", "minimum": 0 },
+        "patch_target_count": { "type": "integer", "minimum": 0 },
+        "ready_patch_count": { "type": "integer", "minimum": 0 },
+        "waiting_patch_count": { "type": "integer", "minimum": 0 },
+        "blocked_patch_count": { "type": "integer", "minimum": 0 },
+        "unchanged_projection_count": { "type": "integer", "minimum": 0 },
+        "patch_operation_count": { "type": "integer", "minimum": 0 },
+        "audit_event_candidate_count": { "type": "integer", "minimum": 0 },
+        "emittable_audit_event_candidate_count": { "type": "integer", "minimum": 0 },
+        "missing_queue_item_count": { "type": "integer", "minimum": 0 },
+        "non_human_patch_candidate_count": { "type": "integer", "minimum": 0 },
+        "protected_overlap_count": { "type": "integer", "minimum": 0 },
+        "auto_executed_receipt_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "patch_applied_count": { "const": 0 },
+        "audit_event_emitted_count": { "const": 0 },
+        "command_executed_count": { "const": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_projection_status": { "type": "object" },
+        "by_command_kind": { "type": "object" }
+      }
+    },
+    "projection_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/projection_item" }
+    },
+    "patch_operations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/patch_operation" }
+    },
+    "audit_event_candidates": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/audit_event_candidate" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "projection_item": {
+      "type": "object",
+      "required": [
+        "projection_item_id",
+        "source_revalidation_item_id",
+        "source_pack_item_id",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "required_actor",
+        "projection_status",
+        "patch_target_available",
+        "patch_ready",
+        "patch_applied",
+        "audit_event_emitted",
+        "before_state",
+        "after_state",
+        "patch_operations",
+        "audit_event_candidate",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "projection_item_id": { "type": "string" },
+        "source_revalidation_item_id": { "type": "string" },
+        "source_pack_item_id": { "type": "string" },
+        "queue_item_id": { "type": "string" },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "projection_status": { "type": "string" },
+        "patch_target_available": { "type": "boolean" },
+        "patch_ready": { "type": "boolean" },
+        "patch_applied": { "const": false },
+        "audit_event_emitted": { "const": false },
+        "before_state": { "$ref": "#/$defs/queue_state" },
+        "after_state": { "$ref": "#/$defs/queue_state" },
+        "patch_operations": { "type": "array", "items": { "$ref": "#/$defs/patch_operation" } },
+        "audit_event_candidate": { "$ref": "#/$defs/audit_event_candidate" },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "queue_state": {
+      "type": "object",
+      "required": [
+        "queue_item_found",
+        "command_status",
+        "queue_status",
+        "applied_receipt_id",
+        "applied_at",
+        "applied_by",
+        "output_reference",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "queue_item_found": { "type": "boolean" },
+        "command_status": { "type": ["string", "null"] },
+        "queue_status": { "type": ["string", "null"] },
+        "applied_receipt_id": { "type": ["string", "null"] },
+        "applied_at": { "type": ["string", "null"], "format": "date-time" },
+        "applied_by": { "type": ["string", "null"] },
+        "output_reference": { "type": ["string", "null"] },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "patch_operation": {
+      "type": "object",
+      "required": ["operation_id", "op", "path", "field", "before", "after", "applied"],
+      "properties": {
+        "operation_id": { "type": "string" },
+        "op": { "enum": ["add", "replace"] },
+        "path": { "type": "string" },
+        "field": { "type": "string" },
+        "before": {},
+        "after": {},
+        "applied": { "const": false }
+      }
+    },
+    "audit_event_candidate": {
+      "type": "object",
+      "required": [
+        "candidate_id",
+        "type",
+        "time",
+        "actor",
+        "correlation_id",
+        "event_status",
+        "would_emit_on_apply",
+        "emitted",
+        "subject"
+      ],
+      "properties": {
+        "candidate_id": { "type": "string" },
+        "type": { "enum": ["human_review_cycle.command_queue_patch.projected", "human_review_cycle.command_queue_patch.held"] },
+        "time": { "type": "string", "format": "date-time" },
+        "actor": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "event_status": { "enum": ["ready_to_emit_after_explicit_apply", "held_pending_manual_receipt"] },
+        "would_emit_on_apply": { "type": "boolean" },
+        "emitted": { "const": false },
+        "subject": { "type": "object" }
+      }
+    }
+  }
+}

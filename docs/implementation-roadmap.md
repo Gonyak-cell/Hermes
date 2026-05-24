@@ -2831,6 +2831,48 @@
 - Dashboard summary가 manual revalidation item, actor, pending, ready/applied, non-human, protected-overlap, auto-executed, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-manual-revalidation`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 94: Human Review Cycle Receipt Completion Command Queue Patch Projection
+
+목표: command queue patch를 실행 전에 projection으로 검증한다. Manual Revalidation에서 human-entered ready/applied 후보로 확인된 receipt만 patch-ready가 될 수 있으며, 현재 pending receipt 상태에서는 모든 command queue target이 unchanged projection으로 유지된다. 이 단계는 command queue를 수정하거나 audit event를 emit하지 않는다.
+
+- Command Queue, Manual Receipt Revalidation, Command Receipt Application artifact를 입력으로 사용
+- manual revalidation item별로 command queue patch projection item 생성
+- 각 projection item은 `before_state`, `after_state`, `patch_operations`, `audit_event_candidate`를 포함
+- pending human receipt는 `waiting_for_human_receipt` projection으로 남고 before/after state는 동일하게 유지
+- human-entered ready/applied candidate가 존재할 때만 `ready_for_patch_projection`과 emittable audit candidate가 생성됨
+- non-human candidate, protected approval overlap, auto-executed receipt는 validation error로 차단
+- safe handling은 `auto_execute_allowed: false`, `patch_projection_only: true`, `source_artifact_mutation_allowed: false`, `command_queue_patch_applied: false`, `commands_executed: false`, `audit_events_emitted: false`, `refresh_commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 manual revalidation 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-command-queue-patch-projection` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_queue_patch_projection` stage와 projection/target/operation/audit/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-queue-patch-projections`, `/api/human-review-cycle-completion-command-queue-patch-projection-items`, `/api/human-review-cycle-completion-command-queue-patch-operations`, `/api/human-review-cycle-completion-command-queue-patch-audit-candidates` route 제공
+- Goal Checkpoint에서 Command Queue Patch Projection을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-queue-patch-projection`
+- `src/human-review-cycle-receipt-completion-command-queue-patch-projection.mjs`
+- `scripts/human-review-cycle-receipt-completion-command-queue-patch-projection.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-queue-patch-projection.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-queue-patch-projection.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- patch projection artifact가 schema validation을 통과함
+- projection item count가 manual revalidation item count와 일치함
+- 모든 projection item이 command queue target, before state, after state, audit event candidate를 가짐
+- patch target count가 projection item count와 일치하고 missing target count가 0임
+- ready patch count가 manual revalidation ready/applied human candidate count와 일치함
+- 현재 pending receipt 상태에서 patch operation count와 emittable audit candidate count가 0임
+- non-human candidate, protected overlap, auto-executed receipt, blocked patch count가 0임
+- patch application, command execution, audit event emission count가 항상 0임
+- `/api/human-review-cycle-completion-command-queue-patch-projections?projection_status=waiting_for_human_receipts`로 projection artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-command-queue-patch-projection-items?projection_status=waiting_for_human_receipt`로 pending projection item을 조회할 수 있음
+- Dashboard summary가 projection item, target, ready/waiting, patch operation, audit candidate, missing target, error, execution count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-queue-patch-projection`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2839,9 +2881,9 @@
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 93이다.
+- 현재 완료 기준점은 Phase 94이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P094-P312, 총 219개다.
+- 남은 계획 슬롯은 P095-P312, 총 218개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

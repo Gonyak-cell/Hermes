@@ -2170,6 +2170,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-command-queue-patch-projections") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_queue_patch_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_queue_patch_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_queue_patch_projections", [projectionResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-queue-patch-projection-items") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_queue_patch_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_queue_patch_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_queue_patch_projection_items", projectionResult.artifact.projection_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-queue-patch-operations") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_queue_patch_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_queue_patch_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_queue_patch_operations", projectionResult.artifact.patch_operations ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-queue-patch-audit-candidates") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_queue_patch_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_queue_patch_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_queue_patch_audit_candidates", projectionResult.artifact.audit_event_candidates ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2549,6 +2593,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-manual-revalidation-items", "Manual receipt revalidation items"),
       route("GET", "/api/human-review-cycle-completion-manual-revalidation-actors", "Actor-specific manual receipt revalidation summaries"),
       route("GET", "/api/human-review-cycle-completion-ready-manual-receipts", "Human-entered manual receipts ready for application"),
+      route("GET", "/api/human-review-cycle-completion-command-queue-patch-projections", "Command queue patch projection artifacts"),
+      route("GET", "/api/human-review-cycle-completion-command-queue-patch-projection-items", "Projected command queue patch items"),
+      route("GET", "/api/human-review-cycle-completion-command-queue-patch-operations", "Projected command queue patch operations"),
+      route("GET", "/api/human-review-cycle-completion-command-queue-patch-audit-candidates", "Projected command queue patch audit event candidates"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2870,6 +2918,16 @@ function filterItems(items, searchParams) {
     "ready_or_applied_candidate",
     "protected_approval_overlap",
     "auto_executed_receipt",
+    "projection_id",
+    "projection_item_id",
+    "projection_status",
+    "patch_target_available",
+    "patch_ready",
+    "patch_applied",
+    "audit_event_emitted",
+    "event_status",
+    "would_emit_on_apply",
+    "emitted",
     "field_status",
     "correction_workspace_id",
     "actor_correction_workspace_id",

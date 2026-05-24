@@ -61,6 +61,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_held_command_resolution", "Human review cycle receipt completion held command resolution", "gate_approval", "human_review_cycle_receipt_completion_held_command_resolution", "control-plane-human-review-cycle-receipt-completion-held-command-resolution", { acceptance_profile: "human_review_cycle_receipt_completion_held_command_resolution_gate" }),
   sourceItem("human_review_cycle_receipt_completion_protected_approval_request_pack", "Human review cycle receipt completion protected approval request pack", "gate_approval", "human_review_cycle_receipt_completion_protected_approval_request_pack", "control-plane-human-review-cycle-receipt-completion-protected-approval-request-pack", { acceptance_profile: "human_review_cycle_receipt_completion_protected_approval_request_pack_gate" }),
   sourceItem("human_review_cycle_receipt_completion_manual_revalidation", "Human review cycle receipt completion manual revalidation", "gate_approval", "human_review_cycle_receipt_completion_manual_revalidation", "control-plane-human-review-cycle-receipt-completion-manual-revalidation", { acceptance_profile: "human_review_cycle_receipt_completion_manual_revalidation_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_command_queue_patch_projection", "Human review cycle receipt completion command queue patch projection", "gate_approval", "human_review_cycle_receipt_completion_command_queue_patch_projection", "control-plane-human-review-cycle-receipt-completion-command-queue-patch-projection", { acceptance_profile: "human_review_cycle_receipt_completion_command_queue_patch_projection_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -684,6 +685,28 @@ function evaluateStageAcceptance(item, stage) {
     const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
     if (hasItems && matchesManualPack && onlyHumanCandidates && noUnsafeOverlap && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion manual revalidation is implemented and allows only human-entered receipts to become ready/applied candidates while keeping harness execution at zero.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_command_queue_patch_projection_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasProjection = (metrics.projection_item_count ?? 0) > 0 && (metrics.audit_event_candidate_count ?? 0) > 0;
+    const matchesRevalidation = (metrics.projection_item_count ?? 0) === (metrics.source_revalidation_item_count ?? -1);
+    const targetsCovered = (metrics.patch_target_count ?? 0) === (metrics.projection_item_count ?? -1)
+      && (metrics.missing_queue_item_count ?? 0) === 0;
+    const readyPatchMatchesSource = (metrics.ready_patch_count ?? 0) === (metrics.source_ready_or_applied_candidate_count ?? -1)
+      && (metrics.emittable_audit_event_candidate_count ?? 0) === (metrics.ready_patch_count ?? -1);
+    const unsafeCandidates = (metrics.non_human_patch_candidate_count ?? 0)
+      + (metrics.protected_overlap_count ?? 0)
+      + (metrics.auto_executed_receipt_count ?? 0)
+      + (metrics.blocked_patch_count ?? 0);
+    const noExecution = (metrics.patch_applied_count ?? 0) === 0
+      && (metrics.audit_event_emitted_count ?? 0) === 0
+      && (metrics.command_executed_count ?? 0) === 0
+      && (metrics.refresh_command_executed_by_harness_count ?? 0) === 0
+      && (metrics.protected_action_executed_count ?? 0) === 0;
+    if (hasProjection && matchesRevalidation && targetsCovered && readyPatchMatchesSource && unsafeCandidates === 0 && errors === 0 && noExecution) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion command queue patch projection is implemented and verifying patch targets, before/after states, and audit event candidates without applying them.");
     }
   }
 

@@ -1873,6 +1873,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-workspace-validations") {
+    const validationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_validation");
+    if (!validationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_validation_unavailable", validationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_workspace_validations", [validationResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-workspace-validation-items") {
+    const validationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_validation");
+    if (!validationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_validation_unavailable", validationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_workspace_validation_items", validationResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-workspace-validation-errors") {
+    const validationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_validation");
+    if (!validationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_validation_unavailable", validationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_workspace_validation_errors", validationResult.artifact.receipt_errors ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/validated-human-review-cycle-completion-command-workspace-receipts") {
+    const validationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_validation");
+    if (!validationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_validation_unavailable", validationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("validated_human_review_cycle_completion_command_workspace_receipts", validationResult.artifact.validated_command_receipts?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2225,6 +2269,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-command-receipt-merge-items", "Merged human review cycle command receipt items"),
       route("GET", "/api/human-review-cycle-completion-command-receipt-actor-inputs", "Actor command receipt inputs included in the workspace merge"),
       route("GET", "/api/merged-human-review-cycle-completion-command-receipt-input", "Merged command receipt input generated from actor command receipt workspaces"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-validations", "Merged command receipt workspace validation artifacts"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-validation-items", "Merged command receipt workspace validation items"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-validation-errors", "Merged command receipt workspace validation errors"),
+      route("GET", "/api/validated-human-review-cycle-completion-command-workspace-receipts", "Validated command receipts from merged actor workspace inputs"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

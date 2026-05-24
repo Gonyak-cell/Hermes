@@ -71,6 +71,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human review cycle receipt completion command receipt feedback
 - Human review cycle receipt completion command receipt workspace
 - Human review cycle receipt completion command receipt workspace merge
+- Human review cycle receipt completion command receipt workspace validation
 - Law Firm, Personal Dev, Creative Document slices
 - Output, Observability, Audit Trail, Delivery, Matter Cockpit
 - Control Plane Loop

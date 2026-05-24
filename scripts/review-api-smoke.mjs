@@ -761,6 +761,22 @@ try {
   assert.equal(mergedHumanReviewCycleCompletionCommandReceiptInput.collection, "merged_human_review_cycle_completion_command_receipt_input");
   assert.ok(mergedHumanReviewCycleCompletionCommandReceiptInput.count <= 1);
 
+  const humanReviewCycleCompletionCommandReceiptWorkspaceValidations = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-workspace-validations?validation_status=pending_receipts&limit=1`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptWorkspaceValidations.collection, "human_review_cycle_completion_command_receipt_workspace_validations");
+  assert.ok(humanReviewCycleCompletionCommandReceiptWorkspaceValidations.count <= 1);
+
+  const humanReviewCycleCompletionCommandReceiptWorkspaceValidationItems = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-workspace-validation-items?validation_status=pending_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptWorkspaceValidationItems.collection, "human_review_cycle_completion_command_receipt_workspace_validation_items");
+  assert.ok(humanReviewCycleCompletionCommandReceiptWorkspaceValidationItems.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptWorkspaceValidationErrors = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-workspace-validation-errors?limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptWorkspaceValidationErrors.collection, "human_review_cycle_completion_command_receipt_workspace_validation_errors");
+  assert.ok(humanReviewCycleCompletionCommandReceiptWorkspaceValidationErrors.count <= 5);
+
+  const validatedHumanReviewCycleCompletionCommandWorkspaceReceipts = await fetchJson(`${url}/api/validated-human-review-cycle-completion-command-workspace-receipts?limit=5`);
+  assert.equal(validatedHumanReviewCycleCompletionCommandWorkspaceReceipts.collection, "validated_human_review_cycle_completion_command_workspace_receipts");
+  assert.ok(validatedHumanReviewCycleCompletionCommandWorkspaceReceipts.count <= 5);
+
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
 

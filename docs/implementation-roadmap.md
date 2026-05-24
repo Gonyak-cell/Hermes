@@ -2399,3 +2399,39 @@
 - `/api/validated-human-review-cycle-completion-command-receipts`로 검증 완료 receipt를 조회할 수 있음
 - Dashboard summary가 command receipt validation item, pending, ready, invalid, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 83: Human Review Cycle Receipt Completion Command Receipt Feedback
+
+목표: command receipt validation 결과를 actor별 feedback bundle로 환류한다. 사람이 아직 실행하지 않은 refresh command나 수정이 필요한 command receipt row를 다시 actor에게 보여주되, harness는 command 실행, receipt input 수정, receipt application, protected action을 수행하지 않는다.
+
+- Command Receipt Validation, Command Receipts, Command Queue artifact를 입력으로 사용
+- validation item을 `feedback_items`로 변환하고 `required_actor`별 `actor_feedback` bundle 생성
+- `pending_receipt`는 `needs_command_receipt`, `ready_to_confirm`은 `ready_for_confirmation`, invalid/missing/unknown은 `needs_correction`으로 매핑
+- actor별 `actors/<required_actor>/feedback.json`과 `feedback.md` 생성
+- safe handling은 `auto_execute_allowed: false`, `feedback_only: true`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 command receipt validation 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-command-receipts:feedback` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_receipt_feedback` stage와 actor/pending/correction summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-receipt-feedbacks`, `/api/human-review-cycle-completion-command-receipt-feedback-items`, `/api/human-review-cycle-completion-command-receipt-actor-feedback` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Command Receipt Feedback을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-receipts:feedback`
+- `src/human-review-cycle-receipt-completion-command-receipt-feedback.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-receipt-feedback.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-receipt-feedback.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- command receipt feedback artifact가 schema validation을 통과함
+- feedback item count가 command receipt validation item count와 일치함
+- actor feedback bundle이 하나 이상 생성되고 command queue actor mapping을 보존함
+- pending command receipt는 `needs_command_receipt` feedback으로 남고 ready/correction count가 정확히 집계됨
+- actor별 JSON/Markdown feedback bundle이 생성됨
+- `/api/human-review-cycle-completion-command-receipt-feedback-items?feedback_status=needs_command_receipt`로 pending feedback item을 조회할 수 있음
+- `/api/human-review-cycle-completion-command-receipt-actor-feedback?required_actor=human_reviewer`로 actor feedback을 조회할 수 있음
+- Dashboard summary가 command receipt feedback actor, item, pending, correction, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:feedback`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

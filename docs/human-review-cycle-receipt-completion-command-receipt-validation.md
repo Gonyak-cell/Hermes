@@ -30,3 +30,5 @@ Typical query points:
 - `/api/validated-human-review-cycle-completion-command-receipts`
 
 This stage is the checkpoint between manual command execution and any later refresh confirmation. It validates receipts only.
+
+The next stage, `control-plane:review-cycle:completion-command-receipts:feedback`, converts these validation items into actor-specific feedback bundles. That feedback layer remains read-only and tells reviewers which command receipt rows still need manual completion or correction.

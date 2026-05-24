@@ -176,6 +176,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-validation-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-errors"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-review-cycle-completion-command-receipts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-feedbacks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-feedback-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-actor-feedback"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -714,6 +717,18 @@ try {
   const validatedHumanReviewCycleCompletionCommandReceipts = await fetchJson(`${url}/api/validated-human-review-cycle-completion-command-receipts?limit=5`);
   assert.equal(validatedHumanReviewCycleCompletionCommandReceipts.collection, "validated_human_review_cycle_completion_command_receipts");
   assert.ok(validatedHumanReviewCycleCompletionCommandReceipts.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptFeedbacks = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-feedbacks?feedback_status=pending_human_review&limit=1`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptFeedbacks.collection, "human_review_cycle_completion_command_receipt_feedbacks");
+  assert.ok(humanReviewCycleCompletionCommandReceiptFeedbacks.count <= 1);
+
+  const humanReviewCycleCompletionCommandReceiptFeedbackItems = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-feedback-items?feedback_status=needs_command_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptFeedbackItems.collection, "human_review_cycle_completion_command_receipt_feedback_items");
+  assert.ok(humanReviewCycleCompletionCommandReceiptFeedbackItems.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptActorFeedback = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-actor-feedback?required_actor=human_reviewer&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptActorFeedback.collection, "human_review_cycle_completion_command_receipt_actor_feedback");
+  assert.ok(humanReviewCycleCompletionCommandReceiptActorFeedback.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

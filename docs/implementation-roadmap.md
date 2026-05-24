@@ -2621,3 +2621,43 @@
 - `/api/human-review-cycle-completion-reconciliation-items?reconciliation_status=waiting_for_manual_command_receipt`로 pending command receipt item을 조회할 수 있음
 - Dashboard summary가 reconciliation item, actor, pending command receipt, held command, blocked follow-on, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-reconcile`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Planned Final Completion Envelope: P089-P312
+
+이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
+
+운영 원칙:
+
+- 현재 완료 기준점은 Phase 88이다.
+- v1.0 최종 완성 목표는 P312까지로 고정한다.
+- 남은 계획 슬롯은 P089-P312, 총 224개다.
+- 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
+- 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
+- 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.
+
+| Planned slots | Macro track | Completion intent |
+| --- | --- | --- |
+| P089-P096 | Human Review Cycle Closure | command receipt, held command, protected approval, actor follow-up을 사람이 처리 가능한 완결 루프로 닫고 Human Review Cycle v1을 freeze한다. |
+| P097-P112 | Core Contracts, Schema, Migration Spine | Resource, Matter, Evidence, Capability, Workflow, Runtime, Gate, Approval, Output, Audit 계약을 versioned schema와 migration strategy로 고정한다. |
+| P113-P132 | Identity, Policy, Matter Boundary | tenant, user, role, client, counterparty, matter, matter team, ethical wall, data classification, model/tool/runtime policy를 1급 계층으로 완성한다. |
+| P133-P158 | Resource, Data, Evidence, Lineage Plane | immutable resource store, normalized text, source span, evidence, fact, issue, citation, lineage, coverage score를 end-to-end로 완성한다. |
+| P159-P176 | Event, Run Ledger, Audit, Observability | CloudEvents-style event log, workflow run, agent run, audit trail, policy snapshot, cost ledger, trace/metric/log projection을 운영 가능하게 만든다. |
+| P177-P194 | Capability, Workflow, Context, Gate Engine | capability manifest, workflow state machine, idempotency, retry/resume, context builder, retrieval compiler, pre/in/post gate contract를 완성한다. |
+| P195-P212 | Runtime Adapter, Sandbox, Worktree, Secrets | Hermes, Claude Code, Codex, local script, renderer adapter를 sandbox/worktree/secrets boundary와 artifact capture 아래에서 실행한다. |
+| P213-P230 | Personal Dev Domain Pack | repo profile, agent instruction registry, plan reconciliation, parallel worktree lane, diff review, canonical test, PR draft, debt ledger, release/rollback flow를 완성한다. |
+| P231-P252 | Law Firm Domain Pack | Matter OS, Evidence OS, LDD, litigation brief, meeting minutes, contract draft, VDR review, provided-material review, legal citation verifier, attorney approval workflow를 완성한다. |
+| P253-P266 | Creative and Document Domain Pack | template/style/asset registry, DOCX/PPTX/PDF/HTML renderer, layout validator, citation renderer, design system, web novel/video/PPTX production workflows를 완성한다. |
+| P267-P276 | Connector and Ingestion Layer | Outlook email, KakaoTalk import boundary, OneDrive/local folder, GitHub, VDR, Plaud, ERP, future Slack/Teams connector를 adapter 방식으로 확장한다. |
+| P277-P286 | Resource Expansion and Extractor Library | 2,713개 이상 파일 backfill, resumable batch cursor, quarantine, duplicate detection, extractor registry, document-type coverage dashboard를 완성한다. |
+| P287-P296 | API, Dashboard, Evidence Viewer, Matter Cockpit | API server, review dashboard, approval queue, evidence viewer, source span inspector, run ledger viewer, matter cockpit, policy violation queue를 usable UI로 연결한다. |
+| P297-P304 | Security, Compliance, Performance Hardening | prompt injection boundary, secrets scanning, external model policy, retention, access review, cost cap, performance budget, backup/restore 검증을 마친다. |
+| P305-P312 | End-to-End Acceptance, Deployment, v1.0 Freeze | law-firm, personal-dev, creative-document의 대표 workflow를 전체 계층으로 통과시키고 docs/runbooks/deployment/release gate를 완료해 Hermes Harness v1.0을 freeze한다. |
+
+최종 완료 정의:
+
+- P312까지 승격된 모든 phase가 `npm run validate`, `npm test`, 관련 slice command, `npm run control-plane:loop`, API/dashboard smoke를 통과한다.
+- 로펌용 산출물은 Matter Boundary, Data Classification, Evidence Lineage, Citation Gate, Human Approval을 통과한다.
+- 개인 개발용 산출물은 Runtime Adapter, Worktree Isolation, Diff Review, Canonical Test Gate, PR/rollback 기록을 통과한다.
+- 문서/콘텐츠 산출물은 Template/Style/Asset Registry, Renderer, Layout Validation, Output Artifact, Approval/Audit를 통과한다.
+- 중요한 실행은 Event Ledger, Run Ledger, Audit Trail, Cost/Observability projection에 남는다.
+- Domain Pack은 core 수정 없이 manifest와 contract로 등록 가능하다.

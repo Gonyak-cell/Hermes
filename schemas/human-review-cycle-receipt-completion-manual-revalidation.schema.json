@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-manual-revalidation.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Manual Revalidation",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "revalidation_id",
+    "output_dir",
+    "revalidation_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "revalidation_items",
+    "actor_revalidations",
+    "ready_manual_receipts",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-manual-revalidation.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "revalidation_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "revalidation_status": {
+      "enum": ["blocked", "waiting_for_human_receipts", "ready_for_manual_receipt_application", "manual_receipts_applied", "clear"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "manual_revalidation_only",
+        "receipt_edits_must_be_manual",
+        "source_artifact_mutation_allowed",
+        "refresh_commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "manual_revalidation_only": { "const": true },
+        "receipt_edits_must_be_manual": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "revalidation_status",
+        "source_pack_status",
+        "source_merge_status",
+        "source_validation_status",
+        "source_application_status",
+        "source_protected_approval_status",
+        "revalidation_item_count",
+        "source_pack_item_count",
+        "source_validation_item_count",
+        "source_application_ready_receipt_count",
+        "source_application_applied_receipt_count",
+        "actor_revalidation_count",
+        "pending_human_receipt_count",
+        "human_entered_ready_receipt_count",
+        "human_entered_applied_receipt_count",
+        "ready_or_applied_candidate_count",
+        "non_human_ready_or_applied_candidate_count",
+        "protected_approval_overlap_count",
+        "auto_executed_receipt_count",
+        "validation_error_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_required_actor",
+        "by_revalidation_status",
+        "by_command_kind"
+      ],
+      "properties": {
+        "revalidation_status": { "type": "string" },
+        "source_pack_status": { "type": ["string", "null"] },
+        "source_merge_status": { "type": ["string", "null"] },
+        "source_validation_status": { "type": ["string", "null"] },
+        "source_application_status": { "type": ["string", "null"] },
+        "source_protected_approval_status": { "type": ["string", "null"] },
+        "revalidation_item_count": { "type": "integer", "minimum": 0 },
+        "source_pack_item_count": { "type": "integer", "minimum": 0 },
+        "source_validation_item_count": { "type": "integer", "minimum": 0 },
+        "source_application_ready_receipt_count": { "type": "integer", "minimum": 0 },
+        "source_application_applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "actor_revalidation_count": { "type": "integer", "minimum": 0 },
+        "pending_human_receipt_count": { "type": "integer", "minimum": 0 },
+        "human_entered_ready_receipt_count": { "type": "integer", "minimum": 0 },
+        "human_entered_applied_receipt_count": { "type": "integer", "minimum": 0 },
+        "ready_or_applied_candidate_count": { "type": "integer", "minimum": 0 },
+        "non_human_ready_or_applied_candidate_count": { "type": "integer", "minimum": 0 },
+        "protected_approval_overlap_count": { "type": "integer", "minimum": 0 },
+        "auto_executed_receipt_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_revalidation_status": { "type": "object" },
+        "by_command_kind": { "type": "object" }
+      }
+    },
+    "revalidation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/revalidation_item" }
+    },
+    "actor_revalidations": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_revalidation" }
+    },
+    "ready_manual_receipts": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "instructions", "receipts"],
+      "properties": {
+        "schema_version": { "const": "human-review-cycle-receipt-completion-command-receipts-input.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "instructions": { "type": "string" },
+        "receipts": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "revalidation_item": {
+      "type": "object",
+      "required": [
+        "revalidation_item_id",
+        "source_pack_item_id",
+        "source_merge_item_id",
+        "source_validation_item_id",
+        "source_applied_receipt_id",
+        "required_actor",
+        "priority",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "revalidation_status",
+        "receipt_status",
+        "command_result",
+        "human_entered_receipt",
+        "ready_manual_receipt_candidate",
+        "applied_manual_receipt_candidate",
+        "ready_or_applied_candidate",
+        "protected_approval_overlap",
+        "auto_executed_receipt",
+        "required_receipt_fields",
+        "receipt",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "revalidation_item_id": { "type": "string" },
+        "source_pack_item_id": { "type": "string" },
+        "source_merge_item_id": { "type": ["string", "null"] },
+        "source_validation_item_id": { "type": ["string", "null"] },
+        "source_applied_receipt_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "priority": { "type": "string" },
+        "queue_item_id": { "type": "string" },
+        "command_gate_id": { "type": "string" },
+        "runbook_step_id": { "type": "string" },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "revalidation_status": { "type": "string" },
+        "receipt_status": { "type": "string" },
+        "command_result": { "type": "string" },
+        "human_entered_receipt": { "type": "boolean" },
+        "ready_manual_receipt_candidate": { "type": "boolean" },
+        "applied_manual_receipt_candidate": { "type": "boolean" },
+        "ready_or_applied_candidate": { "type": "boolean" },
+        "protected_approval_overlap": { "type": "boolean" },
+        "auto_executed_receipt": { "type": "boolean" },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "receipt": { "type": ["object", "null"] },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "actor_revalidation": {
+      "type": "object",
+      "required": [
+        "actor_revalidation_id",
+        "required_actor",
+        "revalidation_status",
+        "priority",
+        "revalidation_item_count",
+        "pending_human_receipt_count",
+        "ready_manual_receipt_count",
+        "applied_manual_receipt_count",
+        "blocked_item_count",
+        "item_path",
+        "readme_path",
+        "revalidation_item_ids",
+        "queue_item_ids",
+        "commands_waiting_for_manual_receipt",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_revalidation_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "revalidation_status": { "type": "string" },
+        "priority": { "type": "string" },
+        "revalidation_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_receipt_count": { "type": "integer", "minimum": 0 },
+        "ready_manual_receipt_count": { "type": "integer", "minimum": 0 },
+        "applied_manual_receipt_count": { "type": "integer", "minimum": 0 },
+        "blocked_item_count": { "type": "integer", "minimum": 0 },
+        "item_path": { "type": "string" },
+        "readme_path": { "type": "string" },
+        "revalidation_item_ids": { "type": "array", "items": { "type": "string" } },
+        "queue_item_ids": { "type": "array", "items": { "type": "string" } },
+        "commands_waiting_for_manual_receipt": { "type": "array", "items": { "type": "string" } },
+        "safe_handling": { "type": "object" }
+      }
+    }
+  }
+}

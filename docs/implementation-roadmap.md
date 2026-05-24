@@ -2788,6 +2788,49 @@
 - Dashboard summary가 protected approval request, actor, pending, source protected, mixed, missing field, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-protected-approval-request-pack`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 93: Human Review Cycle Receipt Completion Manual Revalidation
+
+목표: 수동 command receipt 재검증 루프를 닫는다. Manual Command Receipt Pack, Workspace Merge, Workspace Validation, Command Receipt Application, Protected Approval Request Pack을 대조해 사람이 실제로 입력한 receipt만 ready/applied 후보가 되도록 검증하되, receipt 수정, command 실행, protected action 실행은 하지 않는다.
+
+- Manual Command Receipt Pack, Command Receipt Workspace Merge, Workspace Validation, Command Receipt Application, Protected Approval Request Pack artifact를 입력으로 사용
+- manual command receipt pack item별로 revalidation item 생성
+- `ready_or_applied_candidate`는 human-entered receipt인 경우에만 true가 됨
+- human-entered receipt 조건은 terminal `receipt_status`, terminal `command_result`, non-automation `executed_by`, `executed_at`, `output_reference`, 정확한 `commands_run` 포함 여부로 판정
+- pending placeholder receipt는 `pending_human_receipt`로 남기고 ready/applied 후보에 포함하지 않음
+- protected approval request와 manual command receipt가 command/command gate 기준으로 겹치면 validation error 처리
+- actor별 `manual-revalidation.json`, `README.md` 생성
+- `ready-manual-receipts.json`는 human-entered ready receipt만 projection하고 적용/실행은 하지 않음
+- safe handling은 `auto_execute_allowed: false`, `manual_revalidation_only: true`, `receipt_edits_must_be_manual: true`, `source_artifact_mutation_allowed: false`, `refresh_commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 protected approval request pack 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-manual-revalidation` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_manual_revalidation` stage와 item/actor/pending/ready/applied/non-human/protected-overlap/auto-executed/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-manual-revalidations`, `/api/human-review-cycle-completion-manual-revalidation-items`, `/api/human-review-cycle-completion-manual-revalidation-actors`, `/api/human-review-cycle-completion-ready-manual-receipts` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Manual Revalidation을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-manual-revalidation`
+- `src/human-review-cycle-receipt-completion-manual-revalidation.mjs`
+- `scripts/human-review-cycle-receipt-completion-manual-revalidation.mjs`
+- `schemas/human-review-cycle-receipt-completion-manual-revalidation.schema.json`
+- `docs/human-review-cycle-receipt-completion-manual-revalidation.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- manual revalidation artifact가 schema validation을 통과함
+- 현재 pending receipt 상태에서 revalidation status가 `waiting_for_human_receipts`로 기록됨
+- revalidation item count가 manual command receipt pack item count와 일치함
+- pending placeholder receipt는 ready/applied candidate가 되지 않음
+- ready/applied candidate가 존재할 경우 모두 human-entered receipt임
+- non-human ready/applied candidate, protected approval overlap, auto-executed receipt count가 0임
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-manual-revalidations?revalidation_status=waiting_for_human_receipts`로 revalidation artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-manual-revalidation-items?revalidation_status=pending_human_receipt`로 pending manual receipt item을 조회할 수 있음
+- Dashboard summary가 manual revalidation item, actor, pending, ready/applied, non-human, protected-overlap, auto-executed, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-manual-revalidation`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2796,9 +2839,9 @@
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 92이다.
+- 현재 완료 기준점은 Phase 93이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P093-P312, 총 220개다.
+- 남은 계획 슬롯은 P094-P312, 총 219개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

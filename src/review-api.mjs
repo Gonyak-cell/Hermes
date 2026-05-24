@@ -2126,6 +2126,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-manual-revalidations") {
+    const revalidationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_revalidation");
+    if (!revalidationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_revalidation_unavailable", revalidationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_manual_revalidations", [revalidationResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-manual-revalidation-items") {
+    const revalidationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_revalidation");
+    if (!revalidationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_revalidation_unavailable", revalidationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_manual_revalidation_items", revalidationResult.artifact.revalidation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-manual-revalidation-actors") {
+    const revalidationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_revalidation");
+    if (!revalidationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_revalidation_unavailable", revalidationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_manual_revalidation_actors", revalidationResult.artifact.actor_revalidations ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-ready-manual-receipts") {
+    const revalidationResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_revalidation");
+    if (!revalidationResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_revalidation_unavailable", revalidationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_ready_manual_receipts", revalidationResult.artifact.ready_manual_receipts?.receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2501,6 +2545,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-protected-approval-request-packs", "Protected approval request pack artifacts"),
       route("GET", "/api/human-review-cycle-completion-protected-approval-requests", "Protected approval requests split from held command resolutions"),
       route("GET", "/api/human-review-cycle-completion-protected-approval-actors", "Actor-specific protected approval request packs"),
+      route("GET", "/api/human-review-cycle-completion-manual-revalidations", "Manual receipt revalidation artifacts"),
+      route("GET", "/api/human-review-cycle-completion-manual-revalidation-items", "Manual receipt revalidation items"),
+      route("GET", "/api/human-review-cycle-completion-manual-revalidation-actors", "Actor-specific manual receipt revalidation summaries"),
+      route("GET", "/api/human-review-cycle-completion-ready-manual-receipts", "Human-entered manual receipts ready for application"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2563,6 +2611,7 @@ function filterItems(items, searchParams) {
     "external_model_policy",
     "local_model_policy",
     "redaction_policy",
+    "revalidation_status",
     "approval_required",
     "tool_id",
     "default_policy",
@@ -2813,6 +2862,14 @@ function filterItems(items, searchParams) {
     "actor_approval_pack_id",
     "approval_type",
     "source_resolution_plan_id",
+    "revalidation_item_id",
+    "actor_revalidation_id",
+    "human_entered_receipt",
+    "ready_manual_receipt_candidate",
+    "applied_manual_receipt_candidate",
+    "ready_or_applied_candidate",
+    "protected_approval_overlap",
+    "auto_executed_receipt",
     "field_status",
     "correction_workspace_id",
     "actor_correction_workspace_id",

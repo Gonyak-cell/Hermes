@@ -194,6 +194,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-protected-approval-request-packs"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-protected-approval-requests"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-protected-approval-actors"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-manual-revalidations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-manual-revalidation-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-manual-revalidation-actors"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-ready-manual-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));

@@ -60,6 +60,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_manual_command_receipt_pack", "Human review cycle receipt completion manual command receipt pack", "gate_approval", "human_review_cycle_receipt_completion_manual_command_receipt_pack", "control-plane-human-review-cycle-receipt-completion-manual-command-receipt-pack", { acceptance_profile: "human_review_cycle_receipt_completion_manual_command_receipt_pack_gate" }),
   sourceItem("human_review_cycle_receipt_completion_held_command_resolution", "Human review cycle receipt completion held command resolution", "gate_approval", "human_review_cycle_receipt_completion_held_command_resolution", "control-plane-human-review-cycle-receipt-completion-held-command-resolution", { acceptance_profile: "human_review_cycle_receipt_completion_held_command_resolution_gate" }),
   sourceItem("human_review_cycle_receipt_completion_protected_approval_request_pack", "Human review cycle receipt completion protected approval request pack", "gate_approval", "human_review_cycle_receipt_completion_protected_approval_request_pack", "control-plane-human-review-cycle-receipt-completion-protected-approval-request-pack", { acceptance_profile: "human_review_cycle_receipt_completion_protected_approval_request_pack_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_manual_revalidation", "Human review cycle receipt completion manual revalidation", "gate_approval", "human_review_cycle_receipt_completion_manual_revalidation", "control-plane-human-review-cycle-receipt-completion-manual-revalidation", { acceptance_profile: "human_review_cycle_receipt_completion_manual_revalidation_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -665,6 +666,24 @@ function evaluateStageAcceptance(item, stage) {
     }
     if (hasApprovalRequests && matchesProtectedSources && isSeparatedFromCommandReceipts && hasApprovalContract && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion protected approval request pack is implemented and tracking protected actions as pending explicit approvals separate from command receipts.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_manual_revalidation_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasItems = (metrics.revalidation_item_count ?? 0) > 0 && (metrics.actor_revalidation_count ?? 0) > 0;
+    const matchesManualPack = (metrics.revalidation_item_count ?? 0) === (metrics.source_pack_item_count ?? -1);
+    const readyAppliedCandidates = metrics.ready_or_applied_candidate_count ?? 0;
+    const humanReady = metrics.human_entered_ready_receipt_count ?? 0;
+    const humanApplied = metrics.human_entered_applied_receipt_count ?? 0;
+    const onlyHumanCandidates = readyAppliedCandidates === humanReady + humanApplied
+      && (metrics.non_human_ready_or_applied_candidate_count ?? 0) === 0;
+    const noUnsafeOverlap = (metrics.protected_approval_overlap_count ?? 0) === 0
+      && (metrics.auto_executed_receipt_count ?? 0) === 0;
+    const protectedActionsExecuted = metrics.protected_action_executed_count ?? 0;
+    const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
+    if (hasItems && matchesManualPack && onlyHumanCandidates && noUnsafeOverlap && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion manual revalidation is implemented and allows only human-entered receipts to become ready/applied candidates while keeping harness execution at zero.");
     }
   }
 

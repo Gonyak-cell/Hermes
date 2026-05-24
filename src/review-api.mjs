@@ -2027,6 +2027,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-manual-command-receipt-packs") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_command_receipt_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_command_receipt_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_manual_command_receipt_packs", [packResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-manual-command-receipt-pack-actors") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_command_receipt_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_command_receipt_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_manual_command_receipt_pack_actors", packResult.artifact.actor_receipt_packs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-manual-command-receipt-pack-items") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_manual_command_receipt_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_manual_command_receipt_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_manual_command_receipt_pack_items", packResult.artifact.pack_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2393,6 +2426,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-baselines", "Human review cycle receipt completion baseline artifacts"),
       route("GET", "/api/human-review-cycle-completion-baseline-blockers", "Frozen receipt completion baseline blockers"),
       route("GET", "/api/human-review-cycle-completion-baseline-count-checks", "Receipt completion baseline source count checks"),
+      route("GET", "/api/human-review-cycle-completion-manual-command-receipt-packs", "Manual command receipt pack artifacts"),
+      route("GET", "/api/human-review-cycle-completion-manual-command-receipt-pack-actors", "Actor-specific manual command receipt packs"),
+      route("GET", "/api/human-review-cycle-completion-manual-command-receipt-pack-items", "Manual command receipt pack items"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

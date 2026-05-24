@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-manual-command-receipt-pack.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Manual Command Receipt Pack",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "pack_id",
+    "output_dir",
+    "pack_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "actor_receipt_packs",
+    "pack_items",
+    "non_receipt_blockers",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-manual-command-receipt-pack.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "pack_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "pack_status": {
+      "enum": ["blocked", "ready_for_manual_receipts", "no_manual_receipts_required"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "pack_only",
+        "command_receipt_edits_must_be_manual",
+        "source_artifact_mutation_allowed",
+        "refresh_commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "pack_only": { "const": true },
+        "command_receipt_edits_must_be_manual": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "pack_status",
+        "source_baseline_status",
+        "actor_receipt_pack_count",
+        "receipt_pack_item_count",
+        "pending_command_receipt_blocker_count",
+        "non_receipt_blocker_count",
+        "target_receipt_path_count",
+        "missing_target_receipt_path_count",
+        "required_field_count",
+        "missing_required_field_count",
+        "command_count",
+        "validation_error_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_required_actor",
+        "by_command_kind"
+      ],
+      "properties": {
+        "pack_status": { "type": "string" },
+        "source_baseline_status": { "type": ["string", "null"] },
+        "actor_receipt_pack_count": { "type": "integer", "minimum": 0 },
+        "receipt_pack_item_count": { "type": "integer", "minimum": 0 },
+        "pending_command_receipt_blocker_count": { "type": "integer", "minimum": 0 },
+        "non_receipt_blocker_count": { "type": "integer", "minimum": 0 },
+        "target_receipt_path_count": { "type": "integer", "minimum": 0 },
+        "missing_target_receipt_path_count": { "type": "integer", "minimum": 0 },
+        "required_field_count": { "type": "integer", "minimum": 0 },
+        "missing_required_field_count": { "type": "integer", "minimum": 0 },
+        "command_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_command_kind": { "type": "object" }
+      }
+    },
+    "actor_receipt_packs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_receipt_pack" }
+    },
+    "pack_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pack_item" }
+    },
+    "non_receipt_blockers": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "actor_receipt_pack": {
+      "type": "object",
+      "required": [
+        "actor_receipt_pack_id",
+        "required_actor",
+        "pack_status",
+        "priority",
+        "command_queue_id",
+        "receipt_row_count",
+        "target_receipt_input_path",
+        "target_template_path",
+        "actor_pack_path",
+        "readme_path",
+        "required_receipt_fields",
+        "required_field_count",
+        "missing_required_field_count",
+        "pack_item_ids",
+        "queue_item_ids",
+        "commands_to_run",
+        "instructions",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_receipt_pack_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "pack_status": { "type": "string" },
+        "priority": { "type": "string" },
+        "command_queue_id": { "type": "string" },
+        "receipt_row_count": { "type": "integer", "minimum": 0 },
+        "target_receipt_input_path": { "type": "string" },
+        "target_template_path": { "type": "string" },
+        "actor_pack_path": { "type": "string" },
+        "readme_path": { "type": "string" },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "required_field_count": { "type": "integer", "minimum": 0 },
+        "missing_required_field_count": { "type": "integer", "minimum": 0 },
+        "pack_item_ids": { "type": "array", "items": { "type": "string" } },
+        "queue_item_ids": { "type": "array", "items": { "type": ["string", "null"] } },
+        "commands_to_run": { "type": "array", "items": { "type": "string" } },
+        "instructions": { "type": "string" },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "pack_item": {
+      "type": "object",
+      "required": [
+        "pack_item_id",
+        "blocker_id",
+        "source_reconciliation_item_id",
+        "source_workspace_item_id",
+        "required_actor",
+        "priority",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "target_receipt_input_path",
+        "target_template_path",
+        "required_receipt_fields",
+        "missing_required_fields",
+        "editable_receipt",
+        "instructions",
+        "safe_handling"
+      ],
+      "properties": {
+        "pack_item_id": { "type": "string" },
+        "blocker_id": { "type": "string" },
+        "source_reconciliation_item_id": { "type": "string" },
+        "source_workspace_item_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "priority": { "type": "string" },
+        "queue_item_id": { "type": ["string", "null"] },
+        "command_gate_id": { "type": ["string", "null"] },
+        "runbook_step_id": { "type": ["string", "null"] },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "target_receipt_input_path": { "type": "string" },
+        "target_template_path": { "type": "string" },
+        "required_receipt_fields": { "type": "array", "items": { "type": "string" } },
+        "missing_required_fields": { "type": "array", "items": { "type": "string" } },
+        "editable_receipt": { "type": "object" },
+        "instructions": { "type": "array", "items": { "type": "string" } },
+        "safe_handling": { "type": "object" }
+      }
+    }
+  }
+}

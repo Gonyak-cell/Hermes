@@ -57,6 +57,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_command_receipt_application", "Human review cycle receipt completion command receipt application", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_application", "control-plane-human-review-cycle-receipt-completion-command-receipt-application", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_application_gate" }),
   sourceItem("human_review_cycle_receipt_completion_reconciliation", "Human review cycle receipt completion reconciliation", "gate_approval", "human_review_cycle_receipt_completion_reconciliation", "control-plane-human-review-cycle-receipt-completion-reconciliation", { acceptance_profile: "human_review_cycle_receipt_completion_reconciliation_gate" }),
   sourceItem("human_review_cycle_receipt_completion_baseline", "Human review cycle receipt completion baseline", "gate_approval", "human_review_cycle_receipt_completion_baseline", "control-plane-human-review-cycle-receipt-completion-baseline", { acceptance_profile: "human_review_cycle_receipt_completion_baseline_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_manual_command_receipt_pack", "Human review cycle receipt completion manual command receipt pack", "gate_approval", "human_review_cycle_receipt_completion_manual_command_receipt_pack", "control-plane-human-review-cycle-receipt-completion-manual-command-receipt-pack", { acceptance_profile: "human_review_cycle_receipt_completion_manual_command_receipt_pack_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -606,6 +607,20 @@ function evaluateStageAcceptance(item, stage) {
     const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
     if (hasBaseline && matchesSourceCounts && mismatches === 0 && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion baseline is implemented and freezing reconciliation blocker counts without mutating receipts or executing protected actions.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_manual_command_receipt_pack_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasActorPacks = (metrics.actor_receipt_pack_count ?? 0) > 0;
+    const hasReceiptRows = (metrics.receipt_pack_item_count ?? 0) > 0;
+    const matchesPendingBlockers = (metrics.receipt_pack_item_count ?? 0) === (metrics.pending_command_receipt_blocker_count ?? -1);
+    const hasTargetPaths = (metrics.target_receipt_path_count ?? 0) > 0 && (metrics.missing_target_receipt_path_count ?? 0) === 0;
+    const hasRequiredFields = (metrics.required_field_count ?? 0) > 0 && (metrics.missing_required_field_count ?? 0) === 0;
+    const protectedActionsExecuted = metrics.protected_action_executed_count ?? 0;
+    const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
+    if (hasActorPacks && hasReceiptRows && matchesPendingBlockers && hasTargetPaths && hasRequiredFields && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion manual command receipt pack is implemented and exposes actor target receipt paths with complete required field placeholders.");
     }
   }
 

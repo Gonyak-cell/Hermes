@@ -2662,6 +2662,48 @@
 - Dashboard summary가 baseline blocker, pending command receipt, held command, protected hold, mismatch, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-baseline`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 90: Human Review Cycle Receipt Completion Manual Command Receipt Pack
+
+목표: manual command receipt 입력 pack을 사람이 작성 가능한 형태로 정리한다. Phase 89 baseline의 pending command receipt blocker와 command receipt workspace의 editable receipt row를 대조해, actor별 target receipt input path와 required field를 누락 없이 표시한다.
+
+- Baseline artifact와 Command Receipt Workspace artifact를 입력으로 사용
+- pending command receipt blocker만 manual command receipt pack item으로 변환
+- held command와 explicit approval hold는 non-receipt blocker로 보존해 후속 phase에서 처리
+- actor별 `manual-command-receipt-pack.json`, `receipt-input-template.json`, `README.md` 생성
+- 각 pack item은 target receipt input path, target template path, required receipt fields, missing required fields, editable receipt placeholder를 포함
+- pack item count가 baseline pending command receipt count와 일치하는지 검증
+- actor pack마다 target receipt input path와 required receipt field 목록이 존재하는지 검증
+- safe handling은 `auto_execute_allowed: false`, `pack_only: true`, `command_receipt_edits_must_be_manual: true`, `source_artifact_mutation_allowed: false`, `refresh_commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 baseline 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-manual-command-receipt-pack` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_manual_command_receipt_pack` stage와 actor/item/target/field/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-manual-command-receipt-packs`, `/api/human-review-cycle-completion-manual-command-receipt-pack-actors`, `/api/human-review-cycle-completion-manual-command-receipt-pack-items` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Manual Command Receipt Pack을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-manual-command-receipt-pack`
+- `src/human-review-cycle-receipt-completion-manual-command-receipt-pack.mjs`
+- `scripts/human-review-cycle-receipt-completion-manual-command-receipt-pack.mjs`
+- `schemas/human-review-cycle-receipt-completion-manual-command-receipt-pack.schema.json`
+- `docs/human-review-cycle-receipt-completion-manual-command-receipt-pack.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- manual command receipt pack artifact가 schema validation을 통과함
+- pack status가 현재 pending command receipt 상태에서 `ready_for_manual_receipts`로 기록됨
+- pack item count가 baseline pending command receipt blocker count와 일치함
+- actor별 target receipt input path가 누락 없이 표시됨
+- actor별 required receipt field 목록이 누락 없이 표시됨
+- editable receipt placeholder에 required field 누락이 없음
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-manual-command-receipt-packs?pack_status=ready_for_manual_receipts`로 pack artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-manual-command-receipt-pack-actors?required_actor=human_reviewer`로 actor pack을 조회할 수 있음
+- Dashboard summary가 manual command receipt pack actor, item, target path, required field, missing field, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-manual-command-receipt-pack`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.

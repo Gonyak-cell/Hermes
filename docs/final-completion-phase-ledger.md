@@ -15,7 +15,7 @@
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
 | P089 | Phase 88 reconciliation 결과를 기준선으로 고정 | reconciliation baseline report, blocker inventory | Promoted to Phase 89; pending receipt, held command, protected hold count가 source artifact와 일치 |
-| P090 | manual command receipt 입력 pack을 사람이 작성 가능한 형태로 정리 | per-actor receipt pack, editable receipt template | actor별 target receipt path와 required field가 누락 없이 표시 |
+| P090 | manual command receipt 입력 pack을 사람이 작성 가능한 형태로 정리 | per-actor receipt pack, editable receipt template | Promoted to Phase 90; actor별 target receipt path와 required field가 누락 없이 표시 |
 | P091 | held command를 actor별 resolution plan으로 분해 | held command resolution ledger | 각 held command가 required actor, unblock condition, follow-on action을 가짐 |
 | P092 | protected approval request를 별도 승인 pack으로 분리 | protected approval request pack | protected action이 command receipt와 섞이지 않고 explicit approval 상태로 추적 |
 | P093 | 수동 receipt 재검증 루프를 닫음 | manual receipt revalidation stage | 사람이 입력한 receipt만 ready/applied 후보가 되고 자동 실행은 0으로 유지 |

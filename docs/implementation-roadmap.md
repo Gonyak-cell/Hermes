@@ -2626,6 +2626,8 @@
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
 
+세부 planned slot 장부는 `docs/final-completion-phase-ledger.md`에 둔다. 이 장부는 P089-P312 각각의 목표, 주요 산출물, 완료 기준을 미리 정의하며, 실제 구현 완료 후에만 이 문서의 `## Phase N` 기록으로 승격한다.
+
 운영 원칙:
 
 - 현재 완료 기준점은 Phase 88이다.

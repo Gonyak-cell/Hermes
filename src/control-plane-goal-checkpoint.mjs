@@ -58,6 +58,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_reconciliation", "Human review cycle receipt completion reconciliation", "gate_approval", "human_review_cycle_receipt_completion_reconciliation", "control-plane-human-review-cycle-receipt-completion-reconciliation", { acceptance_profile: "human_review_cycle_receipt_completion_reconciliation_gate" }),
   sourceItem("human_review_cycle_receipt_completion_baseline", "Human review cycle receipt completion baseline", "gate_approval", "human_review_cycle_receipt_completion_baseline", "control-plane-human-review-cycle-receipt-completion-baseline", { acceptance_profile: "human_review_cycle_receipt_completion_baseline_gate" }),
   sourceItem("human_review_cycle_receipt_completion_manual_command_receipt_pack", "Human review cycle receipt completion manual command receipt pack", "gate_approval", "human_review_cycle_receipt_completion_manual_command_receipt_pack", "control-plane-human-review-cycle-receipt-completion-manual-command-receipt-pack", { acceptance_profile: "human_review_cycle_receipt_completion_manual_command_receipt_pack_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_held_command_resolution", "Human review cycle receipt completion held command resolution", "gate_approval", "human_review_cycle_receipt_completion_held_command_resolution", "control-plane-human-review-cycle-receipt-completion-held-command-resolution", { acceptance_profile: "human_review_cycle_receipt_completion_held_command_resolution_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -621,6 +622,24 @@ function evaluateStageAcceptance(item, stage) {
     const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
     if (hasActorPacks && hasReceiptRows && matchesPendingBlockers && hasTargetPaths && hasRequiredFields && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion manual command receipt pack is implemented and exposes actor target receipt paths with complete required field placeholders.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_held_command_resolution_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const hasResolutionPlans = (metrics.resolution_plan_count ?? 0) > 0 && (metrics.actor_resolution_plan_count ?? 0) > 0;
+    const matchesSources = (metrics.resolution_plan_count ?? 0) === (metrics.held_command_blocker_count ?? -1)
+      && (metrics.resolution_plan_count ?? 0) === (metrics.source_held_command_count ?? -1)
+      && (metrics.resolution_plan_count ?? 0) === (metrics.command_queue_held_item_count ?? -1);
+    const hasResolutionContract = (metrics.unblock_condition_count ?? 0) === (metrics.resolution_plan_count ?? -1)
+      && (metrics.follow_on_action_count ?? 0) === (metrics.resolution_plan_count ?? -1)
+      && (metrics.missing_required_actor_count ?? 0) === 0
+      && (metrics.missing_unblock_condition_count ?? 0) === 0
+      && (metrics.missing_follow_on_action_count ?? 0) === 0;
+    const protectedActionsExecuted = metrics.protected_action_executed_count ?? 0;
+    const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
+    if (hasResolutionPlans && matchesSources && hasResolutionContract && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion held command resolution is implemented and assigning each held command to an actor with an unblock condition and follow-on action.");
     }
   }
 

@@ -2704,6 +2704,49 @@
 - Dashboard summary가 manual command receipt pack actor, item, target path, required field, missing field, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-manual-command-receipt-pack`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 91: Human Review Cycle Receipt Completion Held Command Resolution
+
+목표: held command를 actor별 resolution plan으로 분해한다. Phase 89 baseline의 held command blocker, Phase 90 manual command receipt pack의 non-receipt blocker, command queue의 held command item을 대조해 각 held command가 required actor, unblock condition, follow-on action을 갖도록 정리하되, command 실행, source artifact 수정, protected action 실행은 하지 않는다.
+
+- Baseline, Manual Command Receipt Pack, Command Queue artifact를 입력으로 사용
+- held command blocker만 resolution plan으로 변환
+- 각 resolution plan은 required actor, unblock condition, follow-on action, command, protected approval requirement를 포함
+- manual input hold와 explicit approval hold를 구분
+- actor별 `held-command-resolution-plan.json`, `README.md` 생성
+- resolution plan count가 baseline held command count와 일치하는지 검증
+- manual command receipt pack non-receipt blocker count와 command queue held item count를 함께 대조
+- protected held command는 explicit human approval을 unblock condition으로 강제
+- safe handling은 `auto_execute_allowed: false`, `resolution_plan_only: true`, `source_artifact_mutation_allowed: false`, `commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 manual command receipt pack 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-held-command-resolution` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_held_command_resolution` stage와 plan/actor/protected/unblock/follow-on/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-held-command-resolutions`, `/api/human-review-cycle-completion-held-command-resolution-plans`, `/api/human-review-cycle-completion-held-command-resolution-actors` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Held Command Resolution을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-held-command-resolution`
+- `src/human-review-cycle-receipt-completion-held-command-resolution.mjs`
+- `scripts/human-review-cycle-receipt-completion-held-command-resolution.mjs`
+- `schemas/human-review-cycle-receipt-completion-held-command-resolution.schema.json`
+- `docs/human-review-cycle-receipt-completion-held-command-resolution.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- held command resolution artifact가 schema validation을 통과함
+- resolution status가 현재 held command 상태에서 `ready_for_actor_resolution`로 기록됨
+- resolution plan count가 baseline held command blocker count와 일치함
+- manual command receipt pack non-receipt blocker count와 command queue held item count가 resolution plan count와 일치함
+- 각 held command에 required actor, unblock condition, follow-on action이 누락 없이 표시됨
+- protected held command의 unblock condition이 explicit human approval로 표시됨
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-held-command-resolutions?resolution_status=ready_for_actor_resolution`로 resolution artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-held-command-resolution-plans?resolution_status=waiting_for_manual_input`으로 manual-input held command plan을 조회할 수 있음
+- Dashboard summary가 held command resolution plan, actor, protected, unblock condition, follow-on action, missing field, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-held-command-resolution`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2712,9 +2755,9 @@
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 88이다.
+- 현재 완료 기준점은 Phase 91이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P089-P312, 총 224개다.
+- 남은 계획 슬롯은 P092-P312, 총 221개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -73,6 +73,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   humanReviewCycleReceiptCompletionReconciliationPath: "artifacts/human-review-cycle-receipt-completion-reconciliation/latest/human-review-cycle-receipt-completion-reconciliation.json",
   humanReviewCycleReceiptCompletionBaselinePath: "artifacts/human-review-cycle-receipt-completion-baseline/latest/human-review-cycle-receipt-completion-baseline.json",
   humanReviewCycleReceiptCompletionManualCommandReceiptPackPath: "artifacts/human-review-cycle-receipt-completion-manual-command-receipt-pack/latest/human-review-cycle-receipt-completion-manual-command-receipt-pack.json",
+  humanReviewCycleReceiptCompletionHeldCommandResolutionPath: "artifacts/human-review-cycle-receipt-completion-held-command-resolution/latest/human-review-cycle-receipt-completion-held-command-resolution.json",
   controlPlaneHumanGateReceiptValidationPath: "artifacts/control-plane-human-gate-receipt-validation/latest/control-plane-human-gate-receipt-validation.json",
   controlPlaneHumanGateReceiptApplicationPath: "artifacts/control-plane-human-gate-receipt-application/latest/control-plane-human-gate-receipt-application.json",
   controlPlaneWorkPacketsPath: "artifacts/control-plane-work-packets/latest/control-plane-work-packets.json",
@@ -436,6 +437,11 @@ const SOURCE_DEFINITIONS = [
     label: "Human Review Cycle Receipt Completion Manual Command Receipt Pack",
   },
   {
+    option: "humanReviewCycleReceiptCompletionHeldCommandResolutionPath",
+    source_id: "human_review_cycle_receipt_completion_held_command_resolution",
+    label: "Human Review Cycle Receipt Completion Held Command Resolution",
+  },
+  {
     option: "controlPlaneHumanGateReceiptValidationPath",
     source_id: "control_plane_human_gate_receipt_validation",
     label: "Control Plane Human Gate Receipt Validation",
@@ -739,6 +745,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "human_review_cycle_receipt_completion_reconciliation") return data.summary ?? {};
   if (sourceId === "human_review_cycle_receipt_completion_baseline") return data.summary ?? {};
   if (sourceId === "human_review_cycle_receipt_completion_manual_command_receipt_pack") return data.summary ?? {};
+  if (sourceId === "human_review_cycle_receipt_completion_held_command_resolution") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_validation") return data.summary ?? {};
   if (sourceId === "control_plane_human_gate_receipt_application") return data.summary ?? {};
   if (sourceId === "control_plane_work_packets") return data.summary ?? {};
@@ -852,6 +859,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHumanReviewCycleReceiptCompletionReconciliationStage(artifacts.human_review_cycle_receipt_completion_reconciliation, sourceById.get("human_review_cycle_receipt_completion_reconciliation")),
     buildHumanReviewCycleReceiptCompletionBaselineStage(artifacts.human_review_cycle_receipt_completion_baseline, sourceById.get("human_review_cycle_receipt_completion_baseline")),
     buildHumanReviewCycleReceiptCompletionManualCommandReceiptPackStage(artifacts.human_review_cycle_receipt_completion_manual_command_receipt_pack, sourceById.get("human_review_cycle_receipt_completion_manual_command_receipt_pack")),
+    buildHumanReviewCycleReceiptCompletionHeldCommandResolutionStage(artifacts.human_review_cycle_receipt_completion_held_command_resolution, sourceById.get("human_review_cycle_receipt_completion_held_command_resolution")),
     buildControlPlaneHumanGateReceiptApplicationStage(artifacts.control_plane_human_gate_receipt_application, sourceById.get("control_plane_human_gate_receipt_application")),
     buildControlPlaneWorkPacketsStage(artifacts.control_plane_work_packets, sourceById.get("control_plane_work_packets")),
     buildControlPlaneWorkPacketReceiptsStage(artifacts.control_plane_work_packet_receipts, sourceById.get("control_plane_work_packet_receipts")),
@@ -2959,6 +2967,45 @@ function buildHumanReviewCycleReceiptCompletionManualCommandReceiptPackStage(pac
   };
 }
 
+function buildHumanReviewCycleReceiptCompletionHeldCommandResolutionStage(resolution, source) {
+  if (!resolution) return missingStage("human_review_cycle_receipt_completion_held_command_resolution", "Human Review Cycle Receipt Completion Held Command Resolution", source);
+  const summary = resolution.summary ?? {};
+  const errorCount = summary.validation_error_count ?? resolution.validation?.errors?.length ?? 0;
+  const status = resolution.resolution_status === "blocked" || errorCount > 0
+    ? "blocked"
+    : resolution.resolution_status === "ready_for_actor_resolution"
+      ? "pending"
+      : resolution.resolution_status === "no_held_commands"
+        ? "passed"
+        : "pending";
+  return {
+    stage_id: "human_review_cycle_receipt_completion_held_command_resolution",
+    label: "Human Review Cycle Receipt Completion Held Command Resolution",
+    status,
+    message: `${summary.resolution_plan_count ?? 0} resolution plan(s), ${summary.actor_resolution_plan_count ?? 0} actor plan(s), ${summary.protected_resolution_count ?? 0} protected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resolution_status: resolution.resolution_status ?? "unknown",
+      resolution_plan_count: summary.resolution_plan_count ?? 0,
+      held_command_blocker_count: summary.held_command_blocker_count ?? 0,
+      source_held_command_count: summary.source_held_command_count ?? 0,
+      manual_pack_non_receipt_blocker_count: summary.manual_pack_non_receipt_blocker_count ?? 0,
+      command_queue_held_item_count: summary.command_queue_held_item_count ?? 0,
+      protected_resolution_count: summary.protected_resolution_count ?? 0,
+      manual_input_resolution_count: summary.manual_input_resolution_count ?? 0,
+      actor_resolution_plan_count: summary.actor_resolution_plan_count ?? 0,
+      unblock_condition_count: summary.unblock_condition_count ?? 0,
+      follow_on_action_count: summary.follow_on_action_count ?? 0,
+      missing_required_actor_count: summary.missing_required_actor_count ?? 0,
+      missing_unblock_condition_count: summary.missing_unblock_condition_count ?? 0,
+      missing_follow_on_action_count: summary.missing_follow_on_action_count ?? 0,
+      validation_error_count: errorCount,
+      refresh_command_executed_by_harness_count: summary.refresh_command_executed_by_harness_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+    },
+  };
+}
+
 function buildHumanReviewCycleReceiptCompletionCommandReceiptFeedbackStage(feedback, source) {
   if (!feedback) return missingStage("human_review_cycle_receipt_completion_command_receipt_feedback", "Human Review Cycle Receipt Completion Command Receipt Feedback", source);
   const summary = feedback.summary ?? {};
@@ -4211,6 +4258,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.human_review_cycle_receipt_completion_held_command_resolution?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "human_review_cycle_receipt_completion_held_command_resolution";
+    items.push({
+      action_item_id: `dashboard.action.human_review_cycle_receipt_completion_held_command_resolution.${slugify(subjectId)}`,
+      source_stage: "human_review_cycle_receipt_completion_held_command_resolution",
+      priority: "high",
+      status: "needs_fix",
+      title: "Fix held command resolution plan",
+      subject_ref: {
+        subject_type: "human_review_cycle_receipt_completion_held_command_resolution_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["rerun_manual_command_receipt_pack", "rerun_held_command_resolution"],
+      source_ref: subjectId,
+    });
+  }
+
   if (artifacts.personal_dev_slice?.status === "blocked") {
     items.push({
       action_item_id: `dashboard.action.personal_dev.${artifacts.personal_dev_slice.approval_id ?? "merge"}`,
@@ -5100,6 +5165,18 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     human_review_cycle_completion_manual_command_receipt_pack_error_count: artifacts.human_review_cycle_receipt_completion_manual_command_receipt_pack?.summary?.validation_error_count ?? artifacts.human_review_cycle_receipt_completion_manual_command_receipt_pack?.validation?.errors?.length ?? 0,
     human_review_cycle_completion_manual_command_receipt_pack_refresh_executed_count: artifacts.human_review_cycle_receipt_completion_manual_command_receipt_pack?.summary?.refresh_command_executed_by_harness_count ?? 0,
     human_review_cycle_completion_manual_command_receipt_pack_protected_executed_count: artifacts.human_review_cycle_receipt_completion_manual_command_receipt_pack?.summary?.protected_action_executed_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_plan_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.resolution_plan_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_actor_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.actor_resolution_plan_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_manual_input_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.manual_input_resolution_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_protected_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.protected_resolution_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_unblock_condition_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.unblock_condition_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_follow_on_action_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.follow_on_action_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_missing_actor_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.missing_required_actor_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_missing_unblock_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.missing_unblock_condition_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_missing_follow_on_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.missing_follow_on_action_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_error_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.validation_error_count ?? artifacts.human_review_cycle_receipt_completion_held_command_resolution?.validation?.errors?.length ?? 0,
+    human_review_cycle_completion_held_command_resolution_refresh_executed_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.refresh_command_executed_by_harness_count ?? 0,
+    human_review_cycle_completion_held_command_resolution_protected_executed_count: artifacts.human_review_cycle_receipt_completion_held_command_resolution?.summary?.protected_action_executed_count ?? 0,
     human_gate_receipt_validation_ready_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.ready_to_apply_count ?? 0,
     human_gate_receipt_validation_pending_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.pending_receipt_count ?? 0,
     human_gate_receipt_validation_invalid_count: artifacts.control_plane_human_gate_receipt_validation?.summary?.invalid_receipt_count ?? 0,
@@ -5668,6 +5745,8 @@ function parseArgs(argv) {
     else if (arg === "--no-human-review-cycle-completion-baseline") parsed.humanReviewCycleReceiptCompletionBaselinePath = false;
     else if (arg === "--human-review-cycle-completion-manual-command-receipt-pack") parsed.humanReviewCycleReceiptCompletionManualCommandReceiptPackPath = argv[++index];
     else if (arg === "--no-human-review-cycle-completion-manual-command-receipt-pack") parsed.humanReviewCycleReceiptCompletionManualCommandReceiptPackPath = false;
+    else if (arg === "--human-review-cycle-completion-held-command-resolution") parsed.humanReviewCycleReceiptCompletionHeldCommandResolutionPath = argv[++index];
+    else if (arg === "--no-human-review-cycle-completion-held-command-resolution") parsed.humanReviewCycleReceiptCompletionHeldCommandResolutionPath = false;
     else if (arg === "--control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = argv[++index];
     else if (arg === "--no-control-plane-human-gate-receipt-validation") parsed.controlPlaneHumanGateReceiptValidationPath = false;
     else if (arg === "--control-plane-human-gate-receipt-application") parsed.controlPlaneHumanGateReceiptApplicationPath = argv[++index];
@@ -5885,6 +5964,10 @@ Options:
                                   manual command receipt pack artifact path.
   --no-human-review-cycle-completion-manual-command-receipt-pack
                                   Do not include Human Review Cycle Receipt Completion Manual Command Receipt Pack status.
+  --human-review-cycle-completion-held-command-resolution <path>
+                                  held command resolution artifact path.
+  --no-human-review-cycle-completion-held-command-resolution
+                                  Do not include Human Review Cycle Receipt Completion Held Command Resolution status.
   --control-plane-human-gate-receipt-validation <path>
                                   control-plane-human-gate-receipt-validation.json path.
   --no-control-plane-human-gate-receipt-validation

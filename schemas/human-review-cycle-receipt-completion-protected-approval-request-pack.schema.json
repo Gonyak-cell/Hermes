@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-protected-approval-request-pack.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Protected Approval Request Pack",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "approval_request_pack_id",
+    "output_dir",
+    "pack_status",
+    "safe_handling",
+    "sources",
+    "summary",
+    "approval_requests",
+    "actor_approval_packs",
+    "non_protected_resolution_plan_ids",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-protected-approval-request-pack.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "approval_request_pack_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "pack_status": {
+      "enum": ["blocked", "ready_for_explicit_approval", "no_protected_approval_required"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "approval_request_pack_only",
+        "source_artifact_mutation_allowed",
+        "command_receipt_edits_allowed",
+        "commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "approval_request_pack_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "command_receipt_edits_allowed": { "const": false },
+        "commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "pack_status",
+        "source_resolution_status",
+        "source_resolution_plan_count",
+        "source_protected_resolution_count",
+        "protected_resolution_count",
+        "non_protected_resolution_count",
+        "approval_request_count",
+        "actor_approval_pack_count",
+        "pending_explicit_approval_count",
+        "protected_action_request_count",
+        "command_receipt_mixed_count",
+        "non_protected_request_count",
+        "target_approval_input_path_count",
+        "missing_target_approval_input_path_count",
+        "required_approval_field_count",
+        "missing_required_approval_field_count",
+        "validation_error_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_required_actor",
+        "by_approval_status",
+        "by_command_kind"
+      ],
+      "properties": {
+        "pack_status": { "type": "string" },
+        "source_resolution_status": { "type": ["string", "null"] },
+        "source_resolution_plan_count": { "type": "integer", "minimum": 0 },
+        "source_protected_resolution_count": { "type": "integer", "minimum": 0 },
+        "protected_resolution_count": { "type": "integer", "minimum": 0 },
+        "non_protected_resolution_count": { "type": "integer", "minimum": 0 },
+        "approval_request_count": { "type": "integer", "minimum": 0 },
+        "actor_approval_pack_count": { "type": "integer", "minimum": 0 },
+        "pending_explicit_approval_count": { "type": "integer", "minimum": 0 },
+        "protected_action_request_count": { "type": "integer", "minimum": 0 },
+        "command_receipt_mixed_count": { "type": "integer", "minimum": 0 },
+        "non_protected_request_count": { "type": "integer", "minimum": 0 },
+        "target_approval_input_path_count": { "type": "integer", "minimum": 0 },
+        "missing_target_approval_input_path_count": { "type": "integer", "minimum": 0 },
+        "required_approval_field_count": { "type": "integer", "minimum": 0 },
+        "missing_required_approval_field_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_required_actor": { "type": "object" },
+        "by_approval_status": { "type": "object" },
+        "by_command_kind": { "type": "object" }
+      }
+    },
+    "approval_requests": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/approval_request" }
+    },
+    "actor_approval_packs": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/actor_approval_pack" }
+    },
+    "non_protected_resolution_plan_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "approval_request": {
+      "type": "object",
+      "required": [
+        "approval_request_id",
+        "source_resolution_plan_id",
+        "source_held_command_id",
+        "source_reconciliation_item_id",
+        "required_actor",
+        "priority",
+        "approval_status",
+        "approval_type",
+        "protected_action",
+        "requires_explicit_human_approval",
+        "separated_from_command_receipts",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "unblock_condition",
+        "follow_on_action",
+        "expected_artifact",
+        "target_approval_input_path",
+        "required_approval_fields",
+        "approval_receipt_template",
+        "source_refs",
+        "safe_handling"
+      ],
+      "properties": {
+        "approval_request_id": { "type": "string" },
+        "source_resolution_plan_id": { "type": "string" },
+        "source_held_command_id": { "type": ["string", "null"] },
+        "source_reconciliation_item_id": { "type": ["string", "null"] },
+        "required_actor": { "type": "string" },
+        "priority": { "type": "string" },
+        "approval_status": { "const": "pending_explicit_approval" },
+        "approval_type": { "const": "explicit_human_approval" },
+        "protected_action": { "const": true },
+        "requires_explicit_human_approval": { "const": true },
+        "separated_from_command_receipts": { "const": true },
+        "command_gate_id": { "type": ["string", "null"] },
+        "runbook_step_id": { "type": ["string", "null"] },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "unblock_condition": { "type": ["object", "null"] },
+        "follow_on_action": { "type": ["object", "null"] },
+        "expected_artifact": { "type": ["string", "null"] },
+        "target_approval_input_path": { "type": "string" },
+        "required_approval_fields": { "type": "array", "items": { "type": "string" } },
+        "approval_receipt_template": { "$ref": "#/$defs/approval_receipt_template" },
+        "source_refs": { "type": "object" },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "approval_receipt_template": {
+      "type": "object",
+      "required": [
+        "approval_receipt_id",
+        "approval_request_id",
+        "approval_status",
+        "decision",
+        "approved_by",
+        "approved_at",
+        "approval_scope",
+        "risk_acknowledgement",
+        "authorized_commands",
+        "notes",
+        "source_resolution_plan_id",
+        "source_held_command_id",
+        "protected_action",
+        "safe_handling"
+      ],
+      "properties": {
+        "approval_receipt_id": { "type": "string" },
+        "approval_request_id": { "type": "string" },
+        "approval_status": { "const": "pending" },
+        "decision": { "const": "pending" },
+        "approved_by": { "type": "string" },
+        "approved_at": { "type": "string" },
+        "approval_scope": { "const": "protected_application" },
+        "risk_acknowledgement": { "type": "string" },
+        "authorized_commands": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "string" },
+        "source_resolution_plan_id": { "type": "string" },
+        "source_held_command_id": { "type": ["string", "null"] },
+        "protected_action": { "const": true },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "actor_approval_pack": {
+      "type": "object",
+      "required": [
+        "actor_approval_pack_id",
+        "required_actor",
+        "approval_status",
+        "priority",
+        "approval_request_count",
+        "protected_action_count",
+        "target_approval_input_path",
+        "request_pack_path",
+        "readme_path",
+        "approval_request_ids",
+        "source_resolution_plan_ids",
+        "command_gate_ids",
+        "commands_requiring_approval",
+        "expected_artifacts",
+        "required_approval_fields",
+        "safe_handling"
+      ],
+      "properties": {
+        "actor_approval_pack_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "approval_status": { "const": "pending_explicit_approval" },
+        "priority": { "type": "string" },
+        "approval_request_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "target_approval_input_path": { "type": "string" },
+        "request_pack_path": { "type": "string" },
+        "readme_path": { "type": "string" },
+        "approval_request_ids": { "type": "array", "items": { "type": "string" } },
+        "source_resolution_plan_ids": { "type": "array", "items": { "type": "string" } },
+        "command_gate_ids": { "type": "array", "items": { "type": ["string", "null"] } },
+        "commands_requiring_approval": { "type": "array", "items": { "type": "string" } },
+        "expected_artifacts": { "type": "array", "items": { "type": "string" } },
+        "required_approval_fields": { "type": "array", "items": { "type": "string" } },
+        "safe_handling": { "type": "object" }
+      }
+    }
+  }
+}

@@ -2093,6 +2093,39 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-protected-approval-request-packs") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_protected_approval_request_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_protected_approval_request_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_protected_approval_request_packs", [packResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-protected-approval-requests") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_protected_approval_request_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_protected_approval_request_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_protected_approval_requests", packResult.artifact.approval_requests ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-protected-approval-actors") {
+    const packResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_protected_approval_request_pack");
+    if (!packResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_protected_approval_request_pack_unavailable", packResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_protected_approval_actors", packResult.artifact.actor_approval_packs ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2465,6 +2498,9 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-held-command-resolutions", "Held command resolution artifacts"),
       route("GET", "/api/human-review-cycle-completion-held-command-resolution-plans", "Held command resolution plans"),
       route("GET", "/api/human-review-cycle-completion-held-command-resolution-actors", "Actor-specific held command resolution plans"),
+      route("GET", "/api/human-review-cycle-completion-protected-approval-request-packs", "Protected approval request pack artifacts"),
+      route("GET", "/api/human-review-cycle-completion-protected-approval-requests", "Protected approval requests split from held command resolutions"),
+      route("GET", "/api/human-review-cycle-completion-protected-approval-actors", "Actor-specific protected approval request packs"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),
@@ -2521,6 +2557,7 @@ function filterItems(items, searchParams) {
     "available",
     "catalog_id",
     "policy_status",
+    "pack_status",
     "matrix_id",
     "classification",
     "external_model_policy",
@@ -2771,6 +2808,11 @@ function filterItems(items, searchParams) {
     "executed_by",
     "output_reference",
     "requires_explicit_human_approval",
+    "approval_request_id",
+    "approval_request_pack_id",
+    "actor_approval_pack_id",
+    "approval_type",
+    "source_resolution_plan_id",
     "field_status",
     "correction_workspace_id",
     "actor_correction_workspace_id",

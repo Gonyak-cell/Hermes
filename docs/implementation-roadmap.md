@@ -2747,6 +2747,47 @@
 - Dashboard summary가 held command resolution plan, actor, protected, unblock condition, follow-on action, missing field, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-held-command-resolution`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 92: Human Review Cycle Receipt Completion Protected Approval Request Pack
+
+목표: protected held command를 manual command receipt와 분리해 explicit human approval 상태로 추적한다. Phase 91 held command resolution의 protected resolution plan만 approval request로 승격하고, actor별 approval input template을 생성하되 command 실행, protected action 실행, command receipt 수정, source artifact mutation은 하지 않는다.
+
+- Held Command Resolution artifact를 입력으로 사용
+- `requires_explicit_human_approval` 또는 protected follow-on action을 가진 plan만 approval request로 변환
+- 각 approval request는 `pending_explicit_approval`, `explicit_human_approval`, `protected_action: true`, `separated_from_command_receipts: true`를 포함
+- actor별 `protected-approval-request-pack.json`, `approval-input.json`, `README.md` 생성
+- required approval field는 `decision`, `approved_by`, `approved_at`, `approval_scope`, `risk_acknowledgement`, `authorized_commands`, `notes`로 고정
+- non-protected held command는 approval request에 섞이지 않도록 `non_protected_resolution_plan_ids`로만 추적
+- safe handling은 `auto_execute_allowed: false`, `approval_request_pack_only: true`, `source_artifact_mutation_allowed: false`, `command_receipt_edits_allowed: false`, `commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 held command resolution 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-protected-approval-request-pack` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_protected_approval_request_pack` stage와 request/actor/pending/mixed/required-field/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-protected-approval-request-packs`, `/api/human-review-cycle-completion-protected-approval-requests`, `/api/human-review-cycle-completion-protected-approval-actors` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Protected Approval Request Pack을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-protected-approval-request-pack`
+- `src/human-review-cycle-receipt-completion-protected-approval-request-pack.mjs`
+- `scripts/human-review-cycle-receipt-completion-protected-approval-request-pack.mjs`
+- `schemas/human-review-cycle-receipt-completion-protected-approval-request-pack.schema.json`
+- `docs/human-review-cycle-receipt-completion-protected-approval-request-pack.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- protected approval request pack artifact가 schema validation을 통과함
+- pack status가 현재 protected hold 상태에서 `ready_for_explicit_approval`로 기록됨
+- approval request count가 held command resolution protected resolution count와 일치함
+- actor approval pack이 target approval input path와 required approval field를 누락 없이 포함함
+- approval request가 command receipt와 섞이지 않고 `pending_explicit_approval` 상태로 유지됨
+- non-protected held command가 approval request에 포함되지 않음
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-protected-approval-request-packs?pack_status=ready_for_explicit_approval`로 pack artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-protected-approval-requests?approval_status=pending_explicit_approval`로 pending explicit approval request를 조회할 수 있음
+- Dashboard summary가 protected approval request, actor, pending, source protected, mixed, missing field, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-protected-approval-request-pack`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2755,9 +2796,9 @@
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 91이다.
+- 현재 완료 기준점은 Phase 92이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P092-P312, 총 221개다.
+- 남은 계획 슬롯은 P093-P312, 총 220개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

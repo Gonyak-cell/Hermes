@@ -56,6 +56,7 @@
     "control-plane:review-cycle:completion-command-receipts:validate": "node scripts/human-review-cycle-receipt-completion-command-receipt-validation.mjs",
     "control-plane:review-cycle:completion-command-receipts:feedback": "node scripts/human-review-cycle-receipt-completion-command-receipt-feedback.mjs",
     "control-plane:review-cycle:completion-command-receipts:workspace": "node scripts/human-review-cycle-receipt-completion-command-receipt-workspace.mjs",
+    "control-plane:review-cycle:completion-command-receipts:workspace:merge": "node scripts/human-review-cycle-receipt-completion-command-receipt-workspace-merge.mjs",
     "control-plane:loop": "node scripts/control-plane-loop.mjs",
     "control-plane:plan": "node scripts/control-plane-action-plan.mjs",
     "control-plane:work-receipts": "node scripts/control-plane-work-packet-receipts.mjs",

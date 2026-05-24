@@ -1829,6 +1829,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-workspace-merges") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_workspace_merges", [mergeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-merge-items") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_merge_items", mergeResult.artifact.merge_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-review-cycle-completion-command-receipt-actor-inputs") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_review_cycle_completion_command_receipt_actor_inputs", mergeResult.artifact.actor_inputs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/merged-human-review-cycle-completion-command-receipt-input") {
+    const mergeResult = await readDashboardSourceArtifact(dashboard, "human_review_cycle_receipt_completion_command_receipt_workspace_merge");
+    if (!mergeResult.available) {
+      return jsonResponse(503, buildError("human_review_cycle_receipt_completion_command_receipt_workspace_merge_unavailable", mergeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("merged_human_review_cycle_completion_command_receipt_input", [mergeResult.artifact.receipt_input], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/validated-human-gate-receipts") {
     const validationResult = await readDashboardSourceArtifact(dashboard, "control_plane_human_gate_receipt_validation");
     if (!validationResult.available) {
@@ -2177,6 +2221,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/human-review-cycle-completion-command-receipt-workspaces", "Human review cycle receipt completion command receipt workspace artifacts"),
       route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-items", "Human review cycle receipt completion command receipt workspace items"),
       route("GET", "/api/human-review-cycle-completion-command-receipt-actor-workspaces", "Actor-specific human review command receipt workspaces"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-workspace-merges", "Human review cycle command receipt workspace merge artifacts"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-merge-items", "Merged human review cycle command receipt items"),
+      route("GET", "/api/human-review-cycle-completion-command-receipt-actor-inputs", "Actor command receipt inputs included in the workspace merge"),
+      route("GET", "/api/merged-human-review-cycle-completion-command-receipt-input", "Merged command receipt input generated from actor command receipt workspaces"),
       route("GET", "/api/validated-human-gate-receipts", "Validated human gate receipts ready for future application"),
       route("GET", "/api/human-gate-receipt-applications", "Human gate receipt application artifacts"),
       route("GET", "/api/applied-human-gate-receipts", "Applied human gate receipts"),

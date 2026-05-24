@@ -745,6 +745,22 @@ try {
   assert.equal(humanReviewCycleCompletionCommandReceiptActorWorkspaces.collection, "human_review_cycle_completion_command_receipt_actor_workspaces");
   assert.ok(humanReviewCycleCompletionCommandReceiptActorWorkspaces.count <= 5);
 
+  const humanReviewCycleCompletionCommandReceiptWorkspaceMerges = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-workspace-merges?merge_status=pending_human_review&limit=1`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptWorkspaceMerges.collection, "human_review_cycle_completion_command_receipt_workspace_merges");
+  assert.ok(humanReviewCycleCompletionCommandReceiptWorkspaceMerges.count <= 1);
+
+  const humanReviewCycleCompletionCommandReceiptMergeItems = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-merge-items?merge_status=pending_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptMergeItems.collection, "human_review_cycle_completion_command_receipt_merge_items");
+  assert.ok(humanReviewCycleCompletionCommandReceiptMergeItems.count <= 5);
+
+  const humanReviewCycleCompletionCommandReceiptActorInputs = await fetchJson(`${url}/api/human-review-cycle-completion-command-receipt-actor-inputs?required_actor=human_reviewer&limit=5`);
+  assert.equal(humanReviewCycleCompletionCommandReceiptActorInputs.collection, "human_review_cycle_completion_command_receipt_actor_inputs");
+  assert.ok(humanReviewCycleCompletionCommandReceiptActorInputs.count <= 5);
+
+  const mergedHumanReviewCycleCompletionCommandReceiptInput = await fetchJson(`${url}/api/merged-human-review-cycle-completion-command-receipt-input?limit=1`);
+  assert.equal(mergedHumanReviewCycleCompletionCommandReceiptInput.collection, "merged_human_review_cycle_completion_command_receipt_input");
+  assert.ok(mergedHumanReviewCycleCompletionCommandReceiptInput.count <= 1);
+
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");
 

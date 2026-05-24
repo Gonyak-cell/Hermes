@@ -2473,3 +2473,40 @@
 - `/api/human-review-cycle-completion-command-receipt-actor-workspaces?required_actor=human_reviewer`로 actor workspace를 조회할 수 있음
 - Dashboard summary가 command receipt workspace actor, item, receipt row, pending, editable file, validation error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:workspace`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
+## Phase 85: Human Review Cycle Receipt Completion Command Receipt Workspace Merge
+
+목표: actor별 editable command receipt input을 하나의 canonical `receipt-input.json`으로 병합한다. 사람이 수동으로 command 실행 결과를 기록한 뒤 validation 단계로 넘길 수 있게 하되, harness는 command 실행, receipt 검증, receipt application, protected action을 수행하지 않는다.
+
+- Command Receipt Workspace artifact를 입력으로 사용
+- workspace가 참조하는 actor별 `receipt-input.json`을 읽어 `actor_inputs`로 정규화
+- command receipt `queue_item_id` 기준으로 workspace item과 actor receipt row를 매칭
+- missing, duplicate, unknown, invalid actor receipt 상태를 `merge_items`에 기록
+- merged `receipt-input.json`은 `human-review-cycle-receipt-completion-command-receipts-input.v1` 형식을 유지
+- safe handling은 `auto_execute_allowed: false`, `command_receipt_workspace_merge_only: true`, `receipt_edits_must_be_manual: true`, `validation_required_before_application: true`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 command receipt workspace 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-command-receipts:workspace:merge` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_command_receipt_workspace_merge` stage와 actor/merge/pending/ready summary 추가
+- Review API에서 `/api/human-review-cycle-completion-command-receipt-workspace-merges`, `/api/human-review-cycle-completion-command-receipt-merge-items`, `/api/human-review-cycle-completion-command-receipt-actor-inputs`, `/api/merged-human-review-cycle-completion-command-receipt-input` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Command Receipt Workspace Merge를 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-command-receipts:workspace:merge`
+- `src/human-review-cycle-receipt-completion-command-receipt-workspace-merge.mjs`
+- `schemas/human-review-cycle-receipt-completion-command-receipt-workspace-merge.schema.json`
+- `docs/human-review-cycle-receipt-completion-command-receipt-workspace-merge.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- command receipt workspace merge artifact가 schema validation을 통과함
+- actor input count가 command receipt workspace actor count와 일치함
+- merge item count와 receipt row count가 command receipt workspace item count와 일치함
+- pending command receipt는 `pending_receipt` merge item으로 남고 ready validation count가 정확히 집계됨
+- merged `receipt-input.json`이 생성되고 receipt row count가 merge item count와 일치함
+- `/api/human-review-cycle-completion-command-receipt-merge-items?merge_status=pending_receipt`로 pending merge item을 조회할 수 있음
+- `/api/human-review-cycle-completion-command-receipt-actor-inputs?required_actor=human_reviewer`로 actor input을 조회할 수 있음
+- Dashboard summary가 command receipt workspace merge actor, item, receipt row, pending, ready, validation error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-command-receipts:workspace:merge`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함

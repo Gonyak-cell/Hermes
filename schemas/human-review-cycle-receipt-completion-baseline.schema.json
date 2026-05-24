@@ -1,0 +1,179 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/human-review-cycle-receipt-completion-baseline.schema.json",
+  "title": "Hermes Human Review Cycle Receipt Completion Baseline",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "baseline_id",
+    "output_dir",
+    "baseline_status",
+    "safe_handling",
+    "source",
+    "summary",
+    "baseline_report",
+    "blocker_inventory",
+    "count_checks",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "human-review-cycle-receipt-completion-baseline.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "baseline_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "baseline_status": {
+      "enum": ["blocked", "frozen_with_blockers", "frozen_clear"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "auto_execute_allowed",
+        "baseline_only",
+        "source_artifact_mutation_allowed",
+        "receipt_edits_must_be_manual",
+        "refresh_commands_executed",
+        "protected_actions_executed"
+      ],
+      "properties": {
+        "auto_execute_allowed": { "const": false },
+        "baseline_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "receipt_edits_must_be_manual": { "const": true },
+        "refresh_commands_executed": { "const": false },
+        "protected_actions_executed": { "const": false }
+      }
+    },
+    "source": { "$ref": "#/$defs/source" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "baseline_status",
+        "source_reconciliation_status",
+        "source_reconciliation_item_count",
+        "source_actor_status_count",
+        "blocker_count",
+        "pending_command_receipt_count",
+        "held_command_count",
+        "protected_hold_count",
+        "source_pending_command_receipt_count",
+        "source_held_command_count",
+        "source_protected_held_command_count",
+        "matched_count_check_count",
+        "mismatched_count_check_count",
+        "validation_error_count",
+        "refresh_command_executed_by_harness_count",
+        "protected_action_executed_count",
+        "by_blocker_status",
+        "by_blocker_type",
+        "by_required_actor"
+      ],
+      "properties": {
+        "baseline_status": { "type": "string" },
+        "source_reconciliation_status": { "type": ["string", "null"] },
+        "source_reconciliation_item_count": { "type": "integer", "minimum": 0 },
+        "source_actor_status_count": { "type": "integer", "minimum": 0 },
+        "blocker_count": { "type": "integer", "minimum": 0 },
+        "pending_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "held_command_count": { "type": "integer", "minimum": 0 },
+        "protected_hold_count": { "type": "integer", "minimum": 0 },
+        "source_pending_command_receipt_count": { "type": "integer", "minimum": 0 },
+        "source_held_command_count": { "type": "integer", "minimum": 0 },
+        "source_protected_held_command_count": { "type": "integer", "minimum": 0 },
+        "matched_count_check_count": { "type": "integer", "minimum": 0 },
+        "mismatched_count_check_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "refresh_command_executed_by_harness_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "by_blocker_status": { "type": "object" },
+        "by_blocker_type": { "type": "object" },
+        "by_required_actor": { "type": "object" }
+      }
+    },
+    "baseline_report": { "type": "object" },
+    "blocker_inventory": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/blocker" }
+    },
+    "count_checks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/count_check" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "label", "path", "available", "schema_version", "generated_at", "summary", "error"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "required": [
+        "blocker_id",
+        "blocker_type",
+        "blocker_status",
+        "priority",
+        "required_actor",
+        "queue_item_id",
+        "command_gate_id",
+        "runbook_step_id",
+        "step_key",
+        "command_kind",
+        "command",
+        "receipt_status",
+        "command_result",
+        "protected_hold",
+        "source_reconciliation_item_id",
+        "source_ref",
+        "recommended_action"
+      ],
+      "properties": {
+        "blocker_id": { "type": "string" },
+        "blocker_type": { "type": "string" },
+        "blocker_status": { "type": "string" },
+        "priority": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "queue_item_id": { "type": ["string", "null"] },
+        "command_gate_id": { "type": ["string", "null"] },
+        "runbook_step_id": { "type": ["string", "null"] },
+        "step_key": { "type": "string" },
+        "command_kind": { "type": "string" },
+        "command": { "type": "string" },
+        "receipt_status": { "type": ["string", "null"] },
+        "command_result": { "type": ["string", "null"] },
+        "protected_hold": { "type": "boolean" },
+        "source_reconciliation_item_id": { "type": "string" },
+        "source_ref": { "type": "string" },
+        "recommended_action": { "type": "string" }
+      }
+    },
+    "count_check": {
+      "type": "object",
+      "required": ["count_check_id", "count_key", "expected_count", "actual_count", "status"],
+      "properties": {
+        "count_check_id": { "type": "string" },
+        "count_key": { "type": "string" },
+        "expected_count": { "type": "integer", "minimum": 0 },
+        "actual_count": { "type": "integer", "minimum": 0 },
+        "status": { "enum": ["matched", "mismatch"] }
+      }
+    }
+  }
+}

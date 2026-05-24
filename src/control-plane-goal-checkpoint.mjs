@@ -56,6 +56,7 @@ const GOAL_ITEMS = [
   sourceItem("human_review_cycle_receipt_completion_command_receipt_workspace_validation", "Human review cycle receipt completion command receipt workspace validation", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_workspace_validation", "control-plane-human-review-cycle-receipt-completion-command-receipt-workspace-validation", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_workspace_validation_gate" }),
   sourceItem("human_review_cycle_receipt_completion_command_receipt_application", "Human review cycle receipt completion command receipt application", "gate_approval", "human_review_cycle_receipt_completion_command_receipt_application", "control-plane-human-review-cycle-receipt-completion-command-receipt-application", { acceptance_profile: "human_review_cycle_receipt_completion_command_receipt_application_gate" }),
   sourceItem("human_review_cycle_receipt_completion_reconciliation", "Human review cycle receipt completion reconciliation", "gate_approval", "human_review_cycle_receipt_completion_reconciliation", "control-plane-human-review-cycle-receipt-completion-reconciliation", { acceptance_profile: "human_review_cycle_receipt_completion_reconciliation_gate" }),
+  sourceItem("human_review_cycle_receipt_completion_baseline", "Human review cycle receipt completion baseline", "gate_approval", "human_review_cycle_receipt_completion_baseline", "control-plane-human-review-cycle-receipt-completion-baseline", { acceptance_profile: "human_review_cycle_receipt_completion_baseline_gate" }),
   sourceItem("law_firm_slice", "Law-firm LDD slice", "law_firm", "law_firm_ldd_slice", "control-plane-law-firm-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("personal_dev_slice", "Personal-dev Claude/Codex slice", "personal_dev", "personal_dev_slice", "control-plane-personal-dev-slice", { acceptance_profile: "protected_human_gate" }),
   sourceItem("creative_document_slice", "Creative/document slice", "creative_document", "creative_document_slice", "control-plane-creative-document-slice", { acceptance_profile: "protected_human_gate" }),
@@ -591,6 +592,20 @@ function evaluateStageAcceptance(item, stage) {
     const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
     if (hasReconciliation && hasPendingCommandReceipts && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
       return passedWithOperationalGate(stage, "Human review cycle receipt completion reconciliation is implemented and summarizing pending command receipts, held commands, and actor follow-up without executing commands or protected actions.");
+    }
+  }
+
+  if (item.acceptance_profile === "human_review_cycle_receipt_completion_baseline_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const mismatches = metrics.mismatched_count_check_count ?? 0;
+    const hasBaseline = ["frozen_with_blockers", "frozen_clear"].includes(metrics.baseline_status);
+    const matchesSourceCounts = (metrics.pending_command_receipt_count ?? 0) === (metrics.source_pending_command_receipt_count ?? -1)
+      && (metrics.held_command_count ?? 0) === (metrics.source_held_command_count ?? -1)
+      && (metrics.protected_hold_count ?? 0) === (metrics.source_protected_held_command_count ?? -1);
+    const protectedActionsExecuted = metrics.protected_action_executed_count ?? 0;
+    const refreshCommandsExecuted = metrics.refresh_command_executed_by_harness_count ?? 0;
+    if (hasBaseline && matchesSourceCounts && mismatches === 0 && errors === 0 && protectedActionsExecuted === 0 && refreshCommandsExecuted === 0) {
+      return passedWithOperationalGate(stage, "Human review cycle receipt completion baseline is implemented and freezing reconciliation blocker counts without mutating receipts or executing protected actions.");
     }
   }
 

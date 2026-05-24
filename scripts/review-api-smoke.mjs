@@ -182,6 +182,9 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-workspaces"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-workspace-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-command-receipt-actor-workspaces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-baselines"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-baseline-blockers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/human-review-cycle-completion-baseline-count-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/validated-human-gate-receipts"));
   assert.ok(index.routes.some((route) => route.path === "/api/human-gate-receipt-applications"));
   assert.ok(index.routes.some((route) => route.path === "/api/applied-human-gate-receipts"));
@@ -804,6 +807,18 @@ try {
   const humanReviewCycleCompletionReconciliationActors = await fetchJson(`${url}/api/human-review-cycle-completion-reconciliation-actors?limit=5`);
   assert.equal(humanReviewCycleCompletionReconciliationActors.collection, "human_review_cycle_completion_reconciliation_actors");
   assert.ok(humanReviewCycleCompletionReconciliationActors.count <= 5);
+
+  const humanReviewCycleCompletionBaselines = await fetchJson(`${url}/api/human-review-cycle-completion-baselines?baseline_status=frozen_with_blockers&limit=1`);
+  assert.equal(humanReviewCycleCompletionBaselines.collection, "human_review_cycle_completion_baselines");
+  assert.ok(humanReviewCycleCompletionBaselines.count <= 1);
+
+  const humanReviewCycleCompletionBaselineBlockers = await fetchJson(`${url}/api/human-review-cycle-completion-baseline-blockers?blocker_status=waiting_for_manual_command_receipt&limit=5`);
+  assert.equal(humanReviewCycleCompletionBaselineBlockers.collection, "human_review_cycle_completion_baseline_blockers");
+  assert.ok(humanReviewCycleCompletionBaselineBlockers.count <= 5);
+
+  const humanReviewCycleCompletionBaselineCountChecks = await fetchJson(`${url}/api/human-review-cycle-completion-baseline-count-checks?status=matched&limit=5`);
+  assert.equal(humanReviewCycleCompletionBaselineCountChecks.collection, "human_review_cycle_completion_baseline_count_checks");
+  assert.ok(humanReviewCycleCompletionBaselineCountChecks.count <= 5);
 
   const validatedHumanGateReceipts = await fetchJson(`${url}/api/validated-human-gate-receipts`);
   assert.equal(validatedHumanGateReceipts.collection, "validated_human_gate_receipts");

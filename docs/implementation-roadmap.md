@@ -2622,6 +2622,46 @@
 - Dashboard summary가 reconciliation item, actor, pending command receipt, held command, blocked follow-on, error count를 반영함
 - `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-reconcile`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 89: Human Review Cycle Receipt Completion Baseline
+
+목표: Phase 88 reconciliation 결과를 기준선으로 고정한다. pending command receipt, held command, protected hold 수를 source reconciliation과 대조해 blocker inventory로 봉인하되, command 실행, receipt input 수정, protected action 실행은 하지 않는다.
+
+- Reconciliation artifact를 단일 source of truth로 사용
+- `waiting_for*` reconciliation item만 blocker inventory로 정규화
+- pending command receipt count, held command count, protected hold count를 source summary와 대조
+- reconciliation item count와 actor status count도 source array와 대조
+- baseline report는 source reconciliation id, generated_at, status, source counts, inventory counts, count checks를 포함
+- safe handling은 `auto_execute_allowed: false`, `baseline_only: true`, `source_artifact_mutation_allowed: false`, `receipt_edits_must_be_manual: true`, `refresh_commands_executed: false`, `protected_actions_executed: false`로 고정
+- Control Plane Loop에서 reconciliation 뒤, human gate receipt application 전에 `npm run control-plane:review-cycle:completion-baseline` 실행
+- Review Dashboard에 `human_review_cycle_receipt_completion_baseline` stage와 blocker/count-check/error summary 추가
+- Review API에서 `/api/human-review-cycle-completion-baselines`, `/api/human-review-cycle-completion-baseline-blockers`, `/api/human-review-cycle-completion-baseline-count-checks` route 제공
+- Goal Checkpoint에서 Human Review Cycle Receipt Completion Baseline을 별도 item으로 추적
+
+현재 구현:
+
+- `npm run control-plane:review-cycle:completion-baseline`
+- `src/human-review-cycle-receipt-completion-baseline.mjs`
+- `scripts/human-review-cycle-receipt-completion-baseline.mjs`
+- `schemas/human-review-cycle-receipt-completion-baseline.schema.json`
+- `docs/human-review-cycle-receipt-completion-baseline.md`
+- `src/control-plane-loop.mjs`
+- `src/review-dashboard.mjs`
+- `src/review-api.mjs`
+
+완료 기준:
+
+- baseline artifact가 schema validation을 통과함
+- baseline status가 현재 blocker 상태에서 `frozen_with_blockers`로 기록됨
+- blocker inventory count가 source reconciliation의 blocked follow-on count와 일치함
+- pending command receipt count가 source reconciliation의 pending command receipt count와 일치함
+- held command count가 source reconciliation의 held command count와 일치함
+- protected hold count가 source reconciliation의 protected held command count와 일치함
+- command/protected action 실행 count가 항상 0임
+- `/api/human-review-cycle-completion-baselines?baseline_status=frozen_with_blockers`로 baseline artifact를 조회할 수 있음
+- `/api/human-review-cycle-completion-baseline-blockers?blocker_status=waiting_for_manual_command_receipt`로 frozen blocker를 조회할 수 있음
+- Dashboard summary가 baseline blocker, pending command receipt, held command, protected hold, mismatch, error count를 반영함
+- `npm test`, `npm run validate`, `npm run control-plane:review-cycle:completion-baseline`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.

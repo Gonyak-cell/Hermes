@@ -99,6 +99,12 @@ npm run api:serve
 - `GET /api/source-span-location-units`: normalized location unit rows used by evidence extraction
 - `GET /api/source-span-indexes`: source span index rollups by resource, normalized text, location type, and extractor
 - `GET /api/source-span-validations`: source span store validation rows
+- `GET /api/evidence-item-stores`: evidence item store artifact
+- `GET /api/evidence-items`: source-span-derived evidence item rows
+- `GET /api/evidence-source-span-bindings`: evidence item to source span binding rows
+- `GET /api/evidence-review-queue`: machine-extracted evidence review queue rows
+- `GET /api/evidence-item-indexes`: evidence item rollups by matter, classification, review status, evidence type, and location type
+- `GET /api/evidence-item-store-validations`: evidence item store validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

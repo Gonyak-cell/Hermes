@@ -4174,6 +4174,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 40개로 증가하고 source span store가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:source-spans -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 139: Evidence Item Store
+
+목표: P138 Source Span Store의 source span을 attorney-reviewable evidence item 후보로 승격하고 matter/classification/policy snapshot boundary를 evidence 계층에 보존한다.
+
+구현 내용:
+
+- `src/evidence-item-store.mjs`, `scripts/evidence-item-store.mjs`, `schemas/evidence-item-store.schema.json`, `docs/evidence-item-store.md`를 추가함
+- `npm run resource:evidence-items -- --check` 명령을 추가해 evidence item store, evidence item rows, source-span binding rows, review queue rows, index, validation report, summary markdown을 생성함
+- 모든 P138 `source-span.v2` row에서 `evidence-item.v2` 후보를 하나씩 생성함
+- `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`, `resource_id`, `resource_version_id`, `normalized_text_id`, `location_type`을 source span에서 evidence item으로 보존함
+- evidence item과 source span의 연결을 `evidence-source-span-binding.v1` row로 분리하고 matter/classification/policy snapshot preservation 여부를 검증함
+- 모든 machine-extracted evidence item을 `needs_review`와 `machine_extracted_pending_review`로 두고 자동 승인 count를 0으로 유지함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 evidence item store를 통합함
+- `/api/evidence-item-stores`, `/api/evidence-items`, `/api/evidence-source-span-bindings`, `/api/evidence-review-queue`, `/api/evidence-item-indexes`, `/api/evidence-item-store-validations` route를 추가함
+
+완료 기준:
+
+- Evidence Item Store가 validation error 없이 `complete` 상태가 됨
+- evidence item 수가 source span 수와 일치함
+- 모든 evidence item이 source span binding과 review queue row를 가짐
+- 모든 evidence item이 source span의 matter, classification, policy snapshot을 보존함
+- 모든 machine-extracted evidence item이 human review 대기 상태이고 자동 approved count는 0임
+- Review Dashboard summary와 stage status에서 evidence item count, source-span binding count, review queue count, matter/classification/policy snapshot preservation, validation 상태가 노출됨
+- Review API smoke가 evidence item store, evidence item, source-span binding, review queue, index, validation route를 모두 조회함
+- Golden fixture 수가 41개로 증가하고 evidence item store가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:evidence-items -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4182,9 +4209,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 138이다.
+- 현재 완료 기준점은 Phase 139이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P139-P312, 총 174개다.
+- 남은 계획 슬롯은 P140-P312, 총 173개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

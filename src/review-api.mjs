@@ -451,6 +451,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("source_span_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-item-stores") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "evidence_item_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("evidence_item_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_item_stores", [storeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-items") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "evidence_item_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("evidence_item_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_items", storeResult.artifact.evidence_item_catalog?.evidence_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-source-span-bindings") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "evidence_item_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("evidence_item_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_source_span_bindings", storeResult.artifact.evidence_item_catalog?.source_span_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-review-queue") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "evidence_item_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("evidence_item_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_review_queue", storeResult.artifact.evidence_item_catalog?.review_queue_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-item-indexes") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "evidence_item_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("evidence_item_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_item_indexes", [storeResult.artifact.evidence_item_catalog?.evidence_item_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-item-store-validations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "evidence_item_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("evidence_item_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_item_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4691,6 +4733,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/source-span-location-units", "Source span location unit rows"),
       route("GET", "/api/source-span-indexes", "Source span index projections"),
       route("GET", "/api/source-span-validations", "Source span store validation rows"),
+      route("GET", "/api/evidence-item-stores", "Evidence item store artifacts"),
+      route("GET", "/api/evidence-items", "Evidence item rows"),
+      route("GET", "/api/evidence-source-span-bindings", "Evidence to source span binding rows"),
+      route("GET", "/api/evidence-review-queue", "Evidence review queue rows"),
+      route("GET", "/api/evidence-item-indexes", "Evidence item index projections"),
+      route("GET", "/api/evidence-item-store-validations", "Evidence item store validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5146,6 +5194,11 @@ function buildCollectionResponse(collection, rawItems, url, generatedAt) {
 function filterItems(items, searchParams) {
   const filterKeys = [
     "status",
+    "evidence_item_store_status",
+    "evidence_id",
+    "evidence_type",
+    "verification_state",
+    "review_required",
     "priority",
     "source_stage",
     "stage_id",
@@ -5958,6 +6011,7 @@ function readFilterValue(item, key) {
   if (key === "normalized_text_contract_status") return item.summary?.normalized_text_contract_status ?? item.normalized_text_contract_status;
   if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;
+  if (key === "evidence_item_store_status") return item.summary?.evidence_item_store_status ?? item.evidence_item_store_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

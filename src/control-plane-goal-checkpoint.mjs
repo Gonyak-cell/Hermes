@@ -37,6 +37,7 @@ const GOAL_ITEMS = [
   sourceItem("normalized_text_contract", "Normalized text contract", "resource_evidence", "normalized_text_contract", "control-plane-normalized-text-contract", { acceptance_profile: "normalized_text_contract_gate" }),
   sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
   sourceItem("source_span_store", "Source span store", "resource_evidence", "source_span_store", "control-plane-source-span-store", { acceptance_profile: "source_span_store_gate" }),
+  sourceItem("evidence_item_store", "Evidence item store", "resource_evidence", "evidence_item_store", "control-plane-evidence-item-store", { acceptance_profile: "evidence_item_store_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -381,6 +382,7 @@ function evaluateStageAcceptance(item, stage) {
     "normalized_text_contract_gate",
     "extractor_adapter_contract_gate",
     "source_span_store_gate",
+    "evidence_item_store_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -713,6 +715,26 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.canonical_offset_span_count ?? 0) === spanCount
     ) {
       return passedWithOperationalGate(stage, "Source span store materializes whole-document, page, paragraph, line, and char-range spans with canonical offsets and extractor bindings.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_item_store_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const evidenceCount = metrics.evidence_item_count ?? 0;
+    if (
+      errors === 0
+      && metrics.evidence_item_store_status === "complete"
+      && evidenceCount > 0
+      && evidenceCount === (metrics.source_span_count ?? -1)
+      && evidenceCount === (metrics.evidence_source_span_binding_count ?? -1)
+      && evidenceCount === (metrics.review_queue_item_count ?? -1)
+      && evidenceCount === (metrics.matter_preserved_evidence_count ?? -1)
+      && evidenceCount === (metrics.classification_preserved_evidence_count ?? -1)
+      && evidenceCount === (metrics.policy_snapshot_preserved_evidence_count ?? -1)
+      && evidenceCount === (metrics.needs_review_count ?? -1)
+      && (metrics.approved_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Evidence item store materializes one review-pending EvidenceItem from every source span while preserving matter, classification, and policy snapshot.");
     }
   }
 

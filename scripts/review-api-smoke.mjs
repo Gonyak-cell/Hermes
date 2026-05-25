@@ -274,6 +274,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/source-span-location-units"));
   assert.ok(index.routes.some((route) => route.path === "/api/source-span-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/source-span-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-stores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-source-span-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-queue"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-store-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1788,6 +1794,30 @@ try {
   const sourceSpanValidations = await fetchJson(`${url}/api/source-span-validations?status=passed&limit=5`);
   assert.equal(sourceSpanValidations.collection, "source_span_validations");
   assert.ok(sourceSpanValidations.count <= 5);
+
+  const evidenceItemStores = await fetchJson(`${url}/api/evidence-item-stores?evidence_item_store_status=complete&limit=1`);
+  assert.equal(evidenceItemStores.collection, "evidence_item_stores");
+  assert.ok(evidenceItemStores.count <= 1);
+
+  const evidenceItems = await fetchJson(`${url}/api/evidence-items?review_status=needs_review&limit=5`);
+  assert.equal(evidenceItems.collection, "evidence_items");
+  assert.ok(evidenceItems.count <= 5);
+
+  const evidenceSourceSpanBindings = await fetchJson(`${url}/api/evidence-source-span-bindings?binding_status=bound&limit=5`);
+  assert.equal(evidenceSourceSpanBindings.collection, "evidence_source_span_bindings");
+  assert.ok(evidenceSourceSpanBindings.count <= 5);
+
+  const evidenceReviewQueue = await fetchJson(`${url}/api/evidence-review-queue?review_required=true&limit=5`);
+  assert.equal(evidenceReviewQueue.collection, "evidence_review_queue");
+  assert.ok(evidenceReviewQueue.count <= 5);
+
+  const evidenceItemIndexes = await fetchJson(`${url}/api/evidence-item-indexes?schema_version=evidence-item-indexes.v1&limit=1`);
+  assert.equal(evidenceItemIndexes.collection, "evidence_item_indexes");
+  assert.ok(evidenceItemIndexes.count <= 1);
+
+  const evidenceItemStoreValidations = await fetchJson(`${url}/api/evidence-item-store-validations?status=passed&limit=5`);
+  assert.equal(evidenceItemStoreValidations.collection, "evidence_item_store_validations");
+  assert.ok(evidenceItemStoreValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

@@ -145,6 +145,7 @@
     "resource:expand": "node scripts/resource-expansion.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "resource:extractor-adapters": "node scripts/extractor-adapter-contract.mjs",
+    "resource:evidence-items": "node scripts/evidence-item-store.mjs",
     "resource:ingest": "node scripts/resource-ingest.mjs",
     "resource:normalized-text": "node scripts/normalized-text-contract.mjs",
     "resource:source-spans": "node scripts/source-span-store.mjs",

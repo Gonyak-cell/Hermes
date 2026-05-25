@@ -29,6 +29,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   normalizedTextContractPath: "artifacts/normalized-text-contract/latest/normalized-text-contract.json",
   extractorAdapterContractPath: "artifacts/extractor-adapter-contract/latest/extractor-adapter-contract.json",
   sourceSpanStorePath: "artifacts/source-span-store/latest/source-span-store.json",
+  evidenceItemStorePath: "artifacts/evidence-item-store/latest/evidence-item-store.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -262,6 +263,11 @@ const SOURCE_DEFINITIONS = [
     option: "sourceSpanStorePath",
     source_id: "source_span_store",
     label: "Source Span Store",
+  },
+  {
+    option: "evidenceItemStorePath",
+    source_id: "evidence_item_store",
+    label: "Evidence Item Store",
   },
   {
     option: "evidenceContractFreezePath",
@@ -925,6 +931,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "normalized_text_contract") return data.summary ?? {};
   if (sourceId === "extractor_adapter_contract") return data.summary ?? {};
   if (sourceId === "source_span_store") return data.summary ?? {};
+  if (sourceId === "evidence_item_store") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1143,6 +1150,7 @@ function buildStageStatuses(artifacts, sources) {
     buildNormalizedTextContractStage(artifacts.normalized_text_contract, sourceById.get("normalized_text_contract")),
     buildExtractorAdapterContractStage(artifacts.extractor_adapter_contract, sourceById.get("extractor_adapter_contract")),
     buildSourceSpanStoreStage(artifacts.source_span_store, sourceById.get("source_span_store")),
+    buildEvidenceItemStoreStage(artifacts.evidence_item_store, sourceById.get("evidence_item_store")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2337,6 +2345,55 @@ function buildSourceSpanStoreStage(store, source) {
       extractor_bound_span_count: summary.extractor_bound_span_count ?? 0,
       seed_linked_span_count: summary.seed_linked_span_count ?? 0,
       canonical_offset_span_count: summary.canonical_offset_span_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceItemStoreStage(store, source) {
+  if (!store) return missingStage("evidence_item_store", "Evidence Item Store", source);
+  const summary = store.summary ?? {};
+  const errorCount = summary.validation_error_count ?? store.validation?.errors?.length ?? 0;
+  const evidenceCount = summary.evidence_item_count ?? 0;
+  const status = summary.evidence_item_store_status === "complete"
+    && errorCount === 0
+    && evidenceCount > 0
+    && evidenceCount === (summary.source_span_count ?? -1)
+    && evidenceCount === (summary.evidence_source_span_binding_count ?? -1)
+    && evidenceCount === (summary.review_queue_item_count ?? -1)
+    && evidenceCount === (summary.matter_preserved_evidence_count ?? -1)
+    && evidenceCount === (summary.classification_preserved_evidence_count ?? -1)
+    && evidenceCount === (summary.policy_snapshot_preserved_evidence_count ?? -1)
+    && evidenceCount === (summary.needs_review_count ?? -1)
+    && (summary.approved_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_item_store",
+    label: "Evidence Item Store",
+    status,
+    message: `${summary.evidence_item_count ?? 0} evidence item(s), ${summary.evidence_source_span_binding_count ?? 0} source-span binding(s), ${summary.review_queue_item_count ?? 0} review queue item(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      evidence_item_store_contract_id: summary.evidence_item_store_contract_id ?? null,
+      evidence_item_schema_version: summary.evidence_item_schema_version ?? null,
+      source_span_store_status: summary.source_span_store_status ?? "unknown",
+      source_span_count: summary.source_span_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      evidence_source_span_binding_count: summary.evidence_source_span_binding_count ?? 0,
+      review_queue_item_count: summary.review_queue_item_count ?? 0,
+      source_span_linked_evidence_count: summary.source_span_linked_evidence_count ?? 0,
+      matter_preserved_evidence_count: summary.matter_preserved_evidence_count ?? 0,
+      classification_preserved_evidence_count: summary.classification_preserved_evidence_count ?? 0,
+      policy_snapshot_preserved_evidence_count: summary.policy_snapshot_preserved_evidence_count ?? 0,
+      machine_extracted_evidence_count: summary.machine_extracted_evidence_count ?? 0,
+      needs_review_count: summary.needs_review_count ?? 0,
+      approved_count: summary.approved_count ?? 0,
+      privilege_flag_count: summary.privilege_flag_count ?? 0,
+      redaction_raw_count: summary.redaction_raw_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6190,6 +6247,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.evidence_item_store?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "evidence_item_store";
+    items.push({
+      action_item_id: `dashboard.action.evidence_item_store.${slugify(subjectId)}`,
+      source_stage: "evidence_item_store",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix evidence item store",
+      subject_ref: {
+        subject_type: "evidence_item_store_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_evidence_item_store", "rerun_evidence_item_store", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7963,6 +8038,21 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     source_span_extractor_bound_count: artifacts.source_span_store?.summary?.extractor_bound_span_count ?? 0,
     source_span_canonical_offset_count: artifacts.source_span_store?.summary?.canonical_offset_span_count ?? 0,
     source_span_validation_error_count: artifacts.source_span_store?.summary?.validation_error_count ?? artifacts.source_span_store?.validation?.errors?.length ?? 0,
+    evidence_item_store_status: artifacts.evidence_item_store?.summary?.evidence_item_store_status ?? "unknown",
+    evidence_item_store_contract_id: artifacts.evidence_item_store?.summary?.evidence_item_store_contract_id ?? null,
+    evidence_item_store_schema_version: artifacts.evidence_item_store?.summary?.evidence_item_schema_version ?? null,
+    evidence_item_store_source_span_count: artifacts.evidence_item_store?.summary?.source_span_count ?? 0,
+    evidence_item_store_evidence_item_count: artifacts.evidence_item_store?.summary?.evidence_item_count ?? 0,
+    evidence_item_store_binding_count: artifacts.evidence_item_store?.summary?.evidence_source_span_binding_count ?? 0,
+    evidence_item_store_review_queue_count: artifacts.evidence_item_store?.summary?.review_queue_item_count ?? 0,
+    evidence_item_store_linked_source_span_count: artifacts.evidence_item_store?.summary?.source_span_linked_evidence_count ?? 0,
+    evidence_item_store_matter_preserved_count: artifacts.evidence_item_store?.summary?.matter_preserved_evidence_count ?? 0,
+    evidence_item_store_classification_preserved_count: artifacts.evidence_item_store?.summary?.classification_preserved_evidence_count ?? 0,
+    evidence_item_store_policy_snapshot_preserved_count: artifacts.evidence_item_store?.summary?.policy_snapshot_preserved_evidence_count ?? 0,
+    evidence_item_store_machine_extracted_count: artifacts.evidence_item_store?.summary?.machine_extracted_evidence_count ?? 0,
+    evidence_item_store_needs_review_count: artifacts.evidence_item_store?.summary?.needs_review_count ?? 0,
+    evidence_item_store_approved_count: artifacts.evidence_item_store?.summary?.approved_count ?? 0,
+    evidence_item_store_validation_error_count: artifacts.evidence_item_store?.summary?.validation_error_count ?? artifacts.evidence_item_store?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9338,6 +9428,8 @@ function parseArgs(argv) {
     else if (arg === "--no-extractor-adapter-contract") parsed.extractorAdapterContractPath = false;
     else if (arg === "--source-span-store") parsed.sourceSpanStorePath = argv[++index];
     else if (arg === "--no-source-span-store") parsed.sourceSpanStorePath = false;
+    else if (arg === "--evidence-item-store") parsed.evidenceItemStorePath = argv[++index];
+    else if (arg === "--no-evidence-item-store") parsed.evidenceItemStorePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9616,6 +9708,8 @@ Options:
                                   Do not include Extractor Adapter Contract status.
   --source-span-store <path>      source-span-store.json path.
   --no-source-span-store          Do not include Source Span Store status.
+  --evidence-item-store <path>    evidence-item-store.json path.
+  --no-evidence-item-store        Do not include Evidence Item Store status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

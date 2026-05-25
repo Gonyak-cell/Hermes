@@ -192,6 +192,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/resource-classification-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/classification-policy-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/data-classification-rule-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-candidates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-confirmations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-corrections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1710,6 +1716,30 @@ try {
   const dataClassificationRuleValidations = await fetchJson(`${url}/api/data-classification-rule-validations?status=passed&limit=5`);
   assert.equal(dataClassificationRuleValidations.collection, "data_classification_rule_validations");
   assert.ok(dataClassificationRuleValidations.count <= 5);
+
+  const matterTaggingLedgers = await fetchJson(`${url}/api/matter-tagging-ledgers?matter_tagging_ledger_status=complete&limit=1`);
+  assert.equal(matterTaggingLedgers.collection, "matter_tagging_ledgers");
+  assert.ok(matterTaggingLedgers.count <= 1);
+
+  const matterTaggingDecisions = await fetchJson(`${url}/api/matter-tagging-decisions?tagging_status=pending_human_confirmation&limit=5`);
+  assert.equal(matterTaggingDecisions.collection, "matter_tagging_decisions");
+  assert.ok(matterTaggingDecisions.count <= 5);
+
+  const matterTaggingCandidates = await fetchJson(`${url}/api/matter-tagging-candidates?candidate_status=requires_human_confirmation&limit=5`);
+  assert.equal(matterTaggingCandidates.collection, "matter_tagging_candidates");
+  assert.ok(matterTaggingCandidates.count <= 5);
+
+  const matterTaggingConfirmations = await fetchJson(`${url}/api/matter-tagging-confirmations?confirmation_status=pending&limit=5`);
+  assert.equal(matterTaggingConfirmations.collection, "matter_tagging_confirmations");
+  assert.ok(matterTaggingConfirmations.count <= 5);
+
+  const matterTaggingCorrections = await fetchJson(`${url}/api/matter-tagging-corrections?limit=5`);
+  assert.equal(matterTaggingCorrections.collection, "matter_tagging_corrections");
+  assert.ok(matterTaggingCorrections.count <= 5);
+
+  const matterTaggingValidations = await fetchJson(`${url}/api/matter-tagging-validations?status=passed&limit=5`);
+  assert.equal(matterTaggingValidations.collection, "matter_tagging_validations");
+  assert.ok(matterTaggingValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

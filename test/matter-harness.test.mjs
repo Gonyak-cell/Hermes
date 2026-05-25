@@ -16,6 +16,7 @@ import { runMatterProfileTeamLedger } from "../src/matter-profile-team-ledger.mj
 import { runWallPolicyContract } from "../src/wall-policy-contract.mjs";
 import { runMatterAccessPolicyEvaluator } from "../src/matter-access-policy-evaluator.mjs";
 import { runDataClassificationRuleEngine } from "../src/data-classification-rule-engine.mjs";
+import { runMatterTaggingDecisionLedger } from "../src/matter-tagging-decision-ledger.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -892,6 +893,39 @@ describe("matter harness", () => {
       assert.ok(dataClassificationRuleEngine.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "data-classification-rules", "summary.md"), "utf8"), /Data Classification Rule Engine/);
 
+      const matterTaggingDecisionLedger = await runMatterTaggingDecisionLedger({
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        outDir: path.join(outDir, "matter-tagging"),
+        runAt: "2026-05-23T06:35:04.975Z",
+      });
+      const matterTaggingDecisionLedgerSchema = JSON.parse(await readFile("schemas/matter-tagging-decision-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterTaggingDecisionLedger, matterTaggingDecisionLedgerSchema, {}, "matter_tagging_decision_ledger"), []);
+      assert.equal(matterTaggingDecisionLedger.summary.matter_tagging_ledger_status, "complete");
+      assert.equal(matterTaggingDecisionLedger.summary.source_resource_contract_status, "complete");
+      assert.equal(matterTaggingDecisionLedger.summary.source_matter_profile_team_ledger_status, "complete");
+      assert.equal(matterTaggingDecisionLedger.summary.source_matter_access_policy_status, "complete");
+      assert.equal(matterTaggingDecisionLedger.summary.source_data_classification_rule_engine_status, "complete");
+      assert.equal(matterTaggingDecisionLedger.summary.resource_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(matterTaggingDecisionLedger.summary.matter_tagging_decision_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(matterTaggingDecisionLedger.summary.automatic_candidate_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(matterTaggingDecisionLedger.summary.pending_human_confirmation_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(matterTaggingDecisionLedger.summary.human_confirmation_request_count, matterTaggingDecisionLedger.summary.pending_human_confirmation_count);
+      assert.equal(matterTaggingDecisionLedger.summary.correction_history_count, 0);
+      assert.equal(matterTaggingDecisionLedger.summary.auto_applied_count, 0);
+      assert.equal(matterTaggingDecisionLedger.summary.no_candidate_count, 0);
+      assert.equal(matterTaggingDecisionLedger.summary.by_proposed_matter_id["matter.alpha.ldd"], resourceContractFreeze.summary.resource_count);
+      assert.equal(matterTaggingDecisionLedger.summary.validation_error_count, 0);
+      assert.ok(matterTaggingDecisionLedger.matter_tagging_catalog.matter_tagging_decisions.every((decision) => decision.tagging_status === "pending_human_confirmation"));
+      assert.ok(matterTaggingDecisionLedger.matter_tagging_catalog.matter_tagging_decisions.every((decision) => decision.human_confirmation_required === true));
+      assert.ok(matterTaggingDecisionLedger.matter_tagging_catalog.matter_tagging_decisions.every((decision) => decision.auto_apply_allowed === false));
+      assert.ok(matterTaggingDecisionLedger.matter_tagging_catalog.automatic_tagging_candidates.every((candidate) => candidate.candidate_status === "requires_human_confirmation"));
+      assert.ok(matterTaggingDecisionLedger.matter_tagging_catalog.human_confirmation_queue.every((confirmation) => confirmation.confirmation_status === "pending"));
+      assert.ok(matterTaggingDecisionLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "matter-tagging", "summary.md"), "utf8"), /Matter Tagging Decision Ledger/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1431,6 +1465,7 @@ describe("matter harness", () => {
         policySnapshotBindingLedgerPath: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
         dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -1532,6 +1567,7 @@ describe("matter harness", () => {
         policyMatrixCatalogPath: false,
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
+        matterTaggingDecisionLedgerPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
@@ -3382,6 +3418,7 @@ describe("matter harness", () => {
           wall_policy_contract: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
           matter_access_policy_evaluator: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
           data_classification_rule_engine: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+          matter_tagging_decision_ledger: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3407,8 +3444,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 25);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 25);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 26);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 26);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3424,6 +3461,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "wall_policy_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_access_policy_evaluator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "data_classification_rule_engine"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_tagging_decision_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3466,6 +3504,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:matter-tagging"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3551,6 +3590,10 @@ describe("matter harness", () => {
       assert.equal(dataClassificationRuleEngineCheckpoint?.acceptance_profile, "data_classification_rule_gate");
       assert.equal(dataClassificationRuleEngineCheckpoint?.status, "passed");
       assert.equal(dataClassificationRuleEngineCheckpoint?.implementation_status, "passed");
+      const matterTaggingDecisionLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-tagging-decision-ledger");
+      assert.equal(matterTaggingDecisionLedgerCheckpoint?.acceptance_profile, "matter_tagging_decision_gate");
+      assert.equal(matterTaggingDecisionLedgerCheckpoint?.status, "passed");
+      assert.equal(matterTaggingDecisionLedgerCheckpoint?.implementation_status, "passed");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4099,6 +4142,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.data_classification_rule_matter_access_link_count, dataClassificationRuleEngine.summary.matter_access_link_count);
       assert.equal(dashboard.summary.data_classification_rule_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.data_classification_rule_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_tagging_ledger_status, "complete");
+      assert.equal(dashboard.summary.matter_tagging_source_resource_contract_status, "complete");
+      assert.equal(dashboard.summary.matter_tagging_source_matter_profile_team_ledger_status, "complete");
+      assert.equal(dashboard.summary.matter_tagging_source_matter_access_policy_status, "complete");
+      assert.equal(dashboard.summary.matter_tagging_source_data_classification_rule_engine_status, "complete");
+      assert.equal(dashboard.summary.matter_tagging_resource_count, matterTaggingDecisionLedger.summary.resource_count);
+      assert.equal(dashboard.summary.matter_tagging_decision_count, matterTaggingDecisionLedger.summary.matter_tagging_decision_count);
+      assert.equal(dashboard.summary.matter_tagging_automatic_candidate_count, matterTaggingDecisionLedger.summary.automatic_candidate_count);
+      assert.equal(dashboard.summary.matter_tagging_pending_confirmation_count, matterTaggingDecisionLedger.summary.pending_human_confirmation_count);
+      assert.equal(dashboard.summary.matter_tagging_confirmation_request_count, matterTaggingDecisionLedger.summary.human_confirmation_request_count);
+      assert.equal(dashboard.summary.matter_tagging_correction_history_count, 0);
+      assert.equal(dashboard.summary.matter_tagging_auto_applied_count, 0);
+      assert.equal(dashboard.summary.matter_tagging_no_candidate_count, 0);
+      assert.equal(dashboard.summary.matter_tagging_tenant_boundary_mismatch_count, matterTaggingDecisionLedger.summary.tenant_boundary_mismatch_count);
+      assert.equal(dashboard.summary.matter_tagging_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.matter_tagging_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -4583,6 +4642,7 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.approval_inbox_decision_error_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_matrix_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_tagging_decision_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
@@ -4743,6 +4803,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-classification-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/classification-policy-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/data-classification-rule-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-candidates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-confirmations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-corrections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
@@ -6562,6 +6628,30 @@ describe("matter harness", () => {
       const dataClassificationRuleValidations = JSON.parse((await buildReviewApiResponse("/api/data-classification-rule-validations?status=passed", apiOptions)).body);
       assert.equal(dataClassificationRuleValidations.collection, "data_classification_rule_validations");
       assert.equal(dataClassificationRuleValidations.count, dataClassificationRuleEngine.summary.validation_item_count);
+
+      const matterTaggingLedgers = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-ledgers?matter_tagging_ledger_status=complete", apiOptions)).body);
+      assert.equal(matterTaggingLedgers.collection, "matter_tagging_ledgers");
+      assert.equal(matterTaggingLedgers.count, 1);
+
+      const matterTaggingDecisions = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-decisions?tagging_status=pending_human_confirmation", apiOptions)).body);
+      assert.equal(matterTaggingDecisions.collection, "matter_tagging_decisions");
+      assert.equal(matterTaggingDecisions.count, matterTaggingDecisionLedger.summary.pending_human_confirmation_count);
+
+      const matterTaggingCandidates = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-candidates?candidate_status=requires_human_confirmation", apiOptions)).body);
+      assert.equal(matterTaggingCandidates.collection, "matter_tagging_candidates");
+      assert.equal(matterTaggingCandidates.count, matterTaggingDecisionLedger.summary.automatic_candidate_count);
+
+      const matterTaggingConfirmations = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-confirmations?confirmation_status=pending", apiOptions)).body);
+      assert.equal(matterTaggingConfirmations.collection, "matter_tagging_confirmations");
+      assert.equal(matterTaggingConfirmations.count, matterTaggingDecisionLedger.summary.human_confirmation_request_count);
+
+      const matterTaggingCorrections = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-corrections", apiOptions)).body);
+      assert.equal(matterTaggingCorrections.collection, "matter_tagging_corrections");
+      assert.equal(matterTaggingCorrections.count, matterTaggingDecisionLedger.summary.correction_history_count);
+
+      const matterTaggingValidations = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-validations?status=passed", apiOptions)).body);
+      assert.equal(matterTaggingValidations.collection, "matter_tagging_validations");
+      assert.equal(matterTaggingValidations.count, matterTaggingDecisionLedger.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

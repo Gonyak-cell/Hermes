@@ -14,6 +14,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterAccessPolicyEvaluatorPath: "artifacts/matter-access-policy/latest/matter-access-policy-evaluator.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   dataClassificationRuleEnginePath: "artifacts/data-classification-rules/latest/data-classification-rule-engine.json",
+  matterTaggingDecisionLedgerPath: "artifacts/matter-tagging/latest/matter-tagging-ledger.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -172,6 +173,11 @@ const SOURCE_DEFINITIONS = [
     option: "dataClassificationRuleEnginePath",
     source_id: "data_classification_rule_engine",
     label: "Data Classification Rule Engine",
+  },
+  {
+    option: "matterTaggingDecisionLedgerPath",
+    source_id: "matter_tagging_decision_ledger",
+    label: "Matter Tagging Decision Ledger",
   },
   {
     option: "evidenceContractFreezePath",
@@ -820,6 +826,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "matter_access_policy_evaluator") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "data_classification_rule_engine") return data.summary ?? {};
+  if (sourceId === "matter_tagging_decision_ledger") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1023,6 +1030,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterAccessPolicyEvaluatorStage(artifacts.matter_access_policy_evaluator, sourceById.get("matter_access_policy_evaluator")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildDataClassificationRuleEngineStage(artifacts.data_classification_rule_engine, sourceById.get("data_classification_rule_engine")),
+    buildMatterTaggingDecisionLedgerStage(artifacts.matter_tagging_decision_ledger, sourceById.get("matter_tagging_decision_ledger")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1493,6 +1501,49 @@ function buildDataClassificationRuleEngineStage(engine, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? engine.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildMatterTaggingDecisionLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("matter_tagging_decision_ledger", "Matter Tagging Decision Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const status = summary.matter_tagging_ledger_status === "complete"
+    && errorCount === 0
+    && (summary.no_candidate_count ?? 0) === 0
+    && (summary.auto_applied_count ?? 0) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "matter_tagging_decision_ledger",
+    label: "Matter Tagging Decision Ledger",
+    status,
+    message: `${summary.matter_tagging_decision_count ?? 0} tagging decision(s), ${summary.automatic_candidate_count ?? 0} automatic candidate(s), ${summary.pending_human_confirmation_count ?? 0} pending human confirmation(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      matter_tagging_ledger_status: summary.matter_tagging_ledger_status ?? "unknown",
+      source_resource_contract_status: summary.source_resource_contract_status ?? "unknown",
+      source_matter_profile_team_ledger_status: summary.source_matter_profile_team_ledger_status ?? "unknown",
+      source_matter_access_policy_status: summary.source_matter_access_policy_status ?? "unknown",
+      source_data_classification_rule_engine_status: summary.source_data_classification_rule_engine_status ?? "unknown",
+      resource_count: summary.resource_count ?? 0,
+      matter_profile_count: summary.matter_profile_count ?? 0,
+      resource_access_decision_count: summary.resource_access_decision_count ?? 0,
+      resource_classification_decision_count: summary.resource_classification_decision_count ?? 0,
+      matter_tagging_decision_count: summary.matter_tagging_decision_count ?? 0,
+      automatic_candidate_count: summary.automatic_candidate_count ?? 0,
+      pending_human_confirmation_count: summary.pending_human_confirmation_count ?? 0,
+      human_confirmation_request_count: summary.human_confirmation_request_count ?? 0,
+      correction_history_count: summary.correction_history_count ?? 0,
+      applied_correction_count: summary.applied_correction_count ?? 0,
+      pending_correction_count: summary.pending_correction_count ?? 0,
+      auto_applied_count: summary.auto_applied_count ?? 0,
+      no_candidate_count: summary.no_candidate_count ?? 0,
+      tenant_boundary_mismatch_count: summary.tenant_boundary_mismatch_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
     },
   };
 }
@@ -5073,6 +5124,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.matter_tagging_decision_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "matter_tagging_decision_ledger";
+    items.push({
+      action_item_id: `dashboard.action.matter_tagging_decision_ledger.${slugify(subjectId)}`,
+      source_stage: "matter_tagging_decision_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix matter tagging decision ledger validation",
+      subject_ref: {
+        subject_type: "matter_tagging_decision_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_matter_tagging_decision", "rerun_matter_tagging_ledger", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -6576,6 +6645,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     data_classification_rule_matter_access_link_count: artifacts.data_classification_rule_engine?.summary?.matter_access_link_count ?? 0,
     data_classification_rule_failed_validation_item_count: artifacts.data_classification_rule_engine?.summary?.failed_validation_item_count ?? 0,
     data_classification_rule_validation_error_count: artifacts.data_classification_rule_engine?.summary?.validation_error_count ?? artifacts.data_classification_rule_engine?.validation?.errors?.length ?? 0,
+    matter_tagging_ledger_status: artifacts.matter_tagging_decision_ledger?.summary?.matter_tagging_ledger_status ?? "unknown",
+    matter_tagging_source_resource_contract_status: artifacts.matter_tagging_decision_ledger?.summary?.source_resource_contract_status ?? "unknown",
+    matter_tagging_source_matter_profile_team_ledger_status: artifacts.matter_tagging_decision_ledger?.summary?.source_matter_profile_team_ledger_status ?? "unknown",
+    matter_tagging_source_matter_access_policy_status: artifacts.matter_tagging_decision_ledger?.summary?.source_matter_access_policy_status ?? "unknown",
+    matter_tagging_source_data_classification_rule_engine_status: artifacts.matter_tagging_decision_ledger?.summary?.source_data_classification_rule_engine_status ?? "unknown",
+    matter_tagging_resource_count: artifacts.matter_tagging_decision_ledger?.summary?.resource_count ?? 0,
+    matter_tagging_decision_count: artifacts.matter_tagging_decision_ledger?.summary?.matter_tagging_decision_count ?? 0,
+    matter_tagging_automatic_candidate_count: artifacts.matter_tagging_decision_ledger?.summary?.automatic_candidate_count ?? 0,
+    matter_tagging_pending_confirmation_count: artifacts.matter_tagging_decision_ledger?.summary?.pending_human_confirmation_count ?? 0,
+    matter_tagging_confirmation_request_count: artifacts.matter_tagging_decision_ledger?.summary?.human_confirmation_request_count ?? 0,
+    matter_tagging_correction_history_count: artifacts.matter_tagging_decision_ledger?.summary?.correction_history_count ?? 0,
+    matter_tagging_auto_applied_count: artifacts.matter_tagging_decision_ledger?.summary?.auto_applied_count ?? 0,
+    matter_tagging_no_candidate_count: artifacts.matter_tagging_decision_ledger?.summary?.no_candidate_count ?? 0,
+    matter_tagging_tenant_boundary_mismatch_count: artifacts.matter_tagging_decision_ledger?.summary?.tenant_boundary_mismatch_count ?? 0,
+    matter_tagging_failed_validation_item_count: artifacts.matter_tagging_decision_ledger?.summary?.failed_validation_item_count ?? 0,
+    matter_tagging_validation_error_count: artifacts.matter_tagging_decision_ledger?.summary?.validation_error_count ?? artifacts.matter_tagging_decision_ledger?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -7921,6 +8006,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
     else if (arg === "--data-classification-rules") parsed.dataClassificationRuleEnginePath = argv[++index];
     else if (arg === "--no-data-classification-rules") parsed.dataClassificationRuleEnginePath = false;
+    else if (arg === "--matter-tagging-ledger") parsed.matterTaggingDecisionLedgerPath = argv[++index];
+    else if (arg === "--no-matter-tagging-ledger") parsed.matterTaggingDecisionLedgerPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8155,6 +8242,8 @@ Options:
   --data-classification-rules <path>
                                   data-classification-rule-engine.json path.
   --no-data-classification-rules Do not include Data Classification Rule Engine status.
+  --matter-tagging-ledger <path> matter-tagging-ledger.json path.
+  --no-matter-tagging-ledger     Do not include Matter Tagging Decision Ledger status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

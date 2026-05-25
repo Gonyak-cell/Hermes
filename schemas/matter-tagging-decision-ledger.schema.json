@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/matter-tagging-decision-ledger.schema.json",
+  "title": "Hermes Matter Tagging Decision Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "matter_tagging_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_resource_contract",
+    "source_matter_profile_team_ledger",
+    "source_matter_access_policy",
+    "source_data_classification_rule_engine",
+    "matter_tagging_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "matter-tagging-decision-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "matter_tagging_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_contract_freeze_path",
+        "matter_profile_team_ledger_path",
+        "matter_access_policy_evaluator_path",
+        "data_classification_rule_engine_path"
+      ],
+      "properties": {
+        "resource_contract_freeze_path": { "type": "string" },
+        "matter_profile_team_ledger_path": { "type": "string" },
+        "matter_access_policy_evaluator_path": { "type": "string" },
+        "data_classification_rule_engine_path": { "type": "string" }
+      }
+    },
+    "source_resource_contract": { "$ref": "#/$defs/source" },
+    "source_matter_profile_team_ledger": { "$ref": "#/$defs/source" },
+    "source_matter_access_policy": { "$ref": "#/$defs/source" },
+    "source_data_classification_rule_engine": { "$ref": "#/$defs/source" },
+    "matter_tagging_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "matter_tagging_decisions",
+        "automatic_tagging_candidates",
+        "human_confirmation_queue",
+        "correction_history"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-tagging-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "matter_tagging_decisions": { "type": "array", "items": { "$ref": "#/$defs/matter_tagging_decision" } },
+        "automatic_tagging_candidates": { "type": "array", "items": { "$ref": "#/$defs/matter_tagging_candidate" } },
+        "human_confirmation_queue": { "type": "array", "items": { "$ref": "#/$defs/matter_tagging_confirmation" } },
+        "correction_history": { "type": "array", "items": { "$ref": "#/$defs/matter_tagging_correction" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "matter_tagging_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_tagging_decision_id",
+        "resource_id",
+        "resource_version_id",
+        "current_matter_id",
+        "proposed_matter_id",
+        "current_tenant_id",
+        "proposed_tenant_id",
+        "source_system",
+        "source_uri",
+        "classification",
+        "policy_snapshot_id",
+        "resource_classification_decision_id",
+        "selected_candidate_id",
+        "tagging_status",
+        "auto_tagging_status",
+        "human_confirmation_required",
+        "auto_apply_allowed",
+        "protected_action",
+        "linked_resource_access_decision_ids",
+        "reason_codes",
+        "decided_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-tagging-decision.v1" },
+        "matter_tagging_decision_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "current_matter_id": { "type": ["string", "null"] },
+        "proposed_matter_id": { "type": ["string", "null"] },
+        "current_tenant_id": { "type": ["string", "null"] },
+        "proposed_tenant_id": { "type": ["string", "null"] },
+        "source_system": { "type": "string" },
+        "source_uri": { "type": "string" },
+        "classification": { "type": "string" },
+        "classification_source": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "resource_classification_decision_id": { "type": ["string", "null"] },
+        "selected_candidate_id": { "type": ["string", "null"] },
+        "tagging_status": { "enum": ["confirmed", "pending_human_confirmation", "no_candidate"] },
+        "auto_tagging_status": { "enum": ["not_required", "candidate_generated", "no_candidate"] },
+        "human_confirmation_required": { "type": "boolean" },
+        "auto_apply_allowed": { "type": "boolean" },
+        "protected_action": { "type": "string" },
+        "linked_resource_access_decision_ids": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_tagging_candidate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_tagging_candidate_id",
+        "resource_id",
+        "current_matter_id",
+        "proposed_matter_id",
+        "current_tenant_id",
+        "proposed_tenant_id",
+        "matter_profile_id",
+        "candidate_status",
+        "confidence",
+        "score",
+        "evidence_signals",
+        "linked_resource_access_decision_ids",
+        "reason_codes",
+        "proposed_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-tagging-candidate.v1" },
+        "matter_tagging_candidate_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "current_matter_id": { "type": ["string", "null"] },
+        "proposed_matter_id": { "type": "string" },
+        "current_tenant_id": { "type": ["string", "null"] },
+        "proposed_tenant_id": { "type": ["string", "null"] },
+        "matter_profile_id": { "type": ["string", "null"] },
+        "client_id": { "type": ["string", "null"] },
+        "candidate_status": { "enum": ["already_current", "requires_human_confirmation"] },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "score": { "type": "number", "minimum": 0, "maximum": 1 },
+        "evidence_signals": { "type": "object" },
+        "linked_resource_access_decision_ids": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "proposed_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_tagging_confirmation": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_tagging_confirmation_id",
+        "matter_tagging_decision_id",
+        "matter_tagging_candidate_id",
+        "resource_id",
+        "current_matter_id",
+        "proposed_matter_id",
+        "confirmation_status",
+        "required_actor_role",
+        "assigned_user_ids",
+        "protected_action",
+        "auto_apply_allowed",
+        "required_gates",
+        "reason_codes",
+        "requested_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-tagging-confirmation.v1" },
+        "matter_tagging_confirmation_id": { "type": "string" },
+        "matter_tagging_decision_id": { "type": "string" },
+        "matter_tagging_candidate_id": { "type": ["string", "null"] },
+        "resource_id": { "type": "string" },
+        "current_matter_id": { "type": ["string", "null"] },
+        "proposed_matter_id": { "type": ["string", "null"] },
+        "current_tenant_id": { "type": ["string", "null"] },
+        "proposed_tenant_id": { "type": ["string", "null"] },
+        "confirmation_status": { "enum": ["pending", "confirmed", "rejected"] },
+        "required_actor_role": { "type": "string" },
+        "assigned_user_ids": { "type": "array", "items": { "type": "string" } },
+        "protected_action": { "type": "string" },
+        "auto_apply_allowed": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "requested_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_tagging_correction": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "matter_tagging_ledger_status",
+        "resource_count",
+        "matter_tagging_decision_count",
+        "automatic_candidate_count",
+        "pending_human_confirmation_count",
+        "human_confirmation_request_count",
+        "correction_history_count",
+        "auto_applied_count",
+        "no_candidate_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "matter_tagging_ledger_status": { "enum": ["complete", "blocked"] },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "matter_tagging_decision_count": { "type": "integer", "minimum": 0 },
+        "automatic_candidate_count": { "type": "integer", "minimum": 0 },
+        "pending_human_confirmation_count": { "type": "integer", "minimum": 0 },
+        "human_confirmation_request_count": { "type": "integer", "minimum": 0 },
+        "correction_history_count": { "type": "integer", "minimum": 0 },
+        "auto_applied_count": { "type": "integer", "minimum": 0 },
+        "no_candidate_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

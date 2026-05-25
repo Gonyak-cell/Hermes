@@ -22,6 +22,7 @@ const GOAL_ITEMS = [
   sourceItem("wall_policy_contract", "Ethical wall and conflict wall contract", "identity_policy", "wall_policy_contract", "control-plane-wall-policy-contract", { acceptance_profile: "wall_policy_contract_gate" }),
   sourceItem("matter_access_policy_evaluator", "Matter access policy evaluator", "identity_policy", "matter_access_policy_evaluator", "control-plane-matter-access-policy-evaluator", { acceptance_profile: "matter_access_policy_gate" }),
   sourceItem("data_classification_rule_engine", "Data classification rule engine", "identity_policy", "data_classification_rule_engine", "control-plane-data-classification-rule-engine", { acceptance_profile: "data_classification_rule_gate" }),
+  sourceItem("matter_tagging_decision_ledger", "Matter tagging decision ledger", "identity_policy", "matter_tagging_decision_ledger", "control-plane-matter-tagging-decision-ledger", { acceptance_profile: "matter_tagging_decision_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -392,6 +393,20 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.output_policy_binding_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Policy snapshot binding ledger is implemented and every workflow, event, run, gate, approval, and output binding resolves to a known execution-time policy snapshot.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_tagging_decision_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.no_candidate_count ?? 0) + (metrics.auto_applied_count ?? 0);
+    if (
+      errors === 0
+      && (metrics.matter_tagging_decision_count ?? 0) > 0
+      && (metrics.automatic_candidate_count ?? 0) > 0
+      && (metrics.pending_human_confirmation_count ?? 0) > 0
+      && (metrics.human_confirmation_request_count ?? 0) === (metrics.pending_human_confirmation_count ?? -1)
+      && (metrics.correction_history_count ?? 0) >= 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter tagging decisions are implemented with automatic candidates, pending human confirmation, and separate correction history without auto-applying matter changes.");
     }
   }
 

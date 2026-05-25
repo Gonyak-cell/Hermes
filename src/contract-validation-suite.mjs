@@ -23,6 +23,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:walls",
   "contracts:matter-access",
   "contracts:classification-rules",
+  "contracts:matter-tagging",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

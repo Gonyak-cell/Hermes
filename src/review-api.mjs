@@ -590,6 +590,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("data_classification_rule_validations", engineResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/matter-tagging-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_tagging_decision_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_tagging_decision_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_tagging_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-tagging-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_tagging_decision_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_tagging_decision_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_tagging_decisions", ledgerResult.artifact.matter_tagging_catalog?.matter_tagging_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-tagging-candidates") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_tagging_decision_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_tagging_decision_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_tagging_candidates", ledgerResult.artifact.matter_tagging_catalog?.automatic_tagging_candidates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-tagging-confirmations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_tagging_decision_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_tagging_decision_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_tagging_confirmations", ledgerResult.artifact.matter_tagging_catalog?.human_confirmation_queue ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-tagging-corrections") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_tagging_decision_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_tagging_decision_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_tagging_corrections", ledgerResult.artifact.matter_tagging_catalog?.correction_history ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-tagging-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_tagging_decision_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_tagging_decision_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_tagging_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4118,6 +4160,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-classification-decisions", "Resource classification policy decision rows"),
       route("GET", "/api/classification-policy-bindings", "Classification to policy binding rows"),
       route("GET", "/api/data-classification-rule-validations", "Data classification rule validation rows"),
+      route("GET", "/api/matter-tagging-ledgers", "Matter tagging decision ledger artifacts"),
+      route("GET", "/api/matter-tagging-decisions", "Resource matter tagging decision rows"),
+      route("GET", "/api/matter-tagging-candidates", "Automatic matter tagging candidate rows"),
+      route("GET", "/api/matter-tagging-confirmations", "Human confirmation queue rows for matter tagging"),
+      route("GET", "/api/matter-tagging-corrections", "Matter tagging correction history rows"),
+      route("GET", "/api/matter-tagging-validations", "Matter tagging validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4554,6 +4602,21 @@ function filterItems(items, searchParams) {
     "runtime_context_mode",
     "classification_rule_engine_id",
     "classification_rule_engine_status",
+    "matter_tagging_ledger_id",
+    "matter_tagging_ledger_status",
+    "matter_tagging_decision_id",
+    "matter_tagging_candidate_id",
+    "matter_tagging_confirmation_id",
+    "matter_tagging_correction_id",
+    "tagging_status",
+    "auto_tagging_status",
+    "candidate_status",
+    "confirmation_status",
+    "correction_status",
+    "current_matter_id",
+    "proposed_matter_id",
+    "human_confirmation_required",
+    "auto_apply_allowed",
     "classification_rule_id",
     "classification_policy_binding_id",
     "resource_classification_decision_id",
@@ -5172,6 +5235,7 @@ function readFilterValue(item, key) {
   if (key === "migration_manifest_status") return item.summary?.migration_manifest_status ?? item.migration_manifest_status;
   if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
+  if (key === "matter_tagging_ledger_status") return item.summary?.matter_tagging_ledger_status ?? item.matter_tagging_ledger_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

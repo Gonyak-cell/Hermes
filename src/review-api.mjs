@@ -535,6 +535,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("fact_claim_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/issue-graph-stores") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_graph_stores", [storeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/issues") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issues", storeResult.artifact.issue_graph_catalog?.issues ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/fact-issue-bindings") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_issue_bindings", storeResult.artifact.issue_graph_catalog?.fact_issue_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-rules") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_rules", storeResult.artifact.issue_graph_catalog?.legal_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-legal-rule-bindings") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_legal_rule_bindings", storeResult.artifact.issue_graph_catalog?.legal_rule_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/risk-severity-assessments") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("risk_severity_assessments", storeResult.artifact.issue_graph_catalog?.risk_severity_assessments ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-review-queue") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_review_queue", storeResult.artifact.issue_graph_catalog?.review_queue_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-graph-indexes") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_graph_indexes", [storeResult.artifact.issue_graph_catalog?.issue_graph_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-graph-store-validations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "issue_graph_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("issue_graph_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_graph_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5045,6 +5108,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/contract-validation-fixture-results", "Contract validation fixture result rows"),
       route("GET", "/api/contract-validation-commands", "Required contract validation package scripts"),
       route("GET", "/api/contract-validation-items", "Contract validation suite validation rows"),
+      route("GET", "/api/issue-graph-stores", "Issue graph store artifacts"),
+      route("GET", "/api/issues", "Issue candidate rows"),
+      route("GET", "/api/fact-issue-bindings", "Fact-to-issue binding rows"),
+      route("GET", "/api/legal-rules", "Legal rule placeholder rows"),
+      route("GET", "/api/issue-legal-rule-bindings", "Issue-to-legal-rule binding rows"),
+      route("GET", "/api/risk-severity-assessments", "Issue risk severity assessment rows"),
+      route("GET", "/api/issue-review-queue", "Issue review queue rows"),
+      route("GET", "/api/issue-graph-indexes", "Issue graph index projections"),
+      route("GET", "/api/issue-graph-store-validations", "Issue graph store validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5244,13 +5316,21 @@ function filterItems(items, searchParams) {
     "status",
     "evidence_item_store_status",
     "fact_claim_store_status",
+    "issue_graph_store_status",
     "evidence_id",
     "evidence_type",
     "fact_id",
     "fact_type",
+    "issue_id",
+    "issue_type",
+    "legal_rule_id",
+    "risk_severity",
+    "severity",
     "reliability",
     "verification_state",
+    "verification_status",
     "review_required",
+    "human_review_required",
     "priority",
     "source_stage",
     "stage_id",
@@ -6065,6 +6145,7 @@ function readFilterValue(item, key) {
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;
   if (key === "evidence_item_store_status") return item.summary?.evidence_item_store_status ?? item.evidence_item_store_status;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
+  if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

@@ -155,6 +155,15 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-fixture-results"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-commands"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issue-graph-stores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issues"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-issue-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/legal-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issue-legal-rule-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/risk-severity-assessments"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issue-review-queue"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issue-graph-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issue-graph-store-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1848,6 +1857,42 @@ try {
   const factClaimStoreValidations = await fetchJson(`${url}/api/fact-claim-store-validations?status=passed&limit=5`);
   assert.equal(factClaimStoreValidations.collection, "fact_claim_store_validations");
   assert.ok(factClaimStoreValidations.count <= 5);
+
+  const issueGraphStores = await fetchJson(`${url}/api/issue-graph-stores?issue_graph_store_status=complete&limit=1`);
+  assert.equal(issueGraphStores.collection, "issue_graph_stores");
+  assert.ok(issueGraphStores.count <= 1);
+
+  const issues = await fetchJson(`${url}/api/issues?review_status=needs_review&limit=5`);
+  assert.equal(issues.collection, "issues");
+  assert.ok(issues.count <= 5);
+
+  const factIssueBindings = await fetchJson(`${url}/api/fact-issue-bindings?binding_status=bound&limit=5`);
+  assert.equal(factIssueBindings.collection, "fact_issue_bindings");
+  assert.ok(factIssueBindings.count <= 5);
+
+  const legalRules = await fetchJson(`${url}/api/legal-rules?human_review_required=true&limit=5`);
+  assert.equal(legalRules.collection, "legal_rules");
+  assert.ok(legalRules.count <= 5);
+
+  const issueLegalRuleBindings = await fetchJson(`${url}/api/issue-legal-rule-bindings?verification_status=requires_attorney_confirmation&limit=5`);
+  assert.equal(issueLegalRuleBindings.collection, "issue_legal_rule_bindings");
+  assert.ok(issueLegalRuleBindings.count <= 5);
+
+  const riskSeverityAssessments = await fetchJson(`${url}/api/risk-severity-assessments?review_status=needs_review&limit=5`);
+  assert.equal(riskSeverityAssessments.collection, "risk_severity_assessments");
+  assert.ok(riskSeverityAssessments.count <= 5);
+
+  const issueReviewQueue = await fetchJson(`${url}/api/issue-review-queue?review_required=true&limit=5`);
+  assert.equal(issueReviewQueue.collection, "issue_review_queue");
+  assert.ok(issueReviewQueue.count <= 5);
+
+  const issueGraphIndexes = await fetchJson(`${url}/api/issue-graph-indexes?schema_version=issue-graph-indexes.v1&limit=1`);
+  assert.equal(issueGraphIndexes.collection, "issue_graph_indexes");
+  assert.ok(issueGraphIndexes.count <= 1);
+
+  const issueGraphStoreValidations = await fetchJson(`${url}/api/issue-graph-store-validations?status=passed&limit=5`);
+  assert.equal(issueGraphStoreValidations.collection, "issue_graph_store_validations");
+  assert.ok(issueGraphStoreValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

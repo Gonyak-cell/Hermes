@@ -31,6 +31,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   sourceSpanStorePath: "artifacts/source-span-store/latest/source-span-store.json",
   evidenceItemStorePath: "artifacts/evidence-item-store/latest/evidence-item-store.json",
   factClaimStorePath: "artifacts/fact-claim-store/latest/fact-claim-store.json",
+  issueGraphStorePath: "artifacts/issue-graph-store/latest/issue-graph-store.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -274,6 +275,11 @@ const SOURCE_DEFINITIONS = [
     option: "factClaimStorePath",
     source_id: "fact_claim_store",
     label: "Fact Claim Store",
+  },
+  {
+    option: "issueGraphStorePath",
+    source_id: "issue_graph_store",
+    label: "Issue Graph Store",
   },
   {
     option: "evidenceContractFreezePath",
@@ -939,6 +945,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "source_span_store") return data.summary ?? {};
   if (sourceId === "evidence_item_store") return data.summary ?? {};
   if (sourceId === "fact_claim_store") return data.summary ?? {};
+  if (sourceId === "issue_graph_store") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1159,6 +1166,7 @@ function buildStageStatuses(artifacts, sources) {
     buildSourceSpanStoreStage(artifacts.source_span_store, sourceById.get("source_span_store")),
     buildEvidenceItemStoreStage(artifacts.evidence_item_store, sourceById.get("evidence_item_store")),
     buildFactClaimStoreStage(artifacts.fact_claim_store, sourceById.get("fact_claim_store")),
+    buildIssueGraphStoreStage(artifacts.issue_graph_store, sourceById.get("issue_graph_store")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2453,6 +2461,70 @@ function buildFactClaimStoreStage(store, source) {
       needs_review_count: summary.needs_review_count ?? 0,
       approved_count: summary.approved_count ?? 0,
       average_confidence: summary.average_confidence ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildIssueGraphStoreStage(store, source) {
+  if (!store) return missingStage("issue_graph_store", "Issue Graph Store", source);
+  const summary = store.summary ?? {};
+  const errorCount = summary.validation_error_count ?? store.validation?.errors?.length ?? 0;
+  const issueCount = summary.issue_count ?? 0;
+  const status = summary.issue_graph_store_status === "complete"
+    && errorCount === 0
+    && issueCount > 0
+    && issueCount === (summary.fact_claim_count ?? -1)
+    && issueCount === (summary.fact_issue_binding_count ?? -1)
+    && issueCount === (summary.legal_rule_binding_count ?? -1)
+    && issueCount === (summary.risk_severity_assessment_count ?? -1)
+    && issueCount === (summary.review_queue_item_count ?? -1)
+    && issueCount === (summary.fact_linked_issue_count ?? -1)
+    && issueCount === (summary.legal_rule_linked_issue_count ?? -1)
+    && issueCount === (summary.risk_severity_linked_issue_count ?? -1)
+    && issueCount === (summary.matter_preserved_issue_count ?? -1)
+    && issueCount === (summary.classification_preserved_issue_count ?? -1)
+    && issueCount === (summary.policy_snapshot_preserved_issue_count ?? -1)
+    && issueCount === (summary.evidence_links_preserved_issue_count ?? -1)
+    && issueCount === (summary.needs_review_count ?? -1)
+    && (summary.legal_rule_count ?? 0) > 0
+    && (summary.approved_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "issue_graph_store",
+    label: "Issue Graph Store",
+    status,
+    message: `${summary.issue_count ?? 0} issue candidate(s), ${summary.legal_rule_count ?? 0} legal rule placeholder(s), ${summary.risk_severity_assessment_count ?? 0} risk assessment(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      issue_graph_store_status: summary.issue_graph_store_status ?? "unknown",
+      issue_graph_store_contract_id: summary.issue_graph_store_contract_id ?? null,
+      issue_schema_version: summary.issue_schema_version ?? null,
+      legal_rule_schema_version: summary.legal_rule_schema_version ?? null,
+      fact_claim_store_status: summary.fact_claim_store_status ?? "unknown",
+      fact_claim_count: summary.fact_claim_count ?? 0,
+      issue_count: summary.issue_count ?? 0,
+      fact_issue_binding_count: summary.fact_issue_binding_count ?? 0,
+      legal_rule_count: summary.legal_rule_count ?? 0,
+      legal_rule_binding_count: summary.legal_rule_binding_count ?? 0,
+      risk_severity_assessment_count: summary.risk_severity_assessment_count ?? 0,
+      review_queue_item_count: summary.review_queue_item_count ?? 0,
+      fact_linked_issue_count: summary.fact_linked_issue_count ?? 0,
+      legal_rule_linked_issue_count: summary.legal_rule_linked_issue_count ?? 0,
+      risk_severity_linked_issue_count: summary.risk_severity_linked_issue_count ?? 0,
+      matter_preserved_issue_count: summary.matter_preserved_issue_count ?? 0,
+      classification_preserved_issue_count: summary.classification_preserved_issue_count ?? 0,
+      policy_snapshot_preserved_issue_count: summary.policy_snapshot_preserved_issue_count ?? 0,
+      evidence_links_preserved_issue_count: summary.evidence_links_preserved_issue_count ?? 0,
+      needs_review_count: summary.needs_review_count ?? 0,
+      approved_count: summary.approved_count ?? 0,
+      critical_severity_count: summary.critical_severity_count ?? 0,
+      high_severity_count: summary.high_severity_count ?? 0,
+      medium_severity_count: summary.medium_severity_count ?? 0,
+      low_severity_count: summary.low_severity_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6342,6 +6414,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.issue_graph_store?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "issue_graph_store";
+    items.push({
+      action_item_id: `dashboard.action.issue_graph_store.${slugify(subjectId)}`,
+      source_stage: "issue_graph_store",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix issue graph store",
+      subject_ref: {
+        subject_type: "issue_graph_store_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_issue_graph_store", "rerun_issue_graph_store", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8146,6 +8236,32 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     fact_claim_store_needs_review_count: artifacts.fact_claim_store?.summary?.needs_review_count ?? 0,
     fact_claim_store_approved_count: artifacts.fact_claim_store?.summary?.approved_count ?? 0,
     fact_claim_store_validation_error_count: artifacts.fact_claim_store?.summary?.validation_error_count ?? artifacts.fact_claim_store?.validation?.errors?.length ?? 0,
+    issue_graph_store_status: artifacts.issue_graph_store?.summary?.issue_graph_store_status ?? "unknown",
+    issue_graph_store_contract_id: artifacts.issue_graph_store?.summary?.issue_graph_store_contract_id ?? null,
+    issue_graph_store_schema_version: artifacts.issue_graph_store?.summary?.issue_schema_version ?? null,
+    issue_graph_store_legal_rule_schema_version: artifacts.issue_graph_store?.summary?.legal_rule_schema_version ?? null,
+    issue_graph_store_fact_claim_store_status: artifacts.issue_graph_store?.summary?.fact_claim_store_status ?? "unknown",
+    issue_graph_store_fact_claim_count: artifacts.issue_graph_store?.summary?.fact_claim_count ?? 0,
+    issue_graph_store_issue_count: artifacts.issue_graph_store?.summary?.issue_count ?? 0,
+    issue_graph_store_fact_issue_binding_count: artifacts.issue_graph_store?.summary?.fact_issue_binding_count ?? 0,
+    issue_graph_store_legal_rule_count: artifacts.issue_graph_store?.summary?.legal_rule_count ?? 0,
+    issue_graph_store_legal_rule_binding_count: artifacts.issue_graph_store?.summary?.legal_rule_binding_count ?? 0,
+    issue_graph_store_risk_severity_assessment_count: artifacts.issue_graph_store?.summary?.risk_severity_assessment_count ?? 0,
+    issue_graph_store_review_queue_count: artifacts.issue_graph_store?.summary?.review_queue_item_count ?? 0,
+    issue_graph_store_fact_linked_issue_count: artifacts.issue_graph_store?.summary?.fact_linked_issue_count ?? 0,
+    issue_graph_store_legal_rule_linked_issue_count: artifacts.issue_graph_store?.summary?.legal_rule_linked_issue_count ?? 0,
+    issue_graph_store_risk_severity_linked_issue_count: artifacts.issue_graph_store?.summary?.risk_severity_linked_issue_count ?? 0,
+    issue_graph_store_matter_preserved_count: artifacts.issue_graph_store?.summary?.matter_preserved_issue_count ?? 0,
+    issue_graph_store_classification_preserved_count: artifacts.issue_graph_store?.summary?.classification_preserved_issue_count ?? 0,
+    issue_graph_store_policy_snapshot_preserved_count: artifacts.issue_graph_store?.summary?.policy_snapshot_preserved_issue_count ?? 0,
+    issue_graph_store_evidence_links_preserved_count: artifacts.issue_graph_store?.summary?.evidence_links_preserved_issue_count ?? 0,
+    issue_graph_store_needs_review_count: artifacts.issue_graph_store?.summary?.needs_review_count ?? 0,
+    issue_graph_store_approved_count: artifacts.issue_graph_store?.summary?.approved_count ?? 0,
+    issue_graph_store_critical_severity_count: artifacts.issue_graph_store?.summary?.critical_severity_count ?? 0,
+    issue_graph_store_high_severity_count: artifacts.issue_graph_store?.summary?.high_severity_count ?? 0,
+    issue_graph_store_medium_severity_count: artifacts.issue_graph_store?.summary?.medium_severity_count ?? 0,
+    issue_graph_store_low_severity_count: artifacts.issue_graph_store?.summary?.low_severity_count ?? 0,
+    issue_graph_store_validation_error_count: artifacts.issue_graph_store?.summary?.validation_error_count ?? artifacts.issue_graph_store?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9610,6 +9726,8 @@ function parseArgs(argv) {
     else if (arg === "--no-schema-versioning-rules") parsed.schemaVersioningRulesPath = false;
     else if (arg === "--schema-migration-manifest") parsed.schemaMigrationManifestPath = argv[++index];
     else if (arg === "--no-schema-migration-manifest") parsed.schemaMigrationManifestPath = false;
+    else if (arg === "--issue-graph-store") parsed.issueGraphStorePath = argv[++index];
+    else if (arg === "--no-issue-graph-store") parsed.issueGraphStorePath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -9807,6 +9925,8 @@ Options:
   --no-evidence-item-store        Do not include Evidence Item Store status.
   --fact-claim-store <path>       fact-claim-store.json path.
   --no-fact-claim-store           Do not include Fact Claim Store status.
+  --issue-graph-store <path>      issue-graph-store.json path.
+  --no-issue-graph-store          Do not include Issue Graph Store status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

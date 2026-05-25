@@ -111,6 +111,15 @@ npm run api:serve
 - `GET /api/fact-review-queue`: machine-extracted fact review queue rows
 - `GET /api/fact-claim-indexes`: fact claim rollups by matter, classification, review status, fact type, reliability, and binding status
 - `GET /api/fact-claim-store-validations`: fact claim store validation rows
+- `GET /api/issue-graph-stores`: issue graph store artifact
+- `GET /api/issues`: fact-derived issue candidate rows
+- `GET /api/fact-issue-bindings`: fact claim to issue binding rows
+- `GET /api/legal-rules`: attorney-confirmation legal rule placeholder rows
+- `GET /api/issue-legal-rule-bindings`: issue to legal rule binding rows
+- `GET /api/risk-severity-assessments`: issue risk severity assessment rows
+- `GET /api/issue-review-queue`: machine-extracted issue review queue rows
+- `GET /api/issue-graph-indexes`: issue graph rollups by matter, classification, issue type, severity, review status, and binding status
+- `GET /api/issue-graph-store-validations`: issue graph store validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

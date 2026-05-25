@@ -40,6 +40,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:source-spans",
   "resource:evidence-items",
   "resource:fact-claims",
+  "resource:issue-graph",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

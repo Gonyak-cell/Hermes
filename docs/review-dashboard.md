@@ -12,6 +12,8 @@ Phase 139부터 dashboard는 Evidence Item Store도 읽는다. source span에서
 
 Phase 140부터 dashboard는 Fact Claim Store도 읽는다. evidence item에서 생성된 fact claim, evidence binding, fact review queue, reliability preservation, matter/classification/policy snapshot preservation, machine-extracted review status, validation error count가 summary와 stage status에 노출된다.
 
+Phase 141부터 dashboard는 Issue Graph Store도 읽는다. fact claim에서 생성된 issue 후보, fact issue binding, legal rule placeholder, legal rule binding, risk severity assessment, issue review queue, matter/classification/policy/evidence preservation, validation error count가 summary와 stage status에 노출된다.
+
 ## 실행
 
 ```bash

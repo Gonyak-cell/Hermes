@@ -33,6 +33,7 @@ import { runExtractorAdapterContract } from "../src/extractor-adapter-contract.m
 import { runSourceSpanStore } from "../src/source-span-store.mjs";
 import { runEvidenceItemStore } from "../src/evidence-item-store.mjs";
 import { runFactClaimStore } from "../src/fact-claim-store.mjs";
+import { runIssueGraphStore } from "../src/issue-graph-store.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1652,6 +1653,7 @@ describe("matter harness", () => {
         sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
         evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
         factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3992,6 +3994,43 @@ describe("matter harness", () => {
       assert.ok(factClaimStore.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "fact-claim-store", "summary.md"), "utf8"), /Fact Claim Store/);
 
+      const issueGraphStore = await runIssueGraphStore({
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        outDir: path.join(outDir, "issue-graph-store"),
+        runAt: "2026-05-23T06:35:07.997Z",
+      });
+      const issueGraphStoreSchema = JSON.parse(await readFile("schemas/issue-graph-store.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(issueGraphStore, issueGraphStoreSchema, {}, "issue_graph_store"),
+        [],
+      );
+      assert.equal(issueGraphStore.summary.issue_graph_store_status, "complete");
+      assert.equal(issueGraphStore.summary.fact_claim_count, factClaimStore.summary.fact_claim_count);
+      assert.equal(issueGraphStore.summary.issue_count, factClaimStore.summary.fact_claim_count);
+      assert.equal(issueGraphStore.summary.fact_issue_binding_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.legal_rule_binding_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.risk_severity_assessment_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.review_queue_item_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.fact_linked_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.legal_rule_linked_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.risk_severity_linked_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.matter_preserved_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.classification_preserved_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.policy_snapshot_preserved_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.evidence_links_preserved_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.needs_review_count, issueGraphStore.summary.issue_count);
+      assert.equal(issueGraphStore.summary.approved_count, 0);
+      assert.equal(issueGraphStore.summary.validation_error_count, 0);
+      assert.ok(issueGraphStore.summary.legal_rule_count > 0);
+      assert.ok(issueGraphStore.issue_graph_catalog.issues.every((issue) => issue.schema_version === "issue.v2"));
+      assert.ok(issueGraphStore.issue_graph_catalog.issues.every((issue) => issue.linked_fact_count === 1 && issue.legal_rule_count === 1));
+      assert.ok(issueGraphStore.issue_graph_catalog.fact_issue_bindings.every((binding) => binding.binding_status === "bound" && binding.evidence_links_preserved));
+      assert.ok(issueGraphStore.issue_graph_catalog.legal_rule_bindings.every((binding) => binding.binding_status === "bound" && binding.human_review_required));
+      assert.ok(issueGraphStore.issue_graph_catalog.risk_severity_assessments.every((item) => item.human_review_required));
+      assert.ok(issueGraphStore.issue_graph_catalog.review_queue_items.every((item) => item.review_required === true));
+      assert.ok(issueGraphStore.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "issue-graph-store", "summary.md"), "utf8"), /Issue Graph Store/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4021,6 +4060,7 @@ describe("matter harness", () => {
           source_span_store: path.join(outDir, "source-span-store", "source-span-store.json"),
           evidence_item_store: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
           fact_claim_store: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+          issue_graph_store: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4046,8 +4086,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 42);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 42);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 43);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 43);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4080,6 +4120,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_item_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "fact_claim_store"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_graph_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4131,6 +4172,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:source-spans"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-items"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:fact-claims"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:issue-graph"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -4284,6 +4326,10 @@ describe("matter harness", () => {
       assert.equal(factClaimStoreCheckpoint?.acceptance_profile, "fact_claim_store_gate");
       assert.equal(factClaimStoreCheckpoint?.status, "passed");
       assert.equal(factClaimStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const issueGraphStoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-issue-graph-store");
+      assert.equal(issueGraphStoreCheckpoint?.acceptance_profile, "issue_graph_store_gate");
+      assert.equal(issueGraphStoreCheckpoint?.status, "passed");
+      assert.equal(issueGraphStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5112,6 +5158,30 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.fact_claim_store_needs_review_count, factClaimStore.summary.needs_review_count);
       assert.equal(dashboard.summary.fact_claim_store_approved_count, 0);
       assert.equal(dashboard.summary.fact_claim_store_validation_error_count, 0);
+      assert.equal(dashboard.summary.issue_graph_store_status, "complete");
+      assert.equal(dashboard.summary.issue_graph_store_contract_id, "issue-graph-store.v1");
+      assert.equal(dashboard.summary.issue_graph_store_schema_version, "issue.v2");
+      assert.equal(dashboard.summary.issue_graph_store_legal_rule_schema_version, "legal-rule.v1");
+      assert.equal(dashboard.summary.issue_graph_store_fact_claim_count, issueGraphStore.summary.fact_claim_count);
+      assert.equal(dashboard.summary.issue_graph_store_issue_count, issueGraphStore.summary.issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_fact_issue_binding_count, issueGraphStore.summary.fact_issue_binding_count);
+      assert.equal(dashboard.summary.issue_graph_store_legal_rule_count, issueGraphStore.summary.legal_rule_count);
+      assert.equal(dashboard.summary.issue_graph_store_legal_rule_binding_count, issueGraphStore.summary.legal_rule_binding_count);
+      assert.equal(dashboard.summary.issue_graph_store_risk_severity_assessment_count, issueGraphStore.summary.risk_severity_assessment_count);
+      assert.equal(dashboard.summary.issue_graph_store_review_queue_count, issueGraphStore.summary.review_queue_item_count);
+      assert.equal(dashboard.summary.issue_graph_store_fact_linked_issue_count, issueGraphStore.summary.fact_linked_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_legal_rule_linked_issue_count, issueGraphStore.summary.legal_rule_linked_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_risk_severity_linked_issue_count, issueGraphStore.summary.risk_severity_linked_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_matter_preserved_count, issueGraphStore.summary.matter_preserved_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_classification_preserved_count, issueGraphStore.summary.classification_preserved_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_policy_snapshot_preserved_count, issueGraphStore.summary.policy_snapshot_preserved_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_evidence_links_preserved_count, issueGraphStore.summary.evidence_links_preserved_issue_count);
+      assert.equal(dashboard.summary.issue_graph_store_needs_review_count, issueGraphStore.summary.needs_review_count);
+      assert.equal(dashboard.summary.issue_graph_store_approved_count, 0);
+      assert.equal(dashboard.summary.issue_graph_store_high_severity_count, issueGraphStore.summary.high_severity_count);
+      assert.equal(dashboard.summary.issue_graph_store_medium_severity_count, issueGraphStore.summary.medium_severity_count);
+      assert.equal(dashboard.summary.issue_graph_store_low_severity_count, issueGraphStore.summary.low_severity_count);
+      assert.equal(dashboard.summary.issue_graph_store_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5651,6 +5721,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "source_span_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_item_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "fact_claim_store"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "issue_graph_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5781,6 +5852,15 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-review-queue"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claim-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claim-store-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/issue-graph-stores"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/issues"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-issue-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/legal-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/issue-legal-rule-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/risk-severity-assessments"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/issue-review-queue"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/issue-graph-indexes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/issue-graph-store-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7711,6 +7791,42 @@ describe("matter harness", () => {
       const factClaimStoreValidations = JSON.parse((await buildReviewApiResponse("/api/fact-claim-store-validations?status=passed", apiOptions)).body);
       assert.equal(factClaimStoreValidations.collection, "fact_claim_store_validations");
       assert.equal(factClaimStoreValidations.count, factClaimStore.summary.validation_item_count);
+
+      const issueGraphStores = JSON.parse((await buildReviewApiResponse("/api/issue-graph-stores?issue_graph_store_status=complete", apiOptions)).body);
+      assert.equal(issueGraphStores.collection, "issue_graph_stores");
+      assert.equal(issueGraphStores.count, 1);
+
+      const issues = JSON.parse((await buildReviewApiResponse("/api/issues?review_status=needs_review", apiOptions)).body);
+      assert.equal(issues.collection, "issues");
+      assert.equal(issues.count, issueGraphStore.summary.needs_review_count);
+
+      const factIssueBindings = JSON.parse((await buildReviewApiResponse("/api/fact-issue-bindings?binding_status=bound", apiOptions)).body);
+      assert.equal(factIssueBindings.collection, "fact_issue_bindings");
+      assert.equal(factIssueBindings.count, issueGraphStore.summary.fact_issue_binding_count);
+
+      const legalRules = JSON.parse((await buildReviewApiResponse("/api/legal-rules?human_review_required=true", apiOptions)).body);
+      assert.equal(legalRules.collection, "legal_rules");
+      assert.equal(legalRules.count, issueGraphStore.summary.legal_rule_count);
+
+      const issueLegalRuleBindings = JSON.parse((await buildReviewApiResponse("/api/issue-legal-rule-bindings?verification_status=requires_attorney_confirmation", apiOptions)).body);
+      assert.equal(issueLegalRuleBindings.collection, "issue_legal_rule_bindings");
+      assert.equal(issueLegalRuleBindings.count, issueGraphStore.summary.legal_rule_binding_count);
+
+      const riskSeverityAssessments = JSON.parse((await buildReviewApiResponse("/api/risk-severity-assessments?review_status=needs_review", apiOptions)).body);
+      assert.equal(riskSeverityAssessments.collection, "risk_severity_assessments");
+      assert.equal(riskSeverityAssessments.count, issueGraphStore.summary.risk_severity_assessment_count);
+
+      const issueReviewQueue = JSON.parse((await buildReviewApiResponse("/api/issue-review-queue?review_required=true", apiOptions)).body);
+      assert.equal(issueReviewQueue.collection, "issue_review_queue");
+      assert.equal(issueReviewQueue.count, issueGraphStore.summary.review_queue_item_count);
+
+      const issueGraphIndexes = JSON.parse((await buildReviewApiResponse("/api/issue-graph-indexes?schema_version=issue-graph-indexes.v1", apiOptions)).body);
+      assert.equal(issueGraphIndexes.collection, "issue_graph_indexes");
+      assert.equal(issueGraphIndexes.count, 1);
+
+      const issueGraphStoreValidations = JSON.parse((await buildReviewApiResponse("/api/issue-graph-store-validations?status=passed", apiOptions)).body);
+      assert.equal(issueGraphStoreValidations.collection, "issue_graph_store_validations");
+      assert.equal(issueGraphStoreValidations.count, issueGraphStore.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

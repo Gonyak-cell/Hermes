@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/retrieval-filter-compiler.schema.json",
+  "title": "Hermes Retrieval Filter Compiler",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "retrieval_filter_compiler_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "retrieval_filter_contract",
+    "retrieval_filter_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "retrieval-filter-compiler.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "retrieval_filter_compiler_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "retrieval_filter_contract": { "$ref": "#/$defs/retrieval_filter_contract" },
+    "retrieval_filter_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "compiled_retrieval_filters",
+        "retrieval_query_bindings",
+        "retrieval_filter_probes"
+      ],
+      "properties": {
+        "schema_version": { "const": "retrieval-filter-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "compiled_retrieval_filters": { "type": "array", "items": { "$ref": "#/$defs/compiled_retrieval_filter" } },
+        "retrieval_query_bindings": { "type": "array", "items": { "$ref": "#/$defs/retrieval_query_binding" } },
+        "retrieval_filter_probes": { "type": "array", "items": { "$ref": "#/$defs/retrieval_filter_probe" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "retrieval_filter_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_filter_compiler_id",
+        "generated_at",
+        "compiled_retrieval_filter_schema_version",
+        "retrieval_query_binding_schema_version",
+        "retrieval_filter_probe_schema_version",
+        "required_filter_keys",
+        "required_policy_gates",
+        "enforcement_rule",
+        "execution_rule",
+        "probe_rule",
+        "source_ref_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "retrieval-filter-contract-definition.v1" },
+        "retrieval_filter_compiler_id": { "const": "retrieval-filter-compiler.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "compiled_retrieval_filter_schema_version": { "const": "compiled-retrieval-filter.v1" },
+        "retrieval_query_binding_schema_version": { "const": "retrieval-query-binding.v1" },
+        "retrieval_filter_probe_schema_version": { "const": "retrieval-filter-probe.v1" },
+        "required_filter_keys": { "$ref": "#/$defs/required_filter_keys" },
+        "required_policy_gates": { "type": "array", "items": { "type": "string" }, "minItems": 7 },
+        "enforcement_rule": { "type": "string" },
+        "execution_rule": { "type": "string" },
+        "probe_rule": { "type": "string" },
+        "source_ref_rule": { "type": "string" }
+      }
+    },
+    "compiled_retrieval_filter": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_filter_id",
+        "search_index_query_plan_id",
+        "search_index_id",
+        "vector_policy_gate_id",
+        "collection_id",
+        "filter_status",
+        "query_binding_status",
+        "adapter_execution_status",
+        "query_execution_allowed",
+        "executable",
+        "required_filter_keys",
+        "required_policy_gates",
+        "tenant_filter_enforced",
+        "matter_filter_enforced",
+        "classification_filter_enforced",
+        "policy_snapshot_filter_enforced",
+        "wall_filter_enforced",
+        "matter_access_filter_enforced",
+        "store_policy_filter_enforced",
+        "access_audit_filter_enforced",
+        "audit_filter_required",
+        "compiled_predicates",
+        "source_ref_preserved",
+        "compiled_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "compiled-retrieval-filter.v1" },
+        "retrieval_filter_id": { "type": "string" },
+        "search_index_query_plan_id": { "type": "string" },
+        "search_index_id": { "type": "string" },
+        "vector_policy_gate_id": { "type": ["string", "null"] },
+        "collection_id": { "type": "string" },
+        "filter_status": { "const": "compiled" },
+        "query_binding_status": { "const": "compiled_held_for_query_adapter" },
+        "adapter_execution_status": { "const": "query_adapter_not_bound" },
+        "query_execution_allowed": { "const": false },
+        "executable": { "const": false },
+        "required_filter_keys": { "$ref": "#/$defs/required_filter_keys" },
+        "required_policy_gates": { "type": "array", "items": { "type": "string" }, "minItems": 7 },
+        "tenant_filter_enforced": { "const": true },
+        "matter_filter_enforced": { "const": true },
+        "classification_filter_enforced": { "const": true },
+        "policy_snapshot_filter_enforced": { "const": true },
+        "wall_filter_enforced": { "const": true },
+        "matter_access_filter_enforced": { "const": true },
+        "store_policy_filter_enforced": { "const": true },
+        "access_audit_filter_enforced": { "const": true },
+        "audit_filter_required": { "const": true },
+        "compiled_predicates": { "type": "object" },
+        "source_ref_preserved": { "const": true },
+        "compiled_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "retrieval_query_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_query_binding_id",
+        "retrieval_filter_id",
+        "embedding_route_policy_id",
+        "classification",
+        "query_binding_status",
+        "adapter_execution_status",
+        "query_execution_allowed",
+        "executable",
+        "tenant_filter_enforced",
+        "matter_filter_enforced",
+        "classification_filter_enforced",
+        "policy_snapshot_filter_enforced",
+        "wall_filter_enforced",
+        "access_audit_filter_enforced",
+        "external_model_policy_enforced",
+        "source_ref_preserved",
+        "bound_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "retrieval-query-binding.v1" },
+        "retrieval_query_binding_id": { "type": "string" },
+        "retrieval_filter_id": { "type": ["string", "null"] },
+        "embedding_route_policy_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "query_binding_status": { "const": "compiled_held_for_query_adapter" },
+        "adapter_execution_status": { "const": "query_adapter_not_bound" },
+        "query_execution_allowed": { "const": false },
+        "executable": { "const": false },
+        "tenant_filter_enforced": { "const": true },
+        "matter_filter_enforced": { "const": true },
+        "classification_filter_enforced": { "const": true },
+        "policy_snapshot_filter_enforced": { "const": true },
+        "wall_filter_enforced": { "const": true },
+        "access_audit_filter_enforced": { "const": true },
+        "external_model_policy_enforced": { "const": true },
+        "source_ref_preserved": { "const": true },
+        "bound_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "retrieval_filter_probe": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_probe_id",
+        "retrieval_filter_id",
+        "collection_id",
+        "probe_type",
+        "expected_effect",
+        "probe_status",
+        "blocked",
+        "reason_code",
+        "tested_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "retrieval-filter-probe.v1" },
+        "retrieval_probe_id": { "type": "string" },
+        "retrieval_filter_id": { "type": "string" },
+        "collection_id": { "type": "string" },
+        "probe_type": { "type": "string" },
+        "expected_effect": { "const": "blocked" },
+        "probe_status": { "const": "blocked" },
+        "blocked": { "const": true },
+        "reason_code": { "type": "string" },
+        "tested_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "retrieval_filter_compiler_status",
+        "compiled_retrieval_filter_count",
+        "retrieval_query_binding_count",
+        "executable_query_binding_count",
+        "blocked_probe_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "retrieval_filter_compiler_status": { "enum": ["complete", "blocked"] },
+        "compiled_retrieval_filter_count": { "type": "number", "minimum": 0 },
+        "retrieval_query_binding_count": { "type": "number", "minimum": 0 },
+        "executable_query_binding_count": { "const": 0 },
+        "blocked_probe_count": { "type": "number", "minimum": 0 },
+        "validation_error_count": { "type": "number", "minimum": 0 }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "required_filter_keys": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 6
+    }
+  }
+}

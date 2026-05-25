@@ -892,6 +892,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("vector_policy_validations", vectorPolicyResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/retrieval-filter-compilers") {
+    const filterResult = await readDashboardSourceArtifact(dashboard, "retrieval_filter_compiler");
+    if (!filterResult.available) {
+      return jsonResponse(503, buildError("retrieval_filter_compiler_unavailable", filterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retrieval_filter_compilers", [filterResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/compiled-retrieval-filters") {
+    const filterResult = await readDashboardSourceArtifact(dashboard, "retrieval_filter_compiler");
+    if (!filterResult.available) {
+      return jsonResponse(503, buildError("retrieval_filter_compiler_unavailable", filterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("compiled_retrieval_filters", filterResult.artifact.retrieval_filter_catalog?.compiled_retrieval_filters ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retrieval-query-bindings") {
+    const filterResult = await readDashboardSourceArtifact(dashboard, "retrieval_filter_compiler");
+    if (!filterResult.available) {
+      return jsonResponse(503, buildError("retrieval_filter_compiler_unavailable", filterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retrieval_query_bindings", filterResult.artifact.retrieval_filter_catalog?.retrieval_query_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retrieval-filter-probes") {
+    const filterResult = await readDashboardSourceArtifact(dashboard, "retrieval_filter_compiler");
+    if (!filterResult.available) {
+      return jsonResponse(503, buildError("retrieval_filter_compiler_unavailable", filterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retrieval_filter_probes", filterResult.artifact.retrieval_filter_catalog?.retrieval_filter_probes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retrieval-filter-validations") {
+    const filterResult = await readDashboardSourceArtifact(dashboard, "retrieval_filter_compiler");
+    if (!filterResult.available) {
+      return jsonResponse(503, buildError("retrieval_filter_compiler_unavailable", filterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retrieval_filter_validations", filterResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5453,6 +5488,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/vector-policy-gates", "Vector policy gate rows"),
       route("GET", "/api/embedding-route-policies", "Embedding route policy rows"),
       route("GET", "/api/vector-policy-validations", "Vector policy validation rows"),
+      route("GET", "/api/retrieval-filter-compilers", "Retrieval filter compiler artifacts"),
+      route("GET", "/api/compiled-retrieval-filters", "Compiled retrieval filter rows"),
+      route("GET", "/api/retrieval-query-bindings", "Retrieval query binding rows"),
+      route("GET", "/api/retrieval-filter-probes", "Retrieval filter enforcement probe rows"),
+      route("GET", "/api/retrieval-filter-validations", "Retrieval filter compiler validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -6138,6 +6178,16 @@ function filterItems(items, searchParams) {
     "runtime_allowed_by_capability",
     "content_mode",
     "filter_status",
+    "retrieval_filter_compiler_status",
+    "retrieval_query_binding_id",
+    "retrieval_probe_id",
+    "query_binding_status",
+    "adapter_execution_status",
+    "query_execution_allowed",
+    "query_adapter_bound",
+    "probe_type",
+    "probe_status",
+    "blocked",
     "routing_decision_id",
     "route_status",
     "route_mode",
@@ -6564,6 +6614,7 @@ function readFilterValue(item, key) {
   if (key === "custody_event_ledger_status") return item.summary?.custody_event_ledger_status ?? item.custody_event_ledger_status;
   if (key === "search_index_contract_status") return item.summary?.search_index_contract_status ?? item.search_index_contract_status;
   if (key === "vector_index_policy_boundary_status") return item.summary?.vector_index_policy_boundary_status ?? item.vector_index_policy_boundary_status;
+  if (key === "retrieval_filter_compiler_status") return item.summary?.retrieval_filter_compiler_status ?? item.retrieval_filter_compiler_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

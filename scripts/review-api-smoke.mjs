@@ -206,6 +206,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/vector-policy-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/embedding-route-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/vector-policy-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-filter-compilers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/compiled-retrieval-filters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-query-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-filter-probes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-filter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -2103,6 +2108,26 @@ try {
   const vectorPolicyValidations = await fetchJson(`${url}/api/vector-policy-validations?status=passed&limit=5`);
   assert.equal(vectorPolicyValidations.collection, "vector_policy_validations");
   assert.ok(vectorPolicyValidations.count <= 5);
+
+  const retrievalFilterCompilers = await fetchJson(`${url}/api/retrieval-filter-compilers?retrieval_filter_compiler_status=complete&limit=1`);
+  assert.equal(retrievalFilterCompilers.collection, "retrieval_filter_compilers");
+  assert.ok(retrievalFilterCompilers.count <= 1);
+
+  const compiledRetrievalFilters = await fetchJson(`${url}/api/compiled-retrieval-filters?filter_status=compiled&query_execution_allowed=false&limit=5`);
+  assert.equal(compiledRetrievalFilters.collection, "compiled_retrieval_filters");
+  assert.ok(compiledRetrievalFilters.count <= 5);
+
+  const retrievalQueryBindings = await fetchJson(`${url}/api/retrieval-query-bindings?query_binding_status=compiled_held_for_query_adapter&query_execution_allowed=false&limit=5`);
+  assert.equal(retrievalQueryBindings.collection, "retrieval_query_bindings");
+  assert.ok(retrievalQueryBindings.count <= 5);
+
+  const retrievalFilterProbes = await fetchJson(`${url}/api/retrieval-filter-probes?probe_status=blocked&limit=5`);
+  assert.equal(retrievalFilterProbes.collection, "retrieval_filter_probes");
+  assert.ok(retrievalFilterProbes.count <= 5);
+
+  const retrievalFilterValidations = await fetchJson(`${url}/api/retrieval-filter-validations?status=passed&limit=5`);
+  assert.equal(retrievalFilterValidations.collection, "retrieval_filter_validations");
+  assert.ok(retrievalFilterValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

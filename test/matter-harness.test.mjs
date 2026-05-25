@@ -42,6 +42,7 @@ import { runExhibitMap } from "../src/exhibit-map.mjs";
 import { runChainOfCustodyEvents } from "../src/chain-of-custody-events.mjs";
 import { runSearchIndexContract } from "../src/search-index-contract.mjs";
 import { runVectorIndexPolicyBoundary } from "../src/vector-index-policy-boundary.mjs";
+import { runRetrievalFilterCompiler } from "../src/retrieval-filter-compiler.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1670,6 +1671,7 @@ describe("matter harness", () => {
         chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
         searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
         vectorIndexPolicyBoundaryPath: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
+        retrievalFilterCompilerPath: path.join(outDir, "retrieval-filters", "retrieval-filter-compiler.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4373,6 +4375,47 @@ describe("matter harness", () => {
       assert.ok(vectorIndexPolicyBoundary.vector_policy_catalog.embedding_route_policies.filter((route) => route.classification_ordinal >= 2).every((route) => route.policy_external_embedding_decision !== "allow" && route.external_embedding_allowed === false));
       assert.match(await readFile(path.join(outDir, "vector-index-policy", "summary.md"), "utf8"), /Vector Index Policy Boundary/);
 
+      const retrievalFilterCompiler = await runRetrievalFilterCompiler({
+        searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
+        vectorIndexPolicyBoundaryPath: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        wallPolicyContractPath: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        outDir: path.join(outDir, "retrieval-filters"),
+        runAt: "2026-05-23T06:35:08.006Z",
+      });
+      const retrievalFilterCompilerSchema = JSON.parse(await readFile("schemas/retrieval-filter-compiler.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(retrievalFilterCompiler, retrievalFilterCompilerSchema, {}, "retrieval_filter_compiler"),
+        [],
+      );
+      assert.equal(retrievalFilterCompiler.summary.retrieval_filter_compiler_status, "complete");
+      assert.equal(retrievalFilterCompiler.summary.search_index_contract_status, "complete");
+      assert.equal(retrievalFilterCompiler.summary.vector_index_policy_boundary_status, "complete");
+      assert.equal(retrievalFilterCompiler.summary.store_policy_adapter_status, "complete");
+      assert.equal(retrievalFilterCompiler.summary.compiled_retrieval_filter_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(retrievalFilterCompiler.summary.compiled_retrieval_filter_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(retrievalFilterCompiler.summary.retrieval_query_binding_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(retrievalFilterCompiler.summary.retrieval_query_binding_count, retrievalFilterCompiler.summary.expected_retrieval_query_binding_count);
+      assert.equal(retrievalFilterCompiler.summary.tenant_filter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(retrievalFilterCompiler.summary.matter_filter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(retrievalFilterCompiler.summary.classification_filter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(retrievalFilterCompiler.summary.policy_snapshot_filter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(retrievalFilterCompiler.summary.wall_filter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(retrievalFilterCompiler.summary.access_audit_filter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(retrievalFilterCompiler.summary.query_binding_filter_enforced_count, retrievalFilterCompiler.summary.retrieval_query_binding_count);
+      assert.equal(retrievalFilterCompiler.summary.access_audit_filter_enforced_binding_count, retrievalFilterCompiler.summary.retrieval_query_binding_count);
+      assert.equal(retrievalFilterCompiler.summary.executable_filter_count, 0);
+      assert.equal(retrievalFilterCompiler.summary.executable_query_binding_count, 0);
+      assert.equal(retrievalFilterCompiler.summary.retrieval_filter_probe_count, retrievalFilterCompiler.summary.expected_retrieval_filter_probe_count);
+      assert.equal(retrievalFilterCompiler.summary.blocked_probe_count, retrievalFilterCompiler.summary.retrieval_filter_probe_count);
+      assert.equal(retrievalFilterCompiler.summary.p2_p5_external_blocked_or_review_binding_count, retrievalFilterCompiler.summary.p2_p5_query_binding_count);
+      assert.equal(retrievalFilterCompiler.summary.validation_error_count, 0);
+      assert.ok(retrievalFilterCompiler.retrieval_filter_catalog.compiled_retrieval_filters.every((filter) => filter.filter_status === "compiled" && filter.query_execution_allowed === false && filter.executable === false));
+      assert.ok(retrievalFilterCompiler.retrieval_filter_catalog.retrieval_query_bindings.every((binding) => binding.query_binding_status === "compiled_held_for_query_adapter" && binding.query_execution_allowed === false && binding.executable === false));
+      assert.ok(retrievalFilterCompiler.retrieval_filter_catalog.retrieval_filter_probes.every((probe) => probe.probe_status === "blocked" && probe.blocked === true));
+      assert.match(await readFile(path.join(outDir, "retrieval-filters", "summary.md"), "utf8"), /Retrieval Filter Compiler/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4411,6 +4454,7 @@ describe("matter harness", () => {
           chain_of_custody_events: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
           search_index_contract: path.join(outDir, "search-index", "search-index-contract.json"),
           vector_index_policy_boundary: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
+          retrieval_filter_compiler: path.join(outDir, "retrieval-filters", "retrieval-filter-compiler.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4436,8 +4480,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 51);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 51);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 52);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 52);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4479,6 +4523,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "chain_of_custody_events"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "search_index_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "vector_index_policy_boundary"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retrieval_filter_compiler"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4523,6 +4568,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:retrieval-filters"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:vector-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
@@ -4728,6 +4774,10 @@ describe("matter harness", () => {
       assert.equal(vectorIndexPolicyBoundaryCheckpoint?.acceptance_profile, "vector_index_policy_boundary_gate");
       assert.equal(vectorIndexPolicyBoundaryCheckpoint?.status, "passed");
       assert.equal(vectorIndexPolicyBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const retrievalFilterCompilerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-retrieval-filter-compiler");
+      assert.equal(retrievalFilterCompilerCheckpoint?.acceptance_profile, "retrieval_filter_compiler_gate");
+      assert.equal(retrievalFilterCompilerCheckpoint?.status, "passed");
+      assert.equal(retrievalFilterCompilerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5758,6 +5808,28 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.vector_policy_source_ref_preserved_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
       assert.equal(dashboard.summary.vector_policy_p2_p5_external_blocked_or_review_route_count, vectorIndexPolicyBoundary.summary.p2_p5_embedding_route_count);
       assert.equal(dashboard.summary.vector_policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.retrieval_filter_compiler_status, "complete");
+      assert.equal(dashboard.summary.retrieval_filter_compiler_id, "retrieval-filter-compiler.v1");
+      assert.equal(dashboard.summary.retrieval_filter_search_index_query_plan_count, retrievalFilterCompiler.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.retrieval_filter_vector_policy_gate_count, retrievalFilterCompiler.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.retrieval_filter_embedding_route_policy_count, retrievalFilterCompiler.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.retrieval_filter_compiled_filter_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_query_binding_count, retrievalFilterCompiler.summary.retrieval_query_binding_count);
+      assert.equal(dashboard.summary.retrieval_filter_expected_query_binding_count, retrievalFilterCompiler.summary.expected_retrieval_query_binding_count);
+      assert.equal(dashboard.summary.retrieval_filter_probe_count, retrievalFilterCompiler.summary.retrieval_filter_probe_count);
+      assert.equal(dashboard.summary.retrieval_filter_expected_probe_count, retrievalFilterCompiler.summary.expected_retrieval_filter_probe_count);
+      assert.equal(dashboard.summary.retrieval_filter_tenant_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_matter_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_classification_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_policy_snapshot_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_wall_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_access_audit_enforced_count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.retrieval_filter_query_binding_filter_enforced_count, retrievalFilterCompiler.summary.retrieval_query_binding_count);
+      assert.equal(dashboard.summary.retrieval_filter_executable_filter_count, 0);
+      assert.equal(dashboard.summary.retrieval_filter_executable_query_binding_count, 0);
+      assert.equal(dashboard.summary.retrieval_filter_blocked_probe_count, retrievalFilterCompiler.summary.retrieval_filter_probe_count);
+      assert.equal(dashboard.summary.retrieval_filter_p2_p5_external_blocked_or_review_binding_count, retrievalFilterCompiler.summary.p2_p5_query_binding_count);
+      assert.equal(dashboard.summary.retrieval_filter_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -6306,6 +6378,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "chain_of_custody_events"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "search_index_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "vector_index_policy_boundary"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "retrieval_filter_compiler"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -8625,6 +8698,26 @@ describe("matter harness", () => {
       const vectorPolicyValidations = JSON.parse((await buildReviewApiResponse("/api/vector-policy-validations?status=passed", apiOptions)).body);
       assert.equal(vectorPolicyValidations.collection, "vector_policy_validations");
       assert.equal(vectorPolicyValidations.count, vectorIndexPolicyBoundary.summary.validation_item_count);
+
+      const retrievalFilterCompilers = JSON.parse((await buildReviewApiResponse("/api/retrieval-filter-compilers?retrieval_filter_compiler_status=complete", apiOptions)).body);
+      assert.equal(retrievalFilterCompilers.collection, "retrieval_filter_compilers");
+      assert.equal(retrievalFilterCompilers.count, 1);
+
+      const compiledRetrievalFilters = JSON.parse((await buildReviewApiResponse("/api/compiled-retrieval-filters?filter_status=compiled", apiOptions)).body);
+      assert.equal(compiledRetrievalFilters.collection, "compiled_retrieval_filters");
+      assert.equal(compiledRetrievalFilters.count, retrievalFilterCompiler.summary.compiled_retrieval_filter_count);
+
+      const retrievalQueryBindings = JSON.parse((await buildReviewApiResponse("/api/retrieval-query-bindings?query_binding_status=compiled_held_for_query_adapter", apiOptions)).body);
+      assert.equal(retrievalQueryBindings.collection, "retrieval_query_bindings");
+      assert.equal(retrievalQueryBindings.count, retrievalFilterCompiler.summary.retrieval_query_binding_count);
+
+      const retrievalFilterProbes = JSON.parse((await buildReviewApiResponse("/api/retrieval-filter-probes?probe_status=blocked", apiOptions)).body);
+      assert.equal(retrievalFilterProbes.collection, "retrieval_filter_probes");
+      assert.equal(retrievalFilterProbes.count, retrievalFilterCompiler.summary.retrieval_filter_probe_count);
+
+      const retrievalFilterValidations = JSON.parse((await buildReviewApiResponse("/api/retrieval-filter-validations?status=passed", apiOptions)).body);
+      assert.equal(retrievalFilterValidations.collection, "retrieval_filter_validations");
+      assert.equal(retrievalFilterValidations.count, retrievalFilterCompiler.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

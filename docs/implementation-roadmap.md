@@ -4488,6 +4488,35 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 51개로 증가하고 vector index policy boundary가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:vector-policy -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 150: Retrieval Filter Compiler
+
+목표: P148 search index query plan과 P149 vector/embedding policy boundary를 실제 query adapter 앞에서 사용할 수 있는 compiled retrieval filter bundle로 묶되, query adapter가 없으면 검색 실행은 계속 금지한다.
+
+구현 내용:
+
+- `src/retrieval-filter-compiler.mjs`, `scripts/retrieval-filter-compiler.mjs`, `schemas/retrieval-filter-compiler.schema.json`, `docs/retrieval-filter-compiler.md`를 추가함
+- `npm run resource:retrieval-filters -- --check` 명령을 추가해 compiled retrieval filter, retrieval query binding, blocked probe, validation report, summary markdown을 생성함
+- P148의 11개 held search query plan마다 1개 `compiled_retrieval_filter`를 생성하고, 각 filter가 `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`, `wall_ids`, `access_audit_record_id` predicate를 필수로 요구하도록 고정함
+- P149의 66개 embedding route policy마다 1개 `retrieval_query_binding`을 생성하고, route별 classification/external embedding policy decision/source ref를 보존함
+- unscoped query, tenant 누락, matter 누락, classification 누락, policy snapshot 누락, cross-matter query probe를 모든 compiled filter에 적용하고 전부 blocked 상태로 검증함
+- 모든 retrieval filter와 query binding을 `compiled_held_for_query_adapter`, `query_execution_allowed=false`, `executable=false`로 유지해 P151 이후 실제 retrieval adapter가 bound되기 전에는 검색 실행이 불가능하도록 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Retrieval Filter Compiler를 통합함
+- `/api/retrieval-filter-compilers`, `/api/compiled-retrieval-filters`, `/api/retrieval-query-bindings`, `/api/retrieval-filter-probes`, `/api/retrieval-filter-validations` route를 추가함
+
+완료 기준:
+
+- Retrieval Filter Compiler가 validation error 없이 `complete` 상태가 됨
+- compiled retrieval filter 수가 P148 search index query plan 및 P149 vector policy gate 수와 일치함
+- retrieval query binding 수가 P149 embedding route policy 수와 일치함
+- 모든 compiled filter가 tenant, matter, classification, policy snapshot, wall, access audit filter를 enforce함
+- 모든 retrieval query binding이 non-executable 상태이며 executable query binding 수는 0임
+- 모든 missing-filter/unscoped/cross-matter probe가 blocked 상태임
+- P2-P5 retrieval binding이 external allow 없이 approval 또는 deny control을 유지함
+- Review Dashboard summary와 stage status에서 compiled filter, query binding, enforcement, probe, executable count가 노출됨
+- Review API smoke가 retrieval filter compiler, compiled filter, query binding, probe, validation route를 모두 조회함
+- Golden fixture 수가 52개로 증가하고 retrieval filter compiler가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:retrieval-filters -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4496,9 +4525,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 149이다.
+- 현재 완료 기준점은 Phase 150이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P150-P312, 총 163개다.
+- 남은 계획 슬롯은 P151-P312, 총 162개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

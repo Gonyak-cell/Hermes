@@ -131,6 +131,11 @@ npm run api:serve
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item
 - `GET /api/context-retrieval-filters`: packet별 matter/classification retrieval filter
+- `GET /api/retrieval-filter-compilers`: compiled retrieval filter compiler artifact
+- `GET /api/compiled-retrieval-filters`: search/vector query 전 강제되는 tenant/matter/classification/policy/wall/access audit filter
+- `GET /api/retrieval-query-bindings`: embedding route policy별 held query binding
+- `GET /api/retrieval-filter-probes`: unscoped/cross-matter/missing-filter blocked probe
+- `GET /api/retrieval-filter-validations`: retrieval filter compiler validation rows
 - `GET /api/model-routing-ledgers`: model routing ledger artifact
 - `GET /api/model-routing-decisions`: runtime/model/provider boundary별 routing decision
 - `GET /api/cost-budget-ledgers`: cost budget ledger artifact

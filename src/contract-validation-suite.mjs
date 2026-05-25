@@ -49,6 +49,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:custody-events",
   "resource:search-index",
   "resource:vector-policy",
+  "resource:retrieval-filters",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

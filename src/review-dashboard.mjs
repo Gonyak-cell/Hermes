@@ -40,6 +40,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   chainOfCustodyEventsPath: "artifacts/chain-of-custody/latest/chain-of-custody-events.json",
   searchIndexContractPath: "artifacts/search-index/latest/search-index-contract.json",
   vectorIndexPolicyBoundaryPath: "artifacts/vector-index-policy/latest/vector-index-policy-boundary.json",
+  retrievalFilterCompilerPath: "artifacts/retrieval-filters/latest/retrieval-filter-compiler.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -328,6 +329,11 @@ const SOURCE_DEFINITIONS = [
     option: "vectorIndexPolicyBoundaryPath",
     source_id: "vector_index_policy_boundary",
     label: "Vector Index Policy Boundary",
+  },
+  {
+    option: "retrievalFilterCompilerPath",
+    source_id: "retrieval_filter_compiler",
+    label: "Retrieval Filter Compiler",
   },
   {
     option: "evidenceContractFreezePath",
@@ -1002,6 +1008,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "chain_of_custody_events") return data.summary ?? {};
   if (sourceId === "search_index_contract") return data.summary ?? {};
   if (sourceId === "vector_index_policy_boundary") return data.summary ?? {};
+  if (sourceId === "retrieval_filter_compiler") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1231,6 +1238,7 @@ function buildStageStatuses(artifacts, sources) {
     buildChainOfCustodyEventsStage(artifacts.chain_of_custody_events, sourceById.get("chain_of_custody_events")),
     buildSearchIndexContractStage(artifacts.search_index_contract, sourceById.get("search_index_contract")),
     buildVectorIndexPolicyBoundaryStage(artifacts.vector_index_policy_boundary, sourceById.get("vector_index_policy_boundary")),
+    buildRetrievalFilterCompilerStage(artifacts.retrieval_filter_compiler, sourceById.get("retrieval_filter_compiler")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -3151,6 +3159,91 @@ function buildVectorIndexPolicyBoundaryStage(vectorIndexPolicyBoundary, source) 
       p2_p5_external_blocked_or_review_route_count: summary.p2_p5_external_blocked_or_review_route_count ?? 0,
       human_approval_required_route_count: summary.human_approval_required_route_count ?? 0,
       redaction_required_route_count: summary.redaction_required_route_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildRetrievalFilterCompilerStage(retrievalFilterCompiler, source) {
+  if (!retrievalFilterCompiler) return missingStage("retrieval_filter_compiler", "Retrieval Filter Compiler", source);
+  const summary = retrievalFilterCompiler.summary ?? {};
+  const errorCount = summary.validation_error_count ?? retrievalFilterCompiler.validation?.errors?.length ?? 0;
+  const filterCount = summary.compiled_retrieval_filter_count ?? 0;
+  const bindingCount = summary.retrieval_query_binding_count ?? 0;
+  const queryPlanCount = summary.search_index_query_plan_count ?? 0;
+  const probeCount = summary.retrieval_filter_probe_count ?? 0;
+  const status = summary.retrieval_filter_compiler_status === "complete"
+    && errorCount === 0
+    && filterCount > 0
+    && filterCount === queryPlanCount
+    && filterCount === (summary.vector_policy_gate_count ?? -1)
+    && bindingCount === (summary.expected_retrieval_query_binding_count ?? -1)
+    && (summary.tenant_filter_enforced_count ?? 0) === filterCount
+    && (summary.matter_filter_enforced_count ?? 0) === filterCount
+    && (summary.classification_filter_enforced_count ?? 0) === filterCount
+    && (summary.policy_snapshot_filter_enforced_count ?? 0) === filterCount
+    && (summary.wall_filter_enforced_count ?? 0) === filterCount
+    && (summary.access_audit_filter_enforced_count ?? 0) === filterCount
+    && (summary.query_binding_filter_enforced_count ?? 0) === bindingCount
+    && (summary.access_audit_filter_enforced_binding_count ?? 0) === bindingCount
+    && (summary.executable_filter_count ?? 1) === 0
+    && (summary.executable_query_binding_count ?? 1) === 0
+    && probeCount === (summary.expected_retrieval_filter_probe_count ?? -1)
+    && (summary.blocked_probe_count ?? 0) === probeCount
+    && (summary.p2_p5_external_blocked_or_review_binding_count ?? 0) === (summary.p2_p5_query_binding_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "retrieval_filter_compiler",
+    label: "Retrieval Filter Compiler",
+    status,
+    message: `${filterCount} compiled filter(s), ${bindingCount} held query binding(s), ${summary.executable_query_binding_count ?? 0} executable binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      retrieval_filter_compiler_status: summary.retrieval_filter_compiler_status ?? "unknown",
+      retrieval_filter_compiler_id: summary.retrieval_filter_compiler_id ?? null,
+      compiled_retrieval_filter_schema_version: summary.compiled_retrieval_filter_schema_version ?? null,
+      retrieval_query_binding_schema_version: summary.retrieval_query_binding_schema_version ?? null,
+      retrieval_filter_probe_schema_version: summary.retrieval_filter_probe_schema_version ?? null,
+      search_index_contract_status: summary.search_index_contract_status ?? "unknown",
+      vector_index_policy_boundary_status: summary.vector_index_policy_boundary_status ?? "unknown",
+      matter_access_policy_status: summary.matter_access_policy_status ?? "unknown",
+      wall_policy_status: summary.wall_policy_status ?? "unknown",
+      store_policy_adapter_status: summary.store_policy_adapter_status ?? "unknown",
+      search_index_query_plan_count: queryPlanCount,
+      vector_policy_gate_count: summary.vector_policy_gate_count ?? 0,
+      embedding_route_policy_count: summary.embedding_route_policy_count ?? 0,
+      compiled_retrieval_filter_count: filterCount,
+      retrieval_query_binding_count: bindingCount,
+      expected_retrieval_query_binding_count: summary.expected_retrieval_query_binding_count ?? 0,
+      retrieval_filter_probe_count: probeCount,
+      expected_retrieval_filter_probe_count: summary.expected_retrieval_filter_probe_count ?? 0,
+      tenant_filter_enforced_count: summary.tenant_filter_enforced_count ?? 0,
+      matter_filter_enforced_count: summary.matter_filter_enforced_count ?? 0,
+      classification_filter_enforced_count: summary.classification_filter_enforced_count ?? 0,
+      policy_snapshot_filter_enforced_count: summary.policy_snapshot_filter_enforced_count ?? 0,
+      wall_filter_enforced_count: summary.wall_filter_enforced_count ?? 0,
+      matter_access_filter_enforced_count: summary.matter_access_filter_enforced_count ?? 0,
+      store_policy_filter_enforced_count: summary.store_policy_filter_enforced_count ?? 0,
+      audit_filter_required_count: summary.audit_filter_required_count ?? 0,
+      access_audit_filter_enforced_count: summary.access_audit_filter_enforced_count ?? 0,
+      source_ref_preserved_filter_count: summary.source_ref_preserved_filter_count ?? 0,
+      executable_filter_count: summary.executable_filter_count ?? 0,
+      query_binding_filter_enforced_count: summary.query_binding_filter_enforced_count ?? 0,
+      access_audit_filter_enforced_binding_count: summary.access_audit_filter_enforced_binding_count ?? 0,
+      source_ref_preserved_binding_count: summary.source_ref_preserved_binding_count ?? 0,
+      executable_query_binding_count: summary.executable_query_binding_count ?? 0,
+      p2_p5_query_binding_count: summary.p2_p5_query_binding_count ?? 0,
+      p2_p5_external_blocked_or_review_binding_count: summary.p2_p5_external_blocked_or_review_binding_count ?? 0,
+      blocked_probe_count: summary.blocked_probe_count ?? 0,
+      cross_matter_probe_blocked_count: summary.cross_matter_probe_blocked_count ?? 0,
+      missing_tenant_probe_blocked_count: summary.missing_tenant_probe_blocked_count ?? 0,
+      missing_matter_probe_blocked_count: summary.missing_matter_probe_blocked_count ?? 0,
+      missing_classification_probe_blocked_count: summary.missing_classification_probe_blocked_count ?? 0,
+      missing_policy_snapshot_probe_blocked_count: summary.missing_policy_snapshot_probe_blocked_count ?? 0,
+      unscoped_probe_blocked_count: summary.unscoped_probe_blocked_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -7202,6 +7295,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.retrieval_filter_compiler?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "retrieval_filter_compiler";
+    items.push({
+      action_item_id: `dashboard.action.retrieval_filter_compiler.${slugify(subjectId)}`,
+      source_stage: "retrieval_filter_compiler",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix retrieval filter compiler",
+      subject_ref: {
+        subject_type: "retrieval_filter_compiler_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_retrieval_filter_compiler", "rerun_retrieval_filter_compiler", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -9250,6 +9361,29 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     vector_policy_p2_p5_embedding_route_count: artifacts.vector_index_policy_boundary?.summary?.p2_p5_embedding_route_count ?? 0,
     vector_policy_p2_p5_external_blocked_or_review_route_count: artifacts.vector_index_policy_boundary?.summary?.p2_p5_external_blocked_or_review_route_count ?? 0,
     vector_policy_validation_error_count: artifacts.vector_index_policy_boundary?.summary?.validation_error_count ?? artifacts.vector_index_policy_boundary?.validation?.errors?.length ?? 0,
+    retrieval_filter_compiler_status: artifacts.retrieval_filter_compiler?.summary?.retrieval_filter_compiler_status ?? "unknown",
+    retrieval_filter_compiler_id: artifacts.retrieval_filter_compiler?.summary?.retrieval_filter_compiler_id ?? null,
+    retrieval_filter_search_index_query_plan_count: artifacts.retrieval_filter_compiler?.summary?.search_index_query_plan_count ?? 0,
+    retrieval_filter_vector_policy_gate_count: artifacts.retrieval_filter_compiler?.summary?.vector_policy_gate_count ?? 0,
+    retrieval_filter_embedding_route_policy_count: artifacts.retrieval_filter_compiler?.summary?.embedding_route_policy_count ?? 0,
+    retrieval_filter_compiled_filter_count: artifacts.retrieval_filter_compiler?.summary?.compiled_retrieval_filter_count ?? 0,
+    retrieval_filter_query_binding_count: artifacts.retrieval_filter_compiler?.summary?.retrieval_query_binding_count ?? 0,
+    retrieval_filter_expected_query_binding_count: artifacts.retrieval_filter_compiler?.summary?.expected_retrieval_query_binding_count ?? 0,
+    retrieval_filter_probe_count: artifacts.retrieval_filter_compiler?.summary?.retrieval_filter_probe_count ?? 0,
+    retrieval_filter_expected_probe_count: artifacts.retrieval_filter_compiler?.summary?.expected_retrieval_filter_probe_count ?? 0,
+    retrieval_filter_tenant_enforced_count: artifacts.retrieval_filter_compiler?.summary?.tenant_filter_enforced_count ?? 0,
+    retrieval_filter_matter_enforced_count: artifacts.retrieval_filter_compiler?.summary?.matter_filter_enforced_count ?? 0,
+    retrieval_filter_classification_enforced_count: artifacts.retrieval_filter_compiler?.summary?.classification_filter_enforced_count ?? 0,
+    retrieval_filter_policy_snapshot_enforced_count: artifacts.retrieval_filter_compiler?.summary?.policy_snapshot_filter_enforced_count ?? 0,
+    retrieval_filter_wall_enforced_count: artifacts.retrieval_filter_compiler?.summary?.wall_filter_enforced_count ?? 0,
+    retrieval_filter_access_audit_enforced_count: artifacts.retrieval_filter_compiler?.summary?.access_audit_filter_enforced_count ?? 0,
+    retrieval_filter_query_binding_filter_enforced_count: artifacts.retrieval_filter_compiler?.summary?.query_binding_filter_enforced_count ?? 0,
+    retrieval_filter_executable_filter_count: artifacts.retrieval_filter_compiler?.summary?.executable_filter_count ?? 0,
+    retrieval_filter_executable_query_binding_count: artifacts.retrieval_filter_compiler?.summary?.executable_query_binding_count ?? 0,
+    retrieval_filter_blocked_probe_count: artifacts.retrieval_filter_compiler?.summary?.blocked_probe_count ?? 0,
+    retrieval_filter_p2_p5_query_binding_count: artifacts.retrieval_filter_compiler?.summary?.p2_p5_query_binding_count ?? 0,
+    retrieval_filter_p2_p5_external_blocked_or_review_binding_count: artifacts.retrieval_filter_compiler?.summary?.p2_p5_external_blocked_or_review_binding_count ?? 0,
+    retrieval_filter_validation_error_count: artifacts.retrieval_filter_compiler?.summary?.validation_error_count ?? artifacts.retrieval_filter_compiler?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -10732,6 +10866,8 @@ function parseArgs(argv) {
     else if (arg === "--no-search-index") parsed.searchIndexContractPath = false;
     else if (arg === "--vector-policy") parsed.vectorIndexPolicyBoundaryPath = argv[++index];
     else if (arg === "--no-vector-policy") parsed.vectorIndexPolicyBoundaryPath = false;
+    else if (arg === "--retrieval-filters") parsed.retrievalFilterCompilerPath = argv[++index];
+    else if (arg === "--no-retrieval-filters") parsed.retrievalFilterCompilerPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10947,6 +11083,8 @@ Options:
   --no-search-index               Do not include Search Index Contract status.
   --vector-policy <path>          vector-index-policy-boundary.json path.
   --no-vector-policy              Do not include Vector Index Policy Boundary status.
+  --retrieval-filters <path>      retrieval-filter-compiler.json path.
+  --no-retrieval-filters          Do not include Retrieval Filter Compiler status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

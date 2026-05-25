@@ -3605,6 +3605,38 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Matter Access Policy Evaluator를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:matter-access`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 118 - Data Classification Rule Engine
+
+목표: Resource v2의 classification을 PolicyReference v2, PolicyDecision v2, Matter Access Policy Evaluator decision에 연결해 resource별 정책 결정을 구조화한다.
+
+구현 산출물:
+
+- `src/data-classification-rule-engine.mjs`
+- `scripts/data-classification-rule-engine.mjs`
+- `schemas/data-classification-rule-engine.schema.json`
+- `docs/data-classification-rule-engine.md`
+- `artifacts/data-classification-rules/latest/data-classification-rule-engine.json`
+- `artifacts/data-classification-rules/latest/classification-rule-catalog.json`
+- `artifacts/data-classification-rules/latest/classification-rules.json`
+- `artifacts/data-classification-rules/latest/resource-classification-decisions.json`
+- `artifacts/data-classification-rules/latest/classification-policy-bindings.json`
+- `artifacts/data-classification-rules/latest/validation-report.json`
+- `artifacts/data-classification-rules/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:classification-rules -- --check`가 Data Classification Rule Engine을 생성하고 validation error 0으로 통과한다.
+- P0-P5 DataClassification contract마다 classification rule이 생성되고 PolicyDecision v2에 연결된다.
+- 각 Resource v2는 resolved PolicyReference와 PolicyDecision에 연결된 `resource-classification-decision.v1`을 가진다.
+- unassigned matter resource는 classification이 낮아도 자동 허용되지 않고 `review`와 `matter_tagging_gate`/`human_approval_gate`가 필요하다.
+- 외부 모델 정책은 `allowed_with_audit -> allow`, `approval_required -> review`, `forbidden -> deny`로 deterministic하게 매핑된다.
+- Matter Access Policy Evaluator의 resource access decision count가 resource classification decision에 링크된다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `data_classification_rule_engine` fixture가 포함되어 golden fixture set이 20개로 확장된다.
+- Dashboard stage와 summary가 `data_classification_rule_engine` 지표를 추적함
+- Review API에서 `/api/data-classification-rule-engines`, `/api/data-classification-rules`, `/api/resource-classification-decisions`, `/api/classification-policy-bindings`, `/api/data-classification-rule-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Data Classification Rule Engine을 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:classification-rules`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3613,9 +3645,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 117이다.
+- 현재 완료 기준점은 Phase 118이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P118-P312, 총 195개다.
+- 남은 계획 슬롯은 P119-P312, 총 194개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

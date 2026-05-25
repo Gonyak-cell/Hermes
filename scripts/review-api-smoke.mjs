@@ -157,6 +157,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/resource-access-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-access-matrix"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-access-policy-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/data-classification-rule-engines"));
+  assert.ok(index.routes.some((route) => route.path === "/api/data-classification-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-classification-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/classification-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/data-classification-rule-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1535,6 +1540,26 @@ try {
   const matterAccessPolicyValidations = await fetchJson(`${url}/api/matter-access-policy-validations?status=passed&limit=5`);
   assert.equal(matterAccessPolicyValidations.collection, "matter_access_policy_validations");
   assert.ok(matterAccessPolicyValidations.count <= 5);
+
+  const dataClassificationRuleEngines = await fetchJson(`${url}/api/data-classification-rule-engines?limit=1`);
+  assert.equal(dataClassificationRuleEngines.collection, "data_classification_rule_engines");
+  assert.ok(dataClassificationRuleEngines.count <= 1);
+
+  const dataClassificationRules = await fetchJson(`${url}/api/data-classification-rules?classification=P2_CLIENT_CONFIDENTIAL&limit=5`);
+  assert.equal(dataClassificationRules.collection, "data_classification_rules");
+  assert.ok(dataClassificationRules.count <= 5);
+
+  const resourceClassificationDecisions = await fetchJson(`${url}/api/resource-classification-decisions?resource_policy_decision=review&limit=5`);
+  assert.equal(resourceClassificationDecisions.collection, "resource_classification_decisions");
+  assert.ok(resourceClassificationDecisions.count <= 5);
+
+  const classificationPolicyBindings = await fetchJson(`${url}/api/classification-policy-bindings?binding_status=complete&limit=5`);
+  assert.equal(classificationPolicyBindings.collection, "classification_policy_bindings");
+  assert.ok(classificationPolicyBindings.count <= 5);
+
+  const dataClassificationRuleValidations = await fetchJson(`${url}/api/data-classification-rule-validations?status=passed&limit=5`);
+  assert.equal(dataClassificationRuleValidations.collection, "data_classification_rule_validations");
+  assert.ok(dataClassificationRuleValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

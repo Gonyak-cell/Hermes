@@ -1,0 +1,390 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/data-classification-rule-engine.schema.json",
+  "title": "Hermes Data Classification Rule Engine",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "classification_rule_engine_id",
+    "output_dir",
+    "inputs",
+    "source_resource_contract",
+    "source_policy_contract",
+    "source_matter_access_policy",
+    "classification_rule_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "data-classification-rule-engine.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "classification_rule_engine_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_contract_freeze_path",
+        "policy_contract_freeze_path",
+        "matter_access_policy_evaluator_path"
+      ],
+      "properties": {
+        "resource_contract_freeze_path": { "type": "string" },
+        "policy_contract_freeze_path": { "type": "string" },
+        "matter_access_policy_evaluator_path": { "type": "string" }
+      }
+    },
+    "source_resource_contract": { "$ref": "#/$defs/source_resource_contract" },
+    "source_policy_contract": { "$ref": "#/$defs/source_policy_contract" },
+    "source_matter_access_policy": { "$ref": "#/$defs/source_matter_access_policy" },
+    "classification_rule_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "classification_rules",
+        "resource_classification_decisions",
+        "classification_policy_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "data-classification-rule-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "classification_rules": { "type": "array", "items": { "$ref": "#/$defs/classification_rule" } },
+        "resource_classification_decisions": { "type": "array", "items": { "$ref": "#/$defs/resource_classification_decision" } },
+        "classification_policy_bindings": { "type": "array", "items": { "$ref": "#/$defs/classification_policy_binding" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_resource_contract": {
+      "type": "object",
+      "required": ["schema_version", "freeze_id", "freeze_status", "resource_count", "resource_version_count", "classification_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "freeze_id": { "type": ["string", "null"] },
+        "freeze_status": { "type": "string" },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "resource_version_count": { "type": "integer", "minimum": 0 },
+        "classification_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_policy_contract": {
+      "type": "object",
+      "required": ["schema_version", "freeze_id", "freeze_status", "classification_count", "policy_decision_count", "policy_reference_count", "resource_policy_reference_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "freeze_id": { "type": ["string", "null"] },
+        "freeze_status": { "type": "string" },
+        "classification_count": { "type": "integer", "minimum": 0 },
+        "policy_decision_count": { "type": "integer", "minimum": 0 },
+        "policy_reference_count": { "type": "integer", "minimum": 0 },
+        "resource_policy_reference_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_matter_access_policy": {
+      "type": "object",
+      "required": ["schema_version", "access_policy_ledger_id", "access_policy_status", "resource_access_decision_count", "resource_review_decision_count", "runtime_access_matrix_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "access_policy_ledger_id": { "type": ["string", "null"] },
+        "access_policy_status": { "type": "string" },
+        "resource_access_decision_count": { "type": "integer", "minimum": 0 },
+        "resource_review_decision_count": { "type": "integer", "minimum": 0 },
+        "runtime_access_matrix_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "classification_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "classification_rule_id",
+        "classification",
+        "ordinal",
+        "classification_name",
+        "policy_decision_id",
+        "runtime_rule_id",
+        "model_rule_id",
+        "default_external_model_policy",
+        "external_model_policy",
+        "external_model_decision",
+        "local_model_policy",
+        "redaction_policy",
+        "default_policy_decision",
+        "allowed_runtimes",
+        "restricted_runtimes",
+        "forbidden_runtimes",
+        "required_gates",
+        "blocking_gate_ids",
+        "approval_required",
+        "redaction_required",
+        "rule_status",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "data-classification-rule.v1" },
+        "classification_rule_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "ordinal": { "type": ["integer", "null"], "minimum": 0 },
+        "classification_name": { "type": ["string", "null"] },
+        "policy_decision_id": { "type": ["string", "null"] },
+        "runtime_rule_id": { "type": ["string", "null"] },
+        "model_rule_id": { "type": ["string", "null"] },
+        "default_external_model_policy": { "type": ["string", "null"] },
+        "external_model_policy": { "enum": ["allowed_with_audit", "approval_required", "forbidden"] },
+        "external_model_decision": { "enum": ["allow", "review", "deny"] },
+        "local_model_policy": { "type": ["string", "null"] },
+        "redaction_policy": { "type": ["string", "null"] },
+        "default_policy_decision": { "enum": ["allow", "review", "deny"] },
+        "allowed_runtimes": { "type": "array", "items": { "type": "string" } },
+        "restricted_runtimes": { "type": "array", "items": { "type": "string" } },
+        "forbidden_runtimes": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "blocking_gate_ids": { "type": "array", "items": { "type": "string" } },
+        "approval_required": { "type": "boolean" },
+        "redaction_required": { "type": "boolean" },
+        "rule_status": { "enum": ["active", "blocked"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "resource_classification_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_classification_decision_id",
+        "resource_id",
+        "resource_version_id",
+        "tenant_id",
+        "matter_id",
+        "source_system",
+        "source_uri",
+        "source_classification",
+        "effective_classification",
+        "classification_source",
+        "classification_rule_id",
+        "policy_reference_id",
+        "policy_decision_id",
+        "policy_snapshot_id",
+        "policy_reference_status",
+        "classification_policy_decision",
+        "resource_policy_decision",
+        "external_model_policy",
+        "external_model_decision",
+        "local_model_policy",
+        "redaction_policy",
+        "context_mode",
+        "requires_redaction",
+        "requires_human_review",
+        "required_gates",
+        "linked_resource_access_decision_count",
+        "linked_access_summary",
+        "linked_resource_access_decisions",
+        "reason_codes",
+        "decided_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-classification-decision.v1" },
+        "resource_classification_decision_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "source_system": { "type": "string" },
+        "source_uri": { "type": "string" },
+        "source_classification": { "type": "string" },
+        "effective_classification": { "type": "string" },
+        "classification_source": { "type": "string" },
+        "classification_rule_id": { "type": ["string", "null"] },
+        "policy_reference_id": { "type": ["string", "null"] },
+        "policy_decision_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "policy_reference_status": { "type": "string" },
+        "classification_policy_decision": { "enum": ["allow", "review", "deny"] },
+        "resource_policy_decision": { "enum": ["allow", "review", "deny"] },
+        "external_model_policy": { "type": ["string", "null"] },
+        "external_model_decision": { "enum": ["allow", "review", "deny"] },
+        "local_model_policy": { "type": ["string", "null"] },
+        "redaction_policy": { "type": ["string", "null"] },
+        "context_mode": { "enum": ["raw", "redacted", "review_required", "blocked"] },
+        "requires_redaction": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "linked_resource_access_decision_count": { "type": "integer", "minimum": 0 },
+        "linked_access_summary": {
+          "type": "object",
+          "required": ["allow", "review", "deny"],
+          "properties": {
+            "allow": { "type": "integer", "minimum": 0 },
+            "review": { "type": "integer", "minimum": 0 },
+            "deny": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "linked_resource_access_decisions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["resource_access_decision_id", "runtime_id", "access_decision", "context_mode"],
+            "properties": {
+              "resource_access_decision_id": { "type": "string" },
+              "runtime_id": { "type": "string" },
+              "access_decision": { "enum": ["allow", "review", "deny"] },
+              "context_mode": { "type": "string" }
+            }
+          }
+        },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "classification_policy_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "classification_policy_binding_id",
+        "classification_rule_id",
+        "classification",
+        "policy_decision_id",
+        "external_model_policy",
+        "external_model_decision",
+        "default_policy_decision",
+        "required_gates",
+        "resource_count",
+        "policy_reference_count",
+        "policy_bound_resource_count",
+        "review_resource_count",
+        "allow_resource_count",
+        "deny_resource_count",
+        "resource_ids",
+        "policy_reference_ids",
+        "binding_status",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "classification-policy-binding.v1" },
+        "classification_policy_binding_id": { "type": "string" },
+        "classification_rule_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_decision_id": { "type": ["string", "null"] },
+        "external_model_policy": { "type": ["string", "null"] },
+        "external_model_decision": { "enum": ["allow", "review", "deny"] },
+        "default_policy_decision": { "enum": ["allow", "review", "deny"] },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "policy_reference_count": { "type": "integer", "minimum": 0 },
+        "policy_bound_resource_count": { "type": "integer", "minimum": 0 },
+        "review_resource_count": { "type": "integer", "minimum": 0 },
+        "allow_resource_count": { "type": "integer", "minimum": 0 },
+        "deny_resource_count": { "type": "integer", "minimum": 0 },
+        "resource_ids": { "type": "array", "items": { "type": "string" } },
+        "policy_reference_ids": { "type": "array", "items": { "type": "string" } },
+        "binding_status": { "enum": ["complete", "needs_review"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "classification_rule_engine_status",
+        "source_resource_contract_status",
+        "source_policy_contract_status",
+        "source_matter_access_policy_status",
+        "classification_rule_count",
+        "resource_classification_decision_count",
+        "classification_policy_binding_count",
+        "resource_count",
+        "classified_resource_count",
+        "unclassified_resource_count",
+        "policy_bound_resource_count",
+        "unbound_resource_count",
+        "allow_decision_count",
+        "review_decision_count",
+        "deny_decision_count",
+        "external_model_allow_count",
+        "external_model_review_count",
+        "external_model_deny_count",
+        "redaction_required_resource_count",
+        "human_review_required_resource_count",
+        "matter_tagging_review_count",
+        "matter_access_link_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_classification",
+        "by_policy_decision",
+        "by_external_model_decision",
+        "by_context_mode"
+      ],
+      "properties": {
+        "classification_rule_engine_status": { "type": "string" },
+        "source_resource_contract_status": { "type": "string" },
+        "source_policy_contract_status": { "type": "string" },
+        "source_matter_access_policy_status": { "type": "string" },
+        "classification_rule_count": { "type": "integer", "minimum": 0 },
+        "resource_classification_decision_count": { "type": "integer", "minimum": 0 },
+        "classification_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "classified_resource_count": { "type": "integer", "minimum": 0 },
+        "unclassified_resource_count": { "type": "integer", "minimum": 0 },
+        "policy_bound_resource_count": { "type": "integer", "minimum": 0 },
+        "unbound_resource_count": { "type": "integer", "minimum": 0 },
+        "allow_decision_count": { "type": "integer", "minimum": 0 },
+        "review_decision_count": { "type": "integer", "minimum": 0 },
+        "deny_decision_count": { "type": "integer", "minimum": 0 },
+        "external_model_allow_count": { "type": "integer", "minimum": 0 },
+        "external_model_review_count": { "type": "integer", "minimum": 0 },
+        "external_model_deny_count": { "type": "integer", "minimum": 0 },
+        "redaction_required_resource_count": { "type": "integer", "minimum": 0 },
+        "human_review_required_resource_count": { "type": "integer", "minimum": 0 },
+        "matter_tagging_review_count": { "type": "integer", "minimum": 0 },
+        "matter_access_link_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_classification": { "type": "object" },
+        "by_policy_decision": { "type": "object" },
+        "by_external_model_decision": { "type": "object" },
+        "by_context_mode": { "type": "object" }
+      }
+    }
+  }
+}

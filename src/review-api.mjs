@@ -543,6 +543,53 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("matter_access_policy_validations", evaluatorResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/data-classification-rule-engines") {
+    const engineResult = await readDashboardSourceArtifact(dashboard, "data_classification_rule_engine");
+    if (!engineResult.available) {
+      return jsonResponse(503, buildError("data_classification_rule_engine_unavailable", engineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("data_classification_rule_engines", [engineResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/data-classification-rules") {
+    const engineResult = await readDashboardSourceArtifact(dashboard, "data_classification_rule_engine");
+    if (!engineResult.available) {
+      return jsonResponse(503, buildError("data_classification_rule_engine_unavailable", engineResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("data_classification_rules", engineResult.artifact.classification_rule_catalog?.classification_rules ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/resource-classification-decisions") {
+    const engineResult = await readDashboardSourceArtifact(dashboard, "data_classification_rule_engine");
+    if (!engineResult.available) {
+      return jsonResponse(503, buildError("data_classification_rule_engine_unavailable", engineResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("resource_classification_decisions", engineResult.artifact.classification_rule_catalog?.resource_classification_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/classification-policy-bindings") {
+    const engineResult = await readDashboardSourceArtifact(dashboard, "data_classification_rule_engine");
+    if (!engineResult.available) {
+      return jsonResponse(503, buildError("data_classification_rule_engine_unavailable", engineResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("classification_policy_bindings", engineResult.artifact.classification_rule_catalog?.classification_policy_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/data-classification-rule-validations") {
+    const engineResult = await readDashboardSourceArtifact(dashboard, "data_classification_rule_engine");
+    if (!engineResult.available) {
+      return jsonResponse(503, buildError("data_classification_rule_engine_unavailable", engineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("data_classification_rule_validations", engineResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -3856,6 +3903,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-access-decisions", "Resource-level access decision rows"),
       route("GET", "/api/runtime-access-matrix", "Runtime access matrix rows"),
       route("GET", "/api/matter-access-policy-validations", "Matter access policy validation rows"),
+      route("GET", "/api/data-classification-rule-engines", "Data classification rule engine artifacts"),
+      route("GET", "/api/data-classification-rules", "Data classification policy rule rows"),
+      route("GET", "/api/resource-classification-decisions", "Resource classification policy decision rows"),
+      route("GET", "/api/classification-policy-bindings", "Classification to policy binding rows"),
+      route("GET", "/api/data-classification-rule-validations", "Data classification rule validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4260,6 +4312,26 @@ function filterItems(items, searchParams) {
     "required_classification_floor",
     "runtime_policy_decision",
     "runtime_context_mode",
+    "classification_rule_engine_id",
+    "classification_rule_engine_status",
+    "classification_rule_id",
+    "classification_policy_binding_id",
+    "resource_classification_decision_id",
+    "classification",
+    "source_classification",
+    "effective_classification",
+    "classification_source",
+    "classification_policy_decision",
+    "resource_policy_decision",
+    "external_model_policy",
+    "external_model_decision",
+    "local_model_policy",
+    "redaction_policy",
+    "requires_redaction",
+    "policy_reference_id",
+    "policy_reference_status",
+    "policy_decision_id",
+    "binding_status",
     "external_execution",
     "freeze_id",
     "freeze_status",

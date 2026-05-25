@@ -13,6 +13,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   wallPolicyContractPath: "artifacts/wall-policy-contract/latest/wall-policy-contract.json",
   matterAccessPolicyEvaluatorPath: "artifacts/matter-access-policy/latest/matter-access-policy-evaluator.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
+  dataClassificationRuleEnginePath: "artifacts/data-classification-rules/latest/data-classification-rule-engine.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -161,6 +162,11 @@ const SOURCE_DEFINITIONS = [
     option: "policyContractFreezePath",
     source_id: "policy_contract_freeze",
     label: "Policy Contract Freeze",
+  },
+  {
+    option: "dataClassificationRuleEnginePath",
+    source_id: "data_classification_rule_engine",
+    label: "Data Classification Rule Engine",
   },
   {
     option: "evidenceContractFreezePath",
@@ -783,6 +789,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "wall_policy_contract") return data.summary ?? {};
   if (sourceId === "matter_access_policy_evaluator") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
+  if (sourceId === "data_classification_rule_engine") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -980,6 +987,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWallPolicyContractStage(artifacts.wall_policy_contract, sourceById.get("wall_policy_contract")),
     buildMatterAccessPolicyEvaluatorStage(artifacts.matter_access_policy_evaluator, sourceById.get("matter_access_policy_evaluator")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
+    buildDataClassificationRuleEngineStage(artifacts.data_classification_rule_engine, sourceById.get("data_classification_rule_engine")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1405,6 +1413,46 @@ function buildPolicyContractFreezeStage(freeze, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildDataClassificationRuleEngineStage(engine, source) {
+  if (!engine) return missingStage("data_classification_rule_engine", "Data Classification Rule Engine", source);
+  const summary = engine.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || engine.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "data_classification_rule_engine",
+    label: "Data Classification Rule Engine",
+    status,
+    message: `${summary.classification_rule_count ?? 0} classification rule(s), ${summary.resource_classification_decision_count ?? 0} resource decision(s), ${summary.policy_bound_resource_count ?? 0} policy-bound resource(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      classification_rule_engine_status: summary.classification_rule_engine_status ?? "unknown",
+      source_resource_contract_status: summary.source_resource_contract_status ?? "unknown",
+      source_policy_contract_status: summary.source_policy_contract_status ?? "unknown",
+      source_matter_access_policy_status: summary.source_matter_access_policy_status ?? "unknown",
+      classification_rule_count: summary.classification_rule_count ?? 0,
+      resource_classification_decision_count: summary.resource_classification_decision_count ?? 0,
+      classification_policy_binding_count: summary.classification_policy_binding_count ?? 0,
+      resource_count: summary.resource_count ?? 0,
+      policy_bound_resource_count: summary.policy_bound_resource_count ?? 0,
+      unbound_resource_count: summary.unbound_resource_count ?? 0,
+      allow_decision_count: summary.allow_decision_count ?? 0,
+      review_decision_count: summary.review_decision_count ?? 0,
+      deny_decision_count: summary.deny_decision_count ?? 0,
+      external_model_allow_count: summary.external_model_allow_count ?? 0,
+      external_model_review_count: summary.external_model_review_count ?? 0,
+      external_model_deny_count: summary.external_model_deny_count ?? 0,
+      redaction_required_resource_count: summary.redaction_required_resource_count ?? 0,
+      human_review_required_resource_count: summary.human_review_required_resource_count ?? 0,
+      matter_tagging_review_count: summary.matter_tagging_review_count ?? 0,
+      matter_access_link_count: summary.matter_access_link_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? engine.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -6127,6 +6175,27 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_contract_freeze_matter_boundary_policy_reference_count: artifacts.policy_contract_freeze?.summary?.matter_boundary_policy_reference_count ?? 0,
     policy_contract_freeze_failed_validation_item_count: artifacts.policy_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     policy_contract_freeze_validation_error_count: artifacts.policy_contract_freeze?.summary?.validation_error_count ?? artifacts.policy_contract_freeze?.validation?.errors?.length ?? 0,
+    data_classification_rule_engine_status: artifacts.data_classification_rule_engine?.summary?.classification_rule_engine_status ?? "unknown",
+    data_classification_rule_source_resource_contract_status: artifacts.data_classification_rule_engine?.summary?.source_resource_contract_status ?? "unknown",
+    data_classification_rule_source_policy_contract_status: artifacts.data_classification_rule_engine?.summary?.source_policy_contract_status ?? "unknown",
+    data_classification_rule_source_matter_access_policy_status: artifacts.data_classification_rule_engine?.summary?.source_matter_access_policy_status ?? "unknown",
+    data_classification_rule_count: artifacts.data_classification_rule_engine?.summary?.classification_rule_count ?? 0,
+    data_classification_rule_resource_decision_count: artifacts.data_classification_rule_engine?.summary?.resource_classification_decision_count ?? 0,
+    data_classification_rule_policy_binding_count: artifacts.data_classification_rule_engine?.summary?.classification_policy_binding_count ?? 0,
+    data_classification_rule_policy_bound_resource_count: artifacts.data_classification_rule_engine?.summary?.policy_bound_resource_count ?? 0,
+    data_classification_rule_unbound_resource_count: artifacts.data_classification_rule_engine?.summary?.unbound_resource_count ?? 0,
+    data_classification_rule_allow_decision_count: artifacts.data_classification_rule_engine?.summary?.allow_decision_count ?? 0,
+    data_classification_rule_review_decision_count: artifacts.data_classification_rule_engine?.summary?.review_decision_count ?? 0,
+    data_classification_rule_deny_decision_count: artifacts.data_classification_rule_engine?.summary?.deny_decision_count ?? 0,
+    data_classification_rule_external_model_allow_count: artifacts.data_classification_rule_engine?.summary?.external_model_allow_count ?? 0,
+    data_classification_rule_external_model_review_count: artifacts.data_classification_rule_engine?.summary?.external_model_review_count ?? 0,
+    data_classification_rule_external_model_deny_count: artifacts.data_classification_rule_engine?.summary?.external_model_deny_count ?? 0,
+    data_classification_rule_redaction_required_resource_count: artifacts.data_classification_rule_engine?.summary?.redaction_required_resource_count ?? 0,
+    data_classification_rule_human_review_required_resource_count: artifacts.data_classification_rule_engine?.summary?.human_review_required_resource_count ?? 0,
+    data_classification_rule_matter_tagging_review_count: artifacts.data_classification_rule_engine?.summary?.matter_tagging_review_count ?? 0,
+    data_classification_rule_matter_access_link_count: artifacts.data_classification_rule_engine?.summary?.matter_access_link_count ?? 0,
+    data_classification_rule_failed_validation_item_count: artifacts.data_classification_rule_engine?.summary?.failed_validation_item_count ?? 0,
+    data_classification_rule_validation_error_count: artifacts.data_classification_rule_engine?.summary?.validation_error_count ?? artifacts.data_classification_rule_engine?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -7394,6 +7463,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-access-policy") parsed.matterAccessPolicyEvaluatorPath = false;
     else if (arg === "--policy-contract-freeze") parsed.policyContractFreezePath = argv[++index];
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
+    else if (arg === "--data-classification-rules") parsed.dataClassificationRuleEnginePath = argv[++index];
+    else if (arg === "--no-data-classification-rules") parsed.dataClassificationRuleEnginePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -7615,6 +7686,9 @@ Options:
   --policy-contract-freeze <path>
                                   policy-contract-freeze.json path.
   --no-policy-contract-freeze    Do not include Policy Contract Freeze status.
+  --data-classification-rules <path>
+                                  data-classification-rule-engine.json path.
+  --no-data-classification-rules Do not include Data Classification Rule Engine status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

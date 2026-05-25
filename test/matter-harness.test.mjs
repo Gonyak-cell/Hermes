@@ -15,6 +15,7 @@ import { runClientCounterpartyRegistry } from "../src/client-counterparty-regist
 import { runMatterProfileTeamLedger } from "../src/matter-profile-team-ledger.mjs";
 import { runWallPolicyContract } from "../src/wall-policy-contract.mjs";
 import { runMatterAccessPolicyEvaluator } from "../src/matter-access-policy-evaluator.mjs";
+import { runDataClassificationRuleEngine } from "../src/data-classification-rule-engine.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -851,6 +852,41 @@ describe("matter harness", () => {
       assert.ok(matterAccessPolicyEvaluator.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "matter-access-policy", "summary.md"), "utf8"), /Matter Access Policy Evaluator/);
 
+      const dataClassificationRuleEngine = await runDataClassificationRuleEngine({
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        outDir: path.join(outDir, "data-classification-rules"),
+        runAt: "2026-05-23T06:34:58.750Z",
+      });
+      const dataClassificationRuleEngineSchema = JSON.parse(await readFile("schemas/data-classification-rule-engine.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(dataClassificationRuleEngine, dataClassificationRuleEngineSchema, {}, "data_classification_rule_engine"), []);
+      assert.equal(dataClassificationRuleEngine.summary.classification_rule_engine_status, "complete");
+      assert.equal(dataClassificationRuleEngine.summary.source_resource_contract_status, "complete");
+      assert.equal(dataClassificationRuleEngine.summary.source_policy_contract_status, "complete");
+      assert.equal(dataClassificationRuleEngine.summary.source_matter_access_policy_status, "complete");
+      assert.equal(dataClassificationRuleEngine.summary.classification_rule_count, policyContractFreeze.summary.classification_count);
+      assert.equal(dataClassificationRuleEngine.summary.resource_classification_decision_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(dataClassificationRuleEngine.summary.classification_policy_binding_count, policyContractFreeze.summary.classification_count);
+      assert.equal(dataClassificationRuleEngine.summary.policy_bound_resource_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(dataClassificationRuleEngine.summary.unbound_resource_count, 0);
+      assert.equal(dataClassificationRuleEngine.summary.review_decision_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(dataClassificationRuleEngine.summary.matter_tagging_review_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(dataClassificationRuleEngine.summary.matter_access_link_count, matterAccessPolicyEvaluator.summary.resource_access_decision_count);
+      assert.equal(dataClassificationRuleEngine.summary.validation_error_count, 0);
+      assert.ok(dataClassificationRuleEngine.classification_rule_catalog.classification_rules.every((rule) => rule.policy_decision_id));
+      assert.ok(dataClassificationRuleEngine.classification_rule_catalog.resource_classification_decisions.every((decision) => decision.policy_reference_status === "resolved"));
+      assert.ok(dataClassificationRuleEngine.classification_rule_catalog.resource_classification_decisions.every((decision) => decision.resource_policy_decision === "review"));
+      assert.ok(dataClassificationRuleEngine.classification_rule_catalog.classification_rules.some((rule) => rule.external_model_decision === "review"));
+      assert.equal(
+        dataClassificationRuleEngine.summary.external_model_allow_count
+          + dataClassificationRuleEngine.summary.external_model_review_count
+          + dataClassificationRuleEngine.summary.external_model_deny_count,
+        resourceContractFreeze.summary.resource_count,
+      );
+      assert.ok(dataClassificationRuleEngine.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "data-classification-rules", "summary.md"), "utf8"), /Data Classification Rule Engine/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1315,6 +1351,7 @@ describe("matter harness", () => {
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3120,6 +3157,7 @@ describe("matter harness", () => {
           matter_profile_team_ledger: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
           wall_policy_contract: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
           matter_access_policy_evaluator: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+          data_classification_rule_engine: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -3140,8 +3178,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 19);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 19);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 20);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 20);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3156,6 +3194,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_profile_team_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "wall_policy_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_access_policy_evaluator"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "data_classification_rule_engine"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3270,6 +3309,10 @@ describe("matter harness", () => {
       assert.equal(matterAccessPolicyEvaluatorCheckpoint?.acceptance_profile, "matter_access_policy_gate");
       assert.equal(matterAccessPolicyEvaluatorCheckpoint?.status, "passed");
       assert.equal(matterAccessPolicyEvaluatorCheckpoint?.implementation_status, "passed");
+      const dataClassificationRuleEngineCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-data-classification-rule-engine");
+      assert.equal(dataClassificationRuleEngineCheckpoint?.acceptance_profile, "data_classification_rule_gate");
+      assert.equal(dataClassificationRuleEngineCheckpoint?.status, "passed");
+      assert.equal(dataClassificationRuleEngineCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3725,6 +3768,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_contract_freeze_matter_boundary_policy_reference_count, policyContractFreeze.summary.matter_boundary_policy_reference_count);
       assert.equal(dashboard.summary.policy_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.policy_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.data_classification_rule_engine_status, "complete");
+      assert.equal(dashboard.summary.data_classification_rule_source_resource_contract_status, "complete");
+      assert.equal(dashboard.summary.data_classification_rule_source_policy_contract_status, "complete");
+      assert.equal(dashboard.summary.data_classification_rule_source_matter_access_policy_status, "complete");
+      assert.equal(dashboard.summary.data_classification_rule_count, dataClassificationRuleEngine.summary.classification_rule_count);
+      assert.equal(dashboard.summary.data_classification_rule_resource_decision_count, dataClassificationRuleEngine.summary.resource_classification_decision_count);
+      assert.equal(dashboard.summary.data_classification_rule_policy_binding_count, dataClassificationRuleEngine.summary.classification_policy_binding_count);
+      assert.equal(dashboard.summary.data_classification_rule_policy_bound_resource_count, dataClassificationRuleEngine.summary.policy_bound_resource_count);
+      assert.equal(dashboard.summary.data_classification_rule_unbound_resource_count, 0);
+      assert.equal(dashboard.summary.data_classification_rule_review_decision_count, dataClassificationRuleEngine.summary.review_decision_count);
+      assert.equal(dashboard.summary.data_classification_rule_external_model_review_count, dataClassificationRuleEngine.summary.external_model_review_count);
+      assert.equal(dashboard.summary.data_classification_rule_matter_tagging_review_count, dataClassificationRuleEngine.summary.matter_tagging_review_count);
+      assert.equal(dashboard.summary.data_classification_rule_matter_access_link_count, dataClassificationRuleEngine.summary.matter_access_link_count);
+      assert.equal(dashboard.summary.data_classification_rule_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.data_classification_rule_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -4243,6 +4301,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "wall_policy_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_access_policy_evaluator"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "data_classification_rule_engine"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -4351,6 +4410,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-reference-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-decision-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-contract-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/data-classification-rule-engines"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/data-classification-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-classification-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/classification-policy-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/data-classification-rule-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
@@ -6007,6 +6071,26 @@ describe("matter harness", () => {
       const matterAccessPolicyValidations = JSON.parse((await buildReviewApiResponse("/api/matter-access-policy-validations?status=passed", apiOptions)).body);
       assert.equal(matterAccessPolicyValidations.collection, "matter_access_policy_validations");
       assert.equal(matterAccessPolicyValidations.count, matterAccessPolicyEvaluator.summary.validation_item_count);
+
+      const dataClassificationRuleEngines = JSON.parse((await buildReviewApiResponse("/api/data-classification-rule-engines", apiOptions)).body);
+      assert.equal(dataClassificationRuleEngines.collection, "data_classification_rule_engines");
+      assert.equal(dataClassificationRuleEngines.count, 1);
+
+      const dataClassificationRules = JSON.parse((await buildReviewApiResponse("/api/data-classification-rules?external_model_decision=review", apiOptions)).body);
+      assert.equal(dataClassificationRules.collection, "data_classification_rules");
+      assert.equal(dataClassificationRules.count, 1);
+
+      const resourceClassificationDecisions = JSON.parse((await buildReviewApiResponse("/api/resource-classification-decisions?resource_policy_decision=review", apiOptions)).body);
+      assert.equal(resourceClassificationDecisions.collection, "resource_classification_decisions");
+      assert.equal(resourceClassificationDecisions.count, dataClassificationRuleEngine.summary.review_decision_count);
+
+      const classificationPolicyBindings = JSON.parse((await buildReviewApiResponse("/api/classification-policy-bindings?binding_status=complete", apiOptions)).body);
+      assert.equal(classificationPolicyBindings.collection, "classification_policy_bindings");
+      assert.equal(classificationPolicyBindings.count, dataClassificationRuleEngine.summary.classification_policy_binding_count);
+
+      const dataClassificationRuleValidations = JSON.parse((await buildReviewApiResponse("/api/data-classification-rule-validations?status=passed", apiOptions)).body);
+      assert.equal(dataClassificationRuleValidations.collection, "data_classification_rule_validations");
+      assert.equal(dataClassificationRuleValidations.count, dataClassificationRuleEngine.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

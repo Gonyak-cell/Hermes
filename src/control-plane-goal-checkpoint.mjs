@@ -23,6 +23,7 @@ const GOAL_ITEMS = [
   sourceItem("matter_access_policy_evaluator", "Matter access policy evaluator", "identity_policy", "matter_access_policy_evaluator", "control-plane-matter-access-policy-evaluator", { acceptance_profile: "matter_access_policy_gate" }),
   sourceItem("data_classification_rule_engine", "Data classification rule engine", "identity_policy", "data_classification_rule_engine", "control-plane-data-classification-rule-engine", { acceptance_profile: "data_classification_rule_gate" }),
   sourceItem("matter_tagging_decision_ledger", "Matter tagging decision ledger", "identity_policy", "matter_tagging_decision_ledger", "control-plane-matter-tagging-decision-ledger", { acceptance_profile: "matter_tagging_decision_gate" }),
+  sourceItem("access_audit_projection", "Access audit projection", "identity_policy", "access_audit_projection", "control-plane-access-audit-projection", { acceptance_profile: "access_audit_projection_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -407,6 +408,22 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.correction_history_count ?? 0) >= 0
     ) {
       return passedWithOperationalGate(stage, "Matter tagging decisions are implemented with automatic candidates, pending human confirmation, and separate correction history without auto-applying matter changes.");
+    }
+  }
+
+  if (item.acceptance_profile === "access_audit_projection_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.matter_tagging_unresolved_count ?? 0);
+    const sourceCovered = (metrics.access_audit_record_count ?? 0) === (metrics.matter_access_decision_count ?? 0) + (metrics.resource_access_decision_count ?? 0);
+    if (
+      errors === 0
+      && sourceCovered
+      && (metrics.access_audit_record_count ?? 0) > 0
+      && (metrics.actor_access_rollup_count ?? 0) > 0
+      && (metrics.resource_access_rollup_count ?? 0) > 0
+      && (metrics.distinct_user_count ?? 0) > 0
+      && (metrics.distinct_matter_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Access audit projection is implemented and exposing who can view which matter/resource by user, runtime, matter, resource, and policy snapshot.");
     }
   }
 

@@ -17,6 +17,7 @@ import { runWallPolicyContract } from "../src/wall-policy-contract.mjs";
 import { runMatterAccessPolicyEvaluator } from "../src/matter-access-policy-evaluator.mjs";
 import { runDataClassificationRuleEngine } from "../src/data-classification-rule-engine.mjs";
 import { runMatterTaggingDecisionLedger } from "../src/matter-tagging-decision-ledger.mjs";
+import { runAccessAuditProjection } from "../src/access-audit-projection.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -926,6 +927,41 @@ describe("matter harness", () => {
       assert.ok(matterTaggingDecisionLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "matter-tagging", "summary.md"), "utf8"), /Matter Tagging Decision Ledger/);
 
+      const accessAuditProjection = await runAccessAuditProjection({
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
+        outDir: path.join(outDir, "access-audit"),
+        runAt: "2026-05-23T06:35:05.000Z",
+      });
+      const accessAuditProjectionSchema = JSON.parse(await readFile("schemas/access-audit-projection.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(accessAuditProjection, accessAuditProjectionSchema, {}, "access_audit_projection"), []);
+      assert.equal(accessAuditProjection.summary.access_audit_projection_status, "complete");
+      assert.equal(accessAuditProjection.summary.source_matter_access_policy_status, "complete");
+      assert.equal(accessAuditProjection.summary.source_matter_tagging_ledger_status, "complete");
+      assert.equal(accessAuditProjection.summary.matter_access_decision_count, matterAccessPolicyEvaluator.summary.matter_access_decision_count);
+      assert.equal(accessAuditProjection.summary.resource_access_decision_count, matterAccessPolicyEvaluator.summary.resource_access_decision_count);
+      assert.equal(accessAuditProjection.summary.access_audit_record_count, matterAccessPolicyEvaluator.summary.matter_access_decision_count + matterAccessPolicyEvaluator.summary.resource_access_decision_count);
+      assert.equal(accessAuditProjection.summary.matter_audit_record_count, matterAccessPolicyEvaluator.summary.matter_access_decision_count);
+      assert.equal(accessAuditProjection.summary.resource_audit_record_count, matterAccessPolicyEvaluator.summary.resource_access_decision_count);
+      assert.equal(accessAuditProjection.summary.actor_access_rollup_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
+      assert.equal(accessAuditProjection.summary.resource_access_rollup_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(accessAuditProjection.summary.view_allowed_count, matterAccessPolicyEvaluator.summary.allow_decision_count);
+      assert.equal(accessAuditProjection.summary.view_requires_human_confirmation_count, matterAccessPolicyEvaluator.summary.review_decision_count);
+      assert.equal(accessAuditProjection.summary.view_denied_count, matterAccessPolicyEvaluator.summary.deny_decision_count);
+      assert.equal(accessAuditProjection.summary.matter_tagging_linked_count, matterAccessPolicyEvaluator.summary.unassigned_resource_review_count);
+      assert.equal(accessAuditProjection.summary.matter_tagging_unresolved_count, 0);
+      assert.equal(accessAuditProjection.summary.distinct_user_count, 1);
+      assert.equal(accessAuditProjection.summary.distinct_runtime_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
+      assert.equal(accessAuditProjection.summary.distinct_matter_count, 1);
+      assert.equal(accessAuditProjection.summary.distinct_resource_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(accessAuditProjection.summary.validation_error_count, 0);
+      assert.ok(accessAuditProjection.access_audit_catalog.access_audit_records.every((record) => record.user_id && record.runtime_id && record.target_matter_id && record.policy_snapshot_id));
+      assert.ok(accessAuditProjection.access_audit_catalog.access_audit_records.filter((record) => record.target_type === "resource").every((record) => record.target_resource_id && record.matter_tagging_decision_id));
+      assert.ok(accessAuditProjection.access_audit_catalog.actor_access_rollups.every((rollup) => rollup.access_audit_record_count > 0));
+      assert.ok(accessAuditProjection.access_audit_catalog.resource_access_rollups.every((rollup) => rollup.matter_tagging_decision_ids.length === 1));
+      assert.ok(accessAuditProjection.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "access-audit", "summary.md"), "utf8"), /Access Audit Projection/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1466,6 +1502,7 @@ describe("matter harness", () => {
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
         dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
         matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
+        accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -1568,6 +1605,7 @@ describe("matter harness", () => {
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
         matterTaggingDecisionLedgerPath: false,
+        accessAuditProjectionPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
@@ -3419,6 +3457,7 @@ describe("matter harness", () => {
           matter_access_policy_evaluator: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
           data_classification_rule_engine: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
           matter_tagging_decision_ledger: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
+          access_audit_projection: path.join(outDir, "access-audit", "access-audit-projection.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3444,8 +3483,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 26);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 26);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 27);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 27);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3462,6 +3501,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_access_policy_evaluator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "data_classification_rule_engine"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_tagging_decision_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_audit_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3505,6 +3545,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:matter-tagging"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:access-audit"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3594,6 +3635,10 @@ describe("matter harness", () => {
       assert.equal(matterTaggingDecisionLedgerCheckpoint?.acceptance_profile, "matter_tagging_decision_gate");
       assert.equal(matterTaggingDecisionLedgerCheckpoint?.status, "passed");
       assert.equal(matterTaggingDecisionLedgerCheckpoint?.implementation_status, "passed");
+      const accessAuditProjectionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-access-audit-projection");
+      assert.equal(accessAuditProjectionCheckpoint?.acceptance_profile, "access_audit_projection_gate");
+      assert.equal(accessAuditProjectionCheckpoint?.status, "passed");
+      assert.equal(accessAuditProjectionCheckpoint?.implementation_status, "passed");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4158,6 +4203,27 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.matter_tagging_tenant_boundary_mismatch_count, matterTaggingDecisionLedger.summary.tenant_boundary_mismatch_count);
       assert.equal(dashboard.summary.matter_tagging_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.matter_tagging_validation_error_count, 0);
+      assert.equal(dashboard.summary.access_audit_projection_status, "complete");
+      assert.equal(dashboard.summary.access_audit_source_matter_access_policy_status, "complete");
+      assert.equal(dashboard.summary.access_audit_source_matter_tagging_ledger_status, "complete");
+      assert.equal(dashboard.summary.access_audit_record_count, accessAuditProjection.summary.access_audit_record_count);
+      assert.equal(dashboard.summary.access_audit_matter_record_count, accessAuditProjection.summary.matter_audit_record_count);
+      assert.equal(dashboard.summary.access_audit_resource_record_count, accessAuditProjection.summary.resource_audit_record_count);
+      assert.equal(dashboard.summary.access_audit_actor_rollup_count, accessAuditProjection.summary.actor_access_rollup_count);
+      assert.equal(dashboard.summary.access_audit_resource_rollup_count, accessAuditProjection.summary.resource_access_rollup_count);
+      assert.equal(dashboard.summary.access_audit_view_allowed_count, accessAuditProjection.summary.view_allowed_count);
+      assert.equal(dashboard.summary.access_audit_view_requires_human_confirmation_count, accessAuditProjection.summary.view_requires_human_confirmation_count);
+      assert.equal(dashboard.summary.access_audit_view_denied_count, accessAuditProjection.summary.view_denied_count);
+      assert.equal(dashboard.summary.access_audit_can_retrieve_count, accessAuditProjection.summary.can_retrieve_count);
+      assert.equal(dashboard.summary.access_audit_human_review_required_count, accessAuditProjection.summary.human_review_required_count);
+      assert.equal(dashboard.summary.access_audit_matter_tagging_linked_count, accessAuditProjection.summary.matter_tagging_linked_count);
+      assert.equal(dashboard.summary.access_audit_matter_tagging_unresolved_count, 0);
+      assert.equal(dashboard.summary.access_audit_distinct_user_count, accessAuditProjection.summary.distinct_user_count);
+      assert.equal(dashboard.summary.access_audit_distinct_runtime_count, accessAuditProjection.summary.distinct_runtime_count);
+      assert.equal(dashboard.summary.access_audit_distinct_matter_count, accessAuditProjection.summary.distinct_matter_count);
+      assert.equal(dashboard.summary.access_audit_distinct_resource_count, accessAuditProjection.summary.distinct_resource_count);
+      assert.equal(dashboard.summary.access_audit_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.access_audit_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -4643,6 +4709,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_matrix_catalog"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_tagging_decision_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "access_audit_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
@@ -4809,6 +4876,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-confirmations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-corrections"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-tagging-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-projections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-actor-rollups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-resource-rollups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
@@ -6652,6 +6724,26 @@ describe("matter harness", () => {
       const matterTaggingValidations = JSON.parse((await buildReviewApiResponse("/api/matter-tagging-validations?status=passed", apiOptions)).body);
       assert.equal(matterTaggingValidations.collection, "matter_tagging_validations");
       assert.equal(matterTaggingValidations.count, matterTaggingDecisionLedger.summary.validation_item_count);
+
+      const accessAuditProjections = JSON.parse((await buildReviewApiResponse("/api/access-audit-projections?access_audit_projection_status=complete", apiOptions)).body);
+      assert.equal(accessAuditProjections.collection, "access_audit_projections");
+      assert.equal(accessAuditProjections.count, 1);
+
+      const accessAuditRecords = JSON.parse((await buildReviewApiResponse("/api/access-audit-records?target_type=resource&view_status=view_requires_human_confirmation", apiOptions)).body);
+      assert.equal(accessAuditRecords.collection, "access_audit_records");
+      assert.equal(accessAuditRecords.count, accessAuditProjection.summary.resource_audit_record_count);
+
+      const accessAuditActorRollups = JSON.parse((await buildReviewApiResponse("/api/access-audit-actor-rollups?target_matter_id=matter.alpha.ldd", apiOptions)).body);
+      assert.equal(accessAuditActorRollups.collection, "access_audit_actor_rollups");
+      assert.equal(accessAuditActorRollups.count, accessAuditProjection.summary.actor_access_rollup_count);
+
+      const accessAuditResourceRollups = JSON.parse((await buildReviewApiResponse("/api/access-audit-resource-rollups?target_matter_id=matter.alpha.ldd", apiOptions)).body);
+      assert.equal(accessAuditResourceRollups.collection, "access_audit_resource_rollups");
+      assert.equal(accessAuditResourceRollups.count, accessAuditProjection.summary.resource_access_rollup_count);
+
+      const accessAuditValidations = JSON.parse((await buildReviewApiResponse("/api/access-audit-validations?status=passed", apiOptions)).body);
+      assert.equal(accessAuditValidations.collection, "access_audit_validations");
+      assert.equal(accessAuditValidations.count, accessAuditProjection.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

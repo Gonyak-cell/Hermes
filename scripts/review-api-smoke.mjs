@@ -198,6 +198,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-confirmations"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-corrections"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-tagging-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/access-audit-projections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/access-audit-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/access-audit-actor-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/access-audit-resource-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/access-audit-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1740,6 +1745,26 @@ try {
   const matterTaggingValidations = await fetchJson(`${url}/api/matter-tagging-validations?status=passed&limit=5`);
   assert.equal(matterTaggingValidations.collection, "matter_tagging_validations");
   assert.ok(matterTaggingValidations.count <= 5);
+
+  const accessAuditProjections = await fetchJson(`${url}/api/access-audit-projections?access_audit_projection_status=complete&limit=1`);
+  assert.equal(accessAuditProjections.collection, "access_audit_projections");
+  assert.ok(accessAuditProjections.count <= 1);
+
+  const accessAuditRecords = await fetchJson(`${url}/api/access-audit-records?target_type=resource&view_status=view_requires_human_confirmation&limit=5`);
+  assert.equal(accessAuditRecords.collection, "access_audit_records");
+  assert.ok(accessAuditRecords.count <= 5);
+
+  const accessAuditActorRollups = await fetchJson(`${url}/api/access-audit-actor-rollups?target_matter_id=matter.alpha.ldd&limit=5`);
+  assert.equal(accessAuditActorRollups.collection, "access_audit_actor_rollups");
+  assert.ok(accessAuditActorRollups.count <= 5);
+
+  const accessAuditResourceRollups = await fetchJson(`${url}/api/access-audit-resource-rollups?target_matter_id=matter.alpha.ldd&limit=5`);
+  assert.equal(accessAuditResourceRollups.collection, "access_audit_resource_rollups");
+  assert.ok(accessAuditResourceRollups.count <= 5);
+
+  const accessAuditValidations = await fetchJson(`${url}/api/access-audit-validations?status=passed&limit=5`);
+  assert.equal(accessAuditValidations.collection, "access_audit_validations");
+  assert.ok(accessAuditValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

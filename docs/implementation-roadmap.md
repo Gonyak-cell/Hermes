@@ -3830,6 +3830,28 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Matter Tagging Decision Ledger를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:matter-tagging -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 125: Access Audit Projection
+
+P125에서는 Matter Access Policy Evaluator의 matter/resource access decision을 사람이 조회 가능한 Access Audit Projection으로 materialize했다. 이 단계의 목표는 “누가 어떤 matter/resource를 어떤 runtime/policy snapshot 아래에서 볼 수 있는지”를 원본 접근 판단과 분리된 조회 view로 제공하는 것이다.
+
+구현 내용:
+
+- `src/access-audit-projection.mjs`와 `scripts/access-audit-projection.mjs`를 추가해 `npm run contracts:access-audit` 명령으로 실행 가능하게 함
+- `schemas/access-audit-projection.schema.json`을 추가해 projection, audit record, actor rollup, resource rollup, validation item을 schema 검증 대상으로 고정함
+- Matter access decision과 resource access decision을 `access_audit_records`로 통합하되 `target_type`, `user_id`, `runtime_id`, `target_matter_id`, `target_resource_id`, `view_status`, `policy_snapshot_id`를 조회 key로 유지함
+- `allow/review/deny`를 각각 `view_allowed`, `view_requires_human_confirmation`, `view_denied`로 정규화해 실제 자료 열람 실행 없이 audit view로만 표현함
+- resource-level audit row가 matter tagging 필요 상태이면 P124의 `matter_tagging_decision_id`와 confirmation 상태를 연결해 unassigned resource 접근을 추적 가능하게 함
+- actor별 rollup과 resource별 rollup을 분리해 user/runtime/matter/resource 축으로 조회할 수 있게 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 access audit projection을 통합함
+
+완료 기준:
+
+- Access audit projection이 Matter Access Policy Evaluator와 Matter Tagging Decision Ledger를 source로 삼아 153개 audit record, 9개 actor rollup, 16개 resource rollup을 생성함
+- 모든 matter/resource access decision이 audit record로 1:1 투영되고, resource-level row는 matter tagging decision에 연결됨
+- Dashboard/API에서 `/api/access-audit-projections`, `/api/access-audit-records`, `/api/access-audit-actor-rollups`, `/api/access-audit-resource-rollups`, `/api/access-audit-validations` route로 조회 가능함
+- Golden fixture 수가 27개로 증가하고 access audit projection이 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run contracts:access-audit -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3838,9 +3860,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 124이다.
+- 현재 완료 기준점은 Phase 125이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P125-P312, 총 188개다.
+- 남은 계획 슬롯은 P126-P312, 총 187개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -15,6 +15,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   dataClassificationRuleEnginePath: "artifacts/data-classification-rules/latest/data-classification-rule-engine.json",
   matterTaggingDecisionLedgerPath: "artifacts/matter-tagging/latest/matter-tagging-ledger.json",
+  accessAuditProjectionPath: "artifacts/access-audit/latest/access-audit-projection.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -178,6 +179,11 @@ const SOURCE_DEFINITIONS = [
     option: "matterTaggingDecisionLedgerPath",
     source_id: "matter_tagging_decision_ledger",
     label: "Matter Tagging Decision Ledger",
+  },
+  {
+    option: "accessAuditProjectionPath",
+    source_id: "access_audit_projection",
+    label: "Access Audit Projection",
   },
   {
     option: "evidenceContractFreezePath",
@@ -827,6 +833,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "data_classification_rule_engine") return data.summary ?? {};
   if (sourceId === "matter_tagging_decision_ledger") return data.summary ?? {};
+  if (sourceId === "access_audit_projection") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1031,6 +1038,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildDataClassificationRuleEngineStage(artifacts.data_classification_rule_engine, sourceById.get("data_classification_rule_engine")),
     buildMatterTaggingDecisionLedgerStage(artifacts.matter_tagging_decision_ledger, sourceById.get("matter_tagging_decision_ledger")),
+    buildAccessAuditProjectionStage(artifacts.access_audit_projection, sourceById.get("access_audit_projection")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1541,6 +1549,52 @@ function buildMatterTaggingDecisionLedgerStage(ledger, source) {
       auto_applied_count: summary.auto_applied_count ?? 0,
       no_candidate_count: summary.no_candidate_count ?? 0,
       tenant_boundary_mismatch_count: summary.tenant_boundary_mismatch_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildAccessAuditProjectionStage(projection, source) {
+  if (!projection) return missingStage("access_audit_projection", "Access Audit Projection", source);
+  const summary = projection.summary ?? {};
+  const errorCount = summary.validation_error_count ?? projection.validation?.errors?.length ?? 0;
+  const status = summary.access_audit_projection_status === "complete"
+    && errorCount === 0
+    && (summary.access_audit_record_count ?? 0) > 0
+    && (summary.matter_tagging_unresolved_count ?? 0) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "access_audit_projection",
+    label: "Access Audit Projection",
+    status,
+    message: `${summary.access_audit_record_count ?? 0} audit record(s), ${summary.actor_access_rollup_count ?? 0} actor rollup(s), ${summary.resource_access_rollup_count ?? 0} resource rollup(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      access_audit_projection_status: summary.access_audit_projection_status ?? "unknown",
+      source_matter_access_policy_status: summary.source_matter_access_policy_status ?? "unknown",
+      source_matter_tagging_ledger_status: summary.source_matter_tagging_ledger_status ?? "unknown",
+      matter_access_decision_count: summary.matter_access_decision_count ?? 0,
+      resource_access_decision_count: summary.resource_access_decision_count ?? 0,
+      access_audit_record_count: summary.access_audit_record_count ?? 0,
+      matter_audit_record_count: summary.matter_audit_record_count ?? 0,
+      resource_audit_record_count: summary.resource_audit_record_count ?? 0,
+      actor_access_rollup_count: summary.actor_access_rollup_count ?? 0,
+      resource_access_rollup_count: summary.resource_access_rollup_count ?? 0,
+      view_allowed_count: summary.view_allowed_count ?? 0,
+      view_requires_human_confirmation_count: summary.view_requires_human_confirmation_count ?? 0,
+      view_denied_count: summary.view_denied_count ?? 0,
+      can_retrieve_count: summary.can_retrieve_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      external_runtime_record_count: summary.external_runtime_record_count ?? 0,
+      matter_tagging_linked_count: summary.matter_tagging_linked_count ?? 0,
+      matter_tagging_unresolved_count: summary.matter_tagging_unresolved_count ?? 0,
+      distinct_user_count: summary.distinct_user_count ?? 0,
+      distinct_runtime_count: summary.distinct_runtime_count ?? 0,
+      distinct_matter_count: summary.distinct_matter_count ?? 0,
+      distinct_resource_count: summary.distinct_resource_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5142,6 +5196,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.access_audit_projection?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "access_audit_projection";
+    items.push({
+      action_item_id: `dashboard.action.access_audit_projection.${slugify(subjectId)}`,
+      source_stage: "access_audit_projection",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix access audit projection validation",
+      subject_ref: {
+        subject_type: "access_audit_projection_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_access_audit_projection", "rerun_access_audit_projection", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -6661,6 +6733,28 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     matter_tagging_tenant_boundary_mismatch_count: artifacts.matter_tagging_decision_ledger?.summary?.tenant_boundary_mismatch_count ?? 0,
     matter_tagging_failed_validation_item_count: artifacts.matter_tagging_decision_ledger?.summary?.failed_validation_item_count ?? 0,
     matter_tagging_validation_error_count: artifacts.matter_tagging_decision_ledger?.summary?.validation_error_count ?? artifacts.matter_tagging_decision_ledger?.validation?.errors?.length ?? 0,
+    access_audit_projection_status: artifacts.access_audit_projection?.summary?.access_audit_projection_status ?? "unknown",
+    access_audit_source_matter_access_policy_status: artifacts.access_audit_projection?.summary?.source_matter_access_policy_status ?? "unknown",
+    access_audit_source_matter_tagging_ledger_status: artifacts.access_audit_projection?.summary?.source_matter_tagging_ledger_status ?? "unknown",
+    access_audit_record_count: artifacts.access_audit_projection?.summary?.access_audit_record_count ?? 0,
+    access_audit_matter_record_count: artifacts.access_audit_projection?.summary?.matter_audit_record_count ?? 0,
+    access_audit_resource_record_count: artifacts.access_audit_projection?.summary?.resource_audit_record_count ?? 0,
+    access_audit_actor_rollup_count: artifacts.access_audit_projection?.summary?.actor_access_rollup_count ?? 0,
+    access_audit_resource_rollup_count: artifacts.access_audit_projection?.summary?.resource_access_rollup_count ?? 0,
+    access_audit_view_allowed_count: artifacts.access_audit_projection?.summary?.view_allowed_count ?? 0,
+    access_audit_view_requires_human_confirmation_count: artifacts.access_audit_projection?.summary?.view_requires_human_confirmation_count ?? 0,
+    access_audit_view_denied_count: artifacts.access_audit_projection?.summary?.view_denied_count ?? 0,
+    access_audit_can_retrieve_count: artifacts.access_audit_projection?.summary?.can_retrieve_count ?? 0,
+    access_audit_human_review_required_count: artifacts.access_audit_projection?.summary?.human_review_required_count ?? 0,
+    access_audit_external_runtime_record_count: artifacts.access_audit_projection?.summary?.external_runtime_record_count ?? 0,
+    access_audit_matter_tagging_linked_count: artifacts.access_audit_projection?.summary?.matter_tagging_linked_count ?? 0,
+    access_audit_matter_tagging_unresolved_count: artifacts.access_audit_projection?.summary?.matter_tagging_unresolved_count ?? 0,
+    access_audit_distinct_user_count: artifacts.access_audit_projection?.summary?.distinct_user_count ?? 0,
+    access_audit_distinct_runtime_count: artifacts.access_audit_projection?.summary?.distinct_runtime_count ?? 0,
+    access_audit_distinct_matter_count: artifacts.access_audit_projection?.summary?.distinct_matter_count ?? 0,
+    access_audit_distinct_resource_count: artifacts.access_audit_projection?.summary?.distinct_resource_count ?? 0,
+    access_audit_failed_validation_item_count: artifacts.access_audit_projection?.summary?.failed_validation_item_count ?? 0,
+    access_audit_validation_error_count: artifacts.access_audit_projection?.summary?.validation_error_count ?? artifacts.access_audit_projection?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8008,6 +8102,8 @@ function parseArgs(argv) {
     else if (arg === "--no-data-classification-rules") parsed.dataClassificationRuleEnginePath = false;
     else if (arg === "--matter-tagging-ledger") parsed.matterTaggingDecisionLedgerPath = argv[++index];
     else if (arg === "--no-matter-tagging-ledger") parsed.matterTaggingDecisionLedgerPath = false;
+    else if (arg === "--access-audit-projection") parsed.accessAuditProjectionPath = argv[++index];
+    else if (arg === "--no-access-audit-projection") parsed.accessAuditProjectionPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8244,6 +8340,9 @@ Options:
   --no-data-classification-rules Do not include Data Classification Rule Engine status.
   --matter-tagging-ledger <path> matter-tagging-ledger.json path.
   --no-matter-tagging-ledger     Do not include Matter Tagging Decision Ledger status.
+  --access-audit-projection <path>
+                                  access-audit-projection.json path.
+  --no-access-audit-projection   Do not include Access Audit Projection status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

@@ -632,6 +632,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("matter_tagging_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/access-audit-projections") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "access_audit_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("access_audit_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_audit_projections", [projectionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-audit-records") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "access_audit_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("access_audit_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_audit_records", projectionResult.artifact.access_audit_catalog?.access_audit_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-audit-actor-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "access_audit_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("access_audit_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_audit_actor_rollups", projectionResult.artifact.access_audit_catalog?.actor_access_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-audit-resource-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "access_audit_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("access_audit_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_audit_resource_rollups", projectionResult.artifact.access_audit_catalog?.resource_access_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/access-audit-validations") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "access_audit_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("access_audit_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("access_audit_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4166,6 +4201,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/matter-tagging-confirmations", "Human confirmation queue rows for matter tagging"),
       route("GET", "/api/matter-tagging-corrections", "Matter tagging correction history rows"),
       route("GET", "/api/matter-tagging-validations", "Matter tagging validation rows"),
+      route("GET", "/api/access-audit-projections", "Access audit projection artifacts"),
+      route("GET", "/api/access-audit-records", "Query-ready matter/resource access audit rows"),
+      route("GET", "/api/access-audit-actor-rollups", "Access audit rollups by user, runtime, and matter"),
+      route("GET", "/api/access-audit-resource-rollups", "Access audit rollups by resource and matter"),
+      route("GET", "/api/access-audit-validations", "Access audit validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4617,6 +4657,16 @@ function filterItems(items, searchParams) {
     "proposed_matter_id",
     "human_confirmation_required",
     "auto_apply_allowed",
+    "access_audit_projection_id",
+    "access_audit_projection_status",
+    "access_audit_record_id",
+    "actor_access_rollup_id",
+    "resource_access_rollup_id",
+    "source_decision_type",
+    "source_decision_id",
+    "target_type",
+    "target_resource_id",
+    "view_status",
     "classification_rule_id",
     "classification_policy_binding_id",
     "resource_classification_decision_id",
@@ -5236,6 +5286,7 @@ function readFilterValue(item, key) {
   if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "matter_tagging_ledger_status") return item.summary?.matter_tagging_ledger_status ?? item.matter_tagging_ledger_status;
+  if (key === "access_audit_projection_status") return item.summary?.access_audit_projection_status ?? item.access_audit_projection_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

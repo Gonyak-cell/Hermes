@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/access-audit-projection.schema.json",
+  "title": "Hermes Access Audit Projection",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "access_audit_projection_id",
+    "output_dir",
+    "inputs",
+    "source_matter_access_policy",
+    "source_matter_tagging_decision_ledger",
+    "access_audit_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "access-audit-projection.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "access_audit_projection_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["matter_access_policy_evaluator_path", "matter_tagging_decision_ledger_path"],
+      "properties": {
+        "matter_access_policy_evaluator_path": { "type": "string" },
+        "matter_tagging_decision_ledger_path": { "type": "string" }
+      }
+    },
+    "source_matter_access_policy": { "$ref": "#/$defs/source" },
+    "source_matter_tagging_decision_ledger": { "$ref": "#/$defs/source" },
+    "access_audit_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "access_audit_records", "actor_access_rollups", "resource_access_rollups"],
+      "properties": {
+        "schema_version": { "const": "access-audit-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "access_audit_records": { "type": "array", "items": { "$ref": "#/$defs/access_audit_record" } },
+        "actor_access_rollups": { "type": "array", "items": { "$ref": "#/$defs/actor_access_rollup" } },
+        "resource_access_rollups": { "type": "array", "items": { "$ref": "#/$defs/resource_access_rollup" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "access_audit_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "access_audit_record_id",
+        "source_decision_type",
+        "source_decision_id",
+        "access_subject_id",
+        "user_id",
+        "runtime_id",
+        "tenant_id",
+        "target_type",
+        "target_matter_id",
+        "access_decision",
+        "view_status",
+        "context_mode",
+        "can_retrieve",
+        "requires_human_review",
+        "required_gates",
+        "reason_codes",
+        "policy_snapshot_id",
+        "decided_at",
+        "projected_at",
+        "audit_query_keys",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "access-audit-record.v1" },
+        "access_audit_record_id": { "type": "string" },
+        "source_decision_type": { "enum": ["matter_access_decision", "resource_access_decision"] },
+        "source_decision_id": { "type": "string" },
+        "access_subject_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "subject_type": { "type": ["string", "null"] },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": ["string", "null"] },
+        "external_execution": { "type": "boolean" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "target_type": { "enum": ["matter", "resource"] },
+        "target_matter_id": { "type": "string" },
+        "target_resource_id": { "type": ["string", "null"] },
+        "target_resource_version_id": { "type": ["string", "null"] },
+        "resource_matter_id": { "type": ["string", "null"] },
+        "resource_tenant_id": { "type": ["string", "null"] },
+        "resource_classification": { "type": ["string", "null"] },
+        "required_classification_floor": { "type": ["string", "null"] },
+        "wall_id": { "type": ["string", "null"] },
+        "wall_policy_rule_id": { "type": ["string", "null"] },
+        "retrieval_wall_filter_id": { "type": ["string", "null"] },
+        "access_decision": { "enum": ["allow", "review", "deny"] },
+        "view_status": { "enum": ["view_allowed", "view_requires_human_confirmation", "view_denied", "view_blocked"] },
+        "context_mode": { "type": "string" },
+        "can_retrieve": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_id": { "type": "string" },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "projected_at": { "type": "string", "format": "date-time" },
+        "matter_tagging_decision_id": { "type": ["string", "null"] },
+        "matter_tagging_status": { "type": ["string", "null"] },
+        "matter_tagging_confirmation_id": { "type": ["string", "null"] },
+        "audit_query_keys": { "type": "array", "items": { "type": "string" } },
+        "metadata": { "type": "object" }
+      }
+    },
+    "actor_access_rollup": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "actor_access_rollup_id",
+        "user_id",
+        "access_subject_id",
+        "runtime_id",
+        "target_matter_id",
+        "access_audit_record_count",
+        "projected_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "actor-access-rollup.v1" },
+        "actor_access_rollup_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "access_subject_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "target_matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "access_audit_record_count": { "type": "integer", "minimum": 0 },
+        "matter_record_count": { "type": "integer", "minimum": 0 },
+        "resource_record_count": { "type": "integer", "minimum": 0 },
+        "view_allowed_count": { "type": "integer", "minimum": 0 },
+        "view_requires_human_confirmation_count": { "type": "integer", "minimum": 0 },
+        "view_denied_count": { "type": "integer", "minimum": 0 },
+        "can_retrieve_count": { "type": "integer", "minimum": 0 },
+        "human_review_required_count": { "type": "integer", "minimum": 0 },
+        "external_runtime_record_count": { "type": "integer", "minimum": 0 },
+        "resource_ids": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_ids": { "type": "array", "items": { "type": "string" } },
+        "projected_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "resource_access_rollup": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_access_rollup_id",
+        "target_resource_id",
+        "target_matter_id",
+        "access_audit_record_count",
+        "projected_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-access-rollup.v1" },
+        "resource_access_rollup_id": { "type": "string" },
+        "target_resource_id": { "type": "string" },
+        "target_matter_id": { "type": "string" },
+        "resource_matter_id": { "type": ["string", "null"] },
+        "resource_tenant_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "resource_classification": { "type": ["string", "null"] },
+        "access_audit_record_count": { "type": "integer", "minimum": 0 },
+        "view_allowed_count": { "type": "integer", "minimum": 0 },
+        "view_requires_human_confirmation_count": { "type": "integer", "minimum": 0 },
+        "view_denied_count": { "type": "integer", "minimum": 0 },
+        "can_retrieve_count": { "type": "integer", "minimum": 0 },
+        "human_review_required_count": { "type": "integer", "minimum": 0 },
+        "user_ids": { "type": "array", "items": { "type": "string" } },
+        "runtime_ids": { "type": "array", "items": { "type": "string" } },
+        "matter_tagging_decision_ids": { "type": "array", "items": { "type": "string" } },
+        "projected_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["access_audit_projection_status", "access_audit_record_count", "validation_error_count"],
+      "additionalProperties": true,
+      "properties": {
+        "access_audit_projection_status": { "enum": ["complete", "blocked"] },
+        "access_audit_record_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -472,6 +472,101 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/capability-workflow-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("capability_workflow_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/capability-manifest-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_v2_contracts", freezeResult.artifact.capability_workflow_contract?.capability_manifests ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_v2_contracts", freezeResult.artifact.capability_workflow_contract?.workflows ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_v2_contracts", freezeResult.artifact.capability_workflow_contract?.workflow_runs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_v2_contracts", freezeResult.artifact.capability_workflow_contract?.agent_runs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-io-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_io_contracts", freezeResult.artifact.capability_workflow_contract?.capability_io_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-gate-runtime-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_gate_runtime_contracts", freezeResult.artifact.capability_workflow_contract?.gate_runtime_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-execution-bindings") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_execution_bindings", freezeResult.artifact.capability_workflow_contract?.workflow_execution_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-workflow-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "capability_workflow_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("capability_workflow_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_workflow_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -2888,6 +2983,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/citation-contracts", "Citation v2 contract fixtures"),
       route("GET", "/api/evidence-lineage-edges", "Evidence lineage edge fixtures"),
       route("GET", "/api/evidence-contract-validations", "Evidence contract validation rows"),
+      route("GET", "/api/capability-workflow-contract-freezes", "Capability/workflow contract freeze artifacts"),
+      route("GET", "/api/capability-manifest-v2-contracts", "CapabilityManifest v2 contract fixtures"),
+      route("GET", "/api/workflow-v2-contracts", "Workflow v2 contract fixtures"),
+      route("GET", "/api/workflow-run-v2-contracts", "WorkflowRun v2 contract fixtures"),
+      route("GET", "/api/agent-run-v2-contracts", "AgentRun v2 contract fixtures"),
+      route("GET", "/api/capability-io-contracts", "Capability input/output contract fixtures"),
+      route("GET", "/api/capability-gate-runtime-contracts", "Capability gate/runtime contract fixtures"),
+      route("GET", "/api/workflow-execution-bindings", "Workflow execution bindings"),
+      route("GET", "/api/capability-workflow-contract-validations", "Capability/workflow contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3219,6 +3323,11 @@ function filterItems(items, searchParams) {
     "citation_binding_status",
     "lineage_edge_id",
     "relation",
+    "workflow_id",
+    "workflow_status",
+    "input_output_status",
+    "registry_validation_status",
+    "runtime_binding_count",
     "usage_id",
     "usage_type",
     "snapshot_declared_in_source",

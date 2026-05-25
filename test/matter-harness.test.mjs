@@ -111,6 +111,7 @@ import { runResourceContractFreeze } from "../src/resource-contract-freeze.mjs";
 import { runMatterContractFreeze } from "../src/matter-contract-freeze.mjs";
 import { runPolicyContractFreeze } from "../src/policy-contract-freeze.mjs";
 import { runEvidenceContractFreeze } from "../src/evidence-contract-freeze.mjs";
+import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -630,6 +631,36 @@ describe("matter harness", () => {
       assert.ok(evidenceContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "evidence-contract-freeze", "summary.md"), "utf8"), /Evidence Contract Freeze/);
 
+      const capabilityWorkflowContractFreeze = await runCapabilityWorkflowContractFreeze({
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        lawFirmSlicePath: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
+        personalDevSlicePath: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+        creativeDocumentSlicePath: path.join(outDir, "creative-document", "creative-document-slice.json"),
+        policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+        evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
+        outDir: path.join(outDir, "capability-workflow-contract-freeze"),
+        runAt: "2026-05-23T06:34:57.000Z",
+      });
+      const capabilityWorkflowContractFreezeSchema = JSON.parse(await readFile("schemas/capability-workflow-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(capabilityWorkflowContractFreeze, capabilityWorkflowContractFreezeSchema, {}, "capability_workflow_contract_freeze"), []);
+      assert.equal(capabilityWorkflowContractFreeze.summary.freeze_status, "complete");
+      assert.equal(capabilityWorkflowContractFreeze.summary.capability_manifest_count, domainPackRegistry.summary.capability_count);
+      assert.equal(capabilityWorkflowContractFreeze.summary.workflow_count, 3);
+      assert.equal(capabilityWorkflowContractFreeze.summary.workflow_run_count, 3);
+      assert.equal(capabilityWorkflowContractFreeze.summary.agent_run_count, 6);
+      assert.equal(capabilityWorkflowContractFreeze.summary.capability_with_input_output_count, domainPackRegistry.summary.capability_count);
+      assert.equal(capabilityWorkflowContractFreeze.summary.capability_with_gate_contract_count, domainPackRegistry.summary.capability_count);
+      assert.equal(capabilityWorkflowContractFreeze.summary.runtime_binding_blocked_count, 0);
+      assert.equal(capabilityWorkflowContractFreeze.summary.validation_error_count, 0);
+      assert.equal(capabilityWorkflowContractFreeze.capability_workflow_contract.capability_manifests[0].schema_version, "capability-manifest.v2");
+      assert.equal(capabilityWorkflowContractFreeze.capability_workflow_contract.workflows[0].schema_version, "workflow.v2");
+      assert.equal(capabilityWorkflowContractFreeze.capability_workflow_contract.workflow_runs[0].schema_version, "workflow-run.v2");
+      assert.equal(capabilityWorkflowContractFreeze.capability_workflow_contract.agent_runs[0].schema_version, "agent-run.v2");
+      assert.ok(capabilityWorkflowContractFreeze.capability_workflow_contract.capability_io_contracts.every((contract) => contract.input_output_status === "complete"));
+      assert.ok(capabilityWorkflowContractFreeze.capability_workflow_contract.gate_runtime_contracts.every((contract) => contract.blocked_runtime_binding_count === 0));
+      assert.ok(capabilityWorkflowContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "capability-workflow-contract-freeze", "summary.md"), "utf8"), /Capability\/Workflow Contract Freeze/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1090,6 +1121,7 @@ describe("matter harness", () => {
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -2694,6 +2726,10 @@ describe("matter harness", () => {
       assert.equal(evidenceContractFreezeCheckpoint?.acceptance_profile, "evidence_contract_freeze_gate");
       assert.equal(evidenceContractFreezeCheckpoint?.status, "passed");
       assert.equal(evidenceContractFreezeCheckpoint?.implementation_status, "passed");
+      const capabilityWorkflowContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-capability-workflow-contract-freeze");
+      assert.equal(capabilityWorkflowContractFreezeCheckpoint?.acceptance_profile, "capability_workflow_contract_freeze_gate");
+      assert.equal(capabilityWorkflowContractFreezeCheckpoint?.status, "passed");
+      assert.equal(capabilityWorkflowContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2996,6 +3032,28 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_contract_freeze_policy_snapshot_linked_evidence_count, evidenceContractFreeze.summary.policy_snapshot_linked_evidence_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_capability_manifest_count, capabilityWorkflowContractFreeze.summary.capability_manifest_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_workflow_count, capabilityWorkflowContractFreeze.summary.workflow_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_workflow_run_count, capabilityWorkflowContractFreeze.summary.workflow_run_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_agent_run_count, capabilityWorkflowContractFreeze.summary.agent_run_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_capability_io_contract_count, capabilityWorkflowContractFreeze.summary.capability_io_contract_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_gate_runtime_contract_count, capabilityWorkflowContractFreeze.summary.gate_runtime_contract_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_workflow_execution_binding_count, capabilityWorkflowContractFreeze.summary.workflow_execution_binding_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_capability_with_input_output_count, capabilityWorkflowContractFreeze.summary.capability_with_input_output_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_capability_with_gate_contract_count, capabilityWorkflowContractFreeze.summary.capability_with_gate_contract_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_capability_with_runtime_contract_count, capabilityWorkflowContractFreeze.summary.capability_with_runtime_contract_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_workflow_linked_capability_count, capabilityWorkflowContractFreeze.summary.workflow_linked_capability_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_workflow_run_linked_workflow_count, capabilityWorkflowContractFreeze.summary.workflow_run_linked_workflow_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_agent_run_linked_workflow_run_count, capabilityWorkflowContractFreeze.summary.agent_run_linked_workflow_run_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_runtime_binding_count, capabilityWorkflowContractFreeze.summary.runtime_binding_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_runtime_binding_allowed_count, capabilityWorkflowContractFreeze.summary.runtime_binding_allowed_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_runtime_binding_blocked_count, 0);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_gate_binding_count, capabilityWorkflowContractFreeze.summary.gate_binding_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_required_field_declared_count, capabilityWorkflowContractFreeze.summary.required_field_declared_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_optional_field_declared_count, capabilityWorkflowContractFreeze.summary.optional_field_declared_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_version_required_count, capabilityWorkflowContractFreeze.summary.version_required_count);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.capability_workflow_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3374,6 +3432,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3804,6 +3863,42 @@ describe("matter harness", () => {
       const evidenceContractValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-contract-validations?status=passed", apiOptions)).body);
       assert.equal(evidenceContractValidations.collection, "evidence_contract_validations");
       assert.equal(evidenceContractValidations.count, evidenceContractFreeze.summary.validation_item_count);
+
+      const capabilityWorkflowContractFreezes = JSON.parse((await buildReviewApiResponse("/api/capability-workflow-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(capabilityWorkflowContractFreezes.collection, "capability_workflow_contract_freezes");
+      assert.equal(capabilityWorkflowContractFreezes.count, 1);
+
+      const lawFirmCapabilityManifests = JSON.parse((await buildReviewApiResponse("/api/capability-manifest-v2-contracts?domain_pack=law-firm", apiOptions)).body);
+      assert.equal(lawFirmCapabilityManifests.collection, "capability_manifest_v2_contracts");
+      assert.equal(lawFirmCapabilityManifests.count, 2);
+
+      const workflowContracts = JSON.parse((await buildReviewApiResponse("/api/workflow-v2-contracts?capability_id=law_firm.ldd.issue_report", apiOptions)).body);
+      assert.equal(workflowContracts.collection, "workflow_v2_contracts");
+      assert.equal(workflowContracts.count, 1);
+
+      const workflowRunContracts = JSON.parse((await buildReviewApiResponse("/api/workflow-run-v2-contracts?status=blocked", apiOptions)).body);
+      assert.equal(workflowRunContracts.collection, "workflow_run_v2_contracts");
+      assert.equal(workflowRunContracts.count, capabilityWorkflowContractFreeze.summary.workflow_run_count);
+
+      const codexAgentRunContracts = JSON.parse((await buildReviewApiResponse("/api/agent-run-v2-contracts?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexAgentRunContracts.collection, "agent_run_v2_contracts");
+      assert.equal(codexAgentRunContracts.count, 1);
+
+      const capabilityIoContracts = JSON.parse((await buildReviewApiResponse("/api/capability-io-contracts?input_output_status=complete", apiOptions)).body);
+      assert.equal(capabilityIoContracts.collection, "capability_io_contracts");
+      assert.equal(capabilityIoContracts.count, capabilityWorkflowContractFreeze.summary.capability_io_contract_count);
+
+      const capabilityGateRuntimeContracts = JSON.parse((await buildReviewApiResponse("/api/capability-gate-runtime-contracts?capability_id=personal_dev.codex.worktree_patch", apiOptions)).body);
+      assert.equal(capabilityGateRuntimeContracts.collection, "capability_gate_runtime_contracts");
+      assert.equal(capabilityGateRuntimeContracts.count, 1);
+
+      const workflowExecutionBindings = JSON.parse((await buildReviewApiResponse("/api/workflow-execution-bindings?status=blocked", apiOptions)).body);
+      assert.equal(workflowExecutionBindings.collection, "workflow_execution_bindings");
+      assert.equal(workflowExecutionBindings.count, capabilityWorkflowContractFreeze.summary.workflow_execution_binding_count);
+
+      const capabilityWorkflowContractValidations = JSON.parse((await buildReviewApiResponse("/api/capability-workflow-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(capabilityWorkflowContractValidations.collection, "capability_workflow_contract_validations");
+      assert.equal(capabilityWorkflowContractValidations.count, capabilityWorkflowContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

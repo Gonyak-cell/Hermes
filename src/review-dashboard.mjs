@@ -9,6 +9,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
+  capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -126,6 +127,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceContractFreezePath",
     source_id: "evidence_contract_freeze",
     label: "Evidence Contract Freeze",
+  },
+  {
+    option: "capabilityWorkflowContractFreezePath",
+    source_id: "capability_workflow_contract_freeze",
+    label: "Capability Workflow Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -689,6 +695,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "matter_contract_freeze") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
+  if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -871,6 +878,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
+    buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -1145,6 +1153,54 @@ function buildEvidenceContractFreezeStage(freeze, source) {
       resource_linked_source_span_count: summary.resource_linked_source_span_count ?? 0,
       matter_linked_evidence_count: summary.matter_linked_evidence_count ?? 0,
       policy_snapshot_linked_evidence_count: summary.policy_snapshot_linked_evidence_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildCapabilityWorkflowContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("capability_workflow_contract_freeze", "Capability Workflow Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "capability_workflow_contract_freeze",
+    label: "Capability Workflow Contract Freeze",
+    status,
+    message: `${summary.capability_manifest_count ?? 0} CapabilityManifest v2 contract(s), ${summary.workflow_count ?? 0} Workflow v2 contract(s), ${summary.runtime_binding_allowed_count ?? 0}/${summary.runtime_binding_count ?? 0} runtime binding(s) allowed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      capability_manifest_schema_version: summary.capability_manifest_schema_version ?? null,
+      workflow_schema_version: summary.workflow_schema_version ?? null,
+      workflow_run_schema_version: summary.workflow_run_schema_version ?? null,
+      agent_run_schema_version: summary.agent_run_schema_version ?? null,
+      capability_io_schema_version: summary.capability_io_schema_version ?? null,
+      gate_runtime_schema_version: summary.gate_runtime_schema_version ?? null,
+      capability_manifest_count: summary.capability_manifest_count ?? 0,
+      workflow_count: summary.workflow_count ?? 0,
+      workflow_run_count: summary.workflow_run_count ?? 0,
+      agent_run_count: summary.agent_run_count ?? 0,
+      capability_io_contract_count: summary.capability_io_contract_count ?? 0,
+      gate_runtime_contract_count: summary.gate_runtime_contract_count ?? 0,
+      workflow_execution_binding_count: summary.workflow_execution_binding_count ?? 0,
+      capability_with_input_output_count: summary.capability_with_input_output_count ?? 0,
+      capability_with_gate_contract_count: summary.capability_with_gate_contract_count ?? 0,
+      capability_with_runtime_contract_count: summary.capability_with_runtime_contract_count ?? 0,
+      workflow_linked_capability_count: summary.workflow_linked_capability_count ?? 0,
+      workflow_run_linked_workflow_count: summary.workflow_run_linked_workflow_count ?? 0,
+      agent_run_linked_workflow_run_count: summary.agent_run_linked_workflow_run_count ?? 0,
+      runtime_binding_count: summary.runtime_binding_count ?? 0,
+      runtime_binding_allowed_count: summary.runtime_binding_allowed_count ?? 0,
+      runtime_binding_blocked_count: summary.runtime_binding_blocked_count ?? 0,
+      gate_binding_count: summary.gate_binding_count ?? 0,
+      required_gate_count: summary.required_gate_count ?? 0,
+      required_field_declared_count: summary.required_field_declared_count ?? 0,
+      optional_field_declared_count: summary.optional_field_declared_count ?? 0,
+      version_required_count: summary.version_required_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
@@ -5334,6 +5390,28 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_contract_freeze_policy_snapshot_linked_evidence_count: artifacts.evidence_contract_freeze?.summary?.policy_snapshot_linked_evidence_count ?? 0,
     evidence_contract_freeze_failed_validation_item_count: artifacts.evidence_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     evidence_contract_freeze_validation_error_count: artifacts.evidence_contract_freeze?.summary?.validation_error_count ?? artifacts.evidence_contract_freeze?.validation?.errors?.length ?? 0,
+    capability_workflow_contract_freeze_capability_manifest_count: artifacts.capability_workflow_contract_freeze?.summary?.capability_manifest_count ?? 0,
+    capability_workflow_contract_freeze_workflow_count: artifacts.capability_workflow_contract_freeze?.summary?.workflow_count ?? 0,
+    capability_workflow_contract_freeze_workflow_run_count: artifacts.capability_workflow_contract_freeze?.summary?.workflow_run_count ?? 0,
+    capability_workflow_contract_freeze_agent_run_count: artifacts.capability_workflow_contract_freeze?.summary?.agent_run_count ?? 0,
+    capability_workflow_contract_freeze_capability_io_contract_count: artifacts.capability_workflow_contract_freeze?.summary?.capability_io_contract_count ?? 0,
+    capability_workflow_contract_freeze_gate_runtime_contract_count: artifacts.capability_workflow_contract_freeze?.summary?.gate_runtime_contract_count ?? 0,
+    capability_workflow_contract_freeze_workflow_execution_binding_count: artifacts.capability_workflow_contract_freeze?.summary?.workflow_execution_binding_count ?? 0,
+    capability_workflow_contract_freeze_capability_with_input_output_count: artifacts.capability_workflow_contract_freeze?.summary?.capability_with_input_output_count ?? 0,
+    capability_workflow_contract_freeze_capability_with_gate_contract_count: artifacts.capability_workflow_contract_freeze?.summary?.capability_with_gate_contract_count ?? 0,
+    capability_workflow_contract_freeze_capability_with_runtime_contract_count: artifacts.capability_workflow_contract_freeze?.summary?.capability_with_runtime_contract_count ?? 0,
+    capability_workflow_contract_freeze_workflow_linked_capability_count: artifacts.capability_workflow_contract_freeze?.summary?.workflow_linked_capability_count ?? 0,
+    capability_workflow_contract_freeze_workflow_run_linked_workflow_count: artifacts.capability_workflow_contract_freeze?.summary?.workflow_run_linked_workflow_count ?? 0,
+    capability_workflow_contract_freeze_agent_run_linked_workflow_run_count: artifacts.capability_workflow_contract_freeze?.summary?.agent_run_linked_workflow_run_count ?? 0,
+    capability_workflow_contract_freeze_runtime_binding_count: artifacts.capability_workflow_contract_freeze?.summary?.runtime_binding_count ?? 0,
+    capability_workflow_contract_freeze_runtime_binding_allowed_count: artifacts.capability_workflow_contract_freeze?.summary?.runtime_binding_allowed_count ?? 0,
+    capability_workflow_contract_freeze_runtime_binding_blocked_count: artifacts.capability_workflow_contract_freeze?.summary?.runtime_binding_blocked_count ?? 0,
+    capability_workflow_contract_freeze_gate_binding_count: artifacts.capability_workflow_contract_freeze?.summary?.gate_binding_count ?? 0,
+    capability_workflow_contract_freeze_required_field_declared_count: artifacts.capability_workflow_contract_freeze?.summary?.required_field_declared_count ?? 0,
+    capability_workflow_contract_freeze_optional_field_declared_count: artifacts.capability_workflow_contract_freeze?.summary?.optional_field_declared_count ?? 0,
+    capability_workflow_contract_freeze_version_required_count: artifacts.capability_workflow_contract_freeze?.summary?.version_required_count ?? 0,
+    capability_workflow_contract_freeze_failed_validation_item_count: artifacts.capability_workflow_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    capability_workflow_contract_freeze_validation_error_count: artifacts.capability_workflow_contract_freeze?.summary?.validation_error_count ?? artifacts.capability_workflow_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6387,6 +6465,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
+    else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
+    else if (arg === "--no-capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];
@@ -6569,6 +6649,10 @@ Options:
   --resource-contract-freeze <path>
                                   resource-contract-freeze.json path.
   --no-resource-contract-freeze  Do not include Resource Contract Freeze status.
+  --capability-workflow-contract-freeze <path>
+                                  capability-workflow-contract-freeze.json path.
+  --no-capability-workflow-contract-freeze
+                                  Do not include Capability Workflow Contract Freeze status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

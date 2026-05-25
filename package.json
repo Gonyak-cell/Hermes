@@ -22,6 +22,7 @@
     "contracts:matters": "node scripts/matter-contract-freeze.mjs",
     "contracts:policies": "node scripts/policy-contract-freeze.mjs",
     "contracts:evidence": "node scripts/evidence-contract-freeze.mjs",
+    "contracts:capabilities": "node scripts/capability-workflow-contract-freeze.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",

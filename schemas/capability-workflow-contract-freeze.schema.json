@@ -1,0 +1,478 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/capability-workflow-contract-freeze.schema.json",
+  "title": "Hermes Capability Workflow Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "field_requirements",
+    "summary",
+    "capability_workflow_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "capability-workflow-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "domain_pack_registry_path",
+        "law_firm_slice_path",
+        "personal_dev_slice_path",
+        "creative_document_slice_path",
+        "policy_contract_freeze_path",
+        "evidence_contract_freeze_path"
+      ],
+      "properties": {
+        "domain_pack_registry_path": { "type": "string" },
+        "law_firm_slice_path": { "type": "string" },
+        "personal_dev_slice_path": { "type": "string" },
+        "creative_document_slice_path": { "type": "string" },
+        "policy_contract_freeze_path": { "type": "string" },
+        "evidence_contract_freeze_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "domain_pack_registry",
+        "law_firm_slice",
+        "personal_dev_slice",
+        "creative_document_slice",
+        "policy_contract_freeze",
+        "evidence_contract_freeze"
+      ],
+      "properties": {
+        "domain_pack_registry": { "type": "object" },
+        "law_firm_slice": { "type": "object" },
+        "personal_dev_slice": { "type": "object" },
+        "creative_document_slice": { "type": "object" },
+        "policy_contract_freeze": { "type": "object" },
+        "evidence_contract_freeze": { "type": "object" }
+      }
+    },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "capability_manifest_schema_version",
+        "workflow_schema_version",
+        "workflow_run_schema_version",
+        "agent_run_schema_version",
+        "capability_io_schema_version",
+        "gate_runtime_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "capability_manifest_schema_version": { "const": "capability-manifest.v2" },
+        "workflow_schema_version": { "const": "workflow.v2" },
+        "workflow_run_schema_version": { "const": "workflow-run.v2" },
+        "agent_run_schema_version": { "const": "agent-run.v2" },
+        "capability_io_schema_version": { "const": "capability-io-contract.v2" },
+        "gate_runtime_schema_version": { "const": "capability-gate-runtime-contract.v2" },
+        "compatibility_floor": { "const": "domain-pack-registry.v1+workflow-runtime.v1" }
+      }
+    },
+    "field_requirements": {
+      "type": "object",
+      "required": ["capability_manifest_v2", "workflow_v2", "workflow_run_v2", "agent_run_v2"],
+      "properties": {
+        "capability_manifest_v2": { "$ref": "#/$defs/field_requirement" },
+        "workflow_v2": { "$ref": "#/$defs/field_requirement" },
+        "workflow_run_v2": { "$ref": "#/$defs/field_requirement" },
+        "agent_run_v2": { "$ref": "#/$defs/field_requirement" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "capability_manifest_schema_version",
+        "workflow_schema_version",
+        "workflow_run_schema_version",
+        "capability_manifest_count",
+        "workflow_count",
+        "workflow_run_count",
+        "agent_run_count",
+        "capability_io_contract_count",
+        "gate_runtime_contract_count",
+        "workflow_execution_binding_count",
+        "capability_with_input_output_count",
+        "capability_with_gate_contract_count",
+        "capability_with_runtime_contract_count",
+        "workflow_linked_capability_count",
+        "workflow_run_linked_workflow_count",
+        "agent_run_linked_workflow_run_count",
+        "runtime_binding_count",
+        "runtime_binding_allowed_count",
+        "runtime_binding_blocked_count",
+        "gate_binding_count",
+        "required_gate_count",
+        "required_field_declared_count",
+        "optional_field_declared_count",
+        "version_required_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_domain_pack",
+        "by_runtime_id",
+        "by_gate_id",
+        "by_workflow_status"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "capability_manifest_schema_version": { "const": "capability-manifest.v2" },
+        "workflow_schema_version": { "const": "workflow.v2" },
+        "workflow_run_schema_version": { "const": "workflow-run.v2" },
+        "agent_run_schema_version": { "const": "agent-run.v2" },
+        "capability_io_schema_version": { "const": "capability-io-contract.v2" },
+        "gate_runtime_schema_version": { "const": "capability-gate-runtime-contract.v2" },
+        "capability_manifest_count": { "type": "integer", "minimum": 0 },
+        "workflow_count": { "type": "integer", "minimum": 0 },
+        "workflow_run_count": { "type": "integer", "minimum": 0 },
+        "agent_run_count": { "type": "integer", "minimum": 0 },
+        "capability_io_contract_count": { "type": "integer", "minimum": 0 },
+        "gate_runtime_contract_count": { "type": "integer", "minimum": 0 },
+        "workflow_execution_binding_count": { "type": "integer", "minimum": 0 },
+        "capability_with_input_output_count": { "type": "integer", "minimum": 0 },
+        "capability_with_gate_contract_count": { "type": "integer", "minimum": 0 },
+        "capability_with_runtime_contract_count": { "type": "integer", "minimum": 0 },
+        "workflow_linked_capability_count": { "type": "integer", "minimum": 0 },
+        "workflow_run_linked_workflow_count": { "type": "integer", "minimum": 0 },
+        "agent_run_linked_workflow_run_count": { "type": "integer", "minimum": 0 },
+        "runtime_binding_count": { "type": "integer", "minimum": 0 },
+        "runtime_binding_allowed_count": { "type": "integer", "minimum": 0 },
+        "runtime_binding_blocked_count": { "type": "integer", "minimum": 0 },
+        "gate_binding_count": { "type": "integer", "minimum": 0 },
+        "required_gate_count": { "type": "integer", "minimum": 0 },
+        "required_field_declared_count": { "type": "integer", "minimum": 0 },
+        "optional_field_declared_count": { "type": "integer", "minimum": 0 },
+        "version_required_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_domain_pack": { "type": "object" },
+        "by_runtime_id": { "type": "object" },
+        "by_gate_id": { "type": "object" },
+        "by_workflow_status": { "type": "object" }
+      }
+    },
+    "capability_workflow_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "capability_manifests",
+        "workflows",
+        "workflow_runs",
+        "agent_runs",
+        "capability_io_contracts",
+        "gate_runtime_contracts",
+        "workflow_execution_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "capability-workflow-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "capability_manifests": { "type": "array", "items": { "$ref": "#/$defs/capability_manifest_v2" } },
+        "workflows": { "type": "array", "items": { "$ref": "#/$defs/workflow_v2" } },
+        "workflow_runs": { "type": "array", "items": { "$ref": "#/$defs/workflow_run_v2" } },
+        "agent_runs": { "type": "array", "items": { "$ref": "#/$defs/agent_run_v2" } },
+        "capability_io_contracts": { "type": "array", "items": { "$ref": "#/$defs/capability_io_contract_v2" } },
+        "gate_runtime_contracts": { "type": "array", "items": { "$ref": "#/$defs/gate_runtime_contract_v2" } },
+        "workflow_execution_bindings": { "type": "array", "items": { "$ref": "#/$defs/workflow_execution_binding_v2" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    }
+  },
+  "$defs": {
+    "field_requirement": {
+      "type": "object",
+      "required": ["required_fields", "optional_fields", "required_groups"],
+      "properties": {
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "optional_fields": { "type": "array", "items": { "type": "string" } },
+        "required_groups": { "type": "object" }
+      }
+    },
+    "field_requirement_instance": {
+      "type": "object",
+      "required": ["required_fields", "optional_fields", "present_required_fields", "missing_required_fields", "present_optional_fields"],
+      "properties": {
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "optional_fields": { "type": "array", "items": { "type": "string" } },
+        "present_required_fields": { "type": "array", "items": { "type": "string" } },
+        "missing_required_fields": { "type": "array", "items": { "type": "string" } },
+        "present_optional_fields": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "capability_manifest_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "capability_id",
+        "version",
+        "domain_pack",
+        "pack_id",
+        "input_contract",
+        "output_contract",
+        "field_requirements",
+        "resource_requirements",
+        "runtime_requirements",
+        "gate_requirements",
+        "data_policy",
+        "approval_policy",
+        "idempotency_policy",
+        "output_artifacts",
+        "entrypoints",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "capability-manifest.v2" },
+        "capability_id": { "type": "string" },
+        "version": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "pack_id": { "type": "string" },
+        "input_contract": { "$ref": "#/$defs/io_ref" },
+        "output_contract": { "$ref": "#/$defs/io_ref" },
+        "field_requirements": { "$ref": "#/$defs/field_requirement_instance" },
+        "resource_requirements": { "type": "array" },
+        "runtime_requirements": { "type": "array" },
+        "gate_requirements": { "type": "array" },
+        "data_policy": { "type": "object" },
+        "approval_policy": { "type": "object" },
+        "idempotency_policy": { "type": "object" },
+        "output_artifacts": { "type": "array" },
+        "entrypoints": { "type": "array" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "workflow_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_id",
+        "capability_id",
+        "capability_version",
+        "domain_pack",
+        "version",
+        "field_requirements",
+        "steps",
+        "step_count",
+        "runtime_contracts",
+        "gate_contracts",
+        "state_machine",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow.v2" },
+        "workflow_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "capability_version": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string" },
+        "version": { "type": "string" },
+        "field_requirements": { "$ref": "#/$defs/field_requirement_instance" },
+        "steps": { "type": "array" },
+        "step_count": { "type": "integer", "minimum": 0 },
+        "runtime_contracts": { "type": "array" },
+        "gate_contracts": { "type": "array" },
+        "state_machine": { "type": "object" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "workflow_run_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_run_id",
+        "workflow_id",
+        "capability_id",
+        "capability_version",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "status",
+        "input_refs",
+        "output_refs",
+        "policy_snapshot_id",
+        "runtime_ids",
+        "agent_run_ids",
+        "workflow_linked",
+        "capability_linked",
+        "field_requirements",
+        "created_at",
+        "created_by"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-run.v2" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "capability_version": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "input_refs": { "type": "array" },
+        "output_refs": { "type": "array" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "runtime_ids": { "type": "array", "items": { "type": "string" } },
+        "agent_run_ids": { "type": "array", "items": { "type": "string" } },
+        "workflow_linked": { "type": "boolean" },
+        "capability_linked": { "type": "boolean" },
+        "field_requirements": { "$ref": "#/$defs/field_requirement_instance" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "created_by": { "type": "object" }
+      }
+    },
+    "agent_run_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "agent_run_id",
+        "workflow_run_id",
+        "workflow_id",
+        "capability_id",
+        "runtime_id",
+        "runtime_known",
+        "runtime_allowed_by_capability",
+        "status",
+        "input_ref",
+        "output_ref",
+        "source_slice_id",
+        "field_requirements",
+        "started_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-run.v2" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": "string" },
+        "runtime_known": { "type": "boolean" },
+        "runtime_allowed_by_capability": { "type": "boolean" },
+        "status": { "type": "string" },
+        "input_ref": { "type": ["string", "null"] },
+        "output_ref": { "type": ["string", "null"] },
+        "source_slice_id": { "type": "string" },
+        "field_requirements": { "$ref": "#/$defs/field_requirement_instance" },
+        "started_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "capability_io_contract_v2": {
+      "type": "object",
+      "required": ["schema_version", "capability_id", "version", "domain_pack", "input", "output", "idempotency_key_fields", "version_required", "input_output_status", "created_at"],
+      "properties": {
+        "schema_version": { "const": "capability-io-contract.v2" },
+        "capability_id": { "type": "string" },
+        "version": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "input": { "type": "object" },
+        "output": { "type": "object" },
+        "idempotency_key_fields": { "type": "array", "items": { "type": "string" } },
+        "version_required": { "type": "boolean" },
+        "input_output_status": { "enum": ["complete", "incomplete"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "gate_runtime_contract_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "capability_id",
+        "version",
+        "domain_pack",
+        "required_gates",
+        "required_gate_count",
+        "allowed_runtimes",
+        "allowed_runtime_count",
+        "runtime_bindings",
+        "runtime_binding_count",
+        "blocked_runtime_binding_count",
+        "approval_required",
+        "version_required",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "capability-gate-runtime-contract.v2" },
+        "capability_id": { "type": "string" },
+        "version": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "required_gates": { "type": "array" },
+        "required_gate_count": { "type": "integer", "minimum": 0 },
+        "allowed_runtimes": { "type": "array" },
+        "allowed_runtime_count": { "type": "integer", "minimum": 0 },
+        "runtime_bindings": { "type": "array" },
+        "runtime_binding_count": { "type": "integer", "minimum": 0 },
+        "blocked_runtime_binding_count": { "type": "integer", "minimum": 0 },
+        "approval_required": { "type": "boolean" },
+        "version_required": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "workflow_execution_binding_v2": {
+      "type": "object",
+      "required": ["schema_version", "binding_id", "workflow_run_id", "workflow_id", "capability_id", "status", "workflow_linked", "agent_run_count", "agent_run_ids", "runtime_ids", "created_at"],
+      "properties": {
+        "schema_version": { "const": "workflow-execution-binding.v2" },
+        "binding_id": { "type": "string" },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "workflow_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "workflow_linked": { "type": "boolean" },
+        "agent_run_count": { "type": "integer", "minimum": 0 },
+        "agent_run_ids": { "type": "array", "items": { "type": "string" } },
+        "runtime_ids": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "io_ref": {
+      "type": "object",
+      "required": ["schema_ref", "required", "source_field"],
+      "properties": {
+        "schema_ref": { "type": ["string", "null"] },
+        "required": { "type": "boolean" },
+        "source_field": { "type": "string" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["schema_version", "path", "rule_id", "status", "message", "metadata"],
+      "properties": {
+        "schema_version": { "const": "contract-validation-item.v1" },
+        "path": { "type": "string" },
+        "rule_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

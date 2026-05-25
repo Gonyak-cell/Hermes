@@ -344,6 +344,42 @@ try {
   assert.equal(evidenceContractValidations.collection, "evidence_contract_validations");
   assert.ok(evidenceContractValidations.count <= 5);
 
+  const capabilityWorkflowContractFreezes = await fetchJson(`${url}/api/capability-workflow-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(capabilityWorkflowContractFreezes.collection, "capability_workflow_contract_freezes");
+  assert.ok(capabilityWorkflowContractFreezes.count <= 1);
+
+  const capabilityManifestContracts = await fetchJson(`${url}/api/capability-manifest-v2-contracts?domain_pack=law-firm&limit=5`);
+  assert.equal(capabilityManifestContracts.collection, "capability_manifest_v2_contracts");
+  assert.ok(capabilityManifestContracts.count <= 5);
+
+  const workflowContracts = await fetchJson(`${url}/api/workflow-v2-contracts?capability_id=law_firm.ldd.issue_report&limit=5`);
+  assert.equal(workflowContracts.collection, "workflow_v2_contracts");
+  assert.ok(workflowContracts.count <= 5);
+
+  const workflowRunContracts = await fetchJson(`${url}/api/workflow-run-v2-contracts?status=blocked&limit=5`);
+  assert.equal(workflowRunContracts.collection, "workflow_run_v2_contracts");
+  assert.ok(workflowRunContracts.count <= 5);
+
+  const agentRunContracts = await fetchJson(`${url}/api/agent-run-v2-contracts?runtime_id=codex&limit=5`);
+  assert.equal(agentRunContracts.collection, "agent_run_v2_contracts");
+  assert.ok(agentRunContracts.count <= 5);
+
+  const capabilityIoContracts = await fetchJson(`${url}/api/capability-io-contracts?input_output_status=complete&limit=5`);
+  assert.equal(capabilityIoContracts.collection, "capability_io_contracts");
+  assert.ok(capabilityIoContracts.count <= 5);
+
+  const capabilityGateRuntimeContracts = await fetchJson(`${url}/api/capability-gate-runtime-contracts?capability_id=personal_dev.codex.worktree_patch&limit=5`);
+  assert.equal(capabilityGateRuntimeContracts.collection, "capability_gate_runtime_contracts");
+  assert.ok(capabilityGateRuntimeContracts.count <= 5);
+
+  const workflowExecutionBindings = await fetchJson(`${url}/api/workflow-execution-bindings?status=blocked&limit=5`);
+  assert.equal(workflowExecutionBindings.collection, "workflow_execution_bindings");
+  assert.ok(workflowExecutionBindings.count <= 5);
+
+  const capabilityWorkflowContractValidations = await fetchJson(`${url}/api/capability-workflow-contract-validations?status=passed&limit=5`);
+  assert.equal(capabilityWorkflowContractValidations.collection, "capability_workflow_contract_validations");
+  assert.ok(capabilityWorkflowContractValidations.count <= 5);
+
   const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
   assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");
   assert.ok(contextPacketLedgers.count <= 1);

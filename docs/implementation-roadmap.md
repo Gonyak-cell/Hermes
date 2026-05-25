@@ -3142,6 +3142,43 @@ Phase 102는 Law Firm LDD slice, Resource v2 contract, Matter Boundary v2 contra
 - Review API에서 `/api/evidence-contract-freezes`, `/api/source-span-contracts`, `/api/evidence-item-contracts`, `/api/fact-claim-contracts`, `/api/issue-contracts`, `/api/citation-contracts`, `/api/evidence-lineage-edges`, `/api/evidence-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:evidence`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 103: Capability, Workflow, Run, Gate, Runtime, and IO v2 Contract Freeze
+
+Phase 103은 Domain Pack Registry의 capability manifest와 세 vertical slice의 `workflow_runtime`을 입력으로 Capability/Workflow plane의 실행 계약을 고정했다. 목적은 후속 Runtime Adapter, Gate Engine, Context Builder 단계가 prompt나 self-report가 아니라 `input/output/gate/runtime/version` 필드가 명시된 계약을 기준으로 움직이게 만드는 것이다.
+
+구현:
+
+- `npm run contracts:capabilities`
+- `src/capability-workflow-contract-freeze.mjs`
+- `scripts/capability-workflow-contract-freeze.mjs`
+- `schemas/capability-workflow-contract-freeze.schema.json`
+- `docs/capability-workflow-contract-freeze.md`
+
+핵심 산출물:
+
+- `artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json`
+- `artifacts/capability-workflow-contract-freeze/latest/capability-manifest-v2-fixture.json`
+- `artifacts/capability-workflow-contract-freeze/latest/workflow-v2-fixture.json`
+- `artifacts/capability-workflow-contract-freeze/latest/workflow-run-v2-fixture.json`
+- `artifacts/capability-workflow-contract-freeze/latest/agent-run-v2-fixture.json`
+- `artifacts/capability-workflow-contract-freeze/latest/capability-io-contract-v2-fixture.json`
+- `artifacts/capability-workflow-contract-freeze/latest/capability-gate-runtime-contract-v2-fixture.json`
+- `artifacts/capability-workflow-contract-freeze/latest/workflow-execution-bindings.json`
+- `artifacts/capability-workflow-contract-freeze/latest/validation-report.json`
+- `artifacts/capability-workflow-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- `capability-manifest.v2`, `workflow.v2`, `workflow-run.v2`, `agent-run.v2`, `capability-io-contract.v2`, `capability-gate-runtime-contract.v2` fixture가 생성됨
+- CapabilityManifest v2가 input/output schema, required resources, required gates, allowed runtimes, version, policy, approval, idempotency, retry, timeout, cost, observability 필드를 보존함
+- Workflow v2가 capability link, step input refs, output contract, runtime binding, gate binding, state machine을 보존함
+- WorkflowRun v2와 AgentRun v2가 workflow/capability/runtime/policy snapshot linkage를 보존함
+- Field requirement matrix가 capability, workflow, workflow run, agent run의 required/optional 필드를 구분함
+- Runtime binding이 capability의 allowed runtime에 모두 포함되어 blocked runtime count가 0임
+- Dashboard stage와 goal checkpoint가 `capability_workflow_contract_freeze`를 추적함
+- Review API에서 `/api/capability-workflow-contract-freezes`, `/api/capability-manifest-v2-contracts`, `/api/workflow-v2-contracts`, `/api/workflow-run-v2-contracts`, `/api/agent-run-v2-contracts`, `/api/capability-io-contracts`, `/api/capability-gate-runtime-contracts`, `/api/workflow-execution-bindings`, `/api/capability-workflow-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:capabilities`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3150,9 +3187,9 @@ Phase 102는 Law Firm LDD slice, Resource v2 contract, Matter Boundary v2 contra
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 102이다.
+- 현재 완료 기준점은 Phase 103이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P103-P312, 총 210개다.
+- 남은 계획 슬롯은 P104-P312, 총 209개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

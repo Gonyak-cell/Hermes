@@ -19,6 +19,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   storePolicyAdapterPath: "artifacts/store-policy/latest/store-policy-adapter.json",
   conflictCheckInterfacePath: "artifacts/conflict-check/latest/conflict-check-interface.json",
   personalWorkspaceBoundaryPath: "artifacts/personal-workspace-boundary/latest/personal-workspace-boundary.json",
+  policyGoldenFixturesPath: "artifacts/policy-golden-fixtures/latest/policy-golden-fixtures.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -202,6 +203,11 @@ const SOURCE_DEFINITIONS = [
     option: "personalWorkspaceBoundaryPath",
     source_id: "personal_workspace_boundary",
     label: "Personal Workspace Boundary",
+  },
+  {
+    option: "policyGoldenFixturesPath",
+    source_id: "policy_golden_fixtures",
+    label: "Policy Golden Fixtures",
   },
   {
     option: "evidenceContractFreezePath",
@@ -855,6 +861,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "store_policy_adapter") return data.summary ?? {};
   if (sourceId === "conflict_check_interface") return data.summary ?? {};
   if (sourceId === "personal_workspace_boundary") return data.summary ?? {};
+  if (sourceId === "policy_golden_fixtures") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1063,6 +1070,7 @@ function buildStageStatuses(artifacts, sources) {
     buildStorePolicyAdapterStage(artifacts.store_policy_adapter, sourceById.get("store_policy_adapter")),
     buildConflictCheckInterfaceStage(artifacts.conflict_check_interface, sourceById.get("conflict_check_interface")),
     buildPersonalWorkspaceBoundaryStage(artifacts.personal_workspace_boundary, sourceById.get("personal_workspace_boundary")),
+    buildPolicyGoldenFixturesStage(artifacts.policy_golden_fixtures, sourceById.get("policy_golden_fixtures")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1778,6 +1786,49 @@ function buildPersonalWorkspaceBoundaryStage(boundary, source) {
       personal_resource_count: summary.personal_resource_count ?? 0,
       law_firm_policy_snapshot_count: summary.law_firm_policy_snapshot_count ?? 0,
       personal_policy_snapshot_count: summary.personal_policy_snapshot_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildPolicyGoldenFixturesStage(fixtures, source) {
+  if (!fixtures) return missingStage("policy_golden_fixtures", "Policy Golden Fixtures", source);
+  const summary = fixtures.summary ?? {};
+  const errorCount = summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0;
+  const caseCount = summary.policy_fixture_case_count ?? 0;
+  const lockedCaseCount = summary.locked_case_count ?? 0;
+  const status = summary.policy_golden_fixture_status === "complete"
+    && errorCount === 0
+    && caseCount > 0
+    && lockedCaseCount === caseCount
+    && (summary.allow_case_count ?? 0) > 0
+    && (summary.review_case_count ?? 0) > 0
+    && (summary.deny_case_count ?? 0) > 0
+    && (summary.review_case_with_human_gate_count ?? 0) === (summary.review_case_count ?? -1)
+    && (summary.deny_case_blocked_count ?? 0) === (summary.deny_case_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "policy_golden_fixtures",
+    label: "Policy Golden Fixtures",
+    status,
+    message: `${caseCount} policy fixture case(s), allow/review/deny ${summary.allow_case_count ?? 0}/${summary.review_case_count ?? 0}/${summary.deny_case_count ?? 0}, ${summary.locked_regression_hash_count ?? 0} regression hash(es).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      policy_golden_fixture_status: summary.policy_golden_fixture_status ?? "unknown",
+      policy_fixture_case_count: caseCount,
+      fixture_group_count: summary.fixture_group_count ?? 0,
+      allow_case_count: summary.allow_case_count ?? 0,
+      review_case_count: summary.review_case_count ?? 0,
+      deny_case_count: summary.deny_case_count ?? 0,
+      locked_case_count: lockedCaseCount,
+      mismatch_case_count: summary.mismatch_case_count ?? 0,
+      missing_case_count: summary.missing_case_count ?? 0,
+      locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
+      review_case_with_human_gate_count: summary.review_case_with_human_gate_count ?? 0,
+      deny_case_blocked_count: summary.deny_case_blocked_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5451,6 +5502,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.policy_golden_fixtures?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "policy_golden_fixtures";
+    items.push({
+      action_item_id: `dashboard.action.policy_golden_fixtures.${slugify(subjectId)}`,
+      source_stage: "policy_golden_fixtures",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix policy golden fixtures",
+      subject_ref: {
+        subject_type: "policy_golden_fixture_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_policy_fixture_case", "rerun_policy_golden_fixtures", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7061,6 +7130,20 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     personal_workspace_personal_resource_count: artifacts.personal_workspace_boundary?.summary?.personal_resource_count ?? 0,
     personal_workspace_failed_validation_item_count: artifacts.personal_workspace_boundary?.summary?.failed_validation_item_count ?? 0,
     personal_workspace_validation_error_count: artifacts.personal_workspace_boundary?.summary?.validation_error_count ?? artifacts.personal_workspace_boundary?.validation?.errors?.length ?? 0,
+    policy_golden_fixture_status: artifacts.policy_golden_fixtures?.summary?.policy_golden_fixture_status ?? "unknown",
+    policy_golden_fixture_case_count: artifacts.policy_golden_fixtures?.summary?.policy_fixture_case_count ?? 0,
+    policy_golden_fixture_group_count: artifacts.policy_golden_fixtures?.summary?.fixture_group_count ?? 0,
+    policy_golden_allow_case_count: artifacts.policy_golden_fixtures?.summary?.allow_case_count ?? 0,
+    policy_golden_review_case_count: artifacts.policy_golden_fixtures?.summary?.review_case_count ?? 0,
+    policy_golden_deny_case_count: artifacts.policy_golden_fixtures?.summary?.deny_case_count ?? 0,
+    policy_golden_locked_case_count: artifacts.policy_golden_fixtures?.summary?.locked_case_count ?? 0,
+    policy_golden_mismatch_case_count: artifacts.policy_golden_fixtures?.summary?.mismatch_case_count ?? 0,
+    policy_golden_missing_case_count: artifacts.policy_golden_fixtures?.summary?.missing_case_count ?? 0,
+    policy_golden_locked_regression_hash_count: artifacts.policy_golden_fixtures?.summary?.locked_regression_hash_count ?? 0,
+    policy_golden_review_case_with_human_gate_count: artifacts.policy_golden_fixtures?.summary?.review_case_with_human_gate_count ?? 0,
+    policy_golden_deny_case_blocked_count: artifacts.policy_golden_fixtures?.summary?.deny_case_blocked_count ?? 0,
+    policy_golden_failed_validation_item_count: artifacts.policy_golden_fixtures?.summary?.failed_validation_item_count ?? 0,
+    policy_golden_validation_error_count: artifacts.policy_golden_fixtures?.summary?.validation_error_count ?? artifacts.policy_golden_fixtures?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8416,6 +8499,8 @@ function parseArgs(argv) {
     else if (arg === "--no-conflict-check-interface") parsed.conflictCheckInterfacePath = false;
     else if (arg === "--personal-workspace-boundary") parsed.personalWorkspaceBoundaryPath = argv[++index];
     else if (arg === "--no-personal-workspace-boundary") parsed.personalWorkspaceBoundaryPath = false;
+    else if (arg === "--policy-golden-fixtures") parsed.policyGoldenFixturesPath = argv[++index];
+    else if (arg === "--no-policy-golden-fixtures") parsed.policyGoldenFixturesPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8664,6 +8749,8 @@ Options:
                                   personal-workspace-boundary.json path.
   --no-personal-workspace-boundary
                                   Do not include Personal Workspace Boundary status.
+  --policy-golden-fixtures <path> policy-golden-fixtures.json path.
+  --no-policy-golden-fixtures     Do not include Policy Golden Fixtures status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

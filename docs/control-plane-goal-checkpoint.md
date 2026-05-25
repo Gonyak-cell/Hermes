@@ -32,6 +32,7 @@ npm run control-plane:goal-checkpoint -- \
 - Core contracts
 - Identity/Policy matrix
 - Policy snapshot ledger
+- Policy golden fixtures
 - Context builder and retrieval filters
 - Model routing and external transfer decisions
 - Cost budget gate ledger
@@ -119,6 +120,7 @@ npm run control-plane:goal-checkpoint -- \
 - Law Firm / Personal Dev / Creative Document slices: attorney, merge, human approval gate에 도달하면 구현 통과
 - Observability: run/event/gate blocker가 오류 없이 기록되면 구현 통과
 - Matter Cockpit: matter/resource/evidence와 protected delivery blocker가 표시되면 구현 통과
+- Policy Golden Fixtures: allow/review/deny 대표 case가 모두 locked regression hash를 가지고, review case는 human-gated, deny case는 blocked로 검증되면 구현 통과
 
 이 경우 checkpoint item은 `status: passed`, `implementation_status: passed_with_operational_gate`, `operational_status: pending|blocked|attention`을 함께 기록한다.
 

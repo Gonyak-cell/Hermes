@@ -3917,6 +3917,27 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 30개로 증가하고 personal workspace boundary가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run contracts:personal-boundary -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 129: Policy Golden Fixtures
+
+목표: Matter Access, Model Policy, Tool/Runtime Policy, Output Destination, Store Policy, Personal Workspace Boundary에서 대표 허용/검토/차단 결정을 뽑아 policy regression fixture로 고정한다.
+
+구현 내용:
+
+- `src/policy-golden-fixtures.mjs`, `scripts/policy-golden-fixtures.mjs`, `schemas/policy-golden-fixtures.schema.json`, `docs/policy-golden-fixtures.md`를 추가함
+- `npm run contracts:policy-golden -- --check` 명령을 추가해 policy fixture set, case table, outcome matrix, regression hash manifest, validation report, summary markdown을 생성함
+- `matter_access`, `model_policy`, `tool_runtime`, `output_destination`, `store_policy`, `workspace_boundary` 6개 fixture group에서 15개 대표 케이스를 잠금
+- allow/review/deny 케이스가 각각 5개씩 존재하고, review 케이스는 human/approval/confirmation gate 뒤에 보존되며 deny 케이스는 실행/검색/교차 workspace 접근을 차단함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 policy golden fixtures를 통합함
+- `/api/policy-golden-fixtures`, `/api/policy-fixture-cases`, `/api/policy-outcome-matrix`, `/api/policy-regression-hashes`, `/api/policy-golden-fixture-validations` route를 추가함
+
+완료 기준:
+
+- Policy Golden Fixtures가 fixture group 6개, policy case 15개, allow/review/deny 5/5/5개를 생성하고 validation error 없이 complete 상태가 됨
+- 모든 case가 regression hash를 가지며 locked case count와 locked regression hash count가 case count와 일치함
+- review case는 전부 human-gated이고 deny case는 전부 blocked 상태로 검증됨
+- Golden fixture 수가 31개로 증가하고 policy golden fixtures가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run contracts:policy-golden -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3925,9 +3946,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 128이다.
+- 현재 완료 기준점은 Phase 129이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P129-P312, 총 184개다.
+- 남은 계획 슬롯은 P130-P312, 총 183개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

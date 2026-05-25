@@ -27,6 +27,7 @@ const GOAL_ITEMS = [
   sourceItem("store_policy_adapter", "Store policy adapter and RLS query enforcement", "identity_policy", "store_policy_adapter", "control-plane-store-policy-adapter", { acceptance_profile: "store_policy_adapter_gate" }),
   sourceItem("conflict_check_interface", "Conflict check interface", "identity_policy", "conflict_check_interface", "control-plane-conflict-check-interface", { acceptance_profile: "conflict_check_interface_gate" }),
   sourceItem("personal_workspace_boundary", "Personal workspace boundary", "identity_policy", "personal_workspace_boundary", "control-plane-personal-workspace-boundary", { acceptance_profile: "personal_workspace_boundary_gate" }),
+  sourceItem("policy_golden_fixtures", "Policy golden fixtures", "identity_policy", "policy_golden_fixtures", "control-plane-policy-golden-fixtures", { acceptance_profile: "policy_golden_fixtures_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -360,7 +361,10 @@ function evaluateStageAcceptance(item, stage) {
     : stage.status === "blocked"
       ? "blocked"
       : "attention";
-  if (directStatus === "passed") {
+  const evaluateProfileWhenPassed = new Set([
+    "policy_golden_fixtures_gate",
+  ]);
+  if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
       status: "passed",
       implementation_status: "passed",
@@ -487,6 +491,29 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.law_firm_resource_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Personal workspace boundary is implemented with separate law-firm and personal tenants, isolated search namespaces, and blocked cross-workspace probes.");
+    }
+  }
+
+  if (item.acceptance_profile === "policy_golden_fixtures_gate") {
+    const caseCount = metrics.policy_fixture_case_count ?? 0;
+    const reviewCount = metrics.review_case_count ?? 0;
+    const denyCount = metrics.deny_case_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.failed_validation_item_count ?? 0)
+      + (metrics.mismatch_case_count ?? 0)
+      + (metrics.missing_case_count ?? 0);
+    if (
+      errors === 0
+      && caseCount > 0
+      && (metrics.locked_case_count ?? 0) === caseCount
+      && (metrics.allow_case_count ?? 0) > 0
+      && reviewCount > 0
+      && denyCount > 0
+      && (metrics.review_case_with_human_gate_count ?? 0) === reviewCount
+      && (metrics.deny_case_blocked_count ?? 0) === denyCount
+      && (metrics.locked_regression_hash_count ?? 0) === caseCount
+    ) {
+      return passedWithOperationalGate(stage, "Policy golden fixtures are implemented with locked allow, review, and deny/block regression cases across policy evaluators.");
     }
   }
 

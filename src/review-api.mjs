@@ -786,6 +786,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("personal_workspace_boundary_validations", boundaryResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-golden-fixtures") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "policy_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("policy_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_golden_fixtures", [fixturesResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-fixture-cases") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "policy_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("policy_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_fixture_cases", fixturesResult.artifact.policy_golden_fixture_catalog?.policy_fixture_cases ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-outcome-matrix") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "policy_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("policy_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_outcome_matrix", [fixturesResult.artifact.policy_golden_fixture_catalog?.policy_outcome_matrix ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-regression-hashes") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "policy_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("policy_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_regression_hashes", fixturesResult.artifact.policy_golden_fixture_catalog?.policy_regression_manifest?.policy_regression_hashes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-golden-fixture-validations") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "policy_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("policy_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_golden_fixture_validations", fixturesResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4342,6 +4377,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/search-namespace-policies", "Search namespace policies for isolated workspace retrieval"),
       route("GET", "/api/cross-workspace-probes", "Cross-workspace probe rows expected to be blocked"),
       route("GET", "/api/personal-workspace-boundary-validations", "Personal workspace boundary validation rows"),
+      route("GET", "/api/policy-golden-fixtures", "Policy golden fixture set artifacts"),
+      route("GET", "/api/policy-fixture-cases", "Representative allow/review/deny policy fixture cases"),
+      route("GET", "/api/policy-outcome-matrix", "Policy fixture outcome matrix"),
+      route("GET", "/api/policy-regression-hashes", "Policy fixture regression hash rows"),
+      route("GET", "/api/policy-golden-fixture-validations", "Policy golden fixture validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4834,6 +4874,14 @@ function filterItems(items, searchParams) {
     "cross_workspace_probe_id",
     "probe_status",
     "block_reason",
+    "policy_golden_fixture_set_id",
+    "policy_golden_fixture_status",
+    "policy_fixture_case_id",
+    "fixture_group",
+    "expected_decision",
+    "observed_decision",
+    "case_status",
+    "policy_regression_hash_id",
     "target_type",
     "target_resource_id",
     "view_status",
@@ -5466,6 +5514,7 @@ function readFilterValue(item, key) {
   if (key === "store_policy_adapter_status") return item.summary?.store_policy_adapter_status ?? item.store_policy_adapter_status;
   if (key === "conflict_check_interface_status") return item.summary?.conflict_check_interface_status ?? item.conflict_check_interface_status;
   if (key === "personal_workspace_boundary_status") return item.summary?.personal_workspace_boundary_status ?? item.personal_workspace_boundary_status;
+  if (key === "policy_golden_fixture_status") return item.summary?.policy_golden_fixture_status ?? item.policy_golden_fixture_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

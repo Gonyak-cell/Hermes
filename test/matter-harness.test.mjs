@@ -21,6 +21,7 @@ import { runAccessAuditProjection } from "../src/access-audit-projection.mjs";
 import { runStorePolicyAdapter } from "../src/store-policy-adapter.mjs";
 import { runConflictCheckInterface } from "../src/conflict-check-interface.mjs";
 import { runPersonalWorkspaceBoundary } from "../src/personal-workspace-boundary.mjs";
+import { runPolicyGoldenFixtures } from "../src/policy-golden-fixtures.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1628,6 +1629,7 @@ describe("matter harness", () => {
         storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
         conflictCheckInterfacePath: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
         personalWorkspaceBoundaryPath: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
+        policyGoldenFixturesPath: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3570,6 +3572,43 @@ describe("matter harness", () => {
       assert.ok(schemaMigrationManifest.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "schema-migration-manifest", "summary.md"), "utf8"), /Schema Migration Manifest/);
 
+      const policyGoldenFixtures = await runPolicyGoldenFixtures({
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        outputDestinationPolicyEnforcementPath: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        personalWorkspaceBoundaryPath: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
+        outDir: path.join(outDir, "policy-golden-fixtures"),
+        runAt: "2026-05-23T06:35:07.875Z",
+      });
+      const policyGoldenFixturesSchema = JSON.parse(await readFile("schemas/policy-golden-fixtures.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(policyGoldenFixtures, policyGoldenFixturesSchema, {}, "policy_golden_fixtures"),
+        [],
+      );
+      assert.equal(policyGoldenFixtures.summary.policy_golden_fixture_status, "complete");
+      assert.equal(policyGoldenFixtures.summary.fixture_group_count, 6);
+      assert.ok(policyGoldenFixtures.summary.policy_fixture_case_count >= 15);
+      assert.ok(policyGoldenFixtures.summary.allow_case_count > 0);
+      assert.ok(policyGoldenFixtures.summary.review_case_count > 0);
+      assert.ok(policyGoldenFixtures.summary.deny_case_count > 0);
+      assert.equal(policyGoldenFixtures.summary.locked_case_count, policyGoldenFixtures.summary.policy_fixture_case_count);
+      assert.equal(policyGoldenFixtures.summary.mismatch_case_count, 0);
+      assert.equal(policyGoldenFixtures.summary.missing_case_count, 0);
+      assert.equal(policyGoldenFixtures.summary.locked_regression_hash_count, policyGoldenFixtures.summary.policy_fixture_case_count);
+      assert.equal(policyGoldenFixtures.summary.review_case_with_human_gate_count, policyGoldenFixtures.summary.review_case_count);
+      assert.equal(policyGoldenFixtures.summary.deny_case_blocked_count, policyGoldenFixtures.summary.deny_case_count);
+      assert.equal(policyGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(policyGoldenFixtures.policy_golden_fixture_catalog.policy_fixture_cases.some((policyCase) => policyCase.fixture_group === "matter_access" && policyCase.expected_decision === "allow"));
+      assert.ok(policyGoldenFixtures.policy_golden_fixture_catalog.policy_fixture_cases.some((policyCase) => policyCase.fixture_group === "model_policy" && policyCase.expected_decision === "deny"));
+      assert.ok(policyGoldenFixtures.policy_golden_fixture_catalog.policy_fixture_cases.some((policyCase) => policyCase.fixture_group === "tool_runtime" && policyCase.expected_decision === "review"));
+      assert.ok(policyGoldenFixtures.policy_golden_fixture_catalog.policy_fixture_cases.some((policyCase) => policyCase.fixture_group === "store_policy" && policyCase.expected_decision === "review"));
+      assert.ok(policyGoldenFixtures.policy_golden_fixture_catalog.policy_fixture_cases.some((policyCase) => policyCase.fixture_group === "workspace_boundary" && policyCase.observed_gate_status === "blocked"));
+      assert.ok(policyGoldenFixtures.policy_golden_fixture_catalog.policy_fixture_cases.every((policyCase) => policyCase.regression_hash?.startsWith("sha256:")));
+      assert.ok(policyGoldenFixtures.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "policy-golden-fixtures", "summary.md"), "utf8"), /Policy Golden Fixtures/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3587,6 +3626,7 @@ describe("matter harness", () => {
           store_policy_adapter: path.join(outDir, "store-policy", "store-policy-adapter.json"),
           conflict_check_interface: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
           personal_workspace_boundary: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
+          policy_golden_fixtures: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3612,8 +3652,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 30);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 30);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 31);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 31);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3634,6 +3674,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "store_policy_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "conflict_check_interface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_workspace_boundary"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_golden_fixtures"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3681,6 +3722,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:store-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:conflict-check"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:personal-boundary"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-golden"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3786,6 +3828,10 @@ describe("matter harness", () => {
       assert.equal(personalWorkspaceBoundaryCheckpoint?.acceptance_profile, "personal_workspace_boundary_gate");
       assert.equal(personalWorkspaceBoundaryCheckpoint?.status, "passed");
       assert.equal(personalWorkspaceBoundaryCheckpoint?.implementation_status, "passed");
+      const policyGoldenFixturesCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-policy-golden-fixtures");
+      assert.equal(policyGoldenFixturesCheckpoint?.acceptance_profile, "policy_golden_fixtures_gate");
+      assert.equal(policyGoldenFixturesCheckpoint?.status, "passed");
+      assert.equal(policyGoldenFixturesCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4437,6 +4483,20 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.personal_workspace_personal_resource_count, personalWorkspaceBoundary.summary.personal_resource_count);
       assert.equal(dashboard.summary.personal_workspace_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.personal_workspace_validation_error_count, 0);
+      assert.equal(dashboard.summary.policy_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.policy_golden_fixture_case_count, policyGoldenFixtures.summary.policy_fixture_case_count);
+      assert.equal(dashboard.summary.policy_golden_fixture_group_count, policyGoldenFixtures.summary.fixture_group_count);
+      assert.equal(dashboard.summary.policy_golden_allow_case_count, policyGoldenFixtures.summary.allow_case_count);
+      assert.equal(dashboard.summary.policy_golden_review_case_count, policyGoldenFixtures.summary.review_case_count);
+      assert.equal(dashboard.summary.policy_golden_deny_case_count, policyGoldenFixtures.summary.deny_case_count);
+      assert.equal(dashboard.summary.policy_golden_locked_case_count, policyGoldenFixtures.summary.locked_case_count);
+      assert.equal(dashboard.summary.policy_golden_mismatch_case_count, 0);
+      assert.equal(dashboard.summary.policy_golden_missing_case_count, 0);
+      assert.equal(dashboard.summary.policy_golden_locked_regression_hash_count, policyGoldenFixtures.summary.locked_regression_hash_count);
+      assert.equal(dashboard.summary.policy_golden_review_case_with_human_gate_count, policyGoldenFixtures.summary.review_case_with_human_gate_count);
+      assert.equal(dashboard.summary.policy_golden_deny_case_blocked_count, policyGoldenFixtures.summary.deny_case_blocked_count);
+      assert.equal(dashboard.summary.policy_golden_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.policy_golden_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -7048,6 +7108,26 @@ describe("matter harness", () => {
       const personalWorkspaceBoundaryValidations = JSON.parse((await buildReviewApiResponse("/api/personal-workspace-boundary-validations?status=passed", apiOptions)).body);
       assert.equal(personalWorkspaceBoundaryValidations.collection, "personal_workspace_boundary_validations");
       assert.equal(personalWorkspaceBoundaryValidations.count, personalWorkspaceBoundary.summary.validation_item_count);
+
+      const policyGoldenFixtureRows = JSON.parse((await buildReviewApiResponse("/api/policy-golden-fixtures?policy_golden_fixture_status=complete", apiOptions)).body);
+      assert.equal(policyGoldenFixtureRows.collection, "policy_golden_fixtures");
+      assert.equal(policyGoldenFixtureRows.count, 1);
+
+      const policyReviewCaseRows = JSON.parse((await buildReviewApiResponse("/api/policy-fixture-cases?expected_decision=review", apiOptions)).body);
+      assert.equal(policyReviewCaseRows.collection, "policy_fixture_cases");
+      assert.equal(policyReviewCaseRows.count, policyGoldenFixtures.summary.review_case_count);
+
+      const policyOutcomeMatrixRows = JSON.parse((await buildReviewApiResponse("/api/policy-outcome-matrix", apiOptions)).body);
+      assert.equal(policyOutcomeMatrixRows.collection, "policy_outcome_matrix");
+      assert.equal(policyOutcomeMatrixRows.count, 1);
+
+      const policyRegressionHashRows = JSON.parse((await buildReviewApiResponse("/api/policy-regression-hashes?case_status=locked", apiOptions)).body);
+      assert.equal(policyRegressionHashRows.collection, "policy_regression_hashes");
+      assert.equal(policyRegressionHashRows.count, policyGoldenFixtures.summary.locked_regression_hash_count);
+
+      const policyGoldenFixtureValidations = JSON.parse((await buildReviewApiResponse("/api/policy-golden-fixture-validations?status=passed", apiOptions)).body);
+      assert.equal(policyGoldenFixtureValidations.collection, "policy_golden_fixture_validations");
+      assert.equal(policyGoldenFixtureValidations.count, policyGoldenFixtures.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

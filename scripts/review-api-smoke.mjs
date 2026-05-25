@@ -220,6 +220,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/search-namespace-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/cross-workspace-probes"));
   assert.ok(index.routes.some((route) => route.path === "/api/personal-workspace-boundary-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-golden-fixtures"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-fixture-cases"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-outcome-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-regression-hashes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-golden-fixture-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1850,6 +1855,26 @@ try {
   const personalWorkspaceBoundaryValidations = await fetchJson(`${url}/api/personal-workspace-boundary-validations?status=passed&limit=5`);
   assert.equal(personalWorkspaceBoundaryValidations.collection, "personal_workspace_boundary_validations");
   assert.ok(personalWorkspaceBoundaryValidations.count <= 5);
+
+  const policyGoldenFixtures = await fetchJson(`${url}/api/policy-golden-fixtures?policy_golden_fixture_status=complete&limit=1`);
+  assert.equal(policyGoldenFixtures.collection, "policy_golden_fixtures");
+  assert.ok(policyGoldenFixtures.count <= 1);
+
+  const policyFixtureCases = await fetchJson(`${url}/api/policy-fixture-cases?expected_decision=review&limit=5`);
+  assert.equal(policyFixtureCases.collection, "policy_fixture_cases");
+  assert.ok(policyFixtureCases.count <= 5);
+
+  const policyOutcomeMatrix = await fetchJson(`${url}/api/policy-outcome-matrix?limit=1`);
+  assert.equal(policyOutcomeMatrix.collection, "policy_outcome_matrix");
+  assert.ok(policyOutcomeMatrix.count <= 1);
+
+  const policyRegressionHashes = await fetchJson(`${url}/api/policy-regression-hashes?case_status=locked&limit=5`);
+  assert.equal(policyRegressionHashes.collection, "policy_regression_hashes");
+  assert.ok(policyRegressionHashes.count <= 5);
+
+  const policyGoldenFixtureValidations = await fetchJson(`${url}/api/policy-golden-fixture-validations?status=passed&limit=5`);
+  assert.equal(policyGoldenFixtureValidations.collection, "policy_golden_fixture_validations");
+  assert.ok(policyGoldenFixtureValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

@@ -45,6 +45,11 @@ npm run api:serve
 - `GET /api/policy-snapshot-instances`: source별 policy snapshot instance
 - `GET /api/policy-decisions`: snapshot에서 도출한 model/runtime policy decision
 - `GET /api/policy-usages`: workflow/event/run ledger의 policy snapshot reference
+- `GET /api/policy-golden-fixtures`: policy golden fixture set artifact
+- `GET /api/policy-fixture-cases`: allow/review/deny 대표 policy case
+- `GET /api/policy-outcome-matrix`: fixture group별 outcome matrix
+- `GET /api/policy-regression-hashes`: locked policy regression hash
+- `GET /api/policy-golden-fixture-validations`: policy golden fixture validation item
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

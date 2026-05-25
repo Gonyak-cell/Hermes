@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/policy-golden-fixtures.schema.json",
+  "title": "Hermes Policy Golden Fixtures",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "policy_golden_fixture_set_id",
+    "output_dir",
+    "inputs",
+    "source_matter_access_policy_evaluator",
+    "source_model_policy_enforcement",
+    "source_tool_runtime_policy_enforcement",
+    "source_output_destination_policy_enforcement",
+    "source_store_policy_adapter",
+    "source_personal_workspace_boundary",
+    "policy_golden_fixture_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "policy-golden-fixtures.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "policy_golden_fixture_set_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "matter_access_policy_evaluator_path",
+        "model_policy_enforcement_path",
+        "tool_runtime_policy_enforcement_path",
+        "output_destination_policy_enforcement_path",
+        "store_policy_adapter_path",
+        "personal_workspace_boundary_path"
+      ],
+      "properties": {
+        "matter_access_policy_evaluator_path": { "type": "string" },
+        "model_policy_enforcement_path": { "type": "string" },
+        "tool_runtime_policy_enforcement_path": { "type": "string" },
+        "output_destination_policy_enforcement_path": { "type": "string" },
+        "store_policy_adapter_path": { "type": "string" },
+        "personal_workspace_boundary_path": { "type": "string" }
+      }
+    },
+    "source_matter_access_policy_evaluator": { "$ref": "#/$defs/source" },
+    "source_model_policy_enforcement": { "$ref": "#/$defs/source" },
+    "source_tool_runtime_policy_enforcement": { "$ref": "#/$defs/source" },
+    "source_output_destination_policy_enforcement": { "$ref": "#/$defs/source" },
+    "source_store_policy_adapter": { "$ref": "#/$defs/source" },
+    "source_personal_workspace_boundary": { "$ref": "#/$defs/source" },
+    "policy_golden_fixture_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "policy_fixture_cases",
+        "policy_outcome_matrix",
+        "policy_regression_manifest"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-golden-fixture-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "policy_fixture_cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/policy_fixture_case" }
+        },
+        "policy_outcome_matrix": { "$ref": "#/$defs/policy_outcome_matrix" },
+        "policy_regression_manifest": { "$ref": "#/$defs/policy_regression_manifest" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "policy_fixture_case": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_fixture_case_id",
+        "fixture_group",
+        "source_artifact_id",
+        "source_record_type",
+        "source_record_id",
+        "label",
+        "expected_decision",
+        "observed_decision",
+        "expected_gate_status",
+        "observed_gate_status",
+        "expected_control_effect",
+        "observed_control_effect",
+        "required_gates",
+        "reason_codes",
+        "human_approval_required",
+        "subject_ref",
+        "case_status",
+        "regression_hash",
+        "captured_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-golden-fixture-case.v1" },
+        "policy_fixture_case_id": { "type": "string" },
+        "fixture_group": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "source_record_type": { "type": "string" },
+        "source_record_id": { "type": "string" },
+        "label": { "type": "string" },
+        "expected_decision": { "enum": ["allow", "review", "deny"] },
+        "observed_decision": { "type": "string" },
+        "expected_gate_status": { "type": "string" },
+        "observed_gate_status": { "type": "string" },
+        "expected_control_effect": { "enum": ["permit", "hold_for_review", "block"] },
+        "observed_control_effect": { "type": "string" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "human_approval_required": { "type": "boolean" },
+        "subject_ref": {
+          "type": "object",
+          "required": ["subject_type", "subject_id"],
+          "properties": {
+            "subject_type": { "type": "string" },
+            "subject_id": { "type": "string" }
+          }
+        },
+        "case_status": { "enum": ["locked", "mismatch", "missing"] },
+        "regression_hash": { "type": ["string", "null"] },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "policy_outcome_matrix": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "fixture_group_count",
+        "policy_fixture_case_count",
+        "by_fixture_group",
+        "by_expected_decision"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-outcome-matrix.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "fixture_group_count": { "type": "integer", "minimum": 0 },
+        "policy_fixture_case_count": { "type": "integer", "minimum": 0 },
+        "by_fixture_group": { "type": "object" },
+        "by_expected_decision": { "type": "object" }
+      }
+    },
+    "policy_regression_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "policy_regression_hash_count",
+        "locked_regression_hash_count",
+        "policy_regression_hashes"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-regression-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "policy_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "policy_regression_hashes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "policy_regression_hash_id",
+              "policy_fixture_case_id",
+              "fixture_group",
+              "expected_decision",
+              "observed_decision",
+              "case_status",
+              "regression_hash"
+            ],
+            "properties": {
+              "policy_regression_hash_id": { "type": "string" },
+              "policy_fixture_case_id": { "type": "string" },
+              "fixture_group": { "type": "string" },
+              "expected_decision": { "enum": ["allow", "review", "deny"] },
+              "observed_decision": { "type": "string" },
+              "case_status": { "enum": ["locked", "mismatch", "missing"] },
+              "regression_hash": { "type": ["string", "null"] }
+            }
+          }
+        }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "policy_golden_fixture_status",
+        "policy_fixture_case_count",
+        "fixture_group_count",
+        "allow_case_count",
+        "review_case_count",
+        "deny_case_count",
+        "locked_case_count",
+        "mismatch_case_count",
+        "missing_case_count",
+        "locked_regression_hash_count",
+        "review_case_with_human_gate_count",
+        "deny_case_blocked_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "policy_golden_fixture_status": { "enum": ["complete", "blocked"] },
+        "policy_fixture_case_count": { "type": "integer", "minimum": 0 },
+        "fixture_group_count": { "type": "integer", "minimum": 0 },
+        "allow_case_count": { "type": "integer", "minimum": 0 },
+        "review_case_count": { "type": "integer", "minimum": 0 },
+        "deny_case_count": { "type": "integer", "minimum": 0 },
+        "locked_case_count": { "type": "integer", "minimum": 0 },
+        "mismatch_case_count": { "type": "integer", "minimum": 0 },
+        "missing_case_count": { "type": "integer", "minimum": 0 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "review_case_with_human_gate_count": { "type": "integer", "minimum": 0 },
+        "deny_case_blocked_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_fixture_group": { "type": "object" },
+        "by_expected_decision": { "type": "object" },
+        "by_case_status": { "type": "object" },
+        "by_control_effect": { "type": "object" }
+      }
+    }
+  }
+}

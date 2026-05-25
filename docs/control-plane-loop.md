@@ -76,6 +76,8 @@ npm run control-plane:loop
 - `npm run dashboard:build`
 - `npm run api:smoke`
 
+Phase 129부터 loop는 `npm run contracts:policy-golden`도 실행해 identity/policy boundary의 allow, review, deny regression fixture를 dashboard와 checkpoint 전에 갱신한다.
+
 이 finalization은 dashboard와 goal checkpoint가 방금 완료된 `control-plane-loop.json`을 읽도록 맞추는 동기화 단계다. 필요하면 `node scripts/control-plane-loop.mjs --no-finalize`로 끌 수 있다.
 
 출력:

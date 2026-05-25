@@ -33,6 +33,7 @@
     "contracts:store-policy": "node scripts/store-policy-adapter.mjs",
     "contracts:conflict-check": "node scripts/conflict-check-interface.mjs",
     "contracts:personal-boundary": "node scripts/personal-workspace-boundary.mjs",
+    "contracts:policy-golden": "node scripts/policy-golden-fixtures.mjs",
     "contracts:model-policy": "node scripts/model-policy-enforcement.mjs",
     "contracts:tool-runtime": "node scripts/tool-runtime-policy-enforcement.mjs",
     "contracts:output-destination": "node scripts/output-destination-policy-enforcement.mjs",

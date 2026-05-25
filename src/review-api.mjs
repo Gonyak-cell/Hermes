@@ -856,6 +856,34 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_surface_validations", surfaceResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/matter-boundary-slices") {
+    const sliceResult = await readDashboardSourceArtifact(dashboard, "matter_boundary_slice");
+    if (!sliceResult.available) {
+      return jsonResponse(503, buildError("matter_boundary_slice_unavailable", sliceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_boundary_slices", [sliceResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-boundary-resource-paths") {
+    const sliceResult = await readDashboardSourceArtifact(dashboard, "matter_boundary_slice");
+    if (!sliceResult.available) {
+      return jsonResponse(503, buildError("matter_boundary_slice_unavailable", sliceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_boundary_resource_paths", sliceResult.artifact.boundary_catalog?.resource_boundary_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-boundary-retrieval-gates") {
+    const sliceResult = await readDashboardSourceArtifact(dashboard, "matter_boundary_slice");
+    if (!sliceResult.available) {
+      return jsonResponse(503, buildError("matter_boundary_slice_unavailable", sliceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_boundary_retrieval_gates", sliceResult.artifact.boundary_catalog?.retrieval_gate_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-boundary-validations") {
+    const sliceResult = await readDashboardSourceArtifact(dashboard, "matter_boundary_slice");
+    if (!sliceResult.available) {
+      return jsonResponse(503, buildError("matter_boundary_slice_unavailable", sliceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_boundary_validations", sliceResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4422,6 +4450,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-violation-rows", "Unified policy violation rows"),
       route("GET", "/api/policy-pending-approvals", "Unified policy pending approval rows"),
       route("GET", "/api/policy-surface-validations", "Policy operations surface validation rows"),
+      route("GET", "/api/matter-boundary-slices", "Matter boundary vertical slice artifacts"),
+      route("GET", "/api/matter-boundary-resource-paths", "Resource ingest to retrieval boundary path rows"),
+      route("GET", "/api/matter-boundary-retrieval-gates", "Retrieval gate checks with store filter and probe status"),
+      route("GET", "/api/matter-boundary-validations", "Matter boundary slice validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4926,6 +4958,15 @@ function filterItems(items, searchParams) {
     "policy_decision_row_id",
     "policy_violation_row_id",
     "policy_pending_approval_id",
+    "matter_boundary_slice_status",
+    "boundary_path_id",
+    "retrieval_gate_check_id",
+    "boundary_status",
+    "retrieval_gate_status",
+    "negative_probe_status",
+    "gate_decision",
+    "matter_tagging_status",
+    "ingest_status",
     "source_artifact_id",
     "source_record_type",
     "source_record_id",
@@ -5576,6 +5617,7 @@ function readFilterValue(item, key) {
   if (key === "personal_workspace_boundary_status") return item.summary?.personal_workspace_boundary_status ?? item.personal_workspace_boundary_status;
   if (key === "policy_golden_fixture_status") return item.summary?.policy_golden_fixture_status ?? item.policy_golden_fixture_status;
   if (key === "policy_operations_surface_status") return item.summary?.policy_operations_surface_status ?? item.policy_operations_surface_status;
+  if (key === "matter_boundary_slice_status") return item.summary?.matter_boundary_slice_status ?? item.matter_boundary_slice_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

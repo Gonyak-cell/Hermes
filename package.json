@@ -130,6 +130,7 @@
     "law-firm:slice": "node scripts/run-law-firm-ldd-slice.mjs",
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
     "matter:cockpit": "node scripts/matter-cockpit.mjs",
+    "matter-boundary:slice": "node scripts/matter-boundary-slice.mjs",
     "observability:catalog": "node scripts/observability-catalog.mjs",
     "output:catalog": "node scripts/output-artifact-catalog.mjs",
     "packs:registry": "node scripts/domain-pack-registry.mjs",

@@ -3961,6 +3961,32 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 32개로 증가하고 policy operations surface가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run policy:surface -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 131: Matter Boundary Slice
+
+목표: Resource ingest부터 retrieval gate까지 matter boundary가 끊기지 않고 보존되는지 검증하는 vertical slice를 만든다.
+
+구현 내용:
+
+- `src/matter-boundary-slice.mjs`, `scripts/matter-boundary-slice.mjs`, `schemas/matter-boundary-slice.schema.json`, `docs/matter-boundary-slice.md`를 추가함
+- `npm run matter-boundary:slice -- --check` 명령을 추가해 resource boundary path, retrieval gate check, validation report, summary markdown을 생성함
+- Resource Ingest, Resource v2 freeze, Matter Access Policy, Access Audit Projection, Store Policy Adapter, Policy Operations Surface를 같은 slice 계약으로 연결함
+- 각 resource boundary path가 promoted ingest resource, access decision, access audit record, store query plan, policy decision row를 모두 보존하는지 검증함
+- retrieval gate check가 tenant/matter/classification/policy snapshot/access audit/resource filter와 negative RLS probe 차단을 모두 통과하는지 검증함
+- unassigned resource는 matter tagging/human gate에 held 되고 executable query plan이 0으로 유지되는 것을 완료 조건으로 둠
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 matter boundary slice를 통합함
+- `/api/matter-boundary-slices`, `/api/matter-boundary-resource-paths`, `/api/matter-boundary-retrieval-gates`, `/api/matter-boundary-validations` route를 추가함
+
+완료 기준:
+
+- Matter Boundary Slice가 resource boundary path와 retrieval gate check를 생성하고 validation error 없이 complete 상태가 됨
+- 모든 Resource v2 row가 resource ingest에서 promoted 되었고 access decision, access audit, store query plan, policy surface row로 이어짐
+- 모든 retrieval gate가 required store filter와 negative RLS probe 차단을 통과함
+- unassigned resource가 executable retrieval 없이 matter tagging/human confirmation gate에 held 됨
+- Review Dashboard summary와 stage status에서 matter boundary slice 상태, resource path count, retrieval gate count, validation error count가 노출됨
+- Review API smoke가 matter boundary slice, resource path, retrieval gate, validation route를 모두 조회함
+- Golden fixture 수가 33개로 증가하고 matter boundary slice가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run matter-boundary:slice -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3969,9 +3995,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 130이다.
+- 현재 완료 기준점은 Phase 131이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P131-P312, 총 182개다.
+- 남은 계획 슬롯은 P132-P312, 총 181개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

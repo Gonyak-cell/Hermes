@@ -30,6 +30,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:personal-boundary",
   "contracts:policy-golden",
   "policy:surface",
+  "matter-boundary:slice",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

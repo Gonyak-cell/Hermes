@@ -23,6 +23,7 @@ import { runConflictCheckInterface } from "../src/conflict-check-interface.mjs";
 import { runPersonalWorkspaceBoundary } from "../src/personal-workspace-boundary.mjs";
 import { runPolicyGoldenFixtures } from "../src/policy-golden-fixtures.mjs";
 import { runPolicyOperationsSurface } from "../src/policy-operations-surface.mjs";
+import { runMatterBoundarySlice } from "../src/matter-boundary-slice.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1632,6 +1633,7 @@ describe("matter harness", () => {
         personalWorkspaceBoundaryPath: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
         policyGoldenFixturesPath: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
         policyOperationsSurfacePath: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
+        matterBoundarySlicePath: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3646,6 +3648,42 @@ describe("matter harness", () => {
       assert.ok(policyOperationsSurface.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "policy-operations-surface", "summary.md"), "utf8"), /Policy Operations Surface/);
 
+      const matterBoundarySlice = await runMatterBoundarySlice({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        policyOperationsSurfacePath: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
+        outDir: path.join(outDir, "matter-boundary-slice"),
+        runAt: "2026-05-23T06:35:07.879Z",
+      });
+      const matterBoundarySliceSchema = JSON.parse(await readFile("schemas/matter-boundary-slice.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(matterBoundarySlice, matterBoundarySliceSchema, {}, "matter_boundary_slice"),
+        [],
+      );
+      assert.equal(matterBoundarySlice.summary.matter_boundary_slice_status, "complete");
+      assert.equal(matterBoundarySlice.summary.resource_boundary_path_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(matterBoundarySlice.summary.promoted_resource_path_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(matterBoundarySlice.summary.access_decision_covered_resource_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(matterBoundarySlice.summary.access_audited_resource_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(matterBoundarySlice.summary.store_compiled_resource_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(matterBoundarySlice.summary.required_store_filter_resource_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(matterBoundarySlice.summary.negative_probe_blocked_resource_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(matterBoundarySlice.summary.policy_surface_visible_resource_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.ok(matterBoundarySlice.summary.retrieval_gate_check_count > 0);
+      assert.equal(matterBoundarySlice.summary.passed_retrieval_gate_check_count, matterBoundarySlice.summary.retrieval_gate_check_count);
+      assert.equal(matterBoundarySlice.summary.failed_retrieval_gate_check_count, 0);
+      assert.equal(matterBoundarySlice.summary.negative_probe_blocked_count, matterBoundarySlice.summary.negative_probe_expected_count);
+      assert.equal(matterBoundarySlice.summary.unassigned_executable_query_plan_count, 0);
+      assert.ok(matterBoundarySlice.summary.held_for_matter_tagging_resource_count > 0);
+      assert.equal(matterBoundarySlice.summary.validation_error_count, 0);
+      assert.ok(matterBoundarySlice.boundary_catalog.resource_boundary_paths.every((row) => row.boundary_status === "held_for_matter_tagging"));
+      assert.ok(matterBoundarySlice.boundary_catalog.retrieval_gate_checks.every((row) => row.retrieval_gate_status === "passed"));
+      assert.ok(matterBoundarySlice.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "matter-boundary-slice", "summary.md"), "utf8"), /Matter Boundary Slice/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3665,6 +3703,7 @@ describe("matter harness", () => {
           personal_workspace_boundary: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
           policy_golden_fixtures: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
           policy_operations_surface: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
+          matter_boundary_slice: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3690,8 +3729,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 32);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 32);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 33);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 33);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3714,6 +3753,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_workspace_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_golden_fixtures"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_operations_surface"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_boundary_slice"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3875,6 +3915,10 @@ describe("matter harness", () => {
       assert.equal(policyOperationsSurfaceCheckpoint?.acceptance_profile, "policy_operations_surface_gate");
       assert.equal(policyOperationsSurfaceCheckpoint?.status, "passed");
       assert.equal(policyOperationsSurfaceCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterBoundarySliceCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-boundary-slice");
+      assert.equal(matterBoundarySliceCheckpoint?.acceptance_profile, "matter_boundary_slice_gate");
+      assert.equal(matterBoundarySliceCheckpoint?.status, "passed");
+      assert.equal(matterBoundarySliceCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4554,6 +4598,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_operations_distinct_layer_count, policyOperationsSurface.summary.distinct_policy_layer_count);
       assert.equal(dashboard.summary.policy_operations_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.policy_operations_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_boundary_slice_status, "complete");
+      assert.equal(dashboard.summary.matter_boundary_resource_path_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(dashboard.summary.matter_boundary_retrieval_gate_check_count, matterBoundarySlice.summary.retrieval_gate_check_count);
+      assert.equal(dashboard.summary.matter_boundary_promoted_resource_path_count, matterBoundarySlice.summary.promoted_resource_path_count);
+      assert.equal(dashboard.summary.matter_boundary_access_decision_covered_resource_count, matterBoundarySlice.summary.access_decision_covered_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_access_audited_resource_count, matterBoundarySlice.summary.access_audited_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_store_compiled_resource_count, matterBoundarySlice.summary.store_compiled_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_required_store_filter_resource_count, matterBoundarySlice.summary.required_store_filter_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_negative_probe_blocked_resource_count, matterBoundarySlice.summary.negative_probe_blocked_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_policy_surface_visible_resource_count, matterBoundarySlice.summary.policy_surface_visible_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_unassigned_resource_count, matterBoundarySlice.summary.unassigned_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_unassigned_executable_query_plan_count, 0);
+      assert.equal(dashboard.summary.matter_boundary_held_for_matter_tagging_resource_count, matterBoundarySlice.summary.held_for_matter_tagging_resource_count);
+      assert.equal(dashboard.summary.matter_boundary_passed_retrieval_gate_check_count, matterBoundarySlice.summary.passed_retrieval_gate_check_count);
+      assert.equal(dashboard.summary.matter_boundary_failed_retrieval_gate_check_count, 0);
+      assert.equal(dashboard.summary.matter_boundary_negative_probe_expected_count, matterBoundarySlice.summary.negative_probe_expected_count);
+      assert.equal(dashboard.summary.matter_boundary_negative_probe_blocked_count, matterBoundarySlice.summary.negative_probe_blocked_count);
+      assert.equal(dashboard.summary.matter_boundary_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -7205,6 +7267,22 @@ describe("matter harness", () => {
       const policySurfaceValidations = JSON.parse((await buildReviewApiResponse("/api/policy-surface-validations?status=passed", apiOptions)).body);
       assert.equal(policySurfaceValidations.collection, "policy_surface_validations");
       assert.equal(policySurfaceValidations.count, policyOperationsSurface.summary.validation_item_count);
+
+      const matterBoundarySlices = JSON.parse((await buildReviewApiResponse("/api/matter-boundary-slices?matter_boundary_slice_status=complete", apiOptions)).body);
+      assert.equal(matterBoundarySlices.collection, "matter_boundary_slices");
+      assert.equal(matterBoundarySlices.count, 1);
+
+      const matterBoundaryResourcePaths = JSON.parse((await buildReviewApiResponse("/api/matter-boundary-resource-paths?boundary_status=held_for_matter_tagging", apiOptions)).body);
+      assert.equal(matterBoundaryResourcePaths.collection, "matter_boundary_resource_paths");
+      assert.equal(matterBoundaryResourcePaths.count, matterBoundarySlice.summary.held_for_matter_tagging_resource_count);
+
+      const matterBoundaryRetrievalGates = JSON.parse((await buildReviewApiResponse("/api/matter-boundary-retrieval-gates?retrieval_gate_status=passed", apiOptions)).body);
+      assert.equal(matterBoundaryRetrievalGates.collection, "matter_boundary_retrieval_gates");
+      assert.equal(matterBoundaryRetrievalGates.count, matterBoundarySlice.summary.passed_retrieval_gate_check_count);
+
+      const matterBoundaryValidations = JSON.parse((await buildReviewApiResponse("/api/matter-boundary-validations?status=passed", apiOptions)).body);
+      assert.equal(matterBoundaryValidations.collection, "matter_boundary_validations");
+      assert.equal(matterBoundaryValidations.count, matterBoundarySlice.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

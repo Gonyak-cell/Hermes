@@ -230,6 +230,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/policy-violation-rows"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-pending-approvals"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-surface-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-slices"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-resource-paths"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-retrieval-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1900,6 +1904,22 @@ try {
   const policySurfaceValidations = await fetchJson(`${url}/api/policy-surface-validations?status=passed&limit=5`);
   assert.equal(policySurfaceValidations.collection, "policy_surface_validations");
   assert.ok(policySurfaceValidations.count <= 5);
+
+  const matterBoundarySlices = await fetchJson(`${url}/api/matter-boundary-slices?matter_boundary_slice_status=complete&limit=1`);
+  assert.equal(matterBoundarySlices.collection, "matter_boundary_slices");
+  assert.ok(matterBoundarySlices.count <= 1);
+
+  const matterBoundaryResourcePaths = await fetchJson(`${url}/api/matter-boundary-resource-paths?boundary_status=held_for_matter_tagging&limit=5`);
+  assert.equal(matterBoundaryResourcePaths.collection, "matter_boundary_resource_paths");
+  assert.ok(matterBoundaryResourcePaths.count <= 5);
+
+  const matterBoundaryRetrievalGates = await fetchJson(`${url}/api/matter-boundary-retrieval-gates?retrieval_gate_status=passed&limit=5`);
+  assert.equal(matterBoundaryRetrievalGates.collection, "matter_boundary_retrieval_gates");
+  assert.ok(matterBoundaryRetrievalGates.count <= 5);
+
+  const matterBoundaryValidations = await fetchJson(`${url}/api/matter-boundary-validations?status=passed&limit=5`);
+  assert.equal(matterBoundaryValidations.collection, "matter_boundary_validations");
+  assert.ok(matterBoundaryValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

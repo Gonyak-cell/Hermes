@@ -55,6 +55,10 @@ npm run api:serve
 - `GET /api/policy-violation-rows`: unified policy violation rows
 - `GET /api/policy-pending-approvals`: unified pending policy approval rows
 - `GET /api/policy-surface-validations`: policy operations surface validation rows
+- `GET /api/matter-boundary-slices`: matter boundary vertical slice artifact
+- `GET /api/matter-boundary-resource-paths`: resource ingest부터 retrieval gate까지의 resource boundary path rows
+- `GET /api/matter-boundary-retrieval-gates`: store filter와 negative probe를 포함한 retrieval gate checks
+- `GET /api/matter-boundary-validations`: matter boundary slice validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

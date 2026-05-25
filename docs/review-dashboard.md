@@ -99,6 +99,7 @@ npm run dashboard:build -- \
 - Policy Snapshot Ledger의 snapshot, workflow/event/run ledger usage, matrix alignment 상태
 - Policy Golden Fixtures의 allow/review/deny 대표 case, human-gated review case, blocked deny case, regression hash 상태
 - Policy Operations Surface의 통합 decision/violation/pending approval row와 validation 상태
+- Matter Boundary Slice의 resource boundary path, retrieval gate, store filter, negative probe, matter tagging hold 상태
 - Context Packet Ledger의 runtime별 context packet, redaction mode, retrieval filter 상태
 - Model Routing Ledger의 runtime/provider boundary, 외부전송, redaction enforcement, approval/block 상태
 - Cost Budget Ledger의 capability cost policy, observed cost, token tracking 상태

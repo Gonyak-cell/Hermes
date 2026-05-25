@@ -21,6 +21,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   personalWorkspaceBoundaryPath: "artifacts/personal-workspace-boundary/latest/personal-workspace-boundary.json",
   policyGoldenFixturesPath: "artifacts/policy-golden-fixtures/latest/policy-golden-fixtures.json",
   policyOperationsSurfacePath: "artifacts/policy-operations-surface/latest/policy-operations-surface.json",
+  matterBoundarySlicePath: "artifacts/matter-boundary-slice/latest/matter-boundary-slice.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -214,6 +215,11 @@ const SOURCE_DEFINITIONS = [
     option: "policyOperationsSurfacePath",
     source_id: "policy_operations_surface",
     label: "Policy Operations Surface",
+  },
+  {
+    option: "matterBoundarySlicePath",
+    source_id: "matter_boundary_slice",
+    label: "Matter Boundary Slice",
   },
   {
     option: "evidenceContractFreezePath",
@@ -869,6 +875,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "personal_workspace_boundary") return data.summary ?? {};
   if (sourceId === "policy_golden_fixtures") return data.summary ?? {};
   if (sourceId === "policy_operations_surface") return data.summary ?? {};
+  if (sourceId === "matter_boundary_slice") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1079,6 +1086,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPersonalWorkspaceBoundaryStage(artifacts.personal_workspace_boundary, sourceById.get("personal_workspace_boundary")),
     buildPolicyGoldenFixturesStage(artifacts.policy_golden_fixtures, sourceById.get("policy_golden_fixtures")),
     buildPolicyOperationsSurfaceStage(artifacts.policy_operations_surface, sourceById.get("policy_operations_surface")),
+    buildMatterBoundarySliceStage(artifacts.matter_boundary_slice, sourceById.get("matter_boundary_slice")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1880,6 +1888,64 @@ function buildPolicyOperationsSurfaceStage(surface, source) {
       assignment_required_approval_count: summary.assignment_required_approval_count ?? 0,
       human_gate_pending_approval_count: summary.human_gate_pending_approval_count ?? 0,
       distinct_policy_layer_count: summary.distinct_policy_layer_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildMatterBoundarySliceStage(slice, source) {
+  if (!slice) return missingStage("matter_boundary_slice", "Matter Boundary Slice", source);
+  const summary = slice.summary ?? {};
+  const pathCount = summary.resource_boundary_path_count ?? 0;
+  const gateCount = summary.retrieval_gate_check_count ?? 0;
+  const errorCount = summary.validation_error_count ?? slice.validation?.errors?.length ?? 0;
+  const status = summary.matter_boundary_slice_status === "complete"
+    && errorCount === 0
+    && pathCount > 0
+    && gateCount > 0
+    && (summary.promoted_resource_path_count ?? 0) === pathCount
+    && (summary.access_decision_covered_resource_count ?? 0) === pathCount
+    && (summary.access_audited_resource_count ?? 0) === pathCount
+    && (summary.store_compiled_resource_count ?? 0) === pathCount
+    && (summary.required_store_filter_resource_count ?? 0) === pathCount
+    && (summary.negative_probe_blocked_resource_count ?? 0) === pathCount
+    && (summary.policy_surface_visible_resource_count ?? 0) === pathCount
+    && (summary.passed_retrieval_gate_check_count ?? 0) === gateCount
+    && (summary.failed_retrieval_gate_check_count ?? 0) === 0
+    && (summary.unassigned_executable_query_plan_count ?? 0) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "matter_boundary_slice",
+    label: "Matter Boundary Slice",
+    status,
+    message: `${pathCount} resource boundary path(s), ${gateCount} retrieval gate check(s), ${summary.held_for_matter_tagging_resource_count ?? 0} held for matter tagging.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      matter_boundary_slice_status: summary.matter_boundary_slice_status ?? "unknown",
+      resource_boundary_path_count: pathCount,
+      retrieval_gate_check_count: gateCount,
+      promoted_resource_path_count: summary.promoted_resource_path_count ?? 0,
+      access_decision_covered_resource_count: summary.access_decision_covered_resource_count ?? 0,
+      access_audited_resource_count: summary.access_audited_resource_count ?? 0,
+      store_compiled_resource_count: summary.store_compiled_resource_count ?? 0,
+      required_store_filter_resource_count: summary.required_store_filter_resource_count ?? 0,
+      negative_probe_blocked_resource_count: summary.negative_probe_blocked_resource_count ?? 0,
+      policy_surface_visible_resource_count: summary.policy_surface_visible_resource_count ?? 0,
+      unassigned_resource_count: summary.unassigned_resource_count ?? 0,
+      unassigned_executable_query_plan_count: summary.unassigned_executable_query_plan_count ?? 0,
+      held_for_matter_tagging_resource_count: summary.held_for_matter_tagging_resource_count ?? 0,
+      retrieval_ready_resource_count: summary.retrieval_ready_resource_count ?? 0,
+      blocked_resource_count: summary.blocked_resource_count ?? 0,
+      executable_query_plan_count: summary.executable_query_plan_count ?? 0,
+      held_query_plan_count: summary.held_query_plan_count ?? 0,
+      blocked_query_plan_count: summary.blocked_query_plan_count ?? 0,
+      passed_retrieval_gate_check_count: summary.passed_retrieval_gate_check_count ?? 0,
+      failed_retrieval_gate_check_count: summary.failed_retrieval_gate_check_count ?? 0,
+      negative_probe_expected_count: summary.negative_probe_expected_count ?? 0,
+      negative_probe_blocked_count: summary.negative_probe_blocked_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5589,6 +5655,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.matter_boundary_slice?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "matter_boundary_slice";
+    items.push({
+      action_item_id: `dashboard.action.matter_boundary_slice.${slugify(subjectId)}`,
+      source_stage: "matter_boundary_slice",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix matter boundary slice",
+      subject_ref: {
+        subject_type: "matter_boundary_slice_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_matter_boundary_path", "rerun_matter_boundary_slice", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7227,6 +7311,30 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_operations_distinct_layer_count: artifacts.policy_operations_surface?.summary?.distinct_policy_layer_count ?? 0,
     policy_operations_failed_validation_item_count: artifacts.policy_operations_surface?.summary?.failed_validation_item_count ?? 0,
     policy_operations_validation_error_count: artifacts.policy_operations_surface?.summary?.validation_error_count ?? artifacts.policy_operations_surface?.validation?.errors?.length ?? 0,
+    matter_boundary_slice_status: artifacts.matter_boundary_slice?.summary?.matter_boundary_slice_status ?? "unknown",
+    matter_boundary_resource_path_count: artifacts.matter_boundary_slice?.summary?.resource_boundary_path_count ?? 0,
+    matter_boundary_retrieval_gate_check_count: artifacts.matter_boundary_slice?.summary?.retrieval_gate_check_count ?? 0,
+    matter_boundary_promoted_resource_path_count: artifacts.matter_boundary_slice?.summary?.promoted_resource_path_count ?? 0,
+    matter_boundary_access_decision_covered_resource_count: artifacts.matter_boundary_slice?.summary?.access_decision_covered_resource_count ?? 0,
+    matter_boundary_access_audited_resource_count: artifacts.matter_boundary_slice?.summary?.access_audited_resource_count ?? 0,
+    matter_boundary_store_compiled_resource_count: artifacts.matter_boundary_slice?.summary?.store_compiled_resource_count ?? 0,
+    matter_boundary_required_store_filter_resource_count: artifacts.matter_boundary_slice?.summary?.required_store_filter_resource_count ?? 0,
+    matter_boundary_negative_probe_blocked_resource_count: artifacts.matter_boundary_slice?.summary?.negative_probe_blocked_resource_count ?? 0,
+    matter_boundary_policy_surface_visible_resource_count: artifacts.matter_boundary_slice?.summary?.policy_surface_visible_resource_count ?? 0,
+    matter_boundary_unassigned_resource_count: artifacts.matter_boundary_slice?.summary?.unassigned_resource_count ?? 0,
+    matter_boundary_unassigned_executable_query_plan_count: artifacts.matter_boundary_slice?.summary?.unassigned_executable_query_plan_count ?? 0,
+    matter_boundary_held_for_matter_tagging_resource_count: artifacts.matter_boundary_slice?.summary?.held_for_matter_tagging_resource_count ?? 0,
+    matter_boundary_retrieval_ready_resource_count: artifacts.matter_boundary_slice?.summary?.retrieval_ready_resource_count ?? 0,
+    matter_boundary_blocked_resource_count: artifacts.matter_boundary_slice?.summary?.blocked_resource_count ?? 0,
+    matter_boundary_executable_query_plan_count: artifacts.matter_boundary_slice?.summary?.executable_query_plan_count ?? 0,
+    matter_boundary_held_query_plan_count: artifacts.matter_boundary_slice?.summary?.held_query_plan_count ?? 0,
+    matter_boundary_blocked_query_plan_count: artifacts.matter_boundary_slice?.summary?.blocked_query_plan_count ?? 0,
+    matter_boundary_passed_retrieval_gate_check_count: artifacts.matter_boundary_slice?.summary?.passed_retrieval_gate_check_count ?? 0,
+    matter_boundary_failed_retrieval_gate_check_count: artifacts.matter_boundary_slice?.summary?.failed_retrieval_gate_check_count ?? 0,
+    matter_boundary_negative_probe_expected_count: artifacts.matter_boundary_slice?.summary?.negative_probe_expected_count ?? 0,
+    matter_boundary_negative_probe_blocked_count: artifacts.matter_boundary_slice?.summary?.negative_probe_blocked_count ?? 0,
+    matter_boundary_failed_validation_item_count: artifacts.matter_boundary_slice?.summary?.failed_validation_item_count ?? 0,
+    matter_boundary_validation_error_count: artifacts.matter_boundary_slice?.summary?.validation_error_count ?? artifacts.matter_boundary_slice?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8586,6 +8694,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-golden-fixtures") parsed.policyGoldenFixturesPath = false;
     else if (arg === "--policy-operations-surface") parsed.policyOperationsSurfacePath = argv[++index];
     else if (arg === "--no-policy-operations-surface") parsed.policyOperationsSurfacePath = false;
+    else if (arg === "--matter-boundary-slice") parsed.matterBoundarySlicePath = argv[++index];
+    else if (arg === "--no-matter-boundary-slice") parsed.matterBoundarySlicePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8839,6 +8949,8 @@ Options:
   --policy-operations-surface <path>
                                   policy-operations-surface.json path.
   --no-policy-operations-surface  Do not include Policy Operations Surface status.
+  --matter-boundary-slice <path>  matter-boundary-slice.json path.
+  --no-matter-boundary-slice      Do not include Matter Boundary Slice status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

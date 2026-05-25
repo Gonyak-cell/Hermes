@@ -28,6 +28,7 @@ The suite is complete only when:
 - all required contract package scripts exist
 - `contracts:policy-golden` is present once policy golden fixtures are part of the fixture set
 - `policy:surface` is present once policy operations surface exposes decision, violation, and pending approval rows
+- `matter-boundary:slice` is present once the matter boundary vertical slice becomes a golden fixture
 - Phase 112 and `npm run contracts:validate` are recorded in the roadmap
 
 This makes the contract spine testable through one deterministic command before later identity, policy, evidence, runtime, or delivery phases add more behavior.

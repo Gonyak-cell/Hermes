@@ -24,7 +24,7 @@ The first fixture set covers the contract spine:
 - contract inventory and dependency map
 - schema versioning rules and schema migration manifest
 - Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability freezes
-- identity/policy implementation artifacts through policy golden fixtures and policy operations surface, including matter access, classification, model/tool/output policy, store policy, conflict check, personal workspace boundary, locked allow/review/deny regression cases, and unified decision/violation/pending approval rows
+- identity/policy implementation artifacts through policy golden fixtures, policy operations surface, and matter boundary slice, including matter access, classification, model/tool/output policy, store policy, conflict check, personal workspace boundary, locked allow/review/deny regression cases, unified decision/violation/pending approval rows, and resource-to-retrieval boundary validation
 
 Each fixture records its source artifact path, schema path, artifact schema version, content hash, schema hash, validation status, and regression lock status.
 

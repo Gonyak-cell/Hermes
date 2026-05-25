@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/matter-boundary-slice.schema.json",
+  "title": "Hermes Matter Boundary Slice",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "matter_boundary_slice_id",
+    "output_dir",
+    "inputs",
+    "source_statuses",
+    "boundary_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "matter-boundary-slice.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "matter_boundary_slice_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_statuses": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/source_status" }
+    },
+    "boundary_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "resource_boundary_paths",
+        "retrieval_gate_checks"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-boundary-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "resource_boundary_paths": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resource_boundary_path" }
+        },
+        "retrieval_gate_checks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/retrieval_gate_check" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": ["schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "resource_boundary_path": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_path_id",
+        "resource_id",
+        "tenant_id",
+        "resource_matter_id",
+        "target_matter_ids",
+        "classification",
+        "policy_snapshot_id",
+        "ingest_status",
+        "matter_tagging_status",
+        "access_decision_count",
+        "access_audit_record_count",
+        "store_query_plan_count",
+        "policy_decision_row_count",
+        "retrieval_gate_check_count",
+        "all_access_decisions_audited",
+        "all_audits_compiled_to_store_query",
+        "all_required_store_filters_enforced",
+        "all_negative_retrieval_probes_blocked",
+        "boundary_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-boundary-path.v1" },
+        "boundary_path_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "source_resource_id": { "type": ["string", "null"] },
+        "resource_version_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": "string" },
+        "resource_matter_id": { "type": "string" },
+        "target_matter_ids": { "type": "array", "items": { "type": "string" } },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "source_system": { "type": "string" },
+        "source_uri": { "type": "string" },
+        "ingest_status": { "enum": ["promoted", "missing"] },
+        "matter_tagging_status": { "enum": ["assigned", "pending_human_confirmation"] },
+        "access_decision_count": { "type": "integer", "minimum": 0 },
+        "access_audit_record_count": { "type": "integer", "minimum": 0 },
+        "store_query_plan_count": { "type": "integer", "minimum": 0 },
+        "executable_query_plan_count": { "type": "integer", "minimum": 0 },
+        "held_query_plan_count": { "type": "integer", "minimum": 0 },
+        "blocked_query_plan_count": { "type": "integer", "minimum": 0 },
+        "policy_decision_row_count": { "type": "integer", "minimum": 0 },
+        "policy_violation_row_count": { "type": "integer", "minimum": 0 },
+        "pending_approval_row_count": { "type": "integer", "minimum": 0 },
+        "retrieval_gate_check_count": { "type": "integer", "minimum": 0 },
+        "negative_probe_blocked_count": { "type": "integer", "minimum": 0 },
+        "expected_negative_probe_count": { "type": "integer", "minimum": 0 },
+        "all_access_decisions_audited": { "type": "boolean" },
+        "all_audits_compiled_to_store_query": { "type": "boolean" },
+        "all_required_store_filters_enforced": { "type": "boolean" },
+        "all_negative_retrieval_probes_blocked": { "type": "boolean" },
+        "boundary_status": {
+          "enum": [
+            "retrieval_ready",
+            "held_for_matter_tagging",
+            "held_for_human_review",
+            "blocked"
+          ]
+        },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "retrieval_gate_check": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_gate_check_id",
+        "store_query_plan_id",
+        "access_audit_record_id",
+        "source_decision_id",
+        "source_decision_type",
+        "user_id",
+        "runtime_id",
+        "tenant_id",
+        "target_matter_id",
+        "resource_id",
+        "classification",
+        "policy_snapshot_id",
+        "query_status",
+        "gate_decision",
+        "rls_enforced",
+        "required_filter_keys",
+        "missing_required_filter_keys",
+        "expected_negative_probe_count",
+        "blocked_negative_probe_count",
+        "negative_probe_status",
+        "retrieval_gate_status",
+        "human_gate_required",
+        "matter_tagging_required",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "retrieval-gate-check.v1" },
+        "retrieval_gate_check_id": { "type": "string" },
+        "store_query_plan_id": { "type": "string" },
+        "access_audit_record_id": { "type": "string" },
+        "source_decision_id": { "type": "string" },
+        "source_decision_type": { "type": "string" },
+        "user_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "target_matter_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "query_status": { "enum": ["executable", "held_for_human_confirmation", "blocked"] },
+        "gate_decision": { "enum": ["allow", "review", "deny"] },
+        "rls_enforced": { "type": "boolean" },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "missing_required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "baseline_probe_outcome": { "type": "string" },
+        "expected_negative_probe_count": { "type": "integer", "minimum": 0 },
+        "blocked_negative_probe_count": { "type": "integer", "minimum": 0 },
+        "negative_probe_status": { "enum": ["blocked", "attention"] },
+        "retrieval_gate_status": { "enum": ["passed", "failed"] },
+        "human_gate_required": { "type": "boolean" },
+        "matter_tagging_required": { "type": "boolean" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "matter_boundary_slice_status",
+        "source_resource_count",
+        "resource_boundary_path_count",
+        "retrieval_gate_check_count",
+        "promoted_resource_path_count",
+        "access_decision_covered_resource_count",
+        "access_audited_resource_count",
+        "store_compiled_resource_count",
+        "required_store_filter_resource_count",
+        "negative_probe_blocked_resource_count",
+        "policy_surface_visible_resource_count",
+        "unassigned_resource_count",
+        "unassigned_executable_query_plan_count",
+        "held_for_matter_tagging_resource_count",
+        "retrieval_ready_resource_count",
+        "blocked_resource_count",
+        "executable_query_plan_count",
+        "held_query_plan_count",
+        "blocked_query_plan_count",
+        "passed_retrieval_gate_check_count",
+        "failed_retrieval_gate_check_count",
+        "negative_probe_expected_count",
+        "negative_probe_blocked_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "matter_boundary_slice_status": { "enum": ["complete", "blocked"] },
+        "source_resource_count": { "type": "integer", "minimum": 0 },
+        "resource_boundary_path_count": { "type": "integer", "minimum": 0 },
+        "retrieval_gate_check_count": { "type": "integer", "minimum": 0 },
+        "promoted_resource_path_count": { "type": "integer", "minimum": 0 },
+        "access_decision_covered_resource_count": { "type": "integer", "minimum": 0 },
+        "access_audited_resource_count": { "type": "integer", "minimum": 0 },
+        "store_compiled_resource_count": { "type": "integer", "minimum": 0 },
+        "required_store_filter_resource_count": { "type": "integer", "minimum": 0 },
+        "negative_probe_blocked_resource_count": { "type": "integer", "minimum": 0 },
+        "policy_surface_visible_resource_count": { "type": "integer", "minimum": 0 },
+        "unassigned_resource_count": { "type": "integer", "minimum": 0 },
+        "unassigned_executable_query_plan_count": { "type": "integer", "minimum": 0 },
+        "held_for_matter_tagging_resource_count": { "type": "integer", "minimum": 0 },
+        "retrieval_ready_resource_count": { "type": "integer", "minimum": 0 },
+        "blocked_resource_count": { "type": "integer", "minimum": 0 },
+        "executable_query_plan_count": { "type": "integer", "minimum": 0 },
+        "held_query_plan_count": { "type": "integer", "minimum": 0 },
+        "blocked_query_plan_count": { "type": "integer", "minimum": 0 },
+        "passed_retrieval_gate_check_count": { "type": "integer", "minimum": 0 },
+        "failed_retrieval_gate_check_count": { "type": "integer", "minimum": 0 },
+        "negative_probe_expected_count": { "type": "integer", "minimum": 0 },
+        "negative_probe_blocked_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_boundary_status": { "type": "object" },
+        "by_query_status": { "type": "object" },
+        "by_classification": { "type": "object" }
+      }
+    }
+  }
+}

@@ -142,6 +142,7 @@ npm run control-plane:goal-checkpoint -- \
 - Evidence Flags: 각 coverage score가 extraction, human confirmation, privilege, redaction, external-transfer decision을 분리하고 matter/classification/policy preservation, review-pending/not-client-facing gate를 만족하면 구현 통과
 - Exhibit Map: 각 evidence flag record가 `별첨 n` exhibit로 승격되고 evidence, citation, output paragraph, lineage path binding과 matter/classification/policy preservation, attorney-review/not-client-facing gate를 만족하면 구현 통과
 - Chain of Custody Events: upload, normalize, extract, review, approve-hold stage가 append-only hashed event chain으로 기록되고 actor/matter/classification/policy preservation, human approval hold, no-client-facing gate를 만족하면 구현 통과
+- Search Index Contract: 각 searchable source collection이 manifest와 held query plan으로 등록되고 tenant/matter/classification/policy snapshot filter, matter wall, source ref preservation, non-executable query boundary를 만족하면 구현 통과
 
 이 경우 checkpoint item은 `status: passed`, `implementation_status: passed_with_operational_gate`, `operational_status: pending|blocked|attention`을 함께 기록한다.
 

@@ -829,6 +829,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("custody_event_validations", custodyResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/search-index-contracts") {
+    const searchIndexResult = await readDashboardSourceArtifact(dashboard, "search_index_contract");
+    if (!searchIndexResult.available) {
+      return jsonResponse(503, buildError("search_index_contract_unavailable", searchIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("search_index_contracts", [searchIndexResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/search-index-manifests") {
+    const searchIndexResult = await readDashboardSourceArtifact(dashboard, "search_index_contract");
+    if (!searchIndexResult.available) {
+      return jsonResponse(503, buildError("search_index_contract_unavailable", searchIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("search_index_manifests", searchIndexResult.artifact.search_index_catalog?.search_index_manifests ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/search-index-fields") {
+    const searchIndexResult = await readDashboardSourceArtifact(dashboard, "search_index_contract");
+    if (!searchIndexResult.available) {
+      return jsonResponse(503, buildError("search_index_contract_unavailable", searchIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("search_index_fields", searchIndexResult.artifact.search_index_catalog?.search_index_fields ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/search-index-query-plans") {
+    const searchIndexResult = await readDashboardSourceArtifact(dashboard, "search_index_contract");
+    if (!searchIndexResult.available) {
+      return jsonResponse(503, buildError("search_index_contract_unavailable", searchIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("search_index_query_plans", searchIndexResult.artifact.search_index_catalog?.search_index_query_plans ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/search-index-validations") {
+    const searchIndexResult = await readDashboardSourceArtifact(dashboard, "search_index_contract");
+    if (!searchIndexResult.available) {
+      return jsonResponse(503, buildError("search_index_contract_unavailable", searchIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("search_index_validations", searchIndexResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5381,6 +5416,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/custody-event-links", "Custody event subject link rows"),
       route("GET", "/api/custody-stage-indexes", "Custody stage index projections"),
       route("GET", "/api/custody-event-validations", "Custody event validation rows"),
+      route("GET", "/api/search-index-contracts", "Search index contract artifacts"),
+      route("GET", "/api/search-index-manifests", "Search index manifest rows"),
+      route("GET", "/api/search-index-fields", "Search index field catalog rows"),
+      route("GET", "/api/search-index-query-plans", "Held search index query plans"),
+      route("GET", "/api/search-index-validations", "Search index contract validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5587,6 +5627,18 @@ function filterItems(items, searchParams) {
     "evidence_flags_status",
     "exhibit_map_status",
     "custody_event_ledger_status",
+    "search_index_contract_status",
+    "search_index_id",
+    "search_index_field_id",
+    "search_index_query_plan_id",
+    "collection_id",
+    "source_artifact_id",
+    "index_status",
+    "field_role",
+    "field_name",
+    "query_profile",
+    "query_status",
+    "executable",
     "custody_event_id",
     "custody_event_link_id",
     "custody_chain_id",
@@ -6466,6 +6518,7 @@ function readFilterValue(item, key) {
   if (key === "evidence_flags_status") return item.summary?.evidence_flags_status ?? item.evidence_flags_status;
   if (key === "exhibit_map_status") return item.summary?.exhibit_map_status ?? item.exhibit_map_status;
   if (key === "custody_event_ledger_status") return item.summary?.custody_event_ledger_status ?? item.custody_event_ledger_status;
+  if (key === "search_index_contract_status") return item.summary?.search_index_contract_status ?? item.search_index_contract_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

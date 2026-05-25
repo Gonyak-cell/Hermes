@@ -38,6 +38,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
   chainOfCustodyEventsPath: "artifacts/chain-of-custody/latest/chain-of-custody-events.json",
+  searchIndexContractPath: "artifacts/search-index/latest/search-index-contract.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -316,6 +317,11 @@ const SOURCE_DEFINITIONS = [
     option: "chainOfCustodyEventsPath",
     source_id: "chain_of_custody_events",
     label: "Chain of Custody Events",
+  },
+  {
+    option: "searchIndexContractPath",
+    source_id: "search_index_contract",
+    label: "Search Index Contract",
   },
   {
     option: "evidenceContractFreezePath",
@@ -988,6 +994,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "evidence_flags") return data.summary ?? {};
   if (sourceId === "exhibit_map") return data.summary ?? {};
   if (sourceId === "chain_of_custody_events") return data.summary ?? {};
+  if (sourceId === "search_index_contract") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1215,6 +1222,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
     buildChainOfCustodyEventsStage(artifacts.chain_of_custody_events, sourceById.get("chain_of_custody_events")),
+    buildSearchIndexContractStage(artifacts.search_index_contract, sourceById.get("search_index_contract")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2986,6 +2994,79 @@ function buildChainOfCustodyEventsStage(custodyLedger, source) {
       pending_approval_event_count: summary.pending_approval_event_count ?? 0,
       approved_event_count: summary.approved_event_count ?? 0,
       client_facing_ready_event_count: summary.client_facing_ready_event_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildSearchIndexContractStage(searchIndexContract, source) {
+  if (!searchIndexContract) return missingStage("search_index_contract", "Search Index Contract", source);
+  const summary = searchIndexContract.summary ?? {};
+  const errorCount = summary.validation_error_count ?? searchIndexContract.validation?.errors?.length ?? 0;
+  const manifestCount = summary.search_index_manifest_count ?? 0;
+  const queryPlanCount = summary.search_index_query_plan_count ?? 0;
+  const status = summary.search_index_contract_status === "complete"
+    && errorCount === 0
+    && manifestCount > 0
+    && queryPlanCount === manifestCount
+    && (summary.required_filter_field_count ?? 0) === manifestCount * 4
+    && (summary.filters_enforced_query_plan_count ?? 0) === queryPlanCount
+    && (summary.tenant_filter_required_query_plan_count ?? 0) === queryPlanCount
+    && (summary.matter_filter_required_query_plan_count ?? 0) === queryPlanCount
+    && (summary.classification_filter_required_query_plan_count ?? 0) === queryPlanCount
+    && (summary.policy_snapshot_filter_required_query_plan_count ?? 0) === queryPlanCount
+    && (summary.pre_retrieval_gate_required_query_plan_count ?? 0) === queryPlanCount
+    && (summary.matter_wall_enforced_query_plan_count ?? 0) === queryPlanCount
+    && (summary.classification_enforced_query_plan_count ?? 0) === queryPlanCount
+    && (summary.policy_snapshot_bound_query_plan_count ?? 0) === queryPlanCount
+    && (summary.held_query_plan_count ?? 0) === queryPlanCount
+    && (summary.executable_query_plan_count ?? 1) === 0
+    && (summary.source_ref_preserved_query_plan_count ?? 0) === queryPlanCount
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "search_index_contract",
+    label: "Search Index Contract",
+    status,
+    message: `${manifestCount} search manifest(s), ${queryPlanCount} held query plan(s), ${summary.required_filter_field_count ?? 0} required filter field(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      search_index_contract_status: summary.search_index_contract_status ?? "unknown",
+      search_index_contract_id: summary.search_index_contract_id ?? null,
+      search_index_manifest_schema_version: summary.search_index_manifest_schema_version ?? null,
+      search_index_field_schema_version: summary.search_index_field_schema_version ?? null,
+      search_index_query_plan_schema_version: summary.search_index_query_plan_schema_version ?? null,
+      resource_store_interface_status: summary.resource_store_interface_status ?? "unknown",
+      normalized_text_contract_status: summary.normalized_text_contract_status ?? "unknown",
+      source_span_store_status: summary.source_span_store_status ?? "unknown",
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      fact_claim_store_status: summary.fact_claim_store_status ?? "unknown",
+      issue_graph_store_status: summary.issue_graph_store_status ?? "unknown",
+      citation_object_store_status: summary.citation_object_store_status ?? "unknown",
+      lineage_graph_status: summary.lineage_graph_status ?? "unknown",
+      exhibit_map_status: summary.exhibit_map_status ?? "unknown",
+      custody_event_ledger_status: summary.custody_event_ledger_status ?? "unknown",
+      source_collection_count: summary.source_collection_count ?? 0,
+      indexed_record_count: summary.indexed_record_count ?? 0,
+      search_index_manifest_count: manifestCount,
+      search_index_field_count: summary.search_index_field_count ?? 0,
+      required_filter_field_count: summary.required_filter_field_count ?? 0,
+      source_ref_field_count: summary.source_ref_field_count ?? 0,
+      search_index_query_plan_count: queryPlanCount,
+      filters_enforced_query_plan_count: summary.filters_enforced_query_plan_count ?? 0,
+      tenant_filter_required_query_plan_count: summary.tenant_filter_required_query_plan_count ?? 0,
+      matter_filter_required_query_plan_count: summary.matter_filter_required_query_plan_count ?? 0,
+      classification_filter_required_query_plan_count: summary.classification_filter_required_query_plan_count ?? 0,
+      policy_snapshot_filter_required_query_plan_count: summary.policy_snapshot_filter_required_query_plan_count ?? 0,
+      pre_retrieval_gate_required_query_plan_count: summary.pre_retrieval_gate_required_query_plan_count ?? 0,
+      matter_wall_enforced_query_plan_count: summary.matter_wall_enforced_query_plan_count ?? 0,
+      classification_enforced_query_plan_count: summary.classification_enforced_query_plan_count ?? 0,
+      policy_snapshot_bound_query_plan_count: summary.policy_snapshot_bound_query_plan_count ?? 0,
+      held_query_plan_count: summary.held_query_plan_count ?? 0,
+      executable_query_plan_count: summary.executable_query_plan_count ?? 0,
+      source_ref_preserved_query_plan_count: summary.source_ref_preserved_query_plan_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -7001,6 +7082,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.search_index_contract?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "search_index_contract";
+    items.push({
+      action_item_id: `dashboard.action.search_index_contract.${slugify(subjectId)}`,
+      source_stage: "search_index_contract",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix search index contract",
+      subject_ref: {
+        subject_type: "search_index_contract_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_search_index_contract", "rerun_search_index_contract", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8996,6 +9095,31 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     chain_of_custody_events_approved_count: artifacts.chain_of_custody_events?.summary?.approved_event_count ?? 0,
     chain_of_custody_events_client_facing_ready_count: artifacts.chain_of_custody_events?.summary?.client_facing_ready_event_count ?? 0,
     chain_of_custody_events_validation_error_count: artifacts.chain_of_custody_events?.summary?.validation_error_count ?? artifacts.chain_of_custody_events?.validation?.errors?.length ?? 0,
+    search_index_contract_status: artifacts.search_index_contract?.summary?.search_index_contract_status ?? "unknown",
+    search_index_contract_id: artifacts.search_index_contract?.summary?.search_index_contract_id ?? null,
+    search_index_manifest_schema_version: artifacts.search_index_contract?.summary?.search_index_manifest_schema_version ?? null,
+    search_index_field_schema_version: artifacts.search_index_contract?.summary?.search_index_field_schema_version ?? null,
+    search_index_query_plan_schema_version: artifacts.search_index_contract?.summary?.search_index_query_plan_schema_version ?? null,
+    search_index_source_collection_count: artifacts.search_index_contract?.summary?.source_collection_count ?? 0,
+    search_index_indexed_record_count: artifacts.search_index_contract?.summary?.indexed_record_count ?? 0,
+    search_index_manifest_count: artifacts.search_index_contract?.summary?.search_index_manifest_count ?? 0,
+    search_index_field_count: artifacts.search_index_contract?.summary?.search_index_field_count ?? 0,
+    search_index_required_filter_field_count: artifacts.search_index_contract?.summary?.required_filter_field_count ?? 0,
+    search_index_source_ref_field_count: artifacts.search_index_contract?.summary?.source_ref_field_count ?? 0,
+    search_index_query_plan_count: artifacts.search_index_contract?.summary?.search_index_query_plan_count ?? 0,
+    search_index_filters_enforced_query_plan_count: artifacts.search_index_contract?.summary?.filters_enforced_query_plan_count ?? 0,
+    search_index_tenant_filter_required_query_plan_count: artifacts.search_index_contract?.summary?.tenant_filter_required_query_plan_count ?? 0,
+    search_index_matter_filter_required_query_plan_count: artifacts.search_index_contract?.summary?.matter_filter_required_query_plan_count ?? 0,
+    search_index_classification_filter_required_query_plan_count: artifacts.search_index_contract?.summary?.classification_filter_required_query_plan_count ?? 0,
+    search_index_policy_snapshot_filter_required_query_plan_count: artifacts.search_index_contract?.summary?.policy_snapshot_filter_required_query_plan_count ?? 0,
+    search_index_pre_retrieval_gate_required_query_plan_count: artifacts.search_index_contract?.summary?.pre_retrieval_gate_required_query_plan_count ?? 0,
+    search_index_matter_wall_enforced_query_plan_count: artifacts.search_index_contract?.summary?.matter_wall_enforced_query_plan_count ?? 0,
+    search_index_classification_enforced_query_plan_count: artifacts.search_index_contract?.summary?.classification_enforced_query_plan_count ?? 0,
+    search_index_policy_snapshot_bound_query_plan_count: artifacts.search_index_contract?.summary?.policy_snapshot_bound_query_plan_count ?? 0,
+    search_index_held_query_plan_count: artifacts.search_index_contract?.summary?.held_query_plan_count ?? 0,
+    search_index_executable_query_plan_count: artifacts.search_index_contract?.summary?.executable_query_plan_count ?? 0,
+    search_index_source_ref_preserved_query_plan_count: artifacts.search_index_contract?.summary?.source_ref_preserved_query_plan_count ?? 0,
+    search_index_validation_error_count: artifacts.search_index_contract?.summary?.validation_error_count ?? artifacts.search_index_contract?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -10474,6 +10598,8 @@ function parseArgs(argv) {
     else if (arg === "--no-exhibit-map") parsed.exhibitMapPath = false;
     else if (arg === "--chain-of-custody") parsed.chainOfCustodyEventsPath = argv[++index];
     else if (arg === "--no-chain-of-custody") parsed.chainOfCustodyEventsPath = false;
+    else if (arg === "--search-index") parsed.searchIndexContractPath = argv[++index];
+    else if (arg === "--no-search-index") parsed.searchIndexContractPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10685,6 +10811,8 @@ Options:
   --no-exhibit-map                Do not include Exhibit Map status.
   --chain-of-custody <path>       chain-of-custody-events.json path.
   --no-chain-of-custody           Do not include Chain of Custody Events status.
+  --search-index <path>           search-index-contract.json path.
+  --no-search-index               Do not include Search Index Contract status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

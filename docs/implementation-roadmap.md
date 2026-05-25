@@ -4428,6 +4428,36 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 49개로 증가하고 chain of custody events가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:custody-events -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 148: Search Index Contract
+
+목표: Resource/Evidence/Lineage/Custody 계층 위에 검색 index 계약을 추가하되, 실제 검색 실행 전 단계에서 tenant, matter, classification, policy snapshot 필터를 필수로 요구하는 non-executable manifest/query plan으로 고정한다.
+
+구현 내용:
+
+- `src/search-index-contract.mjs`, `scripts/search-index-contract.mjs`, `schemas/search-index-contract.schema.json`, `docs/search-index-contract.md`를 추가함
+- `npm run resource:search-index -- --check` 명령을 추가해 search index contract, manifest rows, field catalog rows, held query plan rows, validation report, summary markdown을 생성함
+- Resource store, ResourceVersion, normalized text, source span, evidence item, fact claim, issue, citation, lineage path, exhibit, custody event collection을 search source collection으로 등록함
+- 모든 search manifest가 `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`를 required query filter로 선언하고 `matter_id`, `classification` 없는 query를 index access 전에 차단하도록 정의함
+- 모든 query plan은 `held_for_retrieval_filter_compiler`, `executable=false`로 유지되어 P150 retrieval filter compiler 전에는 검색 실행이 불가능함
+- 모든 query plan이 matter wall, classification, policy snapshot, pre-retrieval gate, source ref preservation을 명시하도록 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Search Index Contract를 통합함
+- `/api/search-index-contracts`, `/api/search-index-manifests`, `/api/search-index-fields`, `/api/search-index-query-plans`, `/api/search-index-validations` route를 추가함
+
+완료 기준:
+
+- Search Index Contract가 validation error 없이 `complete` 상태가 됨
+- search index manifest 수가 source collection 수와 일치함
+- search index query plan 수가 manifest 수와 일치함
+- required filter field 수가 manifest 수의 4배와 일치함
+- 모든 query plan이 tenant, matter, classification, policy snapshot filter를 요구함
+- 모든 query plan이 pre-retrieval gate와 matter wall/classification/policy snapshot boundary를 요구함
+- 모든 query plan이 held 상태이며 executable query plan 수는 0임
+- 모든 query plan이 source ref preservation을 유지함
+- Review Dashboard summary와 stage status에서 manifest, field, query plan, filter enforcement, held/executable count가 노출됨
+- Review API smoke가 search index contract, manifest, field, query plan, validation route를 모두 조회함
+- Golden fixture 수가 50개로 증가하고 search index contract가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:search-index -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4436,9 +4466,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 147이다.
+- 현재 완료 기준점은 Phase 148이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P148-P312, 총 165개다.
+- 남은 계획 슬롯은 P149-P312, 총 164개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

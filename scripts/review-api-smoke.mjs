@@ -197,6 +197,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/custody-event-links"));
   assert.ok(index.routes.some((route) => route.path === "/api/custody-stage-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/custody-event-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/search-index-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/search-index-manifests"));
+  assert.ok(index.routes.some((route) => route.path === "/api/search-index-fields"));
+  assert.ok(index.routes.some((route) => route.path === "/api/search-index-query-plans"));
+  assert.ok(index.routes.some((route) => route.path === "/api/search-index-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -2058,6 +2063,26 @@ try {
   const custodyEventValidations = await fetchJson(`${url}/api/custody-event-validations?status=passed&limit=5`);
   assert.equal(custodyEventValidations.collection, "custody_event_validations");
   assert.ok(custodyEventValidations.count <= 5);
+
+  const searchIndexContracts = await fetchJson(`${url}/api/search-index-contracts?search_index_contract_status=complete&limit=1`);
+  assert.equal(searchIndexContracts.collection, "search_index_contracts");
+  assert.ok(searchIndexContracts.count <= 1);
+
+  const searchIndexManifests = await fetchJson(`${url}/api/search-index-manifests?index_status=manifest_ready&limit=5`);
+  assert.equal(searchIndexManifests.collection, "search_index_manifests");
+  assert.ok(searchIndexManifests.count <= 5);
+
+  const searchIndexFields = await fetchJson(`${url}/api/search-index-fields?field_role=required_filter&limit=5`);
+  assert.equal(searchIndexFields.collection, "search_index_fields");
+  assert.ok(searchIndexFields.count <= 5);
+
+  const searchIndexQueryPlans = await fetchJson(`${url}/api/search-index-query-plans?query_status=held_for_retrieval_filter_compiler&limit=5`);
+  assert.equal(searchIndexQueryPlans.collection, "search_index_query_plans");
+  assert.ok(searchIndexQueryPlans.count <= 5);
+
+  const searchIndexValidations = await fetchJson(`${url}/api/search-index-validations?status=passed&limit=5`);
+  assert.equal(searchIndexValidations.collection, "search_index_validations");
+  assert.ok(searchIndexValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

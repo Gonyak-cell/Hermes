@@ -129,6 +129,8 @@ Phase 147부터 loop는 `npm run resource:custody-events`도 실행해 upload, n
 - `step_results`: 각 명령의 stdout/stderr, duration, expected artifact 결과
 - `continue_on_error`: 실패 후 다음 단계까지 계속 확인했는지 여부
 
+Phase 148부터 loop는 `resource:search-index`를 실행해 `artifacts/search-index/latest/search-index-contract.json`, `search-index-manifest.json`, `search-index-query-plans.json` 산출물을 확인한다.
+
 ## Dashboard/API
 
 Dashboard는 `control_plane_loop` stage를 표시한다. Review API는 다음 route를 제공한다.

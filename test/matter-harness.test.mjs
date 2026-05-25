@@ -40,6 +40,7 @@ import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
 import { runEvidenceFlags } from "../src/evidence-flags.mjs";
 import { runExhibitMap } from "../src/exhibit-map.mjs";
 import { runChainOfCustodyEvents } from "../src/chain-of-custody-events.mjs";
+import { runSearchIndexContract } from "../src/search-index-contract.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1666,6 +1667,7 @@ describe("matter harness", () => {
         evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
         exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
         chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
+        searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4284,6 +4286,46 @@ describe("matter harness", () => {
       assert.ok(chainOfCustodyEvents.custody_event_catalog.custody_events.filter((event) => event.event_stage === "review" || event.event_stage === "approve").every((event) => event.actor.human_approval_actor_required === true));
       assert.match(await readFile(path.join(outDir, "chain-of-custody", "summary.md"), "utf8"), /Chain of Custody Events/);
 
+      const searchIndexContract = await runSearchIndexContract({
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
+        chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
+        outDir: path.join(outDir, "search-index"),
+        runAt: "2026-05-23T06:35:08.004Z",
+      });
+      const searchIndexContractSchema = JSON.parse(await readFile("schemas/search-index-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(searchIndexContract, searchIndexContractSchema, {}, "search_index_contract"),
+        [],
+      );
+      assert.equal(searchIndexContract.summary.search_index_contract_status, "complete");
+      assert.equal(searchIndexContract.summary.search_index_manifest_count, searchIndexContract.summary.source_collection_count);
+      assert.equal(searchIndexContract.summary.search_index_query_plan_count, searchIndexContract.summary.search_index_manifest_count);
+      assert.equal(searchIndexContract.summary.required_filter_field_count, searchIndexContract.summary.search_index_manifest_count * 4);
+      assert.equal(searchIndexContract.summary.filters_enforced_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.tenant_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.matter_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.classification_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.policy_snapshot_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.pre_retrieval_gate_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.matter_wall_enforced_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.classification_enforced_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.policy_snapshot_bound_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.held_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.executable_query_plan_count, 0);
+      assert.equal(searchIndexContract.summary.source_ref_preserved_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(searchIndexContract.summary.validation_error_count, 0);
+      assert.ok(searchIndexContract.search_index_catalog.search_index_manifests.every((manifest) => ["tenant_id", "matter_id", "classification", "policy_snapshot_id"].every((filterName) => manifest.required_query_filters.includes(filterName))));
+      assert.ok(searchIndexContract.search_index_catalog.search_index_query_plans.every((plan) => plan.executable === false && plan.query_status === "held_for_retrieval_filter_compiler"));
+      assert.match(await readFile(path.join(outDir, "search-index", "summary.md"), "utf8"), /Search Index Contract/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4320,6 +4362,7 @@ describe("matter harness", () => {
           evidence_flags: path.join(outDir, "evidence-flags", "evidence-flags.json"),
           exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
           chain_of_custody_events: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
+          search_index_contract: path.join(outDir, "search-index", "search-index-contract.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4345,8 +4388,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 49);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 49);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 50);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 50);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4386,6 +4429,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_flags"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "chain_of_custody_events"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "search_index_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4429,6 +4473,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4625,6 +4670,10 @@ describe("matter harness", () => {
       assert.equal(chainOfCustodyCheckpoint?.acceptance_profile, "chain_of_custody_events_gate");
       assert.equal(chainOfCustodyCheckpoint?.status, "passed");
       assert.equal(chainOfCustodyCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const searchIndexContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-search-index-contract");
+      assert.equal(searchIndexContractCheckpoint?.acceptance_profile, "search_index_contract_gate");
+      assert.equal(searchIndexContractCheckpoint?.status, "passed");
+      assert.equal(searchIndexContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5611,6 +5660,26 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.chain_of_custody_events_approved_count, 0);
       assert.equal(dashboard.summary.chain_of_custody_events_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.chain_of_custody_events_validation_error_count, 0);
+      assert.equal(dashboard.summary.search_index_contract_status, "complete");
+      assert.equal(dashboard.summary.search_index_contract_id, "search-index-contract.v1");
+      assert.equal(dashboard.summary.search_index_source_collection_count, searchIndexContract.summary.source_collection_count);
+      assert.equal(dashboard.summary.search_index_manifest_count, searchIndexContract.summary.search_index_manifest_count);
+      assert.equal(dashboard.summary.search_index_field_count, searchIndexContract.summary.search_index_field_count);
+      assert.equal(dashboard.summary.search_index_required_filter_field_count, searchIndexContract.summary.required_filter_field_count);
+      assert.equal(dashboard.summary.search_index_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_filters_enforced_query_plan_count, searchIndexContract.summary.filters_enforced_query_plan_count);
+      assert.equal(dashboard.summary.search_index_tenant_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_matter_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_classification_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_policy_snapshot_filter_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_pre_retrieval_gate_required_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_matter_wall_enforced_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_classification_enforced_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_policy_snapshot_bound_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_held_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_executable_query_plan_count, 0);
+      assert.equal(dashboard.summary.search_index_source_ref_preserved_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.search_index_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -6157,6 +6226,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_flags"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "chain_of_custody_events"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "search_index_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -6329,6 +6399,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-event-links"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-stage-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-event-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-manifests"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-fields"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-query-plans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -8427,6 +8502,26 @@ describe("matter harness", () => {
       const custodyEventValidations = JSON.parse((await buildReviewApiResponse("/api/custody-event-validations?status=passed", apiOptions)).body);
       assert.equal(custodyEventValidations.collection, "custody_event_validations");
       assert.equal(custodyEventValidations.count, chainOfCustodyEvents.summary.validation_item_count);
+
+      const searchIndexContracts = JSON.parse((await buildReviewApiResponse("/api/search-index-contracts?search_index_contract_status=complete", apiOptions)).body);
+      assert.equal(searchIndexContracts.collection, "search_index_contracts");
+      assert.equal(searchIndexContracts.count, 1);
+
+      const searchIndexManifests = JSON.parse((await buildReviewApiResponse("/api/search-index-manifests?index_status=manifest_ready", apiOptions)).body);
+      assert.equal(searchIndexManifests.collection, "search_index_manifests");
+      assert.equal(searchIndexManifests.count, searchIndexContract.summary.search_index_manifest_count);
+
+      const searchIndexFields = JSON.parse((await buildReviewApiResponse("/api/search-index-fields?field_role=required_filter", apiOptions)).body);
+      assert.equal(searchIndexFields.collection, "search_index_fields");
+      assert.equal(searchIndexFields.count, searchIndexContract.summary.required_filter_field_count);
+
+      const searchIndexQueryPlans = JSON.parse((await buildReviewApiResponse("/api/search-index-query-plans?query_status=held_for_retrieval_filter_compiler", apiOptions)).body);
+      assert.equal(searchIndexQueryPlans.collection, "search_index_query_plans");
+      assert.equal(searchIndexQueryPlans.count, searchIndexContract.summary.search_index_query_plan_count);
+
+      const searchIndexValidations = JSON.parse((await buildReviewApiResponse("/api/search-index-validations?status=passed", apiOptions)).body);
+      assert.equal(searchIndexValidations.collection, "search_index_validations");
+      assert.equal(searchIndexValidations.count, searchIndexContract.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

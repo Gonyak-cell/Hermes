@@ -353,6 +353,8 @@ Exhibit map route는 `exhibit_map_status`, `exhibit_id`, `exhibit_number`, `exhi
 
 Custody event route는 `custody_event_ledger_status`, `custody_event_id`, `custody_event_link_id`, `custody_chain_id`, `event_stage`, `event_type`, `event_status`, `subject_type`, `subject_id`, `link_status`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `limit` query를 지원한다.
 
+Search index route는 `search_index_contract_status`, `search_index_id`, `search_index_field_id`, `search_index_query_plan_id`, `collection_id`, `source_artifact_id`, `index_status`, `field_role`, `field_name`, `query_profile`, `query_status`, `executable`, `schema_version`, `status`, `limit` query를 지원한다.
+
 ## 검증
 
 ```bash

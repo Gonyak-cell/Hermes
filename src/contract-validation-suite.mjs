@@ -47,6 +47,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:evidence-flags",
   "resource:exhibit-map",
   "resource:custody-events",
+  "resource:search-index",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

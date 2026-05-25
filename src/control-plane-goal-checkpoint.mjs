@@ -46,6 +46,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_flags", "Evidence flags", "resource_evidence", "evidence_flags", "control-plane-evidence-flags", { acceptance_profile: "evidence_flags_gate" }),
   sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
   sourceItem("chain_of_custody_events", "Chain of custody events", "resource_evidence", "chain_of_custody_events", "control-plane-chain-of-custody-events", { acceptance_profile: "chain_of_custody_events_gate" }),
+  sourceItem("search_index_contract", "Search index contract", "resource_evidence", "search_index_contract", "control-plane-search-index-contract", { acceptance_profile: "search_index_contract_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -399,6 +400,7 @@ function evaluateStageAcceptance(item, stage) {
     "evidence_flags_gate",
     "exhibit_map_gate",
     "chain_of_custody_events_gate",
+    "search_index_contract_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -980,6 +982,43 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.client_facing_ready_event_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Chain of custody events record upload, normalize, extract, review, and approval-hold stages as append-only hashed events without auto-approval or client-facing delivery.");
+    }
+  }
+
+  if (item.acceptance_profile === "search_index_contract_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const manifestCount = metrics.search_index_manifest_count ?? 0;
+    const queryPlanCount = metrics.search_index_query_plan_count ?? 0;
+    if (
+      errors === 0
+      && metrics.search_index_contract_status === "complete"
+      && metrics.resource_store_interface_status === "complete"
+      && metrics.normalized_text_contract_status === "complete"
+      && metrics.source_span_store_status === "complete"
+      && metrics.evidence_item_store_status === "complete"
+      && metrics.fact_claim_store_status === "complete"
+      && metrics.issue_graph_store_status === "complete"
+      && metrics.citation_object_store_status === "complete"
+      && metrics.lineage_graph_status === "complete"
+      && metrics.exhibit_map_status === "complete"
+      && metrics.custody_event_ledger_status === "complete"
+      && manifestCount > 0
+      && queryPlanCount === manifestCount
+      && (metrics.required_filter_field_count ?? 0) === manifestCount * 4
+      && (metrics.filters_enforced_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.tenant_filter_required_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.matter_filter_required_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.classification_filter_required_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.policy_snapshot_filter_required_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.pre_retrieval_gate_required_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.matter_wall_enforced_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.classification_enforced_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.policy_snapshot_bound_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.held_query_plan_count ?? 0) === queryPlanCount
+      && (metrics.executable_query_plan_count ?? 1) === 0
+      && (metrics.source_ref_preserved_query_plan_count ?? 0) === queryPlanCount
+    ) {
+      return passedWithOperationalGate(stage, "Search index contract is implemented as a held manifest/query-plan layer that requires tenant, matter, classification, and policy snapshot filters before retrieval.");
     }
   }
 

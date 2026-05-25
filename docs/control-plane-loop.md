@@ -80,6 +80,8 @@ Phase 129부터 loop는 `npm run contracts:policy-golden`도 실행해 identity/
 
 Phase 134부터 loop는 `npm run object-store:layout`도 실행해 raw source/generated output의 immutable object key resolver와 collision report를 dashboard와 checkpoint 전에 갱신한다.
 
+Phase 135부터 loop는 `npm run resource:version-ledger`도 실행해 external id별 version family, change/duplicate event, raw-source object path binding을 dashboard와 checkpoint 전에 갱신한다.
+
 Phase 130부터 loop는 `npm run policy:surface`도 실행해 policy decision, violation, pending approval row를 dashboard/API/checkpoint 전에 갱신한다.
 
 Phase 131부터 loop는 `npm run matter-boundary:slice`도 실행해 resource ingest, Resource v2, Matter Access, Access Audit, Store Policy/RLS probe, Policy Operations Surface가 같은 matter boundary를 통과하는지 확인한다.

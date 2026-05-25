@@ -33,6 +33,7 @@ const GOAL_ITEMS = [
   sourceItem("identity_policy_matter_freeze", "Identity/Policy/Matter freeze", "identity_policy", "identity_policy_matter_freeze", "control-plane-identity-policy-matter-freeze", { acceptance_profile: "identity_policy_matter_freeze_gate" }),
   sourceItem("resource_store_interface", "Resource store interface", "resource_evidence", "resource_store_interface", "control-plane-resource-store-interface", { acceptance_profile: "resource_store_interface_gate" }),
   sourceItem("immutable_object_store_layout", "Immutable object store layout", "resource_evidence", "immutable_object_store_layout", "control-plane-immutable-object-store-layout", { acceptance_profile: "immutable_object_store_layout_gate" }),
+  sourceItem("resource_version_ledger", "Resource version ledger", "resource_evidence", "resource_version_ledger", "control-plane-resource-version-ledger", { acceptance_profile: "resource_version_ledger_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -373,6 +374,7 @@ function evaluateStageAcceptance(item, stage) {
     "identity_policy_matter_freeze_gate",
     "resource_store_interface_gate",
     "immutable_object_store_layout_gate",
+    "resource_version_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -631,6 +633,21 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.path_resolver_count ?? 0) >= 2
     ) {
       return passedWithOperationalGate(stage, "Immutable object store layout resolves raw source and generated output keys without collisions or absolute source path leakage.");
+    }
+  }
+
+  if (item.acceptance_profile === "resource_version_ledger_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    if (
+      errors === 0
+      && metrics.resource_version_ledger_status === "complete"
+      && (metrics.version_family_count ?? 0) > 0
+      && (metrics.resource_version_count ?? 0) > 0
+      && (metrics.object_path_binding_count ?? 0) === (metrics.resource_version_count ?? -1)
+      && (metrics.unbound_object_path_count ?? -1) === 0
+      && (metrics.version_event_count ?? 0) >= (metrics.resource_version_count ?? 0)
+    ) {
+      return passedWithOperationalGate(stage, "Resource version ledger groups versions by source/external id, distinguishes changed and duplicate content, and binds every version to an immutable raw-source object path.");
     }
   }
 

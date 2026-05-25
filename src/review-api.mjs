@@ -276,6 +276,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("object_store_layout_validations", layoutResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/resource-version-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-version-families") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_families", ledgerResult.artifact.version_ledger_catalog?.version_families ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-version-events") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_events", ledgerResult.artifact.version_ledger_catalog?.version_events ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-version-transitions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_transitions", ledgerResult.artifact.version_ledger_catalog?.version_transitions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-duplicate-candidates") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_duplicate_candidates", ledgerResult.artifact.version_ledger_catalog?.duplicate_candidates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-version-object-bindings") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_object_bindings", ledgerResult.artifact.version_ledger_catalog?.object_path_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-version-ledger-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_version_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_version_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_ledger_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4491,6 +4540,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/generated-output-object-paths", "Generated output immutable object paths"),
       route("GET", "/api/object-store-collisions", "Immutable object store collision rows"),
       route("GET", "/api/object-store-layout-validations", "Immutable object store validation rows"),
+      route("GET", "/api/resource-version-ledgers", "Resource version ledger artifacts"),
+      route("GET", "/api/resource-version-families", "Resource version families"),
+      route("GET", "/api/resource-version-events", "Resource version events"),
+      route("GET", "/api/resource-version-transitions", "Resource version transitions"),
+      route("GET", "/api/resource-duplicate-candidates", "Resource duplicate candidates"),
+      route("GET", "/api/resource-version-object-bindings", "ResourceVersion object path bindings"),
+      route("GET", "/api/resource-version-ledger-validations", "Resource version ledger validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5740,6 +5796,7 @@ function readFilterValue(item, key) {
   if (key === "matter_boundary_slice_status") return item.summary?.matter_boundary_slice_status ?? item.matter_boundary_slice_status;
   if (key === "resource_store_interface_status") return item.summary?.resource_store_interface_status ?? item.resource_store_interface_status;
   if (key === "object_store_layout_status") return item.summary?.object_store_layout_status ?? item.object_store_layout_status;
+  if (key === "resource_version_ledger_status") return item.summary?.resource_version_ledger_status ?? item.resource_version_ledger_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

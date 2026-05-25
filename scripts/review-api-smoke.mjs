@@ -249,6 +249,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/generated-output-object-paths"));
   assert.ok(index.routes.some((route) => route.path === "/api/object-store-collisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/object-store-layout-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-families"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-events"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-transitions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-duplicate-candidates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-object-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-ledger-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1663,6 +1670,34 @@ try {
   const objectStoreLayoutValidations = await fetchJson(`${url}/api/object-store-layout-validations?status=passed&limit=5`);
   assert.equal(objectStoreLayoutValidations.collection, "object_store_layout_validations");
   assert.ok(objectStoreLayoutValidations.count <= 5);
+
+  const resourceVersionLedgers = await fetchJson(`${url}/api/resource-version-ledgers?resource_version_ledger_status=complete&limit=1`);
+  assert.equal(resourceVersionLedgers.collection, "resource_version_ledgers");
+  assert.ok(resourceVersionLedgers.count <= 1);
+
+  const resourceVersionFamilies = await fetchJson(`${url}/api/resource-version-families?limit=5`);
+  assert.equal(resourceVersionFamilies.collection, "resource_version_families");
+  assert.ok(resourceVersionFamilies.count <= 5);
+
+  const resourceVersionEvents = await fetchJson(`${url}/api/resource-version-events?event_type=version_recorded&limit=5`);
+  assert.equal(resourceVersionEvents.collection, "resource_version_events");
+  assert.ok(resourceVersionEvents.count <= 5);
+
+  const resourceVersionTransitions = await fetchJson(`${url}/api/resource-version-transitions?limit=5`);
+  assert.equal(resourceVersionTransitions.collection, "resource_version_transitions");
+  assert.ok(resourceVersionTransitions.count <= 5);
+
+  const resourceDuplicateCandidates = await fetchJson(`${url}/api/resource-duplicate-candidates?limit=5`);
+  assert.equal(resourceDuplicateCandidates.collection, "resource_duplicate_candidates");
+  assert.ok(resourceDuplicateCandidates.count <= 5);
+
+  const resourceVersionObjectBindings = await fetchJson(`${url}/api/resource-version-object-bindings?binding_status=bound&limit=5`);
+  assert.equal(resourceVersionObjectBindings.collection, "resource_version_object_bindings");
+  assert.ok(resourceVersionObjectBindings.count <= 5);
+
+  const resourceVersionLedgerValidations = await fetchJson(`${url}/api/resource-version-ledger-validations?status=passed&limit=5`);
+  assert.equal(resourceVersionLedgerValidations.collection, "resource_version_ledger_validations");
+  assert.ok(resourceVersionLedgerValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

@@ -34,6 +34,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "identity-policy:freeze",
   "resource:store-interface",
   "object-store:layout",
+  "resource:version-ledger",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

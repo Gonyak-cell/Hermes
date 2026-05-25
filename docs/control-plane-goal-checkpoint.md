@@ -43,6 +43,7 @@ npm run control-plane:goal-checkpoint -- \
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Resource Store Interface
 - Immutable Object Store Layout
+- Resource Version Ledger
 - Gate and approval workflow
 - Human review packets
 - Human review agenda

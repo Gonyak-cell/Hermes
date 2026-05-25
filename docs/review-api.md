@@ -74,6 +74,13 @@ npm run api:serve
 - `GET /api/generated-output-object-paths`: generated output namespace object key rows
 - `GET /api/object-store-collisions`: object key collision rows
 - `GET /api/object-store-layout-validations`: immutable object store layout validation rows
+- `GET /api/resource-version-ledgers`: resource version ledger artifact
+- `GET /api/resource-version-families`: source system/external id별 version family rows
+- `GET /api/resource-version-events`: version recorded, changed, duplicate event rows
+- `GET /api/resource-version-transitions`: 같은 external id 안의 version transition rows
+- `GET /api/resource-duplicate-candidates`: skipped duplicate candidate rows
+- `GET /api/resource-version-object-bindings`: ResourceVersion과 raw-source object path binding rows
+- `GET /api/resource-version-ledger-validations`: resource version ledger validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

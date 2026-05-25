@@ -25,6 +25,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   identityPolicyMatterFreezePath: "artifacts/identity-policy-matter-freeze/latest/identity-policy-matter-freeze.json",
   resourceStoreInterfacePath: "artifacts/resource-store-interface/latest/resource-store-interface.json",
   immutableObjectStoreLayoutPath: "artifacts/immutable-object-store-layout/latest/immutable-object-store-layout.json",
+  resourceVersionLedgerPath: "artifacts/resource-version-ledger/latest/resource-version-ledger.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -238,6 +239,11 @@ const SOURCE_DEFINITIONS = [
     option: "immutableObjectStoreLayoutPath",
     source_id: "immutable_object_store_layout",
     label: "Immutable Object Store Layout",
+  },
+  {
+    option: "resourceVersionLedgerPath",
+    source_id: "resource_version_ledger",
+    label: "Resource Version Ledger",
   },
   {
     option: "evidenceContractFreezePath",
@@ -897,6 +903,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "identity_policy_matter_freeze") return data.summary ?? {};
   if (sourceId === "resource_store_interface") return data.summary ?? {};
   if (sourceId === "immutable_object_store_layout") return data.summary ?? {};
+  if (sourceId === "resource_version_ledger") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1111,6 +1118,7 @@ function buildStageStatuses(artifacts, sources) {
     buildIdentityPolicyMatterFreezeStage(artifacts.identity_policy_matter_freeze, sourceById.get("identity_policy_matter_freeze")),
     buildResourceStoreInterfaceStage(artifacts.resource_store_interface, sourceById.get("resource_store_interface")),
     buildImmutableObjectStoreLayoutStage(artifacts.immutable_object_store_layout, sourceById.get("immutable_object_store_layout")),
+    buildResourceVersionLedgerStage(artifacts.resource_version_ledger, sourceById.get("resource_version_ledger")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2115,6 +2123,56 @@ function buildImmutableObjectStoreLayoutStage(layout, source) {
       overwrite_forbidden_resolver_count: summary.overwrite_forbidden_resolver_count ?? 0,
       content_addressed_path_count: summary.content_addressed_path_count ?? 0,
       absolute_source_path_key_count: summary.absolute_source_path_key_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildResourceVersionLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("resource_version_ledger", "Resource Version Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const status = summary.resource_version_ledger_status === "complete"
+    && errorCount === 0
+    && (summary.version_family_count ?? 0) > 0
+    && (summary.resource_version_count ?? 0) > 0
+    && (summary.object_path_binding_count ?? 0) === (summary.resource_version_count ?? -1)
+    && (summary.unbound_object_path_count ?? -1) === 0
+    && (summary.version_event_count ?? 0) >= (summary.resource_version_count ?? 0)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "resource_version_ledger",
+    label: "Resource Version Ledger",
+    status,
+    message: `${summary.version_family_count ?? 0} version family(ies), ${summary.resource_version_count ?? 0} version(s), ${summary.duplicate_candidate_count ?? 0} duplicate candidate(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resource_version_ledger_status: summary.resource_version_ledger_status ?? "unknown",
+      ledger_contract_id: summary.ledger_contract_id ?? null,
+      version_family_count: summary.version_family_count ?? 0,
+      resource_version_count: summary.resource_version_count ?? 0,
+      current_version_count: summary.current_version_count ?? 0,
+      content_hash_group_count: summary.content_hash_group_count ?? 0,
+      singleton_family_count: summary.singleton_family_count ?? 0,
+      multi_version_family_count: summary.multi_version_family_count ?? 0,
+      changed_content_family_count: summary.changed_content_family_count ?? 0,
+      duplicate_content_family_count: summary.duplicate_content_family_count ?? 0,
+      duplicate_candidate_count: summary.duplicate_candidate_count ?? 0,
+      duplicate_candidate_matched_count: summary.duplicate_candidate_matched_count ?? 0,
+      duplicate_candidate_unmatched_count: summary.duplicate_candidate_unmatched_count ?? 0,
+      version_event_count: summary.version_event_count ?? 0,
+      changed_content_event_count: summary.changed_content_event_count ?? 0,
+      duplicate_content_event_count: summary.duplicate_content_event_count ?? 0,
+      duplicate_candidate_event_count: summary.duplicate_candidate_event_count ?? 0,
+      version_transition_count: summary.version_transition_count ?? 0,
+      changed_content_transition_count: summary.changed_content_transition_count ?? 0,
+      duplicate_transition_count: summary.duplicate_transition_count ?? 0,
+      object_path_binding_count: summary.object_path_binding_count ?? 0,
+      bound_object_path_count: summary.bound_object_path_count ?? 0,
+      unbound_object_path_count: summary.unbound_object_path_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5896,6 +5954,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.resource_version_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "resource_version_ledger";
+    items.push({
+      action_item_id: `dashboard.action.resource_version_ledger.${slugify(subjectId)}`,
+      source_stage: "resource_version_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix resource version ledger",
+      subject_ref: {
+        subject_type: "resource_version_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_resource_version_ledger", "rerun_resource_version_ledger", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7604,6 +7680,24 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     immutable_object_store_content_addressed_path_count: artifacts.immutable_object_store_layout?.summary?.content_addressed_path_count ?? 0,
     immutable_object_store_absolute_source_path_key_count: artifacts.immutable_object_store_layout?.summary?.absolute_source_path_key_count ?? 0,
     immutable_object_store_validation_error_count: artifacts.immutable_object_store_layout?.summary?.validation_error_count ?? artifacts.immutable_object_store_layout?.validation?.errors?.length ?? 0,
+    resource_version_ledger_status: artifacts.resource_version_ledger?.summary?.resource_version_ledger_status ?? "unknown",
+    resource_version_ledger_contract_id: artifacts.resource_version_ledger?.summary?.ledger_contract_id ?? null,
+    resource_version_ledger_family_count: artifacts.resource_version_ledger?.summary?.version_family_count ?? 0,
+    resource_version_ledger_resource_version_count: artifacts.resource_version_ledger?.summary?.resource_version_count ?? 0,
+    resource_version_ledger_current_version_count: artifacts.resource_version_ledger?.summary?.current_version_count ?? 0,
+    resource_version_ledger_content_hash_group_count: artifacts.resource_version_ledger?.summary?.content_hash_group_count ?? 0,
+    resource_version_ledger_singleton_family_count: artifacts.resource_version_ledger?.summary?.singleton_family_count ?? 0,
+    resource_version_ledger_multi_version_family_count: artifacts.resource_version_ledger?.summary?.multi_version_family_count ?? 0,
+    resource_version_ledger_changed_content_family_count: artifacts.resource_version_ledger?.summary?.changed_content_family_count ?? 0,
+    resource_version_ledger_duplicate_content_family_count: artifacts.resource_version_ledger?.summary?.duplicate_content_family_count ?? 0,
+    resource_version_ledger_duplicate_candidate_count: artifacts.resource_version_ledger?.summary?.duplicate_candidate_count ?? 0,
+    resource_version_ledger_duplicate_candidate_matched_count: artifacts.resource_version_ledger?.summary?.duplicate_candidate_matched_count ?? 0,
+    resource_version_ledger_duplicate_candidate_unmatched_count: artifacts.resource_version_ledger?.summary?.duplicate_candidate_unmatched_count ?? 0,
+    resource_version_ledger_event_count: artifacts.resource_version_ledger?.summary?.version_event_count ?? 0,
+    resource_version_ledger_transition_count: artifacts.resource_version_ledger?.summary?.version_transition_count ?? 0,
+    resource_version_ledger_object_path_binding_count: artifacts.resource_version_ledger?.summary?.object_path_binding_count ?? 0,
+    resource_version_ledger_unbound_object_path_count: artifacts.resource_version_ledger?.summary?.unbound_object_path_count ?? 0,
+    resource_version_ledger_validation_error_count: artifacts.resource_version_ledger?.summary?.validation_error_count ?? artifacts.resource_version_ledger?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8971,6 +9065,8 @@ function parseArgs(argv) {
     else if (arg === "--no-resource-store-interface") parsed.resourceStoreInterfacePath = false;
     else if (arg === "--immutable-object-store-layout") parsed.immutableObjectStoreLayoutPath = argv[++index];
     else if (arg === "--no-immutable-object-store-layout") parsed.immutableObjectStoreLayoutPath = false;
+    else if (arg === "--resource-version-ledger") parsed.resourceVersionLedgerPath = argv[++index];
+    else if (arg === "--no-resource-version-ledger") parsed.resourceVersionLedgerPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9237,6 +9333,9 @@ Options:
                                   immutable-object-store-layout.json path.
   --no-immutable-object-store-layout
                                   Do not include Immutable Object Store Layout status.
+  --resource-version-ledger <path>
+                                  resource-version-ledger.json path.
+  --no-resource-version-ledger    Do not include Resource Version Ledger status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

@@ -27,6 +27,7 @@ import { runMatterBoundarySlice } from "../src/matter-boundary-slice.mjs";
 import { runIdentityPolicyMatterFreeze } from "../src/identity-policy-matter-freeze.mjs";
 import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
 import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-layout.mjs";
+import { runResourceVersionLedger } from "../src/resource-version-ledger.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1640,6 +1641,7 @@ describe("matter harness", () => {
         identityPolicyMatterFreezePath: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3794,6 +3796,33 @@ describe("matter harness", () => {
       assert.ok(immutableObjectStoreLayout.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "immutable-object-store-layout", "summary.md"), "utf8"), /Immutable Object Store Layout/);
 
+      const resourceVersionLedger = await runResourceVersionLedger({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+        outDir: path.join(outDir, "resource-version-ledger"),
+        runAt: "2026-05-23T06:35:07.940Z",
+      });
+      const resourceVersionLedgerSchema = JSON.parse(await readFile("schemas/resource-version-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(resourceVersionLedger, resourceVersionLedgerSchema, {}, "resource_version_ledger"),
+        [],
+      );
+      assert.equal(resourceVersionLedger.summary.resource_version_ledger_status, "complete");
+      assert.equal(resourceVersionLedger.summary.resource_version_count, resourceStoreInterface.summary.resource_version_store_record_count);
+      assert.equal(resourceVersionLedger.summary.version_family_count, resourceStoreInterface.summary.resource_store_record_count);
+      assert.equal(resourceVersionLedger.summary.current_version_count, resourceStoreInterface.summary.resource_version_store_record_count);
+      assert.equal(resourceVersionLedger.summary.duplicate_candidate_count, ingest.summary.duplicate_count);
+      assert.equal(resourceVersionLedger.summary.object_path_binding_count, resourceStoreInterface.summary.resource_version_store_record_count);
+      assert.equal(resourceVersionLedger.summary.bound_object_path_count, resourceVersionLedger.summary.object_path_binding_count);
+      assert.equal(resourceVersionLedger.summary.unbound_object_path_count, 0);
+      assert.equal(resourceVersionLedger.summary.validation_error_count, 0);
+      assert.ok(resourceVersionLedger.version_ledger_catalog.version_families.every((family) => family.source_system && family.external_id));
+      assert.ok(resourceVersionLedger.version_ledger_catalog.version_events.some((event) => event.event_type === "version_recorded"));
+      assert.ok(resourceVersionLedger.version_ledger_catalog.object_path_bindings.every((binding) => binding.binding_status === "bound"));
+      assert.ok(resourceVersionLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "resource-version-ledger", "summary.md"), "utf8"), /Resource Version Ledger/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3817,6 +3846,7 @@ describe("matter harness", () => {
           identity_policy_matter_freeze: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
           resource_store_interface: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
           immutable_object_store_layout: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+          resource_version_ledger: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3842,8 +3872,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 36);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 36);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 37);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 37);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3870,6 +3900,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_policy_matter_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_store_interface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "immutable_object_store_layout"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_version_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4047,6 +4078,10 @@ describe("matter harness", () => {
       assert.equal(immutableObjectStoreLayoutCheckpoint?.acceptance_profile, "immutable_object_store_layout_gate");
       assert.equal(immutableObjectStoreLayoutCheckpoint?.status, "passed");
       assert.equal(immutableObjectStoreLayoutCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const resourceVersionLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-version-ledger");
+      assert.equal(resourceVersionLedgerCheckpoint?.acceptance_profile, "resource_version_ledger_gate");
+      assert.equal(resourceVersionLedgerCheckpoint?.status, "passed");
+      assert.equal(resourceVersionLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4789,6 +4824,17 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.immutable_object_store_content_addressed_path_count, immutableObjectStoreLayout.summary.total_object_path_count);
       assert.equal(dashboard.summary.immutable_object_store_absolute_source_path_key_count, 0);
       assert.equal(dashboard.summary.immutable_object_store_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_version_ledger_status, "complete");
+      assert.equal(dashboard.summary.resource_version_ledger_contract_id, "resource-version-ledger.v1");
+      assert.equal(dashboard.summary.resource_version_ledger_family_count, resourceVersionLedger.summary.version_family_count);
+      assert.equal(dashboard.summary.resource_version_ledger_resource_version_count, resourceVersionLedger.summary.resource_version_count);
+      assert.equal(dashboard.summary.resource_version_ledger_current_version_count, resourceVersionLedger.summary.current_version_count);
+      assert.equal(dashboard.summary.resource_version_ledger_content_hash_group_count, resourceVersionLedger.summary.content_hash_group_count);
+      assert.equal(dashboard.summary.resource_version_ledger_duplicate_candidate_count, resourceVersionLedger.summary.duplicate_candidate_count);
+      assert.equal(dashboard.summary.resource_version_ledger_event_count, resourceVersionLedger.summary.version_event_count);
+      assert.equal(dashboard.summary.resource_version_ledger_object_path_binding_count, resourceVersionLedger.summary.object_path_binding_count);
+      assert.equal(dashboard.summary.resource_version_ledger_unbound_object_path_count, 0);
+      assert.equal(dashboard.summary.resource_version_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5322,6 +5368,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "personal_workspace_boundary"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_store_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "immutable_object_store_layout"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_version_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5415,6 +5462,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/generated-output-object-paths"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/object-store-collisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/object-store-layout-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-families"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-events"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-transitions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-duplicate-candidates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-object-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-ledger-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7197,6 +7251,34 @@ describe("matter harness", () => {
       const objectStoreLayoutValidations = JSON.parse((await buildReviewApiResponse("/api/object-store-layout-validations?status=passed", apiOptions)).body);
       assert.equal(objectStoreLayoutValidations.collection, "object_store_layout_validations");
       assert.equal(objectStoreLayoutValidations.count, immutableObjectStoreLayout.summary.validation_item_count);
+
+      const resourceVersionLedgers = JSON.parse((await buildReviewApiResponse("/api/resource-version-ledgers?resource_version_ledger_status=complete", apiOptions)).body);
+      assert.equal(resourceVersionLedgers.collection, "resource_version_ledgers");
+      assert.equal(resourceVersionLedgers.count, 1);
+
+      const resourceVersionFamilies = JSON.parse((await buildReviewApiResponse("/api/resource-version-families", apiOptions)).body);
+      assert.equal(resourceVersionFamilies.collection, "resource_version_families");
+      assert.equal(resourceVersionFamilies.count, resourceVersionLedger.summary.version_family_count);
+
+      const resourceVersionEvents = JSON.parse((await buildReviewApiResponse("/api/resource-version-events?event_type=version_recorded", apiOptions)).body);
+      assert.equal(resourceVersionEvents.collection, "resource_version_events");
+      assert.equal(resourceVersionEvents.count, resourceVersionLedger.summary.resource_version_count);
+
+      const resourceVersionTransitions = JSON.parse((await buildReviewApiResponse("/api/resource-version-transitions", apiOptions)).body);
+      assert.equal(resourceVersionTransitions.collection, "resource_version_transitions");
+      assert.equal(resourceVersionTransitions.count, resourceVersionLedger.summary.version_transition_count);
+
+      const resourceDuplicateCandidates = JSON.parse((await buildReviewApiResponse("/api/resource-duplicate-candidates", apiOptions)).body);
+      assert.equal(resourceDuplicateCandidates.collection, "resource_duplicate_candidates");
+      assert.equal(resourceDuplicateCandidates.count, resourceVersionLedger.summary.duplicate_candidate_count);
+
+      const resourceVersionObjectBindings = JSON.parse((await buildReviewApiResponse("/api/resource-version-object-bindings?binding_status=bound", apiOptions)).body);
+      assert.equal(resourceVersionObjectBindings.collection, "resource_version_object_bindings");
+      assert.equal(resourceVersionObjectBindings.count, resourceVersionLedger.summary.object_path_binding_count);
+
+      const resourceVersionLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/resource-version-ledger-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceVersionLedgerValidations.collection, "resource_version_ledger_validations");
+      assert.equal(resourceVersionLedgerValidations.count, resourceVersionLedger.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

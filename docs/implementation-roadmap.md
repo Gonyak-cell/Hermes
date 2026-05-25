@@ -3106,6 +3106,42 @@ Phase 101은 Policy Matrix, Policy Snapshot Ledger, Resource v2 contract, Matter
 - Review API에서 `/api/policy-contract-freezes`, `/api/data-classification-contracts`, `/api/policy-reference-contracts`, `/api/policy-decision-contracts`, `/api/policy-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:policies`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 102: Evidence, Fact, Issue, Citation, and Lineage v2 Contract Freeze
+
+Phase 102는 Law Firm LDD slice, Resource v2 contract, Matter Boundary v2 contract, PolicyReference v2 contract를 입력으로 Evidence plane의 필수 lineage 계약을 고정했다. 목적은 후속 Evidence Store 구현 전에 `source_span -> evidence -> fact -> issue -> citation` 경로가 데이터 객체 수준에서 끊기지 않도록 만드는 것이다.
+
+구현:
+
+- `npm run contracts:evidence`
+- `src/evidence-contract-freeze.mjs`
+- `scripts/evidence-contract-freeze.mjs`
+- `schemas/evidence-contract-freeze.schema.json`
+- `docs/evidence-contract-freeze.md`
+
+핵심 산출물:
+
+- `artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json`
+- `artifacts/evidence-contract-freeze/latest/source-span-v2-fixture.json`
+- `artifacts/evidence-contract-freeze/latest/evidence-item-v2-fixture.json`
+- `artifacts/evidence-contract-freeze/latest/fact-claim-v2-fixture.json`
+- `artifacts/evidence-contract-freeze/latest/issue-v2-fixture.json`
+- `artifacts/evidence-contract-freeze/latest/citation-v2-fixture.json`
+- `artifacts/evidence-contract-freeze/latest/lineage-edge-v2-fixture.json`
+- `artifacts/evidence-contract-freeze/latest/validation-report.json`
+- `artifacts/evidence-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- `source-span.v2`, `evidence-item.v2`, `fact-claim.v2`, `issue.v2`, `citation.v2`, `evidence-lineage-edge.v2` fixture가 생성됨
+- 모든 SourceSpan이 Resource v2, ResourceVersion, matter id, classification, policy snapshot을 보존함
+- 모든 EvidenceItem이 SourceSpan, matter, classification, policy snapshot을 보존함
+- 모든 FactClaim이 EvidenceItem에 연결되고 confidence/review status를 보존함
+- 모든 Issue가 FactClaim과 EvidenceItem lineage를 보존함
+- 모든 Citation이 SourceSpan, EvidenceItem, FactClaim, Issue를 거쳐 `bound` 상태가 됨
+- Dashboard stage와 goal checkpoint가 `evidence_contract_freeze`를 추적함
+- Review API에서 `/api/evidence-contract-freezes`, `/api/source-span-contracts`, `/api/evidence-item-contracts`, `/api/fact-claim-contracts`, `/api/issue-contracts`, `/api/citation-contracts`, `/api/evidence-lineage-edges`, `/api/evidence-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:evidence`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3114,9 +3150,9 @@ Phase 101은 Policy Matrix, Policy Snapshot Ledger, Resource v2 contract, Matter
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 101이다.
+- 현재 완료 기준점은 Phase 102이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P102-P312, 총 211개다.
+- 남은 계획 슬롯은 P103-P312, 총 210개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

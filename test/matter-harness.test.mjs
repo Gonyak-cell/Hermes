@@ -110,6 +110,7 @@ import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
 import { runResourceContractFreeze } from "../src/resource-contract-freeze.mjs";
 import { runMatterContractFreeze } from "../src/matter-contract-freeze.mjs";
 import { runPolicyContractFreeze } from "../src/policy-contract-freeze.mjs";
+import { runEvidenceContractFreeze } from "../src/evidence-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -596,6 +597,39 @@ describe("matter harness", () => {
       assert.ok(policyContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "policy-contract-freeze", "summary.md"), "utf8"), /Policy Contract Freeze/);
 
+      const evidenceContractFreeze = await runEvidenceContractFreeze({
+        lawFirmSlicePath: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+        outDir: path.join(outDir, "evidence-contract-freeze"),
+        runAt: "2026-05-23T06:34:56.000Z",
+      });
+      const evidenceContractFreezeSchema = JSON.parse(await readFile("schemas/evidence-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(evidenceContractFreeze, evidenceContractFreezeSchema, {}, "evidence_contract_freeze"), []);
+      assert.equal(evidenceContractFreeze.summary.freeze_status, "complete");
+      assert.equal(evidenceContractFreeze.summary.source_span_count, lddSlice.law_firm_slice.resource_evidence.source_spans.length);
+      assert.equal(evidenceContractFreeze.summary.evidence_item_count, lddSlice.law_firm_slice.resource_evidence.evidence_items.length);
+      assert.equal(evidenceContractFreeze.summary.fact_claim_count, 1);
+      assert.equal(evidenceContractFreeze.summary.issue_count, 1);
+      assert.equal(evidenceContractFreeze.summary.citation_count, 1);
+      assert.equal(evidenceContractFreeze.summary.citation_bound_count, 1);
+      assert.equal(evidenceContractFreeze.summary.citation_broken_count, 0);
+      assert.equal(evidenceContractFreeze.summary.complete_lineage_path_count, 1);
+      assert.equal(evidenceContractFreeze.summary.broken_lineage_path_count, 0);
+      assert.equal(evidenceContractFreeze.summary.policy_snapshot_linked_evidence_count, evidenceContractFreeze.summary.evidence_item_count);
+      assert.equal(evidenceContractFreeze.summary.validation_error_count, 0);
+      assert.equal(evidenceContractFreeze.evidence_contract.source_spans[0].schema_version, "source-span.v2");
+      assert.equal(evidenceContractFreeze.evidence_contract.evidence_items[0].schema_version, "evidence-item.v2");
+      assert.equal(evidenceContractFreeze.evidence_contract.fact_claims[0].schema_version, "fact-claim.v2");
+      assert.equal(evidenceContractFreeze.evidence_contract.issues[0].schema_version, "issue.v2");
+      assert.equal(evidenceContractFreeze.evidence_contract.citations[0].schema_version, "citation.v2");
+      assert.equal(evidenceContractFreeze.evidence_contract.lineage_edges[0].schema_version, "evidence-lineage-edge.v2");
+      assert.ok(evidenceContractFreeze.evidence_contract.lineage_edges.some((edge) => edge.relation === "source_span_supports_evidence"));
+      assert.ok(evidenceContractFreeze.evidence_contract.lineage_edges.some((edge) => edge.relation === "issue_cited_by_citation"));
+      assert.ok(evidenceContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "evidence-contract-freeze", "summary.md"), "utf8"), /Evidence Contract Freeze/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1055,6 +1089,7 @@ describe("matter harness", () => {
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+        evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -2655,6 +2690,10 @@ describe("matter harness", () => {
       assert.equal(policyContractFreezeCheckpoint?.acceptance_profile, "policy_contract_freeze_gate");
       assert.equal(policyContractFreezeCheckpoint?.status, "passed");
       assert.equal(policyContractFreezeCheckpoint?.implementation_status, "passed");
+      const evidenceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-contract-freeze");
+      assert.equal(evidenceContractFreezeCheckpoint?.acceptance_profile, "evidence_contract_freeze_gate");
+      assert.equal(evidenceContractFreezeCheckpoint?.status, "passed");
+      assert.equal(evidenceContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2942,6 +2981,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_contract_freeze_matter_boundary_policy_reference_count, policyContractFreeze.summary.matter_boundary_policy_reference_count);
       assert.equal(dashboard.summary.policy_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.policy_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_issue_count, evidenceContractFreeze.summary.issue_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_citation_count, evidenceContractFreeze.summary.citation_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_lineage_edge_count, evidenceContractFreeze.summary.lineage_edge_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_citation_bound_count, evidenceContractFreeze.summary.citation_bound_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_citation_broken_count, 0);
+      assert.equal(dashboard.summary.evidence_contract_freeze_complete_lineage_path_count, evidenceContractFreeze.summary.complete_lineage_path_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_broken_lineage_path_count, 0);
+      assert.equal(dashboard.summary.evidence_contract_freeze_resource_linked_source_span_count, evidenceContractFreeze.summary.resource_linked_source_span_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_matter_linked_evidence_count, evidenceContractFreeze.summary.matter_linked_evidence_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_policy_snapshot_linked_evidence_count, evidenceContractFreeze.summary.policy_snapshot_linked_evidence_count);
+      assert.equal(dashboard.summary.evidence_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.evidence_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3319,6 +3373,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3715,6 +3770,40 @@ describe("matter harness", () => {
       const policyContractValidations = JSON.parse((await buildReviewApiResponse("/api/policy-contract-validations?status=passed", apiOptions)).body);
       assert.equal(policyContractValidations.collection, "policy_contract_validations");
       assert.equal(policyContractValidations.count, policyContractFreeze.summary.validation_item_count);
+
+      const evidenceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/evidence-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(evidenceContractFreezes.collection, "evidence_contract_freezes");
+      assert.equal(evidenceContractFreezes.count, 1);
+
+      const sourceSpanContracts = JSON.parse((await buildReviewApiResponse("/api/source-span-contracts?classification=P1_INTERNAL", apiOptions)).body);
+      assert.equal(sourceSpanContracts.collection, "source_span_contracts");
+      assert.ok(sourceSpanContracts.count >= 1);
+
+      const evidenceItemContracts = JSON.parse((await buildReviewApiResponse("/api/evidence-item-contracts?review_status=needs_review", apiOptions)).body);
+      assert.equal(evidenceItemContracts.collection, "evidence_item_contracts");
+      assert.equal(evidenceItemContracts.count, evidenceContractFreeze.summary.evidence_item_count);
+
+      const factType = evidenceContractFreeze.evidence_contract.fact_claims[0].fact_type;
+      const factClaimContracts = JSON.parse((await buildReviewApiResponse(`/api/fact-claim-contracts?fact_type=${factType}`, apiOptions)).body);
+      assert.equal(factClaimContracts.collection, "fact_claim_contracts");
+      assert.equal(factClaimContracts.count, evidenceContractFreeze.summary.fact_claim_count);
+
+      const issueType = evidenceContractFreeze.evidence_contract.issues[0].issue_type;
+      const issueContracts = JSON.parse((await buildReviewApiResponse(`/api/issue-contracts?issue_type=${issueType}`, apiOptions)).body);
+      assert.equal(issueContracts.collection, "issue_contracts");
+      assert.equal(issueContracts.count, evidenceContractFreeze.summary.issue_count);
+
+      const citationContracts = JSON.parse((await buildReviewApiResponse("/api/citation-contracts?citation_binding_status=bound", apiOptions)).body);
+      assert.equal(citationContracts.collection, "citation_contracts");
+      assert.equal(citationContracts.count, evidenceContractFreeze.summary.citation_bound_count);
+
+      const lineageEdges = JSON.parse((await buildReviewApiResponse("/api/evidence-lineage-edges?relation=evidence_cited_by_citation", apiOptions)).body);
+      assert.equal(lineageEdges.collection, "evidence_lineage_edges");
+      assert.equal(lineageEdges.count, evidenceContractFreeze.summary.citation_count);
+
+      const evidenceContractValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(evidenceContractValidations.collection, "evidence_contract_validations");
+      assert.equal(evidenceContractValidations.count, evidenceContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

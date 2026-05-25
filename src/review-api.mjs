@@ -388,6 +388,90 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/evidence-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("source_span_contracts", freezeResult.artifact.evidence_contract?.source_spans ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/evidence-item-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("evidence_item_contracts", freezeResult.artifact.evidence_contract?.evidence_items ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/fact-claim-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("fact_claim_contracts", freezeResult.artifact.evidence_contract?.fact_claims ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/issue-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("issue_contracts", freezeResult.artifact.evidence_contract?.issues ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/citation-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("citation_contracts", freezeResult.artifact.evidence_contract?.citations ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/evidence-lineage-edges") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("evidence_lineage_edges", freezeResult.artifact.evidence_contract?.lineage_edges ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/evidence-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("evidence_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -2796,6 +2880,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-reference-contracts", "PolicyReference v2 contract fixtures"),
       route("GET", "/api/policy-decision-contracts", "PolicyDecision v2 contract fixtures"),
       route("GET", "/api/policy-contract-validations", "Policy contract validation rows"),
+      route("GET", "/api/evidence-contract-freezes", "Evidence contract freeze artifacts"),
+      route("GET", "/api/source-span-contracts", "SourceSpan v2 contract fixtures"),
+      route("GET", "/api/evidence-item-contracts", "EvidenceItem v2 contract fixtures"),
+      route("GET", "/api/fact-claim-contracts", "FactClaim v2 contract fixtures"),
+      route("GET", "/api/issue-contracts", "Issue v2 contract fixtures"),
+      route("GET", "/api/citation-contracts", "Citation v2 contract fixtures"),
+      route("GET", "/api/evidence-lineage-edges", "Evidence lineage edge fixtures"),
+      route("GET", "/api/evidence-contract-validations", "Evidence contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3118,6 +3210,15 @@ function filterItems(items, searchParams) {
     "reference_status",
     "decision_id",
     "decision_status",
+    "source_span_id",
+    "fact_id",
+    "fact_type",
+    "issue_id",
+    "issue_type",
+    "citation_id",
+    "citation_binding_status",
+    "lineage_edge_id",
+    "relation",
     "usage_id",
     "usage_type",
     "snapshot_declared_in_source",

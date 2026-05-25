@@ -1,0 +1,421 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-contract-freeze.schema.json",
+  "title": "Hermes Evidence Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "summary",
+    "evidence_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "law_firm_slice_path",
+        "resource_contract_freeze_path",
+        "matter_contract_freeze_path",
+        "policy_contract_freeze_path"
+      ],
+      "properties": {
+        "law_firm_slice_path": { "type": "string" },
+        "resource_contract_freeze_path": { "type": "string" },
+        "matter_contract_freeze_path": { "type": "string" },
+        "policy_contract_freeze_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": ["law_firm_slice", "resource_contract_freeze", "matter_contract_freeze", "policy_contract_freeze"],
+      "properties": {
+        "law_firm_slice": { "$ref": "#/$defs/source_contract" },
+        "resource_contract_freeze": { "$ref": "#/$defs/source_contract" },
+        "matter_contract_freeze": { "$ref": "#/$defs/source_contract" },
+        "policy_contract_freeze": { "$ref": "#/$defs/source_contract" }
+      }
+    },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "source_span_schema_version",
+        "evidence_item_schema_version",
+        "fact_claim_schema_version",
+        "issue_schema_version",
+        "citation_schema_version",
+        "lineage_edge_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "source_span_schema_version": { "const": "source-span.v2" },
+        "evidence_item_schema_version": { "const": "evidence-item.v2" },
+        "fact_claim_schema_version": { "const": "fact-claim.v2" },
+        "issue_schema_version": { "const": "issue.v2" },
+        "citation_schema_version": { "const": "citation.v2" },
+        "lineage_edge_schema_version": { "const": "evidence-lineage-edge.v2" },
+        "compatibility_floor": { "const": "resource-evidence.v1+governance-output.v1" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "source_span_schema_version",
+        "evidence_item_schema_version",
+        "fact_claim_schema_version",
+        "issue_schema_version",
+        "citation_schema_version",
+        "lineage_edge_schema_version",
+        "source_span_count",
+        "evidence_item_count",
+        "fact_claim_count",
+        "issue_count",
+        "citation_count",
+        "lineage_edge_count",
+        "citation_bound_count",
+        "citation_broken_count",
+        "complete_lineage_path_count",
+        "broken_lineage_path_count",
+        "resource_linked_source_span_count",
+        "matter_linked_evidence_count",
+        "policy_snapshot_linked_evidence_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_matter_id",
+        "by_classification",
+        "by_review_status",
+        "by_citation_status"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "source_span_schema_version": { "const": "source-span.v2" },
+        "evidence_item_schema_version": { "const": "evidence-item.v2" },
+        "fact_claim_schema_version": { "const": "fact-claim.v2" },
+        "issue_schema_version": { "const": "issue.v2" },
+        "citation_schema_version": { "const": "citation.v2" },
+        "lineage_edge_schema_version": { "const": "evidence-lineage-edge.v2" },
+        "source_span_count": { "type": "integer", "minimum": 0 },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "fact_claim_count": { "type": "integer", "minimum": 0 },
+        "issue_count": { "type": "integer", "minimum": 0 },
+        "citation_count": { "type": "integer", "minimum": 0 },
+        "lineage_edge_count": { "type": "integer", "minimum": 0 },
+        "citation_bound_count": { "type": "integer", "minimum": 0 },
+        "citation_broken_count": { "type": "integer", "minimum": 0 },
+        "complete_lineage_path_count": { "type": "integer", "minimum": 0 },
+        "broken_lineage_path_count": { "type": "integer", "minimum": 0 },
+        "resource_linked_source_span_count": { "type": "integer", "minimum": 0 },
+        "matter_linked_evidence_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_linked_evidence_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "by_citation_status": { "type": "object" }
+      }
+    },
+    "evidence_contract": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "source_spans", "evidence_items", "fact_claims", "issues", "citations", "lineage_edges"],
+      "properties": {
+        "schema_version": { "const": "evidence-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_spans": { "type": "array", "items": { "$ref": "#/$defs/source_span_v2" } },
+        "evidence_items": { "type": "array", "items": { "$ref": "#/$defs/evidence_item_v2" } },
+        "fact_claims": { "type": "array", "items": { "$ref": "#/$defs/fact_claim_v2" } },
+        "issues": { "type": "array", "items": { "$ref": "#/$defs/issue_v2" } },
+        "citations": { "type": "array", "items": { "$ref": "#/$defs/citation_v2" } },
+        "lineage_edges": { "type": "array", "items": { "$ref": "#/$defs/lineage_edge_v2" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    }
+  },
+  "$defs": {
+    "classification": {
+      "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]
+    },
+    "source_contract": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "source_span_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_span_id",
+        "resource_id",
+        "resource_version_id",
+        "normalized_text_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "location_type",
+        "locator",
+        "text_hash",
+        "content_preview",
+        "lineage_root_id",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "source-span.v2" },
+        "source_span_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "normalized_text_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "$ref": "#/$defs/classification" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "location_type": { "type": "string" },
+        "locator": { "type": "object" },
+        "text_hash": { "type": "string" },
+        "content_preview": { "type": "string" },
+        "lineage_root_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "evidence_item_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "evidence_type",
+        "source_span_ids",
+        "source_span_count",
+        "summary",
+        "reliability",
+        "review_status",
+        "verification_state",
+        "privilege_flag",
+        "redaction_state",
+        "lineage_id",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-item.v2" },
+        "evidence_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": "string" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "evidence_type": { "type": "string" },
+        "source_span_ids": { "type": "array", "items": { "type": "string" } },
+        "source_span_count": { "type": "integer", "minimum": 0 },
+        "summary": { "type": "string" },
+        "reliability": { "type": "string" },
+        "review_status": { "type": "string" },
+        "verification_state": { "type": "string" },
+        "privilege_flag": { "type": "boolean" },
+        "redaction_state": { "type": "string" },
+        "lineage_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "fact_claim_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "fact_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "evidence_item_ids",
+        "evidence_item_count",
+        "statement",
+        "fact_type",
+        "confidence",
+        "review_status",
+        "verification_state",
+        "lineage_id",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "fact-claim.v2" },
+        "fact_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": "string" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "evidence_item_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "statement": { "type": "string" },
+        "fact_type": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "review_status": { "type": "string" },
+        "verification_state": { "type": "string" },
+        "lineage_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "issue_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "issue_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "issue_type",
+        "title",
+        "linked_fact_ids",
+        "linked_fact_count",
+        "evidence_item_ids",
+        "evidence_item_count",
+        "severity",
+        "status",
+        "lineage_id",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "issue.v2" },
+        "issue_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": "string" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "issue_type": { "type": "string" },
+        "title": { "type": "string" },
+        "linked_fact_ids": { "type": "array", "items": { "type": "string" } },
+        "linked_fact_count": { "type": "integer", "minimum": 0 },
+        "evidence_item_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "severity": { "type": "string" },
+        "status": { "type": "string" },
+        "lineage_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "citation_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "citation_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "output_artifact_id",
+        "target_path",
+        "source_span_ids",
+        "evidence_item_ids",
+        "linked_fact_ids",
+        "linked_issue_ids",
+        "citation_status",
+        "citation_binding_status",
+        "lineage_path_ids",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "citation.v2" },
+        "citation_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "$ref": "#/$defs/classification" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "output_artifact_id": { "type": "string" },
+        "target_path": { "type": "string" },
+        "source_span_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence_item_ids": { "type": "array", "items": { "type": "string" } },
+        "linked_fact_ids": { "type": "array", "items": { "type": "string" } },
+        "linked_issue_ids": { "type": "array", "items": { "type": "string" } },
+        "citation_status": { "type": "string" },
+        "citation_binding_status": { "enum": ["bound", "broken"] },
+        "lineage_path_ids": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "lineage_edge_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "lineage_edge_id",
+        "from_type",
+        "from_id",
+        "to_type",
+        "to_id",
+        "relation",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "edge_status",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-lineage-edge.v2" },
+        "lineage_edge_id": { "type": "string" },
+        "from_type": { "type": "string" },
+        "from_id": { "type": "string" },
+        "to_type": { "type": "string" },
+        "to_id": { "type": "string" },
+        "relation": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "edge_status": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

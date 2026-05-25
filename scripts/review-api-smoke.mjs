@@ -37,6 +37,14 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-usages"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-contract-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-claim-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/issue-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/citation-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-lineage-edges"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-contract-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packet-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
@@ -303,6 +311,38 @@ try {
   const policyContractValidations = await fetchJson(`${url}/api/policy-contract-validations?status=passed&limit=5`);
   assert.equal(policyContractValidations.collection, "policy_contract_validations");
   assert.ok(policyContractValidations.count <= 5);
+
+  const evidenceContractFreezes = await fetchJson(`${url}/api/evidence-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(evidenceContractFreezes.collection, "evidence_contract_freezes");
+  assert.ok(evidenceContractFreezes.count <= 1);
+
+  const sourceSpanContracts = await fetchJson(`${url}/api/source-span-contracts?classification=P1_INTERNAL&limit=5`);
+  assert.equal(sourceSpanContracts.collection, "source_span_contracts");
+  assert.ok(sourceSpanContracts.count <= 5);
+
+  const evidenceItemContracts = await fetchJson(`${url}/api/evidence-item-contracts?review_status=needs_review&limit=5`);
+  assert.equal(evidenceItemContracts.collection, "evidence_item_contracts");
+  assert.ok(evidenceItemContracts.count <= 5);
+
+  const factClaimContracts = await fetchJson(`${url}/api/fact-claim-contracts?fact_type=missing_document&limit=5`);
+  assert.equal(factClaimContracts.collection, "fact_claim_contracts");
+  assert.ok(factClaimContracts.count <= 5);
+
+  const issueContracts = await fetchJson(`${url}/api/issue-contracts?issue_type=rfi&limit=5`);
+  assert.equal(issueContracts.collection, "issue_contracts");
+  assert.ok(issueContracts.count <= 5);
+
+  const citationContracts = await fetchJson(`${url}/api/citation-contracts?citation_binding_status=bound&limit=5`);
+  assert.equal(citationContracts.collection, "citation_contracts");
+  assert.ok(citationContracts.count <= 5);
+
+  const lineageEdges = await fetchJson(`${url}/api/evidence-lineage-edges?relation=evidence_cited_by_citation&limit=5`);
+  assert.equal(lineageEdges.collection, "evidence_lineage_edges");
+  assert.ok(lineageEdges.count <= 5);
+
+  const evidenceContractValidations = await fetchJson(`${url}/api/evidence-contract-validations?status=passed&limit=5`);
+  assert.equal(evidenceContractValidations.collection, "evidence_contract_validations");
+  assert.ok(evidenceContractValidations.count <= 5);
 
   const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
   assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

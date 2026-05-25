@@ -8,6 +8,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceContractFreezePath: "artifacts/resource-contract-freeze/latest/resource-contract-freeze.json",
   matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
+  evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -120,6 +121,11 @@ const SOURCE_DEFINITIONS = [
     option: "policyContractFreezePath",
     source_id: "policy_contract_freeze",
     label: "Policy Contract Freeze",
+  },
+  {
+    option: "evidenceContractFreezePath",
+    source_id: "evidence_contract_freeze",
+    label: "Evidence Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -682,6 +688,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "resource_contract_freeze") return data.summary ?? {};
   if (sourceId === "matter_contract_freeze") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
+  if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -863,6 +870,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceContractFreezeStage(artifacts.resource_contract_freeze, sourceById.get("resource_contract_freeze")),
     buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
+    buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -1097,6 +1105,46 @@ function buildPolicyContractFreezeStage(freeze, source) {
       resource_policy_reference_count: summary.resource_policy_reference_count ?? 0,
       matter_policy_reference_count: summary.matter_policy_reference_count ?? 0,
       matter_boundary_policy_reference_count: summary.matter_boundary_policy_reference_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildEvidenceContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("evidence_contract_freeze", "Evidence Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "evidence_contract_freeze",
+    label: "Evidence Contract Freeze",
+    status,
+    message: `${summary.source_span_count ?? 0} SourceSpan v2 contract(s), ${summary.evidence_item_count ?? 0} EvidenceItem v2 fixture(s), ${summary.complete_lineage_path_count ?? 0} complete citation path(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      source_span_schema_version: summary.source_span_schema_version ?? null,
+      evidence_item_schema_version: summary.evidence_item_schema_version ?? null,
+      fact_claim_schema_version: summary.fact_claim_schema_version ?? null,
+      issue_schema_version: summary.issue_schema_version ?? null,
+      citation_schema_version: summary.citation_schema_version ?? null,
+      lineage_edge_schema_version: summary.lineage_edge_schema_version ?? null,
+      source_span_count: summary.source_span_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      fact_claim_count: summary.fact_claim_count ?? 0,
+      issue_count: summary.issue_count ?? 0,
+      citation_count: summary.citation_count ?? 0,
+      lineage_edge_count: summary.lineage_edge_count ?? 0,
+      citation_bound_count: summary.citation_bound_count ?? 0,
+      citation_broken_count: summary.citation_broken_count ?? 0,
+      complete_lineage_path_count: summary.complete_lineage_path_count ?? 0,
+      broken_lineage_path_count: summary.broken_lineage_path_count ?? 0,
+      resource_linked_source_span_count: summary.resource_linked_source_span_count ?? 0,
+      matter_linked_evidence_count: summary.matter_linked_evidence_count ?? 0,
+      policy_snapshot_linked_evidence_count: summary.policy_snapshot_linked_evidence_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
@@ -5271,6 +5319,21 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_contract_freeze_matter_boundary_policy_reference_count: artifacts.policy_contract_freeze?.summary?.matter_boundary_policy_reference_count ?? 0,
     policy_contract_freeze_failed_validation_item_count: artifacts.policy_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     policy_contract_freeze_validation_error_count: artifacts.policy_contract_freeze?.summary?.validation_error_count ?? artifacts.policy_contract_freeze?.validation?.errors?.length ?? 0,
+    evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
+    evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
+    evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
+    evidence_contract_freeze_issue_count: artifacts.evidence_contract_freeze?.summary?.issue_count ?? 0,
+    evidence_contract_freeze_citation_count: artifacts.evidence_contract_freeze?.summary?.citation_count ?? 0,
+    evidence_contract_freeze_lineage_edge_count: artifacts.evidence_contract_freeze?.summary?.lineage_edge_count ?? 0,
+    evidence_contract_freeze_citation_bound_count: artifacts.evidence_contract_freeze?.summary?.citation_bound_count ?? 0,
+    evidence_contract_freeze_citation_broken_count: artifacts.evidence_contract_freeze?.summary?.citation_broken_count ?? 0,
+    evidence_contract_freeze_complete_lineage_path_count: artifacts.evidence_contract_freeze?.summary?.complete_lineage_path_count ?? 0,
+    evidence_contract_freeze_broken_lineage_path_count: artifacts.evidence_contract_freeze?.summary?.broken_lineage_path_count ?? 0,
+    evidence_contract_freeze_resource_linked_source_span_count: artifacts.evidence_contract_freeze?.summary?.resource_linked_source_span_count ?? 0,
+    evidence_contract_freeze_matter_linked_evidence_count: artifacts.evidence_contract_freeze?.summary?.matter_linked_evidence_count ?? 0,
+    evidence_contract_freeze_policy_snapshot_linked_evidence_count: artifacts.evidence_contract_freeze?.summary?.policy_snapshot_linked_evidence_count ?? 0,
+    evidence_contract_freeze_failed_validation_item_count: artifacts.evidence_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    evidence_contract_freeze_validation_error_count: artifacts.evidence_contract_freeze?.summary?.validation_error_count ?? artifacts.evidence_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6322,6 +6385,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-contract-freeze") parsed.matterContractFreezePath = false;
     else if (arg === "--policy-contract-freeze") parsed.policyContractFreezePath = argv[++index];
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
+    else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
+    else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];

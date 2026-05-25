@@ -493,6 +493,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("evidence_item_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-golden-fixtures") {
+    const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
+    if (!fixtureResult.available) {
+      return jsonResponse(503, buildError("evidence_golden_fixtures_unavailable", fixtureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_golden_fixtures", [fixtureResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-golden-cases") {
+    const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
+    if (!fixtureResult.available) {
+      return jsonResponse(503, buildError("evidence_golden_fixtures_unavailable", fixtureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_golden_cases", fixtureResult.artifact.evidence_golden_fixture_catalog?.evidence_golden_cases ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-golden-store-matches") {
+    const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
+    if (!fixtureResult.available) {
+      return jsonResponse(503, buildError("evidence_golden_fixtures_unavailable", fixtureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_golden_store_matches", fixtureResult.artifact.evidence_golden_fixture_catalog?.evidence_store_matches ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-regression-hashes") {
+    const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
+    if (!fixtureResult.available) {
+      return jsonResponse(503, buildError("evidence_golden_fixtures_unavailable", fixtureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_regression_hashes", fixtureResult.artifact.evidence_golden_fixture_catalog?.evidence_regression_manifest?.evidence_regression_hashes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-golden-validations") {
+    const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
+    if (!fixtureResult.available) {
+      return jsonResponse(503, buildError("evidence_golden_fixtures_unavailable", fixtureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_golden_validations", fixtureResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/fact-claim-stores") {
     const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
     if (!storeResult.available) {
@@ -5173,6 +5208,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/evidence-review-queue", "Evidence review queue rows"),
       route("GET", "/api/evidence-item-indexes", "Evidence item index projections"),
       route("GET", "/api/evidence-item-store-validations", "Evidence item store validation rows"),
+      route("GET", "/api/evidence-golden-fixtures", "Evidence golden fixture artifacts"),
+      route("GET", "/api/evidence-golden-cases", "Evidence extraction golden cases"),
+      route("GET", "/api/evidence-golden-store-matches", "Evidence golden case store matches"),
+      route("GET", "/api/evidence-regression-hashes", "Evidence golden regression hashes"),
+      route("GET", "/api/evidence-golden-validations", "Evidence golden fixture validation rows"),
       route("GET", "/api/fact-claim-stores", "Fact claim store artifacts"),
       route("GET", "/api/fact-claims", "Fact claim rows"),
       route("GET", "/api/fact-evidence-bindings", "Fact to evidence binding rows"),
@@ -5691,6 +5731,12 @@ function filterItems(items, searchParams) {
   const filterKeys = [
     "status",
     "evidence_item_store_status",
+    "evidence_golden_fixture_status",
+    "evidence_golden_case_id",
+    "fixture_group",
+    "document_kind",
+    "case_status",
+    "match_status",
     "fact_claim_store_status",
     "issue_graph_store_status",
     "citation_object_store_status",
@@ -6604,6 +6650,7 @@ function readFilterValue(item, key) {
   if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;
   if (key === "evidence_item_store_status") return item.summary?.evidence_item_store_status ?? item.evidence_item_store_status;
+  if (key === "evidence_golden_fixture_status") return item.summary?.evidence_golden_fixture_status ?? item.evidence_golden_fixture_status;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;

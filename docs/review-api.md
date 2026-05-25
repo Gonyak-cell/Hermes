@@ -105,6 +105,11 @@ npm run api:serve
 - `GET /api/evidence-review-queue`: machine-extracted evidence review queue rows
 - `GET /api/evidence-item-indexes`: evidence item rollups by matter, classification, review status, evidence type, and location type
 - `GET /api/evidence-item-store-validations`: evidence item store validation rows
+- `GET /api/evidence-golden-fixtures`: evidence golden fixture artifact
+- `GET /api/evidence-golden-cases`: LDD, meeting minutes, contract, and client email extraction golden cases
+- `GET /api/evidence-golden-store-matches`: golden case to Evidence Item Store match rows
+- `GET /api/evidence-regression-hashes`: locked evidence regression hash rows
+- `GET /api/evidence-golden-validations`: evidence golden fixture validation rows
 - `GET /api/fact-claim-stores`: fact claim store artifact
 - `GET /api/fact-claims`: evidence-derived fact claim rows
 - `GET /api/fact-evidence-bindings`: fact claim to evidence item binding rows

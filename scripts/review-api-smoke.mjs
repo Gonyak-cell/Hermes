@@ -211,6 +211,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/retrieval-query-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/retrieval-filter-probes"));
   assert.ok(index.routes.some((route) => route.path === "/api/retrieval-filter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-fixtures"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-cases"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-store-matches"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-hashes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1880,6 +1885,26 @@ try {
   const evidenceItemStoreValidations = await fetchJson(`${url}/api/evidence-item-store-validations?status=passed&limit=5`);
   assert.equal(evidenceItemStoreValidations.collection, "evidence_item_store_validations");
   assert.ok(evidenceItemStoreValidations.count <= 5);
+
+  const evidenceGoldenFixtures = await fetchJson(`${url}/api/evidence-golden-fixtures?evidence_golden_fixture_status=complete&limit=1`);
+  assert.equal(evidenceGoldenFixtures.collection, "evidence_golden_fixtures");
+  assert.ok(evidenceGoldenFixtures.count <= 1);
+
+  const evidenceGoldenCases = await fetchJson(`${url}/api/evidence-golden-cases?case_status=locked&limit=5`);
+  assert.equal(evidenceGoldenCases.collection, "evidence_golden_cases");
+  assert.ok(evidenceGoldenCases.count <= 5);
+
+  const evidenceGoldenStoreMatches = await fetchJson(`${url}/api/evidence-golden-store-matches?match_status=matched&limit=5`);
+  assert.equal(evidenceGoldenStoreMatches.collection, "evidence_golden_store_matches");
+  assert.ok(evidenceGoldenStoreMatches.count <= 5);
+
+  const evidenceRegressionHashes = await fetchJson(`${url}/api/evidence-regression-hashes?case_status=locked&limit=5`);
+  assert.equal(evidenceRegressionHashes.collection, "evidence_regression_hashes");
+  assert.ok(evidenceRegressionHashes.count <= 5);
+
+  const evidenceGoldenValidations = await fetchJson(`${url}/api/evidence-golden-validations?status=passed&limit=5`);
+  assert.equal(evidenceGoldenValidations.collection, "evidence_golden_validations");
+  assert.ok(evidenceGoldenValidations.count <= 5);
 
   const factClaimStores = await fetchJson(`${url}/api/fact-claim-stores?fact_claim_store_status=complete&limit=1`);
   assert.equal(factClaimStores.collection, "fact_claim_stores");

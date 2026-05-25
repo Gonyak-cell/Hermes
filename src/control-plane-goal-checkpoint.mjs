@@ -38,6 +38,7 @@ const GOAL_ITEMS = [
   sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
   sourceItem("source_span_store", "Source span store", "resource_evidence", "source_span_store", "control-plane-source-span-store", { acceptance_profile: "source_span_store_gate" }),
   sourceItem("evidence_item_store", "Evidence item store", "resource_evidence", "evidence_item_store", "control-plane-evidence-item-store", { acceptance_profile: "evidence_item_store_gate" }),
+  sourceItem("evidence_golden_fixtures", "Evidence extraction golden fixtures", "resource_evidence", "evidence_golden_fixtures", "control-plane-evidence-golden-fixtures", { acceptance_profile: "evidence_golden_fixtures_gate" }),
   sourceItem("fact_claim_store", "Fact claim store", "resource_evidence", "fact_claim_store", "control-plane-fact-claim-store", { acceptance_profile: "fact_claim_store_gate" }),
   sourceItem("issue_graph_store", "Issue graph store", "resource_evidence", "issue_graph_store", "control-plane-issue-graph-store", { acceptance_profile: "issue_graph_store_gate" }),
   sourceItem("citation_object_store", "Citation object store", "resource_evidence", "citation_object_store", "control-plane-citation-object-store", { acceptance_profile: "citation_object_store_gate" }),
@@ -394,6 +395,7 @@ function evaluateStageAcceptance(item, stage) {
     "extractor_adapter_contract_gate",
     "source_span_store_gate",
     "evidence_item_store_gate",
+    "evidence_golden_fixtures_gate",
     "fact_claim_store_gate",
     "issue_graph_store_gate",
     "citation_object_store_gate",
@@ -757,6 +759,24 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.approved_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Evidence item store materializes one review-pending EvidenceItem from every source span while preserving matter, classification, and policy snapshot.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_golden_fixtures_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const caseCount = metrics.evidence_golden_case_count ?? 0;
+    if (
+      errors === 0
+      && metrics.evidence_golden_fixture_status === "complete"
+      && caseCount > 0
+      && (metrics.locked_case_count ?? 0) === caseCount
+      && (metrics.store_matched_case_count ?? 0) === caseCount
+      && (metrics.human_review_required_case_count ?? 0) === caseCount
+      && (metrics.local_deterministic_case_count ?? 0) === caseCount
+      && (metrics.external_service_used_count ?? 1) === 0
+      && (metrics.locked_regression_hash_count ?? 0) === caseCount
+    ) {
+      return passedWithOperationalGate(stage, "Evidence extraction golden fixtures lock LDD, meeting, contract, and client email evidence with store matches, human review holds, and regression hashes.");
     }
   }
 

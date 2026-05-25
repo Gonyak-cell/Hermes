@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-golden-fixtures.schema.json",
+  "title": "Hermes Evidence Golden Fixtures",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_golden_fixture_set_id",
+    "output_dir",
+    "inputs",
+    "source_source_span_store",
+    "source_evidence_item_store",
+    "source_extractor_adapter_contract",
+    "evidence_golden_fixture_contract",
+    "evidence_golden_fixture_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-golden-fixtures.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_golden_fixture_set_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "source_span_store_path",
+        "evidence_item_store_path",
+        "extractor_adapter_contract_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "source_span_store_path": { "type": "string" },
+        "evidence_item_store_path": { "type": "string" },
+        "extractor_adapter_contract_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_source_span_store": { "$ref": "#/$defs/source" },
+    "source_evidence_item_store": { "$ref": "#/$defs/source" },
+    "source_extractor_adapter_contract": { "$ref": "#/$defs/source" },
+    "evidence_golden_fixture_contract": { "$ref": "#/$defs/contract" },
+    "evidence_golden_fixture_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "evidence_golden_cases",
+        "evidence_store_matches",
+        "evidence_extraction_matrix",
+        "evidence_regression_manifest"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-golden-fixture-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "evidence_golden_cases": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/$defs/evidence_golden_case" }
+        },
+        "evidence_store_matches": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/$defs/store_match" }
+        },
+        "evidence_extraction_matrix": { "type": "object" },
+        "evidence_regression_manifest": { "$ref": "#/$defs/regression_manifest" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_golden_fixture_contract_id",
+        "generated_at",
+        "required_fixture_groups",
+        "source_inputs",
+        "offset_unit",
+        "extraction_boundary",
+        "review_rule",
+        "store_match_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-golden-fixture-contract.v1" },
+        "evidence_golden_fixture_contract_id": { "const": "evidence-golden-fixtures.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_fixture_groups": { "type": "array", "minItems": 4, "items": { "type": "string" } },
+        "source_inputs": { "type": "array", "minItems": 3, "items": { "type": "string" } },
+        "offset_unit": { "const": "utf16_code_unit" },
+        "extraction_boundary": { "const": "local_deterministic" },
+        "review_rule": { "type": "string" },
+        "store_match_rule": { "type": "string" }
+      }
+    },
+    "evidence_golden_case": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_golden_case_id",
+        "fixture_group",
+        "document_kind",
+        "label",
+        "expected_claim_type",
+        "expected_evidence_type",
+        "expected_classification_floor",
+        "expected_terms",
+        "source_fixture",
+        "expected_source_span",
+        "observed_extraction",
+        "store_match",
+        "case_status",
+        "regression_hash",
+        "captured_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-golden-case.v1" },
+        "evidence_golden_case_id": { "type": "string" },
+        "fixture_group": { "enum": ["ldd", "meeting_minutes", "contract", "client_email"] },
+        "document_kind": { "type": "string" },
+        "label": { "type": "string" },
+        "expected_claim_type": { "type": "string" },
+        "expected_evidence_type": { "type": "string" },
+        "expected_classification_floor": { "type": "string" },
+        "expected_terms": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "source_fixture": { "type": "object" },
+        "expected_source_span": { "type": "object" },
+        "observed_extraction": { "$ref": "#/$defs/observed_extraction" },
+        "store_match": { "$ref": "#/$defs/store_match" },
+        "case_status": { "enum": ["locked", "mismatch"] },
+        "regression_hash": { "type": "string" },
+        "captured_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "observed_extraction": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "observed_text",
+        "observed_evidence_type",
+        "matched_terms",
+        "missing_terms",
+        "source_span_created",
+        "evidence_candidate_created",
+        "review_status",
+        "human_review_required",
+        "extraction_boundary",
+        "external_service_used"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-golden-observed-extraction.v1" },
+        "observed_text": { "type": "string" },
+        "observed_evidence_type": { "type": "string" },
+        "matched_terms": { "type": "array", "items": { "type": "string" } },
+        "missing_terms": { "type": "array", "items": { "type": "string" } },
+        "source_span_created": { "const": true },
+        "evidence_candidate_created": { "const": true },
+        "review_status": { "const": "needs_review" },
+        "human_review_required": { "const": true },
+        "extraction_boundary": { "const": "local_deterministic" },
+        "external_service_used": { "const": false }
+      }
+    },
+    "store_match": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_golden_case_id",
+        "match_status",
+        "evidence_id",
+        "source_span_id",
+        "match_score",
+        "expected_term_count",
+        "matched_terms",
+        "missing_terms",
+        "classification_floor_met",
+        "source_span_bound",
+        "regression_hash",
+        "matched_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-golden-store-match.v1" },
+        "evidence_golden_case_id": { "type": "string" },
+        "match_status": { "enum": ["matched", "missing"] },
+        "evidence_id": { "type": ["string", "null"] },
+        "source_span_id": { "type": ["string", "null"] },
+        "match_score": { "type": "integer", "minimum": 0 },
+        "expected_term_count": { "type": "integer", "minimum": 1 },
+        "matched_terms": { "type": "array", "items": { "type": "string" } },
+        "missing_terms": { "type": "array", "items": { "type": "string" } },
+        "classification_floor_met": { "type": "boolean" },
+        "source_span_bound": { "type": "boolean" },
+        "regression_hash": { "type": ["string", "null"] },
+        "matched_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "regression_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "evidence_regression_hash_count",
+        "locked_regression_hash_count",
+        "evidence_regression_hashes"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-regression-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "evidence_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "evidence_regression_hashes": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_golden_fixture_status",
+        "evidence_golden_case_count",
+        "locked_case_count",
+        "store_matched_case_count",
+        "external_service_used_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_golden_fixture_status": { "enum": ["complete", "blocked"] },
+        "evidence_golden_case_count": { "type": "integer", "minimum": 0 },
+        "locked_case_count": { "type": "integer", "minimum": 0 },
+        "store_matched_case_count": { "type": "integer", "minimum": 0 },
+        "external_service_used_count": { "const": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

@@ -4514,8 +4514,36 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - P2-P5 retrieval binding이 external allow 없이 approval 또는 deny control을 유지함
 - Review Dashboard summary와 stage status에서 compiled filter, query binding, enforcement, probe, executable count가 노출됨
 - Review API smoke가 retrieval filter compiler, compiled filter, query binding, probe, validation route를 모두 조회함
-- Golden fixture 수가 52개로 증가하고 retrieval filter compiler가 regression fixture에 포함됨
+- Golden fixture 수가 53개로 증가하고 retrieval filter compiler와 evidence golden fixtures가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:retrieval-filters -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
+## Phase 151: Evidence Extraction Golden Cases
+
+목표: LDD, 회의록, 계약서/SPA 협상 메시지, 고객 이메일 follow-up을 대표 evidence extraction golden case로 고정하고, 기대 evidence가 source span 및 Evidence Item Store 후보로 재현되는지 검증한다.
+
+구현 내용:
+
+- `src/evidence-golden-fixtures.mjs`, `scripts/evidence-golden-fixtures.mjs`, `schemas/evidence-golden-fixtures.schema.json`, `docs/evidence-golden-fixtures.md`를 추가함
+- `npm run evidence:golden-fixtures -- --check` 명령을 추가해 evidence golden case, store match, extraction matrix, regression manifest, validation report, summary markdown을 생성함
+- LDD VDR inventory, 이사회 의사록, SPA indemnity fallback 지시, disclosure schedule/tax memo 이메일을 대표 golden case로 고정함
+- 각 golden case가 expected term, expected source span locator, observed extraction, EvidenceItem Store match, classification floor, human review requirement, local deterministic boundary를 검증함
+- 모든 golden case에 regression hash를 부여하고 `locked` 상태가 아니면 validation error로 처리함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Evidence Golden Fixtures를 통합함
+- `/api/evidence-golden-fixtures`, `/api/evidence-golden-cases`, `/api/evidence-golden-store-matches`, `/api/evidence-regression-hashes`, `/api/evidence-golden-validations` route를 추가함
+
+완료 기준:
+
+- Evidence Golden Fixtures가 validation error 없이 `complete` 상태가 됨
+- LDD, meeting minutes, contract, client email fixture group이 모두 포함됨
+- 모든 golden case가 expected term을 빠짐없이 match하고 `locked` 상태가 됨
+- 모든 golden case가 현재 Evidence Item Store 후보와 SourceSpan에 match됨
+- 모든 golden extraction이 local deterministic 경계 안에서 실행되고 external service 사용 수가 0임
+- 모든 golden evidence가 human review required 및 `needs_review` 상태를 유지함
+- regression hash 수와 locked regression hash 수가 golden case 수와 일치함
+- Review Dashboard summary와 stage status에서 case, store match, locked hash, validation count가 노출됨
+- Review API smoke가 evidence golden fixture, case, store match, regression hash, validation route를 모두 조회함
+- Golden fixture 수가 53개로 증가하고 evidence golden fixtures가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run evidence:golden-fixtures -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
 ## Planned Final Completion Envelope: P089-P312
 
@@ -4525,9 +4553,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 150이다.
+- 현재 완료 기준점은 Phase 151이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P151-P312, 총 162개다.
+- 남은 계획 슬롯은 P152-P312, 총 161개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

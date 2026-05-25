@@ -32,6 +32,7 @@ import { runNormalizedTextContract } from "../src/normalized-text-contract.mjs";
 import { runExtractorAdapterContract } from "../src/extractor-adapter-contract.mjs";
 import { runSourceSpanStore } from "../src/source-span-store.mjs";
 import { runEvidenceItemStore } from "../src/evidence-item-store.mjs";
+import { runEvidenceGoldenFixtures } from "../src/evidence-golden-fixtures.mjs";
 import { runFactClaimStore } from "../src/fact-claim-store.mjs";
 import { runIssueGraphStore } from "../src/issue-graph-store.mjs";
 import { runCitationObjectStore } from "../src/citation-object-store.mjs";
@@ -1661,6 +1662,7 @@ describe("matter harness", () => {
         extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
         sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
         evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        evidenceGoldenFixturesPath: path.join(outDir, "evidence-golden-fixtures", "evidence-golden-fixtures.json"),
         factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
         issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
         citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
@@ -3980,6 +3982,55 @@ describe("matter harness", () => {
       assert.ok(evidenceItemStore.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "evidence-item-store", "summary.md"), "utf8"), /Evidence Item Store/);
 
+      const evidenceGoldenFixtureInputs = await writeEvidenceGoldenFixtureInputStores(
+        path.join(outDir, "evidence-golden-fixture-inputs"),
+        "2026-05-23T06:35:07.991Z",
+      );
+      const evidenceGoldenFixtures = await runEvidenceGoldenFixtures({
+        sourceSpanStorePath: evidenceGoldenFixtureInputs.sourceSpanStorePath,
+        evidenceItemStorePath: evidenceGoldenFixtureInputs.evidenceItemStorePath,
+        extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+        outDir: path.join(outDir, "evidence-golden-fixtures"),
+        runAt: "2026-05-23T06:35:07.992Z",
+      });
+      const evidenceGoldenFixturesSchema = JSON.parse(await readFile("schemas/evidence-golden-fixtures.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(evidenceGoldenFixtures, evidenceGoldenFixturesSchema, {}, "evidence_golden_fixtures"),
+        [],
+      );
+      assert.equal(evidenceGoldenFixtures.summary.evidence_golden_fixture_status, "complete");
+      assert.equal(evidenceGoldenFixtures.summary.evidence_golden_fixture_contract_id, "evidence-golden-fixtures.v1");
+      assert.equal(evidenceGoldenFixtures.summary.evidence_golden_case_count, 4);
+      assert.equal(evidenceGoldenFixtures.summary.locked_case_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceGoldenFixtures.summary.mismatch_case_count, 0);
+      assert.equal(evidenceGoldenFixtures.summary.store_match_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceGoldenFixtures.summary.store_matched_case_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceGoldenFixtures.summary.store_missing_case_count, 0);
+      assert.equal(evidenceGoldenFixtures.summary.human_review_required_case_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceGoldenFixtures.summary.local_deterministic_case_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceGoldenFixtures.summary.external_service_used_count, 0);
+      assert.equal(evidenceGoldenFixtures.summary.ldd_case_count, 1);
+      assert.equal(evidenceGoldenFixtures.summary.meeting_minutes_case_count, 1);
+      assert.equal(evidenceGoldenFixtures.summary.contract_case_count, 1);
+      assert.equal(evidenceGoldenFixtures.summary.client_email_case_count, 1);
+      assert.equal(evidenceGoldenFixtures.summary.locked_regression_hash_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(evidenceGoldenFixtures.evidence_golden_fixture_catalog.evidence_golden_cases.every((item) => (
+        item.case_status === "locked"
+        && item.observed_extraction.human_review_required === true
+        && item.observed_extraction.review_status === "needs_review"
+        && item.observed_extraction.extraction_boundary === "local_deterministic"
+        && item.observed_extraction.external_service_used === false
+        && item.regression_hash
+      )));
+      assert.ok(evidenceGoldenFixtures.evidence_golden_fixture_catalog.evidence_store_matches.every((item) => (
+        item.match_status === "matched"
+        && item.source_span_bound === true
+        && item.classification_floor_met === true
+        && item.review_status === "needs_review"
+      )));
+      assert.match(await readFile(path.join(outDir, "evidence-golden-fixtures", "summary.md"), "utf8"), /Evidence Golden Fixtures/);
+
       const factClaimStore = await runFactClaimStore({
         evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
         outDir: path.join(outDir, "fact-claim-store"),
@@ -4444,6 +4495,7 @@ describe("matter harness", () => {
           extractor_adapter_contract: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
           source_span_store: path.join(outDir, "source-span-store", "source-span-store.json"),
           evidence_item_store: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+          evidence_golden_fixtures: path.join(outDir, "evidence-golden-fixtures", "evidence-golden-fixtures.json"),
           fact_claim_store: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
           issue_graph_store: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
           citation_object_store: path.join(outDir, "citation-object-store", "citation-object-store.json"),
@@ -4480,8 +4532,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 52);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 52);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 53);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 53);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4513,6 +4565,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_item_store"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_golden_fixtures"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "fact_claim_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_graph_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_object_store"));
@@ -4581,6 +4634,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-golden"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:source-spans"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-items"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:golden-fixtures"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:fact-claims"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:issue-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:citations"));
@@ -4734,6 +4788,10 @@ describe("matter harness", () => {
       assert.equal(evidenceItemStoreCheckpoint?.acceptance_profile, "evidence_item_store_gate");
       assert.equal(evidenceItemStoreCheckpoint?.status, "passed");
       assert.equal(evidenceItemStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const evidenceGoldenFixturesCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-golden-fixtures");
+      assert.equal(evidenceGoldenFixturesCheckpoint?.acceptance_profile, "evidence_golden_fixtures_gate");
+      assert.equal(evidenceGoldenFixturesCheckpoint?.status, "passed");
+      assert.equal(evidenceGoldenFixturesCheckpoint?.implementation_status, "passed_with_operational_gate");
       const factClaimStoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-fact-claim-store");
       assert.equal(factClaimStoreCheckpoint?.acceptance_profile, "fact_claim_store_gate");
       assert.equal(factClaimStoreCheckpoint?.status, "passed");
@@ -5590,6 +5648,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_item_store_needs_review_count, evidenceItemStore.summary.needs_review_count);
       assert.equal(dashboard.summary.evidence_item_store_approved_count, 0);
       assert.equal(dashboard.summary.evidence_item_store_validation_error_count, 0);
+      assert.equal(dashboard.summary.evidence_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.evidence_golden_fixture_contract_id, "evidence-golden-fixtures.v1");
+      assert.equal(dashboard.summary.evidence_golden_case_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(dashboard.summary.evidence_golden_locked_case_count, evidenceGoldenFixtures.summary.locked_case_count);
+      assert.equal(dashboard.summary.evidence_golden_mismatch_case_count, 0);
+      assert.equal(dashboard.summary.evidence_golden_store_match_count, evidenceGoldenFixtures.summary.store_match_count);
+      assert.equal(dashboard.summary.evidence_golden_store_matched_case_count, evidenceGoldenFixtures.summary.store_matched_case_count);
+      assert.equal(dashboard.summary.evidence_golden_store_missing_case_count, 0);
+      assert.equal(dashboard.summary.evidence_golden_human_review_required_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(dashboard.summary.evidence_golden_local_deterministic_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(dashboard.summary.evidence_golden_external_service_used_count, 0);
+      assert.equal(dashboard.summary.evidence_golden_ldd_case_count, 1);
+      assert.equal(dashboard.summary.evidence_golden_meeting_minutes_case_count, 1);
+      assert.equal(dashboard.summary.evidence_golden_contract_case_count, 1);
+      assert.equal(dashboard.summary.evidence_golden_client_email_case_count, 1);
+      assert.equal(dashboard.summary.evidence_golden_regression_hash_count, evidenceGoldenFixtures.summary.regression_hash_count);
+      assert.equal(dashboard.summary.evidence_golden_locked_regression_hash_count, evidenceGoldenFixtures.summary.locked_regression_hash_count);
+      assert.equal(dashboard.summary.evidence_golden_validation_error_count, 0);
       assert.equal(dashboard.summary.fact_claim_store_status, "complete");
       assert.equal(dashboard.summary.fact_claim_store_contract_id, "fact-claim-store.v1");
       assert.equal(dashboard.summary.fact_claim_store_schema_version, "fact-claim.v2");
@@ -6368,6 +6444,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "extractor_adapter_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "source_span_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_item_store"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_golden_fixtures"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "fact_claim_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "issue_graph_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "citation_object_store"));
@@ -6503,6 +6580,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-queue"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-item-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-item-store-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-fixtures"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-cases"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-store-matches"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-hashes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claim-stores"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claims"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-evidence-bindings"));
@@ -8467,6 +8549,26 @@ describe("matter harness", () => {
       assert.equal(evidenceItemStoreValidations.collection, "evidence_item_store_validations");
       assert.equal(evidenceItemStoreValidations.count, evidenceItemStore.summary.validation_item_count);
 
+      const evidenceGoldenFixtureArtifacts = JSON.parse((await buildReviewApiResponse("/api/evidence-golden-fixtures?evidence_golden_fixture_status=complete", apiOptions)).body);
+      assert.equal(evidenceGoldenFixtureArtifacts.collection, "evidence_golden_fixtures");
+      assert.equal(evidenceGoldenFixtureArtifacts.count, 1);
+
+      const evidenceGoldenCases = JSON.parse((await buildReviewApiResponse("/api/evidence-golden-cases?case_status=locked", apiOptions)).body);
+      assert.equal(evidenceGoldenCases.collection, "evidence_golden_cases");
+      assert.equal(evidenceGoldenCases.count, evidenceGoldenFixtures.summary.locked_case_count);
+
+      const evidenceGoldenStoreMatches = JSON.parse((await buildReviewApiResponse("/api/evidence-golden-store-matches?match_status=matched", apiOptions)).body);
+      assert.equal(evidenceGoldenStoreMatches.collection, "evidence_golden_store_matches");
+      assert.equal(evidenceGoldenStoreMatches.count, evidenceGoldenFixtures.summary.store_matched_case_count);
+
+      const evidenceRegressionHashes = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-hashes?case_status=locked", apiOptions)).body);
+      assert.equal(evidenceRegressionHashes.collection, "evidence_regression_hashes");
+      assert.equal(evidenceRegressionHashes.count, evidenceGoldenFixtures.summary.locked_regression_hash_count);
+
+      const evidenceGoldenValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-golden-validations?status=passed", apiOptions)).body);
+      assert.equal(evidenceGoldenValidations.collection, "evidence_golden_validations");
+      assert.equal(evidenceGoldenValidations.count, evidenceGoldenFixtures.summary.validation_item_count);
+
       const factClaimStores = JSON.parse((await buildReviewApiResponse("/api/fact-claim-stores?fact_claim_store_status=complete", apiOptions)).body);
       assert.equal(factClaimStores.collection, "fact_claim_stores");
       assert.equal(factClaimStores.count, 1);
@@ -9898,4 +10000,98 @@ function runGit(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
   assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr || result.stdout}`);
   return result;
+}
+
+async function writeEvidenceGoldenFixtureInputStores(root, generatedAt) {
+  await mkdir(root, { recursive: true });
+  const fixtures = [
+    {
+      id: "ldd-vdr-inventory-capability",
+      text: "LDD VDR Inventory law_firm.ldd.vdr_inventory Build a due-diligence virtual data room inventory before issue extraction.",
+      classification: "P2_CLIENT_CONFIDENTIAL",
+    },
+    {
+      id: "board-minutes-debt-approval",
+      text: "2026. 5. 1. 이사회에서 신규 차입 승인 안건과 담보 제공 여부 및 기존 금융계약상 사전동의 필요성을 확인하였다.",
+      classification: "P1_INTERNAL",
+    },
+    {
+      id: "spa-indemnity-fallback-task",
+      text: "Partner Kim asked Senior Lee to revise SPA 8.2 indemnity fallback after checking the missing 세무팀 메모.",
+      classification: "P1_INTERNAL",
+    },
+    {
+      id: "client-email-disclosure-tax-followup",
+      text: "Client has not sent the updated disclosure schedule, and the team will request the tax memo from tax team.",
+      classification: "P1_INTERNAL",
+    },
+  ];
+  const sourceSpans = fixtures.map((fixture, index) => ({
+    schema_version: "source-span.v2",
+    source_span_id: `source-span.evidence-golden.${fixture.id}`,
+    resource_id: `resource.evidence-golden.${fixture.id}`,
+    resource_version_id: `resource-version.evidence-golden.${fixture.id}.v1`,
+    matter_id: "matter.alpha.ldd",
+    classification: fixture.classification,
+    policy_snapshot_id: "policy.default.law_firm.v1",
+    location_type: "whole_document",
+    locator: {
+      page: index + 1,
+      line_index: 1,
+      char_start: 0,
+      char_end: fixture.text.length,
+      offset_unit: "utf16_code_unit",
+    },
+    timestamp_status: "not_applicable",
+  }));
+  const evidenceItems = fixtures.map((fixture) => ({
+    schema_version: "evidence-item.v2",
+    evidence_id: `evidence.evidence-golden.${fixture.id}`,
+    resource_id: `resource.evidence-golden.${fixture.id}`,
+    resource_version_id: `resource-version.evidence-golden.${fixture.id}.v1`,
+    matter_id: "matter.alpha.ldd",
+    classification: fixture.classification,
+    policy_snapshot_id: "policy.default.law_firm.v1",
+    primary_source_span_id: `source-span.evidence-golden.${fixture.id}`,
+    source_span_ids: [`source-span.evidence-golden.${fixture.id}`],
+    source_span_count: 1,
+    evidence_type: "document_text",
+    review_status: "needs_review",
+    reliability: "machine_extracted",
+    summary: fixture.text,
+    metadata: {
+      content_preview: fixture.text,
+    },
+  }));
+  const sourceSpanStorePath = path.join(root, "source-span-store.json");
+  const evidenceItemStorePath = path.join(root, "evidence-item-store.json");
+  await writeFile(
+    sourceSpanStorePath,
+    `${JSON.stringify({
+      schema_version: "source-span-store.v1",
+      generated_at: generatedAt,
+      source_span_catalog: { source_spans: sourceSpans },
+      summary: {
+        source_span_store_status: "complete",
+        source_span_count: sourceSpans.length,
+        validation_error_count: 0,
+      },
+    }, null, 2)}\n`,
+    "utf8",
+  );
+  await writeFile(
+    evidenceItemStorePath,
+    `${JSON.stringify({
+      schema_version: "evidence-item-store.v1",
+      generated_at: generatedAt,
+      evidence_item_catalog: { evidence_items: evidenceItems },
+      summary: {
+        evidence_item_store_status: "complete",
+        evidence_item_count: evidenceItems.length,
+        validation_error_count: 0,
+      },
+    }, null, 2)}\n`,
+    "utf8",
+  );
+  return { sourceSpanStorePath, evidenceItemStorePath };
 }

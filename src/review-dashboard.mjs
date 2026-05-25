@@ -30,6 +30,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   extractorAdapterContractPath: "artifacts/extractor-adapter-contract/latest/extractor-adapter-contract.json",
   sourceSpanStorePath: "artifacts/source-span-store/latest/source-span-store.json",
   evidenceItemStorePath: "artifacts/evidence-item-store/latest/evidence-item-store.json",
+  evidenceGoldenFixturesPath: "artifacts/evidence-golden-fixtures/latest/evidence-golden-fixtures.json",
   factClaimStorePath: "artifacts/fact-claim-store/latest/fact-claim-store.json",
   issueGraphStorePath: "artifacts/issue-graph-store/latest/issue-graph-store.json",
   citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
@@ -279,6 +280,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceItemStorePath",
     source_id: "evidence_item_store",
     label: "Evidence Item Store",
+  },
+  {
+    option: "evidenceGoldenFixturesPath",
+    source_id: "evidence_golden_fixtures",
+    label: "Evidence Golden Fixtures",
   },
   {
     option: "factClaimStorePath",
@@ -998,6 +1004,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "extractor_adapter_contract") return data.summary ?? {};
   if (sourceId === "source_span_store") return data.summary ?? {};
   if (sourceId === "evidence_item_store") return data.summary ?? {};
+  if (sourceId === "evidence_golden_fixtures") return data.summary ?? {};
   if (sourceId === "fact_claim_store") return data.summary ?? {};
   if (sourceId === "issue_graph_store") return data.summary ?? {};
   if (sourceId === "citation_object_store") return data.summary ?? {};
@@ -1228,6 +1235,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExtractorAdapterContractStage(artifacts.extractor_adapter_contract, sourceById.get("extractor_adapter_contract")),
     buildSourceSpanStoreStage(artifacts.source_span_store, sourceById.get("source_span_store")),
     buildEvidenceItemStoreStage(artifacts.evidence_item_store, sourceById.get("evidence_item_store")),
+    buildEvidenceGoldenFixturesStage(artifacts.evidence_golden_fixtures, sourceById.get("evidence_golden_fixtures")),
     buildFactClaimStoreStage(artifacts.fact_claim_store, sourceById.get("fact_claim_store")),
     buildIssueGraphStoreStage(artifacts.issue_graph_store, sourceById.get("issue_graph_store")),
     buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
@@ -2482,6 +2490,51 @@ function buildEvidenceItemStoreStage(store, source) {
       approved_count: summary.approved_count ?? 0,
       privilege_flag_count: summary.privilege_flag_count ?? 0,
       redaction_raw_count: summary.redaction_raw_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceGoldenFixturesStage(fixtures, source) {
+  if (!fixtures) return missingStage("evidence_golden_fixtures", "Evidence Golden Fixtures", source);
+  const summary = fixtures.summary ?? {};
+  const errorCount = summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0;
+  const caseCount = summary.evidence_golden_case_count ?? 0;
+  const status = summary.evidence_golden_fixture_status === "complete"
+    && errorCount === 0
+    && caseCount > 0
+    && (summary.locked_case_count ?? 0) === caseCount
+    && (summary.store_matched_case_count ?? 0) === caseCount
+    && (summary.external_service_used_count ?? 1) === 0
+    && (summary.locked_regression_hash_count ?? 0) === caseCount
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_golden_fixtures",
+    label: "Evidence Golden Fixtures",
+    status,
+    message: `${caseCount} golden case(s), ${summary.store_matched_case_count ?? 0} store match(es), ${summary.locked_regression_hash_count ?? 0} locked regression hash(es).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_golden_fixture_status: summary.evidence_golden_fixture_status ?? "unknown",
+      evidence_golden_fixture_contract_id: summary.evidence_golden_fixture_contract_id ?? null,
+      evidence_golden_case_count: caseCount,
+      locked_case_count: summary.locked_case_count ?? 0,
+      mismatch_case_count: summary.mismatch_case_count ?? 0,
+      store_match_count: summary.store_match_count ?? 0,
+      store_matched_case_count: summary.store_matched_case_count ?? 0,
+      store_missing_case_count: summary.store_missing_case_count ?? 0,
+      human_review_required_case_count: summary.human_review_required_case_count ?? 0,
+      local_deterministic_case_count: summary.local_deterministic_case_count ?? 0,
+      external_service_used_count: summary.external_service_used_count ?? 0,
+      ldd_case_count: summary.ldd_case_count ?? 0,
+      meeting_minutes_case_count: summary.meeting_minutes_case_count ?? 0,
+      contract_case_count: summary.contract_case_count ?? 0,
+      client_email_case_count: summary.client_email_case_count ?? 0,
+      regression_hash_count: summary.regression_hash_count ?? 0,
+      locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9101,6 +9154,24 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_item_store_needs_review_count: artifacts.evidence_item_store?.summary?.needs_review_count ?? 0,
     evidence_item_store_approved_count: artifacts.evidence_item_store?.summary?.approved_count ?? 0,
     evidence_item_store_validation_error_count: artifacts.evidence_item_store?.summary?.validation_error_count ?? artifacts.evidence_item_store?.validation?.errors?.length ?? 0,
+    evidence_golden_fixture_status: artifacts.evidence_golden_fixtures?.summary?.evidence_golden_fixture_status ?? "unknown",
+    evidence_golden_fixture_contract_id: artifacts.evidence_golden_fixtures?.summary?.evidence_golden_fixture_contract_id ?? null,
+    evidence_golden_case_count: artifacts.evidence_golden_fixtures?.summary?.evidence_golden_case_count ?? 0,
+    evidence_golden_locked_case_count: artifacts.evidence_golden_fixtures?.summary?.locked_case_count ?? 0,
+    evidence_golden_mismatch_case_count: artifacts.evidence_golden_fixtures?.summary?.mismatch_case_count ?? 0,
+    evidence_golden_store_match_count: artifacts.evidence_golden_fixtures?.summary?.store_match_count ?? 0,
+    evidence_golden_store_matched_case_count: artifacts.evidence_golden_fixtures?.summary?.store_matched_case_count ?? 0,
+    evidence_golden_store_missing_case_count: artifacts.evidence_golden_fixtures?.summary?.store_missing_case_count ?? 0,
+    evidence_golden_human_review_required_count: artifacts.evidence_golden_fixtures?.summary?.human_review_required_case_count ?? 0,
+    evidence_golden_local_deterministic_count: artifacts.evidence_golden_fixtures?.summary?.local_deterministic_case_count ?? 0,
+    evidence_golden_external_service_used_count: artifacts.evidence_golden_fixtures?.summary?.external_service_used_count ?? 0,
+    evidence_golden_ldd_case_count: artifacts.evidence_golden_fixtures?.summary?.ldd_case_count ?? 0,
+    evidence_golden_meeting_minutes_case_count: artifacts.evidence_golden_fixtures?.summary?.meeting_minutes_case_count ?? 0,
+    evidence_golden_contract_case_count: artifacts.evidence_golden_fixtures?.summary?.contract_case_count ?? 0,
+    evidence_golden_client_email_case_count: artifacts.evidence_golden_fixtures?.summary?.client_email_case_count ?? 0,
+    evidence_golden_regression_hash_count: artifacts.evidence_golden_fixtures?.summary?.regression_hash_count ?? 0,
+    evidence_golden_locked_regression_hash_count: artifacts.evidence_golden_fixtures?.summary?.locked_regression_hash_count ?? 0,
+    evidence_golden_validation_error_count: artifacts.evidence_golden_fixtures?.summary?.validation_error_count ?? artifacts.evidence_golden_fixtures?.validation?.errors?.length ?? 0,
     fact_claim_store_status: artifacts.fact_claim_store?.summary?.fact_claim_store_status ?? "unknown",
     fact_claim_store_contract_id: artifacts.fact_claim_store?.summary?.fact_claim_store_contract_id ?? null,
     fact_claim_store_schema_version: artifacts.fact_claim_store?.summary?.fact_claim_schema_version ?? null,
@@ -10761,6 +10832,8 @@ function parseArgs(argv) {
     else if (arg === "--no-source-span-store") parsed.sourceSpanStorePath = false;
     else if (arg === "--evidence-item-store") parsed.evidenceItemStorePath = argv[++index];
     else if (arg === "--no-evidence-item-store") parsed.evidenceItemStorePath = false;
+    else if (arg === "--evidence-golden-fixtures") parsed.evidenceGoldenFixturesPath = argv[++index];
+    else if (arg === "--no-evidence-golden-fixtures") parsed.evidenceGoldenFixturesPath = false;
     else if (arg === "--fact-claim-store") parsed.factClaimStorePath = argv[++index];
     else if (arg === "--no-fact-claim-store") parsed.factClaimStorePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
@@ -11063,6 +11136,9 @@ Options:
   --no-source-span-store          Do not include Source Span Store status.
   --evidence-item-store <path>    evidence-item-store.json path.
   --no-evidence-item-store        Do not include Evidence Item Store status.
+  --evidence-golden-fixtures <path>
+                                  evidence-golden-fixtures.json path.
+  --no-evidence-golden-fixtures   Do not include Evidence Golden Fixtures status.
   --fact-claim-store <path>       fact-claim-store.json path.
   --no-fact-claim-store           Do not include Fact Claim Store status.
   --issue-graph-store <path>      issue-graph-store.json path.

@@ -121,6 +121,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-fixture-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-regression-hashes"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-fixture-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-suites"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-fixture-results"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-commands"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1311,6 +1315,22 @@ try {
   const contractGoldenFixtureValidations = await fetchJson(`${url}/api/contract-golden-fixture-validations?status=passed&limit=5`);
   assert.equal(contractGoldenFixtureValidations.collection, "contract_golden_fixture_validations");
   assert.ok(contractGoldenFixtureValidations.count <= 5);
+
+  const contractValidationSuites = await fetchJson(`${url}/api/contract-validation-suites?validation_suite_status=complete&limit=1`);
+  assert.equal(contractValidationSuites.collection, "contract_validation_suites");
+  assert.ok(contractValidationSuites.count <= 1);
+
+  const contractValidationFixtureResults = await fetchJson(`${url}/api/contract-validation-fixture-results?regression_status=passed&limit=5`);
+  assert.equal(contractValidationFixtureResults.collection, "contract_validation_fixture_results");
+  assert.ok(contractValidationFixtureResults.count <= 5);
+
+  const contractValidationCommands = await fetchJson(`${url}/api/contract-validation-commands?script_status=present&limit=5`);
+  assert.equal(contractValidationCommands.collection, "contract_validation_commands");
+  assert.ok(contractValidationCommands.count <= 5);
+
+  const contractValidationItems = await fetchJson(`${url}/api/contract-validation-items?status=passed&limit=5`);
+  assert.equal(contractValidationItems.collection, "contract_validation_items");
+  assert.ok(contractValidationItems.count <= 5);
 
   const resourceContractFreezes = await fetchJson(`${url}/api/resource-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

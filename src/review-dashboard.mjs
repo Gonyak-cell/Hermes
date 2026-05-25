@@ -48,6 +48,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   schemaVersioningRulesPath: "artifacts/schema-versioning-rules/latest/schema-versioning-rules.json",
   schemaMigrationManifestPath: "artifacts/schema-migration-manifest/latest/schema-migration-manifest-ledger.json",
   contractGoldenFixturesPath: "artifacts/contract-golden-fixtures/latest/contract-golden-fixtures.json",
+  contractValidationSuitePath: "artifacts/contract-validation-suite/latest/contract-validation-suite.json",
   controlPlaneAuditTrailPath: "artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
@@ -330,6 +331,11 @@ const SOURCE_DEFINITIONS = [
     option: "contractGoldenFixturesPath",
     source_id: "contract_golden_fixtures",
     label: "Contract Golden Fixtures",
+  },
+  {
+    option: "contractValidationSuitePath",
+    source_id: "contract_validation_suite",
+    label: "Contract Validation Suite",
   },
   {
     option: "controlPlaneAuditTrailPath",
@@ -840,6 +846,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "schema_versioning_rules") return data.summary ?? {};
   if (sourceId === "schema_migration_manifest") return data.summary ?? {};
   if (sourceId === "contract_golden_fixtures") return data.summary ?? {};
+  if (sourceId === "contract_validation_suite") return data.summary ?? {};
   if (sourceId === "control_plane_audit_trail") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
@@ -973,6 +980,7 @@ function buildStageStatuses(artifacts, sources) {
     buildSchemaVersioningRulesStage(artifacts.schema_versioning_rules, sourceById.get("schema_versioning_rules")),
     buildSchemaMigrationManifestStage(artifacts.schema_migration_manifest, sourceById.get("schema_migration_manifest")),
     buildContractGoldenFixturesStage(artifacts.contract_golden_fixtures, sourceById.get("contract_golden_fixtures")),
+    buildContractValidationSuiteStage(artifacts.contract_validation_suite, sourceById.get("contract_validation_suite")),
     buildControlPlaneAuditTrailStage(artifacts.control_plane_audit_trail, sourceById.get("control_plane_audit_trail")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
@@ -2443,6 +2451,42 @@ function buildContractGoldenFixturesStage(fixtures, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildContractValidationSuiteStage(suite, source) {
+  if (!suite) return missingStage("contract_validation_suite", "Contract Validation Suite", source);
+  const summary = suite.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || summary.regression_failed_count > 0 || summary.missing_package_script_count > 0 || summary.roadmap_missing_count > 0 || suite.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "contract_validation_suite",
+    label: "Contract Validation Suite",
+    status,
+    message: `${summary.regression_passed_count ?? 0}/${summary.fixture_count ?? 0} fixture regression(s) passed, ${summary.missing_package_script_count ?? 0} missing script(s), ${summary.validation_error_count ?? 0} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      validation_suite_status: summary.validation_suite_status ?? "unknown",
+      fixture_count: summary.fixture_count ?? 0,
+      validated_fixture_count: summary.validated_fixture_count ?? 0,
+      schema_valid_fixture_count: summary.schema_valid_fixture_count ?? 0,
+      schema_invalid_fixture_count: summary.schema_invalid_fixture_count ?? 0,
+      regression_passed_count: summary.regression_passed_count ?? 0,
+      regression_failed_count: summary.regression_failed_count ?? 0,
+      content_hash_match_count: summary.content_hash_match_count ?? 0,
+      content_hash_mismatch_count: summary.content_hash_mismatch_count ?? 0,
+      schema_hash_match_count: summary.schema_hash_match_count ?? 0,
+      schema_hash_mismatch_count: summary.schema_hash_mismatch_count ?? 0,
+      required_package_script_count: summary.required_package_script_count ?? 0,
+      present_package_script_count: summary.present_package_script_count ?? 0,
+      missing_package_script_count: summary.missing_package_script_count ?? 0,
+      roadmap_declared_count: summary.roadmap_declared_count ?? 0,
+      roadmap_missing_count: summary.roadmap_missing_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? suite.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -6137,6 +6181,24 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     contract_golden_schema_version_present_count: artifacts.contract_golden_fixtures?.summary?.schema_version_present_count ?? 0,
     contract_golden_failed_validation_item_count: artifacts.contract_golden_fixtures?.summary?.failed_validation_item_count ?? 0,
     contract_golden_validation_error_count: artifacts.contract_golden_fixtures?.summary?.validation_error_count ?? artifacts.contract_golden_fixtures?.validation?.errors?.length ?? 0,
+    contract_validation_suite_status: artifacts.contract_validation_suite?.summary?.validation_suite_status ?? "unknown",
+    contract_validation_fixture_count: artifacts.contract_validation_suite?.summary?.fixture_count ?? 0,
+    contract_validation_validated_fixture_count: artifacts.contract_validation_suite?.summary?.validated_fixture_count ?? 0,
+    contract_validation_schema_valid_fixture_count: artifacts.contract_validation_suite?.summary?.schema_valid_fixture_count ?? 0,
+    contract_validation_schema_invalid_fixture_count: artifacts.contract_validation_suite?.summary?.schema_invalid_fixture_count ?? 0,
+    contract_validation_regression_passed_count: artifacts.contract_validation_suite?.summary?.regression_passed_count ?? 0,
+    contract_validation_regression_failed_count: artifacts.contract_validation_suite?.summary?.regression_failed_count ?? 0,
+    contract_validation_content_hash_match_count: artifacts.contract_validation_suite?.summary?.content_hash_match_count ?? 0,
+    contract_validation_content_hash_mismatch_count: artifacts.contract_validation_suite?.summary?.content_hash_mismatch_count ?? 0,
+    contract_validation_schema_hash_match_count: artifacts.contract_validation_suite?.summary?.schema_hash_match_count ?? 0,
+    contract_validation_schema_hash_mismatch_count: artifacts.contract_validation_suite?.summary?.schema_hash_mismatch_count ?? 0,
+    contract_validation_required_package_script_count: artifacts.contract_validation_suite?.summary?.required_package_script_count ?? 0,
+    contract_validation_present_package_script_count: artifacts.contract_validation_suite?.summary?.present_package_script_count ?? 0,
+    contract_validation_missing_package_script_count: artifacts.contract_validation_suite?.summary?.missing_package_script_count ?? 0,
+    contract_validation_roadmap_declared_count: artifacts.contract_validation_suite?.summary?.roadmap_declared_count ?? 0,
+    contract_validation_roadmap_missing_count: artifacts.contract_validation_suite?.summary?.roadmap_missing_count ?? 0,
+    contract_validation_failed_validation_item_count: artifacts.contract_validation_suite?.summary?.failed_validation_item_count ?? 0,
+    contract_validation_validation_error_count: artifacts.contract_validation_suite?.summary?.validation_error_count ?? artifacts.contract_validation_suite?.validation?.errors?.length ?? 0,
     health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
     health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
     health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
@@ -7089,6 +7151,8 @@ function parseArgs(argv) {
     else if (arg === "--no-schema-migration-manifest") parsed.schemaMigrationManifestPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
+    else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
+    else if (arg === "--no-contract-validation-suite") parsed.contractValidationSuitePath = false;
     else if (arg === "--control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = argv[++index];
     else if (arg === "--no-control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
@@ -7296,6 +7360,10 @@ Options:
   --contract-golden-fixtures <path>
                                   contract-golden-fixtures.json path.
   --no-contract-golden-fixtures Do not include Contract Golden Fixtures status.
+  --contract-validation-suite <path>
+                                  contract-validation-suite.json path.
+  --no-contract-validation-suite
+                                  Do not include Contract Validation Suite status.
   --control-plane-audit-trail <path>
                                   control-plane-audit-trail.json path.
   --no-control-plane-audit-trail  Do not include Control Plane Audit Trail status.

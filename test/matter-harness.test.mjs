@@ -8,6 +8,7 @@ import { runControlPlaneAuditTrail } from "../src/control-plane-audit-trail.mjs"
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runContractDependencyMap } from "../src/contract-dependency-map.mjs";
 import { runContractGoldenFixtures } from "../src/contract-golden-fixtures.mjs";
+import { runContractValidationSuite } from "../src/contract-validation-suite.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
@@ -1197,6 +1198,7 @@ describe("matter harness", () => {
         schemaVersioningRulesPath: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
         schemaMigrationManifestPath: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
         contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        contractValidationSuitePath: path.join(outDir, "contract-validation-suite", "contract-validation-suite.json"),
         controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -3000,6 +3002,37 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-golden-fixtures", "summary.md"), "utf8"), /Contract Golden Fixtures/);
 
+      const contractValidationSuite = await runContractValidationSuite({
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        outDir: path.join(outDir, "contract-validation-suite"),
+        runAt: "2026-05-23T06:35:08.000Z",
+      });
+      const contractValidationSuiteSchema = JSON.parse(await readFile("schemas/contract-validation-suite.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(contractValidationSuite, contractValidationSuiteSchema, {}, "contract_validation_suite"),
+        [],
+      );
+      assert.equal(contractValidationSuite.summary.validation_suite_status, "complete");
+      assert.equal(contractValidationSuite.summary.fixture_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractValidationSuite.summary.validated_fixture_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractValidationSuite.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractValidationSuite.summary.schema_invalid_fixture_count, 0);
+      assert.equal(contractValidationSuite.summary.regression_passed_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractValidationSuite.summary.regression_failed_count, 0);
+      assert.equal(contractValidationSuite.summary.content_hash_match_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractValidationSuite.summary.content_hash_mismatch_count, 0);
+      assert.equal(contractValidationSuite.summary.schema_hash_match_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractValidationSuite.summary.schema_hash_mismatch_count, 0);
+      assert.equal(contractValidationSuite.summary.missing_package_script_count, 0);
+      assert.equal(contractValidationSuite.summary.roadmap_missing_count, 0);
+      assert.equal(contractValidationSuite.summary.validation_error_count, 0);
+      assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
+      assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -3054,6 +3087,10 @@ describe("matter harness", () => {
       assert.equal(contractGoldenFixturesCheckpoint?.acceptance_profile, "contract_golden_fixtures_gate");
       assert.equal(contractGoldenFixturesCheckpoint?.status, "passed");
       assert.equal(contractGoldenFixturesCheckpoint?.implementation_status, "passed");
+      const contractValidationSuiteCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-contract-validation-suite");
+      assert.equal(contractValidationSuiteCheckpoint?.acceptance_profile, "contract_validation_suite_gate");
+      assert.equal(contractValidationSuiteCheckpoint?.status, "passed");
+      assert.equal(contractValidationSuiteCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3385,6 +3422,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.contract_golden_schema_version_present_count, contractGoldenFixtures.summary.schema_version_present_count);
       assert.equal(dashboard.summary.contract_golden_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.contract_golden_validation_error_count, 0);
+      assert.equal(dashboard.summary.contract_validation_suite_status, "complete");
+      assert.equal(dashboard.summary.contract_validation_fixture_count, contractValidationSuite.summary.fixture_count);
+      assert.equal(dashboard.summary.contract_validation_validated_fixture_count, contractValidationSuite.summary.validated_fixture_count);
+      assert.equal(dashboard.summary.contract_validation_schema_valid_fixture_count, contractValidationSuite.summary.schema_valid_fixture_count);
+      assert.equal(dashboard.summary.contract_validation_schema_invalid_fixture_count, 0);
+      assert.equal(dashboard.summary.contract_validation_regression_passed_count, contractValidationSuite.summary.regression_passed_count);
+      assert.equal(dashboard.summary.contract_validation_regression_failed_count, 0);
+      assert.equal(dashboard.summary.contract_validation_content_hash_match_count, contractValidationSuite.summary.content_hash_match_count);
+      assert.equal(dashboard.summary.contract_validation_content_hash_mismatch_count, 0);
+      assert.equal(dashboard.summary.contract_validation_schema_hash_match_count, contractValidationSuite.summary.schema_hash_match_count);
+      assert.equal(dashboard.summary.contract_validation_schema_hash_mismatch_count, 0);
+      assert.equal(dashboard.summary.contract_validation_required_package_script_count, contractValidationSuite.summary.required_package_script_count);
+      assert.equal(dashboard.summary.contract_validation_present_package_script_count, contractValidationSuite.summary.present_package_script_count);
+      assert.equal(dashboard.summary.contract_validation_missing_package_script_count, 0);
+      assert.equal(dashboard.summary.contract_validation_roadmap_declared_count, contractValidationSuite.summary.roadmap_declared_count);
+      assert.equal(dashboard.summary.contract_validation_roadmap_missing_count, 0);
+      assert.equal(dashboard.summary.contract_validation_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.contract_validation_validation_error_count, 0);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_count, resourceContractFreeze.summary.resource_count);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_version_count, resourceContractFreeze.summary.resource_version_count);
       assert.equal(dashboard.summary.resource_contract_freeze_content_hash_count, resourceContractFreeze.summary.content_hash_count);
@@ -5514,6 +5569,22 @@ describe("matter harness", () => {
       const contractGoldenFixtureValidations = JSON.parse((await buildReviewApiResponse("/api/contract-golden-fixture-validations?status=passed", apiOptions)).body);
       assert.equal(contractGoldenFixtureValidations.collection, "contract_golden_fixture_validations");
       assert.equal(contractGoldenFixtureValidations.count, contractGoldenFixtures.summary.validation_item_count);
+
+      const contractValidationSuites = JSON.parse((await buildReviewApiResponse("/api/contract-validation-suites?validation_suite_status=complete", apiOptions)).body);
+      assert.equal(contractValidationSuites.collection, "contract_validation_suites");
+      assert.equal(contractValidationSuites.count, 1);
+
+      const contractValidationFixtureResults = JSON.parse((await buildReviewApiResponse("/api/contract-validation-fixture-results?regression_status=passed", apiOptions)).body);
+      assert.equal(contractValidationFixtureResults.collection, "contract_validation_fixture_results");
+      assert.equal(contractValidationFixtureResults.count, contractValidationSuite.summary.regression_passed_count);
+
+      const contractValidationCommands = JSON.parse((await buildReviewApiResponse("/api/contract-validation-commands?script_status=present", apiOptions)).body);
+      assert.equal(contractValidationCommands.collection, "contract_validation_commands");
+      assert.equal(contractValidationCommands.count, contractValidationSuite.summary.present_package_script_count);
+
+      const contractValidationItems = JSON.parse((await buildReviewApiResponse("/api/contract-validation-items?status=passed", apiOptions)).body);
+      assert.equal(contractValidationItems.collection, "contract_validation_items");
+      assert.equal(contractValidationItems.count, contractValidationSuite.summary.validation_item_count);
 
       const resourceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/resource-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

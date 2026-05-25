@@ -1,0 +1,239 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/contract-validation-suite.schema.json",
+  "title": "Hermes Contract Validation Suite",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "validation_suite_id",
+    "output_dir",
+    "inputs",
+    "source_golden_fixtures",
+    "validation_command_manifest",
+    "fixture_validation_results",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "contract-validation-suite.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "validation_suite_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["contract_golden_fixtures_path", "package_path", "roadmap_path"],
+      "properties": {
+        "contract_golden_fixtures_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_golden_fixtures": {
+      "type": "object",
+      "required": ["golden_fixture_status", "fixture_count", "content_hash"],
+      "properties": {
+        "golden_fixture_set_id": { "type": ["string", "null"] },
+        "golden_fixture_status": { "type": "string" },
+        "fixture_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": "string" }
+      }
+    },
+    "validation_command_manifest": { "$ref": "#/$defs/validation_command_manifest" },
+    "fixture_validation_results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/fixture_validation_result" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "validation_suite_status",
+        "fixture_count",
+        "validated_fixture_count",
+        "schema_valid_fixture_count",
+        "schema_invalid_fixture_count",
+        "regression_passed_count",
+        "regression_failed_count",
+        "content_hash_match_count",
+        "content_hash_mismatch_count",
+        "schema_hash_match_count",
+        "schema_hash_mismatch_count",
+        "required_package_script_count",
+        "present_package_script_count",
+        "missing_package_script_count",
+        "roadmap_declared_count",
+        "roadmap_missing_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "validation_suite_status": { "enum": ["complete", "blocked"] },
+        "fixture_count": { "type": "integer", "minimum": 0 },
+        "validated_fixture_count": { "type": "integer", "minimum": 0 },
+        "schema_valid_fixture_count": { "type": "integer", "minimum": 0 },
+        "schema_invalid_fixture_count": { "type": "integer", "minimum": 0 },
+        "regression_passed_count": { "type": "integer", "minimum": 0 },
+        "regression_failed_count": { "type": "integer", "minimum": 0 },
+        "content_hash_match_count": { "type": "integer", "minimum": 0 },
+        "content_hash_mismatch_count": { "type": "integer", "minimum": 0 },
+        "schema_hash_match_count": { "type": "integer", "minimum": 0 },
+        "schema_hash_mismatch_count": { "type": "integer", "minimum": 0 },
+        "required_package_script_count": { "type": "integer", "minimum": 0 },
+        "present_package_script_count": { "type": "integer", "minimum": 0 },
+        "missing_package_script_count": { "type": "integer", "minimum": 0 },
+        "roadmap_declared_count": { "type": "integer", "minimum": 0 },
+        "roadmap_missing_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_fixture_scope": { "type": "object" },
+        "by_schema_validation_status": { "type": "object" },
+        "by_regression_status": { "type": "object" },
+        "by_content_hash_status": { "type": "object" },
+        "by_schema_hash_status": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "validation_command_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "validation_command",
+        "required_package_script_count",
+        "present_package_script_count",
+        "missing_package_script_count",
+        "required_package_scripts",
+        "roadmap_checks"
+      ],
+      "properties": {
+        "schema_version": { "const": "contract-validation-command-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "validation_command": { "type": "string" },
+        "required_package_script_count": { "type": "integer", "minimum": 0 },
+        "present_package_script_count": { "type": "integer", "minimum": 0 },
+        "missing_package_script_count": { "type": "integer", "minimum": 0 },
+        "required_package_scripts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["package_script_name", "command", "script_status"],
+            "properties": {
+              "package_script_name": { "type": "string" },
+              "command": { "type": ["string", "null"] },
+              "script_status": { "enum": ["present", "missing"] }
+            }
+          }
+        },
+        "roadmap_checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["roadmap_check_id", "roadmap_phase", "roadmap_status"],
+            "properties": {
+              "roadmap_check_id": { "type": "string" },
+              "roadmap_phase": { "type": "string" },
+              "roadmap_status": { "enum": ["declared", "missing"] }
+            }
+          }
+        }
+      }
+    },
+    "fixture_validation_result": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "validation_result_id",
+        "golden_fixture_id",
+        "fixture_id",
+        "artifact_id",
+        "fixture_scope",
+        "owner_area",
+        "artifact_path",
+        "schema_path",
+        "artifact_schema_version",
+        "expected_content_hash",
+        "actual_content_hash",
+        "content_hash_status",
+        "expected_schema_hash",
+        "actual_schema_hash",
+        "schema_hash_status",
+        "schema_validation_status",
+        "regression_status",
+        "validation_error_count",
+        "validation_errors"
+      ],
+      "properties": {
+        "schema_version": { "const": "contract-validation-fixture-result.v1" },
+        "validation_result_id": { "type": "string" },
+        "golden_fixture_id": { "type": "string" },
+        "fixture_id": { "type": "string" },
+        "artifact_id": { "type": "string" },
+        "fixture_scope": { "type": "string" },
+        "owner_area": { "type": "string" },
+        "artifact_path": { "type": "string" },
+        "schema_path": { "type": "string" },
+        "artifact_schema_version": { "type": ["string", "null"] },
+        "expected_content_hash": { "type": ["string", "null"] },
+        "actual_content_hash": { "type": ["string", "null"] },
+        "content_hash_status": { "enum": ["matched", "mismatched"] },
+        "expected_schema_hash": { "type": ["string", "null"] },
+        "actual_schema_hash": { "type": ["string", "null"] },
+        "schema_hash_status": { "enum": ["matched", "mismatched"] },
+        "schema_validation_status": { "enum": ["passed", "failed"] },
+        "regression_status": { "enum": ["passed", "failed"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "validation_errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

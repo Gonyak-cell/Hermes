@@ -21,6 +21,7 @@
     "contracts:versioning": "node scripts/schema-versioning-rules.mjs",
     "contracts:migrations": "node scripts/schema-migration-manifest.mjs",
     "contracts:golden-fixtures": "node scripts/contract-golden-fixtures.mjs",
+    "contracts:validate": "node scripts/contract-validation-suite.mjs",
     "contracts:resources": "node scripts/resource-contract-freeze.mjs",
     "contracts:matters": "node scripts/matter-contract-freeze.mjs",
     "contracts:policies": "node scripts/policy-contract-freeze.mjs",

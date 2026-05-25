@@ -1642,6 +1642,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/contract-validation-suites") {
+    const suiteResult = await readDashboardSourceArtifact(dashboard, "contract_validation_suite");
+    if (!suiteResult.available) {
+      return jsonResponse(503, buildError("contract_validation_suite_unavailable", suiteResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_validation_suites", [suiteResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-validation-fixture-results") {
+    const suiteResult = await readDashboardSourceArtifact(dashboard, "contract_validation_suite");
+    if (!suiteResult.available) {
+      return jsonResponse(503, buildError("contract_validation_suite_unavailable", suiteResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_validation_fixture_results", suiteResult.artifact.fixture_validation_results ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-validation-commands") {
+    const suiteResult = await readDashboardSourceArtifact(dashboard, "contract_validation_suite");
+    if (!suiteResult.available) {
+      return jsonResponse(503, buildError("contract_validation_suite_unavailable", suiteResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_validation_commands", suiteResult.artifact.validation_command_manifest?.required_package_scripts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-validation-items") {
+    const suiteResult = await readDashboardSourceArtifact(dashboard, "contract_validation_suite");
+    if (!suiteResult.available) {
+      return jsonResponse(503, buildError("contract_validation_suite_unavailable", suiteResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_validation_items", suiteResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -3605,6 +3649,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/contract-golden-fixture-records", "Contract golden fixture records"),
       route("GET", "/api/contract-golden-regression-hashes", "Contract golden fixture regression hash rows"),
       route("GET", "/api/contract-golden-fixture-validations", "Contract golden fixture validation rows"),
+      route("GET", "/api/contract-validation-suites", "Contract validation suite artifacts"),
+      route("GET", "/api/contract-validation-fixture-results", "Contract validation fixture result rows"),
+      route("GET", "/api/contract-validation-commands", "Required contract validation package scripts"),
+      route("GET", "/api/contract-validation-items", "Contract validation suite validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -3869,6 +3917,15 @@ function filterItems(items, searchParams) {
     "schema_validation_status",
     "regression_hash_id",
     "regression_status",
+    "validation_suite_id",
+    "validation_suite_status",
+    "validation_result_id",
+    "content_hash_status",
+    "schema_hash_status",
+    "package_script_name",
+    "script_status",
+    "roadmap_phase",
+    "roadmap_status",
     "parse_status",
     "route_id",
     "artifact_id",
@@ -4287,6 +4344,7 @@ function readFilterValue(item, key) {
   if (key === "guideline_status") return item.summary?.guideline_status ?? item.guideline_status;
   if (key === "migration_manifest_status") return item.summary?.migration_manifest_status ?? item.migration_manifest_status;
   if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
+  if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;

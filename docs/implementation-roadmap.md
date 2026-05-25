@@ -3420,6 +3420,32 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Contract Golden Fixtures를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:golden-fixtures`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 112 - Contract Validation CLI
+
+목표: 전체 contract fixture를 한 명령으로 검증하는 `contracts:validate` CLI를 통합해 Core Contracts, Schema, Migration Spine 구간을 닫는다.
+
+구현 산출물:
+
+- `src/contract-validation-suite.mjs`
+- `scripts/contract-validation-suite.mjs`
+- `schemas/contract-validation-suite.schema.json`
+- `docs/contract-validation-suite.md`
+- `artifacts/contract-validation-suite/latest/contract-validation-suite.json`
+- `artifacts/contract-validation-suite/latest/fixture-validation-results.json`
+- `artifacts/contract-validation-suite/latest/validation-command-manifest.json`
+- `artifacts/contract-validation-suite/latest/validation-report.json`
+- `artifacts/contract-validation-suite/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:validate -- --check`가 Phase 111 golden fixture set을 읽어 모든 fixture를 schema validation, content hash, schema hash, regression status로 검증한다.
+- required contract package scripts가 command manifest에 기록되고 누락 시 validation fail이 된다.
+- Phase 112 roadmap 선언과 `npm run contracts:validate` 문구가 validation item으로 검증된다.
+- Dashboard stage와 summary가 `contract_validation_suite` 지표를 추적함
+- Review API에서 `/api/contract-validation-suites`, `/api/contract-validation-fixture-results`, `/api/contract-validation-commands`, `/api/contract-validation-items` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Contract Validation Suite를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3428,9 +3454,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 111이다.
+- 현재 완료 기준점은 Phase 112이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P112-P312, 총 201개다.
+- 남은 계획 슬롯은 P113-P312, 총 200개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

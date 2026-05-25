@@ -419,6 +419,72 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/wall-policy-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "wall_policy_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("wall_policy_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("wall_policy_contracts", [contractResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/wall-policy-rules") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "wall_policy_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("wall_policy_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("wall_policy_rules", contractResult.artifact.wall_policy_contract?.wall_policy_rules ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/retrieval-wall-filters") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "wall_policy_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("wall_policy_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("retrieval_wall_filters", contractResult.artifact.wall_policy_contract?.retrieval_wall_filters ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/wall-subject-bindings") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "wall_policy_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("wall_policy_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("wall_subject_bindings", contractResult.artifact.wall_policy_contract?.wall_subject_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/conflict-wall-bindings") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "wall_policy_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("wall_policy_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("conflict_wall_bindings", contractResult.artifact.wall_policy_contract?.conflict_wall_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/wall-policy-validations") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "wall_policy_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("wall_policy_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("wall_policy_validations", contractResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -3720,6 +3786,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/matter-team-memberships", "Matter team membership rows"),
       route("GET", "/api/matter-access-subjects", "Matter access subject rows"),
       route("GET", "/api/matter-profile-team-validations", "Matter profile/team ledger validation rows"),
+      route("GET", "/api/wall-policy-contracts", "Wall policy contract artifacts"),
+      route("GET", "/api/wall-policy-rules", "Ethical wall policy rule rows"),
+      route("GET", "/api/retrieval-wall-filters", "Pre-retrieval wall filter rows"),
+      route("GET", "/api/wall-subject-bindings", "Wall subject binding rows"),
+      route("GET", "/api/conflict-wall-bindings", "Conflict wall binding rows"),
+      route("GET", "/api/wall-policy-validations", "Wall policy contract validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4092,6 +4164,23 @@ function filterItems(items, searchParams) {
     "access_decision",
     "access_basis",
     "subject_type",
+    "wall_policy_ledger_id",
+    "wall_policy_status",
+    "wall_policy_rule_id",
+    "wall_id",
+    "wall_type",
+    "rule_status",
+    "enforcement_stage",
+    "decision_mode",
+    "retrieval_wall_filter_id",
+    "filter_status",
+    "resource_query_policy",
+    "wall_subject_binding_id",
+    "pre_retrieval_effect",
+    "can_retrieve",
+    "conflict_wall_binding_id",
+    "binding_status",
+    "applies_to_stage",
     "freeze_id",
     "freeze_status",
     "identity_model_id",
@@ -4592,6 +4681,7 @@ function readFilterValue(item, key) {
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
+  if (key === "wall_policy_status") return item.summary?.wall_policy_status ?? item.wall_policy_status;
   if (key === "alias_key") return item.alias_keys ?? item.alias_key;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "identity_model_status") return item.summary?.identity_model_status ?? item.identity_model_status;

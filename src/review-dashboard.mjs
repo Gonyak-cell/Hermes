@@ -10,6 +10,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
   clientCounterpartyRegistryPath: "artifacts/client-counterparty-registry/latest/client-counterparty-registry.json",
   matterProfileTeamLedgerPath: "artifacts/matter-profile-team-ledger/latest/matter-profile-team-ledger.json",
+  wallPolicyContractPath: "artifacts/wall-policy-contract/latest/wall-policy-contract.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
@@ -144,6 +145,11 @@ const SOURCE_DEFINITIONS = [
     option: "matterProfileTeamLedgerPath",
     source_id: "matter_profile_team_ledger",
     label: "Matter Profile/Team Ledger",
+  },
+  {
+    option: "wallPolicyContractPath",
+    source_id: "wall_policy_contract",
+    label: "Wall Policy Contract",
   },
   {
     option: "policyContractFreezePath",
@@ -768,6 +774,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "matter_contract_freeze") return data.summary ?? {};
   if (sourceId === "client_counterparty_registry") return data.summary ?? {};
   if (sourceId === "matter_profile_team_ledger") return data.summary ?? {};
+  if (sourceId === "wall_policy_contract") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
@@ -963,6 +970,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
     buildClientCounterpartyRegistryStage(artifacts.client_counterparty_registry, sourceById.get("client_counterparty_registry")),
     buildMatterProfileTeamLedgerStage(artifacts.matter_profile_team_ledger, sourceById.get("matter_profile_team_ledger")),
+    buildWallPolicyContractStage(artifacts.wall_policy_contract, sourceById.get("wall_policy_contract")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
@@ -1277,6 +1285,44 @@ function buildMatterProfileTeamLedgerStage(ledger, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWallPolicyContractStage(contract, source) {
+  if (!contract) return missingStage("wall_policy_contract", "Wall Policy Contract", source);
+  const summary = contract.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || contract.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "wall_policy_contract",
+    label: "Wall Policy Contract",
+    status,
+    message: `${summary.wall_policy_rule_count ?? 0} wall rule(s), ${summary.retrieval_wall_filter_count ?? 0} pre-retrieval filter(s), ${summary.conflict_wall_binding_count ?? 0} conflict binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      wall_policy_status: summary.wall_policy_status ?? "unknown",
+      source_matter_contract_status: summary.source_matter_contract_status ?? "unknown",
+      source_client_counterparty_registry_status: summary.source_client_counterparty_registry_status ?? "unknown",
+      source_matter_profile_team_ledger_status: summary.source_matter_profile_team_ledger_status ?? "unknown",
+      wall_policy_rule_count: summary.wall_policy_rule_count ?? 0,
+      active_wall_policy_rule_count: summary.active_wall_policy_rule_count ?? 0,
+      pre_retrieval_rule_count: summary.pre_retrieval_rule_count ?? 0,
+      deny_unless_allowed_rule_count: summary.deny_unless_allowed_rule_count ?? 0,
+      retrieval_wall_filter_count: summary.retrieval_wall_filter_count ?? 0,
+      complete_retrieval_wall_filter_count: summary.complete_retrieval_wall_filter_count ?? 0,
+      wall_subject_binding_count: summary.wall_subject_binding_count ?? 0,
+      allowed_wall_subject_binding_count: summary.allowed_wall_subject_binding_count ?? 0,
+      denied_wall_subject_binding_count: summary.denied_wall_subject_binding_count ?? 0,
+      conflict_wall_binding_count: summary.conflict_wall_binding_count ?? 0,
+      ready_conflict_wall_binding_count: summary.ready_conflict_wall_binding_count ?? 0,
+      matter_with_wall_policy_count: summary.matter_with_wall_policy_count ?? 0,
+      wall_id_count: summary.wall_id_count ?? 0,
+      required_filter_key_count: summary.required_filter_key_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5976,6 +6022,26 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     matter_profile_team_team_member_user_count: artifacts.matter_profile_team_ledger?.summary?.team_member_user_count ?? 0,
     matter_profile_team_failed_validation_item_count: artifacts.matter_profile_team_ledger?.summary?.failed_validation_item_count ?? 0,
     matter_profile_team_validation_error_count: artifacts.matter_profile_team_ledger?.summary?.validation_error_count ?? artifacts.matter_profile_team_ledger?.validation?.errors?.length ?? 0,
+    wall_policy_contract_status: artifacts.wall_policy_contract?.summary?.wall_policy_status ?? "unknown",
+    wall_policy_source_matter_contract_status: artifacts.wall_policy_contract?.summary?.source_matter_contract_status ?? "unknown",
+    wall_policy_source_client_counterparty_registry_status: artifacts.wall_policy_contract?.summary?.source_client_counterparty_registry_status ?? "unknown",
+    wall_policy_source_matter_profile_team_ledger_status: artifacts.wall_policy_contract?.summary?.source_matter_profile_team_ledger_status ?? "unknown",
+    wall_policy_rule_count: artifacts.wall_policy_contract?.summary?.wall_policy_rule_count ?? 0,
+    wall_policy_active_rule_count: artifacts.wall_policy_contract?.summary?.active_wall_policy_rule_count ?? 0,
+    wall_policy_pre_retrieval_rule_count: artifacts.wall_policy_contract?.summary?.pre_retrieval_rule_count ?? 0,
+    wall_policy_deny_unless_allowed_rule_count: artifacts.wall_policy_contract?.summary?.deny_unless_allowed_rule_count ?? 0,
+    wall_policy_retrieval_filter_count: artifacts.wall_policy_contract?.summary?.retrieval_wall_filter_count ?? 0,
+    wall_policy_complete_retrieval_filter_count: artifacts.wall_policy_contract?.summary?.complete_retrieval_wall_filter_count ?? 0,
+    wall_policy_subject_binding_count: artifacts.wall_policy_contract?.summary?.wall_subject_binding_count ?? 0,
+    wall_policy_allowed_subject_binding_count: artifacts.wall_policy_contract?.summary?.allowed_wall_subject_binding_count ?? 0,
+    wall_policy_denied_subject_binding_count: artifacts.wall_policy_contract?.summary?.denied_wall_subject_binding_count ?? 0,
+    wall_policy_conflict_binding_count: artifacts.wall_policy_contract?.summary?.conflict_wall_binding_count ?? 0,
+    wall_policy_ready_conflict_binding_count: artifacts.wall_policy_contract?.summary?.ready_conflict_wall_binding_count ?? 0,
+    wall_policy_matter_with_wall_policy_count: artifacts.wall_policy_contract?.summary?.matter_with_wall_policy_count ?? 0,
+    wall_policy_wall_id_count: artifacts.wall_policy_contract?.summary?.wall_id_count ?? 0,
+    wall_policy_required_filter_key_count: artifacts.wall_policy_contract?.summary?.required_filter_key_count ?? 0,
+    wall_policy_failed_validation_item_count: artifacts.wall_policy_contract?.summary?.failed_validation_item_count ?? 0,
+    wall_policy_validation_error_count: artifacts.wall_policy_contract?.summary?.validation_error_count ?? artifacts.wall_policy_contract?.validation?.errors?.length ?? 0,
     policy_contract_freeze_classification_count: artifacts.policy_contract_freeze?.summary?.classification_count ?? 0,
     policy_contract_freeze_required_classification_count: artifacts.policy_contract_freeze?.summary?.required_classification_count ?? 0,
     policy_contract_freeze_missing_classification_count: artifacts.policy_contract_freeze?.summary?.missing_classification_count ?? 0,
@@ -7252,6 +7318,8 @@ function parseArgs(argv) {
     else if (arg === "--no-client-counterparty-registry") parsed.clientCounterpartyRegistryPath = false;
     else if (arg === "--matter-profile-team-ledger") parsed.matterProfileTeamLedgerPath = argv[++index];
     else if (arg === "--no-matter-profile-team-ledger") parsed.matterProfileTeamLedgerPath = false;
+    else if (arg === "--wall-policy-contract") parsed.wallPolicyContractPath = argv[++index];
+    else if (arg === "--no-wall-policy-contract") parsed.wallPolicyContractPath = false;
     else if (arg === "--policy-contract-freeze") parsed.policyContractFreezePath = argv[++index];
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
@@ -7468,6 +7536,11 @@ Options:
                                   matter-profile-team-ledger.json path.
   --no-matter-profile-team-ledger
                                   Do not include Matter Profile/Team Ledger status.
+  --wall-policy-contract <path>  wall-policy-contract.json path.
+  --no-wall-policy-contract      Do not include Wall Policy Contract status.
+  --policy-contract-freeze <path>
+                                  policy-contract-freeze.json path.
+  --no-policy-contract-freeze    Do not include Policy Contract Freeze status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

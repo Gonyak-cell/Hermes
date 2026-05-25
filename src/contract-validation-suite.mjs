@@ -20,6 +20,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",
+  "contracts:walls",
   "contracts:resources",
   "contracts:matters",
   "contracts:policies",

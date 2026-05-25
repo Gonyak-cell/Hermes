@@ -145,6 +145,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/matter-team-memberships"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-access-subjects"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-profile-team-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/wall-policy-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/wall-policy-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-wall-filters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/wall-subject-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-wall-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/wall-policy-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1475,6 +1481,30 @@ try {
   const matterProfileTeamValidations = await fetchJson(`${url}/api/matter-profile-team-validations?status=passed&limit=5`);
   assert.equal(matterProfileTeamValidations.collection, "matter_profile_team_validations");
   assert.ok(matterProfileTeamValidations.count <= 5);
+
+  const wallPolicyContracts = await fetchJson(`${url}/api/wall-policy-contracts?wall_policy_status=complete&limit=1`);
+  assert.equal(wallPolicyContracts.collection, "wall_policy_contracts");
+  assert.ok(wallPolicyContracts.count <= 1);
+
+  const wallPolicyRules = await fetchJson(`${url}/api/wall-policy-rules?enforcement_stage=pre_retrieval&limit=5`);
+  assert.equal(wallPolicyRules.collection, "wall_policy_rules");
+  assert.ok(wallPolicyRules.count <= 5);
+
+  const retrievalWallFilters = await fetchJson(`${url}/api/retrieval-wall-filters?filter_status=complete&limit=5`);
+  assert.equal(retrievalWallFilters.collection, "retrieval_wall_filters");
+  assert.ok(retrievalWallFilters.count <= 5);
+
+  const wallSubjectBindings = await fetchJson(`${url}/api/wall-subject-bindings?pre_retrieval_effect=allow&limit=5`);
+  assert.equal(wallSubjectBindings.collection, "wall_subject_bindings");
+  assert.ok(wallSubjectBindings.count <= 5);
+
+  const conflictWallBindings = await fetchJson(`${url}/api/conflict-wall-bindings?conflict_check_status=ready&limit=5`);
+  assert.equal(conflictWallBindings.collection, "conflict_wall_bindings");
+  assert.ok(conflictWallBindings.count <= 5);
+
+  const wallPolicyValidations = await fetchJson(`${url}/api/wall-policy-validations?status=passed&limit=5`);
+  assert.equal(wallPolicyValidations.collection, "wall_policy_validations");
+  assert.ok(wallPolicyValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

@@ -3412,7 +3412,7 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 완료 기준:
 
-- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되었고 Phase 114부터 client_counterparty_registry fixture, Phase 115부터 matter_profile_team_ledger fixture가 추가되어 현재 golden fixture set은 17개다.
+- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되었고 Phase 114부터 client_counterparty_registry fixture, Phase 115부터 matter_profile_team_ledger fixture, Phase 116부터 wall_policy_contract fixture가 추가되어 현재 golden fixture set은 18개다.
 - 각 fixture는 artifact path, schema path, artifact schema version, content hash, schema hash, schema validation status, regression lock status를 가진다.
 - 모든 fixture가 대응 schema로 검증되고 regression hash manifest에 포함된다.
 - Dashboard stage와 summary가 `contract_golden_fixtures` 지표를 추적함
@@ -3542,6 +3542,37 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Matter Profile/Team Ledger를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:matter-teams`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 116 - Wall Policy Contract
+
+목표: ethical wall/conflict wall rule을 retrieval 이전에 적용 가능한 명시적 contract로 분리하고, matter boundary wall id와 conflict reference를 access subject 및 retrieval filter에 결합한다.
+
+구현 산출물:
+
+- `src/wall-policy-contract.mjs`
+- `scripts/wall-policy-contract.mjs`
+- `schemas/wall-policy-contract.schema.json`
+- `docs/wall-policy-contract.md`
+- `artifacts/wall-policy-contract/latest/wall-policy-contract.json`
+- `artifacts/wall-policy-contract/latest/wall-policy-rules.json`
+- `artifacts/wall-policy-contract/latest/retrieval-wall-filters.json`
+- `artifacts/wall-policy-contract/latest/wall-subject-bindings.json`
+- `artifacts/wall-policy-contract/latest/conflict-wall-bindings.json`
+- `artifacts/wall-policy-contract/latest/validation-report.json`
+- `artifacts/wall-policy-contract/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:walls -- --check`가 wall policy rule, retrieval wall filter, wall subject binding, conflict wall binding projection을 생성한다.
+- 모든 MatterBoundary v2 `wall_ids`가 `pre_retrieval` enforcement와 `deny_unless_allowed` decision mode를 가진 wall policy rule로 투영된다.
+- 모든 wall policy rule은 tenant, client, matter, wall, classification filter를 가진 complete retrieval wall filter에 연결된다.
+- allowed retrieval은 Matter Profile/Team Ledger의 allowed access subject와 active membership을 통해서만 가능하다.
+- 모든 boundary party와 profile conflict reference가 conflict wall binding으로 연결되고 conflict check status가 ready로 검증된다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `wall_policy_contract` fixture가 포함되어 golden fixture set이 18개로 확장된다.
+- Dashboard stage와 summary가 `wall_policy_contract` 지표를 추적함
+- Review API에서 `/api/wall-policy-contracts`, `/api/wall-policy-rules`, `/api/retrieval-wall-filters`, `/api/wall-subject-bindings`, `/api/conflict-wall-bindings`, `/api/wall-policy-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Wall Policy Contract를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:walls`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3550,9 +3581,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 115이다.
+- 현재 완료 기준점은 Phase 116이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P116-P312, 총 197개다.
+- 남은 계획 슬롯은 P117-P312, 총 196개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

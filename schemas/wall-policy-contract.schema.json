@@ -1,0 +1,373 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/wall-policy-contract.schema.json",
+  "title": "Hermes Wall Policy Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "wall_policy_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_matter_contract",
+    "source_client_counterparty_registry",
+    "source_matter_profile_team_ledger",
+    "wall_policy_contract",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "wall-policy-contract-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "wall_policy_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["matter_contract_freeze_path", "client_counterparty_registry_path", "matter_profile_team_ledger_path"],
+      "properties": {
+        "matter_contract_freeze_path": { "type": "string" },
+        "client_counterparty_registry_path": { "type": "string" },
+        "matter_profile_team_ledger_path": { "type": "string" }
+      }
+    },
+    "source_matter_contract": { "$ref": "#/$defs/source_matter_contract" },
+    "source_client_counterparty_registry": { "$ref": "#/$defs/source_client_counterparty_registry" },
+    "source_matter_profile_team_ledger": { "$ref": "#/$defs/source_matter_profile_team_ledger" },
+    "wall_policy_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "wall_policy_rules",
+        "retrieval_wall_filters",
+        "wall_subject_bindings",
+        "conflict_wall_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "wall-policy-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "wall_policy_rules": { "type": "array", "items": { "$ref": "#/$defs/wall_policy_rule" } },
+        "retrieval_wall_filters": { "type": "array", "items": { "$ref": "#/$defs/retrieval_wall_filter" } },
+        "wall_subject_bindings": { "type": "array", "items": { "$ref": "#/$defs/wall_subject_binding" } },
+        "conflict_wall_bindings": { "type": "array", "items": { "$ref": "#/$defs/conflict_wall_binding" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_matter_contract": {
+      "type": "object",
+      "required": ["schema_version", "freeze_id", "freeze_status", "matter_count", "matter_boundary_count", "matter_with_wall_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "freeze_id": { "type": ["string", "null"] },
+        "freeze_status": { "type": "string" },
+        "matter_count": { "type": "integer", "minimum": 0 },
+        "matter_boundary_count": { "type": "integer", "minimum": 0 },
+        "matter_with_wall_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_client_counterparty_registry": {
+      "type": "object",
+      "required": ["schema_version", "registry_id", "registry_status", "conflict_reference_count", "matter_party_link_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "registry_id": { "type": ["string", "null"] },
+        "registry_status": { "type": "string" },
+        "conflict_reference_count": { "type": "integer", "minimum": 0 },
+        "matter_party_link_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_matter_profile_team_ledger": {
+      "type": "object",
+      "required": ["schema_version", "ledger_id", "ledger_status", "matter_profile_count", "matter_access_subject_count", "allowed_access_subject_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "ledger_id": { "type": ["string", "null"] },
+        "ledger_status": { "type": "string" },
+        "matter_profile_count": { "type": "integer", "minimum": 0 },
+        "matter_access_subject_count": { "type": "integer", "minimum": 0 },
+        "allowed_access_subject_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "wall_policy_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "wall_policy_rule_id",
+        "wall_id",
+        "wall_type",
+        "tenant_id",
+        "client_id",
+        "matter_id",
+        "matter_boundary_id",
+        "rule_status",
+        "enforcement_stage",
+        "decision_mode",
+        "access_scope",
+        "retrieval_wall_filter_id",
+        "allowed_access_subject_ids",
+        "denied_access_subject_ids",
+        "allowed_user_ids",
+        "allowed_membership_ids",
+        "conflict_ref_ids",
+        "party_ids",
+        "counterparty_party_ids",
+        "classification_floor",
+        "policy_snapshot_id",
+        "created_at",
+        "source_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "wall-policy-rule.v1" },
+        "wall_policy_rule_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "wall_type": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "matter_boundary_id": { "type": "string" },
+        "rule_status": { "enum": ["active", "inactive"] },
+        "enforcement_stage": { "const": "pre_retrieval" },
+        "decision_mode": { "const": "deny_unless_allowed" },
+        "access_scope": { "type": "string" },
+        "retrieval_wall_filter_id": { "type": "string" },
+        "allowed_access_subject_ids": { "type": "array", "items": { "type": "string" } },
+        "denied_access_subject_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_user_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_membership_ids": { "type": "array", "items": { "type": "string" } },
+        "conflict_ref_ids": { "type": "array", "items": { "type": "string" } },
+        "party_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_party_ids": { "type": "array", "items": { "type": "string" } },
+        "classification_floor": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "metadata": { "type": "object" }
+      }
+    },
+    "retrieval_wall_filter": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_wall_filter_id",
+        "wall_policy_rule_id",
+        "wall_id",
+        "tenant_id",
+        "client_id",
+        "matter_id",
+        "matter_boundary_id",
+        "enforcement_stage",
+        "filter_status",
+        "required_filter_keys",
+        "deny_if_missing_keys",
+        "resource_query_policy",
+        "access_scope",
+        "wall_ids",
+        "classification",
+        "retrieval_filters",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "retrieval-wall-filter.v1" },
+        "retrieval_wall_filter_id": { "type": "string" },
+        "wall_policy_rule_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "matter_boundary_id": { "type": "string" },
+        "enforcement_stage": { "const": "pre_retrieval" },
+        "filter_status": { "enum": ["complete", "blocked"] },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "deny_if_missing_keys": { "type": "boolean" },
+        "resource_query_policy": { "type": "string" },
+        "access_scope": { "type": "string" },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "classification": { "type": "string" },
+        "retrieval_filters": {
+          "type": "object",
+          "required": ["tenant_id", "client_id", "matter_id", "wall_ids", "classification"],
+          "properties": {
+            "tenant_id": { "type": "string" },
+            "client_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "wall_ids": { "type": "array", "items": { "type": "string" } },
+            "classification": { "type": "string" }
+          }
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "wall_subject_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "wall_subject_binding_id",
+        "wall_policy_rule_id",
+        "wall_id",
+        "matter_id",
+        "tenant_id",
+        "client_id",
+        "access_subject_id",
+        "user_id",
+        "membership_id",
+        "subject_type",
+        "binding_basis",
+        "access_decision",
+        "pre_retrieval_effect",
+        "can_retrieve",
+        "wall_ids",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "wall-subject-binding.v1" },
+        "wall_subject_binding_id": { "type": "string" },
+        "wall_policy_rule_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "access_subject_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "membership_id": { "type": ["string", "null"] },
+        "subject_type": { "type": "string" },
+        "binding_basis": { "type": "string" },
+        "access_decision": { "enum": ["allow", "deny", "review"] },
+        "pre_retrieval_effect": { "enum": ["allow", "deny"] },
+        "can_retrieve": { "type": "boolean" },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "conflict_wall_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conflict_wall_binding_id",
+        "wall_policy_rule_id",
+        "wall_id",
+        "matter_id",
+        "tenant_id",
+        "client_id",
+        "stable_party_id",
+        "conflict_ref_id",
+        "party_type",
+        "conflict_check_status",
+        "binding_status",
+        "applies_to_stage",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "conflict-wall-binding.v1" },
+        "conflict_wall_binding_id": { "type": "string" },
+        "wall_policy_rule_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "stable_party_id": { "type": "string" },
+        "conflict_ref_id": { "type": ["string", "null"] },
+        "party_type": { "type": "string" },
+        "conflict_check_status": { "type": "string" },
+        "binding_status": { "enum": ["active", "quarantined"] },
+        "applies_to_stage": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "wall_policy_status",
+        "source_matter_contract_status",
+        "source_client_counterparty_registry_status",
+        "source_matter_profile_team_ledger_status",
+        "wall_policy_rule_count",
+        "active_wall_policy_rule_count",
+        "pre_retrieval_rule_count",
+        "deny_unless_allowed_rule_count",
+        "retrieval_wall_filter_count",
+        "complete_retrieval_wall_filter_count",
+        "wall_subject_binding_count",
+        "allowed_wall_subject_binding_count",
+        "denied_wall_subject_binding_count",
+        "conflict_wall_binding_count",
+        "ready_conflict_wall_binding_count",
+        "matter_with_wall_policy_count",
+        "wall_id_count",
+        "required_filter_key_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "wall_policy_status": { "type": "string" },
+        "source_matter_contract_status": { "type": "string" },
+        "source_client_counterparty_registry_status": { "type": "string" },
+        "source_matter_profile_team_ledger_status": { "type": "string" },
+        "wall_policy_rule_count": { "type": "integer", "minimum": 0 },
+        "active_wall_policy_rule_count": { "type": "integer", "minimum": 0 },
+        "pre_retrieval_rule_count": { "type": "integer", "minimum": 0 },
+        "deny_unless_allowed_rule_count": { "type": "integer", "minimum": 0 },
+        "retrieval_wall_filter_count": { "type": "integer", "minimum": 0 },
+        "complete_retrieval_wall_filter_count": { "type": "integer", "minimum": 0 },
+        "wall_subject_binding_count": { "type": "integer", "minimum": 0 },
+        "allowed_wall_subject_binding_count": { "type": "integer", "minimum": 0 },
+        "denied_wall_subject_binding_count": { "type": "integer", "minimum": 0 },
+        "conflict_wall_binding_count": { "type": "integer", "minimum": 0 },
+        "ready_conflict_wall_binding_count": { "type": "integer", "minimum": 0 },
+        "matter_with_wall_policy_count": { "type": "integer", "minimum": 0 },
+        "wall_id_count": { "type": "integer", "minimum": 0 },
+        "required_filter_key_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_rule_status": { "type": "object" },
+        "by_enforcement_stage": { "type": "object" },
+        "by_pre_retrieval_effect": { "type": "object" },
+        "by_tenant_id": { "type": "object" }
+      }
+    }
+  }
+}

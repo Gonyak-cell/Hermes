@@ -44,6 +44,7 @@ const GOAL_ITEMS = [
   sourceItem("token_usage_ledger", "Token usage ledger", "observability", "token_usage_ledger", "control-plane-token-usage"),
   sourceItem("cost_attribution_ledger", "Cost attribution ledger", "observability", "cost_attribution_ledger", "control-plane-cost-attribution"),
   sourceItem("budget_alert_ledger", "Budget alert ledger", "observability", "budget_alert_ledger", "control-plane-budget-alerts"),
+  sourceItem("policy_snapshot_binding_ledger", "Policy snapshot binding ledger", "policy", "policy_snapshot_binding_ledger", "control-plane-policy-snapshot-bindings", { acceptance_profile: "policy_snapshot_binding_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -374,6 +375,23 @@ function evaluateStageAcceptance(item, stage) {
   if (item.acceptance_profile === "approval_gate") {
     if ((metrics.inbox_item_count ?? 0) >= 0 && (metrics.approval_request_count ?? 0) >= 0) {
       return passedWithOperationalGate(stage, "Approval workflow is implemented; remaining items are human approval work.");
+    }
+  }
+
+  if (item.acceptance_profile === "policy_snapshot_binding_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.missing_policy_snapshot_count ?? 0) + (metrics.unresolved_policy_snapshot_count ?? 0);
+    const bindingCount = metrics.policy_snapshot_binding_count ?? 0;
+    if (
+      bindingCount > 0
+      && errors === 0
+      && (metrics.known_policy_snapshot_binding_count ?? 0) === bindingCount
+      && (metrics.workflow_policy_binding_count ?? 0) > 0
+      && (metrics.event_policy_binding_count ?? 0) > 0
+      && (metrics.gate_policy_binding_count ?? 0) > 0
+      && (metrics.approval_policy_binding_count ?? 0) > 0
+      && (metrics.output_policy_binding_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Policy snapshot binding ledger is implemented and every workflow, event, run, gate, approval, and output binding resolves to a known execution-time policy snapshot.");
     }
   }
 

@@ -37,6 +37,14 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-usages"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-binding-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/approval-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-binding-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/source-span-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-contracts"));
@@ -385,6 +393,38 @@ try {
   const workflowPolicyUsages = await fetchJson(`${url}/api/policy-usages?usage_type=workflow_run&limit=5`);
   assert.equal(workflowPolicyUsages.collection, "policy_usages");
   assert.ok(workflowPolicyUsages.count <= 5);
+
+  const policySnapshotBindingLedgers = await fetchJson(`${url}/api/policy-snapshot-binding-ledgers?policy_snapshot_binding_status=complete&limit=1`);
+  assert.equal(policySnapshotBindingLedgers.collection, "policy_snapshot_binding_ledgers");
+  assert.ok(policySnapshotBindingLedgers.count <= 1);
+
+  const workflowPolicyBindings = await fetchJson(`${url}/api/workflow-policy-bindings?binding_source=source_declared&limit=5`);
+  assert.equal(workflowPolicyBindings.collection, "workflow_policy_bindings");
+  assert.ok(workflowPolicyBindings.count <= 5);
+
+  const agentRunPolicyBindings = await fetchJson(`${url}/api/agent-run-policy-bindings?runtime_id=codex&limit=5`);
+  assert.equal(agentRunPolicyBindings.collection, "agent_run_policy_bindings");
+  assert.ok(agentRunPolicyBindings.count <= 5);
+
+  const eventPolicyBindings = await fetchJson(`${url}/api/event-policy-bindings?policy_snapshot_known=true&limit=5`);
+  assert.equal(eventPolicyBindings.collection, "event_policy_bindings");
+  assert.ok(eventPolicyBindings.count <= 5);
+
+  const gatePolicyBindings = await fetchJson(`${url}/api/gate-policy-bindings?binding_status=bound&limit=5`);
+  assert.equal(gatePolicyBindings.collection, "gate_policy_bindings");
+  assert.ok(gatePolicyBindings.count <= 5);
+
+  const fallbackApprovalPolicyBindings = await fetchJson(`${url}/api/approval-policy-bindings?policy_snapshot_status=fallback_resolved&limit=5`);
+  assert.equal(fallbackApprovalPolicyBindings.collection, "approval_policy_bindings");
+  assert.ok(fallbackApprovalPolicyBindings.count <= 5);
+
+  const outputPolicyBindings = await fetchJson(`${url}/api/output-policy-bindings?policy_snapshot_known=true&limit=5`);
+  assert.equal(outputPolicyBindings.collection, "output_policy_bindings");
+  assert.ok(outputPolicyBindings.count <= 5);
+
+  const policySnapshotBindingValidations = await fetchJson(`${url}/api/policy-snapshot-binding-validations?status=passed&limit=5`);
+  assert.equal(policySnapshotBindingValidations.collection, "policy_snapshot_binding_validations");
+  assert.ok(policySnapshotBindingValidations.count <= 5);
 
   const policyContractFreezes = await fetchJson(`${url}/api/policy-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(policyContractFreezes.collection, "policy_contract_freezes");

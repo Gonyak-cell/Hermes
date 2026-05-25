@@ -1,0 +1,345 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/policy-snapshot-binding-ledger.schema.json",
+  "title": "Hermes Policy Snapshot Binding Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "policy_snapshot_binding_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_policy_snapshot_ledger",
+    "source_capability_workflow_contract",
+    "source_runtime_agentrun_contract",
+    "source_gate_approval_contract",
+    "source_output_delivery_contract",
+    "source_event_audit_run_contract",
+    "source_approval_authority_ledger",
+    "policy_snapshot_binding_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "policy-snapshot-binding-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "policy_snapshot_binding_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "policy_snapshot_ledger_path",
+        "capability_workflow_contract_freeze_path",
+        "runtime_agentrun_contract_freeze_path",
+        "gate_approval_contract_freeze_path",
+        "output_delivery_contract_freeze_path",
+        "event_audit_run_contract_freeze_path",
+        "approval_authority_ledger_path"
+      ],
+      "properties": {
+        "policy_snapshot_ledger_path": { "type": "string" },
+        "capability_workflow_contract_freeze_path": { "type": "string" },
+        "runtime_agentrun_contract_freeze_path": { "type": "string" },
+        "gate_approval_contract_freeze_path": { "type": "string" },
+        "output_delivery_contract_freeze_path": { "type": "string" },
+        "event_audit_run_contract_freeze_path": { "type": "string" },
+        "approval_authority_ledger_path": { "type": "string" }
+      }
+    },
+    "source_policy_snapshot_ledger": { "$ref": "#/$defs/source_summary" },
+    "source_capability_workflow_contract": { "$ref": "#/$defs/source_summary" },
+    "source_runtime_agentrun_contract": { "$ref": "#/$defs/source_summary" },
+    "source_gate_approval_contract": { "$ref": "#/$defs/source_summary" },
+    "source_output_delivery_contract": { "$ref": "#/$defs/source_summary" },
+    "source_event_audit_run_contract": { "$ref": "#/$defs/source_summary" },
+    "source_approval_authority_ledger": { "$ref": "#/$defs/source_summary" },
+    "policy_snapshot_binding_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "workflow_policy_bindings",
+        "agent_run_policy_bindings",
+        "event_policy_bindings",
+        "gate_policy_bindings",
+        "approval_policy_bindings",
+        "output_policy_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-snapshot-binding-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "workflow_policy_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workflow_policy_binding" }
+        },
+        "agent_run_policy_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/agent_run_policy_binding" }
+        },
+        "event_policy_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_policy_binding" }
+        },
+        "gate_policy_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/gate_policy_binding" }
+        },
+        "approval_policy_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/approval_policy_binding" }
+        },
+        "output_policy_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/output_policy_binding" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["schema_version", "status", "error"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "binding_base": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "binding_id",
+        "subject_ref",
+        "subject_type",
+        "subject_id",
+        "workflow_run_id",
+        "agent_run_id",
+        "output_artifact_id",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "declared_policy_snapshot_id",
+        "inherited_workflow_policy_snapshot_id",
+        "linked_output_policy_snapshot_id",
+        "policy_snapshot_id",
+        "policy_snapshot_known",
+        "policy_snapshot_status",
+        "binding_source",
+        "binding_status",
+        "default_classification",
+        "max_input_classification",
+        "external_model_policy",
+        "local_model_policy",
+        "redaction_policy",
+        "approval_required",
+        "required_gates",
+        "reason_codes",
+        "bound_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "binding_id": { "type": "string" },
+        "subject_ref": { "$ref": "#/$defs/subject_ref" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "agent_run_id": { "type": ["string", "null"] },
+        "output_artifact_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "declared_policy_snapshot_id": { "type": ["string", "null"] },
+        "inherited_workflow_policy_snapshot_id": { "type": ["string", "null"] },
+        "linked_output_policy_snapshot_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "policy_snapshot_known": { "type": "boolean" },
+        "policy_snapshot_status": { "enum": ["resolved", "fallback_resolved", "missing", "unresolved"] },
+        "binding_source": { "type": "string" },
+        "binding_status": { "enum": ["bound", "needs_policy_snapshot"] },
+        "default_classification": { "type": ["string", "null"] },
+        "max_input_classification": { "type": ["string", "null"] },
+        "external_model_policy": { "type": ["string", "null"] },
+        "local_model_policy": { "type": ["string", "null"] },
+        "redaction_policy": { "type": ["string", "null"] },
+        "approval_required": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "bound_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "workflow_policy_binding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding_base" },
+        {
+          "type": "object",
+          "required": ["workflow_policy_binding_id"],
+          "properties": {
+            "schema_version": { "const": "workflow-policy-binding.v1" },
+            "workflow_policy_binding_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "agent_run_policy_binding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding_base" },
+        {
+          "type": "object",
+          "required": ["agent_run_policy_binding_id"],
+          "properties": {
+            "schema_version": { "const": "agent_run-policy-binding.v1" },
+            "agent_run_policy_binding_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "event_policy_binding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding_base" },
+        {
+          "type": "object",
+          "required": ["event_policy_binding_id"],
+          "properties": {
+            "schema_version": { "const": "event-policy-binding.v1" },
+            "event_policy_binding_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "gate_policy_binding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding_base" },
+        {
+          "type": "object",
+          "required": ["gate_policy_binding_id"],
+          "properties": {
+            "schema_version": { "const": "gate-policy-binding.v1" },
+            "gate_policy_binding_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "approval_policy_binding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding_base" },
+        {
+          "type": "object",
+          "required": ["approval_policy_binding_id"],
+          "properties": {
+            "schema_version": { "const": "approval-policy-binding.v1" },
+            "approval_policy_binding_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "output_policy_binding": {
+      "allOf": [
+        { "$ref": "#/$defs/binding_base" },
+        {
+          "type": "object",
+          "required": ["output_policy_binding_id"],
+          "properties": {
+            "schema_version": { "const": "output-policy-binding.v1" },
+            "output_policy_binding_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "subject_ref": {
+      "type": "object",
+      "required": ["subject_type", "subject_id"],
+      "properties": {
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_type", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "policy-snapshot-binding-validation.v1" },
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "policy_snapshot_binding_status",
+        "policy_snapshot_count",
+        "workflow_policy_binding_count",
+        "agent_run_policy_binding_count",
+        "event_policy_binding_count",
+        "gate_policy_binding_count",
+        "approval_policy_binding_count",
+        "output_policy_binding_count",
+        "policy_snapshot_binding_count",
+        "known_policy_snapshot_binding_count",
+        "fallback_resolved_binding_count",
+        "missing_policy_snapshot_count",
+        "unresolved_policy_snapshot_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "policy_snapshot_binding_status": { "enum": ["complete", "blocked"] },
+        "policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "workflow_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "agent_run_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "event_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "gate_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "approval_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "output_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_binding_count": { "type": "integer", "minimum": 0 },
+        "known_policy_snapshot_binding_count": { "type": "integer", "minimum": 0 },
+        "fallback_resolved_binding_count": { "type": "integer", "minimum": 0 },
+        "missing_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "unresolved_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -3766,6 +3766,39 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Approval Authority Ledger를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:approval-authority -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 123 - Policy Snapshot Binding Ledger
+
+목표: workflow, AgentRun, event/audit/run ledger, gate, approval, output/delivery action이 실행 당시의 policy snapshot에 묶여 있는지 deterministic하게 검증한다.
+
+구현 산출물:
+
+- `src/policy-snapshot-binding-ledger.mjs`
+- `scripts/policy-snapshot-binding-ledger.mjs`
+- `schemas/policy-snapshot-binding-ledger.schema.json`
+- `docs/policy-snapshot-binding-ledger.md`
+- `artifacts/policy-snapshot-bindings/latest/policy-snapshot-binding-ledger.json`
+- `artifacts/policy-snapshot-bindings/latest/policy-snapshot-binding-catalog.json`
+- `artifacts/policy-snapshot-bindings/latest/workflow-policy-bindings.json`
+- `artifacts/policy-snapshot-bindings/latest/agent-run-policy-bindings.json`
+- `artifacts/policy-snapshot-bindings/latest/event-policy-bindings.json`
+- `artifacts/policy-snapshot-bindings/latest/gate-policy-bindings.json`
+- `artifacts/policy-snapshot-bindings/latest/approval-policy-bindings.json`
+- `artifacts/policy-snapshot-bindings/latest/output-policy-bindings.json`
+- `artifacts/policy-snapshot-bindings/latest/validation-report.json`
+- `artifacts/policy-snapshot-bindings/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:policy-bindings -- --check`가 Policy Snapshot Binding Ledger를 생성하고 validation error 0으로 통과한다.
+- WorkflowRun, AgentRun, EventRecord, AuditEvent, RunLedger, GateResult, ApprovalRequest, OutputArtifact, DeliveryAction마다 `policy_snapshot_binding`이 생성된다.
+- 각 binding은 declared snapshot, workflow inherited snapshot, linked output snapshot, final `policy_snapshot_id`, binding source, known/bound status를 보존한다.
+- unresolved placeholder는 누락으로 숨기지 않고 `unresolved_declared_reference_count`와 `fallback_resolved` 상태로 추적된다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `policy_snapshot_binding_ledger` fixture가 포함되어 golden fixture set이 25개로 확장된다.
+- Dashboard stage와 summary가 `policy_snapshot_binding_ledger` 지표를 추적함
+- Review API에서 `/api/policy-snapshot-binding-ledgers`, `/api/workflow-policy-bindings`, `/api/agent-run-policy-bindings`, `/api/event-policy-bindings`, `/api/gate-policy-bindings`, `/api/approval-policy-bindings`, `/api/output-policy-bindings`, `/api/policy-snapshot-binding-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Policy Snapshot Binding Ledger를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:policy-bindings -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3774,9 +3807,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 122이다.
+- 현재 완료 기준점은 Phase 123이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P123-P312, 총 190개다.
+- 남은 계획 슬롯은 P124-P312, 총 189개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

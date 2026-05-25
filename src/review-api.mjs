@@ -700,6 +700,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_usages", ledgerResult.artifact.usage_records ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-snapshot-binding-ledgers") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshot_binding_ledgers", [bindingResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_policy_bindings", bindingResult.artifact.policy_snapshot_binding_catalog?.workflow_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-run-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_run_policy_bindings", bindingResult.artifact.policy_snapshot_binding_catalog?.agent_run_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_policy_bindings", bindingResult.artifact.policy_snapshot_binding_catalog?.event_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/gate-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("gate_policy_bindings", bindingResult.artifact.policy_snapshot_binding_catalog?.gate_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_policy_bindings", bindingResult.artifact.policy_snapshot_binding_catalog?.approval_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_policy_bindings", bindingResult.artifact.policy_snapshot_binding_catalog?.output_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-snapshot-binding-validations") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_binding_ledger");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_binding_ledger_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshot_binding_validations", bindingResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/policy-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
     if (!freezeResult.available) {
@@ -4076,6 +4132,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-snapshot-instances", "Source-level policy snapshot instances"),
       route("GET", "/api/policy-decisions", "Policy decision summaries derived from snapshots"),
       route("GET", "/api/policy-usages", "Workflow, event, and run ledger policy snapshot references"),
+      route("GET", "/api/policy-snapshot-binding-ledgers", "Policy snapshot binding ledger artifacts"),
+      route("GET", "/api/workflow-policy-bindings", "WorkflowRun policy snapshot bindings"),
+      route("GET", "/api/agent-run-policy-bindings", "AgentRun policy snapshot bindings"),
+      route("GET", "/api/event-policy-bindings", "Event, audit, and RunLedger policy snapshot bindings"),
+      route("GET", "/api/gate-policy-bindings", "GateResult policy snapshot bindings"),
+      route("GET", "/api/approval-policy-bindings", "ApprovalRequest policy snapshot bindings"),
+      route("GET", "/api/output-policy-bindings", "Output and delivery policy snapshot bindings"),
+      route("GET", "/api/policy-snapshot-binding-validations", "Policy snapshot binding validation rows"),
       route("GET", "/api/policy-contract-freezes", "Policy contract freeze artifacts"),
       route("GET", "/api/data-classification-contracts", "DataClassification v2 contract fixtures"),
       route("GET", "/api/policy-reference-contracts", "PolicyReference v2 contract fixtures"),
@@ -4683,6 +4747,19 @@ function filterItems(items, searchParams) {
     "usage_id",
     "usage_type",
     "snapshot_declared_in_source",
+    "policy_snapshot_binding_status",
+    "policy_snapshot_binding_ledger_id",
+    "workflow_policy_binding_id",
+    "agent_run_policy_binding_id",
+    "event_policy_binding_id",
+    "gate_policy_binding_id",
+    "approval_policy_binding_id",
+    "output_policy_binding_id",
+    "policy_snapshot_known",
+    "binding_source",
+    "declared_policy_snapshot_id",
+    "inherited_workflow_policy_snapshot_id",
+    "linked_output_policy_snapshot_id",
     "context_packet_id",
     "context_item_id",
     "retrieval_filter_id",
@@ -5097,6 +5174,7 @@ function readFilterValue(item, key) {
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
+  if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;
   if (key === "wall_policy_status") return item.summary?.wall_policy_status ?? item.wall_policy_status;
   if (key === "access_policy_status") return item.summary?.access_policy_status ?? item.access_policy_status;
   if (key === "alias_key") return item.alias_keys ?? item.alias_key;
@@ -5104,7 +5182,7 @@ function readFilterValue(item, key) {
   if (key === "identity_model_status") return item.summary?.identity_model_status ?? item.identity_model_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;
-  if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;
+  if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id ?? item.metadata?.runtime_id;
   if (key === "matrix_id") return item.policy_matrix?.matrix_id ?? item.matrix_id;
   if (key === "subject_type") return item.subject_ref?.subject_type ?? item[key];
   if (key === "subject_id") return item.subject_ref?.subject_id ?? item[key];

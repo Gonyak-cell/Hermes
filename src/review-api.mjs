@@ -353,6 +353,72 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/matter-profile-team-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_profile_team_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_profile_team_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_profile_team_ledgers", [ledgerResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-profiles") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_profile_team_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_profile_team_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_profiles", ledgerResult.artifact.matter_team_contract?.matter_profiles ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-team-rosters") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_profile_team_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_profile_team_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_team_rosters", ledgerResult.artifact.matter_team_contract?.matter_team_rosters ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-team-memberships") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_profile_team_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_profile_team_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_team_memberships", ledgerResult.artifact.matter_team_contract?.matter_team_memberships ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-access-subjects") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_profile_team_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_profile_team_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_access_subjects", ledgerResult.artifact.matter_team_contract?.matter_access_subjects ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-profile-team-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "matter_profile_team_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("matter_profile_team_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_profile_team_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -3648,6 +3714,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/matter-party-links", "Matter-party link rows"),
       route("GET", "/api/conflict-reference-index", "Conflict reference index rows"),
       route("GET", "/api/client-counterparty-validations", "Client/counterparty registry validation rows"),
+      route("GET", "/api/matter-profile-team-ledgers", "Matter profile/team ledger artifacts"),
+      route("GET", "/api/matter-profiles", "Matter profile rows"),
+      route("GET", "/api/matter-team-rosters", "Matter team roster rows"),
+      route("GET", "/api/matter-team-memberships", "Matter team membership rows"),
+      route("GET", "/api/matter-access-subjects", "Matter access subject rows"),
+      route("GET", "/api/matter-profile-team-validations", "Matter profile/team ledger validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4009,6 +4081,17 @@ function filterItems(items, searchParams) {
     "conflict_check_status",
     "matter_party_link_id",
     "link_status",
+    "ledger_id",
+    "ledger_status",
+    "matter_profile_id",
+    "profile_status",
+    "team_roster_id",
+    "membership_id",
+    "membership_status",
+    "access_subject_id",
+    "access_decision",
+    "access_basis",
+    "subject_type",
     "freeze_id",
     "freeze_status",
     "identity_model_id",
@@ -4110,8 +4193,6 @@ function filterItems(items, searchParams) {
     "gate_id",
     "stage",
     "blocking_by_default",
-    "ledger_id",
-    "ledger_status",
     "review_status",
     "policy_snapshot_id",
     "policy_reference_id",
@@ -4510,6 +4591,7 @@ function readFilterValue(item, key) {
   if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
+  if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "alias_key") return item.alias_keys ?? item.alias_key;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "identity_model_status") return item.summary?.identity_model_status ?? item.identity_model_status;

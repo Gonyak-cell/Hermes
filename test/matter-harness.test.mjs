@@ -12,6 +12,7 @@ import { runContractValidationSuite } from "../src/contract-validation-suite.mjs
 import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runIdentityModel } from "../src/identity-model.mjs";
 import { runClientCounterpartyRegistry } from "../src/client-counterparty-registry.mjs";
+import { runMatterProfileTeamLedger } from "../src/matter-profile-team-ledger.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -411,6 +412,34 @@ describe("matter harness", () => {
       assert.ok(clientCounterpartyRegistry.registry_contract.conflict_reference_index.every((entry) => entry.conflict_check_status === "ready"));
       assert.ok(clientCounterpartyRegistry.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "client-counterparty-registry", "summary.md"), "utf8"), /Client\/Counterparty Registry/);
+
+      const matterProfileTeamLedger = await runMatterProfileTeamLedger({
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        identityModelPath: path.join(outDir, "identity-model", "identity-model.json"),
+        clientCounterpartyRegistryPath: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
+        outDir: path.join(outDir, "matter-profile-team-ledger"),
+        runAt: "2026-05-23T06:13:55.000Z",
+      });
+      const matterProfileTeamLedgerSchema = JSON.parse(await readFile("schemas/matter-profile-team-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterProfileTeamLedger, matterProfileTeamLedgerSchema, {}, "matter_profile_team_ledger"), []);
+      assert.equal(matterProfileTeamLedger.summary.ledger_status, "complete");
+      assert.equal(matterProfileTeamLedger.summary.source_matter_contract_status, "complete");
+      assert.equal(matterProfileTeamLedger.summary.source_identity_model_status, "complete");
+      assert.equal(matterProfileTeamLedger.summary.source_client_counterparty_registry_status, "complete");
+      assert.equal(matterProfileTeamLedger.summary.matter_profile_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterProfileTeamLedger.summary.matter_team_roster_count, matterContractFreeze.summary.matter_team_count);
+      assert.equal(matterProfileTeamLedger.summary.team_membership_count, matterContractFreeze.summary.team_member_count);
+      assert.equal(matterProfileTeamLedger.summary.active_team_membership_count, matterProfileTeamLedger.summary.team_membership_count);
+      assert.equal(matterProfileTeamLedger.summary.allowed_access_subject_count, matterProfileTeamLedger.summary.team_membership_count);
+      assert.equal(matterProfileTeamLedger.summary.matter_with_team_count, matterContractFreeze.summary.matter_with_team_count);
+      assert.equal(matterProfileTeamLedger.summary.matter_with_responsible_partner_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterProfileTeamLedger.summary.team_member_user_count, 1);
+      assert.equal(matterProfileTeamLedger.summary.validation_error_count, 0);
+      assert.ok(matterProfileTeamLedger.matter_team_contract.matter_profiles.every((profile) => profile.access_scope === "matter_team_only"));
+      assert.ok(matterProfileTeamLedger.matter_team_contract.matter_team_memberships.every((membership) => membership.access_decision === "allow"));
+      assert.ok(matterProfileTeamLedger.matter_team_contract.matter_access_subjects.every((subject) => subject.access_decision === "allow" ? subject.membership_id : !subject.membership_id));
+      assert.ok(matterProfileTeamLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "matter-profile-team-ledger", "summary.md"), "utf8"), /Matter Profile\/Team Ledger/);
 
       const viewer = await runEvidenceViewer({
         inputPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -1209,6 +1238,7 @@ describe("matter harness", () => {
         resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
         matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
         clientCounterpartyRegistryPath: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         evidenceReviewDraftPath: path.join(outDir, "evidence-review-draft", "evidence-review-draft.json"),
@@ -3020,6 +3050,7 @@ describe("matter harness", () => {
           schema_migration_manifest: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
           identity_model: path.join(outDir, "identity-model", "identity-model.json"),
           client_counterparty_registry: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
+          matter_profile_team_ledger: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -3040,8 +3071,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 16);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 16);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 17);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 17);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3053,6 +3084,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_contract_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "client_counterparty_registry"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_profile_team_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3155,6 +3187,10 @@ describe("matter harness", () => {
       assert.equal(clientCounterpartyRegistryCheckpoint?.acceptance_profile, "client_counterparty_registry_gate");
       assert.equal(clientCounterpartyRegistryCheckpoint?.status, "passed");
       assert.equal(clientCounterpartyRegistryCheckpoint?.implementation_status, "passed");
+      const matterProfileTeamLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-profile-team-ledger");
+      assert.equal(matterProfileTeamLedgerCheckpoint?.acceptance_profile, "matter_profile_team_ledger_gate");
+      assert.equal(matterProfileTeamLedgerCheckpoint?.status, "passed");
+      assert.equal(matterProfileTeamLedgerCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3554,6 +3590,19 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.client_counterparty_duplicate_alias_count, 0);
       assert.equal(dashboard.summary.client_counterparty_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.client_counterparty_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_profile_team_ledger_status, "complete");
+      assert.equal(dashboard.summary.matter_profile_team_matter_profile_count, matterProfileTeamLedger.summary.matter_profile_count);
+      assert.equal(dashboard.summary.matter_profile_team_roster_count, matterProfileTeamLedger.summary.matter_team_roster_count);
+      assert.equal(dashboard.summary.matter_profile_team_membership_count, matterProfileTeamLedger.summary.team_membership_count);
+      assert.equal(dashboard.summary.matter_profile_team_active_membership_count, matterProfileTeamLedger.summary.active_team_membership_count);
+      assert.equal(dashboard.summary.matter_profile_team_access_subject_count, matterProfileTeamLedger.summary.matter_access_subject_count);
+      assert.equal(dashboard.summary.matter_profile_team_allowed_access_subject_count, matterProfileTeamLedger.summary.allowed_access_subject_count);
+      assert.equal(dashboard.summary.matter_profile_team_denied_access_subject_count, matterProfileTeamLedger.summary.denied_access_subject_count);
+      assert.equal(dashboard.summary.matter_profile_team_matter_with_team_count, matterProfileTeamLedger.summary.matter_with_team_count);
+      assert.equal(dashboard.summary.matter_profile_team_matter_with_responsible_partner_count, matterProfileTeamLedger.summary.matter_with_responsible_partner_count);
+      assert.equal(dashboard.summary.matter_profile_team_team_member_user_count, matterProfileTeamLedger.summary.team_member_user_count);
+      assert.equal(dashboard.summary.matter_profile_team_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.matter_profile_team_validation_error_count, 0);
       assert.equal(dashboard.summary.policy_contract_freeze_classification_count, policyContractFreeze.summary.classification_count);
       assert.equal(dashboard.summary.policy_contract_freeze_required_classification_count, policyContractFreeze.summary.required_classification_count);
       assert.equal(dashboard.summary.policy_contract_freeze_missing_classification_count, 0);
@@ -4083,6 +4132,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "client_counterparty_registry"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_profile_team_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
@@ -5776,6 +5826,30 @@ describe("matter harness", () => {
       const clientCounterpartyValidations = JSON.parse((await buildReviewApiResponse("/api/client-counterparty-validations?status=passed", apiOptions)).body);
       assert.equal(clientCounterpartyValidations.collection, "client_counterparty_validations");
       assert.equal(clientCounterpartyValidations.count, clientCounterpartyRegistry.summary.validation_item_count);
+
+      const matterProfileTeamLedgers = JSON.parse((await buildReviewApiResponse("/api/matter-profile-team-ledgers?ledger_status=complete", apiOptions)).body);
+      assert.equal(matterProfileTeamLedgers.collection, "matter_profile_team_ledgers");
+      assert.equal(matterProfileTeamLedgers.count, 1);
+
+      const matterProfiles = JSON.parse((await buildReviewApiResponse("/api/matter-profiles?matter_id=matter.alpha.ldd", apiOptions)).body);
+      assert.equal(matterProfiles.collection, "matter_profiles");
+      assert.equal(matterProfiles.count, matterProfileTeamLedger.summary.matter_profile_count);
+
+      const matterTeamRosters = JSON.parse((await buildReviewApiResponse("/api/matter-team-rosters?team_status=active", apiOptions)).body);
+      assert.equal(matterTeamRosters.collection, "matter_team_rosters");
+      assert.equal(matterTeamRosters.count, matterProfileTeamLedger.summary.matter_team_roster_count);
+
+      const matterTeamMemberships = JSON.parse((await buildReviewApiResponse("/api/matter-team-memberships?membership_status=active", apiOptions)).body);
+      assert.equal(matterTeamMemberships.collection, "matter_team_memberships");
+      assert.equal(matterTeamMemberships.count, matterProfileTeamLedger.summary.active_team_membership_count);
+
+      const matterAccessSubjects = JSON.parse((await buildReviewApiResponse("/api/matter-access-subjects?access_decision=allow", apiOptions)).body);
+      assert.equal(matterAccessSubjects.collection, "matter_access_subjects");
+      assert.equal(matterAccessSubjects.count, matterProfileTeamLedger.summary.allowed_access_subject_count);
+
+      const matterProfileTeamValidations = JSON.parse((await buildReviewApiResponse("/api/matter-profile-team-validations?status=passed", apiOptions)).body);
+      assert.equal(matterProfileTeamValidations.collection, "matter_profile_team_validations");
+      assert.equal(matterProfileTeamValidations.count, matterProfileTeamLedger.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

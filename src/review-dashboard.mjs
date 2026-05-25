@@ -9,6 +9,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceContractFreezePath: "artifacts/resource-contract-freeze/latest/resource-contract-freeze.json",
   matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
   clientCounterpartyRegistryPath: "artifacts/client-counterparty-registry/latest/client-counterparty-registry.json",
+  matterProfileTeamLedgerPath: "artifacts/matter-profile-team-ledger/latest/matter-profile-team-ledger.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
@@ -138,6 +139,11 @@ const SOURCE_DEFINITIONS = [
     option: "clientCounterpartyRegistryPath",
     source_id: "client_counterparty_registry",
     label: "Client/Counterparty Registry",
+  },
+  {
+    option: "matterProfileTeamLedgerPath",
+    source_id: "matter_profile_team_ledger",
+    label: "Matter Profile/Team Ledger",
   },
   {
     option: "policyContractFreezePath",
@@ -761,6 +767,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "resource_contract_freeze") return data.summary ?? {};
   if (sourceId === "matter_contract_freeze") return data.summary ?? {};
   if (sourceId === "client_counterparty_registry") return data.summary ?? {};
+  if (sourceId === "matter_profile_team_ledger") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
@@ -955,6 +962,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceContractFreezeStage(artifacts.resource_contract_freeze, sourceById.get("resource_contract_freeze")),
     buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
     buildClientCounterpartyRegistryStage(artifacts.client_counterparty_registry, sourceById.get("client_counterparty_registry")),
+    buildMatterProfileTeamLedgerStage(artifacts.matter_profile_team_ledger, sourceById.get("matter_profile_team_ledger")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
@@ -1235,6 +1243,40 @@ function buildClientCounterpartyRegistryStage(registry, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? registry.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildMatterProfileTeamLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("matter_profile_team_ledger", "Matter Profile/Team Ledger", source);
+  const summary = ledger.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || ledger.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "matter_profile_team_ledger",
+    label: "Matter Profile/Team Ledger",
+    status,
+    message: `${summary.matter_profile_count ?? 0} matter profile(s), ${summary.team_membership_count ?? 0} team membership(s), ${summary.allowed_access_subject_count ?? 0} allowed access subject(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_status: summary.ledger_status ?? "unknown",
+      source_matter_contract_status: summary.source_matter_contract_status ?? "unknown",
+      source_identity_model_status: summary.source_identity_model_status ?? "unknown",
+      source_client_counterparty_registry_status: summary.source_client_counterparty_registry_status ?? "unknown",
+      matter_profile_count: summary.matter_profile_count ?? 0,
+      matter_team_roster_count: summary.matter_team_roster_count ?? 0,
+      team_membership_count: summary.team_membership_count ?? 0,
+      active_team_membership_count: summary.active_team_membership_count ?? 0,
+      matter_access_subject_count: summary.matter_access_subject_count ?? 0,
+      allowed_access_subject_count: summary.allowed_access_subject_count ?? 0,
+      denied_access_subject_count: summary.denied_access_subject_count ?? 0,
+      matter_with_team_count: summary.matter_with_team_count ?? 0,
+      matter_with_responsible_partner_count: summary.matter_with_responsible_partner_count ?? 0,
+      team_member_user_count: summary.team_member_user_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5918,6 +5960,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     client_counterparty_duplicate_alias_count: artifacts.client_counterparty_registry?.summary?.duplicate_alias_count ?? 0,
     client_counterparty_failed_validation_item_count: artifacts.client_counterparty_registry?.summary?.failed_validation_item_count ?? 0,
     client_counterparty_validation_error_count: artifacts.client_counterparty_registry?.summary?.validation_error_count ?? artifacts.client_counterparty_registry?.validation?.errors?.length ?? 0,
+    matter_profile_team_ledger_status: artifacts.matter_profile_team_ledger?.summary?.ledger_status ?? "unknown",
+    matter_profile_team_source_matter_contract_status: artifacts.matter_profile_team_ledger?.summary?.source_matter_contract_status ?? "unknown",
+    matter_profile_team_source_identity_model_status: artifacts.matter_profile_team_ledger?.summary?.source_identity_model_status ?? "unknown",
+    matter_profile_team_source_client_counterparty_registry_status: artifacts.matter_profile_team_ledger?.summary?.source_client_counterparty_registry_status ?? "unknown",
+    matter_profile_team_matter_profile_count: artifacts.matter_profile_team_ledger?.summary?.matter_profile_count ?? 0,
+    matter_profile_team_roster_count: artifacts.matter_profile_team_ledger?.summary?.matter_team_roster_count ?? 0,
+    matter_profile_team_membership_count: artifacts.matter_profile_team_ledger?.summary?.team_membership_count ?? 0,
+    matter_profile_team_active_membership_count: artifacts.matter_profile_team_ledger?.summary?.active_team_membership_count ?? 0,
+    matter_profile_team_access_subject_count: artifacts.matter_profile_team_ledger?.summary?.matter_access_subject_count ?? 0,
+    matter_profile_team_allowed_access_subject_count: artifacts.matter_profile_team_ledger?.summary?.allowed_access_subject_count ?? 0,
+    matter_profile_team_denied_access_subject_count: artifacts.matter_profile_team_ledger?.summary?.denied_access_subject_count ?? 0,
+    matter_profile_team_matter_with_team_count: artifacts.matter_profile_team_ledger?.summary?.matter_with_team_count ?? 0,
+    matter_profile_team_matter_with_responsible_partner_count: artifacts.matter_profile_team_ledger?.summary?.matter_with_responsible_partner_count ?? 0,
+    matter_profile_team_team_member_user_count: artifacts.matter_profile_team_ledger?.summary?.team_member_user_count ?? 0,
+    matter_profile_team_failed_validation_item_count: artifacts.matter_profile_team_ledger?.summary?.failed_validation_item_count ?? 0,
+    matter_profile_team_validation_error_count: artifacts.matter_profile_team_ledger?.summary?.validation_error_count ?? artifacts.matter_profile_team_ledger?.validation?.errors?.length ?? 0,
     policy_contract_freeze_classification_count: artifacts.policy_contract_freeze?.summary?.classification_count ?? 0,
     policy_contract_freeze_required_classification_count: artifacts.policy_contract_freeze?.summary?.required_classification_count ?? 0,
     policy_contract_freeze_missing_classification_count: artifacts.policy_contract_freeze?.summary?.missing_classification_count ?? 0,
@@ -7192,6 +7250,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-contract-freeze") parsed.matterContractFreezePath = false;
     else if (arg === "--client-counterparty-registry") parsed.clientCounterpartyRegistryPath = argv[++index];
     else if (arg === "--no-client-counterparty-registry") parsed.clientCounterpartyRegistryPath = false;
+    else if (arg === "--matter-profile-team-ledger") parsed.matterProfileTeamLedgerPath = argv[++index];
+    else if (arg === "--no-matter-profile-team-ledger") parsed.matterProfileTeamLedgerPath = false;
     else if (arg === "--policy-contract-freeze") parsed.policyContractFreezePath = argv[++index];
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
@@ -7404,6 +7464,10 @@ Options:
                                   client-counterparty-registry.json path.
   --no-client-counterparty-registry
                                   Do not include Client/Counterparty Registry status.
+  --matter-profile-team-ledger <path>
+                                  matter-profile-team-ledger.json path.
+  --no-matter-profile-team-ledger
+                                  Do not include Matter Profile/Team Ledger status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

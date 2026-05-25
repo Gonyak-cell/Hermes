@@ -139,6 +139,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/matter-party-links"));
   assert.ok(index.routes.some((route) => route.path === "/api/conflict-reference-index"));
   assert.ok(index.routes.some((route) => route.path === "/api/client-counterparty-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-profile-team-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-profiles"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-team-rosters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-team-memberships"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-access-subjects"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-profile-team-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1445,6 +1451,30 @@ try {
   const clientCounterpartyValidations = await fetchJson(`${url}/api/client-counterparty-validations?status=passed&limit=5`);
   assert.equal(clientCounterpartyValidations.collection, "client_counterparty_validations");
   assert.ok(clientCounterpartyValidations.count <= 5);
+
+  const matterProfileTeamLedgers = await fetchJson(`${url}/api/matter-profile-team-ledgers?ledger_status=complete&limit=1`);
+  assert.equal(matterProfileTeamLedgers.collection, "matter_profile_team_ledgers");
+  assert.ok(matterProfileTeamLedgers.count <= 1);
+
+  const matterProfiles = await fetchJson(`${url}/api/matter-profiles?matter_id=matter.alpha.ldd&limit=5`);
+  assert.equal(matterProfiles.collection, "matter_profiles");
+  assert.ok(matterProfiles.count <= 5);
+
+  const matterTeamRosters = await fetchJson(`${url}/api/matter-team-rosters?team_status=active&limit=5`);
+  assert.equal(matterTeamRosters.collection, "matter_team_rosters");
+  assert.ok(matterTeamRosters.count <= 5);
+
+  const matterTeamMemberships = await fetchJson(`${url}/api/matter-team-memberships?membership_status=active&limit=5`);
+  assert.equal(matterTeamMemberships.collection, "matter_team_memberships");
+  assert.ok(matterTeamMemberships.count <= 5);
+
+  const matterAccessSubjects = await fetchJson(`${url}/api/matter-access-subjects?access_decision=allow&limit=5`);
+  assert.equal(matterAccessSubjects.collection, "matter_access_subjects");
+  assert.ok(matterAccessSubjects.count <= 5);
+
+  const matterProfileTeamValidations = await fetchJson(`${url}/api/matter-profile-team-validations?status=passed&limit=5`);
+  assert.equal(matterProfileTeamValidations.collection, "matter_profile_team_validations");
+  assert.ok(matterProfileTeamValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

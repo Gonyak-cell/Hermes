@@ -3412,7 +3412,7 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 완료 기준:
 
-- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되었고 Phase 114부터 client_counterparty_registry fixture가 추가되어 현재 golden fixture set은 16개다.
+- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되었고 Phase 114부터 client_counterparty_registry fixture, Phase 115부터 matter_profile_team_ledger fixture가 추가되어 현재 golden fixture set은 17개다.
 - 각 fixture는 artifact path, schema path, artifact schema version, content hash, schema hash, schema validation status, regression lock status를 가진다.
 - 모든 fixture가 대응 schema로 검증되고 regression hash manifest에 포함된다.
 - Dashboard stage와 summary가 `contract_golden_fixtures` 지표를 추적함
@@ -3510,6 +3510,38 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Client/Counterparty Registry를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:party-registry`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 115 - Matter Profile/Team Ledger
+
+목표: Matter/Client/Party v2와 Identity Model, Client/Counterparty Registry를 조합해 matter profile, matter team roster, team membership, matter access subject를 별도 장부로 고정한다.
+
+구현 산출물:
+
+- `src/matter-profile-team-ledger.mjs`
+- `scripts/matter-profile-team-ledger.mjs`
+- `schemas/matter-profile-team-ledger.schema.json`
+- `docs/matter-profile-team-ledger.md`
+- `artifacts/matter-profile-team-ledger/latest/matter-profile-team-ledger.json`
+- `artifacts/matter-profile-team-ledger/latest/matter-profiles.json`
+- `artifacts/matter-profile-team-ledger/latest/matter-team-rosters.json`
+- `artifacts/matter-profile-team-ledger/latest/matter-team-memberships.json`
+- `artifacts/matter-profile-team-ledger/latest/matter-access-subjects.json`
+- `artifacts/matter-profile-team-ledger/latest/validation-report.json`
+- `artifacts/matter-profile-team-ledger/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:matter-teams -- --check`가 matter profile, roster, membership, access subject projection을 생성한다.
+- 모든 Matter v2 source row가 team, boundary, client registry, conflict reference를 가진 matter profile로 투영된다.
+- 모든 MatterTeam v2 source row가 roster로 투영되고 source member count와 membership count가 일치한다.
+- 모든 team member가 human actor principal과 matter role assignment에 연결된 membership row를 가진다.
+- 모든 human user의 per-matter access subject가 team membership 기준으로 allow/deny를 받는다.
+- 각 matter에는 최소 1명의 allowed access subject와 responsible partner가 존재한다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `matter_profile_team_ledger` fixture가 포함되어 golden fixture set이 17개로 확장된다.
+- Dashboard stage와 summary가 `matter_profile_team_ledger` 지표를 추적함
+- Review API에서 `/api/matter-profile-team-ledgers`, `/api/matter-profiles`, `/api/matter-team-rosters`, `/api/matter-team-memberships`, `/api/matter-access-subjects`, `/api/matter-profile-team-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Matter Profile/Team Ledger를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:matter-teams`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3518,9 +3550,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 114이다.
+- 현재 완료 기준점은 Phase 115이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P115-P312, 총 198개다.
+- 남은 계획 슬롯은 P116-P312, 총 197개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

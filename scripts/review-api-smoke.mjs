@@ -182,6 +182,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-dimensions"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-flags"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1983,6 +1988,26 @@ try {
   const evidenceCoverageValidations = await fetchJson(`${url}/api/evidence-coverage-validations?status=passed&limit=5`);
   assert.equal(evidenceCoverageValidations.collection, "evidence_coverage_validations");
   assert.ok(evidenceCoverageValidations.count <= 5);
+
+  const evidenceFlags = await fetchJson(`${url}/api/evidence-flags?evidence_flags_status=complete&limit=1`);
+  assert.equal(evidenceFlags.collection, "evidence_flags");
+  assert.ok(evidenceFlags.count <= 1);
+
+  const evidenceFlagRecords = await fetchJson(`${url}/api/evidence-flag-records?review_status=needs_review&limit=5`);
+  assert.equal(evidenceFlagRecords.collection, "evidence_flag_records");
+  assert.ok(evidenceFlagRecords.count <= 5);
+
+  const evidenceFlagDecisions = await fetchJson(`${url}/api/evidence-flag-decisions?flag_type=redaction&limit=5`);
+  assert.equal(evidenceFlagDecisions.collection, "evidence_flag_decisions");
+  assert.ok(evidenceFlagDecisions.count <= 5);
+
+  const evidenceFlagIndexes = await fetchJson(`${url}/api/evidence-flag-indexes?schema_version=evidence-flag-indexes.v1&limit=1`);
+  assert.equal(evidenceFlagIndexes.collection, "evidence_flag_indexes");
+  assert.ok(evidenceFlagIndexes.count <= 1);
+
+  const evidenceFlagValidations = await fetchJson(`${url}/api/evidence-flag-validations?status=passed&limit=5`);
+  assert.equal(evidenceFlagValidations.collection, "evidence_flag_validations");
+  assert.ok(evidenceFlagValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

@@ -35,6 +35,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
   lineageGraphBuilderPath: "artifacts/lineage-graph/latest/lineage-graph.json",
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
+  evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -298,6 +299,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceCoverageScorePath",
     source_id: "evidence_coverage_score",
     label: "Evidence Coverage Score",
+  },
+  {
+    option: "evidenceFlagsPath",
+    source_id: "evidence_flags",
+    label: "Evidence Flags",
   },
   {
     option: "evidenceContractFreezePath",
@@ -967,6 +973,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "citation_object_store") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
+  if (sourceId === "evidence_flags") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1191,6 +1198,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
     buildLineageGraphBuilderStage(artifacts.lineage_graph_builder, sourceById.get("lineage_graph_builder")),
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
+    buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2751,6 +2759,71 @@ function buildEvidenceCoverageScoreStage(coverage, source) {
       needs_review_score_count: summary.needs_review_score_count ?? 0,
       not_client_facing_output_score_count: summary.not_client_facing_output_score_count ?? 0,
       client_facing_ready_score_count: summary.client_facing_ready_score_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceFlagsStage(flags, source) {
+  if (!flags) return missingStage("evidence_flags", "Evidence Flags", source);
+  const summary = flags.summary ?? {};
+  const errorCount = summary.validation_error_count ?? flags.validation?.errors?.length ?? 0;
+  const recordCount = summary.evidence_flag_record_count ?? 0;
+  const decisionCount = summary.flag_decision_count ?? 0;
+  const status = summary.evidence_flags_status === "complete"
+    && errorCount === 0
+    && recordCount > 0
+    && decisionCount === recordCount * 5
+    && (summary.coverage_score_count ?? 0) === recordCount
+    && (summary.machine_extracted_count ?? 0) === recordCount
+    && (summary.pending_human_confirmation_count ?? 0) === recordCount
+    && (summary.matter_preserved_record_count ?? 0) === recordCount
+    && (summary.classification_preserved_record_count ?? 0) === recordCount
+    && (summary.policy_snapshot_preserved_record_count ?? 0) === recordCount
+    && (summary.not_client_facing_record_count ?? 0) === recordCount
+    && (summary.client_facing_ready_record_count ?? 1) === 0
+    && (summary.needs_review_record_count ?? 0) === recordCount
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_flags",
+    label: "Evidence Flags",
+    status,
+    message: `${recordCount} evidence flag record(s), ${decisionCount} flag decision(s), ${summary.external_transfer_requires_approval_count ?? 0} external-transfer approval hold(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_flags_status: summary.evidence_flags_status ?? "unknown",
+      evidence_flags_contract_id: summary.evidence_flags_contract_id ?? null,
+      evidence_flag_record_schema_version: summary.evidence_flag_record_schema_version ?? null,
+      flag_decision_schema_version: summary.flag_decision_schema_version ?? null,
+      evidence_coverage_status: summary.evidence_coverage_status ?? "unknown",
+      source_span_store_status: summary.source_span_store_status ?? "unknown",
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      fact_claim_store_status: summary.fact_claim_store_status ?? "unknown",
+      issue_graph_store_status: summary.issue_graph_store_status ?? "unknown",
+      coverage_score_count: summary.coverage_score_count ?? 0,
+      evidence_flag_record_count: recordCount,
+      flag_decision_count: decisionCount,
+      expected_flag_decision_count: summary.expected_flag_decision_count ?? recordCount * 5,
+      machine_extracted_count: summary.machine_extracted_count ?? 0,
+      pending_human_confirmation_count: summary.pending_human_confirmation_count ?? 0,
+      privileged_review_required_count: summary.privileged_review_required_count ?? 0,
+      client_confidential_review_required_count: summary.client_confidential_review_required_count ?? 0,
+      no_privilege_signal_detected_count: summary.no_privilege_signal_detected_count ?? 0,
+      redaction_required_count: summary.redaction_required_count ?? 0,
+      redaction_review_required_count: summary.redaction_review_required_count ?? 0,
+      redaction_not_required_count: summary.redaction_not_required_count ?? 0,
+      external_transfer_blocked_count: summary.external_transfer_blocked_count ?? 0,
+      external_transfer_requires_approval_count: summary.external_transfer_requires_approval_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      matter_preserved_record_count: summary.matter_preserved_record_count ?? 0,
+      classification_preserved_record_count: summary.classification_preserved_record_count ?? 0,
+      policy_snapshot_preserved_record_count: summary.policy_snapshot_preserved_record_count ?? 0,
+      needs_review_record_count: summary.needs_review_record_count ?? 0,
+      not_client_facing_record_count: summary.not_client_facing_record_count ?? 0,
+      client_facing_ready_record_count: summary.client_facing_ready_record_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6712,6 +6785,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.evidence_flags?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "evidence_flags";
+    items.push({
+      action_item_id: `dashboard.action.evidence_flags.${slugify(subjectId)}`,
+      source_stage: "evidence_flags",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix evidence flags",
+      subject_ref: {
+        subject_type: "evidence_flags_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_evidence_flags", "rerun_evidence_flags", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8634,6 +8725,28 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_coverage_not_client_facing_output_count: artifacts.evidence_coverage_score?.summary?.not_client_facing_output_score_count ?? 0,
     evidence_coverage_client_facing_ready_count: artifacts.evidence_coverage_score?.summary?.client_facing_ready_score_count ?? 0,
     evidence_coverage_validation_error_count: artifacts.evidence_coverage_score?.summary?.validation_error_count ?? artifacts.evidence_coverage_score?.validation?.errors?.length ?? 0,
+    evidence_flags_status: artifacts.evidence_flags?.summary?.evidence_flags_status ?? "unknown",
+    evidence_flags_contract_id: artifacts.evidence_flags?.summary?.evidence_flags_contract_id ?? null,
+    evidence_flags_record_schema_version: artifacts.evidence_flags?.summary?.evidence_flag_record_schema_version ?? null,
+    evidence_flags_decision_schema_version: artifacts.evidence_flags?.summary?.flag_decision_schema_version ?? null,
+    evidence_flags_coverage_status: artifacts.evidence_flags?.summary?.evidence_coverage_status ?? "unknown",
+    evidence_flags_record_count: artifacts.evidence_flags?.summary?.evidence_flag_record_count ?? 0,
+    evidence_flags_decision_count: artifacts.evidence_flags?.summary?.flag_decision_count ?? 0,
+    evidence_flags_machine_extracted_count: artifacts.evidence_flags?.summary?.machine_extracted_count ?? 0,
+    evidence_flags_pending_human_confirmation_count: artifacts.evidence_flags?.summary?.pending_human_confirmation_count ?? 0,
+    evidence_flags_privileged_review_required_count: artifacts.evidence_flags?.summary?.privileged_review_required_count ?? 0,
+    evidence_flags_client_confidential_review_required_count: artifacts.evidence_flags?.summary?.client_confidential_review_required_count ?? 0,
+    evidence_flags_redaction_required_count: artifacts.evidence_flags?.summary?.redaction_required_count ?? 0,
+    evidence_flags_redaction_review_required_count: artifacts.evidence_flags?.summary?.redaction_review_required_count ?? 0,
+    evidence_flags_external_transfer_blocked_count: artifacts.evidence_flags?.summary?.external_transfer_blocked_count ?? 0,
+    evidence_flags_external_transfer_requires_approval_count: artifacts.evidence_flags?.summary?.external_transfer_requires_approval_count ?? 0,
+    evidence_flags_matter_preserved_count: artifacts.evidence_flags?.summary?.matter_preserved_record_count ?? 0,
+    evidence_flags_classification_preserved_count: artifacts.evidence_flags?.summary?.classification_preserved_record_count ?? 0,
+    evidence_flags_policy_snapshot_preserved_count: artifacts.evidence_flags?.summary?.policy_snapshot_preserved_record_count ?? 0,
+    evidence_flags_needs_review_count: artifacts.evidence_flags?.summary?.needs_review_record_count ?? 0,
+    evidence_flags_not_client_facing_count: artifacts.evidence_flags?.summary?.not_client_facing_record_count ?? 0,
+    evidence_flags_client_facing_ready_count: artifacts.evidence_flags?.summary?.client_facing_ready_record_count ?? 0,
+    evidence_flags_validation_error_count: artifacts.evidence_flags?.summary?.validation_error_count ?? artifacts.evidence_flags?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -10106,6 +10219,8 @@ function parseArgs(argv) {
     else if (arg === "--no-lineage-graph") parsed.lineageGraphBuilderPath = false;
     else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
     else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
+    else if (arg === "--evidence-flags") parsed.evidenceFlagsPath = argv[++index];
+    else if (arg === "--no-evidence-flags") parsed.evidenceFlagsPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10311,6 +10426,8 @@ Options:
   --no-lineage-graph              Do not include Lineage Graph Builder status.
   --evidence-coverage <path>      evidence-coverage-score.json path.
   --no-evidence-coverage          Do not include Evidence Coverage Score status.
+  --evidence-flags <path>         evidence-flags.json path.
+  --no-evidence-flags             Do not include Evidence Flags status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

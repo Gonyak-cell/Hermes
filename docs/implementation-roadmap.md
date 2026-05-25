@@ -4341,6 +4341,35 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 46개로 증가하고 evidence coverage score가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:evidence-coverage -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 145: Evidence Flags
+
+목표: P144 coverage score마다 자동추출 상태, 사람확인 상태, privilege 상태, redaction 상태, 외부전송 가능 상태를 별도 flag decision으로 분리해 로펌 evidence가 human review 전에는 client-facing 또는 외부전송-ready로 오인되지 않도록 한다.
+
+구현 내용:
+
+- `src/evidence-flags.mjs`, `scripts/evidence-flags.mjs`, `schemas/evidence-flags.schema.json`, `docs/evidence-flags.md`를 추가함
+- `npm run resource:evidence-flags -- --check` 명령을 추가해 evidence flag record, flag decision, flag index, validation report, summary markdown을 생성함
+- coverage score마다 하나의 `evidence-flag-record.v1`을 생성하고 extraction, human_confirmation, privilege, redaction, external_transfer 5개 `evidence-flag-decision.v1`을 분리함
+- machine-extracted reliability와 pending human confirmation을 서로 다른 flag로 보존해 agent self-report와 사람 확인을 혼동하지 않도록 함
+- P2 client confidential 자료는 `client_confidential_review_required`, `redaction_review_required`, `external_transfer_requires_approval`로 보수적으로 판정하고 P3-P5 또는 민감 signal은 차단/검토 상태로 승격함
+- 모든 evidence flag record가 matter, classification, policy snapshot을 보존하고 `needs_review`, `not_client_facing`, `client_facing_ready=false` 상태를 유지하도록 gate를 추가함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 evidence flags를 통합함
+- `/api/evidence-flags`, `/api/evidence-flag-records`, `/api/evidence-flag-decisions`, `/api/evidence-flag-indexes`, `/api/evidence-flag-validations` route를 추가함
+
+완료 기준:
+
+- Evidence Flags가 validation error 없이 `complete` 상태가 됨
+- evidence flag record 수가 coverage score 수와 일치함
+- flag decision 수가 evidence flag record 수의 5배와 일치함
+- 모든 record가 extraction/human_confirmation/privilege/redaction/external_transfer flag를 별도 decision으로 가짐
+- 모든 machine-extracted record가 pending human confirmation 상태로 유지되어 사람 확인 전 자동 승인되지 않음
+- 모든 record가 matter, classification, policy snapshot을 보존함
+- 모든 record가 `needs_review`, `not_client_facing`, `client_facing_ready=false` 상태를 유지함
+- Review Dashboard summary와 stage status에서 flag count, privilege/redaction/external-transfer 상태, preservation, review/client-facing 상태가 노출됨
+- Review API smoke가 evidence flags, record, decision, index, validation route를 모두 조회함
+- Golden fixture 수가 47개로 증가하고 evidence flags가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:evidence-flags -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4349,9 +4378,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 144이다.
+- 현재 완료 기준점은 Phase 145이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P145-P312, 총 168개다.
+- 남은 계획 슬롯은 P146-P312, 총 167개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -43,6 +43,7 @@ const GOAL_ITEMS = [
   sourceItem("citation_object_store", "Citation object store", "resource_evidence", "citation_object_store", "control-plane-citation-object-store", { acceptance_profile: "citation_object_store_gate" }),
   sourceItem("lineage_graph_builder", "Lineage graph builder", "resource_evidence", "lineage_graph_builder", "control-plane-lineage-graph-builder", { acceptance_profile: "lineage_graph_builder_gate" }),
   sourceItem("evidence_coverage_score", "Evidence coverage score", "resource_evidence", "evidence_coverage_score", "control-plane-evidence-coverage-score", { acceptance_profile: "evidence_coverage_score_gate" }),
+  sourceItem("evidence_flags", "Evidence flags", "resource_evidence", "evidence_flags", "control-plane-evidence-flags", { acceptance_profile: "evidence_flags_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -393,6 +394,7 @@ function evaluateStageAcceptance(item, stage) {
     "citation_object_store_gate",
     "lineage_graph_builder_gate",
     "evidence_coverage_score_gate",
+    "evidence_flags_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -877,6 +879,34 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.needs_review_score_count ?? 0) === scoreCount
     ) {
       return passedWithOperationalGate(stage, "Evidence coverage score calculates claim, date, party, amount, and legal-basis coverage for each lineage path while keeping outputs review-pending.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_flags_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const recordCount = metrics.evidence_flag_record_count ?? 0;
+    const decisionCount = metrics.flag_decision_count ?? 0;
+    if (
+      errors === 0
+      && metrics.evidence_flags_status === "complete"
+      && metrics.evidence_coverage_status === "complete"
+      && metrics.source_span_store_status === "complete"
+      && metrics.evidence_item_store_status === "complete"
+      && metrics.fact_claim_store_status === "complete"
+      && metrics.issue_graph_store_status === "complete"
+      && recordCount > 0
+      && (metrics.coverage_score_count ?? 0) === recordCount
+      && decisionCount === recordCount * 5
+      && (metrics.machine_extracted_count ?? 0) === recordCount
+      && (metrics.pending_human_confirmation_count ?? 0) === recordCount
+      && (metrics.matter_preserved_record_count ?? 0) === recordCount
+      && (metrics.classification_preserved_record_count ?? 0) === recordCount
+      && (metrics.policy_snapshot_preserved_record_count ?? 0) === recordCount
+      && (metrics.not_client_facing_record_count ?? 0) === recordCount
+      && (metrics.client_facing_ready_record_count ?? 1) === 0
+      && (metrics.needs_review_record_count ?? 0) === recordCount
+    ) {
+      return passedWithOperationalGate(stage, "Evidence flags separate machine extraction, human confirmation, privilege, redaction, and external-transfer state while keeping evidence review-pending.");
     }
   }
 

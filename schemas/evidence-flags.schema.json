@@ -1,0 +1,314 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-flags.schema.json",
+  "title": "Hermes Evidence Flags",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_flags_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "evidence_flags_contract",
+    "evidence_flag_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-flags.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_flags_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "evidence_coverage_path",
+        "source_span_store_path",
+        "evidence_item_store_path",
+        "fact_claim_store_path",
+        "issue_graph_store_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "evidence_coverage_path": { "type": "string" },
+        "source_span_store_path": { "type": "string" },
+        "evidence_item_store_path": { "type": "string" },
+        "fact_claim_store_path": { "type": "string" },
+        "issue_graph_store_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "evidence_flags_contract": { "$ref": "#/$defs/evidence_flags_contract" },
+    "evidence_flag_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "evidence_flag_records", "flag_decisions", "flag_indexes"],
+      "properties": {
+        "schema_version": { "const": "evidence-flag-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "evidence_flag_records": { "type": "array", "items": { "$ref": "#/$defs/evidence_flag_record" } },
+        "flag_decisions": { "type": "array", "items": { "$ref": "#/$defs/flag_decision" } },
+        "flag_indexes": { "$ref": "#/$defs/flag_indexes" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "evidence_flags_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_flags_contract_id",
+        "generated_at",
+        "evidence_flag_record_schema_version",
+        "flag_decision_schema_version",
+        "flag_types",
+        "source_inputs",
+        "separation_rule",
+        "privilege_rule",
+        "redaction_rule",
+        "output_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-flags-contract.v1" },
+        "evidence_flags_contract_id": { "const": "evidence-flags.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "evidence_flag_record_schema_version": { "const": "evidence-flag-record.v1" },
+        "flag_decision_schema_version": { "const": "evidence-flag-decision.v1" },
+        "flag_types": {
+          "type": "array",
+          "items": { "enum": ["extraction", "human_confirmation", "privilege", "redaction", "external_transfer"] }
+        },
+        "source_inputs": { "type": "array", "items": { "type": "string" } },
+        "separation_rule": { "type": "string" },
+        "privilege_rule": { "type": "string" },
+        "redaction_rule": { "type": "string" },
+        "output_rule": { "type": "string" }
+      }
+    },
+    "evidence_flag_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_flag_record_id",
+        "coverage_score_id",
+        "lineage_path_id",
+        "output_paragraph_id",
+        "citation_id",
+        "issue_id",
+        "fact_id",
+        "evidence_item_id",
+        "source_span_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "extraction_flag",
+        "human_confirmation_flag",
+        "privilege_flag",
+        "redaction_flag",
+        "external_transfer_flag",
+        "flag_decision_ids",
+        "flag_decisions",
+        "review_status",
+        "human_review_required",
+        "output_client_facing_status",
+        "client_facing_ready",
+        "matter_preserved",
+        "classification_preserved",
+        "policy_snapshot_preserved",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-flag-record.v1" },
+        "evidence_flag_record_id": { "type": "string" },
+        "coverage_score_id": { "type": "string" },
+        "lineage_path_id": { "type": "string" },
+        "output_paragraph_id": { "type": "string" },
+        "citation_id": { "type": "string" },
+        "issue_id": { "type": "string" },
+        "fact_id": { "type": ["string", "null"] },
+        "evidence_item_id": { "type": ["string", "null"] },
+        "source_span_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "extraction_flag": { "enum": ["machine_extracted", "human_submitted", "unknown_extraction_state"] },
+        "human_confirmation_flag": { "enum": ["pending_human_confirmation", "human_confirmed", "human_rejected"] },
+        "privilege_flag": { "enum": ["privileged_review_required", "client_confidential_review_required", "no_privilege_signal_detected"] },
+        "redaction_flag": { "enum": ["redaction_required", "redaction_review_required", "redaction_not_required"] },
+        "external_transfer_flag": { "enum": ["external_transfer_blocked", "external_transfer_requires_approval", "external_transfer_allowed_by_classification"] },
+        "flag_decision_ids": { "type": "array", "items": { "type": "string" } },
+        "flag_decisions": { "type": "array", "items": { "$ref": "#/$defs/flag_decision" } },
+        "review_status": { "type": "string" },
+        "human_review_required": { "type": "boolean" },
+        "output_client_facing_status": { "type": ["string", "null"] },
+        "client_facing_ready": { "type": "boolean" },
+        "matter_preserved": { "type": "boolean" },
+        "classification_preserved": { "type": "boolean" },
+        "policy_snapshot_preserved": { "type": "boolean" },
+        "source_binding_status": { "type": "string" },
+        "coverage_status": { "type": "string" },
+        "coverage_score": { "type": "number" },
+        "missing_required_dimension_count": { "type": "number" },
+        "required_dimension_count": { "type": "number" },
+        "covered_required_dimension_count": { "type": "number" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "flag_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "flag_decision_id",
+        "evidence_flag_record_id",
+        "coverage_score_id",
+        "flag_type",
+        "flag_value",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "decision_source",
+        "decision_basis",
+        "human_review_required",
+        "created_at",
+        "rationale"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-flag-decision.v1" },
+        "flag_decision_id": { "type": "string" },
+        "evidence_flag_record_id": { "type": "string" },
+        "coverage_score_id": { "type": "string" },
+        "flag_type": { "enum": ["extraction", "human_confirmation", "privilege", "redaction", "external_transfer"] },
+        "flag_value": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "decision_source": { "type": "string" },
+        "decision_basis": { "type": "string" },
+        "human_review_required": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "flag_indexes": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "by_matter_id",
+        "by_classification",
+        "by_extraction_flag",
+        "by_human_confirmation_flag",
+        "by_privilege_flag",
+        "by_redaction_flag",
+        "by_external_transfer_flag",
+        "by_review_status",
+        "by_flag_type",
+        "by_flag_value"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-flag-indexes.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_extraction_flag": { "type": "object" },
+        "by_human_confirmation_flag": { "type": "object" },
+        "by_privilege_flag": { "type": "object" },
+        "by_redaction_flag": { "type": "object" },
+        "by_external_transfer_flag": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "by_flag_type": { "type": "object" },
+        "by_flag_value": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "type": "string" },
+        "severity": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_flags_status",
+        "evidence_flags_contract_id",
+        "evidence_flag_record_schema_version",
+        "flag_decision_schema_version",
+        "evidence_coverage_status",
+        "coverage_score_count",
+        "evidence_flag_record_count",
+        "flag_decision_count",
+        "machine_extracted_count",
+        "pending_human_confirmation_count",
+        "redaction_required_count",
+        "redaction_review_required_count",
+        "external_transfer_blocked_count",
+        "external_transfer_requires_approval_count",
+        "client_facing_ready_record_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_flags_status": { "type": "string" },
+        "evidence_flags_contract_id": { "const": "evidence-flags.v1" },
+        "evidence_flag_record_schema_version": { "const": "evidence-flag-record.v1" },
+        "flag_decision_schema_version": { "const": "evidence-flag-decision.v1" },
+        "evidence_coverage_status": { "type": "string" },
+        "coverage_score_count": { "type": "number" },
+        "evidence_flag_record_count": { "type": "number" },
+        "flag_decision_count": { "type": "number" },
+        "machine_extracted_count": { "type": "number" },
+        "pending_human_confirmation_count": { "type": "number" },
+        "redaction_required_count": { "type": "number" },
+        "redaction_review_required_count": { "type": "number" },
+        "external_transfer_blocked_count": { "type": "number" },
+        "external_transfer_requires_approval_count": { "type": "number" },
+        "client_facing_ready_record_count": { "type": "number" },
+        "validation_error_count": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

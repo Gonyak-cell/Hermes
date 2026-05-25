@@ -355,6 +355,8 @@ Custody event route는 `custody_event_ledger_status`, `custody_event_id`, `custo
 
 Search index route는 `search_index_contract_status`, `search_index_id`, `search_index_field_id`, `search_index_query_plan_id`, `collection_id`, `source_artifact_id`, `index_status`, `field_role`, `field_name`, `query_profile`, `query_status`, `executable`, `schema_version`, `status`, `limit` query를 지원한다.
 
+Vector policy route는 `vector_index_policy_boundary_status`, `vector_policy_gate_id`, `embedding_route_policy_id`, `collection_id`, `source_artifact_id`, `gate_status`, `route_status`, `embedding_execution_status`, `retrieval_execution_status`, `route_executable`, `classification`, `policy_external_embedding_decision`, `external_embedding_transfer_status`, `external_embedding_allowed`, `schema_version`, `status`, `limit` query를 지원한다.
+
 ## 검증
 
 ```bash

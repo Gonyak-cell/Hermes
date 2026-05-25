@@ -41,6 +41,7 @@ import { runEvidenceFlags } from "../src/evidence-flags.mjs";
 import { runExhibitMap } from "../src/exhibit-map.mjs";
 import { runChainOfCustodyEvents } from "../src/chain-of-custody-events.mjs";
 import { runSearchIndexContract } from "../src/search-index-contract.mjs";
+import { runVectorIndexPolicyBoundary } from "../src/vector-index-policy-boundary.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1668,6 +1669,7 @@ describe("matter harness", () => {
         exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
         chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
         searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
+        vectorIndexPolicyBoundaryPath: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4326,6 +4328,51 @@ describe("matter harness", () => {
       assert.ok(searchIndexContract.search_index_catalog.search_index_query_plans.every((plan) => plan.executable === false && plan.query_status === "held_for_retrieval_filter_compiler"));
       assert.match(await readFile(path.join(outDir, "search-index", "summary.md"), "utf8"), /Search Index Contract/);
 
+      const vectorIndexPolicyBoundary = await runVectorIndexPolicyBoundary({
+        searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        wallPolicyContractPath: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        outDir: path.join(outDir, "vector-index-policy"),
+        runAt: "2026-05-23T06:35:08.005Z",
+      });
+      const vectorIndexPolicyBoundarySchema = JSON.parse(await readFile("schemas/vector-index-policy-boundary.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(vectorIndexPolicyBoundary, vectorIndexPolicyBoundarySchema, {}, "vector_index_policy_boundary"),
+        [],
+      );
+      assert.equal(vectorIndexPolicyBoundary.summary.vector_index_policy_boundary_status, "complete");
+      assert.equal(vectorIndexPolicyBoundary.summary.search_index_contract_status, "complete");
+      assert.equal(vectorIndexPolicyBoundary.summary.matter_access_policy_status, "complete");
+      assert.equal(vectorIndexPolicyBoundary.summary.wall_policy_status, "complete");
+      assert.equal(vectorIndexPolicyBoundary.summary.classification_rule_engine_status, "complete");
+      assert.equal(vectorIndexPolicyBoundary.summary.model_policy_enforcement_status, "complete");
+      assert.equal(vectorIndexPolicyBoundary.summary.vector_policy_gate_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.covered_search_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.embedding_route_policy_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count * vectorIndexPolicyBoundary.summary.classification_model_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.embedding_route_policy_count, vectorIndexPolicyBoundary.summary.expected_embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.matter_wall_enforced_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.external_model_policy_enforced_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.classification_policy_enforced_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.policy_snapshot_bound_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.held_vector_policy_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.source_ref_preserved_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.executable_vector_gate_count, 0);
+      assert.equal(vectorIndexPolicyBoundary.summary.matter_wall_enforced_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.external_model_policy_enforced_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.classification_policy_enforced_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.policy_snapshot_bound_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.held_embedding_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.source_ref_preserved_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.executable_vector_route_count, 0);
+      assert.equal(vectorIndexPolicyBoundary.summary.p2_p5_external_blocked_or_review_route_count, vectorIndexPolicyBoundary.summary.p2_p5_embedding_route_count);
+      assert.equal(vectorIndexPolicyBoundary.summary.validation_error_count, 0);
+      assert.ok(vectorIndexPolicyBoundary.vector_policy_catalog.vector_policy_gates.every((gate) => gate.gate_status === "held_for_vector_policy" && gate.executable === false && gate.matter_wall_enforced === true && gate.external_model_policy_enforced === true));
+      assert.ok(vectorIndexPolicyBoundary.vector_policy_catalog.embedding_route_policies.every((route) => route.route_executable === false && route.route_status === "held_for_vector_policy"));
+      assert.ok(vectorIndexPolicyBoundary.vector_policy_catalog.embedding_route_policies.filter((route) => route.classification_ordinal >= 2).every((route) => route.policy_external_embedding_decision !== "allow" && route.external_embedding_allowed === false));
+      assert.match(await readFile(path.join(outDir, "vector-index-policy", "summary.md"), "utf8"), /Vector Index Policy Boundary/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4363,6 +4410,7 @@ describe("matter harness", () => {
           exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
           chain_of_custody_events: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
           search_index_contract: path.join(outDir, "search-index", "search-index-contract.json"),
+          vector_index_policy_boundary: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4388,8 +4436,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 50);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 50);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 51);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 51);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4430,6 +4478,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "chain_of_custody_events"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "search_index_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "vector_index_policy_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4474,6 +4523,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:vector-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4674,6 +4724,10 @@ describe("matter harness", () => {
       assert.equal(searchIndexContractCheckpoint?.acceptance_profile, "search_index_contract_gate");
       assert.equal(searchIndexContractCheckpoint?.status, "passed");
       assert.equal(searchIndexContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const vectorIndexPolicyBoundaryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-vector-index-policy-boundary");
+      assert.equal(vectorIndexPolicyBoundaryCheckpoint?.acceptance_profile, "vector_index_policy_boundary_gate");
+      assert.equal(vectorIndexPolicyBoundaryCheckpoint?.status, "passed");
+      assert.equal(vectorIndexPolicyBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5680,6 +5734,30 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.search_index_executable_query_plan_count, 0);
       assert.equal(dashboard.summary.search_index_source_ref_preserved_query_plan_count, searchIndexContract.summary.search_index_query_plan_count);
       assert.equal(dashboard.summary.search_index_validation_error_count, 0);
+      assert.equal(dashboard.summary.vector_index_policy_boundary_status, "complete");
+      assert.equal(dashboard.summary.vector_index_policy_boundary_id, "vector-index-policy-boundary.v1");
+      assert.equal(dashboard.summary.vector_policy_search_index_query_plan_count, vectorIndexPolicyBoundary.summary.search_index_query_plan_count);
+      assert.equal(dashboard.summary.vector_policy_classification_model_gate_count, vectorIndexPolicyBoundary.summary.classification_model_gate_count);
+      assert.equal(dashboard.summary.vector_policy_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_covered_search_query_plan_count, vectorIndexPolicyBoundary.summary.covered_search_query_plan_count);
+      assert.equal(dashboard.summary.vector_policy_embedding_route_policy_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_expected_embedding_route_policy_count, vectorIndexPolicyBoundary.summary.expected_embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_matter_wall_enforced_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_external_model_policy_enforced_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_classification_policy_enforced_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_policy_snapshot_bound_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_held_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_source_ref_preserved_gate_count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+      assert.equal(dashboard.summary.vector_policy_executable_gate_count, 0);
+      assert.equal(dashboard.summary.vector_policy_matter_wall_enforced_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_external_model_policy_enforced_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_classification_policy_enforced_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_policy_snapshot_bound_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_held_embedding_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_executable_route_count, 0);
+      assert.equal(dashboard.summary.vector_policy_source_ref_preserved_route_count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+      assert.equal(dashboard.summary.vector_policy_p2_p5_external_blocked_or_review_route_count, vectorIndexPolicyBoundary.summary.p2_p5_embedding_route_count);
+      assert.equal(dashboard.summary.vector_policy_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -6227,6 +6305,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "chain_of_custody_events"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "search_index_contract"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "vector_index_policy_boundary"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -6404,6 +6483,10 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-fields"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-query-plans"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-index-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/vector-index-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/vector-policy-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/embedding-route-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/vector-policy-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -8522,6 +8605,26 @@ describe("matter harness", () => {
       const searchIndexValidations = JSON.parse((await buildReviewApiResponse("/api/search-index-validations?status=passed", apiOptions)).body);
       assert.equal(searchIndexValidations.collection, "search_index_validations");
       assert.equal(searchIndexValidations.count, searchIndexContract.summary.validation_item_count);
+
+      const vectorIndexPolicies = JSON.parse((await buildReviewApiResponse("/api/vector-index-policies?vector_index_policy_boundary_status=complete", apiOptions)).body);
+      assert.equal(vectorIndexPolicies.collection, "vector_index_policies");
+      assert.equal(vectorIndexPolicies.count, 1);
+
+      const vectorPolicyGates = JSON.parse((await buildReviewApiResponse("/api/vector-policy-gates?gate_status=held_for_vector_policy", apiOptions)).body);
+      assert.equal(vectorPolicyGates.collection, "vector_policy_gates");
+      assert.equal(vectorPolicyGates.count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+
+      const embeddingRoutePolicies = JSON.parse((await buildReviewApiResponse("/api/embedding-route-policies?route_status=held_for_vector_policy", apiOptions)).body);
+      assert.equal(embeddingRoutePolicies.collection, "embedding_route_policies");
+      assert.equal(embeddingRoutePolicies.count, vectorIndexPolicyBoundary.summary.embedding_route_policy_count);
+
+      const sensitiveEmbeddingRoutePolicies = JSON.parse((await buildReviewApiResponse("/api/embedding-route-policies?classification=P2_CLIENT_CONFIDENTIAL", apiOptions)).body);
+      assert.equal(sensitiveEmbeddingRoutePolicies.collection, "embedding_route_policies");
+      assert.equal(sensitiveEmbeddingRoutePolicies.count, vectorIndexPolicyBoundary.summary.vector_policy_gate_count);
+
+      const vectorPolicyValidations = JSON.parse((await buildReviewApiResponse("/api/vector-policy-validations?status=passed", apiOptions)).body);
+      assert.equal(vectorPolicyValidations.collection, "vector_policy_validations");
+      assert.equal(vectorPolicyValidations.count, vectorIndexPolicyBoundary.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

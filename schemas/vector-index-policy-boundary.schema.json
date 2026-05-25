@@ -1,0 +1,292 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/vector-index-policy-boundary.schema.json",
+  "title": "Hermes Vector Index Policy Boundary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "vector_index_policy_boundary_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "vector_index_policy_contract",
+    "vector_policy_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "vector-index-policy-boundary.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "vector_index_policy_boundary_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "vector_index_policy_contract": { "$ref": "#/$defs/vector_index_policy_contract" },
+    "vector_policy_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "vector_policy_gates", "embedding_route_policies"],
+      "properties": {
+        "schema_version": { "const": "vector-policy-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "vector_policy_gates": { "type": "array", "items": { "$ref": "#/$defs/vector_policy_gate" } },
+        "embedding_route_policies": { "type": "array", "items": { "$ref": "#/$defs/embedding_route_policy" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "vector_index_policy_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "vector_index_policy_boundary_id",
+        "generated_at",
+        "vector_policy_gate_schema_version",
+        "embedding_route_policy_schema_version",
+        "required_query_filters",
+        "required_policy_gates",
+        "enforcement_rule",
+        "execution_rule",
+        "source_ref_rule",
+        "output_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "vector-index-policy-contract-definition.v1" },
+        "vector_index_policy_boundary_id": { "const": "vector-index-policy-boundary.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "vector_policy_gate_schema_version": { "const": "vector-policy-gate.v1" },
+        "embedding_route_policy_schema_version": { "const": "embedding-route-policy.v1" },
+        "required_query_filters": { "$ref": "#/$defs/required_query_filters" },
+        "required_policy_gates": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 9
+        },
+        "enforcement_rule": { "type": "string" },
+        "execution_rule": { "type": "string" },
+        "source_ref_rule": { "type": "string" },
+        "output_rule": { "type": "string" }
+      }
+    },
+    "vector_policy_gate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "vector_policy_gate_id",
+        "search_index_query_plan_id",
+        "search_index_id",
+        "collection_id",
+        "source_artifact_id",
+        "required_filters",
+        "required_gates",
+        "gate_status",
+        "vector_materialization_status",
+        "embedding_execution_status",
+        "retrieval_execution_status",
+        "route_compilation_status",
+        "executable",
+        "failure_mode",
+        "tenant_filter_required",
+        "matter_filter_required",
+        "classification_filter_required",
+        "policy_snapshot_filter_required",
+        "pre_retrieval_gate_required",
+        "matter_wall_enforced",
+        "external_model_policy_enforced",
+        "classification_policy_enforced",
+        "policy_snapshot_bound",
+        "source_ref_preserved",
+        "wall_policy_rule_ids",
+        "retrieval_wall_filter_ids",
+        "classification_model_gate_ids",
+        "policy_snapshot_ids",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "vector-policy-gate.v1" },
+        "vector_policy_gate_id": { "type": "string" },
+        "search_index_query_plan_id": { "type": "string" },
+        "search_index_id": { "type": "string" },
+        "collection_id": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "record_type": { "type": ["string", "null"] },
+        "required_filters": { "$ref": "#/$defs/required_query_filters" },
+        "blocked_without_filters": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" }, "minItems": 9 },
+        "gate_status": { "const": "held_for_vector_policy" },
+        "vector_materialization_status": { "const": "not_materialized" },
+        "embedding_execution_status": { "const": "held_for_vector_policy" },
+        "retrieval_execution_status": { "const": "held_for_retrieval_filter_compiler" },
+        "route_compilation_status": { "const": "not_compiled" },
+        "executable": { "const": false },
+        "failure_mode": { "const": "reject_embedding_or_vector_lookup_before_policy_boundary" },
+        "tenant_filter_required": { "const": true },
+        "matter_filter_required": { "const": true },
+        "classification_filter_required": { "const": true },
+        "policy_snapshot_filter_required": { "const": true },
+        "pre_retrieval_gate_required": { "const": true },
+        "matter_wall_enforced": { "const": true },
+        "external_model_policy_enforced": { "const": true },
+        "classification_policy_enforced": { "const": true },
+        "policy_snapshot_bound": { "const": true },
+        "redaction_gate_required": { "type": "boolean" },
+        "human_approval_gate_required": { "type": "boolean" },
+        "audit_required": { "type": "boolean" },
+        "source_ref_preserved": { "const": true },
+        "source_ref_fields": { "type": "array", "items": { "type": "string" } },
+        "wall_policy_rule_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "retrieval_wall_filter_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "access_policy_rule_ids": { "type": "array", "items": { "type": "string" } },
+        "classification_model_gate_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "external_model_decisions": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_ids": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "embedding_route_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "embedding_route_policy_id",
+        "vector_policy_gate_id",
+        "search_index_query_plan_id",
+        "search_index_id",
+        "collection_id",
+        "source_artifact_id",
+        "classification_model_gate_id",
+        "classification",
+        "classification_ordinal",
+        "external_model_policy",
+        "policy_external_embedding_decision",
+        "external_embedding_transfer_status",
+        "external_embedding_allowed",
+        "matter_wall_enforced",
+        "external_model_policy_enforced",
+        "classification_policy_enforced",
+        "policy_snapshot_bound",
+        "source_ref_preserved",
+        "route_status",
+        "embedding_execution_status",
+        "retrieval_execution_status",
+        "route_executable",
+        "execution_block_reason",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "embedding-route-policy.v1" },
+        "embedding_route_policy_id": { "type": "string" },
+        "vector_policy_gate_id": { "type": "string" },
+        "search_index_query_plan_id": { "type": "string" },
+        "search_index_id": { "type": "string" },
+        "collection_id": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "classification_model_gate_id": { "type": "string" },
+        "classification_rule_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "classification_ordinal": { "type": "integer", "minimum": 0 },
+        "sensitive_data": { "type": "boolean" },
+        "external_model_policy": { "type": "string" },
+        "policy_external_embedding_decision": { "enum": ["allow", "review", "deny"] },
+        "external_embedding_transfer_status": { "enum": ["allowed_with_audit", "approval_required", "forbidden"] },
+        "external_embedding_allowed": { "type": "boolean" },
+        "local_embedding_policy": { "type": "string" },
+        "redaction_policy": { "type": "string" },
+        "redaction_required": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "audit_required": { "type": "boolean" },
+        "required_filters": { "$ref": "#/$defs/required_query_filters" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "matter_wall_enforced": { "const": true },
+        "external_model_policy_enforced": { "const": true },
+        "classification_policy_enforced": { "const": true },
+        "policy_snapshot_bound": { "const": true },
+        "source_ref_preserved": { "const": true },
+        "route_status": { "const": "held_for_vector_policy" },
+        "embedding_execution_status": { "const": "held_for_vector_policy" },
+        "retrieval_execution_status": { "const": "held_for_retrieval_filter_compiler" },
+        "route_executable": { "const": false },
+        "execution_block_reason": { "const": "vector_adapter_not_bound" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "required_query_filters": {
+      "type": "array",
+      "items": { "enum": ["tenant_id", "matter_id", "classification", "policy_snapshot_id"] },
+      "minItems": 4
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "vector_index_policy_boundary_status",
+        "vector_policy_gate_count",
+        "embedding_route_policy_count",
+        "covered_search_query_plan_count",
+        "matter_wall_enforced_gate_count",
+        "external_model_policy_enforced_gate_count",
+        "classification_policy_enforced_gate_count",
+        "policy_snapshot_bound_gate_count",
+        "executable_vector_route_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "vector_index_policy_boundary_status": { "enum": ["complete", "blocked"] },
+        "vector_index_policy_boundary_id": { "const": "vector-index-policy-boundary.v1" },
+        "vector_policy_gate_count": { "type": "integer", "minimum": 0 },
+        "embedding_route_policy_count": { "type": "integer", "minimum": 0 },
+        "covered_search_query_plan_count": { "type": "integer", "minimum": 0 },
+        "matter_wall_enforced_gate_count": { "type": "integer", "minimum": 0 },
+        "external_model_policy_enforced_gate_count": { "type": "integer", "minimum": 0 },
+        "classification_policy_enforced_gate_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_bound_gate_count": { "type": "integer", "minimum": 0 },
+        "executable_vector_route_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

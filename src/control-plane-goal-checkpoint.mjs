@@ -47,6 +47,7 @@ const GOAL_ITEMS = [
   sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
   sourceItem("chain_of_custody_events", "Chain of custody events", "resource_evidence", "chain_of_custody_events", "control-plane-chain-of-custody-events", { acceptance_profile: "chain_of_custody_events_gate" }),
   sourceItem("search_index_contract", "Search index contract", "resource_evidence", "search_index_contract", "control-plane-search-index-contract", { acceptance_profile: "search_index_contract_gate" }),
+  sourceItem("vector_index_policy_boundary", "Vector index policy boundary", "resource_evidence", "vector_index_policy_boundary", "control-plane-vector-index-policy-boundary", { acceptance_profile: "vector_index_policy_boundary_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -401,6 +402,7 @@ function evaluateStageAcceptance(item, stage) {
     "exhibit_map_gate",
     "chain_of_custody_events_gate",
     "search_index_contract_gate",
+    "vector_index_policy_boundary_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1019,6 +1021,43 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.source_ref_preserved_query_plan_count ?? 0) === queryPlanCount
     ) {
       return passedWithOperationalGate(stage, "Search index contract is implemented as a held manifest/query-plan layer that requires tenant, matter, classification, and policy snapshot filters before retrieval.");
+    }
+  }
+
+  if (item.acceptance_profile === "vector_index_policy_boundary_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const gateCount = metrics.vector_policy_gate_count ?? 0;
+    const queryPlanCount = metrics.search_index_query_plan_count ?? 0;
+    const routeCount = metrics.embedding_route_policy_count ?? 0;
+    if (
+      errors === 0
+      && metrics.vector_index_policy_boundary_status === "complete"
+      && metrics.search_index_contract_status === "complete"
+      && metrics.matter_access_policy_status === "complete"
+      && metrics.wall_policy_status === "complete"
+      && metrics.classification_rule_engine_status === "complete"
+      && metrics.model_policy_enforcement_status === "complete"
+      && gateCount > 0
+      && gateCount === queryPlanCount
+      && (metrics.covered_search_query_plan_count ?? 0) === queryPlanCount
+      && routeCount === (metrics.expected_embedding_route_policy_count ?? -1)
+      && (metrics.matter_wall_enforced_gate_count ?? 0) === gateCount
+      && (metrics.external_model_policy_enforced_gate_count ?? 0) === gateCount
+      && (metrics.classification_policy_enforced_gate_count ?? 0) === gateCount
+      && (metrics.policy_snapshot_bound_gate_count ?? 0) === gateCount
+      && (metrics.held_vector_policy_gate_count ?? 0) === gateCount
+      && (metrics.source_ref_preserved_gate_count ?? 0) === gateCount
+      && (metrics.executable_vector_gate_count ?? 1) === 0
+      && (metrics.matter_wall_enforced_route_count ?? 0) === routeCount
+      && (metrics.external_model_policy_enforced_route_count ?? 0) === routeCount
+      && (metrics.classification_policy_enforced_route_count ?? 0) === routeCount
+      && (metrics.policy_snapshot_bound_route_count ?? 0) === routeCount
+      && (metrics.held_embedding_route_count ?? 0) === routeCount
+      && (metrics.source_ref_preserved_route_count ?? 0) === routeCount
+      && (metrics.executable_vector_route_count ?? 1) === 0
+      && (metrics.p2_p5_external_blocked_or_review_route_count ?? 0) === (metrics.p2_p5_embedding_route_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Vector index policy boundary keeps embedding and vector retrieval held until matter wall, classification, external model policy, and policy snapshot gates are bound.");
     }
   }
 

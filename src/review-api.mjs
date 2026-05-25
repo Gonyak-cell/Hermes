@@ -864,6 +864,34 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("search_index_validations", searchIndexResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/vector-index-policies") {
+    const vectorPolicyResult = await readDashboardSourceArtifact(dashboard, "vector_index_policy_boundary");
+    if (!vectorPolicyResult.available) {
+      return jsonResponse(503, buildError("vector_index_policy_boundary_unavailable", vectorPolicyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vector_index_policies", [vectorPolicyResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/vector-policy-gates") {
+    const vectorPolicyResult = await readDashboardSourceArtifact(dashboard, "vector_index_policy_boundary");
+    if (!vectorPolicyResult.available) {
+      return jsonResponse(503, buildError("vector_index_policy_boundary_unavailable", vectorPolicyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vector_policy_gates", vectorPolicyResult.artifact.vector_policy_catalog?.vector_policy_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/embedding-route-policies") {
+    const vectorPolicyResult = await readDashboardSourceArtifact(dashboard, "vector_index_policy_boundary");
+    if (!vectorPolicyResult.available) {
+      return jsonResponse(503, buildError("vector_index_policy_boundary_unavailable", vectorPolicyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("embedding_route_policies", vectorPolicyResult.artifact.vector_policy_catalog?.embedding_route_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vector-policy-validations") {
+    const vectorPolicyResult = await readDashboardSourceArtifact(dashboard, "vector_index_policy_boundary");
+    if (!vectorPolicyResult.available) {
+      return jsonResponse(503, buildError("vector_index_policy_boundary_unavailable", vectorPolicyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vector_policy_validations", vectorPolicyResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5421,6 +5449,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/search-index-fields", "Search index field catalog rows"),
       route("GET", "/api/search-index-query-plans", "Held search index query plans"),
       route("GET", "/api/search-index-validations", "Search index contract validation rows"),
+      route("GET", "/api/vector-index-policies", "Vector index policy boundary artifacts"),
+      route("GET", "/api/vector-policy-gates", "Vector policy gate rows"),
+      route("GET", "/api/embedding-route-policies", "Embedding route policy rows"),
+      route("GET", "/api/vector-policy-validations", "Vector policy validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5639,6 +5671,18 @@ function filterItems(items, searchParams) {
     "query_profile",
     "query_status",
     "executable",
+    "vector_index_policy_boundary_status",
+    "vector_policy_gate_id",
+    "embedding_route_policy_id",
+    "gate_status",
+    "route_status",
+    "embedding_execution_status",
+    "retrieval_execution_status",
+    "route_executable",
+    "classification",
+    "policy_external_embedding_decision",
+    "external_embedding_transfer_status",
+    "external_embedding_allowed",
     "custody_event_id",
     "custody_event_link_id",
     "custody_chain_id",
@@ -6519,6 +6563,7 @@ function readFilterValue(item, key) {
   if (key === "exhibit_map_status") return item.summary?.exhibit_map_status ?? item.exhibit_map_status;
   if (key === "custody_event_ledger_status") return item.summary?.custody_event_ledger_status ?? item.custody_event_ledger_status;
   if (key === "search_index_contract_status") return item.summary?.search_index_contract_status ?? item.search_index_contract_status;
+  if (key === "vector_index_policy_boundary_status") return item.summary?.vector_index_policy_boundary_status ?? item.vector_index_policy_boundary_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

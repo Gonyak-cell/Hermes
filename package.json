@@ -155,6 +155,7 @@
     "resource:exhibit-map": "node scripts/exhibit-map.mjs",
     "resource:custody-events": "node scripts/chain-of-custody-events.mjs",
     "resource:search-index": "node scripts/search-index-contract.mjs",
+    "resource:vector-policy": "node scripts/vector-index-policy-boundary.mjs",
     "resource:ingest": "node scripts/resource-ingest.mjs",
     "resource:normalized-text": "node scripts/normalized-text-contract.mjs",
     "resource:source-spans": "node scripts/source-span-store.mjs",

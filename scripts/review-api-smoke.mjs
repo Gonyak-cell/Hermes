@@ -202,6 +202,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/search-index-fields"));
   assert.ok(index.routes.some((route) => route.path === "/api/search-index-query-plans"));
   assert.ok(index.routes.some((route) => route.path === "/api/search-index-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/vector-index-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/vector-policy-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/embedding-route-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/vector-policy-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -2083,6 +2087,22 @@ try {
   const searchIndexValidations = await fetchJson(`${url}/api/search-index-validations?status=passed&limit=5`);
   assert.equal(searchIndexValidations.collection, "search_index_validations");
   assert.ok(searchIndexValidations.count <= 5);
+
+  const vectorIndexPolicies = await fetchJson(`${url}/api/vector-index-policies?vector_index_policy_boundary_status=complete&limit=1`);
+  assert.equal(vectorIndexPolicies.collection, "vector_index_policies");
+  assert.ok(vectorIndexPolicies.count <= 1);
+
+  const vectorPolicyGates = await fetchJson(`${url}/api/vector-policy-gates?gate_status=held_for_vector_policy&limit=5`);
+  assert.equal(vectorPolicyGates.collection, "vector_policy_gates");
+  assert.ok(vectorPolicyGates.count <= 5);
+
+  const embeddingRoutePolicies = await fetchJson(`${url}/api/embedding-route-policies?route_status=held_for_vector_policy&limit=5`);
+  assert.equal(embeddingRoutePolicies.collection, "embedding_route_policies");
+  assert.ok(embeddingRoutePolicies.count <= 5);
+
+  const vectorPolicyValidations = await fetchJson(`${url}/api/vector-policy-validations?status=passed&limit=5`);
+  assert.equal(vectorPolicyValidations.collection, "vector_policy_validations");
+  assert.ok(vectorPolicyValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

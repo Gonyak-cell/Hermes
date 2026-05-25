@@ -4458,6 +4458,36 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 50개로 증가하고 search index contract가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:search-index -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 149: Vector Index Policy Boundary
+
+목표: Phase 148 search index query plan 위에 vector/embedding policy boundary를 추가하되, 실제 vector index나 embedding route는 실행하지 않고 matter wall, classification, external model policy, policy snapshot gate가 모두 적용된 held contract로 고정한다.
+
+구현 내용:
+
+- `src/vector-index-policy-boundary.mjs`, `scripts/vector-index-policy-boundary.mjs`, `schemas/vector-index-policy-boundary.schema.json`, `docs/vector-index-policy-boundary.md`를 추가함
+- `npm run resource:vector-policy -- --check` 명령을 추가해 vector index policy boundary, vector policy gate rows, embedding route policy rows, validation report, summary markdown을 생성함
+- P148 Search Index Contract의 11개 held query plan을 11개 `vector_policy_gate`로 1:1 감싸고, 각 gate가 `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id` 필터를 필수로 요구하도록 고정함
+- 각 vector policy gate가 matter wall, retrieval wall filter, matter access policy, classification policy, external model policy, policy snapshot reference를 보존하도록 구현함
+- Model Policy Enforcement의 classification model gate 6개를 각 vector policy gate에 결합해 66개 embedding route policy를 생성함
+- P2-P5 route는 external embedding이 허용되지 않고 approval 또는 forbidden 상태로만 남도록 검증함
+- 모든 vector gate와 embedding route를 `held_for_vector_policy`, `executable=false`, `route_executable=false`로 유지해 P150 retrieval filter compiler 전에는 vector retrieval이 실행되지 않도록 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Vector Index Policy Boundary를 통합함
+- `/api/vector-index-policies`, `/api/vector-policy-gates`, `/api/embedding-route-policies`, `/api/vector-policy-validations` route를 추가함
+
+완료 기준:
+
+- Vector Index Policy Boundary가 validation error 없이 `complete` 상태가 됨
+- vector policy gate 수가 P148 search index query plan 수와 일치함
+- embedding route policy 수가 vector policy gate 수와 classification model gate 수의 곱과 일치함
+- 모든 vector policy gate가 matter wall, classification policy, external model policy, policy snapshot boundary를 enforce함
+- 모든 vector policy gate와 embedding route가 held 상태이며 executable vector route 수는 0임
+- P2-P5 embedding route가 external allow 없이 approval 또는 deny로 유지됨
+- 모든 vector policy gate와 embedding route가 source ref preservation을 유지함
+- Review Dashboard summary와 stage status에서 vector gate, embedding route, matter/model/classification enforcement, held/executable count가 노출됨
+- Review API smoke가 vector policy boundary, vector gate, embedding route, validation route를 모두 조회함
+- Golden fixture 수가 51개로 증가하고 vector index policy boundary가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:vector-policy -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4466,9 +4496,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 148이다.
+- 현재 완료 기준점은 Phase 149이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P149-P312, 총 164개다.
+- 남은 계획 슬롯은 P150-P312, 총 163개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -39,6 +39,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
   chainOfCustodyEventsPath: "artifacts/chain-of-custody/latest/chain-of-custody-events.json",
   searchIndexContractPath: "artifacts/search-index/latest/search-index-contract.json",
+  vectorIndexPolicyBoundaryPath: "artifacts/vector-index-policy/latest/vector-index-policy-boundary.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -322,6 +323,11 @@ const SOURCE_DEFINITIONS = [
     option: "searchIndexContractPath",
     source_id: "search_index_contract",
     label: "Search Index Contract",
+  },
+  {
+    option: "vectorIndexPolicyBoundaryPath",
+    source_id: "vector_index_policy_boundary",
+    label: "Vector Index Policy Boundary",
   },
   {
     option: "evidenceContractFreezePath",
@@ -995,6 +1001,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "exhibit_map") return data.summary ?? {};
   if (sourceId === "chain_of_custody_events") return data.summary ?? {};
   if (sourceId === "search_index_contract") return data.summary ?? {};
+  if (sourceId === "vector_index_policy_boundary") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1223,6 +1230,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
     buildChainOfCustodyEventsStage(artifacts.chain_of_custody_events, sourceById.get("chain_of_custody_events")),
     buildSearchIndexContractStage(artifacts.search_index_contract, sourceById.get("search_index_contract")),
+    buildVectorIndexPolicyBoundaryStage(artifacts.vector_index_policy_boundary, sourceById.get("vector_index_policy_boundary")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -3067,6 +3075,82 @@ function buildSearchIndexContractStage(searchIndexContract, source) {
       held_query_plan_count: summary.held_query_plan_count ?? 0,
       executable_query_plan_count: summary.executable_query_plan_count ?? 0,
       source_ref_preserved_query_plan_count: summary.source_ref_preserved_query_plan_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildVectorIndexPolicyBoundaryStage(vectorIndexPolicyBoundary, source) {
+  if (!vectorIndexPolicyBoundary) return missingStage("vector_index_policy_boundary", "Vector Index Policy Boundary", source);
+  const summary = vectorIndexPolicyBoundary.summary ?? {};
+  const errorCount = summary.validation_error_count ?? vectorIndexPolicyBoundary.validation?.errors?.length ?? 0;
+  const gateCount = summary.vector_policy_gate_count ?? 0;
+  const routeCount = summary.embedding_route_policy_count ?? 0;
+  const queryPlanCount = summary.search_index_query_plan_count ?? 0;
+  const status = summary.vector_index_policy_boundary_status === "complete"
+    && errorCount === 0
+    && gateCount > 0
+    && gateCount === queryPlanCount
+    && (summary.covered_search_query_plan_count ?? 0) === queryPlanCount
+    && routeCount === (summary.expected_embedding_route_policy_count ?? -1)
+    && (summary.matter_wall_enforced_gate_count ?? 0) === gateCount
+    && (summary.external_model_policy_enforced_gate_count ?? 0) === gateCount
+    && (summary.classification_policy_enforced_gate_count ?? 0) === gateCount
+    && (summary.policy_snapshot_bound_gate_count ?? 0) === gateCount
+    && (summary.held_vector_policy_gate_count ?? 0) === gateCount
+    && (summary.source_ref_preserved_gate_count ?? 0) === gateCount
+    && (summary.executable_vector_gate_count ?? 1) === 0
+    && (summary.held_embedding_route_count ?? 0) === routeCount
+    && (summary.executable_vector_route_count ?? 1) === 0
+    && (summary.p2_p5_external_blocked_or_review_route_count ?? 0) === (summary.p2_p5_embedding_route_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "vector_index_policy_boundary",
+    label: "Vector Index Policy Boundary",
+    status,
+    message: `${gateCount} vector policy gate(s), ${routeCount} held embedding route policy row(s), ${summary.executable_vector_route_count ?? 0} executable route(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      vector_index_policy_boundary_status: summary.vector_index_policy_boundary_status ?? "unknown",
+      vector_index_policy_boundary_id: summary.vector_index_policy_boundary_id ?? null,
+      vector_policy_gate_schema_version: summary.vector_policy_gate_schema_version ?? null,
+      embedding_route_policy_schema_version: summary.embedding_route_policy_schema_version ?? null,
+      search_index_contract_status: summary.search_index_contract_status ?? "unknown",
+      matter_access_policy_status: summary.matter_access_policy_status ?? "unknown",
+      wall_policy_status: summary.wall_policy_status ?? "unknown",
+      classification_rule_engine_status: summary.classification_rule_engine_status ?? "unknown",
+      model_policy_enforcement_status: summary.model_policy_enforcement_status ?? "unknown",
+      search_index_query_plan_count: queryPlanCount,
+      classification_model_gate_count: summary.classification_model_gate_count ?? 0,
+      vector_policy_gate_count: gateCount,
+      covered_search_query_plan_count: summary.covered_search_query_plan_count ?? 0,
+      embedding_route_policy_count: routeCount,
+      expected_embedding_route_policy_count: summary.expected_embedding_route_policy_count ?? 0,
+      matter_wall_enforced_gate_count: summary.matter_wall_enforced_gate_count ?? 0,
+      external_model_policy_enforced_gate_count: summary.external_model_policy_enforced_gate_count ?? 0,
+      classification_policy_enforced_gate_count: summary.classification_policy_enforced_gate_count ?? 0,
+      policy_snapshot_bound_gate_count: summary.policy_snapshot_bound_gate_count ?? 0,
+      held_vector_policy_gate_count: summary.held_vector_policy_gate_count ?? 0,
+      non_materialized_vector_gate_count: summary.non_materialized_vector_gate_count ?? 0,
+      source_ref_preserved_gate_count: summary.source_ref_preserved_gate_count ?? 0,
+      executable_vector_gate_count: summary.executable_vector_gate_count ?? 0,
+      matter_wall_enforced_route_count: summary.matter_wall_enforced_route_count ?? 0,
+      external_model_policy_enforced_route_count: summary.external_model_policy_enforced_route_count ?? 0,
+      classification_policy_enforced_route_count: summary.classification_policy_enforced_route_count ?? 0,
+      policy_snapshot_bound_route_count: summary.policy_snapshot_bound_route_count ?? 0,
+      held_embedding_route_count: summary.held_embedding_route_count ?? 0,
+      executable_vector_route_count: summary.executable_vector_route_count ?? 0,
+      source_ref_preserved_route_count: summary.source_ref_preserved_route_count ?? 0,
+      external_embedding_policy_allow_route_count: summary.external_embedding_policy_allow_route_count ?? 0,
+      external_embedding_review_route_count: summary.external_embedding_review_route_count ?? 0,
+      external_embedding_deny_route_count: summary.external_embedding_deny_route_count ?? 0,
+      p2_p5_embedding_route_count: summary.p2_p5_embedding_route_count ?? 0,
+      p2_p5_external_blocked_or_review_route_count: summary.p2_p5_external_blocked_or_review_route_count ?? 0,
+      human_approval_required_route_count: summary.human_approval_required_route_count ?? 0,
+      redaction_required_route_count: summary.redaction_required_route_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -7100,6 +7184,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.vector_index_policy_boundary?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "vector_index_policy_boundary";
+    items.push({
+      action_item_id: `dashboard.action.vector_index_policy_boundary.${slugify(subjectId)}`,
+      source_stage: "vector_index_policy_boundary",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix vector index policy boundary",
+      subject_ref: {
+        subject_type: "vector_index_policy_boundary_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_vector_index_policy_boundary", "rerun_vector_policy_boundary", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -9120,6 +9222,34 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     search_index_executable_query_plan_count: artifacts.search_index_contract?.summary?.executable_query_plan_count ?? 0,
     search_index_source_ref_preserved_query_plan_count: artifacts.search_index_contract?.summary?.source_ref_preserved_query_plan_count ?? 0,
     search_index_validation_error_count: artifacts.search_index_contract?.summary?.validation_error_count ?? artifacts.search_index_contract?.validation?.errors?.length ?? 0,
+    vector_index_policy_boundary_status: artifacts.vector_index_policy_boundary?.summary?.vector_index_policy_boundary_status ?? "unknown",
+    vector_index_policy_boundary_id: artifacts.vector_index_policy_boundary?.summary?.vector_index_policy_boundary_id ?? null,
+    vector_policy_gate_schema_version: artifacts.vector_index_policy_boundary?.summary?.vector_policy_gate_schema_version ?? null,
+    embedding_route_policy_schema_version: artifacts.vector_index_policy_boundary?.summary?.embedding_route_policy_schema_version ?? null,
+    vector_policy_search_index_query_plan_count: artifacts.vector_index_policy_boundary?.summary?.search_index_query_plan_count ?? 0,
+    vector_policy_classification_model_gate_count: artifacts.vector_index_policy_boundary?.summary?.classification_model_gate_count ?? 0,
+    vector_policy_gate_count: artifacts.vector_index_policy_boundary?.summary?.vector_policy_gate_count ?? 0,
+    vector_policy_covered_search_query_plan_count: artifacts.vector_index_policy_boundary?.summary?.covered_search_query_plan_count ?? 0,
+    vector_policy_embedding_route_policy_count: artifacts.vector_index_policy_boundary?.summary?.embedding_route_policy_count ?? 0,
+    vector_policy_expected_embedding_route_policy_count: artifacts.vector_index_policy_boundary?.summary?.expected_embedding_route_policy_count ?? 0,
+    vector_policy_matter_wall_enforced_gate_count: artifacts.vector_index_policy_boundary?.summary?.matter_wall_enforced_gate_count ?? 0,
+    vector_policy_external_model_policy_enforced_gate_count: artifacts.vector_index_policy_boundary?.summary?.external_model_policy_enforced_gate_count ?? 0,
+    vector_policy_classification_policy_enforced_gate_count: artifacts.vector_index_policy_boundary?.summary?.classification_policy_enforced_gate_count ?? 0,
+    vector_policy_policy_snapshot_bound_gate_count: artifacts.vector_index_policy_boundary?.summary?.policy_snapshot_bound_gate_count ?? 0,
+    vector_policy_held_gate_count: artifacts.vector_index_policy_boundary?.summary?.held_vector_policy_gate_count ?? 0,
+    vector_policy_non_materialized_gate_count: artifacts.vector_index_policy_boundary?.summary?.non_materialized_vector_gate_count ?? 0,
+    vector_policy_source_ref_preserved_gate_count: artifacts.vector_index_policy_boundary?.summary?.source_ref_preserved_gate_count ?? 0,
+    vector_policy_executable_gate_count: artifacts.vector_index_policy_boundary?.summary?.executable_vector_gate_count ?? 0,
+    vector_policy_matter_wall_enforced_route_count: artifacts.vector_index_policy_boundary?.summary?.matter_wall_enforced_route_count ?? 0,
+    vector_policy_external_model_policy_enforced_route_count: artifacts.vector_index_policy_boundary?.summary?.external_model_policy_enforced_route_count ?? 0,
+    vector_policy_classification_policy_enforced_route_count: artifacts.vector_index_policy_boundary?.summary?.classification_policy_enforced_route_count ?? 0,
+    vector_policy_policy_snapshot_bound_route_count: artifacts.vector_index_policy_boundary?.summary?.policy_snapshot_bound_route_count ?? 0,
+    vector_policy_held_embedding_route_count: artifacts.vector_index_policy_boundary?.summary?.held_embedding_route_count ?? 0,
+    vector_policy_executable_route_count: artifacts.vector_index_policy_boundary?.summary?.executable_vector_route_count ?? 0,
+    vector_policy_source_ref_preserved_route_count: artifacts.vector_index_policy_boundary?.summary?.source_ref_preserved_route_count ?? 0,
+    vector_policy_p2_p5_embedding_route_count: artifacts.vector_index_policy_boundary?.summary?.p2_p5_embedding_route_count ?? 0,
+    vector_policy_p2_p5_external_blocked_or_review_route_count: artifacts.vector_index_policy_boundary?.summary?.p2_p5_external_blocked_or_review_route_count ?? 0,
+    vector_policy_validation_error_count: artifacts.vector_index_policy_boundary?.summary?.validation_error_count ?? artifacts.vector_index_policy_boundary?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -10600,6 +10730,8 @@ function parseArgs(argv) {
     else if (arg === "--no-chain-of-custody") parsed.chainOfCustodyEventsPath = false;
     else if (arg === "--search-index") parsed.searchIndexContractPath = argv[++index];
     else if (arg === "--no-search-index") parsed.searchIndexContractPath = false;
+    else if (arg === "--vector-policy") parsed.vectorIndexPolicyBoundaryPath = argv[++index];
+    else if (arg === "--no-vector-policy") parsed.vectorIndexPolicyBoundaryPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10813,6 +10945,8 @@ Options:
   --no-chain-of-custody           Do not include Chain of Custody Events status.
   --search-index <path>           search-index-contract.json path.
   --no-search-index               Do not include Search Index Contract status.
+  --vector-policy <path>          vector-index-policy-boundary.json path.
+  --no-vector-policy              Do not include Vector Index Policy Boundary status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

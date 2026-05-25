@@ -598,6 +598,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("issue_graph_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/citation-object-stores") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_object_stores", [storeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-paragraphs") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_paragraphs", storeResult.artifact.citation_catalog?.output_paragraphs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/citations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citations", storeResult.artifact.citation_catalog?.citations ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/paragraph-source-bindings") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("paragraph_source_bindings", storeResult.artifact.citation_catalog?.paragraph_source_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/citation-review-queue") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_review_queue", storeResult.artifact.citation_catalog?.review_queue_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/citation-indexes") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_indexes", [storeResult.artifact.citation_catalog?.citation_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/citation-object-store-validations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "citation_object_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("citation_object_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("citation_object_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5117,6 +5166,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/issue-review-queue", "Issue review queue rows"),
       route("GET", "/api/issue-graph-indexes", "Issue graph index projections"),
       route("GET", "/api/issue-graph-store-validations", "Issue graph store validation rows"),
+      route("GET", "/api/citation-object-stores", "Citation object store artifacts"),
+      route("GET", "/api/output-paragraphs", "Review-pending output paragraph rows"),
+      route("GET", "/api/citations", "Citation objects binding output paragraphs to source spans"),
+      route("GET", "/api/paragraph-source-bindings", "Output paragraph to source span binding rows"),
+      route("GET", "/api/citation-review-queue", "Citation review queue rows"),
+      route("GET", "/api/citation-indexes", "Citation object store index projections"),
+      route("GET", "/api/citation-object-store-validations", "Citation object store validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5317,8 +5373,10 @@ function filterItems(items, searchParams) {
     "evidence_item_store_status",
     "fact_claim_store_status",
     "issue_graph_store_status",
+    "citation_object_store_status",
     "evidence_id",
     "evidence_type",
+    "output_paragraph_id",
     "fact_id",
     "fact_type",
     "issue_id",
@@ -5631,6 +5689,10 @@ function filterItems(items, searchParams) {
     "issue_id",
     "issue_type",
     "citation_id",
+    "citation_status",
+    "source_binding_status",
+    "client_facing_ready",
+    "client_facing_status",
     "citation_binding_status",
     "lineage_edge_id",
     "relation",
@@ -6146,6 +6208,7 @@ function readFilterValue(item, key) {
   if (key === "evidence_item_store_status") return item.summary?.evidence_item_store_status ?? item.evidence_item_store_status;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
+  if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

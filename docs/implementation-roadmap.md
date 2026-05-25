@@ -4257,6 +4257,34 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 43개로 증가하고 issue graph store가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:issue-graph -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 142: Citation Object Store
+
+목표: P141 Issue Graph Store의 review-pending issue 후보를 output paragraph 후보와 source span citation 객체로 연결해, 법률 산출물 문단이 어떤 원자료 span에 기대는지 객체 수준에서 추적 가능하게 만든다.
+
+구현 내용:
+
+- `src/citation-object-store.mjs`, `scripts/citation-object-store.mjs`, `schemas/citation-object-store.schema.json`, `docs/citation-object-store.md`를 추가함
+- `npm run resource:citations -- --check` 명령을 추가해 citation object store, output paragraph rows, citation rows, paragraph-source binding rows, citation review queue, index, validation report, summary markdown을 생성함
+- 모든 P141 `issue.v2` row에서 `output-paragraph.v1` 후보를 하나씩 생성하고 `citation.v2` 객체를 source span마다 생성함
+- `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`, `issue_id`, `fact_id`, `evidence_item_id`, `source_span_id`를 issue graph에서 citation 객체로 보존함
+- output paragraph와 source span의 연결을 `paragraph-source-binding.v1` row로 분리하고 matter/classification/policy snapshot/issue link preservation 여부를 검증함
+- 모든 citation과 output paragraph를 `needs_review`, `not_client_facing`, `client_facing_ready=false` 상태로 유지해 변호사 검토 전 고객 제출 가능 상태가 되지 않도록 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 citation object store를 통합함
+- `/api/citation-object-stores`, `/api/output-paragraphs`, `/api/citations`, `/api/paragraph-source-bindings`, `/api/citation-review-queue`, `/api/citation-indexes`, `/api/citation-object-store-validations` route를 추가함
+
+완료 기준:
+
+- Citation Object Store가 validation error 없이 `complete` 상태가 됨
+- output paragraph 수가 issue 수와 일치함
+- 모든 output paragraph가 하나 이상의 citation object를 가지고 client-facing 상태가 아님
+- 모든 citation이 source span, issue, fact, evidence item, output paragraph에 연결됨
+- 모든 paragraph-source binding이 bound 상태이고 matter, classification, policy snapshot, issue link를 보존함
+- 모든 citation이 human review 대기 상태이고 자동 approved count와 client-facing ready count는 0임
+- Review Dashboard summary와 stage status에서 output paragraph count, citation count, paragraph-source binding count, source-span binding, preservation, review 상태가 노출됨
+- Review API smoke가 citation object store, output paragraph, citation, paragraph-source binding, review queue, index, validation route를 모두 조회함
+- Golden fixture 수가 44개로 증가하고 citation object store가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:citations -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4265,9 +4293,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 141이다.
+- 현재 완료 기준점은 Phase 142이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P142-P312, 총 171개다.
+- 남은 계획 슬롯은 P143-P312, 총 170개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

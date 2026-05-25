@@ -120,6 +120,13 @@ npm run api:serve
 - `GET /api/issue-review-queue`: machine-extracted issue review queue rows
 - `GET /api/issue-graph-indexes`: issue graph rollups by matter, classification, issue type, severity, review status, and binding status
 - `GET /api/issue-graph-store-validations`: issue graph store validation rows
+- `GET /api/citation-object-stores`: citation object store artifact
+- `GET /api/output-paragraphs`: review-pending output paragraph candidates
+- `GET /api/citations`: citation objects binding output paragraphs to source spans
+- `GET /api/paragraph-source-bindings`: output paragraph to source span binding rows
+- `GET /api/citation-review-queue`: machine-bound citation review queue rows
+- `GET /api/citation-indexes`: citation object store rollups by matter, classification, review status, source binding status, and client-facing readiness
+- `GET /api/citation-object-store-validations`: citation object store validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

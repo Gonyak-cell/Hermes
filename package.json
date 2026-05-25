@@ -148,6 +148,7 @@
     "resource:evidence-items": "node scripts/evidence-item-store.mjs",
     "resource:fact-claims": "node scripts/fact-claim-store.mjs",
     "resource:issue-graph": "node scripts/issue-graph-store.mjs",
+    "resource:citations": "node scripts/citation-object-store.mjs",
     "resource:ingest": "node scripts/resource-ingest.mjs",
     "resource:normalized-text": "node scripts/normalized-text-contract.mjs",
     "resource:source-spans": "node scripts/source-span-store.mjs",

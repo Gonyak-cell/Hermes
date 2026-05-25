@@ -32,6 +32,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceItemStorePath: "artifacts/evidence-item-store/latest/evidence-item-store.json",
   factClaimStorePath: "artifacts/fact-claim-store/latest/fact-claim-store.json",
   issueGraphStorePath: "artifacts/issue-graph-store/latest/issue-graph-store.json",
+  citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -280,6 +281,11 @@ const SOURCE_DEFINITIONS = [
     option: "issueGraphStorePath",
     source_id: "issue_graph_store",
     label: "Issue Graph Store",
+  },
+  {
+    option: "citationObjectStorePath",
+    source_id: "citation_object_store",
+    label: "Citation Object Store",
   },
   {
     option: "evidenceContractFreezePath",
@@ -946,6 +952,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "evidence_item_store") return data.summary ?? {};
   if (sourceId === "fact_claim_store") return data.summary ?? {};
   if (sourceId === "issue_graph_store") return data.summary ?? {};
+  if (sourceId === "citation_object_store") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1167,6 +1174,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceItemStoreStage(artifacts.evidence_item_store, sourceById.get("evidence_item_store")),
     buildFactClaimStoreStage(artifacts.fact_claim_store, sourceById.get("fact_claim_store")),
     buildIssueGraphStoreStage(artifacts.issue_graph_store, sourceById.get("issue_graph_store")),
+    buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2525,6 +2533,72 @@ function buildIssueGraphStoreStage(store, source) {
       high_severity_count: summary.high_severity_count ?? 0,
       medium_severity_count: summary.medium_severity_count ?? 0,
       low_severity_count: summary.low_severity_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildCitationObjectStoreStage(store, source) {
+  if (!store) return missingStage("citation_object_store", "Citation Object Store", source);
+  const summary = store.summary ?? {};
+  const errorCount = summary.validation_error_count ?? store.validation?.errors?.length ?? 0;
+  const paragraphCount = summary.output_paragraph_count ?? 0;
+  const citationCount = summary.citation_count ?? 0;
+  const status = summary.citation_object_store_status === "complete"
+    && errorCount === 0
+    && paragraphCount > 0
+    && citationCount >= paragraphCount
+    && paragraphCount === (summary.issue_count ?? -1)
+    && citationCount === (summary.paragraph_source_binding_count ?? -1)
+    && citationCount === (summary.review_queue_item_count ?? -1)
+    && citationCount === (summary.source_span_bound_citation_count ?? -1)
+    && citationCount === (summary.issue_linked_citation_count ?? -1)
+    && citationCount === (summary.paragraph_linked_citation_count ?? -1)
+    && citationCount === (summary.fact_linked_citation_count ?? -1)
+    && citationCount === (summary.evidence_linked_citation_count ?? -1)
+    && citationCount === (summary.matter_preserved_citation_count ?? -1)
+    && citationCount === (summary.classification_preserved_citation_count ?? -1)
+    && citationCount === (summary.policy_snapshot_preserved_citation_count ?? -1)
+    && citationCount === (summary.issue_link_preserved_citation_count ?? -1)
+    && citationCount === (summary.needs_review_count ?? -1)
+    && (summary.approved_count ?? 1) === 0
+    && (summary.client_facing_ready_count ?? 1) === 0
+    && paragraphCount === (summary.not_client_facing_paragraph_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "citation_object_store",
+    label: "Citation Object Store",
+    status,
+    message: `${summary.output_paragraph_count ?? 0} output paragraph(s), ${summary.citation_count ?? 0} citation object(s), ${summary.paragraph_source_binding_count ?? 0} paragraph-source binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      citation_object_store_status: summary.citation_object_store_status ?? "unknown",
+      citation_object_store_contract_id: summary.citation_object_store_contract_id ?? null,
+      citation_schema_version: summary.citation_schema_version ?? null,
+      output_paragraph_schema_version: summary.output_paragraph_schema_version ?? null,
+      paragraph_source_binding_schema_version: summary.paragraph_source_binding_schema_version ?? null,
+      issue_graph_store_status: summary.issue_graph_store_status ?? "unknown",
+      issue_count: summary.issue_count ?? 0,
+      output_paragraph_count: summary.output_paragraph_count ?? 0,
+      citation_count: summary.citation_count ?? 0,
+      paragraph_source_binding_count: summary.paragraph_source_binding_count ?? 0,
+      review_queue_item_count: summary.review_queue_item_count ?? 0,
+      source_span_bound_citation_count: summary.source_span_bound_citation_count ?? 0,
+      issue_linked_citation_count: summary.issue_linked_citation_count ?? 0,
+      paragraph_linked_citation_count: summary.paragraph_linked_citation_count ?? 0,
+      fact_linked_citation_count: summary.fact_linked_citation_count ?? 0,
+      evidence_linked_citation_count: summary.evidence_linked_citation_count ?? 0,
+      matter_preserved_citation_count: summary.matter_preserved_citation_count ?? 0,
+      classification_preserved_citation_count: summary.classification_preserved_citation_count ?? 0,
+      policy_snapshot_preserved_citation_count: summary.policy_snapshot_preserved_citation_count ?? 0,
+      issue_link_preserved_citation_count: summary.issue_link_preserved_citation_count ?? 0,
+      needs_review_count: summary.needs_review_count ?? 0,
+      approved_count: summary.approved_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      not_client_facing_paragraph_count: summary.not_client_facing_paragraph_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6432,6 +6506,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.citation_object_store?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "citation_object_store";
+    items.push({
+      action_item_id: `dashboard.action.citation_object_store.${slugify(subjectId)}`,
+      source_stage: "citation_object_store",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix citation object store",
+      subject_ref: {
+        subject_type: "citation_object_store_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_citation_object_store", "rerun_citation_object_store", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8262,6 +8354,31 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     issue_graph_store_medium_severity_count: artifacts.issue_graph_store?.summary?.medium_severity_count ?? 0,
     issue_graph_store_low_severity_count: artifacts.issue_graph_store?.summary?.low_severity_count ?? 0,
     issue_graph_store_validation_error_count: artifacts.issue_graph_store?.summary?.validation_error_count ?? artifacts.issue_graph_store?.validation?.errors?.length ?? 0,
+    citation_object_store_status: artifacts.citation_object_store?.summary?.citation_object_store_status ?? "unknown",
+    citation_object_store_contract_id: artifacts.citation_object_store?.summary?.citation_object_store_contract_id ?? null,
+    citation_object_store_citation_schema_version: artifacts.citation_object_store?.summary?.citation_schema_version ?? null,
+    citation_object_store_output_paragraph_schema_version: artifacts.citation_object_store?.summary?.output_paragraph_schema_version ?? null,
+    citation_object_store_paragraph_source_binding_schema_version: artifacts.citation_object_store?.summary?.paragraph_source_binding_schema_version ?? null,
+    citation_object_store_issue_graph_store_status: artifacts.citation_object_store?.summary?.issue_graph_store_status ?? "unknown",
+    citation_object_store_issue_count: artifacts.citation_object_store?.summary?.issue_count ?? 0,
+    citation_object_store_output_paragraph_count: artifacts.citation_object_store?.summary?.output_paragraph_count ?? 0,
+    citation_object_store_citation_count: artifacts.citation_object_store?.summary?.citation_count ?? 0,
+    citation_object_store_paragraph_source_binding_count: artifacts.citation_object_store?.summary?.paragraph_source_binding_count ?? 0,
+    citation_object_store_review_queue_count: artifacts.citation_object_store?.summary?.review_queue_item_count ?? 0,
+    citation_object_store_source_span_bound_count: artifacts.citation_object_store?.summary?.source_span_bound_citation_count ?? 0,
+    citation_object_store_issue_linked_count: artifacts.citation_object_store?.summary?.issue_linked_citation_count ?? 0,
+    citation_object_store_paragraph_linked_count: artifacts.citation_object_store?.summary?.paragraph_linked_citation_count ?? 0,
+    citation_object_store_fact_linked_count: artifacts.citation_object_store?.summary?.fact_linked_citation_count ?? 0,
+    citation_object_store_evidence_linked_count: artifacts.citation_object_store?.summary?.evidence_linked_citation_count ?? 0,
+    citation_object_store_matter_preserved_count: artifacts.citation_object_store?.summary?.matter_preserved_citation_count ?? 0,
+    citation_object_store_classification_preserved_count: artifacts.citation_object_store?.summary?.classification_preserved_citation_count ?? 0,
+    citation_object_store_policy_snapshot_preserved_count: artifacts.citation_object_store?.summary?.policy_snapshot_preserved_citation_count ?? 0,
+    citation_object_store_issue_link_preserved_count: artifacts.citation_object_store?.summary?.issue_link_preserved_citation_count ?? 0,
+    citation_object_store_needs_review_count: artifacts.citation_object_store?.summary?.needs_review_count ?? 0,
+    citation_object_store_approved_count: artifacts.citation_object_store?.summary?.approved_count ?? 0,
+    citation_object_store_client_facing_ready_count: artifacts.citation_object_store?.summary?.client_facing_ready_count ?? 0,
+    citation_object_store_not_client_facing_paragraph_count: artifacts.citation_object_store?.summary?.not_client_facing_paragraph_count ?? 0,
+    citation_object_store_validation_error_count: artifacts.citation_object_store?.summary?.validation_error_count ?? artifacts.citation_object_store?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9728,6 +9845,8 @@ function parseArgs(argv) {
     else if (arg === "--no-schema-migration-manifest") parsed.schemaMigrationManifestPath = false;
     else if (arg === "--issue-graph-store") parsed.issueGraphStorePath = argv[++index];
     else if (arg === "--no-issue-graph-store") parsed.issueGraphStorePath = false;
+    else if (arg === "--citation-object-store") parsed.citationObjectStorePath = argv[++index];
+    else if (arg === "--no-citation-object-store") parsed.citationObjectStorePath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -9927,6 +10046,8 @@ Options:
   --no-fact-claim-store           Do not include Fact Claim Store status.
   --issue-graph-store <path>      issue-graph-store.json path.
   --no-issue-graph-store          Do not include Issue Graph Store status.
+  --citation-object-store <path>  citation-object-store.json path.
+  --no-citation-object-store      Do not include Citation Object Store status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

@@ -39,6 +39,7 @@ The suite is complete only when:
 - `resource:evidence-items` is present once the P139 evidence item store becomes a golden fixture
 - `resource:fact-claims` is present once the P140 fact claim store becomes a golden fixture
 - `resource:issue-graph` is present once the P141 issue graph store becomes a golden fixture
+- `resource:citations` is present once the P142 citation object store becomes a golden fixture
 - Phase 112 and `npm run contracts:validate` are recorded in the roadmap
 
 This makes the contract spine testable through one deterministic command before later identity, policy, evidence, runtime, or delivery phases add more behavior.

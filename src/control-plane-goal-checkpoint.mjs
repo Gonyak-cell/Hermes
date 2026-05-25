@@ -40,6 +40,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_item_store", "Evidence item store", "resource_evidence", "evidence_item_store", "control-plane-evidence-item-store", { acceptance_profile: "evidence_item_store_gate" }),
   sourceItem("fact_claim_store", "Fact claim store", "resource_evidence", "fact_claim_store", "control-plane-fact-claim-store", { acceptance_profile: "fact_claim_store_gate" }),
   sourceItem("issue_graph_store", "Issue graph store", "resource_evidence", "issue_graph_store", "control-plane-issue-graph-store", { acceptance_profile: "issue_graph_store_gate" }),
+  sourceItem("citation_object_store", "Citation object store", "resource_evidence", "citation_object_store", "control-plane-citation-object-store", { acceptance_profile: "citation_object_store_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -387,6 +388,7 @@ function evaluateStageAcceptance(item, stage) {
     "evidence_item_store_gate",
     "fact_claim_store_gate",
     "issue_graph_store_gate",
+    "citation_object_store_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -788,6 +790,36 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.approved_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Issue graph store links fact claims to review-pending issue candidates, legal rule placeholders, and risk severity assessments while preserving matter, classification, policy, and evidence lineage.");
+    }
+  }
+
+  if (item.acceptance_profile === "citation_object_store_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const paragraphCount = metrics.output_paragraph_count ?? 0;
+    const citationCount = metrics.citation_count ?? 0;
+    if (
+      errors === 0
+      && metrics.citation_object_store_status === "complete"
+      && paragraphCount > 0
+      && citationCount >= paragraphCount
+      && paragraphCount === (metrics.issue_count ?? -1)
+      && citationCount === (metrics.paragraph_source_binding_count ?? -1)
+      && citationCount === (metrics.review_queue_item_count ?? -1)
+      && citationCount === (metrics.source_span_bound_citation_count ?? -1)
+      && citationCount === (metrics.issue_linked_citation_count ?? -1)
+      && citationCount === (metrics.paragraph_linked_citation_count ?? -1)
+      && citationCount === (metrics.fact_linked_citation_count ?? -1)
+      && citationCount === (metrics.evidence_linked_citation_count ?? -1)
+      && citationCount === (metrics.matter_preserved_citation_count ?? -1)
+      && citationCount === (metrics.classification_preserved_citation_count ?? -1)
+      && citationCount === (metrics.policy_snapshot_preserved_citation_count ?? -1)
+      && citationCount === (metrics.issue_link_preserved_citation_count ?? -1)
+      && citationCount === (metrics.needs_review_count ?? -1)
+      && (metrics.approved_count ?? 1) === 0
+      && (metrics.client_facing_ready_count ?? 1) === 0
+      && paragraphCount === (metrics.not_client_facing_paragraph_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Citation object store binds review-pending output paragraphs to source spans through citation objects while keeping client-facing readiness false.");
     }
   }
 

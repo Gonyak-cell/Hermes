@@ -164,6 +164,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/issue-review-queue"));
   assert.ok(index.routes.some((route) => route.path === "/api/issue-graph-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/issue-graph-store-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/citation-object-stores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-paragraphs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/citations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/paragraph-source-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/citation-review-queue"));
+  assert.ok(index.routes.some((route) => route.path === "/api/citation-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/citation-object-store-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1893,6 +1900,34 @@ try {
   const issueGraphStoreValidations = await fetchJson(`${url}/api/issue-graph-store-validations?status=passed&limit=5`);
   assert.equal(issueGraphStoreValidations.collection, "issue_graph_store_validations");
   assert.ok(issueGraphStoreValidations.count <= 5);
+
+  const citationObjectStores = await fetchJson(`${url}/api/citation-object-stores?citation_object_store_status=complete&limit=1`);
+  assert.equal(citationObjectStores.collection, "citation_object_stores");
+  assert.ok(citationObjectStores.count <= 1);
+
+  const outputParagraphs = await fetchJson(`${url}/api/output-paragraphs?client_facing_status=not_client_facing&limit=5`);
+  assert.equal(outputParagraphs.collection, "output_paragraphs");
+  assert.ok(outputParagraphs.count <= 5);
+
+  const citations = await fetchJson(`${url}/api/citations?citation_status=needs_review&limit=5`);
+  assert.equal(citations.collection, "citations");
+  assert.ok(citations.count <= 5);
+
+  const paragraphSourceBindings = await fetchJson(`${url}/api/paragraph-source-bindings?binding_status=bound&limit=5`);
+  assert.equal(paragraphSourceBindings.collection, "paragraph_source_bindings");
+  assert.ok(paragraphSourceBindings.count <= 5);
+
+  const citationReviewQueue = await fetchJson(`${url}/api/citation-review-queue?review_required=true&limit=5`);
+  assert.equal(citationReviewQueue.collection, "citation_review_queue");
+  assert.ok(citationReviewQueue.count <= 5);
+
+  const citationIndexes = await fetchJson(`${url}/api/citation-indexes?schema_version=citation-indexes.v1&limit=1`);
+  assert.equal(citationIndexes.collection, "citation_indexes");
+  assert.ok(citationIndexes.count <= 1);
+
+  const citationObjectStoreValidations = await fetchJson(`${url}/api/citation-object-store-validations?status=passed&limit=5`);
+  assert.equal(citationObjectStoreValidations.collection, "citation_object_store_validations");
+  assert.ok(citationObjectStoreValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

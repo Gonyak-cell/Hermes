@@ -50,6 +50,7 @@ npm run control-plane:goal-checkpoint -- \
 - Evidence Item Store
 - Fact Claim Store
 - Issue Graph Store
+- Citation Object Store
 - Gate and approval workflow
 - Human review packets
 - Human review agenda
@@ -99,6 +100,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Receipt Workspace: actor별 editable receipt input과 review checklist가 생성되고 validation error가 없으면 구현 통과
 - Resource Store Interface: registry, ingestion, dashboard adapter binding이 동일 interface contract에 묶이고 resource query plan이 required filter와 human confirmation gate 아래에 있으면 구현 통과
 - Issue Graph Store: fact claim에서 review-pending issue 후보, legal rule placeholder, risk severity assessment, review queue가 생성되고 matter/classification/policy/evidence lineage가 보존되면 구현 통과
+- Citation Object Store: review-pending output paragraph가 citation object와 paragraph-source binding으로 source span에 연결되고 client-facing readiness가 false로 남으면 구현 통과
 - Human Review Receipt Workspace Merge: actor별 receipt input이 표준 receipt input으로 병합되고 validation error가 없으면 구현 통과
 - Human Review Context Bundle: pending receipt마다 gate/evidence/approval/matter context card가 생성되고 validation error가 없으면 구현 통과
 - Human Review Decision Register: context-bound decision row와 표준 receipt input이 생성되고 validation error가 없으면 구현 통과

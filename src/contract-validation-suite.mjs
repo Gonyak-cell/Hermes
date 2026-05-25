@@ -17,6 +17,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:migrations",
   "contracts:golden-fixtures",
   "contracts:validate",
+  "contracts:identity",
   "contracts:resources",
   "contracts:matters",
   "contracts:policies",

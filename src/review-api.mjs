@@ -106,6 +106,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
   if (pathname === "/api/sources") {
     return jsonResponse(200, buildCollectionResponse("sources", dashboard.sources ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/identity-models") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_models", [identityResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-users") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_users", identityResult.artifact.identity_contract?.users ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-roles") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_roles", identityResult.artifact.identity_contract?.roles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-role-assignments") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_role_assignments", identityResult.artifact.identity_contract?.role_assignments ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-actors") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_actors", identityResult.artifact.identity_contract?.actor_principals ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-bindings") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_bindings", identityResult.artifact.identity_contract?.actor_user_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-validations") {
+    const identityResult = await readDashboardSourceArtifact(dashboard, "identity_model");
+    if (!identityResult.available) {
+      return jsonResponse(503, buildError("identity_model_unavailable", identityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_validations", identityResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/resource-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "resource_contract_freeze");
     if (!freezeResult.available) {
@@ -3497,6 +3546,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/stages", "Control Plane stage statuses"),
       route("GET", "/api/actions", "Pending action queue"),
       route("GET", "/api/sources", "Dashboard source artifacts"),
+      route("GET", "/api/identity-models", "Identity model artifacts"),
+      route("GET", "/api/identity-users", "Identity human users"),
+      route("GET", "/api/identity-roles", "Identity role catalog"),
+      route("GET", "/api/identity-role-assignments", "Identity role assignment rows"),
+      route("GET", "/api/identity-actors", "Identity actor principal rows"),
+      route("GET", "/api/identity-bindings", "Identity actor-user binding rows"),
+      route("GET", "/api/identity-validations", "Identity model validation rows"),
       route("GET", "/api/resource-contract-freezes", "Resource contract freeze artifacts"),
       route("GET", "/api/resource-v2-contracts", "Resource v2 contract fixtures"),
       route("GET", "/api/resource-version-v2-contracts", "ResourceVersion v2 contract fixtures"),
@@ -3861,6 +3917,20 @@ function filterItems(items, searchParams) {
     "map_status",
     "freeze_id",
     "freeze_status",
+    "identity_model_id",
+    "identity_model_status",
+    "user_id",
+    "tenant_id",
+    "role_id",
+    "role_scope",
+    "assignment_source",
+    "assignment_scope",
+    "role_assignment_id",
+    "actor_principal_id",
+    "actor_type",
+    "principal_class",
+    "binding_type",
+    "binding_id",
     "resource_id",
     "resource_version_id",
     "source_system",
@@ -4346,6 +4416,7 @@ function readFilterValue(item, key) {
   if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
+  if (key === "identity_model_status") return item.summary?.identity_model_status ?? item.identity_model_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;

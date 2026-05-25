@@ -1,0 +1,237 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/identity-model.schema.json",
+  "title": "Hermes Identity Model",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "identity_model_id",
+    "output_dir",
+    "inputs",
+    "source_identity_policy",
+    "identity_contract",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "identity-model.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "identity_model_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["vertical_slice_path"],
+      "properties": {
+        "vertical_slice_path": { "type": "string" }
+      }
+    },
+    "source_identity_policy": {
+      "type": "object",
+      "required": ["schema_version", "tenant_count", "user_count", "client_count", "matter_count", "policy_snapshot_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "tenant_count": { "type": "integer", "minimum": 0 },
+        "user_count": { "type": "integer", "minimum": 0 },
+        "client_count": { "type": "integer", "minimum": 0 },
+        "matter_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "identity_contract": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "tenants", "users", "roles", "role_assignments", "actor_principals", "actor_user_bindings"],
+      "properties": {
+        "schema_version": { "const": "identity-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "tenants": { "type": "array", "items": { "$ref": "#/$defs/tenant" } },
+        "users": { "type": "array", "items": { "$ref": "#/$defs/user" } },
+        "roles": { "type": "array", "items": { "$ref": "#/$defs/role" } },
+        "role_assignments": { "type": "array", "items": { "$ref": "#/$defs/role_assignment" } },
+        "actor_principals": { "type": "array", "items": { "$ref": "#/$defs/actor_principal" } },
+        "actor_user_bindings": { "type": "array", "items": { "$ref": "#/$defs/actor_user_binding" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "identity_model_status",
+        "tenant_count",
+        "user_count",
+        "role_count",
+        "tenant_role_count",
+        "matter_role_count",
+        "system_role_count",
+        "role_assignment_count",
+        "human_user_role_assignment_count",
+        "actor_role_assignment_count",
+        "actor_principal_count",
+        "human_actor_principal_count",
+        "service_actor_principal_count",
+        "actor_user_binding_count",
+        "human_actor_user_binding_count",
+        "system_actor_binding_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_tenant_id",
+        "by_actor_type",
+        "by_principal_class",
+        "by_role_scope"
+      ],
+      "properties": {
+        "identity_model_status": { "enum": ["complete", "blocked"] },
+        "tenant_count": { "type": "integer", "minimum": 0 },
+        "user_count": { "type": "integer", "minimum": 0 },
+        "role_count": { "type": "integer", "minimum": 0 },
+        "tenant_role_count": { "type": "integer", "minimum": 0 },
+        "matter_role_count": { "type": "integer", "minimum": 0 },
+        "system_role_count": { "type": "integer", "minimum": 0 },
+        "role_assignment_count": { "type": "integer", "minimum": 0 },
+        "human_user_role_assignment_count": { "type": "integer", "minimum": 0 },
+        "actor_role_assignment_count": { "type": "integer", "minimum": 0 },
+        "actor_principal_count": { "type": "integer", "minimum": 0 },
+        "human_actor_principal_count": { "type": "integer", "minimum": 0 },
+        "service_actor_principal_count": { "type": "integer", "minimum": 0 },
+        "actor_user_binding_count": { "type": "integer", "minimum": 0 },
+        "human_actor_user_binding_count": { "type": "integer", "minimum": 0 },
+        "system_actor_binding_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_tenant_id": { "type": "object" },
+        "by_actor_type": { "type": "object" },
+        "by_principal_class": { "type": "object" },
+        "by_role_scope": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "tenant": {
+      "type": "object",
+      "required": ["schema_version", "tenant_id", "display_name", "tenant_type", "default_policy_id", "created_at", "source_schema_version", "metadata"],
+      "properties": {
+        "schema_version": { "const": "identity-tenant.v1" },
+        "tenant_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "tenant_type": { "enum": ["law_firm", "personal", "lab"] },
+        "default_policy_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "user": {
+      "type": "object",
+      "required": ["schema_version", "user_id", "tenant_id", "display_name", "status", "tenant_role_ids", "human_actor_principal_id", "created_at", "source_schema_version", "metadata"],
+      "properties": {
+        "schema_version": { "const": "identity-user.v1" },
+        "user_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "status": { "enum": ["active", "inactive", "suspended"] },
+        "tenant_role_ids": { "type": "array", "items": { "type": "string" } },
+        "human_actor_principal_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "role": {
+      "type": "object",
+      "required": ["schema_version", "role_id", "role_name", "role_scope", "tenant_id", "matter_id", "description", "permissions_hint"],
+      "properties": {
+        "schema_version": { "const": "identity-role.v1" },
+        "role_id": { "type": "string" },
+        "role_name": { "type": "string" },
+        "role_scope": { "enum": ["tenant", "matter", "system_actor"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "description": { "type": "string" },
+        "permissions_hint": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "role_assignment": {
+      "type": "object",
+      "required": ["schema_version", "role_assignment_id", "assignment_source", "assignment_scope", "tenant_id", "matter_id", "user_id", "actor_principal_id", "role_id", "assignment_status"],
+      "properties": {
+        "schema_version": { "const": "role-assignment.v1" },
+        "role_assignment_id": { "type": "string" },
+        "assignment_source": { "enum": ["tenant_user_role", "matter_team_role", "actor_system_role"] },
+        "assignment_scope": { "enum": ["tenant", "matter", "system_actor"] },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": ["string", "null"] },
+        "user_id": { "type": ["string", "null"] },
+        "actor_principal_id": { "type": ["string", "null"] },
+        "role_id": { "type": "string" },
+        "assignment_status": { "enum": ["active", "inactive"] }
+      }
+    },
+    "actor_principal": {
+      "type": "object",
+      "required": ["schema_version", "actor_principal_id", "actor_type", "actor_id", "display_name", "tenant_id", "principal_class", "human_user_id", "discovered_from", "binding_status", "created_at", "metadata"],
+      "properties": {
+        "schema_version": { "const": "actor-principal.v1" },
+        "actor_principal_id": { "type": "string" },
+        "actor_type": { "enum": ["human", "harness", "hermes", "claude_code", "codex", "script", "connector", "renderer", "mcp_tool", "browser", "manual"] },
+        "actor_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "principal_class": { "enum": ["human_actor", "service_actor", "runtime_actor", "connector_actor", "manual_actor"] },
+        "human_user_id": { "type": ["string", "null"] },
+        "discovered_from": { "type": "array", "items": { "type": "string" } },
+        "binding_status": { "enum": ["active", "inactive"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "actor_user_binding": {
+      "type": "object",
+      "required": ["schema_version", "binding_id", "tenant_id", "binding_type", "user_id", "actor_principal_id", "actor_type", "binding_status", "role_assignment_ids"],
+      "properties": {
+        "schema_version": { "const": "actor-user-binding.v1" },
+        "binding_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "binding_type": { "enum": ["human_user_actor", "system_actor_tenant"] },
+        "user_id": { "type": ["string", "null"] },
+        "actor_principal_id": { "type": "string" },
+        "actor_type": { "type": "string" },
+        "binding_status": { "enum": ["active", "inactive"] },
+        "role_assignment_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

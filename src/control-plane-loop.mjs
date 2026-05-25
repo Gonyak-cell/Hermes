@@ -5,6 +5,7 @@ import path from "node:path";
 export const DEFAULT_CONTROL_PLANE_LOOP_OUT_DIR = "artifacts/control-plane-loop/latest";
 
 export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
+  step("identity_model", "Identity Model", "identity", ["npm", "run", "contracts:identity"], ["artifacts/identity-model/latest/identity-model.json", "artifacts/identity-model/latest/actor-principals.json", "artifacts/identity-model/latest/role-assignments.json"]),
   step("policy_matrix_catalog", "Policy Matrix Catalog", "policy", ["npm", "run", "policy:catalog"], ["artifacts/policy-matrix/latest/policy-matrix-catalog.json"]),
   step("policy_snapshot_ledger", "Policy Snapshot Ledger", "policy", ["npm", "run", "policy:snapshots"], ["artifacts/policy-snapshots/latest/policy-snapshot-ledger.json"]),
   step("control_plane_pipeline", "Control Plane Pipeline", "pipeline", ["npm", "run", "control-plane:pipeline"], ["artifacts/control-plane-pipeline/latest/control-plane-pipeline.json"]),

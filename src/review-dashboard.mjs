@@ -5,6 +5,7 @@ export const DEFAULT_REVIEW_DASHBOARD_OUT_DIR = "artifacts/dashboard/latest";
 export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceExpansionPath: "artifacts/resource-expansion/latest/resource-expansion-job.json",
   resourceIngestPath: "artifacts/resource-ingest/latest/resource-ingest.json",
+  identityModelPath: "artifacts/identity-model/latest/identity-model.json",
   resourceContractFreezePath: "artifacts/resource-contract-freeze/latest/resource-contract-freeze.json",
   matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
@@ -116,6 +117,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceIngestPath",
     source_id: "resource_ingest",
     label: "Resource Ingest",
+  },
+  {
+    option: "identityModelPath",
+    source_id: "identity_model",
+    label: "Identity Model",
   },
   {
     option: "resourceContractFreezePath",
@@ -745,6 +751,7 @@ function summarizeSource(sourceId, data) {
     };
   }
   if (sourceId === "resource_ingest") return data.summary ?? {};
+  if (sourceId === "identity_model") return data.summary ?? {};
   if (sourceId === "resource_contract_freeze") return data.summary ?? {};
   if (sourceId === "matter_contract_freeze") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
@@ -937,6 +944,7 @@ function buildStageStatuses(artifacts, sources) {
   return [
     buildResourceExpansionStage(artifacts.resource_expansion, sourceById.get("resource_expansion")),
     buildResourceIngestStage(artifacts.resource_ingest, sourceById.get("resource_ingest")),
+    buildIdentityModelStage(artifacts.identity_model, sourceById.get("identity_model")),
     buildResourceContractFreezeStage(artifacts.resource_contract_freeze, sourceById.get("resource_contract_freeze")),
     buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
@@ -1080,6 +1088,42 @@ function buildResourceIngestStage(ingest, source) {
       promoted_evidence_count: ingest.summary?.promoted_evidence_count ?? 0,
       blocked_count: blocked,
       duplicate_count: ingest.summary?.duplicate_count ?? 0,
+    },
+  };
+}
+
+function buildIdentityModelStage(model, source) {
+  if (!model) return missingStage("identity_model", "Identity Model", source);
+  const summary = model.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || model.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "identity_model",
+    label: "Identity Model",
+    status,
+    message: `${summary.user_count ?? 0} human user(s), ${summary.actor_principal_count ?? 0} actor principal(s), ${summary.role_assignment_count ?? 0} role assignment(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      identity_model_status: summary.identity_model_status ?? "unknown",
+      tenant_count: summary.tenant_count ?? 0,
+      user_count: summary.user_count ?? 0,
+      role_count: summary.role_count ?? 0,
+      tenant_role_count: summary.tenant_role_count ?? 0,
+      matter_role_count: summary.matter_role_count ?? 0,
+      system_role_count: summary.system_role_count ?? 0,
+      role_assignment_count: summary.role_assignment_count ?? 0,
+      human_user_role_assignment_count: summary.human_user_role_assignment_count ?? 0,
+      actor_role_assignment_count: summary.actor_role_assignment_count ?? 0,
+      actor_principal_count: summary.actor_principal_count ?? 0,
+      human_actor_principal_count: summary.human_actor_principal_count ?? 0,
+      service_actor_principal_count: summary.service_actor_principal_count ?? 0,
+      actor_user_binding_count: summary.actor_user_binding_count ?? 0,
+      human_actor_user_binding_count: summary.human_actor_user_binding_count ?? 0,
+      system_actor_binding_count: summary.system_actor_binding_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? model.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5787,6 +5831,24 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_contract_freeze_latest_version_link_count: artifacts.resource_contract_freeze?.summary?.latest_version_link_count ?? 0,
     resource_contract_freeze_failed_validation_item_count: artifacts.resource_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     resource_contract_freeze_validation_error_count: artifacts.resource_contract_freeze?.summary?.validation_error_count ?? artifacts.resource_contract_freeze?.validation?.errors?.length ?? 0,
+    identity_model_status: artifacts.identity_model?.summary?.identity_model_status ?? "unknown",
+    identity_model_tenant_count: artifacts.identity_model?.summary?.tenant_count ?? 0,
+    identity_model_user_count: artifacts.identity_model?.summary?.user_count ?? 0,
+    identity_model_role_count: artifacts.identity_model?.summary?.role_count ?? 0,
+    identity_model_tenant_role_count: artifacts.identity_model?.summary?.tenant_role_count ?? 0,
+    identity_model_matter_role_count: artifacts.identity_model?.summary?.matter_role_count ?? 0,
+    identity_model_system_role_count: artifacts.identity_model?.summary?.system_role_count ?? 0,
+    identity_model_role_assignment_count: artifacts.identity_model?.summary?.role_assignment_count ?? 0,
+    identity_model_human_user_role_assignment_count: artifacts.identity_model?.summary?.human_user_role_assignment_count ?? 0,
+    identity_model_actor_role_assignment_count: artifacts.identity_model?.summary?.actor_role_assignment_count ?? 0,
+    identity_model_actor_principal_count: artifacts.identity_model?.summary?.actor_principal_count ?? 0,
+    identity_model_human_actor_principal_count: artifacts.identity_model?.summary?.human_actor_principal_count ?? 0,
+    identity_model_service_actor_principal_count: artifacts.identity_model?.summary?.service_actor_principal_count ?? 0,
+    identity_model_actor_user_binding_count: artifacts.identity_model?.summary?.actor_user_binding_count ?? 0,
+    identity_model_human_actor_user_binding_count: artifacts.identity_model?.summary?.human_actor_user_binding_count ?? 0,
+    identity_model_system_actor_binding_count: artifacts.identity_model?.summary?.system_actor_binding_count ?? 0,
+    identity_model_failed_validation_item_count: artifacts.identity_model?.summary?.failed_validation_item_count ?? 0,
+    identity_model_validation_error_count: artifacts.identity_model?.summary?.validation_error_count ?? artifacts.identity_model?.validation?.errors?.length ?? 0,
     matter_contract_freeze_client_count: artifacts.matter_contract_freeze?.summary?.client_count ?? 0,
     matter_contract_freeze_party_count: artifacts.matter_contract_freeze?.summary?.party_count ?? 0,
     matter_contract_freeze_client_party_count: artifacts.matter_contract_freeze?.summary?.client_party_count ?? 0,
@@ -7068,6 +7130,8 @@ function parseArgs(argv) {
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg === "--resource-expansion") parsed.resourceExpansionPath = argv[++index];
     else if (arg === "--resource-ingest") parsed.resourceIngestPath = argv[++index];
+    else if (arg === "--identity-model") parsed.identityModelPath = argv[++index];
+    else if (arg === "--no-identity-model") parsed.identityModelPath = false;
     else if (arg === "--resource-contract-freeze") parsed.resourceContractFreezePath = argv[++index];
     else if (arg === "--no-resource-contract-freeze") parsed.resourceContractFreezePath = false;
     else if (arg === "--matter-contract-freeze") parsed.matterContractFreezePath = argv[++index];
@@ -7275,6 +7339,8 @@ function printHelp() {
 Options:
   --resource-expansion <path>    resource-expansion-job.json path.
   --resource-ingest <path>       resource-ingest.json path.
+  --identity-model <path>        identity-model.json path.
+  --no-identity-model            Do not include Identity Model status.
   --resource-contract-freeze <path>
                                   resource-contract-freeze.json path.
   --no-resource-contract-freeze  Do not include Resource Contract Freeze status.

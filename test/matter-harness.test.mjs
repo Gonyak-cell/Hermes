@@ -10,6 +10,7 @@ import { runContractDependencyMap } from "../src/contract-dependency-map.mjs";
 import { runContractGoldenFixtures } from "../src/contract-golden-fixtures.mjs";
 import { runContractValidationSuite } from "../src/contract-validation-suite.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
+import { runIdentityModel } from "../src/identity-model.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -361,6 +362,28 @@ describe("matter harness", () => {
       assert.equal(matterContractFreeze.matter_contract.matter_boundaries[0].schema_version, "matter-boundary.v2");
       assert.ok(matterContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "matter-contract-freeze", "summary.md"), "utf8"), /Matter Contract Freeze/);
+
+      const identityModel = await runIdentityModel({
+        verticalSlicePath: "examples/core/vertical-slice-example.json",
+        outDir: path.join(outDir, "identity-model"),
+        runAt: "2026-05-23T06:13:30.000Z",
+      });
+      const identityModelSchema = JSON.parse(await readFile("schemas/identity-model.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(identityModel, identityModelSchema, {}, "identity_model"), []);
+      assert.equal(identityModel.summary.identity_model_status, "complete");
+      assert.equal(identityModel.summary.tenant_count, 1);
+      assert.equal(identityModel.summary.user_count, 1);
+      assert.equal(identityModel.summary.human_actor_principal_count, 1);
+      assert.ok(identityModel.summary.service_actor_principal_count >= 1);
+      assert.ok(identityModel.summary.actor_principal_count > identityModel.summary.human_actor_principal_count);
+      assert.ok(identityModel.summary.role_assignment_count >= identityModel.summary.user_count);
+      assert.equal(identityModel.summary.human_actor_user_binding_count, identityModel.summary.user_count);
+      assert.equal(identityModel.summary.validation_error_count, 0);
+      assert.ok(identityModel.identity_contract.users.every((user) => user.user_id !== user.human_actor_principal_id));
+      assert.ok(identityModel.identity_contract.actor_principals.some((actor) => actor.principal_class === "human_actor" && actor.human_user_id === "user.jws"));
+      assert.ok(identityModel.identity_contract.actor_principals.some((actor) => actor.principal_class !== "human_actor" && actor.human_user_id === null));
+      assert.ok(identityModel.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "identity-model", "summary.md"), "utf8"), /Identity Model/);
 
       const viewer = await runEvidenceViewer({
         inputPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -1155,6 +1178,7 @@ describe("matter harness", () => {
       const dashboardInputs = {
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        identityModelPath: path.join(outDir, "identity-model", "identity-model.json"),
         resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
         matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
@@ -2966,6 +2990,7 @@ describe("matter harness", () => {
           contract_dependency_map: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
           schema_versioning_rules: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
           schema_migration_manifest: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
+          identity_model: path.join(outDir, "identity-model", "identity-model.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -2986,8 +3011,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 14);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 14);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 15);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 15);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -2997,6 +3022,7 @@ describe("matter harness", () => {
       assert.equal(contractGoldenFixtures.summary.schema_version_present_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_contract_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3091,6 +3117,10 @@ describe("matter harness", () => {
       assert.equal(contractValidationSuiteCheckpoint?.acceptance_profile, "contract_validation_suite_gate");
       assert.equal(contractValidationSuiteCheckpoint?.status, "passed");
       assert.equal(contractValidationSuiteCheckpoint?.implementation_status, "passed");
+      const identityModelCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-identity-model");
+      assert.equal(identityModelCheckpoint?.acceptance_profile, "identity_model_gate");
+      assert.equal(identityModelCheckpoint?.status, "passed");
+      assert.equal(identityModelCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3440,6 +3470,18 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.contract_validation_roadmap_missing_count, 0);
       assert.equal(dashboard.summary.contract_validation_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.contract_validation_validation_error_count, 0);
+      assert.equal(dashboard.summary.identity_model_status, "complete");
+      assert.equal(dashboard.summary.identity_model_tenant_count, identityModel.summary.tenant_count);
+      assert.equal(dashboard.summary.identity_model_user_count, identityModel.summary.user_count);
+      assert.equal(dashboard.summary.identity_model_role_count, identityModel.summary.role_count);
+      assert.equal(dashboard.summary.identity_model_role_assignment_count, identityModel.summary.role_assignment_count);
+      assert.equal(dashboard.summary.identity_model_actor_principal_count, identityModel.summary.actor_principal_count);
+      assert.equal(dashboard.summary.identity_model_human_actor_principal_count, identityModel.summary.human_actor_principal_count);
+      assert.equal(dashboard.summary.identity_model_service_actor_principal_count, identityModel.summary.service_actor_principal_count);
+      assert.equal(dashboard.summary.identity_model_actor_user_binding_count, identityModel.summary.actor_user_binding_count);
+      assert.equal(dashboard.summary.identity_model_human_actor_user_binding_count, identityModel.summary.human_actor_user_binding_count);
+      assert.equal(dashboard.summary.identity_model_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.identity_model_validation_error_count, 0);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_count, resourceContractFreeze.summary.resource_count);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_version_count, resourceContractFreeze.summary.resource_version_count);
       assert.equal(dashboard.summary.resource_contract_freeze_content_hash_count, resourceContractFreeze.summary.content_hash_count);
@@ -3990,6 +4032,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_inventory"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_dependency_map"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "identity_model"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
@@ -5585,6 +5628,34 @@ describe("matter harness", () => {
       const contractValidationItems = JSON.parse((await buildReviewApiResponse("/api/contract-validation-items?status=passed", apiOptions)).body);
       assert.equal(contractValidationItems.collection, "contract_validation_items");
       assert.equal(contractValidationItems.count, contractValidationSuite.summary.validation_item_count);
+
+      const identityModels = JSON.parse((await buildReviewApiResponse("/api/identity-models?identity_model_status=complete", apiOptions)).body);
+      assert.equal(identityModels.collection, "identity_models");
+      assert.equal(identityModels.count, 1);
+
+      const identityUsers = JSON.parse((await buildReviewApiResponse("/api/identity-users?tenant_id=tenant.amic", apiOptions)).body);
+      assert.equal(identityUsers.collection, "identity_users");
+      assert.equal(identityUsers.count, identityModel.summary.user_count);
+
+      const identityRoles = JSON.parse((await buildReviewApiResponse("/api/identity-roles?role_scope=tenant", apiOptions)).body);
+      assert.equal(identityRoles.collection, "identity_roles");
+      assert.equal(identityRoles.count, identityModel.summary.tenant_role_count);
+
+      const identityRoleAssignments = JSON.parse((await buildReviewApiResponse("/api/identity-role-assignments?assignment_scope=tenant", apiOptions)).body);
+      assert.equal(identityRoleAssignments.collection, "identity_role_assignments");
+      assert.equal(identityRoleAssignments.count, identityModel.summary.tenant_role_count);
+
+      const identityActors = JSON.parse((await buildReviewApiResponse("/api/identity-actors?principal_class=human_actor", apiOptions)).body);
+      assert.equal(identityActors.collection, "identity_actors");
+      assert.equal(identityActors.count, identityModel.summary.human_actor_principal_count);
+
+      const identityBindings = JSON.parse((await buildReviewApiResponse("/api/identity-bindings?binding_type=human_user_actor", apiOptions)).body);
+      assert.equal(identityBindings.collection, "identity_bindings");
+      assert.equal(identityBindings.count, identityModel.summary.human_actor_user_binding_count);
+
+      const identityValidations = JSON.parse((await buildReviewApiResponse("/api/identity-validations?status=passed", apiOptions)).body);
+      assert.equal(identityValidations.collection, "identity_validations");
+      assert.equal(identityValidations.count, identityModel.summary.validation_item_count);
 
       const resourceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/resource-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

@@ -125,6 +125,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-fixture-results"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-commands"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-validation-items"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-role-assignments"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-actors"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1331,6 +1338,34 @@ try {
   const contractValidationItems = await fetchJson(`${url}/api/contract-validation-items?status=passed&limit=5`);
   assert.equal(contractValidationItems.collection, "contract_validation_items");
   assert.ok(contractValidationItems.count <= 5);
+
+  const identityModels = await fetchJson(`${url}/api/identity-models?identity_model_status=complete&limit=1`);
+  assert.equal(identityModels.collection, "identity_models");
+  assert.ok(identityModels.count <= 1);
+
+  const identityUsers = await fetchJson(`${url}/api/identity-users?tenant_id=tenant.amic&limit=5`);
+  assert.equal(identityUsers.collection, "identity_users");
+  assert.ok(identityUsers.count <= 5);
+
+  const identityRoles = await fetchJson(`${url}/api/identity-roles?role_scope=tenant&limit=5`);
+  assert.equal(identityRoles.collection, "identity_roles");
+  assert.ok(identityRoles.count <= 5);
+
+  const identityRoleAssignments = await fetchJson(`${url}/api/identity-role-assignments?assignment_scope=tenant&limit=5`);
+  assert.equal(identityRoleAssignments.collection, "identity_role_assignments");
+  assert.ok(identityRoleAssignments.count <= 5);
+
+  const identityActors = await fetchJson(`${url}/api/identity-actors?principal_class=human_actor&limit=5`);
+  assert.equal(identityActors.collection, "identity_actors");
+  assert.ok(identityActors.count <= 5);
+
+  const identityBindings = await fetchJson(`${url}/api/identity-bindings?binding_type=human_user_actor&limit=5`);
+  assert.equal(identityBindings.collection, "identity_bindings");
+  assert.ok(identityBindings.count <= 5);
+
+  const identityValidations = await fetchJson(`${url}/api/identity-validations?status=passed&limit=5`);
+  assert.equal(identityValidations.collection, "identity_validations");
+  assert.ok(identityValidations.count <= 5);
 
   const resourceContractFreezes = await fetchJson(`${url}/api/resource-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

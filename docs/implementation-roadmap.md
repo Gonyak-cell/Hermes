@@ -3412,7 +3412,7 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 완료 기준:
 
-- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다.
+- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되어 현재 golden fixture set은 15개다.
 - 각 fixture는 artifact path, schema path, artifact schema version, content hash, schema hash, schema validation status, regression lock status를 가진다.
 - 모든 fixture가 대응 schema로 검증되고 regression hash manifest에 포함된다.
 - Dashboard stage와 summary가 `contract_golden_fixtures` 지표를 추적함
@@ -3446,6 +3446,37 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Contract Validation Suite를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:validate`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 113 - Identity Model
+
+목표: tenant, human user, role, role assignment, actor principal, actor-user binding을 별도 객체로 투영해 actor와 human user를 혼동하지 않는 identity boundary를 구축한다.
+
+구현 산출물:
+
+- `src/identity-model.mjs`
+- `scripts/identity-model.mjs`
+- `schemas/identity-model.schema.json`
+- `docs/identity-model.md`
+- `artifacts/identity-model/latest/identity-model.json`
+- `artifacts/identity-model/latest/identity-users.json`
+- `artifacts/identity-model/latest/actor-principals.json`
+- `artifacts/identity-model/latest/role-assignments.json`
+- `artifacts/identity-model/latest/actor-user-bindings.json`
+- `artifacts/identity-model/latest/validation-report.json`
+- `artifacts/identity-model/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:identity -- --check`가 vertical slice의 `identity_policy`에서 tenant, user, role, actor principal, actor-user binding을 생성한다.
+- human user와 human actor principal이 별도 id로 구분되고 binding으로 연결된다.
+- connector, harness, script, manual runtime actor는 human user 없이 system/runtime actor principal로 남는다.
+- tenant role, matter role, system actor role이 role assignment로 기록된다.
+- approval `requested_from`이 human user와 human actor principal로 역추적된다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `identity_model` fixture가 포함된다.
+- Dashboard stage와 summary가 `identity_model` 지표를 추적함
+- Review API에서 `/api/identity-models`, `/api/identity-users`, `/api/identity-roles`, `/api/identity-role-assignments`, `/api/identity-actors`, `/api/identity-bindings`, `/api/identity-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Identity Model을 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:identity`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3454,9 +3485,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 112이다.
+- 현재 완료 기준점은 Phase 113이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P113-P312, 총 200개다.
+- 남은 계획 슬롯은 P114-P312, 총 199개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

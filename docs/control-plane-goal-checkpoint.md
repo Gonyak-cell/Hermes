@@ -44,6 +44,7 @@ npm run control-plane:goal-checkpoint -- \
 - Resource Store Interface
 - Immutable Object Store Layout
 - Resource Version Ledger
+- Normalized Text Contract
 - Gate and approval workflow
 - Human review packets
 - Human review agenda

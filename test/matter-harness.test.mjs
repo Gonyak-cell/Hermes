@@ -28,6 +28,7 @@ import { runIdentityPolicyMatterFreeze } from "../src/identity-policy-matter-fre
 import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
 import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-layout.mjs";
 import { runResourceVersionLedger } from "../src/resource-version-ledger.mjs";
+import { runNormalizedTextContract } from "../src/normalized-text-contract.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1642,6 +1643,7 @@ describe("matter harness", () => {
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3823,6 +3825,38 @@ describe("matter harness", () => {
       assert.ok(resourceVersionLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "resource-version-ledger", "summary.md"), "utf8"), /Resource Version Ledger/);
 
+      const normalizedTextContract = await runNormalizedTextContract({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        outDir: path.join(outDir, "normalized-text-contract"),
+        runAt: "2026-05-23T06:35:07.955Z",
+      });
+      const normalizedTextContractSchema = JSON.parse(await readFile("schemas/normalized-text-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(normalizedTextContract, normalizedTextContractSchema, {}, "normalized_text_contract"),
+        [],
+      );
+      assert.equal(normalizedTextContract.summary.normalized_text_contract_status, "complete");
+      assert.equal(normalizedTextContract.summary.normalized_text_artifact_count, ingest.resource_evidence.normalized_texts.length);
+      assert.equal(normalizedTextContract.summary.location_map_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(normalizedTextContract.summary.source_span_seed_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(normalizedTextContract.summary.source_span_seed_ready_count, normalizedTextContract.summary.source_span_seed_count);
+      assert.equal(normalizedTextContract.summary.resource_version_link_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(normalizedTextContract.summary.version_family_link_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(normalizedTextContract.summary.raw_source_bound_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(normalizedTextContract.summary.text_hash_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.ok(normalizedTextContract.summary.page_unit_count >= normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.ok(normalizedTextContract.summary.paragraph_unit_count >= normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.ok(normalizedTextContract.summary.line_unit_count >= normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(normalizedTextContract.summary.validation_error_count, 0);
+      assert.ok(normalizedTextContract.normalized_text_catalog.normalized_text_artifacts.every((artifact) => artifact.offset_unit === "utf16_code_unit"));
+      assert.ok(normalizedTextContract.normalized_text_catalog.location_maps.every((map) => map.page_units.length > 0 && map.paragraph_units.length > 0 && map.line_units.length > 0));
+      assert.ok(normalizedTextContract.normalized_text_catalog.source_span_seeds.every((seed) => seed.seed_status === "ready"));
+      assert.ok(normalizedTextContract.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "normalized-text-contract", "summary.md"), "utf8"), /Normalized Text Contract/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3847,6 +3881,7 @@ describe("matter harness", () => {
           resource_store_interface: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
           immutable_object_store_layout: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
           resource_version_ledger: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+          normalized_text_contract: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3872,8 +3907,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 37);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 37);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 38);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 38);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3901,6 +3936,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_store_interface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "immutable_object_store_layout"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_version_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "normalized_text_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4082,6 +4118,10 @@ describe("matter harness", () => {
       assert.equal(resourceVersionLedgerCheckpoint?.acceptance_profile, "resource_version_ledger_gate");
       assert.equal(resourceVersionLedgerCheckpoint?.status, "passed");
       assert.equal(resourceVersionLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const normalizedTextContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-normalized-text-contract");
+      assert.equal(normalizedTextContractCheckpoint?.acceptance_profile, "normalized_text_contract_gate");
+      assert.equal(normalizedTextContractCheckpoint?.status, "passed");
+      assert.equal(normalizedTextContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4835,6 +4875,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.resource_version_ledger_object_path_binding_count, resourceVersionLedger.summary.object_path_binding_count);
       assert.equal(dashboard.summary.resource_version_ledger_unbound_object_path_count, 0);
       assert.equal(dashboard.summary.resource_version_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.normalized_text_contract_status, "complete");
+      assert.equal(dashboard.summary.normalized_text_contract_id, "normalized-text-artifact.v1");
+      assert.equal(dashboard.summary.normalized_text_source_count, normalizedTextContract.summary.source_normalized_text_count);
+      assert.equal(dashboard.summary.normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(dashboard.summary.normalized_text_resource_version_link_count, normalizedTextContract.summary.resource_version_link_count);
+      assert.equal(dashboard.summary.normalized_text_version_family_link_count, normalizedTextContract.summary.version_family_link_count);
+      assert.equal(dashboard.summary.normalized_text_raw_source_bound_count, normalizedTextContract.summary.raw_source_bound_count);
+      assert.equal(dashboard.summary.normalized_text_hash_count, normalizedTextContract.summary.text_hash_count);
+      assert.equal(dashboard.summary.normalized_text_location_map_count, normalizedTextContract.summary.location_map_count);
+      assert.equal(dashboard.summary.normalized_text_source_span_seed_count, normalizedTextContract.summary.source_span_seed_count);
+      assert.equal(dashboard.summary.normalized_text_source_span_seed_ready_count, normalizedTextContract.summary.source_span_seed_ready_count);
+      assert.equal(dashboard.summary.normalized_text_page_unit_count, normalizedTextContract.summary.page_unit_count);
+      assert.equal(dashboard.summary.normalized_text_paragraph_unit_count, normalizedTextContract.summary.paragraph_unit_count);
+      assert.equal(dashboard.summary.normalized_text_line_unit_count, normalizedTextContract.summary.line_unit_count);
+      assert.equal(dashboard.summary.normalized_text_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5369,6 +5424,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_store_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "immutable_object_store_layout"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_version_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "normalized_text_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5469,6 +5525,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-duplicate-candidates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-object-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-ledger-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-location-maps"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-source-span-seeds"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7279,6 +7340,26 @@ describe("matter harness", () => {
       const resourceVersionLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/resource-version-ledger-validations?status=passed", apiOptions)).body);
       assert.equal(resourceVersionLedgerValidations.collection, "resource_version_ledger_validations");
       assert.equal(resourceVersionLedgerValidations.count, resourceVersionLedger.summary.validation_item_count);
+
+      const normalizedTextContracts = JSON.parse((await buildReviewApiResponse("/api/normalized-text-contracts?normalized_text_contract_status=complete", apiOptions)).body);
+      assert.equal(normalizedTextContracts.collection, "normalized_text_contracts");
+      assert.equal(normalizedTextContracts.count, 1);
+
+      const normalizedTextArtifacts = JSON.parse((await buildReviewApiResponse("/api/normalized-text-artifacts?offset_unit=utf16_code_unit", apiOptions)).body);
+      assert.equal(normalizedTextArtifacts.collection, "normalized_text_artifacts");
+      assert.equal(normalizedTextArtifacts.count, normalizedTextContract.summary.normalized_text_artifact_count);
+
+      const normalizedTextLocationMaps = JSON.parse((await buildReviewApiResponse("/api/normalized-text-location-maps?offset_unit=utf16_code_unit", apiOptions)).body);
+      assert.equal(normalizedTextLocationMaps.collection, "normalized_text_location_maps");
+      assert.equal(normalizedTextLocationMaps.count, normalizedTextContract.summary.location_map_count);
+
+      const normalizedSourceSpanSeeds = JSON.parse((await buildReviewApiResponse("/api/normalized-source-span-seeds?seed_status=ready", apiOptions)).body);
+      assert.equal(normalizedSourceSpanSeeds.collection, "normalized_source_span_seeds");
+      assert.equal(normalizedSourceSpanSeeds.count, normalizedTextContract.summary.source_span_seed_count);
+
+      const normalizedTextValidations = JSON.parse((await buildReviewApiResponse("/api/normalized-text-validations?status=passed", apiOptions)).body);
+      assert.equal(normalizedTextValidations.collection, "normalized_text_validations");
+      assert.equal(normalizedTextValidations.count, normalizedTextContract.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

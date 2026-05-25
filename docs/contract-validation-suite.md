@@ -33,6 +33,7 @@ The suite is complete only when:
 - `resource:store-interface` is present once the P133 resource store interface becomes a golden fixture
 - `object-store:layout` is present once the P134 immutable object store layout becomes a golden fixture
 - `resource:version-ledger` is present once the P135 resource version ledger becomes a golden fixture
+- `resource:normalized-text` is present once the P136 normalized text contract becomes a golden fixture
 - Phase 112 and `npm run contracts:validate` are recorded in the roadmap
 
 This makes the contract spine testable through one deterministic command before later identity, policy, evidence, runtime, or delivery phases add more behavior.

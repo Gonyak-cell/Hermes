@@ -81,6 +81,11 @@ npm run api:serve
 - `GET /api/resource-duplicate-candidates`: skipped duplicate candidate rows
 - `GET /api/resource-version-object-bindings`: ResourceVersion과 raw-source object path binding rows
 - `GET /api/resource-version-ledger-validations`: resource version ledger validation rows
+- `GET /api/normalized-text-contracts`: normalized text contract artifact
+- `GET /api/normalized-text-artifacts`: source-span-ready normalized text artifact rows
+- `GET /api/normalized-text-location-maps`: page/paragraph/line/char offset maps
+- `GET /api/normalized-source-span-seeds`: normalized text에서 생성된 source span seed rows
+- `GET /api/normalized-text-validations`: normalized text contract validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

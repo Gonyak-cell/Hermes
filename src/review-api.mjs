@@ -325,6 +325,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("resource_version_ledger_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/normalized-text-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("normalized_text_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_text_contracts", [contractResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-text-artifacts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("normalized_text_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_text_artifacts", contractResult.artifact.normalized_text_catalog?.normalized_text_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-text-location-maps") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("normalized_text_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_text_location_maps", contractResult.artifact.normalized_text_catalog?.location_maps ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-source-span-seeds") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("normalized_text_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_source_span_seeds", contractResult.artifact.normalized_text_catalog?.source_span_seeds ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-text-validations") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("normalized_text_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_text_validations", contractResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4547,6 +4582,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-duplicate-candidates", "Resource duplicate candidates"),
       route("GET", "/api/resource-version-object-bindings", "ResourceVersion object path bindings"),
       route("GET", "/api/resource-version-ledger-validations", "Resource version ledger validation rows"),
+      route("GET", "/api/normalized-text-contracts", "Normalized text contract artifacts"),
+      route("GET", "/api/normalized-text-artifacts", "Normalized text artifacts"),
+      route("GET", "/api/normalized-text-location-maps", "Normalized text location maps"),
+      route("GET", "/api/normalized-source-span-seeds", "Normalized source span seeds"),
+      route("GET", "/api/normalized-text-validations", "Normalized text validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5797,6 +5837,7 @@ function readFilterValue(item, key) {
   if (key === "resource_store_interface_status") return item.summary?.resource_store_interface_status ?? item.resource_store_interface_status;
   if (key === "object_store_layout_status") return item.summary?.object_store_layout_status ?? item.object_store_layout_status;
   if (key === "resource_version_ledger_status") return item.summary?.resource_version_ledger_status ?? item.resource_version_ledger_status;
+  if (key === "normalized_text_contract_status") return item.summary?.normalized_text_contract_status ?? item.normalized_text_contract_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

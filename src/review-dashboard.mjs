@@ -26,6 +26,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceStoreInterfacePath: "artifacts/resource-store-interface/latest/resource-store-interface.json",
   immutableObjectStoreLayoutPath: "artifacts/immutable-object-store-layout/latest/immutable-object-store-layout.json",
   resourceVersionLedgerPath: "artifacts/resource-version-ledger/latest/resource-version-ledger.json",
+  normalizedTextContractPath: "artifacts/normalized-text-contract/latest/normalized-text-contract.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -244,6 +245,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceVersionLedgerPath",
     source_id: "resource_version_ledger",
     label: "Resource Version Ledger",
+  },
+  {
+    option: "normalizedTextContractPath",
+    source_id: "normalized_text_contract",
+    label: "Normalized Text Contract",
   },
   {
     option: "evidenceContractFreezePath",
@@ -904,6 +910,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "resource_store_interface") return data.summary ?? {};
   if (sourceId === "immutable_object_store_layout") return data.summary ?? {};
   if (sourceId === "resource_version_ledger") return data.summary ?? {};
+  if (sourceId === "normalized_text_contract") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1119,6 +1126,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceStoreInterfaceStage(artifacts.resource_store_interface, sourceById.get("resource_store_interface")),
     buildImmutableObjectStoreLayoutStage(artifacts.immutable_object_store_layout, sourceById.get("immutable_object_store_layout")),
     buildResourceVersionLedgerStage(artifacts.resource_version_ledger, sourceById.get("resource_version_ledger")),
+    buildNormalizedTextContractStage(artifacts.normalized_text_contract, sourceById.get("normalized_text_contract")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2173,6 +2181,53 @@ function buildResourceVersionLedgerStage(ledger, source) {
       object_path_binding_count: summary.object_path_binding_count ?? 0,
       bound_object_path_count: summary.bound_object_path_count ?? 0,
       unbound_object_path_count: summary.unbound_object_path_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildNormalizedTextContractStage(contract, source) {
+  if (!contract) return missingStage("normalized_text_contract", "Normalized Text Contract", source);
+  const summary = contract.summary ?? {};
+  const errorCount = summary.validation_error_count ?? contract.validation?.errors?.length ?? 0;
+  const status = summary.normalized_text_contract_status === "complete"
+    && errorCount === 0
+    && (summary.normalized_text_artifact_count ?? 0) > 0
+    && (summary.location_map_count ?? 0) === (summary.normalized_text_artifact_count ?? -1)
+    && (summary.source_span_seed_count ?? 0) === (summary.normalized_text_artifact_count ?? -1)
+    && (summary.source_span_seed_ready_count ?? 0) === (summary.source_span_seed_count ?? -1)
+    && (summary.page_unit_count ?? 0) > 0
+    && (summary.raw_source_bound_count ?? 0) === (summary.normalized_text_artifact_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "normalized_text_contract",
+    label: "Normalized Text Contract",
+    status,
+    message: `${summary.normalized_text_artifact_count ?? 0} artifact(s), ${summary.page_unit_count ?? 0} page unit(s), ${summary.source_span_seed_count ?? 0} source span seed(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      normalized_text_contract_status: summary.normalized_text_contract_status ?? "unknown",
+      normalized_text_contract_id: summary.normalized_text_contract_id ?? null,
+      source_normalized_text_count: summary.source_normalized_text_count ?? 0,
+      normalized_text_artifact_count: summary.normalized_text_artifact_count ?? 0,
+      resource_version_link_count: summary.resource_version_link_count ?? 0,
+      version_family_link_count: summary.version_family_link_count ?? 0,
+      raw_source_bound_count: summary.raw_source_bound_count ?? 0,
+      text_hash_count: summary.text_hash_count ?? 0,
+      location_map_count: summary.location_map_count ?? 0,
+      source_span_seed_count: summary.source_span_seed_count ?? 0,
+      source_span_seed_ready_count: summary.source_span_seed_ready_count ?? 0,
+      page_unit_count: summary.page_unit_count ?? 0,
+      synthetic_page_unit_count: summary.synthetic_page_unit_count ?? 0,
+      detected_page_unit_count: summary.detected_page_unit_count ?? 0,
+      paragraph_unit_count: summary.paragraph_unit_count ?? 0,
+      line_unit_count: summary.line_unit_count ?? 0,
+      complete_preview_count: summary.complete_preview_count ?? 0,
+      preview_only_count: summary.preview_only_count ?? 0,
+      truncated_text_count: summary.truncated_text_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5972,6 +6027,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.normalized_text_contract?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "normalized_text_contract";
+    items.push({
+      action_item_id: `dashboard.action.normalized_text_contract.${slugify(subjectId)}`,
+      source_stage: "normalized_text_contract",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix normalized text contract",
+      subject_ref: {
+        subject_type: "normalized_text_contract_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_normalized_text_contract", "rerun_normalized_text_contract", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7698,6 +7771,21 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_version_ledger_object_path_binding_count: artifacts.resource_version_ledger?.summary?.object_path_binding_count ?? 0,
     resource_version_ledger_unbound_object_path_count: artifacts.resource_version_ledger?.summary?.unbound_object_path_count ?? 0,
     resource_version_ledger_validation_error_count: artifacts.resource_version_ledger?.summary?.validation_error_count ?? artifacts.resource_version_ledger?.validation?.errors?.length ?? 0,
+    normalized_text_contract_status: artifacts.normalized_text_contract?.summary?.normalized_text_contract_status ?? "unknown",
+    normalized_text_contract_id: artifacts.normalized_text_contract?.summary?.normalized_text_contract_id ?? null,
+    normalized_text_source_count: artifacts.normalized_text_contract?.summary?.source_normalized_text_count ?? 0,
+    normalized_text_artifact_count: artifacts.normalized_text_contract?.summary?.normalized_text_artifact_count ?? 0,
+    normalized_text_resource_version_link_count: artifacts.normalized_text_contract?.summary?.resource_version_link_count ?? 0,
+    normalized_text_version_family_link_count: artifacts.normalized_text_contract?.summary?.version_family_link_count ?? 0,
+    normalized_text_raw_source_bound_count: artifacts.normalized_text_contract?.summary?.raw_source_bound_count ?? 0,
+    normalized_text_hash_count: artifacts.normalized_text_contract?.summary?.text_hash_count ?? 0,
+    normalized_text_location_map_count: artifacts.normalized_text_contract?.summary?.location_map_count ?? 0,
+    normalized_text_source_span_seed_count: artifacts.normalized_text_contract?.summary?.source_span_seed_count ?? 0,
+    normalized_text_source_span_seed_ready_count: artifacts.normalized_text_contract?.summary?.source_span_seed_ready_count ?? 0,
+    normalized_text_page_unit_count: artifacts.normalized_text_contract?.summary?.page_unit_count ?? 0,
+    normalized_text_paragraph_unit_count: artifacts.normalized_text_contract?.summary?.paragraph_unit_count ?? 0,
+    normalized_text_line_unit_count: artifacts.normalized_text_contract?.summary?.line_unit_count ?? 0,
+    normalized_text_validation_error_count: artifacts.normalized_text_contract?.summary?.validation_error_count ?? artifacts.normalized_text_contract?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9067,6 +9155,8 @@ function parseArgs(argv) {
     else if (arg === "--no-immutable-object-store-layout") parsed.immutableObjectStoreLayoutPath = false;
     else if (arg === "--resource-version-ledger") parsed.resourceVersionLedgerPath = argv[++index];
     else if (arg === "--no-resource-version-ledger") parsed.resourceVersionLedgerPath = false;
+    else if (arg === "--normalized-text-contract") parsed.normalizedTextContractPath = argv[++index];
+    else if (arg === "--no-normalized-text-contract") parsed.normalizedTextContractPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9336,6 +9426,9 @@ Options:
   --resource-version-ledger <path>
                                   resource-version-ledger.json path.
   --no-resource-version-ledger    Do not include Resource Version Ledger status.
+  --normalized-text-contract <path>
+                                  normalized-text-contract.json path.
+  --no-normalized-text-contract   Do not include Normalized Text Contract status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

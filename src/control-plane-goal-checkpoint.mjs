@@ -34,6 +34,7 @@ const GOAL_ITEMS = [
   sourceItem("resource_store_interface", "Resource store interface", "resource_evidence", "resource_store_interface", "control-plane-resource-store-interface", { acceptance_profile: "resource_store_interface_gate" }),
   sourceItem("immutable_object_store_layout", "Immutable object store layout", "resource_evidence", "immutable_object_store_layout", "control-plane-immutable-object-store-layout", { acceptance_profile: "immutable_object_store_layout_gate" }),
   sourceItem("resource_version_ledger", "Resource version ledger", "resource_evidence", "resource_version_ledger", "control-plane-resource-version-ledger", { acceptance_profile: "resource_version_ledger_gate" }),
+  sourceItem("normalized_text_contract", "Normalized text contract", "resource_evidence", "normalized_text_contract", "control-plane-normalized-text-contract", { acceptance_profile: "normalized_text_contract_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -375,6 +376,7 @@ function evaluateStageAcceptance(item, stage) {
     "resource_store_interface_gate",
     "immutable_object_store_layout_gate",
     "resource_version_ledger_gate",
+    "normalized_text_contract_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -648,6 +650,25 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.version_event_count ?? 0) >= (metrics.resource_version_count ?? 0)
     ) {
       return passedWithOperationalGate(stage, "Resource version ledger groups versions by source/external id, distinguishes changed and duplicate content, and binds every version to an immutable raw-source object path.");
+    }
+  }
+
+  if (item.acceptance_profile === "normalized_text_contract_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const artifactCount = metrics.normalized_text_artifact_count ?? 0;
+    if (
+      errors === 0
+      && metrics.normalized_text_contract_status === "complete"
+      && artifactCount > 0
+      && (metrics.location_map_count ?? 0) === artifactCount
+      && (metrics.source_span_seed_count ?? 0) === artifactCount
+      && (metrics.source_span_seed_ready_count ?? 0) === artifactCount
+      && (metrics.raw_source_bound_count ?? 0) === artifactCount
+      && (metrics.page_unit_count ?? 0) > 0
+      && (metrics.paragraph_unit_count ?? 0) > 0
+      && (metrics.line_unit_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Normalized text contract binds extracted text to resource versions, raw-source object keys, and source-span-ready page, paragraph, line, and char offsets.");
     }
   }
 

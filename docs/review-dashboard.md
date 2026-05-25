@@ -2,6 +2,8 @@
 
 `Review Dashboard`는 Resource Expansion부터 Health/Action Plan까지의 산출물을 하나의 운영 상태판으로 합친다. 나중에 웹 API를 붙일 때도 `review-dashboard.json`을 그대로 응답 계약으로 사용할 수 있게 만든 얇은 dashboard/API slice다.
 
+Phase 136부터 dashboard는 Normalized Text Contract도 읽는다. 각 normalized text artifact의 ResourceVersion/family/raw-source binding, page unit, paragraph unit, line unit, source span seed readiness, validation error count가 summary와 stage status에 노출된다.
+
 ## 실행
 
 ```bash

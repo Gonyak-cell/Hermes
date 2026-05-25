@@ -78,6 +78,8 @@ npm run control-plane:loop
 
 Phase 129부터 loop는 `npm run contracts:policy-golden`도 실행해 identity/policy boundary의 allow, review, deny regression fixture를 dashboard와 checkpoint 전에 갱신한다.
 
+Phase 136부터 loop는 `npm run resource:normalized-text`를 실행해 Resource Ingest normalized text를 page/paragraph/line/char-offset location map과 source-span seed로 projection한다.
+
 Phase 134부터 loop는 `npm run object-store:layout`도 실행해 raw source/generated output의 immutable object key resolver와 collision report를 dashboard와 checkpoint 전에 갱신한다.
 
 Phase 135부터 loop는 `npm run resource:version-ledger`도 실행해 external id별 version family, change/duplicate event, raw-source object path binding을 dashboard와 checkpoint 전에 갱신한다.

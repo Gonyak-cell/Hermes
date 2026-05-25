@@ -4093,6 +4093,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 37개로 증가하고 resource version ledger가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:version-ledger -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 136: Normalized Text Contract
+
+목표: extraction output의 normalized text를 source span 생성에 필요한 offset/page/paragraph/line 좌표가 보존된 contract artifact로 승격한다.
+
+구현 내용:
+
+- `src/normalized-text-contract.mjs`, `scripts/normalized-text-contract.mjs`, `schemas/normalized-text-contract.schema.json`, `docs/normalized-text-contract.md`를 추가함
+- `npm run resource:normalized-text -- --check` 명령을 추가해 normalized text artifact, location map, source span seed, validation report, summary markdown을 생성함
+- Resource Ingest의 `normalized-text.v1`을 Resource Store Interface의 ResourceVersion store record, Resource Version Ledger family, P134 raw-source immutable object key에 binding함
+- 각 normalized text에 `utf16_code_unit` 기준 char range, page unit, paragraph unit, line unit을 생성하고 source span seed가 page range와 char offset을 보존하도록 함
+- page marker나 form-feed가 없으면 synthetic page 1을 부여해 P138 source span store가 최소 page 좌표를 항상 받을 수 있게 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 normalized text contract를 통합함
+- `/api/normalized-text-contracts`, `/api/normalized-text-artifacts`, `/api/normalized-text-location-maps`, `/api/normalized-source-span-seeds`, `/api/normalized-text-validations` route를 추가함
+
+완료 기준:
+
+- Normalized Text Contract가 validation error 없이 `complete` 상태가 됨
+- normalized text artifact 수가 Resource Ingest normalized text 수와 일치함
+- 모든 artifact가 ResourceVersion, Resource Version Ledger family, raw-source object key에 binding됨
+- 모든 artifact가 text hash, tenant, matter, classification을 보존함
+- 모든 location map이 page, paragraph, line offset unit과 canonical offset unit을 가짐
+- 모든 source span seed가 ready 상태이고 page range와 char range를 보존함
+- Review Dashboard summary와 stage status에서 artifact/location/source-span-seed/page/paragraph/line/validation 상태가 노출됨
+- Review API smoke가 normalized text contract, artifact, location map, source span seed, validation route를 모두 조회함
+- Golden fixture 수가 38개로 증가하고 normalized text contract가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:normalized-text -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4101,9 +4128,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 135이다.
+- 현재 완료 기준점은 Phase 136이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P136-P312, 총 177개다.
+- 남은 계획 슬롯은 P137-P312, 총 176개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -256,6 +256,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/resource-duplicate-candidates"));
   assert.ok(index.routes.some((route) => route.path === "/api/resource-version-object-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/resource-version-ledger-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-text-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-text-artifacts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-text-location-maps"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-source-span-seeds"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-text-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1698,6 +1703,26 @@ try {
   const resourceVersionLedgerValidations = await fetchJson(`${url}/api/resource-version-ledger-validations?status=passed&limit=5`);
   assert.equal(resourceVersionLedgerValidations.collection, "resource_version_ledger_validations");
   assert.ok(resourceVersionLedgerValidations.count <= 5);
+
+  const normalizedTextContracts = await fetchJson(`${url}/api/normalized-text-contracts?normalized_text_contract_status=complete&limit=1`);
+  assert.equal(normalizedTextContracts.collection, "normalized_text_contracts");
+  assert.ok(normalizedTextContracts.count <= 1);
+
+  const normalizedTextArtifacts = await fetchJson(`${url}/api/normalized-text-artifacts?offset_unit=utf16_code_unit&limit=5`);
+  assert.equal(normalizedTextArtifacts.collection, "normalized_text_artifacts");
+  assert.ok(normalizedTextArtifacts.count <= 5);
+
+  const normalizedTextLocationMaps = await fetchJson(`${url}/api/normalized-text-location-maps?offset_unit=utf16_code_unit&limit=5`);
+  assert.equal(normalizedTextLocationMaps.collection, "normalized_text_location_maps");
+  assert.ok(normalizedTextLocationMaps.count <= 5);
+
+  const normalizedSourceSpanSeeds = await fetchJson(`${url}/api/normalized-source-span-seeds?seed_status=ready&limit=5`);
+  assert.equal(normalizedSourceSpanSeeds.collection, "normalized_source_span_seeds");
+  assert.ok(normalizedSourceSpanSeeds.count <= 5);
+
+  const normalizedTextValidations = await fetchJson(`${url}/api/normalized-text-validations?status=passed&limit=5`);
+  assert.equal(normalizedTextValidations.collection, "normalized_text_validations");
+  assert.ok(normalizedTextValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

@@ -112,6 +112,7 @@ import { runMatterContractFreeze } from "../src/matter-contract-freeze.mjs";
 import { runPolicyContractFreeze } from "../src/policy-contract-freeze.mjs";
 import { runEvidenceContractFreeze } from "../src/evidence-contract-freeze.mjs";
 import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-contract-freeze.mjs";
+import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -661,6 +662,43 @@ describe("matter harness", () => {
       assert.ok(capabilityWorkflowContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "capability-workflow-contract-freeze", "summary.md"), "utf8"), /Capability\/Workflow Contract Freeze/);
 
+      const runtimeAgentRunContractFreeze = await runRuntimeAgentRunContractFreeze({
+        runtimeAdapterRegistryPath: "examples/core/runtime-adapters.json",
+        runtimeCommandBindingsPath: "examples/core/runtime-command-bindings.json",
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        outDir: path.join(outDir, "runtime-agentrun-contract-freeze"),
+        runAt: "2026-05-23T06:34:58.000Z",
+      });
+      const runtimeAgentRunContractFreezeSchema = JSON.parse(await readFile("schemas/runtime-agentrun-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeAgentRunContractFreeze, runtimeAgentRunContractFreezeSchema, {}, "runtime_agentrun_contract_freeze"), []);
+      assert.equal(runtimeAgentRunContractFreeze.summary.freeze_status, "complete");
+      assert.equal(runtimeAgentRunContractFreeze.summary.runtime_adapter_count, 9);
+      assert.equal(runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count, 9);
+      assert.equal(runtimeAgentRunContractFreeze.summary.agent_run_count, capabilityWorkflowContractFreeze.summary.agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.runtime_output_count, capabilityWorkflowContractFreeze.summary.agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.runtime_log_count, capabilityWorkflowContractFreeze.summary.agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.runtime_verification_count, capabilityWorkflowContractFreeze.summary.agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.risk_declared_count, 9);
+      assert.equal(runtimeAgentRunContractFreeze.summary.verification_flag_declared_count, 9);
+      assert.equal(runtimeAgentRunContractFreeze.summary.agent_log_bound_count, runtimeAgentRunContractFreeze.summary.log_required_agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.output_hash_count, runtimeAgentRunContractFreeze.summary.agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.artifact_capture_bound_count, runtimeAgentRunContractFreeze.summary.artifact_capture_required_agent_run_count);
+      assert.equal(runtimeAgentRunContractFreeze.summary.high_risk_agent_run_count, 2);
+      assert.equal(runtimeAgentRunContractFreeze.summary.untrusted_output_agent_run_count, 2);
+      assert.equal(runtimeAgentRunContractFreeze.summary.validation_error_count, 0);
+      assert.equal(runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_adapters[0].schema_version, "runtime-adapter.v2");
+      assert.equal(runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_execution_contracts[0].schema_version, "runtime-execution-contract.v2");
+      assert.equal(runtimeAgentRunContractFreeze.runtime_agentrun_contract.agent_runs[0].schema_version, "agent-run-runtime.v2");
+      assert.equal(runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_outputs[0].schema_version, "runtime-output-contract.v2");
+      assert.equal(runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_logs[0].schema_version, "runtime-log-contract.v2");
+      assert.equal(runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_verifications[0].schema_version, "runtime-verification-contract.v2");
+      assert.ok(runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_artifacts.some((artifact) => artifact.artifact_type === "pr_draft"));
+      assert.ok(runtimeAgentRunContractFreeze.runtime_agentrun_contract.agent_runs.every((agentRun) => agentRun.output_hash));
+      assert.ok(runtimeAgentRunContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "runtime-agentrun-contract-freeze", "summary.md"), "utf8"), /Runtime\/AgentRun Contract Freeze/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1122,6 +1160,7 @@ describe("matter harness", () => {
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -2730,6 +2769,10 @@ describe("matter harness", () => {
       assert.equal(capabilityWorkflowContractFreezeCheckpoint?.acceptance_profile, "capability_workflow_contract_freeze_gate");
       assert.equal(capabilityWorkflowContractFreezeCheckpoint?.status, "passed");
       assert.equal(capabilityWorkflowContractFreezeCheckpoint?.implementation_status, "passed");
+      const runtimeAgentRunContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-agentrun-contract-freeze");
+      assert.equal(runtimeAgentRunContractFreezeCheckpoint?.acceptance_profile, "runtime_agentrun_contract_freeze_gate");
+      assert.equal(runtimeAgentRunContractFreezeCheckpoint?.status, "passed");
+      assert.equal(runtimeAgentRunContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -3054,6 +3097,26 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.capability_workflow_contract_freeze_version_required_count, capabilityWorkflowContractFreeze.summary.version_required_count);
       assert.equal(dashboard.summary.capability_workflow_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.capability_workflow_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_agent_run_count, runtimeAgentRunContractFreeze.summary.agent_run_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_output_count, runtimeAgentRunContractFreeze.summary.runtime_output_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_log_count, runtimeAgentRunContractFreeze.summary.runtime_log_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_artifact_count, runtimeAgentRunContractFreeze.summary.runtime_artifact_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_verification_count, runtimeAgentRunContractFreeze.summary.runtime_verification_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_risk_declared_count, runtimeAgentRunContractFreeze.summary.risk_declared_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_verification_flag_declared_count, runtimeAgentRunContractFreeze.summary.verification_flag_declared_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_log_required_agent_run_count, runtimeAgentRunContractFreeze.summary.log_required_agent_run_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_agent_log_bound_count, runtimeAgentRunContractFreeze.summary.agent_log_bound_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_output_hash_count, runtimeAgentRunContractFreeze.summary.output_hash_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_artifact_capture_required_agent_run_count, runtimeAgentRunContractFreeze.summary.artifact_capture_required_agent_run_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_artifact_capture_bound_count, runtimeAgentRunContractFreeze.summary.artifact_capture_bound_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_high_risk_agent_run_count, runtimeAgentRunContractFreeze.summary.high_risk_agent_run_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_untrusted_output_agent_run_count, runtimeAgentRunContractFreeze.summary.untrusted_output_agent_run_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_verification_required_agent_run_count, runtimeAgentRunContractFreeze.summary.verification_required_agent_run_count);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3433,6 +3496,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3899,6 +3963,42 @@ describe("matter harness", () => {
       const capabilityWorkflowContractValidations = JSON.parse((await buildReviewApiResponse("/api/capability-workflow-contract-validations?status=passed", apiOptions)).body);
       assert.equal(capabilityWorkflowContractValidations.collection, "capability_workflow_contract_validations");
       assert.equal(capabilityWorkflowContractValidations.count, capabilityWorkflowContractFreeze.summary.validation_item_count);
+
+      const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
+      assert.equal(runtimeAgentRunContractFreezes.count, 1);
+
+      const highRiskRuntimeAdapters = JSON.parse((await buildReviewApiResponse("/api/runtime-adapter-v2-contracts?risk_level=high", apiOptions)).body);
+      assert.equal(highRiskRuntimeAdapters.collection, "runtime_adapter_v2_contracts");
+      assert.ok(highRiskRuntimeAdapters.count >= 2);
+
+      const codexRuntimeExecutionContracts = JSON.parse((await buildReviewApiResponse("/api/runtime-execution-contracts?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexRuntimeExecutionContracts.collection, "runtime_execution_contracts");
+      assert.equal(codexRuntimeExecutionContracts.count, 1);
+
+      const codexAgentRunRuntimeContracts = JSON.parse((await buildReviewApiResponse("/api/agent-run-runtime-contracts?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexAgentRunRuntimeContracts.collection, "agent_run_runtime_contracts");
+      assert.equal(codexAgentRunRuntimeContracts.count, 1);
+
+      const untrustedRuntimeOutputContracts = JSON.parse((await buildReviewApiResponse("/api/runtime-output-contracts?output_trust=untrusted_until_verified", apiOptions)).body);
+      assert.equal(untrustedRuntimeOutputContracts.collection, "runtime_output_contracts");
+      assert.equal(untrustedRuntimeOutputContracts.count, runtimeAgentRunContractFreeze.summary.untrusted_output_agent_run_count);
+
+      const capturedRuntimeLogContracts = JSON.parse((await buildReviewApiResponse("/api/runtime-log-contracts?log_capture_status=captured", apiOptions)).body);
+      assert.equal(capturedRuntimeLogContracts.collection, "runtime_log_contracts");
+      assert.equal(capturedRuntimeLogContracts.count, runtimeAgentRunContractFreeze.summary.agent_log_bound_count);
+
+      const prDraftRuntimeArtifactContracts = JSON.parse((await buildReviewApiResponse("/api/runtime-artifact-contracts?artifact_type=pr_draft", apiOptions)).body);
+      assert.equal(prDraftRuntimeArtifactContracts.collection, "runtime_artifact_contracts");
+      assert.ok(prDraftRuntimeArtifactContracts.count >= 1);
+
+      const pendingRuntimeVerificationContracts = JSON.parse((await buildReviewApiResponse("/api/runtime-verification-contracts?verification_status=pending_gate_review", apiOptions)).body);
+      assert.equal(pendingRuntimeVerificationContracts.collection, "runtime_verification_contracts");
+      assert.equal(pendingRuntimeVerificationContracts.count, runtimeAgentRunContractFreeze.summary.untrusted_output_agent_run_count);
+
+      const runtimeAgentRunContractValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeAgentRunContractValidations.collection, "runtime_agentrun_contract_validations");
+      assert.equal(runtimeAgentRunContractValidations.count, runtimeAgentRunContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

@@ -3179,6 +3179,42 @@ Phase 103은 Domain Pack Registry의 capability manifest와 세 vertical slice�
 - Review API에서 `/api/capability-workflow-contract-freezes`, `/api/capability-manifest-v2-contracts`, `/api/workflow-v2-contracts`, `/api/workflow-run-v2-contracts`, `/api/agent-run-v2-contracts`, `/api/capability-io-contracts`, `/api/capability-gate-runtime-contracts`, `/api/workflow-execution-bindings`, `/api/capability-workflow-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:capabilities`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 104: Runtime Adapter and AgentRun Runtime v2 Contract Freeze
+
+Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase 103의 AgentRun v2, Observability Catalog, Output Artifact Catalog를 연결해 Runtime/AgentRun plane의 실행 계약을 고정했다. 목적은 Claude Code, Codex, Hermes, local script, document renderer의 self-report를 직접 신뢰하지 않고, output/log/artifact/risk/verification 의무를 모두 계약 객체로 검증하는 것이다.
+
+구현:
+
+- `npm run contracts:runtimes`
+- `src/runtime-agentrun-contract-freeze.mjs`
+- `scripts/runtime-agentrun-contract-freeze.mjs`
+- `schemas/runtime-agentrun-contract-freeze.schema.json`
+- `docs/runtime-agentrun-contract-freeze.md`
+
+핵심 산출물:
+
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-adapter-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-execution-contract-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/agent-run-runtime-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-output-contract-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-log-contract-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-artifact-contract-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/runtime-verification-contract-v2-fixture.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/validation-report.json`
+- `artifacts/runtime-agentrun-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- `runtime-adapter.v2`, `runtime-execution-contract.v2`, `agent-run-runtime.v2`, `runtime-output-contract.v2`, `runtime-log-contract.v2`, `runtime-artifact-contract.v2`, `runtime-verification-contract.v2` fixture가 생성됨
+- RuntimeAdapter v2가 risk level, execution environment, input/output trust, workspace policy, tool policy, lifecycle, observability, verification, data access, command binding을 보존함
+- AgentRun runtime v2가 adapter id, runtime risk level, output ref/hash, log ref, artifact refs, output trust, verification required flag를 보존함
+- RuntimeOutput/RuntimeLog/RuntimeArtifact/RuntimeVerification contract가 AgentRun별로 생성되고 high-risk/untrusted runtime은 verification gate를 요구함
+- Required log는 모두 `captured` 상태이며 artifact capture required run은 `captured` 또는 `reference_only`로 추적됨
+- Dashboard stage와 goal checkpoint가 `runtime_agentrun_contract_freeze`를 추적함
+- Review API에서 `/api/runtime-agentrun-contract-freezes`, `/api/runtime-adapter-v2-contracts`, `/api/runtime-execution-contracts`, `/api/agent-run-runtime-contracts`, `/api/runtime-output-contracts`, `/api/runtime-log-contracts`, `/api/runtime-artifact-contracts`, `/api/runtime-verification-contracts`, `/api/runtime-agentrun-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:runtimes`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3187,9 +3223,9 @@ Phase 103은 Domain Pack Registry의 capability manifest와 세 vertical slice�
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 103이다.
+- 현재 완료 기준점은 Phase 104이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P104-P312, 총 209개다.
+- 남은 계획 슬롯은 P105-P312, 총 208개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -1,0 +1,351 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/runtime-agentrun-contract-freeze.schema.json",
+  "title": "Hermes Runtime AgentRun Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "field_requirements",
+    "summary",
+    "runtime_agentrun_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "runtime-agentrun-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_registry_path",
+        "runtime_command_bindings_path",
+        "capability_workflow_contract_freeze_path",
+        "observability_catalog_path",
+        "output_artifact_catalog_path"
+      ],
+      "properties": {
+        "runtime_adapter_registry_path": { "type": "string" },
+        "runtime_command_bindings_path": { "type": "string" },
+        "capability_workflow_contract_freeze_path": { "type": "string" },
+        "observability_catalog_path": { "type": "string" },
+        "output_artifact_catalog_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_registry",
+        "runtime_command_bindings",
+        "capability_workflow_contract_freeze",
+        "observability_catalog",
+        "output_artifact_catalog"
+      ],
+      "properties": {
+        "runtime_adapter_registry": { "type": "object" },
+        "runtime_command_bindings": { "type": "object" },
+        "capability_workflow_contract_freeze": { "type": "object" },
+        "observability_catalog": { "type": "object" },
+        "output_artifact_catalog": { "type": "object" }
+      }
+    },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_schema_version",
+        "runtime_execution_contract_schema_version",
+        "agent_run_runtime_schema_version",
+        "runtime_output_schema_version",
+        "runtime_log_schema_version",
+        "runtime_artifact_schema_version",
+        "runtime_verification_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "runtime_adapter_schema_version": { "const": "runtime-adapter.v2" },
+        "runtime_execution_contract_schema_version": { "const": "runtime-execution-contract.v2" },
+        "agent_run_runtime_schema_version": { "const": "agent-run-runtime.v2" },
+        "runtime_output_schema_version": { "const": "runtime-output-contract.v2" },
+        "runtime_log_schema_version": { "const": "runtime-log-contract.v2" },
+        "runtime_artifact_schema_version": { "const": "runtime-artifact-contract.v2" },
+        "runtime_verification_schema_version": { "const": "runtime-verification-contract.v2" },
+        "compatibility_floor": { "const": "runtime-adapter-registry.v1+capability-workflow-contract.v2" }
+      }
+    },
+    "field_requirements": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_v2",
+        "runtime_execution_contract_v2",
+        "agent_run_runtime_v2",
+        "runtime_output_contract_v2",
+        "runtime_log_contract_v2",
+        "runtime_artifact_contract_v2",
+        "runtime_verification_contract_v2"
+      ],
+      "additionalProperties": { "$ref": "#/$defs/field_requirement" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "runtime_adapter_schema_version",
+        "runtime_execution_contract_schema_version",
+        "agent_run_runtime_schema_version",
+        "runtime_output_schema_version",
+        "runtime_log_schema_version",
+        "runtime_artifact_schema_version",
+        "runtime_verification_schema_version",
+        "runtime_adapter_count",
+        "runtime_execution_contract_count",
+        "used_runtime_count",
+        "agent_run_count",
+        "runtime_output_count",
+        "runtime_log_count",
+        "runtime_artifact_count",
+        "runtime_verification_count",
+        "risk_declared_count",
+        "verification_flag_declared_count",
+        "log_required_agent_run_count",
+        "agent_log_bound_count",
+        "output_hash_count",
+        "artifact_capture_required_agent_run_count",
+        "artifact_capture_bound_count",
+        "high_risk_agent_run_count",
+        "untrusted_output_agent_run_count",
+        "verification_required_agent_run_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_runtime_id",
+        "by_risk_level",
+        "by_output_trust",
+        "by_verification_status",
+        "by_log_capture_status",
+        "by_artifact_capture_status"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "runtime_adapter_schema_version": { "const": "runtime-adapter.v2" },
+        "runtime_execution_contract_schema_version": { "const": "runtime-execution-contract.v2" },
+        "agent_run_runtime_schema_version": { "const": "agent-run-runtime.v2" },
+        "runtime_output_schema_version": { "const": "runtime-output-contract.v2" },
+        "runtime_log_schema_version": { "const": "runtime-log-contract.v2" },
+        "runtime_artifact_schema_version": { "const": "runtime-artifact-contract.v2" },
+        "runtime_verification_schema_version": { "const": "runtime-verification-contract.v2" },
+        "runtime_adapter_count": { "type": "integer", "minimum": 0 },
+        "runtime_execution_contract_count": { "type": "integer", "minimum": 0 },
+        "used_runtime_count": { "type": "integer", "minimum": 0 },
+        "agent_run_count": { "type": "integer", "minimum": 0 },
+        "runtime_output_count": { "type": "integer", "minimum": 0 },
+        "runtime_log_count": { "type": "integer", "minimum": 0 },
+        "runtime_artifact_count": { "type": "integer", "minimum": 0 },
+        "runtime_verification_count": { "type": "integer", "minimum": 0 },
+        "risk_declared_count": { "type": "integer", "minimum": 0 },
+        "verification_flag_declared_count": { "type": "integer", "minimum": 0 },
+        "log_required_agent_run_count": { "type": "integer", "minimum": 0 },
+        "agent_log_bound_count": { "type": "integer", "minimum": 0 },
+        "output_hash_count": { "type": "integer", "minimum": 0 },
+        "artifact_capture_required_agent_run_count": { "type": "integer", "minimum": 0 },
+        "artifact_capture_bound_count": { "type": "integer", "minimum": 0 },
+        "high_risk_agent_run_count": { "type": "integer", "minimum": 0 },
+        "untrusted_output_agent_run_count": { "type": "integer", "minimum": 0 },
+        "verification_required_agent_run_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_runtime_id": { "type": "object" },
+        "by_risk_level": { "type": "object" },
+        "by_output_trust": { "type": "object" },
+        "by_verification_status": { "type": "object" },
+        "by_log_capture_status": { "type": "object" },
+        "by_artifact_capture_status": { "type": "object" }
+      }
+    },
+    "runtime_agentrun_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "runtime_adapters",
+        "runtime_execution_contracts",
+        "agent_runs",
+        "runtime_outputs",
+        "runtime_logs",
+        "runtime_artifacts",
+        "runtime_verifications"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-agentrun-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "runtime_adapters": { "type": "array", "items": { "$ref": "#/$defs/runtime_adapter_v2" } },
+        "runtime_execution_contracts": { "type": "array", "items": { "$ref": "#/$defs/runtime_execution_contract_v2" } },
+        "agent_runs": { "type": "array", "items": { "$ref": "#/$defs/agent_run_runtime_v2" } },
+        "runtime_outputs": { "type": "array", "items": { "$ref": "#/$defs/runtime_output_contract_v2" } },
+        "runtime_logs": { "type": "array", "items": { "$ref": "#/$defs/runtime_log_contract_v2" } },
+        "runtime_artifacts": { "type": "array", "items": { "$ref": "#/$defs/runtime_artifact_contract_v2" } },
+        "runtime_verifications": { "type": "array", "items": { "$ref": "#/$defs/runtime_verification_contract_v2" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    }
+  },
+  "$defs": {
+    "field_requirement": {
+      "type": "object",
+      "required": ["required_fields", "optional_fields", "required_groups"],
+      "properties": {
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "optional_fields": { "type": "array", "items": { "type": "string" } },
+        "required_groups": { "type": "object" }
+      }
+    },
+    "runtime_adapter_v2": {
+      "type": "object",
+      "required": ["schema_version", "adapter_id", "runtime_id", "risk_level", "output_contract", "observability", "verification", "output_trust"],
+      "properties": {
+        "schema_version": { "const": "runtime-adapter.v2" },
+        "adapter_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+        "output_contract": { "type": "object" },
+        "observability": { "type": "object" },
+        "verification": { "type": "object" },
+        "output_trust": { "type": "string" }
+      }
+    },
+    "runtime_execution_contract_v2": {
+      "type": "object",
+      "required": ["schema_version", "execution_contract_id", "adapter_id", "runtime_id", "risk_level", "execution_mode", "sandbox_required"],
+      "properties": {
+        "schema_version": { "const": "runtime-execution-contract.v2" },
+        "execution_contract_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+        "execution_mode": { "type": "string" },
+        "sandbox_required": { "type": "boolean" }
+      }
+    },
+    "agent_run_runtime_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "agent_run_id",
+        "workflow_run_id",
+        "runtime_id",
+        "runtime_known",
+        "risk_level",
+        "output_ref",
+        "output_hash",
+        "logs_required",
+        "log_capture_status",
+        "artifact_capture_required",
+        "artifact_capture_status",
+        "verification_required",
+        "verification_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-run-runtime.v2" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "runtime_known": { "type": "boolean" },
+        "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+        "output_ref": { "type": ["string", "null"] },
+        "output_hash": { "type": "string" },
+        "logs_required": { "type": "boolean" },
+        "log_capture_status": { "enum": ["captured", "optional_missing", "required_missing"] },
+        "artifact_capture_required": { "type": "boolean" },
+        "artifact_capture_status": { "enum": ["captured", "reference_only", "optional_missing", "missing"] },
+        "verification_required": { "type": "boolean" },
+        "verification_status": { "enum": ["not_required", "pending_gate_review", "pending_human_approval", "contract_ready"] }
+      }
+    },
+    "runtime_output_contract_v2": {
+      "type": "object",
+      "required": ["schema_version", "runtime_output_id", "agent_run_id", "runtime_id", "output_hash", "output_hash_status", "output_trust"],
+      "properties": {
+        "schema_version": { "const": "runtime-output-contract.v2" },
+        "runtime_output_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "output_hash": { "type": "string" },
+        "output_hash_status": { "enum": ["present", "missing"] },
+        "output_trust": { "type": "string" }
+      }
+    },
+    "runtime_log_contract_v2": {
+      "type": "object",
+      "required": ["schema_version", "runtime_log_id", "agent_run_id", "runtime_id", "logs_required", "log_capture_status"],
+      "properties": {
+        "schema_version": { "const": "runtime-log-contract.v2" },
+        "runtime_log_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "logs_required": { "type": "boolean" },
+        "log_capture_status": { "enum": ["captured", "optional_missing", "required_missing"] }
+      }
+    },
+    "runtime_artifact_contract_v2": {
+      "type": "object",
+      "required": ["schema_version", "runtime_artifact_id", "agent_run_id", "runtime_id", "artifact_id", "artifact_type", "content_hash"],
+      "properties": {
+        "schema_version": { "const": "runtime-artifact-contract.v2" },
+        "runtime_artifact_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "artifact_id": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "content_hash": { "type": "string" }
+      }
+    },
+    "runtime_verification_contract_v2": {
+      "type": "object",
+      "required": ["schema_version", "runtime_verification_id", "agent_run_id", "runtime_id", "risk_level", "output_trust", "verification_required", "verification_status"],
+      "properties": {
+        "schema_version": { "const": "runtime-verification-contract.v2" },
+        "runtime_verification_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+        "output_trust": { "type": "string" },
+        "verification_required": { "type": "boolean" },
+        "verification_status": { "enum": ["not_required", "pending_gate_review", "pending_human_approval", "contract_ready"] }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

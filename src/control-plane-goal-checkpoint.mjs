@@ -17,6 +17,7 @@ const GOAL_ITEMS = [
   sourceItem("policy_contract_freeze", "Data classification and policy reference v2 contract freeze", "policy", "policy_contract_freeze", "control-plane-policy-contract-freeze", { acceptance_profile: "policy_contract_freeze_gate" }),
   sourceItem("evidence_contract_freeze", "Evidence, fact, issue, citation, and lineage v2 contract freeze", "resource_evidence", "evidence_contract_freeze", "control-plane-evidence-contract-freeze", { acceptance_profile: "evidence_contract_freeze_gate" }),
   sourceItem("capability_workflow_contract_freeze", "Capability, workflow, run, gate, runtime, and IO v2 contract freeze", "contracts", "capability_workflow_contract_freeze", "control-plane-capability-workflow-contract-freeze", { acceptance_profile: "capability_workflow_contract_freeze_gate" }),
+  sourceItem("runtime_agentrun_contract_freeze", "Runtime adapter and AgentRun runtime v2 contract freeze", "runtime", "runtime_agentrun_contract_freeze", "control-plane-runtime-agentrun-contract-freeze", { acceptance_profile: "runtime_agentrun_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
   sourceItem("context_packet_ledger", "Context builder and retrieval filters", "context", "context_packet_ledger", "control-plane-context-builder"),

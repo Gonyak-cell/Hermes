@@ -567,6 +567,101 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/runtime-agentrun-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_agentrun_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-adapter-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_adapter_v2_contracts", freezeResult.artifact.runtime_agentrun_contract?.runtime_adapters ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-execution-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_execution_contracts", freezeResult.artifact.runtime_agentrun_contract?.runtime_execution_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-runtime-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_runtime_contracts", freezeResult.artifact.runtime_agentrun_contract?.agent_runs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-output-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_output_contracts", freezeResult.artifact.runtime_agentrun_contract?.runtime_outputs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-log-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_log_contracts", freezeResult.artifact.runtime_agentrun_contract?.runtime_logs ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-artifact-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_artifact_contracts", freezeResult.artifact.runtime_agentrun_contract?.runtime_artifacts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-verification-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_verification_contracts", freezeResult.artifact.runtime_agentrun_contract?.runtime_verifications ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-agentrun-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("runtime_agentrun_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_agentrun_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -2992,6 +3087,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/capability-gate-runtime-contracts", "Capability gate/runtime contract fixtures"),
       route("GET", "/api/workflow-execution-bindings", "Workflow execution bindings"),
       route("GET", "/api/capability-workflow-contract-validations", "Capability/workflow contract validation rows"),
+      route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
+      route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
+      route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
+      route("GET", "/api/agent-run-runtime-contracts", "AgentRun runtime contract fixtures"),
+      route("GET", "/api/runtime-output-contracts", "Runtime output contract fixtures"),
+      route("GET", "/api/runtime-log-contracts", "Runtime log contract fixtures"),
+      route("GET", "/api/runtime-artifact-contracts", "Runtime artifact contract fixtures"),
+      route("GET", "/api/runtime-verification-contracts", "Runtime verification contract fixtures"),
+      route("GET", "/api/runtime-agentrun-contract-validations", "Runtime/AgentRun contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3325,6 +3429,18 @@ function filterItems(items, searchParams) {
     "relation",
     "workflow_id",
     "workflow_status",
+    "adapter_id",
+    "execution_contract_id",
+    "runtime_output_id",
+    "runtime_log_id",
+    "runtime_artifact_id",
+    "runtime_verification_id",
+    "output_trust",
+    "log_capture_status",
+    "artifact_capture_status",
+    "verification_required",
+    "artifact_capture_required",
+    "logs_required",
     "input_output_status",
     "registry_validation_status",
     "runtime_binding_count",

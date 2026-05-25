@@ -380,6 +380,42 @@ try {
   assert.equal(capabilityWorkflowContractValidations.collection, "capability_workflow_contract_validations");
   assert.ok(capabilityWorkflowContractValidations.count <= 5);
 
+  const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
+  assert.ok(runtimeAgentRunContractFreezes.count <= 1);
+
+  const runtimeAdapterContracts = await fetchJson(`${url}/api/runtime-adapter-v2-contracts?risk_level=high&limit=5`);
+  assert.equal(runtimeAdapterContracts.collection, "runtime_adapter_v2_contracts");
+  assert.ok(runtimeAdapterContracts.count <= 5);
+
+  const runtimeExecutionContracts = await fetchJson(`${url}/api/runtime-execution-contracts?runtime_id=codex&limit=5`);
+  assert.equal(runtimeExecutionContracts.collection, "runtime_execution_contracts");
+  assert.ok(runtimeExecutionContracts.count <= 5);
+
+  const agentRunRuntimeContracts = await fetchJson(`${url}/api/agent-run-runtime-contracts?runtime_id=codex&limit=5`);
+  assert.equal(agentRunRuntimeContracts.collection, "agent_run_runtime_contracts");
+  assert.ok(agentRunRuntimeContracts.count <= 5);
+
+  const runtimeOutputContracts = await fetchJson(`${url}/api/runtime-output-contracts?output_trust=untrusted_until_verified&limit=5`);
+  assert.equal(runtimeOutputContracts.collection, "runtime_output_contracts");
+  assert.ok(runtimeOutputContracts.count <= 5);
+
+  const runtimeLogContracts = await fetchJson(`${url}/api/runtime-log-contracts?log_capture_status=captured&limit=5`);
+  assert.equal(runtimeLogContracts.collection, "runtime_log_contracts");
+  assert.ok(runtimeLogContracts.count <= 5);
+
+  const runtimeArtifactContracts = await fetchJson(`${url}/api/runtime-artifact-contracts?artifact_type=pr_draft&limit=5`);
+  assert.equal(runtimeArtifactContracts.collection, "runtime_artifact_contracts");
+  assert.ok(runtimeArtifactContracts.count <= 5);
+
+  const runtimeVerificationContracts = await fetchJson(`${url}/api/runtime-verification-contracts?verification_status=pending_gate_review&limit=5`);
+  assert.equal(runtimeVerificationContracts.collection, "runtime_verification_contracts");
+  assert.ok(runtimeVerificationContracts.count <= 5);
+
+  const runtimeAgentRunValidations = await fetchJson(`${url}/api/runtime-agentrun-contract-validations?status=passed&limit=5`);
+  assert.equal(runtimeAgentRunValidations.collection, "runtime_agentrun_contract_validations");
+  assert.ok(runtimeAgentRunValidations.count <= 5);
+
   const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
   assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");
   assert.ok(contextPacketLedgers.count <= 1);

@@ -225,7 +225,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-fixtures"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-cases"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-store-matches"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-tests"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-suites"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-test-cases"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-hashes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
@@ -1957,9 +1961,25 @@ try {
   assert.equal(evidenceGoldenStoreMatches.collection, "evidence_golden_store_matches");
   assert.ok(evidenceGoldenStoreMatches.count <= 5);
 
-  const evidenceRegressionHashes = await fetchJson(`${url}/api/evidence-regression-hashes?case_status=locked&limit=5`);
+  const evidenceRegressionTests = await fetchJson(`${url}/api/evidence-regression-tests?evidence_regression_status=complete&limit=1`);
+  assert.equal(evidenceRegressionTests.collection, "evidence_regression_tests");
+  assert.ok(evidenceRegressionTests.count <= 1);
+
+  const evidenceRegressionSuites = await fetchJson(`${url}/api/evidence-regression-suites?suite_status=passed&limit=5`);
+  assert.equal(evidenceRegressionSuites.collection, "evidence_regression_suites");
+  assert.ok(evidenceRegressionSuites.count <= 5);
+
+  const evidenceRegressionCases = await fetchJson(`${url}/api/evidence-regression-test-cases?status=passed&limit=5`);
+  assert.equal(evidenceRegressionCases.collection, "evidence_regression_test_cases");
+  assert.ok(evidenceRegressionCases.count <= 5);
+
+  const evidenceRegressionHashes = await fetchJson(`${url}/api/evidence-regression-hashes?locked=true&limit=5`);
   assert.equal(evidenceRegressionHashes.collection, "evidence_regression_hashes");
   assert.ok(evidenceRegressionHashes.count <= 5);
+
+  const evidenceRegressionValidations = await fetchJson(`${url}/api/evidence-regression-validations?status=passed&limit=5`);
+  assert.equal(evidenceRegressionValidations.collection, "evidence_regression_validations");
+  assert.ok(evidenceRegressionValidations.count <= 5);
 
   const evidenceGoldenValidations = await fetchJson(`${url}/api/evidence-golden-validations?status=passed&limit=5`);
   assert.equal(evidenceGoldenValidations.collection, "evidence_golden_validations");

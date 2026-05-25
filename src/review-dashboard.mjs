@@ -39,6 +39,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   lineageGraphBuilderPath: "artifacts/lineage-graph/latest/lineage-graph.json",
   evidenceViewerDataApiPath: "artifacts/evidence-viewer-data-api/latest/evidence-viewer-data-api.json",
   evidenceExportBundlePath: "artifacts/evidence-export-bundle/latest/evidence-export-bundle.json",
+  evidenceRegressionTestsPath: "artifacts/evidence-regression-tests/latest/evidence-regression-tests.json",
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
@@ -329,6 +330,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceExportBundlePath",
     source_id: "evidence_export_bundle",
     label: "Evidence Export Bundle",
+  },
+  {
+    option: "evidenceRegressionTestsPath",
+    source_id: "evidence_regression_tests",
+    label: "Evidence Regression Tests",
   },
   {
     option: "evidenceCoverageScorePath",
@@ -1268,6 +1274,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLineageGraphBuilderStage(artifacts.lineage_graph_builder, sourceById.get("lineage_graph_builder")),
     buildEvidenceViewerDataApiStage(artifacts.evidence_viewer_data_api, sourceById.get("evidence_viewer_data_api")),
     buildEvidenceExportBundleStage(artifacts.evidence_export_bundle, sourceById.get("evidence_export_bundle")),
+    buildEvidenceRegressionTestsStage(artifacts.evidence_regression_tests, sourceById.get("evidence_regression_tests")),
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
@@ -3022,6 +3029,69 @@ function buildEvidenceExportBundleStage(bundle, source) {
       matter_preserved_bundle_count: summary.matter_preserved_bundle_count ?? 0,
       classification_preserved_bundle_count: summary.classification_preserved_bundle_count ?? 0,
       policy_snapshot_preserved_bundle_count: summary.policy_snapshot_preserved_bundle_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceRegressionTestsStage(regression, source) {
+  if (!regression) return missingStage("evidence_regression_tests", "Evidence Regression Tests", source);
+  const summary = regression.summary ?? {};
+  const errorCount = summary.validation_error_count ?? regression.validation?.errors?.length ?? 0;
+  const caseCount = summary.regression_test_case_count ?? 0;
+  const status = summary.evidence_regression_status === "complete"
+    && errorCount === 0
+    && (summary.regression_suite_count ?? 0) === 3
+    && (summary.passed_regression_suite_count ?? 0) === 3
+    && caseCount > 0
+    && (summary.passed_regression_case_count ?? 0) === caseCount
+    && (summary.failed_regression_case_count ?? 1) === 0
+    && (summary.regression_hash_count ?? 0) === caseCount
+    && (summary.locked_regression_hash_count ?? 0) === caseCount
+    && (summary.extractor_regression_case_count ?? 0) === (summary.expected_extractor_case_count ?? -1)
+    && (summary.lineage_regression_case_count ?? 0) === (summary.expected_lineage_case_count ?? -1)
+    && (summary.coverage_regression_case_count ?? 0) === (summary.expected_coverage_case_count ?? -1)
+    && (summary.export_backed_coverage_case_count ?? 0) === (summary.coverage_regression_case_count ?? -1)
+    && (summary.identity_preserved_case_count ?? 0) === caseCount
+    && (summary.external_service_used_case_count ?? 1) === 0
+    && (summary.client_facing_ready_case_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_regression_tests",
+    label: "Evidence Regression Tests",
+    status,
+    message: `${summary.regression_suite_count ?? 0} suite(s), ${caseCount} regression case(s), ${summary.regression_hash_count ?? 0} hash(es).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_regression_status: summary.evidence_regression_status ?? "unknown",
+      evidence_regression_contract_id: summary.evidence_regression_contract_id ?? null,
+      evidence_golden_fixture_status: summary.evidence_golden_fixture_status ?? "unknown",
+      extractor_adapter_contract_status: summary.extractor_adapter_contract_status ?? "unknown",
+      lineage_graph_status: summary.lineage_graph_status ?? "unknown",
+      evidence_coverage_status: summary.evidence_coverage_status ?? "unknown",
+      evidence_export_bundle_status: summary.evidence_export_bundle_status ?? "unknown",
+      regression_suite_count: summary.regression_suite_count ?? 0,
+      passed_regression_suite_count: summary.passed_regression_suite_count ?? 0,
+      failed_regression_suite_count: summary.failed_regression_suite_count ?? 0,
+      regression_test_case_count: caseCount,
+      passed_regression_case_count: summary.passed_regression_case_count ?? 0,
+      failed_regression_case_count: summary.failed_regression_case_count ?? 0,
+      extractor_regression_case_count: summary.extractor_regression_case_count ?? 0,
+      lineage_regression_case_count: summary.lineage_regression_case_count ?? 0,
+      coverage_regression_case_count: summary.coverage_regression_case_count ?? 0,
+      expected_extractor_case_count: summary.expected_extractor_case_count ?? 0,
+      expected_lineage_case_count: summary.expected_lineage_case_count ?? 0,
+      expected_coverage_case_count: summary.expected_coverage_case_count ?? 0,
+      export_backed_coverage_case_count: summary.export_backed_coverage_case_count ?? 0,
+      identity_preserved_case_count: summary.identity_preserved_case_count ?? 0,
+      human_review_required_case_count: summary.human_review_required_case_count ?? 0,
+      client_facing_ready_case_count: summary.client_facing_ready_case_count ?? 0,
+      external_service_used_case_count: summary.external_service_used_case_count ?? 0,
+      regression_hash_count: summary.regression_hash_count ?? 0,
+      locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9603,6 +9673,33 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_export_classification_preserved_bundle_count: artifacts.evidence_export_bundle?.summary?.classification_preserved_bundle_count ?? 0,
     evidence_export_policy_snapshot_preserved_bundle_count: artifacts.evidence_export_bundle?.summary?.policy_snapshot_preserved_bundle_count ?? 0,
     evidence_export_validation_error_count: artifacts.evidence_export_bundle?.summary?.validation_error_count ?? artifacts.evidence_export_bundle?.validation?.errors?.length ?? 0,
+    evidence_regression_status: artifacts.evidence_regression_tests?.summary?.evidence_regression_status ?? "unknown",
+    evidence_regression_contract_id: artifacts.evidence_regression_tests?.summary?.evidence_regression_contract_id ?? null,
+    evidence_regression_golden_fixture_status: artifacts.evidence_regression_tests?.summary?.evidence_golden_fixture_status ?? "unknown",
+    evidence_regression_extractor_adapter_contract_status: artifacts.evidence_regression_tests?.summary?.extractor_adapter_contract_status ?? "unknown",
+    evidence_regression_lineage_graph_status: artifacts.evidence_regression_tests?.summary?.lineage_graph_status ?? "unknown",
+    evidence_regression_evidence_coverage_status: artifacts.evidence_regression_tests?.summary?.evidence_coverage_status ?? "unknown",
+    evidence_regression_export_bundle_status: artifacts.evidence_regression_tests?.summary?.evidence_export_bundle_status ?? "unknown",
+    evidence_regression_suite_count: artifacts.evidence_regression_tests?.summary?.regression_suite_count ?? 0,
+    evidence_regression_passed_suite_count: artifacts.evidence_regression_tests?.summary?.passed_regression_suite_count ?? 0,
+    evidence_regression_failed_suite_count: artifacts.evidence_regression_tests?.summary?.failed_regression_suite_count ?? 0,
+    evidence_regression_test_case_count: artifacts.evidence_regression_tests?.summary?.regression_test_case_count ?? 0,
+    evidence_regression_passed_case_count: artifacts.evidence_regression_tests?.summary?.passed_regression_case_count ?? 0,
+    evidence_regression_failed_case_count: artifacts.evidence_regression_tests?.summary?.failed_regression_case_count ?? 0,
+    evidence_regression_extractor_case_count: artifacts.evidence_regression_tests?.summary?.extractor_regression_case_count ?? 0,
+    evidence_regression_lineage_case_count: artifacts.evidence_regression_tests?.summary?.lineage_regression_case_count ?? 0,
+    evidence_regression_coverage_case_count: artifacts.evidence_regression_tests?.summary?.coverage_regression_case_count ?? 0,
+    evidence_regression_expected_extractor_case_count: artifacts.evidence_regression_tests?.summary?.expected_extractor_case_count ?? 0,
+    evidence_regression_expected_lineage_case_count: artifacts.evidence_regression_tests?.summary?.expected_lineage_case_count ?? 0,
+    evidence_regression_expected_coverage_case_count: artifacts.evidence_regression_tests?.summary?.expected_coverage_case_count ?? 0,
+    evidence_regression_export_backed_coverage_case_count: artifacts.evidence_regression_tests?.summary?.export_backed_coverage_case_count ?? 0,
+    evidence_regression_identity_preserved_case_count: artifacts.evidence_regression_tests?.summary?.identity_preserved_case_count ?? 0,
+    evidence_regression_human_review_required_case_count: artifacts.evidence_regression_tests?.summary?.human_review_required_case_count ?? 0,
+    evidence_regression_client_facing_ready_case_count: artifacts.evidence_regression_tests?.summary?.client_facing_ready_case_count ?? 0,
+    evidence_regression_external_service_used_case_count: artifacts.evidence_regression_tests?.summary?.external_service_used_case_count ?? 0,
+    evidence_regression_hash_count: artifacts.evidence_regression_tests?.summary?.regression_hash_count ?? 0,
+    evidence_regression_locked_hash_count: artifacts.evidence_regression_tests?.summary?.locked_regression_hash_count ?? 0,
+    evidence_regression_validation_error_count: artifacts.evidence_regression_tests?.summary?.validation_error_count ?? artifacts.evidence_regression_tests?.validation?.errors?.length ?? 0,
     evidence_coverage_status: artifacts.evidence_coverage_score?.summary?.evidence_coverage_status ?? "unknown",
     evidence_coverage_contract_id: artifacts.evidence_coverage_score?.summary?.evidence_coverage_contract_id ?? null,
     evidence_coverage_score_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_score_schema_version ?? null,
@@ -11273,6 +11370,8 @@ function parseArgs(argv) {
     else if (arg === "--no-evidence-viewer-data-api") parsed.evidenceViewerDataApiPath = false;
     else if (arg === "--evidence-export-bundle") parsed.evidenceExportBundlePath = argv[++index];
     else if (arg === "--no-evidence-export-bundle") parsed.evidenceExportBundlePath = false;
+    else if (arg === "--evidence-regression-tests") parsed.evidenceRegressionTestsPath = argv[++index];
+    else if (arg === "--no-evidence-regression-tests") parsed.evidenceRegressionTestsPath = false;
     else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
     else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
     else if (arg === "--evidence-flags") parsed.evidenceFlagsPath = argv[++index];
@@ -11502,6 +11601,9 @@ Options:
   --no-evidence-viewer-data-api   Do not include Evidence Viewer Data API status.
   --evidence-export-bundle <path> evidence-export-bundle.json path.
   --no-evidence-export-bundle     Do not include Evidence Export Bundle status.
+  --evidence-regression-tests <path>
+                                  evidence-regression-tests.json path.
+  --no-evidence-regression-tests  Do not include Evidence Regression Tests status.
   --evidence-coverage <path>      evidence-coverage-score.json path.
   --no-evidence-coverage          Do not include Evidence Coverage Score status.
   --evidence-flags <path>         evidence-flags.json path.

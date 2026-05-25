@@ -44,6 +44,7 @@ import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
 import { runEvidenceFlags } from "../src/evidence-flags.mjs";
 import { runExhibitMap } from "../src/exhibit-map.mjs";
 import { runEvidenceExportBundle } from "../src/evidence-export-bundle.mjs";
+import { runEvidenceRegressionTests } from "../src/evidence-regression-tests.mjs";
 import { runChainOfCustodyEvents } from "../src/chain-of-custody-events.mjs";
 import { runSearchIndexContract } from "../src/search-index-contract.mjs";
 import { runVectorIndexPolicyBoundary } from "../src/vector-index-policy-boundary.mjs";
@@ -1678,6 +1679,7 @@ describe("matter harness", () => {
         evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
         exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
         evidenceExportBundlePath: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
+        evidenceRegressionTestsPath: path.join(outDir, "evidence-regression-tests", "evidence-regression-tests.json"),
         chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
         searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
         vectorIndexPolicyBoundaryPath: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
@@ -4462,6 +4464,46 @@ describe("matter harness", () => {
       assert.ok(evidenceExportBundle.evidence_export_catalog.export_coverage_packages.every((pkg) => pkg.package_status === "bound" && pkg.dimension_count === pkg.dimensions.length));
       assert.match(await readFile(path.join(outDir, "evidence-export-bundle", "summary.md"), "utf8"), /Evidence Export Bundle/);
 
+      const evidenceRegressionTests = await runEvidenceRegressionTests({
+        evidenceGoldenFixturesPath: path.join(outDir, "evidence-golden-fixtures", "evidence-golden-fixtures.json"),
+        extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        evidenceCoveragePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
+        evidenceExportBundlePath: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
+        outDir: path.join(outDir, "evidence-regression-tests"),
+        runAt: "2026-05-23T06:35:08.445Z",
+      });
+      const evidenceRegressionTestsSchema = JSON.parse(await readFile("schemas/evidence-regression-tests.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(evidenceRegressionTests, evidenceRegressionTestsSchema, {}, "evidence_regression_tests"),
+        [],
+      );
+      assert.equal(evidenceRegressionTests.summary.evidence_regression_status, "complete");
+      assert.equal(evidenceRegressionTests.summary.evidence_regression_contract_id, "evidence-regression-tests.v1");
+      assert.equal(evidenceRegressionTests.summary.regression_suite_count, 3);
+      assert.equal(evidenceRegressionTests.summary.passed_regression_suite_count, 3);
+      assert.equal(evidenceRegressionTests.summary.failed_regression_suite_count, 0);
+      assert.equal(evidenceRegressionTests.summary.extractor_regression_case_count, evidenceGoldenFixtures.summary.evidence_golden_case_count);
+      assert.equal(evidenceRegressionTests.summary.lineage_regression_case_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(evidenceRegressionTests.summary.coverage_regression_case_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(
+        evidenceRegressionTests.summary.regression_test_case_count,
+        evidenceGoldenFixtures.summary.evidence_golden_case_count + lineageGraphBuilder.summary.lineage_path_count + evidenceCoverageScore.summary.coverage_score_count,
+      );
+      assert.equal(evidenceRegressionTests.summary.passed_regression_case_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(evidenceRegressionTests.summary.failed_regression_case_count, 0);
+      assert.equal(evidenceRegressionTests.summary.export_backed_coverage_case_count, evidenceRegressionTests.summary.coverage_regression_case_count);
+      assert.equal(evidenceRegressionTests.summary.identity_preserved_case_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(evidenceRegressionTests.summary.human_review_required_case_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(evidenceRegressionTests.summary.external_service_used_case_count, 0);
+      assert.equal(evidenceRegressionTests.summary.client_facing_ready_case_count, 0);
+      assert.equal(evidenceRegressionTests.summary.regression_hash_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(evidenceRegressionTests.summary.locked_regression_hash_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(evidenceRegressionTests.summary.validation_error_count, 0);
+      assert.ok(evidenceRegressionTests.evidence_regression_catalog.regression_suites.every((suite) => suite.suite_status === "passed"));
+      assert.ok(evidenceRegressionTests.evidence_regression_catalog.regression_test_cases.every((testCase) => testCase.status === "passed" && testCase.regression_hash.startsWith("sha256:")));
+      assert.match(await readFile(path.join(outDir, "evidence-regression-tests", "summary.md"), "utf8"), /Evidence Regression Tests/);
+
       const chainOfCustodyEvents = await runChainOfCustodyEvents({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
@@ -4675,6 +4717,7 @@ describe("matter harness", () => {
           lineage_graph_builder: path.join(outDir, "lineage-graph", "lineage-graph.json"),
           evidence_viewer_data_api: path.join(outDir, "evidence-viewer-data-api", "evidence-viewer-data-api.json"),
           evidence_export_bundle: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
+          evidence_regression_tests: path.join(outDir, "evidence-regression-tests", "evidence-regression-tests.json"),
           evidence_coverage_score: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
           evidence_flags: path.join(outDir, "evidence-flags", "evidence-flags.json"),
           exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
@@ -4707,8 +4750,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 57);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 57);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 58);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 58);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4749,6 +4792,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "lineage_graph_builder"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_data_api"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_export_bundle"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_regression_tests"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_coverage_score"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_flags"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
@@ -4822,6 +4866,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-data"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:export-bundle"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:regression-tests"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5007,6 +5052,10 @@ describe("matter harness", () => {
       assert.equal(evidenceExportBundleCheckpoint?.acceptance_profile, "evidence_export_bundle_gate");
       assert.equal(evidenceExportBundleCheckpoint?.status, "passed");
       assert.equal(evidenceExportBundleCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const evidenceRegressionTestsCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-regression-tests");
+      assert.equal(evidenceRegressionTestsCheckpoint?.acceptance_profile, "evidence_regression_tests_gate");
+      assert.equal(evidenceRegressionTestsCheckpoint?.status, "passed");
+      assert.equal(evidenceRegressionTestsCheckpoint?.implementation_status, "passed_with_operational_gate");
       const evidenceCoverageScoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-coverage-score");
       assert.equal(evidenceCoverageScoreCheckpoint?.acceptance_profile, "evidence_coverage_score_gate");
       assert.equal(evidenceCoverageScoreCheckpoint?.status, "passed");
@@ -6028,6 +6077,33 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_export_classification_preserved_bundle_count, evidenceExportBundle.summary.classification_preserved_bundle_count);
       assert.equal(dashboard.summary.evidence_export_policy_snapshot_preserved_bundle_count, evidenceExportBundle.summary.policy_snapshot_preserved_bundle_count);
       assert.equal(dashboard.summary.evidence_export_validation_error_count, 0);
+      assert.equal(dashboard.summary.evidence_regression_status, "complete");
+      assert.equal(dashboard.summary.evidence_regression_contract_id, "evidence-regression-tests.v1");
+      assert.equal(dashboard.summary.evidence_regression_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.evidence_regression_extractor_adapter_contract_status, "complete");
+      assert.equal(dashboard.summary.evidence_regression_lineage_graph_status, "complete");
+      assert.equal(dashboard.summary.evidence_regression_evidence_coverage_status, "complete");
+      assert.equal(dashboard.summary.evidence_regression_export_bundle_status, "complete");
+      assert.equal(dashboard.summary.evidence_regression_suite_count, evidenceRegressionTests.summary.regression_suite_count);
+      assert.equal(dashboard.summary.evidence_regression_passed_suite_count, evidenceRegressionTests.summary.passed_regression_suite_count);
+      assert.equal(dashboard.summary.evidence_regression_failed_suite_count, 0);
+      assert.equal(dashboard.summary.evidence_regression_test_case_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(dashboard.summary.evidence_regression_passed_case_count, evidenceRegressionTests.summary.passed_regression_case_count);
+      assert.equal(dashboard.summary.evidence_regression_failed_case_count, 0);
+      assert.equal(dashboard.summary.evidence_regression_extractor_case_count, evidenceRegressionTests.summary.extractor_regression_case_count);
+      assert.equal(dashboard.summary.evidence_regression_lineage_case_count, evidenceRegressionTests.summary.lineage_regression_case_count);
+      assert.equal(dashboard.summary.evidence_regression_coverage_case_count, evidenceRegressionTests.summary.coverage_regression_case_count);
+      assert.equal(dashboard.summary.evidence_regression_expected_extractor_case_count, evidenceRegressionTests.summary.expected_extractor_case_count);
+      assert.equal(dashboard.summary.evidence_regression_expected_lineage_case_count, evidenceRegressionTests.summary.expected_lineage_case_count);
+      assert.equal(dashboard.summary.evidence_regression_expected_coverage_case_count, evidenceRegressionTests.summary.expected_coverage_case_count);
+      assert.equal(dashboard.summary.evidence_regression_export_backed_coverage_case_count, evidenceRegressionTests.summary.export_backed_coverage_case_count);
+      assert.equal(dashboard.summary.evidence_regression_identity_preserved_case_count, evidenceRegressionTests.summary.identity_preserved_case_count);
+      assert.equal(dashboard.summary.evidence_regression_human_review_required_case_count, evidenceRegressionTests.summary.human_review_required_case_count);
+      assert.equal(dashboard.summary.evidence_regression_client_facing_ready_case_count, 0);
+      assert.equal(dashboard.summary.evidence_regression_external_service_used_case_count, 0);
+      assert.equal(dashboard.summary.evidence_regression_hash_count, evidenceRegressionTests.summary.regression_hash_count);
+      assert.equal(dashboard.summary.evidence_regression_locked_hash_count, evidenceRegressionTests.summary.locked_regression_hash_count);
+      assert.equal(dashboard.summary.evidence_regression_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_coverage_status, "complete");
       assert.equal(dashboard.summary.evidence_coverage_contract_id, "evidence-coverage-score.v1");
       assert.equal(dashboard.summary.evidence_coverage_score_schema_version, "coverage-score.v1");
@@ -6724,6 +6800,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "lineage_graph_builder"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_viewer_data_api"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_export_bundle"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_regression_tests"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_coverage_score"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_flags"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
@@ -6870,7 +6947,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-fixtures"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-cases"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-store-matches"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-tests"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-suites"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-test-cases"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-hashes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claim-stores"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claims"));
@@ -8907,9 +8988,9 @@ describe("matter harness", () => {
       assert.equal(evidenceGoldenStoreMatches.collection, "evidence_golden_store_matches");
       assert.equal(evidenceGoldenStoreMatches.count, evidenceGoldenFixtures.summary.store_matched_case_count);
 
-      const evidenceRegressionHashes = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-hashes?case_status=locked", apiOptions)).body);
-      assert.equal(evidenceRegressionHashes.collection, "evidence_regression_hashes");
-      assert.equal(evidenceRegressionHashes.count, evidenceGoldenFixtures.summary.locked_regression_hash_count);
+      const evidenceRegressionHashesEarly = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-hashes?locked=true", apiOptions)).body);
+      assert.equal(evidenceRegressionHashesEarly.collection, "evidence_regression_hashes");
+      assert.equal(evidenceRegressionHashesEarly.count, evidenceRegressionTests.summary.locked_regression_hash_count);
 
       const evidenceGoldenValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-golden-validations?status=passed", apiOptions)).body);
       assert.equal(evidenceGoldenValidations.collection, "evidence_golden_validations");
@@ -9070,6 +9151,26 @@ describe("matter harness", () => {
       const evidenceExportBundleValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-export-bundle-validations?status=passed", apiOptions)).body);
       assert.equal(evidenceExportBundleValidations.collection, "evidence_export_bundle_validations");
       assert.equal(evidenceExportBundleValidations.count, evidenceExportBundle.summary.validation_item_count);
+
+      const evidenceRegressionArtifacts = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-tests?evidence_regression_status=complete", apiOptions)).body);
+      assert.equal(evidenceRegressionArtifacts.collection, "evidence_regression_tests");
+      assert.equal(evidenceRegressionArtifacts.count, 1);
+
+      const evidenceRegressionSuites = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-suites?suite_status=passed", apiOptions)).body);
+      assert.equal(evidenceRegressionSuites.collection, "evidence_regression_suites");
+      assert.equal(evidenceRegressionSuites.count, evidenceRegressionTests.summary.regression_suite_count);
+
+      const evidenceRegressionCases = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-test-cases?status=passed", apiOptions)).body);
+      assert.equal(evidenceRegressionCases.collection, "evidence_regression_test_cases");
+      assert.equal(evidenceRegressionCases.count, evidenceRegressionTests.summary.regression_test_case_count);
+
+      const evidenceRegressionHashes = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-hashes?locked=true", apiOptions)).body);
+      assert.equal(evidenceRegressionHashes.collection, "evidence_regression_hashes");
+      assert.equal(evidenceRegressionHashes.count, evidenceRegressionTests.summary.locked_regression_hash_count);
+
+      const evidenceRegressionValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-validations?status=passed", apiOptions)).body);
+      assert.equal(evidenceRegressionValidations.collection, "evidence_regression_validations");
+      assert.equal(evidenceRegressionValidations.count, evidenceRegressionTests.summary.validation_item_count);
 
       const evidenceCoverageArtifacts = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-scores?evidence_coverage_status=complete", apiOptions)).body);
       assert.equal(evidenceCoverageArtifacts.collection, "evidence_coverage_scores");

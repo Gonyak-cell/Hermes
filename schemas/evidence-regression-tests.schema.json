@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-regression-tests.schema.json",
+  "title": "Hermes Evidence Regression Tests",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_regression_test_suite_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "evidence_regression_contract",
+    "evidence_regression_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-regression-tests.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_regression_test_suite_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "evidence_golden_fixtures_path",
+        "extractor_adapter_contract_path",
+        "lineage_graph_path",
+        "evidence_coverage_path",
+        "evidence_export_bundle_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "evidence_golden_fixtures_path": { "type": "string" },
+        "extractor_adapter_contract_path": { "type": "string" },
+        "lineage_graph_path": { "type": "string" },
+        "evidence_coverage_path": { "type": "string" },
+        "evidence_export_bundle_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": {
+      "type": "array",
+      "minItems": 5,
+      "items": { "$ref": "#/$defs/source" }
+    },
+    "evidence_regression_contract": { "$ref": "#/$defs/contract" },
+    "evidence_regression_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "regression_suites",
+        "regression_test_cases",
+        "regression_hashes",
+        "regression_indexes"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-regression-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "regression_suites": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/regression_suite" }
+        },
+        "regression_test_cases": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/regression_test_case" }
+        },
+        "regression_hashes": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/regression_hash" }
+        },
+        "regression_indexes": { "type": "object" }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_regression_contract_id",
+        "generated_at",
+        "regression_case_schema_version",
+        "regression_hash_schema_version",
+        "source_inputs",
+        "required_suites",
+        "gate_rule",
+        "safety_rule",
+        "api_routes"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-regression-contract.v1" },
+        "evidence_regression_contract_id": { "const": "evidence-regression-tests.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "regression_case_schema_version": { "const": "evidence-regression-test-case.v1" },
+        "regression_hash_schema_version": { "const": "evidence-regression-hash.v1" },
+        "source_inputs": { "type": "array", "minItems": 5, "items": { "type": "string" } },
+        "required_suites": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "extractor" },
+            { "const": "lineage" },
+            { "const": "coverage" }
+          ]
+        },
+        "gate_rule": { "type": "string" },
+        "safety_rule": { "type": "string" },
+        "api_routes": { "type": "array", "minItems": 5, "items": { "type": "string" } }
+      }
+    },
+    "regression_suite": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "regression_suite_id",
+        "suite_type",
+        "label",
+        "generated_at",
+        "suite_status",
+        "test_case_count",
+        "passed_case_count",
+        "failed_case_count",
+        "regression_hash_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-regression-suite.v1" },
+        "regression_suite_id": { "type": "string" },
+        "suite_type": { "enum": ["extractor", "lineage", "coverage"] },
+        "label": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "suite_status": { "enum": ["passed", "failed"] },
+        "test_case_count": { "type": "integer", "minimum": 1 },
+        "passed_case_count": { "type": "integer", "minimum": 0 },
+        "failed_case_count": { "type": "integer", "minimum": 0 },
+        "regression_hash_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "regression_test_case": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "regression_test_case_id",
+        "suite_id",
+        "suite_type",
+        "subject_id",
+        "expected",
+        "observed",
+        "status",
+        "failure_reason",
+        "human_review_required",
+        "client_facing_ready",
+        "external_service_used",
+        "generated_at",
+        "regression_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-regression-test-case.v1" },
+        "regression_test_case_id": { "type": "string" },
+        "suite_id": { "type": "string" },
+        "suite_type": { "enum": ["extractor", "lineage", "coverage"] },
+        "subject_id": { "type": "string" },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "expected": { "type": "object" },
+        "observed": { "type": "object" },
+        "status": { "enum": ["passed", "failed"] },
+        "failure_reason": { "type": ["string", "null"] },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "external_service_used": { "const": false },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "regression_hash": { "type": "string", "pattern": "^sha256:" }
+      }
+    },
+    "regression_hash": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "regression_hash_id",
+        "regression_test_case_id",
+        "suite_id",
+        "suite_type",
+        "subject_id",
+        "regression_hash",
+        "hash_algorithm",
+        "locked",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-regression-hash.v1" },
+        "regression_hash_id": { "type": "string" },
+        "regression_test_case_id": { "type": "string" },
+        "suite_id": { "type": "string" },
+        "suite_type": { "enum": ["extractor", "lineage", "coverage"] },
+        "subject_id": { "type": "string" },
+        "regression_hash": { "type": "string", "pattern": "^sha256:" },
+        "hash_algorithm": { "const": "sha256" },
+        "locked": { "type": "boolean" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "validation-item.v1" },
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_regression_status",
+        "evidence_regression_contract_id",
+        "regression_suite_count",
+        "regression_test_case_count",
+        "passed_regression_case_count",
+        "failed_regression_case_count",
+        "extractor_regression_case_count",
+        "lineage_regression_case_count",
+        "coverage_regression_case_count",
+        "export_backed_coverage_case_count",
+        "external_service_used_case_count",
+        "client_facing_ready_case_count",
+        "regression_hash_count",
+        "locked_regression_hash_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_regression_status": { "enum": ["complete", "blocked"] },
+        "evidence_regression_contract_id": { "const": "evidence-regression-tests.v1" },
+        "regression_suite_count": { "type": "integer", "minimum": 3 },
+        "regression_test_case_count": { "type": "integer", "minimum": 1 },
+        "passed_regression_case_count": { "type": "integer", "minimum": 0 },
+        "failed_regression_case_count": { "type": "integer", "minimum": 0 },
+        "extractor_regression_case_count": { "type": "integer", "minimum": 1 },
+        "lineage_regression_case_count": { "type": "integer", "minimum": 1 },
+        "coverage_regression_case_count": { "type": "integer", "minimum": 1 },
+        "export_backed_coverage_case_count": { "type": "integer", "minimum": 0 },
+        "external_service_used_case_count": { "const": 0 },
+        "client_facing_ready_case_count": { "const": 0 },
+        "regression_hash_count": { "type": "integer", "minimum": 1 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

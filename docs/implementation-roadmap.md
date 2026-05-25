@@ -4655,6 +4655,35 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 57개로 증가하고 evidence export bundle이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run evidence:export-bundle -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 156: Evidence Regression Tests
+
+목표: Evidence Plane의 extractor, lineage, coverage 결과를 별도 회귀 test suite로 고정해 기능 추가 후에도 증거 추출과 근거 추적이 깨지지 않도록 한다.
+
+구현 내용:
+
+- `src/evidence-regression-tests.mjs`, `scripts/evidence-regression-tests.mjs`, `schemas/evidence-regression-tests.schema.json`, `docs/evidence-regression-tests.md`를 추가함
+- `npm run evidence:regression-tests -- --check` 명령을 추가해 regression suite, test case, regression hash, validation report, summary markdown을 생성함
+- Evidence Golden Fixtures와 Extractor Adapter Contract를 기준으로 extractor golden case가 locked/store-matched/local deterministic 상태인지 검증함
+- Lineage Graph Builder를 기준으로 source span -> evidence -> fact -> issue -> output paragraph 경로와 citation binding이 유지되는지 검증함
+- Evidence Coverage Score와 Evidence Export Bundle을 기준으로 claim/legal basis coverage와 export bundle backing이 유지되는지 검증함
+- 모든 regression test case에 sha256 regression hash를 남기고, 외부 서비스 사용과 client-facing output 상태를 차단함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Evidence Regression Tests를 통합함
+- `/api/evidence-regression-tests`, `/api/evidence-regression-suites`, `/api/evidence-regression-test-cases`, `/api/evidence-regression-hashes`, `/api/evidence-regression-validations` route를 추가함
+
+완료 기준:
+
+- Evidence Regression Tests가 validation error 없이 `complete` 상태가 됨
+- extractor, lineage, coverage 3개 suite가 모두 `passed` 상태가 됨
+- regression test case 수가 golden extractor case, lineage path, coverage score 수의 합과 일치함
+- 모든 regression test case가 `passed` 상태이고 sha256 regression hash를 가진다
+- coverage regression case가 Evidence Export Bundle backing을 가진다
+- lineage/coverage regression case가 matter, classification, policy snapshot을 보존함
+- 모든 regression test case가 local deterministic이며 external service와 client-facing output을 사용하지 않음
+- Review Dashboard summary와 stage status에서 suite/test/hash/pass/fail/guard count가 노출됨
+- Review API smoke가 regression suite, case, hash, validation route를 모두 조회함
+- Golden fixture 수가 58개로 증가하고 evidence regression tests가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run evidence:regression-tests -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4663,9 +4692,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 155이다.
+- 현재 완료 기준점은 Phase 156이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P156-P312, 총 157개다.
+- 남은 계획 슬롯은 P157-P312, 총 156개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

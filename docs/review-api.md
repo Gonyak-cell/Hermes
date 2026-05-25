@@ -120,7 +120,11 @@ npm run api:serve
 - `GET /api/evidence-golden-fixtures`: evidence golden fixture artifact
 - `GET /api/evidence-golden-cases`: LDD, meeting minutes, contract, and client email extraction golden cases
 - `GET /api/evidence-golden-store-matches`: golden case to Evidence Item Store match rows
+- `GET /api/evidence-regression-tests`: evidence regression test artifact
+- `GET /api/evidence-regression-suites`: extractor, lineage, and coverage regression suite rows
+- `GET /api/evidence-regression-test-cases`: deterministic evidence regression case rows
 - `GET /api/evidence-regression-hashes`: locked evidence regression hash rows
+- `GET /api/evidence-regression-validations`: evidence regression validation rows
 - `GET /api/evidence-golden-validations`: evidence golden fixture validation rows
 - `GET /api/fact-claim-stores`: fact claim store artifact
 - `GET /api/fact-claims`: evidence-derived fact claim rows
@@ -393,6 +397,8 @@ Custody event route는 `custody_event_ledger_status`, `custody_event_id`, `custo
 Search index route는 `search_index_contract_status`, `search_index_id`, `search_index_field_id`, `search_index_query_plan_id`, `collection_id`, `source_artifact_id`, `index_status`, `field_role`, `field_name`, `query_profile`, `query_status`, `executable`, `schema_version`, `status`, `limit` query를 지원한다.
 
 Vector policy route는 `vector_index_policy_boundary_status`, `vector_policy_gate_id`, `embedding_route_policy_id`, `collection_id`, `source_artifact_id`, `gate_status`, `route_status`, `embedding_execution_status`, `retrieval_execution_status`, `route_executable`, `classification`, `policy_external_embedding_decision`, `external_embedding_transfer_status`, `external_embedding_allowed`, `schema_version`, `status`, `limit` query를 지원한다.
+
+Evidence regression route는 `evidence_regression_status`, `suite_type`, `suite_status`, `status`, `regression_suite_id`, `regression_test_case_id`, `subject_id`, `matter_id`, `classification`, `external_service_used`, `locked`, `limit` query를 지원한다.
 
 ## 검증
 

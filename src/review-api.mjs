@@ -598,12 +598,40 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("evidence_golden_store_matches", fixtureResult.artifact.evidence_golden_fixture_catalog?.evidence_store_matches ?? [], url, generatedAt), method);
   }
-  if (pathname === "/api/evidence-regression-hashes") {
-    const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
-    if (!fixtureResult.available) {
-      return jsonResponse(503, buildError("evidence_golden_fixtures_unavailable", fixtureResult.error), method);
+  if (pathname === "/api/evidence-regression-tests") {
+    const regressionResult = await readDashboardSourceArtifact(dashboard, "evidence_regression_tests");
+    if (!regressionResult.available) {
+      return jsonResponse(503, buildError("evidence_regression_tests_unavailable", regressionResult.error), method);
     }
-    return jsonResponse(200, buildCollectionResponse("evidence_regression_hashes", fixtureResult.artifact.evidence_golden_fixture_catalog?.evidence_regression_manifest?.evidence_regression_hashes ?? [], url, generatedAt), method);
+    return jsonResponse(200, buildCollectionResponse("evidence_regression_tests", [regressionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-regression-suites") {
+    const regressionResult = await readDashboardSourceArtifact(dashboard, "evidence_regression_tests");
+    if (!regressionResult.available) {
+      return jsonResponse(503, buildError("evidence_regression_tests_unavailable", regressionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_regression_suites", regressionResult.artifact.evidence_regression_catalog?.regression_suites ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-regression-test-cases") {
+    const regressionResult = await readDashboardSourceArtifact(dashboard, "evidence_regression_tests");
+    if (!regressionResult.available) {
+      return jsonResponse(503, buildError("evidence_regression_tests_unavailable", regressionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_regression_test_cases", regressionResult.artifact.evidence_regression_catalog?.regression_test_cases ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-regression-hashes") {
+    const regressionResult = await readDashboardSourceArtifact(dashboard, "evidence_regression_tests");
+    if (!regressionResult.available) {
+      return jsonResponse(503, buildError("evidence_regression_tests_unavailable", regressionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_regression_hashes", regressionResult.artifact.evidence_regression_catalog?.regression_hashes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-regression-validations") {
+    const regressionResult = await readDashboardSourceArtifact(dashboard, "evidence_regression_tests");
+    if (!regressionResult.available) {
+      return jsonResponse(503, buildError("evidence_regression_tests_unavailable", regressionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_regression_validations", regressionResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
   if (pathname === "/api/evidence-golden-validations") {
     const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
@@ -5384,7 +5412,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/evidence-golden-fixtures", "Evidence golden fixture artifacts"),
       route("GET", "/api/evidence-golden-cases", "Evidence extraction golden cases"),
       route("GET", "/api/evidence-golden-store-matches", "Evidence golden case store matches"),
-      route("GET", "/api/evidence-regression-hashes", "Evidence golden regression hashes"),
+      route("GET", "/api/evidence-regression-tests", "Evidence regression test artifacts"),
+      route("GET", "/api/evidence-regression-suites", "Evidence regression suite rows"),
+      route("GET", "/api/evidence-regression-test-cases", "Evidence regression test case rows"),
+      route("GET", "/api/evidence-regression-hashes", "Evidence regression hash rows"),
+      route("GET", "/api/evidence-regression-validations", "Evidence regression validation rows"),
       route("GET", "/api/evidence-golden-validations", "Evidence golden fixture validation rows"),
       route("GET", "/api/fact-claim-stores", "Fact claim store artifacts"),
       route("GET", "/api/fact-claims", "Fact claim rows"),
@@ -5938,6 +5970,14 @@ function filterItems(items, searchParams) {
     "document_kind",
     "case_status",
     "match_status",
+    "evidence_regression_status",
+    "suite_type",
+    "suite_status",
+    "regression_suite_id",
+    "regression_test_case_id",
+    "subject_id",
+    "external_service_used",
+    "locked",
     "fact_claim_store_status",
     "issue_graph_store_status",
     "citation_object_store_status",
@@ -6868,6 +6908,7 @@ function readFilterValue(item, key) {
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;
   if (key === "evidence_item_store_status") return item.summary?.evidence_item_store_status ?? item.evidence_item_store_status;
   if (key === "evidence_golden_fixture_status") return item.summary?.evidence_golden_fixture_status ?? item.evidence_golden_fixture_status;
+  if (key === "evidence_regression_status") return item.summary?.evidence_regression_status ?? item.evidence_regression_status;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;

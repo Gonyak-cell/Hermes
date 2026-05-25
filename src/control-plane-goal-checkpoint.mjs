@@ -50,6 +50,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_flags", "Evidence flags", "resource_evidence", "evidence_flags", "control-plane-evidence-flags", { acceptance_profile: "evidence_flags_gate" }),
   sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
   sourceItem("evidence_export_bundle", "Evidence export bundle", "resource_evidence", "evidence_export_bundle", "control-plane-evidence-export-bundle", { acceptance_profile: "evidence_export_bundle_gate" }),
+  sourceItem("evidence_regression_tests", "Evidence regression tests", "resource_evidence", "evidence_regression_tests", "control-plane-evidence-regression-tests", { acceptance_profile: "evidence_regression_tests_gate" }),
   sourceItem("chain_of_custody_events", "Chain of custody events", "resource_evidence", "chain_of_custody_events", "control-plane-chain-of-custody-events", { acceptance_profile: "chain_of_custody_events_gate" }),
   sourceItem("search_index_contract", "Search index contract", "resource_evidence", "search_index_contract", "control-plane-search-index-contract", { acceptance_profile: "search_index_contract_gate" }),
   sourceItem("vector_index_policy_boundary", "Vector index policy boundary", "resource_evidence", "vector_index_policy_boundary", "control-plane-vector-index-policy-boundary", { acceptance_profile: "vector_index_policy_boundary_gate" }),
@@ -411,6 +412,7 @@ function evaluateStageAcceptance(item, stage) {
     "evidence_flags_gate",
     "exhibit_map_gate",
     "evidence_export_bundle_gate",
+    "evidence_regression_tests_gate",
     "chain_of_custody_events_gate",
     "search_index_contract_gate",
     "vector_index_policy_boundary_gate",
@@ -1067,6 +1069,38 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.policy_snapshot_preserved_bundle_count ?? 0) === bundleCount
     ) {
       return passedWithOperationalGate(stage, "Evidence export bundle packages source, citation, coverage, lineage, and exhibit material for internal attorney review while blocking delivery and external transfer.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_regression_tests_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const caseCount = metrics.regression_test_case_count ?? 0;
+    const coverageCaseCount = metrics.coverage_regression_case_count ?? 0;
+    if (
+      errors === 0
+      && metrics.evidence_regression_status === "complete"
+      && metrics.evidence_golden_fixture_status === "complete"
+      && metrics.extractor_adapter_contract_status === "complete"
+      && metrics.lineage_graph_status === "complete"
+      && metrics.evidence_coverage_status === "complete"
+      && metrics.evidence_export_bundle_status === "complete"
+      && (metrics.regression_suite_count ?? 0) === 3
+      && (metrics.passed_regression_suite_count ?? 0) === 3
+      && (metrics.failed_regression_suite_count ?? 1) === 0
+      && caseCount > 0
+      && (metrics.passed_regression_case_count ?? 0) === caseCount
+      && (metrics.failed_regression_case_count ?? 1) === 0
+      && (metrics.extractor_regression_case_count ?? 0) === (metrics.expected_extractor_case_count ?? -1)
+      && (metrics.lineage_regression_case_count ?? 0) === (metrics.expected_lineage_case_count ?? -1)
+      && coverageCaseCount === (metrics.expected_coverage_case_count ?? -1)
+      && (metrics.export_backed_coverage_case_count ?? 0) === coverageCaseCount
+      && (metrics.identity_preserved_case_count ?? 0) === caseCount
+      && (metrics.external_service_used_case_count ?? 1) === 0
+      && (metrics.client_facing_ready_case_count ?? 1) === 0
+      && (metrics.regression_hash_count ?? 0) === caseCount
+      && (metrics.locked_regression_hash_count ?? 0) === caseCount
+    ) {
+      return passedWithOperationalGate(stage, "Evidence regression tests lock extractor, lineage, and coverage fixtures with deterministic hashes while blocking external services and client-facing output.");
     }
   }
 

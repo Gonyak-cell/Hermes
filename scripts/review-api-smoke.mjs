@@ -214,6 +214,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-results"));
   assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-signals"));
   assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/personal-workspace-boundaries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workspace-boundaries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tenant-policy-boundaries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/search-namespace-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cross-workspace-probes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/personal-workspace-boundary-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1820,6 +1826,30 @@ try {
   const conflictCheckValidations = await fetchJson(`${url}/api/conflict-check-validations?status=passed&limit=5`);
   assert.equal(conflictCheckValidations.collection, "conflict_check_validations");
   assert.ok(conflictCheckValidations.count <= 5);
+
+  const personalWorkspaceBoundaries = await fetchJson(`${url}/api/personal-workspace-boundaries?personal_workspace_boundary_status=complete&limit=1`);
+  assert.equal(personalWorkspaceBoundaries.collection, "personal_workspace_boundaries");
+  assert.ok(personalWorkspaceBoundaries.count <= 1);
+
+  const workspaceBoundaries = await fetchJson(`${url}/api/workspace-boundaries?workspace_type=personal_project&limit=5`);
+  assert.equal(workspaceBoundaries.collection, "workspace_boundaries");
+  assert.ok(workspaceBoundaries.count <= 5);
+
+  const tenantPolicyBoundaries = await fetchJson(`${url}/api/tenant-policy-boundaries?policy_mode=deny_unless_workspace_scoped&limit=5`);
+  assert.equal(tenantPolicyBoundaries.collection, "tenant_policy_boundaries");
+  assert.ok(tenantPolicyBoundaries.count <= 5);
+
+  const searchNamespacePolicies = await fetchJson(`${url}/api/search-namespace-policies?query_scope_status=isolated&limit=5`);
+  assert.equal(searchNamespacePolicies.collection, "search_namespace_policies");
+  assert.ok(searchNamespacePolicies.count <= 5);
+
+  const crossWorkspaceProbes = await fetchJson(`${url}/api/cross-workspace-probes?observed_outcome=blocked&limit=5`);
+  assert.equal(crossWorkspaceProbes.collection, "cross_workspace_probes");
+  assert.ok(crossWorkspaceProbes.count <= 5);
+
+  const personalWorkspaceBoundaryValidations = await fetchJson(`${url}/api/personal-workspace-boundary-validations?status=passed&limit=5`);
+  assert.equal(personalWorkspaceBoundaryValidations.collection, "personal_workspace_boundary_validations");
+  assert.ok(personalWorkspaceBoundaryValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

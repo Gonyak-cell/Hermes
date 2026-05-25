@@ -1,0 +1,313 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/personal-workspace-boundary.schema.json",
+  "title": "Hermes Personal Workspace Boundary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "personal_workspace_boundary_id",
+    "output_dir",
+    "inputs",
+    "source_identity_model",
+    "source_matter_profile_team_ledger",
+    "source_store_policy_adapter",
+    "source_conflict_check_interface",
+    "source_personal_dev_slice",
+    "source_domain_pack_registry",
+    "workspace_boundary_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "personal-workspace-boundary.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "personal_workspace_boundary_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "identity_model_path",
+        "matter_profile_team_ledger_path",
+        "store_policy_adapter_path",
+        "conflict_check_interface_path",
+        "personal_dev_slice_path",
+        "domain_pack_registry_path"
+      ],
+      "properties": {
+        "identity_model_path": { "type": "string" },
+        "matter_profile_team_ledger_path": { "type": "string" },
+        "store_policy_adapter_path": { "type": "string" },
+        "conflict_check_interface_path": { "type": "string" },
+        "personal_dev_slice_path": { "type": "string" },
+        "domain_pack_registry_path": { "type": "string" }
+      }
+    },
+    "source_identity_model": { "$ref": "#/$defs/source" },
+    "source_matter_profile_team_ledger": { "$ref": "#/$defs/source" },
+    "source_store_policy_adapter": { "$ref": "#/$defs/source" },
+    "source_conflict_check_interface": { "$ref": "#/$defs/source" },
+    "source_personal_dev_slice": { "$ref": "#/$defs/source" },
+    "source_domain_pack_registry": { "$ref": "#/$defs/source" },
+    "workspace_boundary_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "workspace_boundaries",
+        "tenant_policy_boundaries",
+        "search_namespace_policies",
+        "cross_workspace_probes"
+      ],
+      "properties": {
+        "schema_version": { "const": "workspace-boundary-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "workspace_boundaries": { "type": "array", "items": { "$ref": "#/$defs/workspace_boundary" } },
+        "tenant_policy_boundaries": { "type": "array", "items": { "$ref": "#/$defs/tenant_policy_boundary" } },
+        "search_namespace_policies": { "type": "array", "items": { "$ref": "#/$defs/search_namespace_policy" } },
+        "cross_workspace_probes": { "type": "array", "items": { "$ref": "#/$defs/cross_workspace_probe" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "workspace_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workspace_boundary_id",
+        "workspace_type",
+        "tenant_id",
+        "tenant_type",
+        "domain_pack_ids",
+        "search_namespace_id",
+        "allowed_matter_ids",
+        "allowed_resource_ids",
+        "allowed_policy_snapshot_ids",
+        "allowed_collection_ids",
+        "allowed_runtime_ids",
+        "required_filter_keys",
+        "default_effect",
+        "cross_workspace_access",
+        "protected_data_boundary",
+        "human_review_required_for_cross_workspace",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "workspace-boundary.v1" },
+        "workspace_boundary_id": { "type": "string" },
+        "workspace_type": { "enum": ["law_firm_matter", "personal_project"] },
+        "tenant_id": { "type": "string" },
+        "tenant_type": { "type": "string" },
+        "domain_pack_ids": { "type": "array", "items": { "type": "string" } },
+        "search_namespace_id": { "type": "string" },
+        "allowed_matter_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_resource_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_policy_snapshot_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_collection_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_runtime_ids": { "type": "array", "items": { "type": "string" } },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "default_effect": { "const": "deny_cross_workspace" },
+        "cross_workspace_access": { "const": "blocked" },
+        "protected_data_boundary": { "type": "boolean" },
+        "human_review_required_for_cross_workspace": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "tenant_policy_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tenant_policy_boundary_id",
+        "workspace_boundary_id",
+        "tenant_id",
+        "workspace_type",
+        "policy_mode",
+        "required_filter_keys",
+        "allowed_domain_pack_ids",
+        "allowed_policy_snapshot_ids",
+        "denied_tenant_ids",
+        "denied_workspace_boundary_ids",
+        "denied_domain_pack_ids",
+        "protected_action_effect",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "tenant-policy-boundary.v1" },
+        "tenant_policy_boundary_id": { "type": "string" },
+        "workspace_boundary_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "workspace_type": { "enum": ["law_firm_matter", "personal_project"] },
+        "policy_mode": { "const": "deny_unless_workspace_scoped" },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "allowed_domain_pack_ids": { "type": "array", "items": { "type": "string" } },
+        "allowed_policy_snapshot_ids": { "type": "array", "items": { "type": "string" } },
+        "denied_tenant_ids": { "type": "array", "items": { "type": "string" } },
+        "denied_workspace_boundary_ids": { "type": "array", "items": { "type": "string" } },
+        "denied_domain_pack_ids": { "type": "array", "items": { "type": "string" } },
+        "protected_action_effect": { "const": "hold_for_human_review" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "search_namespace_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "search_namespace_policy_id",
+        "search_namespace_id",
+        "workspace_boundary_id",
+        "tenant_id",
+        "workspace_type",
+        "index_alias",
+        "partition_filter",
+        "allowed_resource_ids",
+        "denied_resource_ids",
+        "denied_tenant_ids",
+        "query_scope_status",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "search-namespace-policy.v1" },
+        "search_namespace_policy_id": { "type": "string" },
+        "search_namespace_id": { "type": "string" },
+        "workspace_boundary_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "workspace_type": { "enum": ["law_firm_matter", "personal_project"] },
+        "index_alias": { "type": "string" },
+        "partition_filter": {
+          "type": "object",
+          "required": ["tenant_id", "matter_ids", "policy_snapshot_ids", "domain_pack_ids", "search_namespace_id"],
+          "properties": {
+            "tenant_id": { "type": "string" },
+            "matter_ids": { "type": "array", "items": { "type": "string" } },
+            "policy_snapshot_ids": { "type": "array", "items": { "type": "string" } },
+            "domain_pack_ids": { "type": "array", "items": { "type": "string" } },
+            "search_namespace_id": { "type": "string" }
+          }
+        },
+        "allowed_resource_ids": { "type": "array", "items": { "type": "string" } },
+        "denied_resource_ids": { "type": "array", "items": { "type": "string" } },
+        "denied_tenant_ids": { "type": "array", "items": { "type": "string" } },
+        "query_scope_status": { "const": "isolated" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "cross_workspace_probe": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "cross_workspace_probe_id",
+        "probe_type",
+        "requester_workspace_boundary_id",
+        "requester_tenant_id",
+        "target_workspace_boundary_id",
+        "target_tenant_id",
+        "attempted_filters",
+        "expected_outcome",
+        "observed_outcome",
+        "probe_status",
+        "block_reason",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "cross-workspace-probe.v1" },
+        "cross_workspace_probe_id": { "type": "string" },
+        "probe_type": { "enum": ["cross_tenant_query", "cross_domain_pack_query", "unscoped_query"] },
+        "requester_workspace_boundary_id": { "type": "string" },
+        "requester_tenant_id": { "type": "string" },
+        "target_workspace_boundary_id": { "type": "string" },
+        "target_tenant_id": { "type": "string" },
+        "attempted_filters": { "type": "object" },
+        "expected_outcome": { "const": "blocked" },
+        "observed_outcome": { "enum": ["blocked", "allowed"] },
+        "probe_status": { "enum": ["passed", "failed"] },
+        "block_reason": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "personal_workspace_boundary_status",
+        "workspace_boundary_count",
+        "personal_workspace_boundary_count",
+        "law_firm_boundary_count",
+        "search_namespace_policy_count",
+        "cross_workspace_probe_count",
+        "blocked_cross_workspace_probe_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "personal_workspace_boundary_status": { "enum": ["complete", "blocked"] },
+        "workspace_boundary_count": { "type": "integer", "minimum": 0 },
+        "law_firm_boundary_count": { "type": "integer", "minimum": 0 },
+        "personal_workspace_boundary_count": { "type": "integer", "minimum": 0 },
+        "tenant_policy_boundary_count": { "type": "integer", "minimum": 0 },
+        "search_namespace_policy_count": { "type": "integer", "minimum": 0 },
+        "cross_workspace_probe_count": { "type": "integer", "minimum": 0 },
+        "blocked_cross_workspace_probe_count": { "type": "integer", "minimum": 0 },
+        "allowed_cross_workspace_probe_count": { "type": "integer", "minimum": 0 },
+        "mixed_search_namespace_count": { "type": "integer", "minimum": 0 },
+        "law_firm_tenant_id": { "type": ["string", "null"] },
+        "personal_tenant_id": { "type": ["string", "null"] },
+        "law_firm_matter_count": { "type": "integer", "minimum": 0 },
+        "personal_matter_count": { "type": "integer", "minimum": 0 },
+        "law_firm_resource_count": { "type": "integer", "minimum": 0 },
+        "personal_resource_count": { "type": "integer", "minimum": 0 },
+        "law_firm_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "personal_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_workspace_type": { "type": "object" },
+        "by_probe_type": { "type": "object" },
+        "by_probe_outcome": { "type": "object" }
+      }
+    }
+  }
+}

@@ -3895,6 +3895,28 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 29개로 증가하고 conflict check interface가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run contracts:conflict-check -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 128: Personal Workspace Boundary
+
+목표: 개인 개발 workspace와 로펌 matter workspace를 tenant, policy snapshot, domain pack, search namespace 기준으로 분리해 검색/정책 계층에서 컨텍스트가 섞이지 않도록 deterministic boundary를 구현한다.
+
+구현 내용:
+
+- `src/personal-workspace-boundary.mjs`, `scripts/personal-workspace-boundary.mjs`, `schemas/personal-workspace-boundary.schema.json`, `docs/personal-workspace-boundary.md`를 추가함
+- Identity Model, Matter Profile/Team Ledger, Store Policy Adapter, Conflict Check Interface, Personal Dev Slice, Domain Pack Registry를 입력으로 law-firm boundary 1개와 personal boundary 1개를 생성함
+- 각 boundary에 별도 `tenant_id`, `policy_snapshot_id`, `domain_pack_id`, `search_namespace_id`, allowed resource/matter/policy snapshot 목록을 보존함
+- tenant policy boundary와 search namespace policy를 생성해 law-firm resource와 personal-dev resource가 서로의 namespace에 들어가지 않도록 검증함
+- cross-workspace probe 6개를 생성하고 cross tenant, cross domain pack, unscoped query 시도가 모두 `blocked`인지 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 personal workspace boundary를 통합함
+- `/api/personal-workspace-boundaries`, `/api/workspace-boundaries`, `/api/tenant-policy-boundaries`, `/api/search-namespace-policies`, `/api/cross-workspace-probes`, `/api/personal-workspace-boundary-validations` route를 추가함
+
+완료 기준:
+
+- Personal Workspace Boundary가 workspace boundary 2개, tenant policy boundary 2개, search namespace policy 2개, cross-workspace probe 6개를 생성하고 validation error 없이 complete 상태가 됨
+- law-firm tenant는 `tenant.amic`, personal tenant는 `tenant.personal.jws`로 분리되고 policy snapshot도 각각 `policy.default.law_firm.v1`, `policy.default.personal_dev.v1`로 분리됨
+- cross-workspace probe는 모두 blocked이고 allowed cross-workspace probe와 mixed search namespace count는 0임
+- Golden fixture 수가 30개로 증가하고 personal workspace boundary가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run contracts:personal-boundary -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3903,9 +3925,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 127이다.
+- 현재 완료 기준점은 Phase 128이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P128-P312, 총 185개다.
+- 남은 계획 슬롯은 P129-P312, 총 184개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -744,6 +744,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("conflict_check_validations", interfaceResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/personal-workspace-boundaries") {
+    const boundaryResult = await readDashboardSourceArtifact(dashboard, "personal_workspace_boundary");
+    if (!boundaryResult.available) {
+      return jsonResponse(503, buildError("personal_workspace_boundary_unavailable", boundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_workspace_boundaries", [boundaryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workspace-boundaries") {
+    const boundaryResult = await readDashboardSourceArtifact(dashboard, "personal_workspace_boundary");
+    if (!boundaryResult.available) {
+      return jsonResponse(503, buildError("personal_workspace_boundary_unavailable", boundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workspace_boundaries", boundaryResult.artifact.workspace_boundary_catalog?.workspace_boundaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/tenant-policy-boundaries") {
+    const boundaryResult = await readDashboardSourceArtifact(dashboard, "personal_workspace_boundary");
+    if (!boundaryResult.available) {
+      return jsonResponse(503, buildError("personal_workspace_boundary_unavailable", boundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("tenant_policy_boundaries", boundaryResult.artifact.workspace_boundary_catalog?.tenant_policy_boundaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/search-namespace-policies") {
+    const boundaryResult = await readDashboardSourceArtifact(dashboard, "personal_workspace_boundary");
+    if (!boundaryResult.available) {
+      return jsonResponse(503, buildError("personal_workspace_boundary_unavailable", boundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("search_namespace_policies", boundaryResult.artifact.workspace_boundary_catalog?.search_namespace_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cross-workspace-probes") {
+    const boundaryResult = await readDashboardSourceArtifact(dashboard, "personal_workspace_boundary");
+    if (!boundaryResult.available) {
+      return jsonResponse(503, buildError("personal_workspace_boundary_unavailable", boundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cross_workspace_probes", boundaryResult.artifact.workspace_boundary_catalog?.cross_workspace_probes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-workspace-boundary-validations") {
+    const boundaryResult = await readDashboardSourceArtifact(dashboard, "personal_workspace_boundary");
+    if (!boundaryResult.available) {
+      return jsonResponse(503, buildError("personal_workspace_boundary_unavailable", boundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_workspace_boundary_validations", boundaryResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4294,6 +4336,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/conflict-check-results", "Conflict check result rows with final access effects"),
       route("GET", "/api/conflict-check-signals", "Conflict signals bound to known parties and wall bindings"),
       route("GET", "/api/conflict-check-validations", "Conflict check interface validation rows"),
+      route("GET", "/api/personal-workspace-boundaries", "Personal workspace boundary artifacts"),
+      route("GET", "/api/workspace-boundaries", "Workspace boundary rows separating law-firm and personal tenants"),
+      route("GET", "/api/tenant-policy-boundaries", "Tenant-level policy boundary rows"),
+      route("GET", "/api/search-namespace-policies", "Search namespace policies for isolated workspace retrieval"),
+      route("GET", "/api/cross-workspace-probes", "Cross-workspace probe rows expected to be blocked"),
+      route("GET", "/api/personal-workspace-boundary-validations", "Personal workspace boundary validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4774,6 +4822,18 @@ function filterItems(items, searchParams) {
     "signal_type",
     "signal_decision",
     "signal_severity",
+    "personal_workspace_boundary_id",
+    "personal_workspace_boundary_status",
+    "workspace_boundary_id",
+    "workspace_type",
+    "tenant_policy_boundary_id",
+    "policy_mode",
+    "search_namespace_policy_id",
+    "search_namespace_id",
+    "query_scope_status",
+    "cross_workspace_probe_id",
+    "probe_status",
+    "block_reason",
     "target_type",
     "target_resource_id",
     "view_status",
@@ -5405,6 +5465,7 @@ function readFilterValue(item, key) {
   if (key === "access_audit_projection_status") return item.summary?.access_audit_projection_status ?? item.access_audit_projection_status;
   if (key === "store_policy_adapter_status") return item.summary?.store_policy_adapter_status ?? item.store_policy_adapter_status;
   if (key === "conflict_check_interface_status") return item.summary?.conflict_check_interface_status ?? item.conflict_check_interface_status;
+  if (key === "personal_workspace_boundary_status") return item.summary?.personal_workspace_boundary_status ?? item.personal_workspace_boundary_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

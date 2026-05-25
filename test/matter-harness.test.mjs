@@ -20,6 +20,7 @@ import { runMatterTaggingDecisionLedger } from "../src/matter-tagging-decision-l
 import { runAccessAuditProjection } from "../src/access-audit-projection.mjs";
 import { runStorePolicyAdapter } from "../src/store-policy-adapter.mjs";
 import { runConflictCheckInterface } from "../src/conflict-check-interface.mjs";
+import { runPersonalWorkspaceBoundary } from "../src/personal-workspace-boundary.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1046,6 +1047,43 @@ describe("matter harness", () => {
       assert.ok(conflictCheckInterface.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "conflict-check", "summary.md"), "utf8"), /Conflict Check Interface/);
 
+      const personalWorkspaceBoundary = await runPersonalWorkspaceBoundary({
+        identityModelPath: path.join(outDir, "identity-model", "identity-model.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        conflictCheckInterfacePath: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
+        personalDevSlicePath: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        outDir: path.join(outDir, "personal-workspace-boundary"),
+        runAt: "2026-05-23T06:35:05.375Z",
+      });
+      const personalWorkspaceBoundarySchema = JSON.parse(await readFile("schemas/personal-workspace-boundary.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(personalWorkspaceBoundary, personalWorkspaceBoundarySchema, {}, "personal_workspace_boundary"), []);
+      assert.equal(personalWorkspaceBoundary.summary.personal_workspace_boundary_status, "complete");
+      assert.equal(personalWorkspaceBoundary.summary.workspace_boundary_count, 2);
+      assert.equal(personalWorkspaceBoundary.summary.law_firm_boundary_count, 1);
+      assert.equal(personalWorkspaceBoundary.summary.personal_workspace_boundary_count, 1);
+      assert.equal(personalWorkspaceBoundary.summary.tenant_policy_boundary_count, 2);
+      assert.equal(personalWorkspaceBoundary.summary.search_namespace_policy_count, 2);
+      assert.equal(personalWorkspaceBoundary.summary.cross_workspace_probe_count, 6);
+      assert.equal(personalWorkspaceBoundary.summary.blocked_cross_workspace_probe_count, personalWorkspaceBoundary.summary.cross_workspace_probe_count);
+      assert.equal(personalWorkspaceBoundary.summary.allowed_cross_workspace_probe_count, 0);
+      assert.equal(personalWorkspaceBoundary.summary.mixed_search_namespace_count, 0);
+      assert.equal(personalWorkspaceBoundary.summary.law_firm_tenant_id, "tenant.amic");
+      assert.equal(personalWorkspaceBoundary.summary.personal_tenant_id, "tenant.personal.jws");
+      assert.equal(personalWorkspaceBoundary.summary.law_firm_resource_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(personalWorkspaceBoundary.summary.personal_resource_count, personalDevSlice.personal_dev_slice.resource_evidence.resources.length);
+      assert.equal(personalWorkspaceBoundary.summary.law_firm_policy_snapshot_count, 1);
+      assert.equal(personalWorkspaceBoundary.summary.personal_policy_snapshot_count, personalDevSlice.personal_dev_slice.identity_policy.policy_snapshots.length);
+      assert.equal(personalWorkspaceBoundary.summary.validation_error_count, 0);
+      assert.ok(personalWorkspaceBoundary.workspace_boundary_catalog.workspace_boundaries.some((boundary) => boundary.workspace_type === "law_firm_matter" && boundary.tenant_id === "tenant.amic"));
+      assert.ok(personalWorkspaceBoundary.workspace_boundary_catalog.workspace_boundaries.some((boundary) => boundary.workspace_type === "personal_project" && boundary.tenant_id === "tenant.personal.jws"));
+      assert.ok(personalWorkspaceBoundary.workspace_boundary_catalog.tenant_policy_boundaries.every((boundary) => boundary.denied_tenant_ids.length > 0 && boundary.required_filter_keys.includes("search_namespace_id")));
+      assert.ok(personalWorkspaceBoundary.workspace_boundary_catalog.search_namespace_policies.every((policy) => policy.query_scope_status === "isolated" && policy.denied_tenant_ids.length > 0));
+      assert.ok(personalWorkspaceBoundary.workspace_boundary_catalog.cross_workspace_probes.every((probe) => probe.observed_outcome === "blocked" && probe.probe_status === "passed"));
+      assert.ok(personalWorkspaceBoundary.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "personal-workspace-boundary", "summary.md"), "utf8"), /Personal Workspace Boundary/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1589,6 +1627,7 @@ describe("matter harness", () => {
         accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
         storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
         conflictCheckInterfacePath: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
+        personalWorkspaceBoundaryPath: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3547,6 +3586,7 @@ describe("matter harness", () => {
           access_audit_projection: path.join(outDir, "access-audit", "access-audit-projection.json"),
           store_policy_adapter: path.join(outDir, "store-policy", "store-policy-adapter.json"),
           conflict_check_interface: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
+          personal_workspace_boundary: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3572,8 +3612,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 29);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 29);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 30);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 30);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3593,6 +3633,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_audit_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "store_policy_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "conflict_check_interface"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_workspace_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3639,6 +3680,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:access-audit"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:store-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:conflict-check"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:personal-boundary"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3740,6 +3782,10 @@ describe("matter harness", () => {
       assert.equal(conflictCheckInterfaceCheckpoint?.acceptance_profile, "conflict_check_interface_gate");
       assert.equal(conflictCheckInterfaceCheckpoint?.status, "passed");
       assert.equal(conflictCheckInterfaceCheckpoint?.implementation_status, "passed");
+      const personalWorkspaceBoundaryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-personal-workspace-boundary");
+      assert.equal(personalWorkspaceBoundaryCheckpoint?.acceptance_profile, "personal_workspace_boundary_gate");
+      assert.equal(personalWorkspaceBoundaryCheckpoint?.status, "passed");
+      assert.equal(personalWorkspaceBoundaryCheckpoint?.implementation_status, "passed");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4377,6 +4423,20 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.conflict_check_missing_conflict_reference_count, 0);
       assert.equal(dashboard.summary.conflict_check_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.conflict_check_validation_error_count, 0);
+      assert.equal(dashboard.summary.personal_workspace_boundary_status, "complete");
+      assert.equal(dashboard.summary.personal_workspace_workspace_boundary_count, personalWorkspaceBoundary.summary.workspace_boundary_count);
+      assert.equal(dashboard.summary.personal_workspace_law_firm_boundary_count, 1);
+      assert.equal(dashboard.summary.personal_workspace_personal_boundary_count, 1);
+      assert.equal(dashboard.summary.personal_workspace_tenant_policy_boundary_count, personalWorkspaceBoundary.summary.tenant_policy_boundary_count);
+      assert.equal(dashboard.summary.personal_workspace_search_namespace_policy_count, personalWorkspaceBoundary.summary.search_namespace_policy_count);
+      assert.equal(dashboard.summary.personal_workspace_cross_workspace_probe_count, personalWorkspaceBoundary.summary.cross_workspace_probe_count);
+      assert.equal(dashboard.summary.personal_workspace_blocked_cross_workspace_probe_count, personalWorkspaceBoundary.summary.blocked_cross_workspace_probe_count);
+      assert.equal(dashboard.summary.personal_workspace_allowed_cross_workspace_probe_count, 0);
+      assert.equal(dashboard.summary.personal_workspace_mixed_search_namespace_count, 0);
+      assert.equal(dashboard.summary.personal_workspace_law_firm_resource_count, personalWorkspaceBoundary.summary.law_firm_resource_count);
+      assert.equal(dashboard.summary.personal_workspace_personal_resource_count, personalWorkspaceBoundary.summary.personal_resource_count);
+      assert.equal(dashboard.summary.personal_workspace_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.personal_workspace_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -4865,6 +4925,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "access_audit_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "conflict_check_interface"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "personal_workspace_boundary"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
@@ -4906,6 +4967,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "data_classification_rule_engine"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "conflict_check_interface"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "personal_workspace_boundary"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5049,6 +5111,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-results"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-signals"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/personal-workspace-boundaries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workspace-boundaries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/tenant-policy-boundaries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/search-namespace-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/cross-workspace-probes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/personal-workspace-boundary-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
@@ -6956,6 +7024,30 @@ describe("matter harness", () => {
       const conflictCheckValidations = JSON.parse((await buildReviewApiResponse("/api/conflict-check-validations?status=passed", apiOptions)).body);
       assert.equal(conflictCheckValidations.collection, "conflict_check_validations");
       assert.equal(conflictCheckValidations.count, conflictCheckInterface.summary.validation_item_count);
+
+      const personalWorkspaceBoundaries = JSON.parse((await buildReviewApiResponse("/api/personal-workspace-boundaries?personal_workspace_boundary_status=complete", apiOptions)).body);
+      assert.equal(personalWorkspaceBoundaries.collection, "personal_workspace_boundaries");
+      assert.equal(personalWorkspaceBoundaries.count, 1);
+
+      const personalWorkspaceRows = JSON.parse((await buildReviewApiResponse("/api/workspace-boundaries?workspace_type=personal_project", apiOptions)).body);
+      assert.equal(personalWorkspaceRows.collection, "workspace_boundaries");
+      assert.equal(personalWorkspaceRows.count, personalWorkspaceBoundary.summary.personal_workspace_boundary_count);
+
+      const tenantPolicyBoundaryRows = JSON.parse((await buildReviewApiResponse("/api/tenant-policy-boundaries?policy_mode=deny_unless_workspace_scoped", apiOptions)).body);
+      assert.equal(tenantPolicyBoundaryRows.collection, "tenant_policy_boundaries");
+      assert.equal(tenantPolicyBoundaryRows.count, personalWorkspaceBoundary.summary.tenant_policy_boundary_count);
+
+      const searchNamespacePolicyRows = JSON.parse((await buildReviewApiResponse("/api/search-namespace-policies?query_scope_status=isolated", apiOptions)).body);
+      assert.equal(searchNamespacePolicyRows.collection, "search_namespace_policies");
+      assert.equal(searchNamespacePolicyRows.count, personalWorkspaceBoundary.summary.search_namespace_policy_count);
+
+      const crossWorkspaceProbeRows = JSON.parse((await buildReviewApiResponse("/api/cross-workspace-probes?observed_outcome=blocked", apiOptions)).body);
+      assert.equal(crossWorkspaceProbeRows.collection, "cross_workspace_probes");
+      assert.equal(crossWorkspaceProbeRows.count, personalWorkspaceBoundary.summary.blocked_cross_workspace_probe_count);
+
+      const personalWorkspaceBoundaryValidations = JSON.parse((await buildReviewApiResponse("/api/personal-workspace-boundary-validations?status=passed", apiOptions)).body);
+      assert.equal(personalWorkspaceBoundaryValidations.collection, "personal_workspace_boundary_validations");
+      assert.equal(personalWorkspaceBoundaryValidations.count, personalWorkspaceBoundary.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

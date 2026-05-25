@@ -18,6 +18,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   accessAuditProjectionPath: "artifacts/access-audit/latest/access-audit-projection.json",
   storePolicyAdapterPath: "artifacts/store-policy/latest/store-policy-adapter.json",
   conflictCheckInterfacePath: "artifacts/conflict-check/latest/conflict-check-interface.json",
+  personalWorkspaceBoundaryPath: "artifacts/personal-workspace-boundary/latest/personal-workspace-boundary.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -196,6 +197,11 @@ const SOURCE_DEFINITIONS = [
     option: "conflictCheckInterfacePath",
     source_id: "conflict_check_interface",
     label: "Conflict Check Interface",
+  },
+  {
+    option: "personalWorkspaceBoundaryPath",
+    source_id: "personal_workspace_boundary",
+    label: "Personal Workspace Boundary",
   },
   {
     option: "evidenceContractFreezePath",
@@ -848,6 +854,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "access_audit_projection") return data.summary ?? {};
   if (sourceId === "store_policy_adapter") return data.summary ?? {};
   if (sourceId === "conflict_check_interface") return data.summary ?? {};
+  if (sourceId === "personal_workspace_boundary") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1055,6 +1062,7 @@ function buildStageStatuses(artifacts, sources) {
     buildAccessAuditProjectionStage(artifacts.access_audit_projection, sourceById.get("access_audit_projection")),
     buildStorePolicyAdapterStage(artifacts.store_policy_adapter, sourceById.get("store_policy_adapter")),
     buildConflictCheckInterfaceStage(artifacts.conflict_check_interface, sourceById.get("conflict_check_interface")),
+    buildPersonalWorkspaceBoundaryStage(artifacts.personal_workspace_boundary, sourceById.get("personal_workspace_boundary")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1718,6 +1726,58 @@ function buildConflictCheckInterfaceStage(conflictCheckInterface, source) {
       counterparty_signal_count: summary.counterparty_signal_count ?? 0,
       store_plan_linked_request_count: summary.store_plan_linked_request_count ?? 0,
       missing_conflict_reference_count: summary.missing_conflict_reference_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildPersonalWorkspaceBoundaryStage(boundary, source) {
+  if (!boundary) return missingStage("personal_workspace_boundary", "Personal Workspace Boundary", source);
+  const summary = boundary.summary ?? {};
+  const errorCount = summary.validation_error_count ?? boundary.validation?.errors?.length ?? 0;
+  const workspaceCount = summary.workspace_boundary_count ?? 0;
+  const namespaceCount = summary.search_namespace_policy_count ?? 0;
+  const probeCount = summary.cross_workspace_probe_count ?? 0;
+  const blockedProbeCount = summary.blocked_cross_workspace_probe_count ?? 0;
+  const status = summary.personal_workspace_boundary_status === "complete"
+    && errorCount === 0
+    && workspaceCount >= 2
+    && (summary.law_firm_boundary_count ?? 0) > 0
+    && (summary.personal_workspace_boundary_count ?? 0) > 0
+    && namespaceCount >= 2
+    && probeCount > 0
+    && blockedProbeCount === probeCount
+    && (summary.allowed_cross_workspace_probe_count ?? 0) === 0
+    && (summary.mixed_search_namespace_count ?? 0) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "personal_workspace_boundary",
+    label: "Personal Workspace Boundary",
+    status,
+    message: `${workspaceCount} workspace boundary(ies), ${namespaceCount} search namespace(s), ${blockedProbeCount}/${probeCount} cross-workspace probe(s) blocked.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      personal_workspace_boundary_status: summary.personal_workspace_boundary_status ?? "unknown",
+      workspace_boundary_count: workspaceCount,
+      law_firm_boundary_count: summary.law_firm_boundary_count ?? 0,
+      personal_workspace_boundary_count: summary.personal_workspace_boundary_count ?? 0,
+      tenant_policy_boundary_count: summary.tenant_policy_boundary_count ?? 0,
+      search_namespace_policy_count: namespaceCount,
+      cross_workspace_probe_count: probeCount,
+      blocked_cross_workspace_probe_count: blockedProbeCount,
+      allowed_cross_workspace_probe_count: summary.allowed_cross_workspace_probe_count ?? 0,
+      mixed_search_namespace_count: summary.mixed_search_namespace_count ?? 0,
+      law_firm_tenant_id: summary.law_firm_tenant_id ?? null,
+      personal_tenant_id: summary.personal_tenant_id ?? null,
+      law_firm_matter_count: summary.law_firm_matter_count ?? 0,
+      personal_matter_count: summary.personal_matter_count ?? 0,
+      law_firm_resource_count: summary.law_firm_resource_count ?? 0,
+      personal_resource_count: summary.personal_resource_count ?? 0,
+      law_firm_policy_snapshot_count: summary.law_firm_policy_snapshot_count ?? 0,
+      personal_policy_snapshot_count: summary.personal_policy_snapshot_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5373,6 +5433,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.personal_workspace_boundary?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "personal_workspace_boundary";
+    items.push({
+      action_item_id: `dashboard.action.personal_workspace_boundary.${slugify(subjectId)}`,
+      source_stage: "personal_workspace_boundary",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix personal workspace boundary validation",
+      subject_ref: {
+        subject_type: "personal_workspace_boundary_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_personal_workspace_boundary", "rerun_personal_workspace_boundary", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -6967,6 +7045,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     conflict_check_missing_conflict_reference_count: artifacts.conflict_check_interface?.summary?.missing_conflict_reference_count ?? 0,
     conflict_check_failed_validation_item_count: artifacts.conflict_check_interface?.summary?.failed_validation_item_count ?? 0,
     conflict_check_validation_error_count: artifacts.conflict_check_interface?.summary?.validation_error_count ?? artifacts.conflict_check_interface?.validation?.errors?.length ?? 0,
+    personal_workspace_boundary_status: artifacts.personal_workspace_boundary?.summary?.personal_workspace_boundary_status ?? "unknown",
+    personal_workspace_workspace_boundary_count: artifacts.personal_workspace_boundary?.summary?.workspace_boundary_count ?? 0,
+    personal_workspace_law_firm_boundary_count: artifacts.personal_workspace_boundary?.summary?.law_firm_boundary_count ?? 0,
+    personal_workspace_personal_boundary_count: artifacts.personal_workspace_boundary?.summary?.personal_workspace_boundary_count ?? 0,
+    personal_workspace_tenant_policy_boundary_count: artifacts.personal_workspace_boundary?.summary?.tenant_policy_boundary_count ?? 0,
+    personal_workspace_search_namespace_policy_count: artifacts.personal_workspace_boundary?.summary?.search_namespace_policy_count ?? 0,
+    personal_workspace_cross_workspace_probe_count: artifacts.personal_workspace_boundary?.summary?.cross_workspace_probe_count ?? 0,
+    personal_workspace_blocked_cross_workspace_probe_count: artifacts.personal_workspace_boundary?.summary?.blocked_cross_workspace_probe_count ?? 0,
+    personal_workspace_allowed_cross_workspace_probe_count: artifacts.personal_workspace_boundary?.summary?.allowed_cross_workspace_probe_count ?? 0,
+    personal_workspace_mixed_search_namespace_count: artifacts.personal_workspace_boundary?.summary?.mixed_search_namespace_count ?? 0,
+    personal_workspace_law_firm_matter_count: artifacts.personal_workspace_boundary?.summary?.law_firm_matter_count ?? 0,
+    personal_workspace_personal_matter_count: artifacts.personal_workspace_boundary?.summary?.personal_matter_count ?? 0,
+    personal_workspace_law_firm_resource_count: artifacts.personal_workspace_boundary?.summary?.law_firm_resource_count ?? 0,
+    personal_workspace_personal_resource_count: artifacts.personal_workspace_boundary?.summary?.personal_resource_count ?? 0,
+    personal_workspace_failed_validation_item_count: artifacts.personal_workspace_boundary?.summary?.failed_validation_item_count ?? 0,
+    personal_workspace_validation_error_count: artifacts.personal_workspace_boundary?.summary?.validation_error_count ?? artifacts.personal_workspace_boundary?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8320,6 +8414,8 @@ function parseArgs(argv) {
     else if (arg === "--no-store-policy-adapter") parsed.storePolicyAdapterPath = false;
     else if (arg === "--conflict-check-interface") parsed.conflictCheckInterfacePath = argv[++index];
     else if (arg === "--no-conflict-check-interface") parsed.conflictCheckInterfacePath = false;
+    else if (arg === "--personal-workspace-boundary") parsed.personalWorkspaceBoundaryPath = argv[++index];
+    else if (arg === "--no-personal-workspace-boundary") parsed.personalWorkspaceBoundaryPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8564,6 +8660,10 @@ Options:
   --conflict-check-interface <path>
                                   conflict-check-interface.json path.
   --no-conflict-check-interface  Do not include Conflict Check Interface status.
+  --personal-workspace-boundary <path>
+                                  personal-workspace-boundary.json path.
+  --no-personal-workspace-boundary
+                                  Do not include Personal Workspace Boundary status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

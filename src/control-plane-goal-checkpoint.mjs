@@ -26,6 +26,7 @@ const GOAL_ITEMS = [
   sourceItem("access_audit_projection", "Access audit projection", "identity_policy", "access_audit_projection", "control-plane-access-audit-projection", { acceptance_profile: "access_audit_projection_gate" }),
   sourceItem("store_policy_adapter", "Store policy adapter and RLS query enforcement", "identity_policy", "store_policy_adapter", "control-plane-store-policy-adapter", { acceptance_profile: "store_policy_adapter_gate" }),
   sourceItem("conflict_check_interface", "Conflict check interface", "identity_policy", "conflict_check_interface", "control-plane-conflict-check-interface", { acceptance_profile: "conflict_check_interface_gate" }),
+  sourceItem("personal_workspace_boundary", "Personal workspace boundary", "identity_policy", "personal_workspace_boundary", "control-plane-personal-workspace-boundary", { acceptance_profile: "personal_workspace_boundary_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -466,6 +467,26 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.counterparty_signal_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Conflict check interface is implemented with intake/resource requests, request-linked results, counterparty review signals, and store query plan bindings before access proceeds.");
+    }
+  }
+
+  if (item.acceptance_profile === "personal_workspace_boundary_gate") {
+    const workspaceCount = metrics.workspace_boundary_count ?? 0;
+    const probeCount = metrics.cross_workspace_probe_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.mixed_search_namespace_count ?? 0);
+    if (
+      errors === 0
+      && workspaceCount >= 2
+      && (metrics.law_firm_boundary_count ?? 0) > 0
+      && (metrics.personal_workspace_boundary_count ?? 0) > 0
+      && (metrics.search_namespace_policy_count ?? 0) >= 2
+      && probeCount > 0
+      && (metrics.blocked_cross_workspace_probe_count ?? 0) === probeCount
+      && (metrics.allowed_cross_workspace_probe_count ?? 0) === 0
+      && (metrics.personal_resource_count ?? 0) > 0
+      && (metrics.law_firm_resource_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Personal workspace boundary is implemented with separate law-firm and personal tenants, isolated search namespaces, and blocked cross-workspace probes.");
     }
   }
 

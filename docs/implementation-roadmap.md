@@ -4120,6 +4120,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 38개로 증가하고 normalized text contract가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:normalized-text -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 137: Extractor Adapter Contract
+
+목표: parser/OCR extractor를 공통 input/output contract와 local-only adapter boundary로 감싸서 문서 유형별 extractor가 downstream Resource/Evidence plane에 동일한 계약으로 노출되게 한다.
+
+구현 내용:
+
+- `src/extractor-adapter-contract.mjs`, `scripts/extractor-adapter-contract.mjs`, `schemas/extractor-adapter-contract.schema.json`, `docs/extractor-adapter-contract.md`를 추가함
+- `npm run resource:extractor-adapters -- --check` 명령을 추가해 extractor adapter catalog, extractor I/O contract, document type binding, OCR fallback policy, normalized text binding, validation report, summary markdown을 생성함
+- P136 Normalized Text Contract의 모든 normalized text artifact를 `extractor_id` 기준으로 등록된 adapter와 I/O contract에 binding함
+- plain text, DOCX, PPTX, XLSX, PDF, Outlook EML, Claude plugin archive, ZIP archive, malformed archive header 계열 extractor를 `extractor-adapter.v1` 형식으로 정규화함
+- PDF OCR fallback은 기본적으로 local/manual only로 고정하고 external OCR/API 사용은 별도 policy snapshot 없이 금지함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 extractor adapter contract를 통합함
+- `/api/extractor-adapter-contracts`, `/api/extractor-adapters`, `/api/extractor-io-contracts`, `/api/extractor-document-type-bindings`, `/api/ocr-fallback-policies`, `/api/extractor-normalized-text-bindings`, `/api/extractor-adapter-validations` route를 추가함
+
+완료 기준:
+
+- Extractor Adapter Contract가 validation error 없이 `complete` 상태가 됨
+- extractor adapter 수와 extractor I/O contract 수가 일치함
+- 모든 adapter가 local deterministic, no external service, no network access 기본값을 가짐
+- 모든 P136 normalized text artifact가 adapter, I/O contract, document type binding에 bound 상태로 연결됨
+- unbound normalized text count와 external-service adapter count가 0임
+- PDF OCR fallback policy가 local/manual only로 등록됨
+- Review Dashboard summary와 stage status에서 adapter/I/O/document binding/OCR policy/normalized text binding/validation 상태가 노출됨
+- Review API smoke가 extractor contract, adapter, I/O contract, document binding, OCR policy, normalized text binding, validation route를 모두 조회함
+- Golden fixture 수가 39개로 증가하고 extractor adapter contract가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:extractor-adapters -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4128,9 +4155,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 136이다.
+- 현재 완료 기준점은 Phase 137이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P137-P312, 총 176개다.
+- 남은 계획 슬롯은 P138-P312, 총 175개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

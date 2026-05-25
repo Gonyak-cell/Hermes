@@ -4,6 +4,8 @@
 
 Phase 136부터 dashboard는 Normalized Text Contract도 읽는다. 각 normalized text artifact의 ResourceVersion/family/raw-source binding, page unit, paragraph unit, line unit, source span seed readiness, validation error count가 summary와 stage status에 노출된다.
 
+Phase 137부터 dashboard는 Extractor Adapter Contract도 읽는다. extractor adapter, I/O contract, document type binding, OCR fallback policy, normalized text binding, local-only guard, validation error count가 summary와 stage status에 노출된다.
+
 ## 실행
 
 ```bash

@@ -86,6 +86,13 @@ npm run api:serve
 - `GET /api/normalized-text-location-maps`: page/paragraph/line/char offset maps
 - `GET /api/normalized-source-span-seeds`: normalized text에서 생성된 source span seed rows
 - `GET /api/normalized-text-validations`: normalized text contract validation rows
+- `GET /api/extractor-adapter-contracts`: extractor adapter contract artifact
+- `GET /api/extractor-adapters`: registered local parser/OCR adapter rows
+- `GET /api/extractor-io-contracts`: shared extractor input/output contract rows
+- `GET /api/extractor-document-type-bindings`: document type to extractor adapter bindings
+- `GET /api/ocr-fallback-policies`: local/manual OCR fallback policy rows
+- `GET /api/extractor-normalized-text-bindings`: P136 normalized text to extractor adapter bindings
+- `GET /api/extractor-adapter-validations`: extractor adapter contract validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

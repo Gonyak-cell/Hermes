@@ -1,0 +1,332 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/extractor-adapter-contract.schema.json",
+  "title": "Hermes Extractor Adapter Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "extractor_adapter_contract_id",
+    "output_dir",
+    "inputs",
+    "extractor_adapter_contract",
+    "extractor_adapter_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "extractor-adapter-contract.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "extractor_adapter_contract_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["resource_ingest_path", "normalized_text_contract_path", "package_path", "roadmap_path"],
+      "properties": {
+        "resource_ingest_path": { "type": "string" },
+        "normalized_text_contract_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_resource_ingest": { "$ref": "#/$defs/source" },
+    "source_normalized_text_contract": { "$ref": "#/$defs/source" },
+    "extractor_adapter_contract": { "$ref": "#/$defs/contract" },
+    "extractor_adapter_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "extractor_adapters",
+        "extractor_io_contracts",
+        "document_type_bindings",
+        "ocr_fallback_policies",
+        "normalized_text_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "extractor-adapter-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "extractor_adapters": { "type": "array", "items": { "$ref": "#/$defs/extractor_adapter" } },
+        "extractor_io_contracts": { "type": "array", "items": { "$ref": "#/$defs/extractor_io_contract" } },
+        "document_type_bindings": { "type": "array", "items": { "$ref": "#/$defs/document_type_binding" } },
+        "ocr_fallback_policies": { "type": "array", "items": { "$ref": "#/$defs/ocr_fallback_policy" } },
+        "normalized_text_bindings": { "type": "array", "items": { "$ref": "#/$defs/normalized_text_binding" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "extractor_adapter_contract_id",
+        "generated_at",
+        "input_schema_id",
+        "output_schema_id",
+        "normalized_text_contract_id",
+        "offset_unit",
+        "required_input_fields",
+        "required_output_fields",
+        "required_adapter_guards",
+        "binding_rule",
+        "ocr_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "extractor-adapter-contract-spec.v1" },
+        "extractor_adapter_contract_id": { "const": "extractor-adapter-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "input_schema_id": { "const": "extractor-input.v1" },
+        "output_schema_id": { "const": "extractor-output.v1" },
+        "normalized_text_contract_id": { "const": "normalized-text-artifact.v1" },
+        "offset_unit": { "const": "utf16_code_unit" },
+        "required_input_fields": { "type": "array", "items": { "type": "string" } },
+        "required_output_fields": { "type": "array", "items": { "type": "string" } },
+        "required_adapter_guards": { "type": "array", "items": { "type": "string" } },
+        "binding_rule": { "type": "string" },
+        "ocr_rule": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "extractor_adapter": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "adapter_id",
+        "extractor_id",
+        "extractor_name",
+        "extractor_family",
+        "display_name",
+        "adapter_version",
+        "input_contract",
+        "output_contract",
+        "supported_document_types",
+        "supported_extensions",
+        "parser_strategy",
+        "ocr_fallback_policy_id",
+        "execution_boundary",
+        "runtime_type",
+        "external_service_allowed",
+        "network_access_allowed",
+        "required_tools",
+        "produced_contracts",
+        "required_identity_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "extractor-adapter.v1" },
+        "adapter_id": { "type": "string" },
+        "extractor_id": { "type": "string" },
+        "extractor_name": { "type": "string" },
+        "extractor_family": { "type": "string" },
+        "display_name": { "type": "string" },
+        "adapter_version": { "type": "string" },
+        "input_contract": { "const": "extractor-input.v1" },
+        "output_contract": { "const": "extractor-output.v1" },
+        "supported_document_types": { "type": "array", "items": { "type": "string" } },
+        "supported_extensions": { "type": "array", "items": { "type": "string" } },
+        "media_types": { "type": "array", "items": { "type": "string" } },
+        "parser_strategy": { "type": "string" },
+        "ocr_fallback_policy_id": { "type": "string" },
+        "execution_boundary": { "const": "local_deterministic" },
+        "runtime_type": { "type": "string" },
+        "external_service_allowed": { "const": false },
+        "network_access_allowed": { "const": false },
+        "required_tools": { "type": "array", "items": { "type": "string" } },
+        "produced_contracts": { "type": "array", "items": { "type": "string" } },
+        "required_identity_fields": { "type": "array", "items": { "type": "string" } },
+        "metadata_fields": { "type": "array", "items": { "type": "string" } },
+        "quality_floor": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "extractor_io_contract": {
+      "type": "object",
+      "required": ["schema_version", "extractor_io_contract_id", "adapter_id", "extractor_id", "input_schema", "output_schema"],
+      "properties": {
+        "schema_version": { "const": "extractor-io-contract.v1" },
+        "extractor_io_contract_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "extractor_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "input_schema": { "type": "object", "required": ["schema_id"], "properties": { "schema_id": { "const": "extractor-input.v1" } }, "additionalProperties": true },
+        "output_schema": { "type": "object", "required": ["schema_id", "offset_unit"], "properties": { "schema_id": { "const": "extractor-output.v1" }, "offset_unit": { "const": "utf16_code_unit" } }, "additionalProperties": true },
+        "idempotency_fields": { "type": "array", "items": { "type": "string" } },
+        "failure_contract": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "document_type_binding": {
+      "type": "object",
+      "required": ["schema_version", "document_type_binding_id", "adapter_id", "extractor_id", "document_type", "ocr_fallback_policy_id", "binding_status"],
+      "properties": {
+        "schema_version": { "const": "extractor-document-type-binding.v1" },
+        "document_type_binding_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "extractor_id": { "type": "string" },
+        "extractor_family": { "type": "string" },
+        "document_type": { "type": "string" },
+        "supported_extensions": { "type": "array", "items": { "type": "string" } },
+        "media_types": { "type": "array", "items": { "type": "string" } },
+        "parser_strategy": { "type": "string" },
+        "ocr_fallback_policy_id": { "type": "string" },
+        "binding_status": { "const": "active" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "ocr_fallback_policy": {
+      "type": "object",
+      "required": ["schema_version", "ocr_fallback_policy_id", "fallback_mode", "external_service_allowed", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "ocr-fallback-policy.v1" },
+        "ocr_fallback_policy_id": { "type": "string" },
+        "policy_name": { "type": "string" },
+        "fallback_mode": { "type": "string" },
+        "execution_boundary": { "type": "string" },
+        "external_service_allowed": { "const": false },
+        "human_review_required": { "type": "boolean" },
+        "allowed_tools": { "type": "array", "items": { "type": "string" } },
+        "blocked_tools": { "type": "array", "items": { "type": "string" } },
+        "quarantine_when_unreadable": { "type": "boolean" },
+        "review_note": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "normalized_text_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "normalized_text_binding_id",
+        "normalized_text_id",
+        "resource_id",
+        "resource_version_id",
+        "extractor_id",
+        "adapter_id",
+        "extractor_io_contract_id",
+        "document_type_binding_id",
+        "binding_status",
+        "external_service_allowed",
+        "network_access_allowed",
+        "required_identity_fields_preserved",
+        "lineage_fields_preserved"
+      ],
+      "properties": {
+        "schema_version": { "const": "extractor-normalized-text-binding.v1" },
+        "normalized_text_binding_id": { "type": "string" },
+        "normalized_text_id": { "type": "string" },
+        "normalized_text_artifact_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "source_system": { "type": ["string", "null"] },
+        "source_uri": { "type": ["string", "null"] },
+        "source_extension": { "type": ["string", "null"] },
+        "content_hash": { "type": ["string", "null"] },
+        "text_hash": { "type": ["string", "null"] },
+        "quality": { "type": "string" },
+        "source_extractor_id": { "type": ["string", "null"] },
+        "extractor_id": { "type": "string" },
+        "adapter_id": { "type": ["string", "null"] },
+        "extractor_io_contract_id": { "type": ["string", "null"] },
+        "document_type_binding_id": { "type": ["string", "null"] },
+        "ocr_fallback_policy_id": { "type": ["string", "null"] },
+        "normalized_text_contract_id": { "type": ["string", "null"] },
+        "binding_status": { "enum": ["bound", "unbound"] },
+        "execution_boundary": { "type": "string" },
+        "external_service_allowed": { "type": ["boolean", "null"] },
+        "network_access_allowed": { "type": ["boolean", "null"] },
+        "required_identity_fields_preserved": { "type": "boolean" },
+        "lineage_fields_preserved": { "type": "boolean" },
+        "metadata_signals": { "type": "object" },
+        "text_profile": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "extractor_adapter_contract_status",
+        "extractor_adapter_contract_id",
+        "extractor_adapter_count",
+        "extractor_io_contract_count",
+        "document_type_binding_count",
+        "ocr_fallback_policy_count",
+        "normalized_text_artifact_count",
+        "normalized_text_binding_count",
+        "bound_normalized_text_count",
+        "unbound_normalized_text_count",
+        "local_only_adapter_count",
+        "external_service_adapter_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "extractor_adapter_contract_status": { "enum": ["complete", "blocked"] },
+        "extractor_adapter_contract_id": { "const": "extractor-adapter-contract.v1" },
+        "extractor_adapter_count": { "type": "integer", "minimum": 0 },
+        "extractor_io_contract_count": { "type": "integer", "minimum": 0 },
+        "document_type_binding_count": { "type": "integer", "minimum": 0 },
+        "ocr_fallback_policy_count": { "type": "integer", "minimum": 0 },
+        "normalized_text_artifact_count": { "type": "integer", "minimum": 0 },
+        "normalized_text_binding_count": { "type": "integer", "minimum": 0 },
+        "bound_normalized_text_count": { "type": "integer", "minimum": 0 },
+        "unbound_normalized_text_count": { "type": "integer", "minimum": 0 },
+        "local_only_adapter_count": { "type": "integer", "minimum": 0 },
+        "external_service_adapter_count": { "type": "integer", "minimum": 0 },
+        "ocr_policy_external_service_count": { "type": "integer", "minimum": 0 },
+        "pdf_ocr_local_manual_policy_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

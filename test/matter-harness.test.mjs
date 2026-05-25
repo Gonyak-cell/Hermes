@@ -29,6 +29,7 @@ import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
 import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-layout.mjs";
 import { runResourceVersionLedger } from "../src/resource-version-ledger.mjs";
 import { runNormalizedTextContract } from "../src/normalized-text-contract.mjs";
+import { runExtractorAdapterContract } from "../src/extractor-adapter-contract.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1644,6 +1645,7 @@ describe("matter harness", () => {
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
         normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3857,6 +3859,35 @@ describe("matter harness", () => {
       assert.ok(normalizedTextContract.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "normalized-text-contract", "summary.md"), "utf8"), /Normalized Text Contract/);
 
+      const extractorAdapterContract = await runExtractorAdapterContract({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        outDir: path.join(outDir, "extractor-adapter-contract"),
+        runAt: "2026-05-23T06:35:07.970Z",
+      });
+      const extractorAdapterContractSchema = JSON.parse(await readFile("schemas/extractor-adapter-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(extractorAdapterContract, extractorAdapterContractSchema, {}, "extractor_adapter_contract"),
+        [],
+      );
+      assert.equal(extractorAdapterContract.summary.extractor_adapter_contract_status, "complete");
+      assert.ok(extractorAdapterContract.summary.extractor_adapter_count > 0);
+      assert.equal(extractorAdapterContract.summary.extractor_io_contract_count, extractorAdapterContract.summary.extractor_adapter_count);
+      assert.equal(extractorAdapterContract.summary.normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(extractorAdapterContract.summary.normalized_text_binding_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(extractorAdapterContract.summary.bound_normalized_text_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(extractorAdapterContract.summary.unbound_normalized_text_count, 0);
+      assert.equal(extractorAdapterContract.summary.local_only_adapter_count, extractorAdapterContract.summary.extractor_adapter_count);
+      assert.equal(extractorAdapterContract.summary.external_service_adapter_count, 0);
+      assert.equal(extractorAdapterContract.summary.ocr_policy_external_service_count, 0);
+      assert.equal(extractorAdapterContract.summary.pdf_ocr_local_manual_policy_count, 1);
+      assert.equal(extractorAdapterContract.summary.validation_error_count, 0);
+      assert.ok(extractorAdapterContract.extractor_adapter_catalog.extractor_adapters.every((adapter) => adapter.execution_boundary === "local_deterministic" && adapter.external_service_allowed === false));
+      assert.ok(extractorAdapterContract.extractor_adapter_catalog.normalized_text_bindings.every((binding) => binding.binding_status === "bound"));
+      assert.ok(extractorAdapterContract.extractor_adapter_catalog.normalized_text_bindings.every((binding) => binding.required_identity_fields_preserved && binding.lineage_fields_preserved));
+      assert.ok(extractorAdapterContract.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "extractor-adapter-contract", "summary.md"), "utf8"), /Extractor Adapter Contract/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3882,6 +3913,7 @@ describe("matter harness", () => {
           immutable_object_store_layout: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
           resource_version_ledger: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
           normalized_text_contract: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+          extractor_adapter_contract: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3907,8 +3939,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 38);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 38);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 39);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 39);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3937,6 +3969,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "immutable_object_store_layout"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_version_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "normalized_text_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4122,6 +4155,10 @@ describe("matter harness", () => {
       assert.equal(normalizedTextContractCheckpoint?.acceptance_profile, "normalized_text_contract_gate");
       assert.equal(normalizedTextContractCheckpoint?.status, "passed");
       assert.equal(normalizedTextContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const extractorAdapterContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-extractor-adapter-contract");
+      assert.equal(extractorAdapterContractCheckpoint?.acceptance_profile, "extractor_adapter_contract_gate");
+      assert.equal(extractorAdapterContractCheckpoint?.status, "passed");
+      assert.equal(extractorAdapterContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4890,6 +4927,17 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.normalized_text_paragraph_unit_count, normalizedTextContract.summary.paragraph_unit_count);
       assert.equal(dashboard.summary.normalized_text_line_unit_count, normalizedTextContract.summary.line_unit_count);
       assert.equal(dashboard.summary.normalized_text_validation_error_count, 0);
+      assert.equal(dashboard.summary.extractor_adapter_contract_status, "complete");
+      assert.equal(dashboard.summary.extractor_adapter_contract_id, "extractor-adapter-contract.v1");
+      assert.equal(dashboard.summary.extractor_adapter_count, extractorAdapterContract.summary.extractor_adapter_count);
+      assert.equal(dashboard.summary.extractor_io_contract_count, extractorAdapterContract.summary.extractor_io_contract_count);
+      assert.equal(dashboard.summary.extractor_document_type_binding_count, extractorAdapterContract.summary.document_type_binding_count);
+      assert.equal(dashboard.summary.extractor_ocr_fallback_policy_count, extractorAdapterContract.summary.ocr_fallback_policy_count);
+      assert.equal(dashboard.summary.extractor_normalized_text_binding_count, extractorAdapterContract.summary.normalized_text_binding_count);
+      assert.equal(dashboard.summary.extractor_bound_normalized_text_count, extractorAdapterContract.summary.bound_normalized_text_count);
+      assert.equal(dashboard.summary.extractor_unbound_normalized_text_count, 0);
+      assert.equal(dashboard.summary.extractor_external_service_adapter_count, 0);
+      assert.equal(dashboard.summary.extractor_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5425,6 +5473,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "immutable_object_store_layout"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_version_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "normalized_text_contract"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "extractor_adapter_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5530,6 +5579,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-location-maps"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-source-span-seeds"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-adapter-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-adapters"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-io-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-document-type-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/ocr-fallback-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-normalized-text-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-adapter-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7360,6 +7416,34 @@ describe("matter harness", () => {
       const normalizedTextValidations = JSON.parse((await buildReviewApiResponse("/api/normalized-text-validations?status=passed", apiOptions)).body);
       assert.equal(normalizedTextValidations.collection, "normalized_text_validations");
       assert.equal(normalizedTextValidations.count, normalizedTextContract.summary.validation_item_count);
+
+      const extractorAdapterContracts = JSON.parse((await buildReviewApiResponse("/api/extractor-adapter-contracts?extractor_adapter_contract_status=complete", apiOptions)).body);
+      assert.equal(extractorAdapterContracts.collection, "extractor_adapter_contracts");
+      assert.equal(extractorAdapterContracts.count, 1);
+
+      const extractorAdapters = JSON.parse((await buildReviewApiResponse("/api/extractor-adapters?execution_boundary=local_deterministic", apiOptions)).body);
+      assert.equal(extractorAdapters.collection, "extractor_adapters");
+      assert.equal(extractorAdapters.count, extractorAdapterContract.summary.extractor_adapter_count);
+
+      const extractorIoContracts = JSON.parse((await buildReviewApiResponse("/api/extractor-io-contracts?offset_unit=utf16_code_unit", apiOptions)).body);
+      assert.equal(extractorIoContracts.collection, "extractor_io_contracts");
+      assert.equal(extractorIoContracts.count, extractorAdapterContract.summary.extractor_io_contract_count);
+
+      const extractorDocumentTypeBindings = JSON.parse((await buildReviewApiResponse("/api/extractor-document-type-bindings?binding_status=active", apiOptions)).body);
+      assert.equal(extractorDocumentTypeBindings.collection, "extractor_document_type_bindings");
+      assert.equal(extractorDocumentTypeBindings.count, extractorAdapterContract.summary.document_type_binding_count);
+
+      const ocrFallbackPolicies = JSON.parse((await buildReviewApiResponse("/api/ocr-fallback-policies?external_service_allowed=false", apiOptions)).body);
+      assert.equal(ocrFallbackPolicies.collection, "ocr_fallback_policies");
+      assert.equal(ocrFallbackPolicies.count, extractorAdapterContract.summary.ocr_fallback_policy_count);
+
+      const extractorNormalizedTextBindings = JSON.parse((await buildReviewApiResponse("/api/extractor-normalized-text-bindings?binding_status=bound", apiOptions)).body);
+      assert.equal(extractorNormalizedTextBindings.collection, "extractor_normalized_text_bindings");
+      assert.equal(extractorNormalizedTextBindings.count, extractorAdapterContract.summary.normalized_text_binding_count);
+
+      const extractorAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/extractor-adapter-validations?status=passed", apiOptions)).body);
+      assert.equal(extractorAdapterValidations.collection, "extractor_adapter_validations");
+      assert.equal(extractorAdapterValidations.count, extractorAdapterContract.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

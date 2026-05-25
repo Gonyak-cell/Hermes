@@ -36,6 +36,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "object-store:layout",
   "resource:version-ledger",
   "resource:normalized-text",
+  "resource:extractor-adapters",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

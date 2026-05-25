@@ -360,6 +360,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("normalized_text_validations", contractResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/extractor-adapter-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_adapter_contracts", [contractResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-adapters") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_adapters", contractResult.artifact.extractor_adapter_catalog?.extractor_adapters ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-io-contracts") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_io_contracts", contractResult.artifact.extractor_adapter_catalog?.extractor_io_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-document-type-bindings") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_document_type_bindings", contractResult.artifact.extractor_adapter_catalog?.document_type_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ocr-fallback-policies") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ocr_fallback_policies", contractResult.artifact.extractor_adapter_catalog?.ocr_fallback_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-normalized-text-bindings") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_normalized_text_bindings", contractResult.artifact.extractor_adapter_catalog?.normalized_text_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/extractor-adapter-validations") {
+    const contractResult = await readDashboardSourceArtifact(dashboard, "extractor_adapter_contract");
+    if (!contractResult.available) {
+      return jsonResponse(503, buildError("extractor_adapter_contract_unavailable", contractResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("extractor_adapter_validations", contractResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4587,6 +4636,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/normalized-text-location-maps", "Normalized text location maps"),
       route("GET", "/api/normalized-source-span-seeds", "Normalized source span seeds"),
       route("GET", "/api/normalized-text-validations", "Normalized text validation rows"),
+      route("GET", "/api/extractor-adapter-contracts", "Extractor adapter contract artifacts"),
+      route("GET", "/api/extractor-adapters", "Extractor adapter rows"),
+      route("GET", "/api/extractor-io-contracts", "Extractor input/output contract rows"),
+      route("GET", "/api/extractor-document-type-bindings", "Extractor document type bindings"),
+      route("GET", "/api/ocr-fallback-policies", "Extractor OCR fallback policies"),
+      route("GET", "/api/extractor-normalized-text-bindings", "Extractor normalized text binding rows"),
+      route("GET", "/api/extractor-adapter-validations", "Extractor adapter validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5347,6 +5403,15 @@ function filterItems(items, searchParams) {
     "workflow_id",
     "workflow_status",
     "adapter_id",
+    "extractor_id",
+    "extractor_io_contract_id",
+    "document_type_binding_id",
+    "document_type",
+    "ocr_fallback_policy_id",
+    "execution_boundary",
+    "external_service_allowed",
+    "network_access_allowed",
+    "offset_unit",
     "execution_contract_id",
     "runtime_output_id",
     "runtime_log_id",
@@ -5838,6 +5903,7 @@ function readFilterValue(item, key) {
   if (key === "object_store_layout_status") return item.summary?.object_store_layout_status ?? item.object_store_layout_status;
   if (key === "resource_version_ledger_status") return item.summary?.resource_version_ledger_status ?? item.resource_version_ledger_status;
   if (key === "normalized_text_contract_status") return item.summary?.normalized_text_contract_status ?? item.normalized_text_contract_status;
+  if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;
@@ -5850,6 +5916,7 @@ function readFilterValue(item, key) {
   if (key === "checkpoint_status") return item.status;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id ?? item.metadata?.runtime_id;
   if (key === "matrix_id") return item.policy_matrix?.matrix_id ?? item.matrix_id;
+  if (key === "offset_unit") return item.output_schema?.offset_unit ?? item.offset_unit;
   if (key === "subject_type") return item.subject_ref?.subject_type ?? item[key];
   if (key === "subject_id") return item.subject_ref?.subject_id ?? item[key];
   return item[key];

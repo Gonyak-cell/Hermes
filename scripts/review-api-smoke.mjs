@@ -261,6 +261,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/normalized-text-location-maps"));
   assert.ok(index.routes.some((route) => route.path === "/api/normalized-source-span-seeds"));
   assert.ok(index.routes.some((route) => route.path === "/api/normalized-text-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/extractor-adapter-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/extractor-adapters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/extractor-io-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/extractor-document-type-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ocr-fallback-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/extractor-normalized-text-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/extractor-adapter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1723,6 +1730,34 @@ try {
   const normalizedTextValidations = await fetchJson(`${url}/api/normalized-text-validations?status=passed&limit=5`);
   assert.equal(normalizedTextValidations.collection, "normalized_text_validations");
   assert.ok(normalizedTextValidations.count <= 5);
+
+  const extractorAdapterContracts = await fetchJson(`${url}/api/extractor-adapter-contracts?extractor_adapter_contract_status=complete&limit=1`);
+  assert.equal(extractorAdapterContracts.collection, "extractor_adapter_contracts");
+  assert.ok(extractorAdapterContracts.count <= 1);
+
+  const extractorAdapters = await fetchJson(`${url}/api/extractor-adapters?execution_boundary=local_deterministic&limit=5`);
+  assert.equal(extractorAdapters.collection, "extractor_adapters");
+  assert.ok(extractorAdapters.count <= 5);
+
+  const extractorIoContracts = await fetchJson(`${url}/api/extractor-io-contracts?offset_unit=utf16_code_unit&limit=5`);
+  assert.equal(extractorIoContracts.collection, "extractor_io_contracts");
+  assert.ok(extractorIoContracts.count <= 5);
+
+  const extractorDocumentTypeBindings = await fetchJson(`${url}/api/extractor-document-type-bindings?binding_status=active&limit=5`);
+  assert.equal(extractorDocumentTypeBindings.collection, "extractor_document_type_bindings");
+  assert.ok(extractorDocumentTypeBindings.count <= 5);
+
+  const ocrFallbackPolicies = await fetchJson(`${url}/api/ocr-fallback-policies?external_service_allowed=false&limit=5`);
+  assert.equal(ocrFallbackPolicies.collection, "ocr_fallback_policies");
+  assert.ok(ocrFallbackPolicies.count <= 5);
+
+  const extractorNormalizedTextBindings = await fetchJson(`${url}/api/extractor-normalized-text-bindings?binding_status=bound&limit=5`);
+  assert.equal(extractorNormalizedTextBindings.collection, "extractor_normalized_text_bindings");
+  assert.ok(extractorNormalizedTextBindings.count <= 5);
+
+  const extractorAdapterValidations = await fetchJson(`${url}/api/extractor-adapter-validations?status=passed&limit=5`);
+  assert.equal(extractorAdapterValidations.collection, "extractor_adapter_validations");
+  assert.ok(extractorAdapterValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

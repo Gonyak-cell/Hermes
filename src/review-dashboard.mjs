@@ -27,6 +27,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   immutableObjectStoreLayoutPath: "artifacts/immutable-object-store-layout/latest/immutable-object-store-layout.json",
   resourceVersionLedgerPath: "artifacts/resource-version-ledger/latest/resource-version-ledger.json",
   normalizedTextContractPath: "artifacts/normalized-text-contract/latest/normalized-text-contract.json",
+  extractorAdapterContractPath: "artifacts/extractor-adapter-contract/latest/extractor-adapter-contract.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -250,6 +251,11 @@ const SOURCE_DEFINITIONS = [
     option: "normalizedTextContractPath",
     source_id: "normalized_text_contract",
     label: "Normalized Text Contract",
+  },
+  {
+    option: "extractorAdapterContractPath",
+    source_id: "extractor_adapter_contract",
+    label: "Extractor Adapter Contract",
   },
   {
     option: "evidenceContractFreezePath",
@@ -911,6 +917,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "immutable_object_store_layout") return data.summary ?? {};
   if (sourceId === "resource_version_ledger") return data.summary ?? {};
   if (sourceId === "normalized_text_contract") return data.summary ?? {};
+  if (sourceId === "extractor_adapter_contract") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1127,6 +1134,7 @@ function buildStageStatuses(artifacts, sources) {
     buildImmutableObjectStoreLayoutStage(artifacts.immutable_object_store_layout, sourceById.get("immutable_object_store_layout")),
     buildResourceVersionLedgerStage(artifacts.resource_version_ledger, sourceById.get("resource_version_ledger")),
     buildNormalizedTextContractStage(artifacts.normalized_text_contract, sourceById.get("normalized_text_contract")),
+    buildExtractorAdapterContractStage(artifacts.extractor_adapter_contract, sourceById.get("extractor_adapter_contract")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2228,6 +2236,48 @@ function buildNormalizedTextContractStage(contract, source) {
       complete_preview_count: summary.complete_preview_count ?? 0,
       preview_only_count: summary.preview_only_count ?? 0,
       truncated_text_count: summary.truncated_text_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildExtractorAdapterContractStage(contract, source) {
+  if (!contract) return missingStage("extractor_adapter_contract", "Extractor Adapter Contract", source);
+  const summary = contract.summary ?? {};
+  const errorCount = summary.validation_error_count ?? contract.validation?.errors?.length ?? 0;
+  const status = summary.extractor_adapter_contract_status === "complete"
+    && errorCount === 0
+    && (summary.extractor_adapter_count ?? 0) > 0
+    && (summary.extractor_io_contract_count ?? 0) === (summary.extractor_adapter_count ?? -1)
+    && (summary.normalized_text_binding_count ?? 0) === (summary.normalized_text_artifact_count ?? -1)
+    && (summary.bound_normalized_text_count ?? 0) === (summary.normalized_text_artifact_count ?? -1)
+    && (summary.unbound_normalized_text_count ?? 0) === 0
+    && (summary.external_service_adapter_count ?? 0) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "extractor_adapter_contract",
+    label: "Extractor Adapter Contract",
+    status,
+    message: `${summary.extractor_adapter_count ?? 0} adapter(s), ${summary.document_type_binding_count ?? 0} document binding(s), ${summary.bound_normalized_text_count ?? 0} normalized text binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      extractor_adapter_contract_status: summary.extractor_adapter_contract_status ?? "unknown",
+      extractor_adapter_contract_id: summary.extractor_adapter_contract_id ?? null,
+      extractor_adapter_count: summary.extractor_adapter_count ?? 0,
+      extractor_io_contract_count: summary.extractor_io_contract_count ?? 0,
+      document_type_binding_count: summary.document_type_binding_count ?? 0,
+      ocr_fallback_policy_count: summary.ocr_fallback_policy_count ?? 0,
+      normalized_text_artifact_count: summary.normalized_text_artifact_count ?? 0,
+      normalized_text_binding_count: summary.normalized_text_binding_count ?? 0,
+      bound_normalized_text_count: summary.bound_normalized_text_count ?? 0,
+      unbound_normalized_text_count: summary.unbound_normalized_text_count ?? 0,
+      local_only_adapter_count: summary.local_only_adapter_count ?? 0,
+      external_service_adapter_count: summary.external_service_adapter_count ?? 0,
+      ocr_policy_external_service_count: summary.ocr_policy_external_service_count ?? 0,
+      pdf_ocr_local_manual_policy_count: summary.pdf_ocr_local_manual_policy_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6045,6 +6095,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.extractor_adapter_contract?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "extractor_adapter_contract";
+    items.push({
+      action_item_id: `dashboard.action.extractor_adapter_contract.${slugify(subjectId)}`,
+      source_stage: "extractor_adapter_contract",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix extractor adapter contract",
+      subject_ref: {
+        subject_type: "extractor_adapter_contract_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_extractor_adapter_contract", "rerun_extractor_adapter_contract", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7786,6 +7854,20 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     normalized_text_paragraph_unit_count: artifacts.normalized_text_contract?.summary?.paragraph_unit_count ?? 0,
     normalized_text_line_unit_count: artifacts.normalized_text_contract?.summary?.line_unit_count ?? 0,
     normalized_text_validation_error_count: artifacts.normalized_text_contract?.summary?.validation_error_count ?? artifacts.normalized_text_contract?.validation?.errors?.length ?? 0,
+    extractor_adapter_contract_status: artifacts.extractor_adapter_contract?.summary?.extractor_adapter_contract_status ?? "unknown",
+    extractor_adapter_contract_id: artifacts.extractor_adapter_contract?.summary?.extractor_adapter_contract_id ?? null,
+    extractor_adapter_count: artifacts.extractor_adapter_contract?.summary?.extractor_adapter_count ?? 0,
+    extractor_io_contract_count: artifacts.extractor_adapter_contract?.summary?.extractor_io_contract_count ?? 0,
+    extractor_document_type_binding_count: artifacts.extractor_adapter_contract?.summary?.document_type_binding_count ?? 0,
+    extractor_ocr_fallback_policy_count: artifacts.extractor_adapter_contract?.summary?.ocr_fallback_policy_count ?? 0,
+    extractor_normalized_text_artifact_count: artifacts.extractor_adapter_contract?.summary?.normalized_text_artifact_count ?? 0,
+    extractor_normalized_text_binding_count: artifacts.extractor_adapter_contract?.summary?.normalized_text_binding_count ?? 0,
+    extractor_bound_normalized_text_count: artifacts.extractor_adapter_contract?.summary?.bound_normalized_text_count ?? 0,
+    extractor_unbound_normalized_text_count: artifacts.extractor_adapter_contract?.summary?.unbound_normalized_text_count ?? 0,
+    extractor_local_only_adapter_count: artifacts.extractor_adapter_contract?.summary?.local_only_adapter_count ?? 0,
+    extractor_external_service_adapter_count: artifacts.extractor_adapter_contract?.summary?.external_service_adapter_count ?? 0,
+    extractor_pdf_ocr_local_manual_policy_count: artifacts.extractor_adapter_contract?.summary?.pdf_ocr_local_manual_policy_count ?? 0,
+    extractor_validation_error_count: artifacts.extractor_adapter_contract?.summary?.validation_error_count ?? artifacts.extractor_adapter_contract?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9157,6 +9239,8 @@ function parseArgs(argv) {
     else if (arg === "--no-resource-version-ledger") parsed.resourceVersionLedgerPath = false;
     else if (arg === "--normalized-text-contract") parsed.normalizedTextContractPath = argv[++index];
     else if (arg === "--no-normalized-text-contract") parsed.normalizedTextContractPath = false;
+    else if (arg === "--extractor-adapter-contract") parsed.extractorAdapterContractPath = argv[++index];
+    else if (arg === "--no-extractor-adapter-contract") parsed.extractorAdapterContractPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9429,6 +9513,10 @@ Options:
   --normalized-text-contract <path>
                                   normalized-text-contract.json path.
   --no-normalized-text-contract   Do not include Normalized Text Contract status.
+  --extractor-adapter-contract <path>
+                                  extractor-adapter-contract.json path.
+  --no-extractor-adapter-contract
+                                  Do not include Extractor Adapter Contract status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

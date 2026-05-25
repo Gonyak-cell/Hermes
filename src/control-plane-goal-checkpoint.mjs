@@ -35,6 +35,7 @@ const GOAL_ITEMS = [
   sourceItem("immutable_object_store_layout", "Immutable object store layout", "resource_evidence", "immutable_object_store_layout", "control-plane-immutable-object-store-layout", { acceptance_profile: "immutable_object_store_layout_gate" }),
   sourceItem("resource_version_ledger", "Resource version ledger", "resource_evidence", "resource_version_ledger", "control-plane-resource-version-ledger", { acceptance_profile: "resource_version_ledger_gate" }),
   sourceItem("normalized_text_contract", "Normalized text contract", "resource_evidence", "normalized_text_contract", "control-plane-normalized-text-contract", { acceptance_profile: "normalized_text_contract_gate" }),
+  sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -377,6 +378,7 @@ function evaluateStageAcceptance(item, stage) {
     "immutable_object_store_layout_gate",
     "resource_version_ledger_gate",
     "normalized_text_contract_gate",
+    "extractor_adapter_contract_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -669,6 +671,23 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.line_unit_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Normalized text contract binds extracted text to resource versions, raw-source object keys, and source-span-ready page, paragraph, line, and char offsets.");
+    }
+  }
+
+  if (item.acceptance_profile === "extractor_adapter_contract_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const artifactCount = metrics.normalized_text_artifact_count ?? 0;
+    if (
+      errors === 0
+      && metrics.extractor_adapter_contract_status === "complete"
+      && (metrics.extractor_adapter_count ?? 0) > 0
+      && (metrics.extractor_io_contract_count ?? 0) === (metrics.extractor_adapter_count ?? -1)
+      && (metrics.normalized_text_binding_count ?? 0) === artifactCount
+      && (metrics.bound_normalized_text_count ?? 0) === artifactCount
+      && (metrics.unbound_normalized_text_count ?? 0) === 0
+      && (metrics.external_service_adapter_count ?? 0) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Extractor adapter contract gives parser/OCR implementations one local-only I/O boundary and binds every normalized text artifact to a registered adapter.");
     }
   }
 

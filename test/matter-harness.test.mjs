@@ -116,6 +116,7 @@ import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contra
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
+import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -1167,6 +1168,7 @@ describe("matter harness", () => {
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+        errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -1257,6 +1259,7 @@ describe("matter harness", () => {
         gateApprovalContractFreezePath: false,
         outputDeliveryContractFreezePath: false,
         eventAuditRunContractFreezePath: false,
+        errorCostObservabilityContractFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
         humanReviewPacketLedgerPath: false,
         humanReviewAgendaPath: false,
@@ -2711,6 +2714,45 @@ describe("matter harness", () => {
       assert.ok(eventAuditRunContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "event-audit-run-contract-freeze", "summary.md"), "utf8"), /Event\/Audit\/Run Ledger Contract Freeze/);
 
+      const errorCostObservabilityContractFreeze = await runErrorCostObservabilityContractFreeze({
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
+        tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
+        costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
+        budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
+        eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+        outDir: path.join(outDir, "error-cost-observability-contract-freeze"),
+        runAt: "2026-05-23T06:35:07.800Z",
+      });
+      const errorCostObservabilityContractFreezeSchema = JSON.parse(await readFile("schemas/error-cost-observability-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(errorCostObservabilityContractFreeze, errorCostObservabilityContractFreezeSchema, {}, "error_cost_observability_contract_freeze"),
+        [],
+      );
+      assert.equal(errorCostObservabilityContractFreeze.summary.freeze_status, "complete");
+      assert.ok(errorCostObservabilityContractFreeze.summary.error_record_count >= observabilityCatalog.summary.blocked_run_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.run_blocked_error_count, eventAuditRunContractFreeze.summary.run_ledger_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.gate_failed_error_count, observabilityCatalog.summary.gate_failed_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.cost_observation_count, costAttributionLedger.summary.attribution_record_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.trace_projection_count, eventAuditRunContractFreeze.summary.run_ledger_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.token_usage_linked_count, costAttributionLedger.summary.attribution_record_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.missing_token_usage_count, 0);
+      assert.equal(errorCostObservabilityContractFreeze.summary.trace_with_cost_count, errorCostObservabilityContractFreeze.summary.trace_projection_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.trace_with_policy_snapshot_count, errorCostObservabilityContractFreeze.summary.trace_projection_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.latency_observed_count, errorCostObservabilityContractFreeze.summary.trace_projection_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.missing_latency_count, 0);
+      assert.equal(errorCostObservabilityContractFreeze.summary.total_projected_usd, costAttributionLedger.summary.total_projected_usd);
+      assert.equal(errorCostObservabilityContractFreeze.summary.total_token_count, costAttributionLedger.summary.total_token_count);
+      assert.equal(errorCostObservabilityContractFreeze.summary.validation_error_count, 0);
+      assert.equal(errorCostObservabilityContractFreeze.error_cost_observability_contract.error_records[0].schema_version, "error-record.v2");
+      assert.equal(errorCostObservabilityContractFreeze.error_cost_observability_contract.cost_observations[0].schema_version, "cost-observation.v2");
+      assert.equal(errorCostObservabilityContractFreeze.error_cost_observability_contract.trace_projections[0].schema_version, "trace-projection.v2");
+      assert.ok(errorCostObservabilityContractFreeze.error_cost_observability_contract.error_records.every((record) => record.retry_status && record.correlation_id && record.policy_snapshot_id));
+      assert.ok(errorCostObservabilityContractFreeze.error_cost_observability_contract.cost_observations.every((record) => record.token_usage_id && record.attribution_id && record.cost_hash));
+      assert.ok(errorCostObservabilityContractFreeze.error_cost_observability_contract.trace_projections.every((trace) => trace.latency_status === "observed" && trace.retry_status && trace.policy_snapshot_id));
+      assert.ok(errorCostObservabilityContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "error-cost-observability-contract-freeze", "summary.md"), "utf8"), /Error\/Cost\/Observability Contract Freeze/);
+
       const controlPlaneLoop = await runControlPlaneLoop({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.900Z",
@@ -2923,6 +2965,10 @@ describe("matter harness", () => {
       assert.equal(eventAuditRunContractFreezeCheckpoint?.acceptance_profile, "event_audit_run_contract_freeze_gate");
       assert.equal(eventAuditRunContractFreezeCheckpoint?.status, "passed");
       assert.equal(eventAuditRunContractFreezeCheckpoint?.implementation_status, "passed");
+      const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
+      assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
+      assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
+      assert.equal(errorCostObservabilityContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -3317,6 +3363,35 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.event_audit_run_contract_freeze_run_with_policy_snapshot_count, eventAuditRunContractFreeze.summary.run_with_policy_snapshot_count);
       assert.equal(dashboard.summary.event_audit_run_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.event_audit_run_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_retryable_error_count, errorCostObservabilityContractFreeze.summary.retryable_error_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_blocking_error_count, errorCostObservabilityContractFreeze.summary.blocking_error_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_cost_observation_count, errorCostObservabilityContractFreeze.summary.cost_observation_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_token_usage_linked_count, errorCostObservabilityContractFreeze.summary.token_usage_linked_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_missing_token_usage_count, 0);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_cost_attribution_linked_count, errorCostObservabilityContractFreeze.summary.cost_attribution_linked_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_budget_alert_linked_count, errorCostObservabilityContractFreeze.summary.budget_alert_linked_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_over_budget_count, 0);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_untracked_cost_count, 0);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_total_projected_usd, errorCostObservabilityContractFreeze.summary.total_projected_usd);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_total_observed_usd, errorCostObservabilityContractFreeze.summary.total_observed_usd);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_total_estimated_token_usd, errorCostObservabilityContractFreeze.summary.total_estimated_token_usd);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_total_token_count, errorCostObservabilityContractFreeze.summary.total_token_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_trace_projection_count, errorCostObservabilityContractFreeze.summary.trace_projection_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_trace_with_error_count, errorCostObservabilityContractFreeze.summary.trace_with_error_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_trace_with_cost_count, errorCostObservabilityContractFreeze.summary.trace_with_cost_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_trace_with_policy_snapshot_count, errorCostObservabilityContractFreeze.summary.trace_with_policy_snapshot_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_latency_observed_count, errorCostObservabilityContractFreeze.summary.latency_observed_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_missing_latency_count, 0);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_total_runtime_seconds, errorCostObservabilityContractFreeze.summary.total_runtime_seconds);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_average_latency_seconds, errorCostObservabilityContractFreeze.summary.average_latency_seconds);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_retry_projection_count, errorCostObservabilityContractFreeze.summary.retry_projection_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_retry_count, errorCostObservabilityContractFreeze.summary.retry_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_trace_with_retry_count, errorCostObservabilityContractFreeze.summary.trace_with_retry_count);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.error_cost_observability_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -4290,6 +4365,26 @@ describe("matter harness", () => {
       const eventAuditRunContractValidations = JSON.parse((await buildReviewApiResponse("/api/event-audit-run-contract-validations?status=passed", apiOptions)).body);
       assert.equal(eventAuditRunContractValidations.collection, "event_audit_run_contract_validations");
       assert.equal(eventAuditRunContractValidations.count, eventAuditRunContractFreeze.summary.validation_item_count);
+
+      const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");
+      assert.equal(errorCostObservabilityContractFreezes.count, 1);
+
+      const errorRecordV2Contracts = JSON.parse((await buildReviewApiResponse("/api/error-record-v2-contracts?error_kind=run_blocked", apiOptions)).body);
+      assert.equal(errorRecordV2Contracts.collection, "error_record_v2_contracts");
+      assert.equal(errorRecordV2Contracts.count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
+
+      const costObservationV2Contracts = JSON.parse((await buildReviewApiResponse("/api/cost-observation-v2-contracts?cost_status=attributed", apiOptions)).body);
+      assert.equal(costObservationV2Contracts.collection, "cost_observation_v2_contracts");
+      assert.equal(costObservationV2Contracts.count, errorCostObservabilityContractFreeze.summary.cost_observation_count);
+
+      const traceProjectionV2Contracts = JSON.parse((await buildReviewApiResponse("/api/trace-projection-v2-contracts?latency_status=observed", apiOptions)).body);
+      assert.equal(traceProjectionV2Contracts.collection, "trace_projection_v2_contracts");
+      assert.equal(traceProjectionV2Contracts.count, errorCostObservabilityContractFreeze.summary.latency_observed_count);
+
+      const errorCostObservabilityContractValidations = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(errorCostObservabilityContractValidations.collection, "error_cost_observability_contract_validations");
+      assert.equal(errorCostObservabilityContractValidations.count, errorCostObservabilityContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

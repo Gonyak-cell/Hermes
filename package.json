@@ -27,6 +27,7 @@
     "contracts:gates": "node scripts/gate-approval-contract-freeze.mjs",
     "contracts:outputs": "node scripts/output-delivery-contract-freeze.mjs",
     "contracts:events": "node scripts/event-audit-run-contract-freeze.mjs",
+    "contracts:observability": "node scripts/error-cost-observability-contract-freeze.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",

@@ -881,6 +881,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/error-cost-observability-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("error_cost_observability_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("error_cost_observability_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/error-record-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("error_cost_observability_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("error_record_v2_contracts", freezeResult.artifact.error_cost_observability_contract?.error_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/cost-observation-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("error_cost_observability_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("cost_observation_v2_contracts", freezeResult.artifact.error_cost_observability_contract?.cost_observations ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/trace-projection-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("error_cost_observability_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("trace_projection_v2_contracts", freezeResult.artifact.error_cost_observability_contract?.trace_projections ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/error-cost-observability-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("error_cost_observability_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("error_cost_observability_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -3336,6 +3387,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/run-ledger-v2-contracts", "RunLedger v2 contract fixtures"),
       route("GET", "/api/event-run-bindings", "Event to RunLedger binding fixtures"),
       route("GET", "/api/event-audit-run-contract-validations", "Event/Audit/Run Ledger contract validation rows"),
+      route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
+      route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
+      route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
+      route("GET", "/api/trace-projection-v2-contracts", "TraceProjection v2 contract fixtures"),
+      route("GET", "/api/error-cost-observability-contract-validations", "Error/Cost/Observability contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3772,6 +3828,18 @@ function filterItems(items, searchParams) {
     "audit_event_id",
     "run_ledger_id",
     "event_run_binding_id",
+    "error_record_id",
+    "error_kind",
+    "error_type",
+    "error_status",
+    "retryable",
+    "blocking",
+    "cost_observation_id",
+    "cost_status",
+    "trace_projection_id",
+    "trace_status",
+    "latency_status",
+    "retry_status",
     "source_event_kind",
     "source_kind",
     "workflow_run_id",

@@ -14,6 +14,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
+  errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -156,6 +157,11 @@ const SOURCE_DEFINITIONS = [
     option: "eventAuditRunContractFreezePath",
     source_id: "event_audit_run_contract_freeze",
     label: "Event Audit Run Contract Freeze",
+  },
+  {
+    option: "errorCostObservabilityContractFreezePath",
+    source_id: "error_cost_observability_contract_freeze",
+    label: "Error Cost Observability Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -724,6 +730,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
+  if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -911,6 +918,7 @@ function buildStageStatuses(artifacts, sources) {
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
+    buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -1412,6 +1420,57 @@ function buildEventAuditRunContractFreezeStage(freeze, source) {
       run_with_event_count: summary.run_with_event_count ?? 0,
       run_with_agent_count: summary.run_with_agent_count ?? 0,
       run_with_policy_snapshot_count: summary.run_with_policy_snapshot_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildErrorCostObservabilityContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "error_cost_observability_contract_freeze",
+    label: "Error Cost Observability Contract Freeze",
+    status,
+    message: `${summary.error_record_count ?? 0} ErrorRecord v2, ${summary.cost_observation_count ?? 0} CostObservation v2, ${summary.trace_projection_count ?? 0} TraceProjection v2; ${summary.latency_observed_count ?? 0}/${summary.trace_projection_count ?? 0} latency observed.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      error_record_schema_version: summary.error_record_schema_version ?? null,
+      cost_observation_schema_version: summary.cost_observation_schema_version ?? null,
+      trace_projection_schema_version: summary.trace_projection_schema_version ?? null,
+      error_record_count: summary.error_record_count ?? 0,
+      run_blocked_error_count: summary.run_blocked_error_count ?? 0,
+      gate_failed_error_count: summary.gate_failed_error_count ?? 0,
+      retryable_error_count: summary.retryable_error_count ?? 0,
+      blocking_error_count: summary.blocking_error_count ?? 0,
+      cost_observation_count: summary.cost_observation_count ?? 0,
+      token_usage_linked_count: summary.token_usage_linked_count ?? 0,
+      missing_token_usage_count: summary.missing_token_usage_count ?? 0,
+      cost_attribution_linked_count: summary.cost_attribution_linked_count ?? 0,
+      budget_alert_linked_count: summary.budget_alert_linked_count ?? 0,
+      over_budget_count: summary.over_budget_count ?? 0,
+      untracked_cost_count: summary.untracked_cost_count ?? 0,
+      total_projected_usd: summary.total_projected_usd ?? 0,
+      total_observed_usd: summary.total_observed_usd ?? 0,
+      total_estimated_token_usd: summary.total_estimated_token_usd ?? 0,
+      total_token_count: summary.total_token_count ?? 0,
+      trace_projection_count: summary.trace_projection_count ?? 0,
+      trace_with_error_count: summary.trace_with_error_count ?? 0,
+      trace_with_cost_count: summary.trace_with_cost_count ?? 0,
+      trace_with_policy_snapshot_count: summary.trace_with_policy_snapshot_count ?? 0,
+      latency_observed_count: summary.latency_observed_count ?? 0,
+      missing_latency_count: summary.missing_latency_count ?? 0,
+      total_runtime_seconds: summary.total_runtime_seconds ?? 0,
+      average_latency_seconds: summary.average_latency_seconds ?? 0,
+      retry_projection_count: summary.retry_projection_count ?? 0,
+      retry_count: summary.retry_count ?? 0,
+      trace_with_retry_count: summary.trace_with_retry_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
@@ -5701,6 +5760,35 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     event_audit_run_contract_freeze_run_with_policy_snapshot_count: artifacts.event_audit_run_contract_freeze?.summary?.run_with_policy_snapshot_count ?? 0,
     event_audit_run_contract_freeze_failed_validation_item_count: artifacts.event_audit_run_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     event_audit_run_contract_freeze_validation_error_count: artifacts.event_audit_run_contract_freeze?.summary?.validation_error_count ?? artifacts.event_audit_run_contract_freeze?.validation?.errors?.length ?? 0,
+    error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
+    error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
+    error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
+    error_cost_observability_contract_freeze_retryable_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.retryable_error_count ?? 0,
+    error_cost_observability_contract_freeze_blocking_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.blocking_error_count ?? 0,
+    error_cost_observability_contract_freeze_cost_observation_count: artifacts.error_cost_observability_contract_freeze?.summary?.cost_observation_count ?? 0,
+    error_cost_observability_contract_freeze_token_usage_linked_count: artifacts.error_cost_observability_contract_freeze?.summary?.token_usage_linked_count ?? 0,
+    error_cost_observability_contract_freeze_missing_token_usage_count: artifacts.error_cost_observability_contract_freeze?.summary?.missing_token_usage_count ?? 0,
+    error_cost_observability_contract_freeze_cost_attribution_linked_count: artifacts.error_cost_observability_contract_freeze?.summary?.cost_attribution_linked_count ?? 0,
+    error_cost_observability_contract_freeze_budget_alert_linked_count: artifacts.error_cost_observability_contract_freeze?.summary?.budget_alert_linked_count ?? 0,
+    error_cost_observability_contract_freeze_over_budget_count: artifacts.error_cost_observability_contract_freeze?.summary?.over_budget_count ?? 0,
+    error_cost_observability_contract_freeze_untracked_cost_count: artifacts.error_cost_observability_contract_freeze?.summary?.untracked_cost_count ?? 0,
+    error_cost_observability_contract_freeze_total_projected_usd: artifacts.error_cost_observability_contract_freeze?.summary?.total_projected_usd ?? 0,
+    error_cost_observability_contract_freeze_total_observed_usd: artifacts.error_cost_observability_contract_freeze?.summary?.total_observed_usd ?? 0,
+    error_cost_observability_contract_freeze_total_estimated_token_usd: artifacts.error_cost_observability_contract_freeze?.summary?.total_estimated_token_usd ?? 0,
+    error_cost_observability_contract_freeze_total_token_count: artifacts.error_cost_observability_contract_freeze?.summary?.total_token_count ?? 0,
+    error_cost_observability_contract_freeze_trace_projection_count: artifacts.error_cost_observability_contract_freeze?.summary?.trace_projection_count ?? 0,
+    error_cost_observability_contract_freeze_trace_with_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.trace_with_error_count ?? 0,
+    error_cost_observability_contract_freeze_trace_with_cost_count: artifacts.error_cost_observability_contract_freeze?.summary?.trace_with_cost_count ?? 0,
+    error_cost_observability_contract_freeze_trace_with_policy_snapshot_count: artifacts.error_cost_observability_contract_freeze?.summary?.trace_with_policy_snapshot_count ?? 0,
+    error_cost_observability_contract_freeze_latency_observed_count: artifacts.error_cost_observability_contract_freeze?.summary?.latency_observed_count ?? 0,
+    error_cost_observability_contract_freeze_missing_latency_count: artifacts.error_cost_observability_contract_freeze?.summary?.missing_latency_count ?? 0,
+    error_cost_observability_contract_freeze_total_runtime_seconds: artifacts.error_cost_observability_contract_freeze?.summary?.total_runtime_seconds ?? 0,
+    error_cost_observability_contract_freeze_average_latency_seconds: artifacts.error_cost_observability_contract_freeze?.summary?.average_latency_seconds ?? 0,
+    error_cost_observability_contract_freeze_retry_projection_count: artifacts.error_cost_observability_contract_freeze?.summary?.retry_projection_count ?? 0,
+    error_cost_observability_contract_freeze_retry_count: artifacts.error_cost_observability_contract_freeze?.summary?.retry_count ?? 0,
+    error_cost_observability_contract_freeze_trace_with_retry_count: artifacts.error_cost_observability_contract_freeze?.summary?.trace_with_retry_count ?? 0,
+    error_cost_observability_contract_freeze_failed_validation_item_count: artifacts.error_cost_observability_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    error_cost_observability_contract_freeze_validation_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.validation_error_count ?? artifacts.error_cost_observability_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6764,6 +6852,8 @@ function parseArgs(argv) {
     else if (arg === "--no-output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = false;
     else if (arg === "--event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = argv[++index];
     else if (arg === "--no-event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = false;
+    else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
+    else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];

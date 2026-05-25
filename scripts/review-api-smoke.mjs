@@ -58,6 +58,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/run-ledger-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-run-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-audit-run-contract-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/trace-projection-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packet-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
@@ -508,6 +513,26 @@ try {
   const eventAuditRunContractValidations = await fetchJson(`${url}/api/event-audit-run-contract-validations?status=passed&limit=5`);
   assert.equal(eventAuditRunContractValidations.collection, "event_audit_run_contract_validations");
   assert.ok(eventAuditRunContractValidations.count <= 5);
+
+  const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");
+  assert.ok(errorCostObservabilityContractFreezes.count <= 1);
+
+  const errorRecordV2Contracts = await fetchJson(`${url}/api/error-record-v2-contracts?error_kind=run_blocked&limit=5`);
+  assert.equal(errorRecordV2Contracts.collection, "error_record_v2_contracts");
+  assert.ok(errorRecordV2Contracts.count <= 5);
+
+  const costObservationV2Contracts = await fetchJson(`${url}/api/cost-observation-v2-contracts?cost_status=attributed&limit=5`);
+  assert.equal(costObservationV2Contracts.collection, "cost_observation_v2_contracts");
+  assert.ok(costObservationV2Contracts.count <= 5);
+
+  const traceProjectionV2Contracts = await fetchJson(`${url}/api/trace-projection-v2-contracts?latency_status=observed&limit=5`);
+  assert.equal(traceProjectionV2Contracts.collection, "trace_projection_v2_contracts");
+  assert.ok(traceProjectionV2Contracts.count <= 5);
+
+  const errorCostObservabilityContractValidations = await fetchJson(`${url}/api/error-cost-observability-contract-validations?status=passed&limit=5`);
+  assert.equal(errorCostObservabilityContractValidations.collection, "error_cost_observability_contract_validations");
+  assert.ok(errorCostObservabilityContractValidations.count <= 5);
 
   const outputDeliveryContractValidations = await fetchJson(`${url}/api/output-delivery-contract-validations?status=passed&limit=5`);
   assert.equal(outputDeliveryContractValidations.collection, "output_delivery_contract_validations");

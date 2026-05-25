@@ -113,6 +113,7 @@ import { runPolicyContractFreeze } from "../src/policy-contract-freeze.mjs";
 import { runEvidenceContractFreeze } from "../src/evidence-contract-freeze.mjs";
 import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-contract-freeze.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
+import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -1161,6 +1162,7 @@ describe("matter harness", () => {
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -1248,6 +1250,7 @@ describe("matter harness", () => {
         policySnapshotLedgerPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
+        gateApprovalContractFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
         humanReviewPacketLedgerPath: false,
         humanReviewAgendaPath: false,
@@ -1316,6 +1319,52 @@ describe("matter harness", () => {
       assert.ok(controlPlaneHumanGates.summary.gate_item_count >= controlPlaneActionPlan.summary.human_required_count);
       assert.ok(controlPlaneHumanGates.gate_items.every((item) => item.safe_handling.auto_execute_allowed === false));
       assert.match(await readFile(path.join(outDir, "control-plane-human-gates", "summary.md"), "utf8"), /Control Plane Human Gates/);
+
+      const gateApprovalContractFreeze = await runGateApprovalContractFreeze({
+        lawFirmSlicePath: path.join(outDir, "law-firm-ldd", "law-firm-ldd-slice.json"),
+        personalDevSlicePath: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+        creativeDocumentSlicePath: path.join(outDir, "creative-document", "creative-document-slice.json"),
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
+        approvalDecisionPath: path.join(outDir, "approval-decisions", "approval-decision-result.json"),
+        approvalInboxPath: path.join(outDir, "approval-inbox", "approval-inbox.json"),
+        approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
+        controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
+        protectedApprovalRequestPackPath: false,
+        outDir: path.join(outDir, "gate-approval-contract-freeze"),
+        runAt: "2026-05-23T06:35:05.850Z",
+      });
+      const gateApprovalContractFreezeSchema = JSON.parse(await readFile("schemas/gate-approval-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(gateApprovalContractFreeze, gateApprovalContractFreezeSchema, {}, "gate_approval_contract_freeze"),
+        [],
+      );
+      assert.equal(gateApprovalContractFreeze.summary.freeze_status, "complete");
+      assert.equal(gateApprovalContractFreeze.summary.gate_result_count, 14);
+      assert.equal(gateApprovalContractFreeze.summary.human_approval_gate_count, 3);
+      assert.equal(gateApprovalContractFreeze.summary.human_approval_gate_linked_count, 3);
+      assert.equal(gateApprovalContractFreeze.summary.governance_output_approval_request_count, 3);
+      assert.equal(gateApprovalContractFreeze.summary.approval_request_count, approvalQueue.summary.total_items + approvalInbox.summary.inbox_item_count + 3);
+      assert.equal(gateApprovalContractFreeze.summary.output_approval_request_count, approvalInbox.summary.approval_request_count);
+      assert.equal(gateApprovalContractFreeze.summary.gate_blocker_review_count, approvalInbox.summary.gate_review_count);
+      assert.equal(gateApprovalContractFreeze.summary.evidence_review_request_count, approvalQueue.summary.by_type.evidence_review);
+      assert.equal(gateApprovalContractFreeze.summary.protected_explicit_approval_request_count, 0);
+      assert.equal(gateApprovalContractFreeze.summary.human_gate_contract_count, controlPlaneHumanGates.summary.gate_item_count);
+      assert.equal(gateApprovalContractFreeze.summary.approval_decision_count, approvalResult.summary.applied_count + approvalInboxDecisionResult.summary.applied_count);
+      assert.equal(gateApprovalContractFreeze.summary.validation_error_count, 0);
+      assert.equal(gateApprovalContractFreeze.gate_approval_contract.gate_results[0].schema_version, "gate-result.v2");
+      assert.equal(gateApprovalContractFreeze.gate_approval_contract.approval_requests[0].schema_version, "approval-request.v2");
+      assert.equal(gateApprovalContractFreeze.gate_approval_contract.approval_decisions[0].schema_version, "approval-decision.v2");
+      assert.equal(gateApprovalContractFreeze.gate_approval_contract.human_gate_contracts[0].schema_version, "human-gate-contract.v2");
+      assert.equal(gateApprovalContractFreeze.gate_approval_contract.approval_authority_contracts[0].schema_version, "approval-authority-contract.v2");
+      assert.equal(gateApprovalContractFreeze.gate_approval_contract.gate_approval_bindings[0].schema_version, "gate-approval-binding.v2");
+      assert.ok(gateApprovalContractFreeze.gate_approval_contract.gate_results.every((gateResult) => !("approval_status" in gateResult)));
+      assert.ok(gateApprovalContractFreeze.gate_approval_contract.gate_approval_bindings.filter((binding) => binding.human_approval_gate).every((binding) => binding.binding_status === "linked"));
+      assert.ok(gateApprovalContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "gate-approval-contract-freeze", "summary.md"), "utf8"), /Gate\/Approval Contract Freeze/);
 
       const controlPlaneHumanGateReceipts = await runControlPlaneHumanGateReceipts({
         humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2773,6 +2822,10 @@ describe("matter harness", () => {
       assert.equal(runtimeAgentRunContractFreezeCheckpoint?.acceptance_profile, "runtime_agentrun_contract_freeze_gate");
       assert.equal(runtimeAgentRunContractFreezeCheckpoint?.status, "passed");
       assert.equal(runtimeAgentRunContractFreezeCheckpoint?.implementation_status, "passed");
+      const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
+      assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
+      assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
+      assert.equal(gateApprovalContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -3117,6 +3170,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_verification_required_agent_run_count, runtimeAgentRunContractFreeze.summary.verification_required_agent_run_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_human_gate_contract_count, gateApprovalContractFreeze.summary.human_gate_contract_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_human_approval_gate_count, gateApprovalContractFreeze.summary.human_approval_gate_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_human_approval_gate_linked_count, gateApprovalContractFreeze.summary.human_approval_gate_linked_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_approval_binding_count, gateApprovalContractFreeze.summary.gate_approval_binding_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_linked_gate_approval_binding_count, gateApprovalContractFreeze.summary.linked_gate_approval_binding_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_output_approval_request_count, gateApprovalContractFreeze.summary.output_approval_request_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_blocker_review_count, gateApprovalContractFreeze.summary.gate_blocker_review_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_evidence_review_request_count, gateApprovalContractFreeze.summary.evidence_review_request_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_protected_explicit_approval_request_count, 0);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_authority_declared_count, gateApprovalContractFreeze.summary.approval_authority_declared_count);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.gate_approval_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3999,6 +4067,38 @@ describe("matter harness", () => {
       const runtimeAgentRunContractValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeAgentRunContractValidations.collection, "runtime_agentrun_contract_validations");
       assert.equal(runtimeAgentRunContractValidations.count, runtimeAgentRunContractFreeze.summary.validation_item_count);
+
+      const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
+      assert.equal(gateApprovalContractFreezes.count, 1);
+
+      const humanGateResultContracts = JSON.parse((await buildReviewApiResponse("/api/gate-result-contracts?gate_id=human_approval_gate", apiOptions)).body);
+      assert.equal(humanGateResultContracts.collection, "gate_result_contracts");
+      assert.equal(humanGateResultContracts.count, gateApprovalContractFreeze.summary.human_approval_gate_count);
+
+      const approvalRequestContracts = JSON.parse((await buildReviewApiResponse("/api/approval-request-contracts?approval_source=approval_inbox", apiOptions)).body);
+      assert.equal(approvalRequestContracts.collection, "approval_request_contracts");
+      assert.equal(approvalRequestContracts.count, approvalInbox.summary.inbox_item_count);
+
+      const approvalDecisionContracts = JSON.parse((await buildReviewApiResponse("/api/approval-decision-contracts?request_link_status=linked", apiOptions)).body);
+      assert.equal(approvalDecisionContracts.collection, "approval_decision_contracts");
+      assert.equal(approvalDecisionContracts.count, gateApprovalContractFreeze.summary.linked_approval_decision_count);
+
+      const humanGateV2Contracts = JSON.parse((await buildReviewApiResponse("/api/human-gate-v2-contracts?requires_human=true", apiOptions)).body);
+      assert.equal(humanGateV2Contracts.collection, "human_gate_v2_contracts");
+      assert.equal(humanGateV2Contracts.count, gateApprovalContractFreeze.gate_approval_contract.human_gate_contracts.filter((contract) => contract.requires_human).length);
+
+      const approvalAuthorityContracts = JSON.parse((await buildReviewApiResponse("/api/approval-authority-contracts?approval_authority_status=declared", apiOptions)).body);
+      assert.equal(approvalAuthorityContracts.collection, "approval_authority_contracts");
+      assert.equal(approvalAuthorityContracts.count, gateApprovalContractFreeze.summary.approval_authority_declared_count);
+
+      const gateApprovalBindings = JSON.parse((await buildReviewApiResponse("/api/gate-approval-bindings?binding_status=linked", apiOptions)).body);
+      assert.equal(gateApprovalBindings.collection, "gate_approval_bindings");
+      assert.equal(gateApprovalBindings.count, gateApprovalContractFreeze.summary.linked_gate_approval_binding_count);
+
+      const gateApprovalContractValidations = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(gateApprovalContractValidations.collection, "gate_approval_contract_validations");
+      assert.equal(gateApprovalContractValidations.count, gateApprovalContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

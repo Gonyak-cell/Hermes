@@ -416,6 +416,38 @@ try {
   assert.equal(runtimeAgentRunValidations.collection, "runtime_agentrun_contract_validations");
   assert.ok(runtimeAgentRunValidations.count <= 5);
 
+  const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
+  assert.ok(gateApprovalContractFreezes.count <= 1);
+
+  const gateResultContracts = await fetchJson(`${url}/api/gate-result-contracts?gate_id=human_approval_gate&limit=5`);
+  assert.equal(gateResultContracts.collection, "gate_result_contracts");
+  assert.ok(gateResultContracts.count <= 5);
+
+  const approvalRequestContracts = await fetchJson(`${url}/api/approval-request-contracts?approval_kind=approval_request&limit=5`);
+  assert.equal(approvalRequestContracts.collection, "approval_request_contracts");
+  assert.ok(approvalRequestContracts.count <= 5);
+
+  const approvalDecisionContracts = await fetchJson(`${url}/api/approval-decision-contracts?limit=5`);
+  assert.equal(approvalDecisionContracts.collection, "approval_decision_contracts");
+  assert.ok(approvalDecisionContracts.count <= 5);
+
+  const humanGateV2Contracts = await fetchJson(`${url}/api/human-gate-v2-contracts?requires_human=true&limit=5`);
+  assert.equal(humanGateV2Contracts.collection, "human_gate_v2_contracts");
+  assert.ok(humanGateV2Contracts.count <= 5);
+
+  const approvalAuthorityContracts = await fetchJson(`${url}/api/approval-authority-contracts?approval_authority_status=declared&limit=5`);
+  assert.equal(approvalAuthorityContracts.collection, "approval_authority_contracts");
+  assert.ok(approvalAuthorityContracts.count <= 5);
+
+  const gateApprovalBindings = await fetchJson(`${url}/api/gate-approval-bindings?binding_status=linked&limit=5`);
+  assert.equal(gateApprovalBindings.collection, "gate_approval_bindings");
+  assert.ok(gateApprovalBindings.count <= 5);
+
+  const gateApprovalContractValidations = await fetchJson(`${url}/api/gate-approval-contract-validations?status=passed&limit=5`);
+  assert.equal(gateApprovalContractValidations.collection, "gate_approval_contract_validations");
+  assert.ok(gateApprovalContractValidations.count <= 5);
+
   const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
   assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");
   assert.ok(contextPacketLedgers.count <= 1);

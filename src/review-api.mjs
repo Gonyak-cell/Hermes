@@ -662,6 +662,90 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/gate-approval-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("gate_approval_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/gate-result-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("gate_result_contracts", freezeResult.artifact.gate_approval_contract?.gate_results ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/approval-request-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("approval_request_contracts", freezeResult.artifact.gate_approval_contract?.approval_requests ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/approval-decision-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("approval_decision_contracts", freezeResult.artifact.gate_approval_contract?.approval_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/human-gate-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("human_gate_v2_contracts", freezeResult.artifact.gate_approval_contract?.human_gate_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/approval-authority-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("approval_authority_contracts", freezeResult.artifact.gate_approval_contract?.approval_authority_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/gate-approval-bindings") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("gate_approval_bindings", freezeResult.artifact.gate_approval_contract?.gate_approval_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/gate-approval-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("gate_approval_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("gate_approval_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -3096,6 +3180,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-artifact-contracts", "Runtime artifact contract fixtures"),
       route("GET", "/api/runtime-verification-contracts", "Runtime verification contract fixtures"),
       route("GET", "/api/runtime-agentrun-contract-validations", "Runtime/AgentRun contract validation rows"),
+      route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
+      route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
+      route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
+      route("GET", "/api/approval-decision-contracts", "ApprovalDecision v2 contract fixtures"),
+      route("GET", "/api/human-gate-v2-contracts", "HumanGate v2 contract fixtures"),
+      route("GET", "/api/approval-authority-contracts", "Approval authority contract fixtures"),
+      route("GET", "/api/gate-approval-bindings", "Gate to approval binding fixtures"),
+      route("GET", "/api/gate-approval-contract-validations", "Gate/Approval contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3435,6 +3527,24 @@ function filterItems(items, searchParams) {
     "runtime_log_id",
     "runtime_artifact_id",
     "runtime_verification_id",
+    "gate_result_id",
+    "gate_outcome",
+    "gate_stage",
+    "human_approval_gate",
+    "separated_approval_object_required",
+    "approval_request_id",
+    "approval_kind",
+    "approval_source",
+    "request_status",
+    "required_actor",
+    "approval_decision_id",
+    "request_link_status",
+    "human_gate_contract_id",
+    "requires_human",
+    "approval_authority_id",
+    "approval_authority_status",
+    "gate_approval_binding_id",
+    "binding_status",
     "output_trust",
     "log_capture_status",
     "artifact_capture_status",

@@ -1,0 +1,331 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/gate-approval-contract-freeze.schema.json",
+  "title": "Hermes Gate Approval Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "field_requirements",
+    "summary",
+    "gate_approval_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "gate-approval-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "gate_result_schema_version",
+        "approval_request_schema_version",
+        "approval_decision_schema_version",
+        "human_gate_schema_version",
+        "approval_authority_schema_version",
+        "gate_approval_binding_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "gate_result_schema_version": { "const": "gate-result.v2" },
+        "approval_request_schema_version": { "const": "approval-request.v2" },
+        "approval_decision_schema_version": { "const": "approval-decision.v2" },
+        "human_gate_schema_version": { "const": "human-gate-contract.v2" },
+        "approval_authority_schema_version": { "const": "approval-authority-contract.v2" },
+        "gate_approval_binding_schema_version": { "const": "gate-approval-binding.v2" },
+        "compatibility_floor": { "const": "governance-output.v1+runtime-agentrun-contract.v2" }
+      }
+    },
+    "field_requirements": {
+      "type": "object",
+      "required": [
+        "gate_result_v2",
+        "approval_request_v2",
+        "approval_decision_v2",
+        "human_gate_contract_v2",
+        "approval_authority_contract_v2",
+        "gate_approval_binding_v2"
+      ],
+      "additionalProperties": { "$ref": "#/$defs/field_requirement" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "gate_result_schema_version",
+        "approval_request_schema_version",
+        "approval_decision_schema_version",
+        "human_gate_schema_version",
+        "approval_authority_schema_version",
+        "gate_approval_binding_schema_version",
+        "gate_result_count",
+        "approval_request_count",
+        "approval_decision_count",
+        "human_gate_contract_count",
+        "human_approval_gate_count",
+        "human_approval_gate_linked_count",
+        "gate_approval_binding_count",
+        "linked_gate_approval_binding_count",
+        "separated_approval_request_count",
+        "approval_authority_declared_count",
+        "pending_approval_request_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "gate_result_schema_version": { "const": "gate-result.v2" },
+        "approval_request_schema_version": { "const": "approval-request.v2" },
+        "approval_decision_schema_version": { "const": "approval-decision.v2" },
+        "human_gate_schema_version": { "const": "human-gate-contract.v2" },
+        "approval_authority_schema_version": { "const": "approval-authority-contract.v2" },
+        "gate_approval_binding_schema_version": { "const": "gate-approval-binding.v2" },
+        "gate_result_count": { "type": "integer", "minimum": 0 },
+        "approval_request_count": { "type": "integer", "minimum": 0 },
+        "approval_decision_count": { "type": "integer", "minimum": 0 },
+        "human_gate_contract_count": { "type": "integer", "minimum": 0 },
+        "human_approval_gate_count": { "type": "integer", "minimum": 0 },
+        "human_approval_gate_linked_count": { "type": "integer", "minimum": 0 },
+        "gate_approval_binding_count": { "type": "integer", "minimum": 0 },
+        "linked_gate_approval_binding_count": { "type": "integer", "minimum": 0 },
+        "separated_approval_request_count": { "type": "integer", "minimum": 0 },
+        "governance_output_approval_request_count": { "type": "integer", "minimum": 0 },
+        "output_approval_request_count": { "type": "integer", "minimum": 0 },
+        "gate_blocker_review_count": { "type": "integer", "minimum": 0 },
+        "evidence_review_request_count": { "type": "integer", "minimum": 0 },
+        "protected_explicit_approval_request_count": { "type": "integer", "minimum": 0 },
+        "approval_authority_declared_count": { "type": "integer", "minimum": 0 },
+        "pending_approval_request_count": { "type": "integer", "minimum": 0 },
+        "linked_approval_decision_count": { "type": "integer", "minimum": 0 },
+        "orphan_approval_decision_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "gate_approval_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "gate_results",
+        "approval_requests",
+        "approval_decisions",
+        "human_gate_contracts",
+        "approval_authority_contracts",
+        "gate_approval_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "gate-approval-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "gate_results": { "type": "array", "items": { "$ref": "#/$defs/gate_result_v2" } },
+        "approval_requests": { "type": "array", "items": { "$ref": "#/$defs/approval_request_v2" } },
+        "approval_decisions": { "type": "array", "items": { "$ref": "#/$defs/approval_decision_v2" } },
+        "human_gate_contracts": { "type": "array", "items": { "$ref": "#/$defs/human_gate_contract_v2" } },
+        "approval_authority_contracts": { "type": "array", "items": { "$ref": "#/$defs/approval_authority_contract_v2" } },
+        "gate_approval_bindings": { "type": "array", "items": { "$ref": "#/$defs/gate_approval_binding_v2" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    }
+  },
+  "$defs": {
+    "field_requirement": {
+      "type": "object",
+      "required": ["required_fields", "optional_fields", "required_groups"],
+      "properties": {
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "optional_fields": { "type": "array", "items": { "type": "string" } },
+        "required_groups": { "type": "object" }
+      }
+    },
+    "subject_ref": {
+      "type": "object",
+      "required": ["subject_type", "subject_id"],
+      "properties": {
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" }
+      }
+    },
+    "gate_result_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "gate_result_id",
+        "workflow_run_id",
+        "gate_id",
+        "gate_stage",
+        "gate_outcome",
+        "blocking",
+        "human_approval_gate",
+        "separated_approval_object_required",
+        "linked_approval_request_ids",
+        "approval_separation_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "gate-result.v2" },
+        "gate_result_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "gate_id": { "type": "string" },
+        "gate_stage": { "type": "string" },
+        "gate_outcome": { "enum": ["passed", "failed", "warning", "skipped", "pending"] },
+        "blocking": { "type": "boolean" },
+        "human_approval_gate": { "type": "boolean" },
+        "separated_approval_object_required": { "type": "boolean" },
+        "linked_approval_request_ids": { "type": "array", "items": { "type": "string" } },
+        "approval_separation_status": { "type": "string" }
+      }
+    },
+    "approval_request_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "approval_request_id",
+        "approval_source",
+        "approval_kind",
+        "request_status",
+        "subject_ref",
+        "required_decision",
+        "allowed_decisions",
+        "required_actor",
+        "protected_action",
+        "requires_explicit_human_approval"
+      ],
+      "properties": {
+        "schema_version": { "const": "approval-request.v2" },
+        "approval_request_id": { "type": "string" },
+        "approval_source": { "type": "string" },
+        "approval_kind": { "type": "string" },
+        "request_status": { "type": "string" },
+        "subject_ref": { "$ref": "#/$defs/subject_ref" },
+        "required_decision": { "type": "string" },
+        "allowed_decisions": { "type": "array", "items": { "type": "string" } },
+        "required_actor": { "type": "string" },
+        "protected_action": { "type": "boolean" },
+        "requires_explicit_human_approval": { "type": "boolean" }
+      }
+    },
+    "approval_decision_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "approval_decision_id",
+        "approval_request_id",
+        "decision",
+        "decided_by",
+        "decided_at",
+        "request_link_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "approval-decision.v2" },
+        "approval_decision_id": { "type": "string" },
+        "approval_request_id": { "type": "string" },
+        "decision": { "type": "string" },
+        "decided_by": { "type": "string" },
+        "decided_at": { "type": "string" },
+        "request_link_status": { "enum": ["linked", "orphan_source_decision"] }
+      }
+    },
+    "human_gate_contract_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "human_gate_contract_id",
+        "status",
+        "subject_ref",
+        "requires_human",
+        "protected_action",
+        "required_actor",
+        "safe_handling"
+      ],
+      "properties": {
+        "schema_version": { "const": "human-gate-contract.v2" },
+        "human_gate_contract_id": { "type": "string" },
+        "status": { "type": "string" },
+        "subject_ref": { "$ref": "#/$defs/subject_ref" },
+        "requires_human": { "type": "boolean" },
+        "protected_action": { "type": "boolean" },
+        "required_actor": { "type": "string" },
+        "safe_handling": { "type": "object" }
+      }
+    },
+    "approval_authority_contract_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "approval_authority_id",
+        "approval_request_id",
+        "required_actor",
+        "approval_authority_status",
+        "approval_scope"
+      ],
+      "properties": {
+        "schema_version": { "const": "approval-authority-contract.v2" },
+        "approval_authority_id": { "type": "string" },
+        "approval_request_id": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "approval_authority_status": { "enum": ["declared", "missing"] },
+        "approval_scope": { "type": "string" }
+      }
+    },
+    "gate_approval_binding_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "gate_approval_binding_id",
+        "gate_result_id",
+        "gate_id",
+        "workflow_run_id",
+        "approval_request_ids",
+        "binding_status",
+        "human_approval_gate"
+      ],
+      "properties": {
+        "schema_version": { "const": "gate-approval-binding.v2" },
+        "gate_approval_binding_id": { "type": "string" },
+        "gate_result_id": { "type": "string" },
+        "gate_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "approval_request_ids": { "type": "array", "items": { "type": "string" } },
+        "binding_status": { "enum": ["linked", "missing_approval_request", "not_applicable"] },
+        "human_approval_gate": { "type": "boolean" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

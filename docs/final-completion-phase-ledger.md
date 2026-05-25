@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 104이다.
-- 남은 planned slot은 P105-P312, 총 208개다.
+- 현재 완료 기준점은 Phase 105이다.
+- 남은 planned slot은 P106-P312, 총 207개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -35,7 +35,7 @@
 | P102 | Evidence/Fact/Issue/Citation contract 고정 | evidence lineage schema family | Promoted to Phase 102; source span, evidence, fact, issue, citation, lineage edge가 v2 fixture와 validation item으로 검증 |
 | P103 | Capability/Workflow contract 고정 | capability manifest v2, workflow schema | Promoted to Phase 103; input/output/gate/runtime/version 필드가 required/optional로 구분되고 dashboard/API/loop/checkpoint에 노출 |
 | P104 | Runtime/AgentRun contract 고정 | runtime adapter schema, agent run schema | Promoted to Phase 104; runtime output, logs, artifacts, risk level, verification flag가 dashboard/API/loop/checkpoint에서 검증 |
-| P105 | Gate/Approval contract 고정 | gate result schema, approval schema | gate result와 human approval이 별도 객체로 남음 |
+| P105 | Gate/Approval contract 고정 | gate result schema, approval schema | Promoted to Phase 105; GateResult v2와 ApprovalRequest/Decision/Authority v2가 분리되고 human approval gate binding이 검증 |
 | P106 | OutputArtifact/Delivery contract 고정 | output artifact schema, delivery schema | 생성, 승인, 전달이 분리되고 artifact hash가 추적 |
 | P107 | Event/Audit/Run Ledger contract 고정 | event/audit/run ledger schema | correlation id, actor, policy snapshot, schema version이 필수화 |
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | 실패, retry, token, cost, latency가 독립 projection으로 남음 |

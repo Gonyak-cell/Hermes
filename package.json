@@ -24,6 +24,7 @@
     "contracts:evidence": "node scripts/evidence-contract-freeze.mjs",
     "contracts:capabilities": "node scripts/capability-workflow-contract-freeze.mjs",
     "contracts:runtimes": "node scripts/runtime-agentrun-contract-freeze.mjs",
+    "contracts:gates": "node scripts/gate-approval-contract-freeze.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",

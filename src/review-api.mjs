@@ -759,6 +759,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("evidence_flag_validations", flagsResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/exhibit-maps") {
+    const exhibitMapResult = await readDashboardSourceArtifact(dashboard, "exhibit_map");
+    if (!exhibitMapResult.available) {
+      return jsonResponse(503, buildError("exhibit_map_unavailable", exhibitMapResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("exhibit_maps", [exhibitMapResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/exhibit-records") {
+    const exhibitMapResult = await readDashboardSourceArtifact(dashboard, "exhibit_map");
+    if (!exhibitMapResult.available) {
+      return jsonResponse(503, buildError("exhibit_map_unavailable", exhibitMapResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("exhibit_records", exhibitMapResult.artifact.exhibit_catalog?.exhibit_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/exhibit-bindings") {
+    const exhibitMapResult = await readDashboardSourceArtifact(dashboard, "exhibit_map");
+    if (!exhibitMapResult.available) {
+      return jsonResponse(503, buildError("exhibit_map_unavailable", exhibitMapResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("exhibit_bindings", exhibitMapResult.artifact.exhibit_catalog?.exhibit_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/exhibit-indexes") {
+    const exhibitMapResult = await readDashboardSourceArtifact(dashboard, "exhibit_map");
+    if (!exhibitMapResult.available) {
+      return jsonResponse(503, buildError("exhibit_map_unavailable", exhibitMapResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("exhibit_indexes", [exhibitMapResult.artifact.exhibit_catalog?.exhibit_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/exhibit-map-validations") {
+    const exhibitMapResult = await readDashboardSourceArtifact(dashboard, "exhibit_map");
+    if (!exhibitMapResult.available) {
+      return jsonResponse(503, buildError("exhibit_map_unavailable", exhibitMapResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("exhibit_map_validations", exhibitMapResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5301,6 +5336,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/evidence-flag-decisions", "Evidence flag decision rows"),
       route("GET", "/api/evidence-flag-indexes", "Evidence flag index projections"),
       route("GET", "/api/evidence-flag-validations", "Evidence flag validation rows"),
+      route("GET", "/api/exhibit-maps", "Exhibit map artifacts"),
+      route("GET", "/api/exhibit-records", "Exhibit rows with Korean exhibit references"),
+      route("GET", "/api/exhibit-bindings", "Exhibit-to-evidence binding rows"),
+      route("GET", "/api/exhibit-indexes", "Exhibit map index projections"),
+      route("GET", "/api/exhibit-map-validations", "Exhibit map validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5505,9 +5545,16 @@ function filterItems(items, searchParams) {
     "lineage_graph_status",
     "evidence_coverage_status",
     "evidence_flags_status",
+    "exhibit_map_status",
     "coverage_score_id",
     "coverage_dimension_id",
     "evidence_flag_record_id",
+    "exhibit_id",
+    "exhibit_number",
+    "exhibit_label",
+    "exhibit_reference",
+    "exhibit_status",
+    "binding_type",
     "flag_decision_id",
     "flag_type",
     "flag_value",
@@ -6367,6 +6414,7 @@ function readFilterValue(item, key) {
   if (key === "lineage_graph_status") return item.summary?.lineage_graph_status ?? item.lineage_graph_status;
   if (key === "evidence_coverage_status") return item.summary?.evidence_coverage_status ?? item.evidence_coverage_status;
   if (key === "evidence_flags_status") return item.summary?.evidence_flags_status ?? item.evidence_flags_status;
+  if (key === "exhibit_map_status") return item.summary?.exhibit_map_status ?? item.exhibit_map_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

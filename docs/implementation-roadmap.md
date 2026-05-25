@@ -4370,6 +4370,34 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 47개로 증가하고 evidence flags가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:evidence-flags -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 146: Exhibit Mapping
+
+목표: Evidence Flags로 분리된 review-pending 근거를 보고서/소송서면의 별첨번호 체계에 연결해, citation renderer 이전 단계에서도 `별첨 n -> evidence/citation/output paragraph/lineage path` 경로가 재현되도록 한다.
+
+구현 내용:
+
+- `src/exhibit-map.mjs`, `scripts/exhibit-map.mjs`, `schemas/exhibit-map.schema.json`, `docs/exhibit-mapping.md`를 추가함
+- `npm run resource:exhibit-map -- --check` 명령을 추가해 exhibit map, record, binding, index, validation report, summary markdown을 생성함
+- P145 evidence flag record마다 하나의 `exhibit-record.v1`을 생성하고 `별첨 n`, `EX-000n`, report/litigation brief target을 부여함
+- 각 exhibit record마다 evidence item, citation object, output paragraph, lineage path로 향하는 4개 `exhibit-binding.v1`을 생성함
+- matter, classification, policy snapshot, privilege/redaction/external-transfer 상태를 exhibit layer까지 보존함
+- 모든 exhibit가 `needs_review`, `attorney_review_required=true`, `not_client_facing`, `client_facing_ready=false` 상태를 유지하도록 gate를 추가함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 exhibit map을 통합함
+- `/api/exhibit-maps`, `/api/exhibit-records`, `/api/exhibit-bindings`, `/api/exhibit-indexes`, `/api/exhibit-map-validations` route를 추가함
+
+완료 기준:
+
+- Exhibit Map이 validation error 없이 `complete` 상태가 됨
+- exhibit record 수가 evidence flag record, citation, lineage path, coverage score 수와 일치함
+- exhibit binding 수가 exhibit record 수의 4배와 일치함
+- 모든 exhibit가 evidence, citation, output paragraph, lineage path에 bound 상태로 연결됨
+- 모든 exhibit가 matter, classification, policy snapshot을 보존함
+- 모든 exhibit가 attorney review 전에는 client-facing ready가 아님
+- Review Dashboard summary와 stage status에서 exhibit count, binding count, preservation, review/client-facing 상태가 노출됨
+- Review API smoke가 exhibit map, record, binding, index, validation route를 모두 조회함
+- Golden fixture 수가 48개로 증가하고 exhibit map이 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:exhibit-map -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4378,9 +4406,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 145이다.
+- 현재 완료 기준점은 Phase 146이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P146-P312, 총 167개다.
+- 남은 계획 슬롯은 P147-P312, 총 166개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

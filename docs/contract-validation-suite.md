@@ -43,6 +43,7 @@ The suite is complete only when:
 - `resource:lineage-graph` is present once the P143 lineage graph builder becomes a golden fixture
 - `resource:evidence-coverage` is present once the P144 evidence coverage score becomes a golden fixture
 - `resource:evidence-flags` is present once the P145 evidence flags become a golden fixture
+- `resource:exhibit-map` is present once the P146 exhibit map becomes a golden fixture
 - Phase 112 and `npm run contracts:validate` are recorded in the roadmap
 
 This makes the contract spine testable through one deterministic command before later identity, policy, evidence, runtime, or delivery phases add more behavior.

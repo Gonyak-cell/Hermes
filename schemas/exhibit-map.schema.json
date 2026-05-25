@@ -1,0 +1,328 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/exhibit-map.schema.json",
+  "title": "Hermes Exhibit Map",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "exhibit_map_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "exhibit_map_contract",
+    "exhibit_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "exhibit-map.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "exhibit_map_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "evidence_flags_path",
+        "citation_object_store_path",
+        "lineage_graph_path",
+        "evidence_coverage_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "evidence_flags_path": { "type": "string" },
+        "citation_object_store_path": { "type": "string" },
+        "lineage_graph_path": { "type": "string" },
+        "evidence_coverage_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "exhibit_map_contract": { "$ref": "#/$defs/exhibit_map_contract" },
+    "exhibit_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "exhibit_records", "exhibit_bindings", "exhibit_indexes"],
+      "properties": {
+        "schema_version": { "const": "exhibit-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "exhibit_records": { "type": "array", "items": { "$ref": "#/$defs/exhibit_record" } },
+        "exhibit_bindings": { "type": "array", "items": { "$ref": "#/$defs/exhibit_binding" } },
+        "exhibit_indexes": { "$ref": "#/$defs/exhibit_indexes" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "exhibit_map_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "exhibit_map_contract_id",
+        "generated_at",
+        "exhibit_record_schema_version",
+        "exhibit_binding_schema_version",
+        "binding_types",
+        "source_inputs",
+        "numbering_rule",
+        "binding_rule",
+        "output_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "exhibit-map-contract.v1" },
+        "exhibit_map_contract_id": { "const": "exhibit-map.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "exhibit_record_schema_version": { "const": "exhibit-record.v1" },
+        "exhibit_binding_schema_version": { "const": "exhibit-binding.v1" },
+        "binding_types": {
+          "type": "array",
+          "items": {
+            "enum": ["exhibit_to_evidence", "exhibit_to_citation", "exhibit_to_output_paragraph", "exhibit_to_lineage_path"]
+          }
+        },
+        "source_inputs": { "type": "array", "items": { "type": "string" } },
+        "numbering_rule": { "type": "string" },
+        "binding_rule": { "type": "string" },
+        "output_rule": { "type": "string" }
+      }
+    },
+    "exhibit_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "exhibit_id",
+        "exhibit_number",
+        "exhibit_label",
+        "exhibit_reference",
+        "korean_reference",
+        "exhibit_title",
+        "exhibit_status",
+        "artifact_targets",
+        "evidence_flag_record_id",
+        "coverage_score_id",
+        "lineage_path_id",
+        "output_paragraph_id",
+        "citation_id",
+        "evidence_item_id",
+        "source_span_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "extraction_flag",
+        "human_confirmation_flag",
+        "privilege_flag",
+        "redaction_flag",
+        "external_transfer_flag",
+        "exhibit_binding_ids",
+        "exhibit_bindings",
+        "matter_preserved",
+        "classification_preserved",
+        "policy_snapshot_preserved",
+        "review_status",
+        "human_review_required",
+        "attorney_review_required",
+        "output_client_facing_status",
+        "client_facing_ready",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "exhibit-record.v1" },
+        "exhibit_id": { "type": "string" },
+        "exhibit_number": { "type": "integer", "minimum": 1 },
+        "exhibit_sequence": { "type": "integer", "minimum": 1 },
+        "exhibit_label": { "type": "string" },
+        "exhibit_reference": { "type": "string" },
+        "korean_reference": { "type": "string" },
+        "exhibit_title": { "type": "string" },
+        "exhibit_status": { "const": "draft_needs_review" },
+        "artifact_targets": { "type": "array", "items": { "type": "string" } },
+        "target_document_types": { "type": "array", "items": { "type": "string" } },
+        "evidence_flag_record_id": { "type": "string" },
+        "coverage_score_id": { "type": "string" },
+        "lineage_path_id": { "type": "string" },
+        "output_paragraph_id": { "type": "string" },
+        "citation_id": { "type": "string" },
+        "issue_id": { "type": "string" },
+        "fact_id": { "type": "string" },
+        "evidence_item_id": { "type": "string" },
+        "source_span_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "extraction_flag": { "type": "string" },
+        "human_confirmation_flag": { "type": "string" },
+        "privilege_flag": { "type": "string" },
+        "redaction_flag": { "type": "string" },
+        "external_transfer_flag": { "type": "string" },
+        "source_binding_status": { "type": "string" },
+        "citation_status": { "type": "string" },
+        "lineage_path_status": { "type": "string" },
+        "coverage_status": { "type": "string" },
+        "coverage_score": { "type": "number" },
+        "missing_required_dimension_count": { "type": "integer" },
+        "exhibit_binding_ids": { "type": "array", "items": { "type": "string" } },
+        "exhibit_bindings": { "type": "array", "items": { "$ref": "#/$defs/exhibit_binding" } },
+        "matter_preserved": { "type": "boolean" },
+        "classification_preserved": { "type": "boolean" },
+        "policy_snapshot_preserved": { "type": "boolean" },
+        "review_status": { "const": "needs_review" },
+        "human_review_required": { "const": true },
+        "attorney_review_required": { "const": true },
+        "output_client_facing_status": { "const": "not_client_facing" },
+        "client_facing_ready": { "const": false },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "exhibit_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "exhibit_binding_id",
+        "exhibit_id",
+        "exhibit_number",
+        "binding_type",
+        "target_type",
+        "target_id",
+        "binding_status",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "human_review_required",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "exhibit-binding.v1" },
+        "exhibit_binding_id": { "type": "string" },
+        "exhibit_id": { "type": "string" },
+        "exhibit_number": { "type": "integer", "minimum": 1 },
+        "binding_type": {
+          "enum": ["exhibit_to_evidence", "exhibit_to_citation", "exhibit_to_output_paragraph", "exhibit_to_lineage_path"]
+        },
+        "target_type": { "type": "string" },
+        "target_id": { "type": "string" },
+        "binding_status": { "const": "bound" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "human_review_required": { "const": true },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "exhibit_indexes": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "by_matter_id",
+        "by_classification",
+        "by_exhibit_status",
+        "by_review_status",
+        "by_citation_status",
+        "by_source_binding_status",
+        "by_external_transfer_flag",
+        "by_binding_type",
+        "by_binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "exhibit-indexes.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_exhibit_status": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "by_citation_status": { "type": "object" },
+        "by_source_binding_status": { "type": "object" },
+        "by_external_transfer_flag": { "type": "object" },
+        "by_binding_type": { "type": "object" },
+        "by_binding_status": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "exhibit_map_status",
+        "exhibit_map_contract_id",
+        "exhibit_record_schema_version",
+        "exhibit_binding_schema_version",
+        "evidence_flags_status",
+        "citation_object_store_status",
+        "lineage_graph_status",
+        "evidence_coverage_status",
+        "evidence_flag_record_count",
+        "citation_count",
+        "lineage_path_count",
+        "coverage_score_count",
+        "exhibit_record_count",
+        "exhibit_binding_count",
+        "expected_exhibit_binding_count",
+        "unique_exhibit_number_count",
+        "evidence_linked_exhibit_count",
+        "citation_linked_exhibit_count",
+        "output_paragraph_linked_exhibit_count",
+        "lineage_path_linked_exhibit_count",
+        "matter_preserved_exhibit_count",
+        "classification_preserved_exhibit_count",
+        "policy_snapshot_preserved_exhibit_count",
+        "needs_review_exhibit_count",
+        "attorney_review_required_exhibit_count",
+        "not_client_facing_exhibit_count",
+        "client_facing_ready_exhibit_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "exhibit_map_status": { "enum": ["complete", "blocked"] },
+        "exhibit_map_contract_id": { "const": "exhibit-map.v1" },
+        "exhibit_record_schema_version": { "const": "exhibit-record.v1" },
+        "exhibit_binding_schema_version": { "const": "exhibit-binding.v1" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

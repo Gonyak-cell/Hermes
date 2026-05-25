@@ -38,6 +38,7 @@ import { runCitationObjectStore } from "../src/citation-object-store.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
 import { runEvidenceFlags } from "../src/evidence-flags.mjs";
+import { runExhibitMap } from "../src/exhibit-map.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1662,6 +1663,7 @@ describe("matter harness", () => {
         lineageGraphBuilderPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
         evidenceCoverageScorePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
         evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
+        exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4190,6 +4192,46 @@ describe("matter harness", () => {
       assert.ok(evidenceFlags.evidence_flag_catalog.evidence_flag_records.every((record) => ["external_transfer_blocked", "external_transfer_requires_approval", "external_transfer_allowed_by_classification"].includes(record.external_transfer_flag)));
       assert.match(await readFile(path.join(outDir, "evidence-flags", "summary.md"), "utf8"), /Evidence Flags/);
 
+      const exhibitMap = await runExhibitMap({
+        evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        evidenceCoveragePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
+        outDir: path.join(outDir, "exhibit-map"),
+        runAt: "2026-05-23T06:35:08.002Z",
+      });
+      const exhibitMapSchema = JSON.parse(await readFile("schemas/exhibit-map.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(exhibitMap, exhibitMapSchema, {}, "exhibit_map"),
+        [],
+      );
+      assert.equal(exhibitMap.summary.exhibit_map_status, "complete");
+      assert.equal(exhibitMap.summary.evidence_flags_status, "complete");
+      assert.equal(exhibitMap.summary.exhibit_record_count, evidenceFlags.summary.evidence_flag_record_count);
+      assert.equal(exhibitMap.summary.citation_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.lineage_path_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.coverage_score_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.exhibit_binding_count, exhibitMap.summary.exhibit_record_count * 4);
+      assert.equal(exhibitMap.summary.expected_exhibit_binding_count, exhibitMap.summary.exhibit_binding_count);
+      assert.equal(exhibitMap.summary.unique_exhibit_number_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.evidence_linked_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.citation_linked_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.output_paragraph_linked_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.lineage_path_linked_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.matter_preserved_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.classification_preserved_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.policy_snapshot_preserved_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.needs_review_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.attorney_review_required_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.not_client_facing_exhibit_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(exhibitMap.summary.client_facing_ready_exhibit_count, 0);
+      assert.equal(exhibitMap.summary.validation_error_count, 0);
+      assert.ok(exhibitMap.exhibit_catalog.exhibit_records.every((record) => record.exhibit_reference.startsWith("별첨 ")));
+      assert.ok(exhibitMap.exhibit_catalog.exhibit_records.every((record) => record.exhibit_label.startsWith("EX-") && record.exhibit_binding_ids.length === 4));
+      assert.ok(exhibitMap.exhibit_catalog.exhibit_records.every((record) => record.human_review_required === true && record.attorney_review_required === true && record.client_facing_ready === false));
+      assert.ok(exhibitMap.exhibit_catalog.exhibit_bindings.every((binding) => binding.binding_status === "bound"));
+      assert.match(await readFile(path.join(outDir, "exhibit-map", "summary.md"), "utf8"), /Exhibit Map/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4224,6 +4266,7 @@ describe("matter harness", () => {
           lineage_graph_builder: path.join(outDir, "lineage-graph", "lineage-graph.json"),
           evidence_coverage_score: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
           evidence_flags: path.join(outDir, "evidence-flags", "evidence-flags.json"),
+          exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4249,8 +4292,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 47);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 47);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 48);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 48);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4288,6 +4331,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "lineage_graph_builder"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_coverage_score"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_flags"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4329,6 +4373,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4517,6 +4562,10 @@ describe("matter harness", () => {
       assert.equal(evidenceFlagsCheckpoint?.acceptance_profile, "evidence_flags_gate");
       assert.equal(evidenceFlagsCheckpoint?.status, "passed");
       assert.equal(evidenceFlagsCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const exhibitMapCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-exhibit-map");
+      assert.equal(exhibitMapCheckpoint?.acceptance_profile, "exhibit_map_gate");
+      assert.equal(exhibitMapCheckpoint?.status, "passed");
+      assert.equal(exhibitMapCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5462,6 +5511,26 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_flags_not_client_facing_count, evidenceFlags.summary.not_client_facing_record_count);
       assert.equal(dashboard.summary.evidence_flags_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.evidence_flags_validation_error_count, 0);
+      assert.equal(dashboard.summary.exhibit_map_status, "complete");
+      assert.equal(dashboard.summary.exhibit_map_contract_id, "exhibit-map.v1");
+      assert.equal(dashboard.summary.exhibit_map_record_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(dashboard.summary.exhibit_map_binding_count, exhibitMap.summary.exhibit_binding_count);
+      assert.equal(dashboard.summary.exhibit_map_expected_binding_count, exhibitMap.summary.expected_exhibit_binding_count);
+      assert.equal(dashboard.summary.exhibit_map_unique_number_count, exhibitMap.summary.unique_exhibit_number_count);
+      assert.equal(dashboard.summary.exhibit_map_evidence_linked_count, exhibitMap.summary.evidence_linked_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_citation_linked_count, exhibitMap.summary.citation_linked_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_output_paragraph_linked_count, exhibitMap.summary.output_paragraph_linked_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_lineage_path_linked_count, exhibitMap.summary.lineage_path_linked_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_bound_binding_count, exhibitMap.summary.bound_exhibit_binding_count);
+      assert.equal(dashboard.summary.exhibit_map_matter_preserved_count, exhibitMap.summary.matter_preserved_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_classification_preserved_count, exhibitMap.summary.classification_preserved_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_policy_snapshot_preserved_count, exhibitMap.summary.policy_snapshot_preserved_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_needs_review_count, exhibitMap.summary.needs_review_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_attorney_review_required_count, exhibitMap.summary.attorney_review_required_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_not_client_facing_count, exhibitMap.summary.not_client_facing_exhibit_count);
+      assert.equal(dashboard.summary.exhibit_map_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.exhibit_map_external_transfer_requires_approval_count, exhibitMap.summary.external_transfer_requires_approval_count);
+      assert.equal(dashboard.summary.exhibit_map_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -6006,6 +6075,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "lineage_graph_builder"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_coverage_score"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_flags"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -6168,6 +6238,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-flag-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-flag-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-flag-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-maps"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-indexes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-map-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -8226,6 +8301,26 @@ describe("matter harness", () => {
       const evidenceFlagValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-flag-validations?status=passed", apiOptions)).body);
       assert.equal(evidenceFlagValidations.collection, "evidence_flag_validations");
       assert.equal(evidenceFlagValidations.count, evidenceFlags.summary.validation_item_count);
+
+      const exhibitMaps = JSON.parse((await buildReviewApiResponse("/api/exhibit-maps?exhibit_map_status=complete", apiOptions)).body);
+      assert.equal(exhibitMaps.collection, "exhibit_maps");
+      assert.equal(exhibitMaps.count, 1);
+
+      const exhibitRecords = JSON.parse((await buildReviewApiResponse("/api/exhibit-records?review_status=needs_review", apiOptions)).body);
+      assert.equal(exhibitRecords.collection, "exhibit_records");
+      assert.equal(exhibitRecords.count, exhibitMap.summary.exhibit_record_count);
+
+      const exhibitBindings = JSON.parse((await buildReviewApiResponse("/api/exhibit-bindings?binding_type=exhibit_to_evidence", apiOptions)).body);
+      assert.equal(exhibitBindings.collection, "exhibit_bindings");
+      assert.equal(exhibitBindings.count, exhibitMap.summary.exhibit_record_count);
+
+      const exhibitIndexes = JSON.parse((await buildReviewApiResponse("/api/exhibit-indexes?schema_version=exhibit-indexes.v1", apiOptions)).body);
+      assert.equal(exhibitIndexes.collection, "exhibit_indexes");
+      assert.equal(exhibitIndexes.count, 1);
+
+      const exhibitMapValidations = JSON.parse((await buildReviewApiResponse("/api/exhibit-map-validations?status=passed", apiOptions)).body);
+      assert.equal(exhibitMapValidations.collection, "exhibit_map_validations");
+      assert.equal(exhibitMapValidations.count, exhibitMap.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

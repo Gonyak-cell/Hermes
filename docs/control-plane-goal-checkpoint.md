@@ -140,6 +140,7 @@ npm run control-plane:goal-checkpoint -- \
 - Lineage Graph Builder: citation object마다 source span, evidence item, fact claim, issue, output paragraph가 complete path와 canonical edge 5개로 재현되고 review-pending/not-client-facing 상태가 유지되면 구현 통과
 - Evidence Coverage Score: 각 lineage path가 claim/date/party/amount/legal-basis dimension을 계산하고 claim/legal_basis, matter/classification/policy preservation, review-pending/not-client-facing gate를 만족하면 구현 통과
 - Evidence Flags: 각 coverage score가 extraction, human confirmation, privilege, redaction, external-transfer decision을 분리하고 matter/classification/policy preservation, review-pending/not-client-facing gate를 만족하면 구현 통과
+- Exhibit Map: 각 evidence flag record가 `별첨 n` exhibit로 승격되고 evidence, citation, output paragraph, lineage path binding과 matter/classification/policy preservation, attorney-review/not-client-facing gate를 만족하면 구현 통과
 
 이 경우 checkpoint item은 `status: passed`, `implementation_status: passed_with_operational_gate`, `operational_status: pending|blocked|attention`을 함께 기록한다.
 

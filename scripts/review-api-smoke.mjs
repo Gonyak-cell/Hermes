@@ -187,6 +187,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-flag-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/exhibit-maps"));
+  assert.ok(index.routes.some((route) => route.path === "/api/exhibit-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/exhibit-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/exhibit-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/exhibit-map-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -2008,6 +2013,26 @@ try {
   const evidenceFlagValidations = await fetchJson(`${url}/api/evidence-flag-validations?status=passed&limit=5`);
   assert.equal(evidenceFlagValidations.collection, "evidence_flag_validations");
   assert.ok(evidenceFlagValidations.count <= 5);
+
+  const exhibitMaps = await fetchJson(`${url}/api/exhibit-maps?exhibit_map_status=complete&limit=1`);
+  assert.equal(exhibitMaps.collection, "exhibit_maps");
+  assert.ok(exhibitMaps.count <= 1);
+
+  const exhibitRecords = await fetchJson(`${url}/api/exhibit-records?review_status=needs_review&limit=5`);
+  assert.equal(exhibitRecords.collection, "exhibit_records");
+  assert.ok(exhibitRecords.count <= 5);
+
+  const exhibitBindings = await fetchJson(`${url}/api/exhibit-bindings?binding_type=exhibit_to_evidence&limit=5`);
+  assert.equal(exhibitBindings.collection, "exhibit_bindings");
+  assert.ok(exhibitBindings.count <= 5);
+
+  const exhibitIndexes = await fetchJson(`${url}/api/exhibit-indexes?schema_version=exhibit-indexes.v1&limit=1`);
+  assert.equal(exhibitIndexes.collection, "exhibit_indexes");
+  assert.ok(exhibitIndexes.count <= 1);
+
+  const exhibitMapValidations = await fetchJson(`${url}/api/exhibit-map-validations?status=passed&limit=5`);
+  assert.equal(exhibitMapValidations.collection, "exhibit_map_validations");
+  assert.ok(exhibitMapValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

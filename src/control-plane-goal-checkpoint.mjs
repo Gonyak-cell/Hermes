@@ -44,6 +44,7 @@ const GOAL_ITEMS = [
   sourceItem("lineage_graph_builder", "Lineage graph builder", "resource_evidence", "lineage_graph_builder", "control-plane-lineage-graph-builder", { acceptance_profile: "lineage_graph_builder_gate" }),
   sourceItem("evidence_coverage_score", "Evidence coverage score", "resource_evidence", "evidence_coverage_score", "control-plane-evidence-coverage-score", { acceptance_profile: "evidence_coverage_score_gate" }),
   sourceItem("evidence_flags", "Evidence flags", "resource_evidence", "evidence_flags", "control-plane-evidence-flags", { acceptance_profile: "evidence_flags_gate" }),
+  sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -395,6 +396,7 @@ function evaluateStageAcceptance(item, stage) {
     "lineage_graph_builder_gate",
     "evidence_coverage_score_gate",
     "evidence_flags_gate",
+    "exhibit_map_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -907,6 +909,39 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.needs_review_record_count ?? 0) === recordCount
     ) {
       return passedWithOperationalGate(stage, "Evidence flags separate machine extraction, human confirmation, privilege, redaction, and external-transfer state while keeping evidence review-pending.");
+    }
+  }
+
+  if (item.acceptance_profile === "exhibit_map_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const recordCount = metrics.exhibit_record_count ?? 0;
+    const bindingCount = metrics.exhibit_binding_count ?? 0;
+    if (
+      errors === 0
+      && metrics.exhibit_map_status === "complete"
+      && metrics.evidence_flags_status === "complete"
+      && metrics.citation_object_store_status === "complete"
+      && metrics.lineage_graph_status === "complete"
+      && metrics.evidence_coverage_status === "complete"
+      && recordCount > 0
+      && bindingCount === recordCount * 4
+      && (metrics.evidence_flag_record_count ?? 0) === recordCount
+      && (metrics.citation_count ?? 0) === recordCount
+      && (metrics.lineage_path_count ?? 0) === recordCount
+      && (metrics.coverage_score_count ?? 0) === recordCount
+      && (metrics.evidence_linked_exhibit_count ?? 0) === recordCount
+      && (metrics.citation_linked_exhibit_count ?? 0) === recordCount
+      && (metrics.output_paragraph_linked_exhibit_count ?? 0) === recordCount
+      && (metrics.lineage_path_linked_exhibit_count ?? 0) === recordCount
+      && (metrics.matter_preserved_exhibit_count ?? 0) === recordCount
+      && (metrics.classification_preserved_exhibit_count ?? 0) === recordCount
+      && (metrics.policy_snapshot_preserved_exhibit_count ?? 0) === recordCount
+      && (metrics.needs_review_exhibit_count ?? 0) === recordCount
+      && (metrics.attorney_review_required_exhibit_count ?? 0) === recordCount
+      && (metrics.not_client_facing_exhibit_count ?? 0) === recordCount
+      && (metrics.client_facing_ready_exhibit_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Exhibit map assigns stable Korean exhibit references and binds each exhibit to evidence, citation, output paragraph, and lineage path while keeping outputs attorney-review pending.");
     }
   }
 

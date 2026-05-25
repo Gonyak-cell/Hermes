@@ -123,6 +123,7 @@ npm run control-plane:goal-checkpoint -- \
 - Policy Golden Fixtures: allow/review/deny 대표 case가 모두 locked regression hash를 가지고, review case는 human-gated, deny case는 blocked로 검증되면 구현 통과
 - Policy Operations Surface: 통합 decision/violation/pending approval row가 있고 allow/review/deny, blocked violation, control-gated pending approval을 dashboard/API에 노출하면 구현 통과
 - Matter Boundary Slice: resource ingest부터 Resource v2, Matter Access, Access Audit, Store Query/RLS Probe, Policy Surface까지 같은 matter boundary가 보존되고 unassigned resource는 executable retrieval 없이 human gate에 held 되면 구현 통과
+- Identity/Policy/Matter Freeze: P113-P131 source artifact, policy fixture, policy operations, matter boundary, personal workspace checkpoint가 통과하고 protected action/external delivery/auto approval count가 0이면 구현 통과
 
 이 경우 checkpoint item은 `status: passed`, `implementation_status: passed_with_operational_gate`, `operational_status: pending|blocked|attention`을 함께 기록한다.
 

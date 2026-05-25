@@ -24,6 +24,7 @@ import { runPersonalWorkspaceBoundary } from "../src/personal-workspace-boundary
 import { runPolicyGoldenFixtures } from "../src/policy-golden-fixtures.mjs";
 import { runPolicyOperationsSurface } from "../src/policy-operations-surface.mjs";
 import { runMatterBoundarySlice } from "../src/matter-boundary-slice.mjs";
+import { runIdentityPolicyMatterFreeze } from "../src/identity-policy-matter-freeze.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1634,6 +1635,7 @@ describe("matter harness", () => {
         policyGoldenFixturesPath: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
         policyOperationsSurfacePath: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
         matterBoundarySlicePath: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
+        identityPolicyMatterFreezePath: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3684,6 +3686,52 @@ describe("matter harness", () => {
       assert.ok(matterBoundarySlice.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "matter-boundary-slice", "summary.md"), "utf8"), /Matter Boundary Slice/);
 
+      const identityPolicyMatterFreeze = await runIdentityPolicyMatterFreeze({
+        identityModelPath: path.join(outDir, "identity-model", "identity-model.json"),
+        clientCounterpartyRegistryPath: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        wallPolicyContractPath: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
+        matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        outputDestinationPolicyEnforcementPath: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
+        approvalAuthorityLedgerPath: path.join(outDir, "approval-authority", "approval-authority-ledger.json"),
+        policySnapshotBindingLedgerPath: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
+        matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
+        accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        conflictCheckInterfacePath: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
+        personalWorkspaceBoundaryPath: path.join(outDir, "personal-workspace-boundary", "personal-workspace-boundary.json"),
+        policyGoldenFixturesPath: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
+        policyOperationsSurfacePath: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
+        matterBoundarySlicePath: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
+        outDir: path.join(outDir, "identity-policy-matter-freeze"),
+        runAt: "2026-05-23T06:35:07.890Z",
+      });
+      const identityPolicyMatterFreezeSchema = JSON.parse(await readFile("schemas/identity-policy-matter-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(identityPolicyMatterFreeze, identityPolicyMatterFreezeSchema, {}, "identity_policy_matter_freeze"),
+        [],
+      );
+      assert.equal(identityPolicyMatterFreeze.freeze_status, "frozen_with_pending_human_actions");
+      assert.equal(identityPolicyMatterFreeze.summary.required_source_count, 19);
+      assert.equal(identityPolicyMatterFreeze.summary.available_required_source_count, 19);
+      assert.equal(identityPolicyMatterFreeze.summary.clean_source_count, 19);
+      assert.equal(identityPolicyMatterFreeze.summary.failed_freeze_checkpoint_count, 0);
+      assert.equal(identityPolicyMatterFreeze.summary.passed_freeze_checkpoint_count, identityPolicyMatterFreeze.summary.freeze_checkpoint_count);
+      assert.equal(identityPolicyMatterFreeze.summary.policy_fixture_case_count, policyGoldenFixtures.summary.policy_fixture_case_count);
+      assert.equal(identityPolicyMatterFreeze.summary.locked_policy_fixture_count, policyGoldenFixtures.summary.locked_case_count);
+      assert.equal(identityPolicyMatterFreeze.summary.policy_decision_row_count, policyOperationsSurface.summary.policy_decision_row_count);
+      assert.equal(identityPolicyMatterFreeze.summary.resource_boundary_path_count, matterBoundarySlice.summary.resource_boundary_path_count);
+      assert.equal(identityPolicyMatterFreeze.summary.retrieval_gate_check_count, matterBoundarySlice.summary.retrieval_gate_check_count);
+      assert.equal(identityPolicyMatterFreeze.summary.unassigned_executable_query_plan_count, 0);
+      assert.equal(identityPolicyMatterFreeze.summary.protected_action_executed_count, 0);
+      assert.equal(identityPolicyMatterFreeze.summary.validation_error_count, 0);
+      assert.ok(identityPolicyMatterFreeze.freeze_source_statuses.every((source) => source.source_status === "passed"));
+      assert.ok(identityPolicyMatterFreeze.freeze_checkpoints.every((checkpoint) => checkpoint.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "identity-policy-matter-freeze", "summary.md"), "utf8"), /Identity\/Policy\/Matter Freeze/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3704,6 +3752,7 @@ describe("matter harness", () => {
           policy_golden_fixtures: path.join(outDir, "policy-golden-fixtures", "policy-golden-fixtures.json"),
           policy_operations_surface: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
           matter_boundary_slice: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
+          identity_policy_matter_freeze: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3729,8 +3778,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 33);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 33);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 34);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 34);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3754,6 +3803,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_golden_fixtures"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_operations_surface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_boundary_slice"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_policy_matter_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3919,6 +3969,10 @@ describe("matter harness", () => {
       assert.equal(matterBoundarySliceCheckpoint?.acceptance_profile, "matter_boundary_slice_gate");
       assert.equal(matterBoundarySliceCheckpoint?.status, "passed");
       assert.equal(matterBoundarySliceCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const identityPolicyMatterFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-identity-policy-matter-freeze");
+      assert.equal(identityPolicyMatterFreezeCheckpoint?.acceptance_profile, "identity_policy_matter_freeze_gate");
+      assert.equal(identityPolicyMatterFreezeCheckpoint?.status, "passed");
+      assert.equal(identityPolicyMatterFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4616,6 +4670,23 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.matter_boundary_negative_probe_expected_count, matterBoundarySlice.summary.negative_probe_expected_count);
       assert.equal(dashboard.summary.matter_boundary_negative_probe_blocked_count, matterBoundarySlice.summary.negative_probe_blocked_count);
       assert.equal(dashboard.summary.matter_boundary_validation_error_count, 0);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_status, "frozen_with_pending_human_actions");
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_source_count, identityPolicyMatterFreeze.summary.required_source_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_available_source_count, identityPolicyMatterFreeze.summary.available_required_source_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_clean_source_count, identityPolicyMatterFreeze.summary.clean_source_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_frozen_slot_count, 20);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_checkpoint_count, identityPolicyMatterFreeze.summary.freeze_checkpoint_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_passed_checkpoint_count, identityPolicyMatterFreeze.summary.passed_freeze_checkpoint_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_policy_fixture_case_count, identityPolicyMatterFreeze.summary.policy_fixture_case_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_locked_policy_fixture_count, identityPolicyMatterFreeze.summary.locked_policy_fixture_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_policy_decision_row_count, identityPolicyMatterFreeze.summary.policy_decision_row_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_policy_pending_approval_row_count, identityPolicyMatterFreeze.summary.policy_pending_approval_row_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_resource_boundary_path_count, identityPolicyMatterFreeze.summary.resource_boundary_path_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_retrieval_gate_check_count, identityPolicyMatterFreeze.summary.retrieval_gate_check_count);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_unassigned_executable_query_plan_count, 0);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.identity_policy_matter_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -7283,6 +7354,22 @@ describe("matter harness", () => {
       const matterBoundaryValidations = JSON.parse((await buildReviewApiResponse("/api/matter-boundary-validations?status=passed", apiOptions)).body);
       assert.equal(matterBoundaryValidations.collection, "matter_boundary_validations");
       assert.equal(matterBoundaryValidations.count, matterBoundarySlice.summary.validation_item_count);
+
+      const identityPolicyMatterFreezes = JSON.parse((await buildReviewApiResponse("/api/identity-policy-matter-freezes?freeze_status=frozen_with_pending_human_actions", apiOptions)).body);
+      assert.equal(identityPolicyMatterFreezes.collection, "identity_policy_matter_freezes");
+      assert.equal(identityPolicyMatterFreezes.count, 1);
+
+      const identityPolicyFreezeSources = JSON.parse((await buildReviewApiResponse("/api/identity-policy-freeze-sources?source_status=passed", apiOptions)).body);
+      assert.equal(identityPolicyFreezeSources.collection, "identity_policy_freeze_sources");
+      assert.equal(identityPolicyFreezeSources.count, identityPolicyMatterFreeze.summary.required_source_count);
+
+      const identityPolicyFreezeCheckpoints = JSON.parse((await buildReviewApiResponse("/api/identity-policy-freeze-checkpoints?status=passed", apiOptions)).body);
+      assert.equal(identityPolicyFreezeCheckpoints.collection, "identity_policy_freeze_checkpoints");
+      assert.equal(identityPolicyFreezeCheckpoints.count, identityPolicyMatterFreeze.summary.passed_freeze_checkpoint_count);
+
+      const identityPolicyFreezeValidations = JSON.parse((await buildReviewApiResponse("/api/identity-policy-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(identityPolicyFreezeValidations.collection, "identity_policy_freeze_validations");
+      assert.equal(identityPolicyFreezeValidations.count, identityPolicyMatterFreeze.summary.passed_freeze_checkpoint_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

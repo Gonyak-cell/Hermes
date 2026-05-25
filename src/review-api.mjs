@@ -884,6 +884,34 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("matter_boundary_validations", sliceResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/identity-policy-matter-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "identity_policy_matter_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("identity_policy_matter_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_policy_matter_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-policy-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "identity_policy_matter_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("identity_policy_matter_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_policy_freeze_sources", freezeResult.artifact.freeze_source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-policy-freeze-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "identity_policy_matter_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("identity_policy_matter_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_policy_freeze_checkpoints", freezeResult.artifact.freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/identity-policy-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "identity_policy_matter_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("identity_policy_matter_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("identity_policy_freeze_validations", freezeResult.artifact.validation?.errors?.length ? freezeResult.artifact.validation.errors : freezeResult.artifact.freeze_checkpoints ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4454,6 +4482,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/matter-boundary-resource-paths", "Resource ingest to retrieval boundary path rows"),
       route("GET", "/api/matter-boundary-retrieval-gates", "Retrieval gate checks with store filter and probe status"),
       route("GET", "/api/matter-boundary-validations", "Matter boundary slice validation rows"),
+      route("GET", "/api/identity-policy-matter-freezes", "Identity/Policy/Matter freeze artifacts"),
+      route("GET", "/api/identity-policy-freeze-sources", "Identity/Policy/Matter freeze source statuses"),
+      route("GET", "/api/identity-policy-freeze-checkpoints", "Identity/Policy/Matter freeze checkpoints"),
+      route("GET", "/api/identity-policy-freeze-validations", "Identity/Policy/Matter freeze validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),

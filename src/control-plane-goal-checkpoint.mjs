@@ -30,6 +30,7 @@ const GOAL_ITEMS = [
   sourceItem("policy_golden_fixtures", "Policy golden fixtures", "identity_policy", "policy_golden_fixtures", "control-plane-policy-golden-fixtures", { acceptance_profile: "policy_golden_fixtures_gate" }),
   sourceItem("policy_operations_surface", "Policy operations dashboard/API surface", "identity_policy", "policy_operations_surface", "control-plane-policy-operations-surface", { acceptance_profile: "policy_operations_surface_gate" }),
   sourceItem("matter_boundary_slice", "Matter boundary vertical slice", "identity_policy", "matter_boundary_slice", "control-plane-matter-boundary-slice", { acceptance_profile: "matter_boundary_slice_gate" }),
+  sourceItem("identity_policy_matter_freeze", "Identity/Policy/Matter freeze", "identity_policy", "identity_policy_matter_freeze", "control-plane-identity-policy-matter-freeze", { acceptance_profile: "identity_policy_matter_freeze_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -367,6 +368,7 @@ function evaluateStageAcceptance(item, stage) {
     "policy_golden_fixtures_gate",
     "policy_operations_surface_gate",
     "matter_boundary_slice_gate",
+    "identity_policy_matter_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -562,6 +564,33 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.held_for_matter_tagging_resource_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Matter boundary vertical slice is implemented from resource ingest through access audit, store query policy, negative retrieval probes, and pending human matter-tagging gates.");
+    }
+  }
+
+  if (item.acceptance_profile === "identity_policy_matter_freeze_gate") {
+    const sourceCount = metrics.required_source_count ?? 0;
+    const checkpointCount = metrics.freeze_checkpoint_count ?? 0;
+    const errors = metrics.validation_error_count ?? 0;
+    if (
+      errors === 0
+      && metrics.freeze_status !== "blocked"
+      && sourceCount > 0
+      && (metrics.available_required_source_count ?? 0) === sourceCount
+      && (metrics.clean_source_count ?? 0) === sourceCount
+      && checkpointCount > 0
+      && (metrics.passed_freeze_checkpoint_count ?? 0) === checkpointCount
+      && (metrics.failed_freeze_checkpoint_count ?? 0) === 0
+      && (metrics.policy_fixture_case_count ?? 0) > 0
+      && (metrics.locked_policy_fixture_count ?? 0) === (metrics.policy_fixture_case_count ?? -1)
+      && (metrics.policy_decision_row_count ?? 0) > 0
+      && (metrics.resource_boundary_path_count ?? 0) > 0
+      && (metrics.retrieval_gate_check_count ?? 0) > 0
+      && (metrics.unassigned_executable_query_plan_count ?? 0) === 0
+      && (metrics.protected_action_executed_count ?? 0) === 0
+      && (metrics.external_delivery_executed_count ?? 0) === 0
+      && (metrics.auto_approval_count ?? 0) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Identity/Policy/Matter track is frozen as a regression report with policy fixtures, operations surface, matter boundary gates, and no protected actions executed.");
     }
   }
 

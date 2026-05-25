@@ -31,6 +31,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:policy-golden",
   "policy:surface",
   "matter-boundary:slice",
+  "identity-policy:freeze",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

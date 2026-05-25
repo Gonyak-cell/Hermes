@@ -22,6 +22,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policyGoldenFixturesPath: "artifacts/policy-golden-fixtures/latest/policy-golden-fixtures.json",
   policyOperationsSurfacePath: "artifacts/policy-operations-surface/latest/policy-operations-surface.json",
   matterBoundarySlicePath: "artifacts/matter-boundary-slice/latest/matter-boundary-slice.json",
+  identityPolicyMatterFreezePath: "artifacts/identity-policy-matter-freeze/latest/identity-policy-matter-freeze.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -220,6 +221,11 @@ const SOURCE_DEFINITIONS = [
     option: "matterBoundarySlicePath",
     source_id: "matter_boundary_slice",
     label: "Matter Boundary Slice",
+  },
+  {
+    option: "identityPolicyMatterFreezePath",
+    source_id: "identity_policy_matter_freeze",
+    label: "Identity/Policy/Matter Freeze",
   },
   {
     option: "evidenceContractFreezePath",
@@ -876,6 +882,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_golden_fixtures") return data.summary ?? {};
   if (sourceId === "policy_operations_surface") return data.summary ?? {};
   if (sourceId === "matter_boundary_slice") return data.summary ?? {};
+  if (sourceId === "identity_policy_matter_freeze") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1087,6 +1094,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicyGoldenFixturesStage(artifacts.policy_golden_fixtures, sourceById.get("policy_golden_fixtures")),
     buildPolicyOperationsSurfaceStage(artifacts.policy_operations_surface, sourceById.get("policy_operations_surface")),
     buildMatterBoundarySliceStage(artifacts.matter_boundary_slice, sourceById.get("matter_boundary_slice")),
+    buildIdentityPolicyMatterFreezeStage(artifacts.identity_policy_matter_freeze, sourceById.get("identity_policy_matter_freeze")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1948,6 +1956,64 @@ function buildMatterBoundarySliceStage(slice, source) {
       negative_probe_blocked_count: summary.negative_probe_blocked_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildIdentityPolicyMatterFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("identity_policy_matter_freeze", "Identity/Policy/Matter Freeze", source);
+  const summary = freeze.summary ?? {};
+  const sourceCount = summary.required_source_count ?? 0;
+  const checkpointCount = summary.freeze_checkpoint_count ?? 0;
+  const errorCount = summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0;
+  const status = summary.freeze_status !== "blocked"
+    && errorCount === 0
+    && sourceCount > 0
+    && (summary.available_required_source_count ?? 0) === sourceCount
+    && (summary.clean_source_count ?? 0) === sourceCount
+    && checkpointCount > 0
+    && (summary.passed_freeze_checkpoint_count ?? 0) === checkpointCount
+    && (summary.failed_freeze_checkpoint_count ?? 0) === 0
+    && (summary.policy_fixture_case_count ?? 0) > 0
+    && (summary.locked_policy_fixture_count ?? 0) === (summary.policy_fixture_case_count ?? -1)
+    && (summary.policy_decision_row_count ?? 0) > 0
+    && (summary.resource_boundary_path_count ?? 0) > 0
+    && (summary.retrieval_gate_check_count ?? 0) > 0
+    && (summary.unassigned_executable_query_plan_count ?? 0) === 0
+    && (summary.blocked_cross_workspace_probe_count ?? 0) === (summary.cross_workspace_probe_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "identity_policy_matter_freeze",
+    label: "Identity/Policy/Matter Freeze",
+    status,
+    message: `${sourceCount} source artifact(s), ${checkpointCount} freeze checkpoint(s), status ${summary.freeze_status ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      required_source_count: sourceCount,
+      available_required_source_count: summary.available_required_source_count ?? 0,
+      clean_source_count: summary.clean_source_count ?? 0,
+      frozen_slot_count: summary.frozen_slot_count ?? 0,
+      freeze_checkpoint_count: checkpointCount,
+      passed_freeze_checkpoint_count: summary.passed_freeze_checkpoint_count ?? 0,
+      failed_freeze_checkpoint_count: summary.failed_freeze_checkpoint_count ?? 0,
+      policy_fixture_case_count: summary.policy_fixture_case_count ?? 0,
+      locked_policy_fixture_count: summary.locked_policy_fixture_count ?? 0,
+      policy_regression_hash_count: summary.policy_regression_hash_count ?? 0,
+      policy_decision_row_count: summary.policy_decision_row_count ?? 0,
+      policy_violation_row_count: summary.policy_violation_row_count ?? 0,
+      policy_pending_approval_row_count: summary.policy_pending_approval_row_count ?? 0,
+      resource_boundary_path_count: summary.resource_boundary_path_count ?? 0,
+      retrieval_gate_check_count: summary.retrieval_gate_check_count ?? 0,
+      unassigned_executable_query_plan_count: summary.unassigned_executable_query_plan_count ?? 0,
+      held_for_matter_tagging_resource_count: summary.held_for_matter_tagging_resource_count ?? 0,
+      cross_workspace_probe_count: summary.cross_workspace_probe_count ?? 0,
+      blocked_cross_workspace_probe_count: summary.blocked_cross_workspace_probe_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      external_delivery_executed_count: summary.external_delivery_executed_count ?? 0,
+      auto_approval_count: summary.auto_approval_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -5673,6 +5739,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.identity_policy_matter_freeze?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "identity_policy_matter_freeze";
+    items.push({
+      action_item_id: `dashboard.action.identity_policy_matter_freeze.${slugify(subjectId)}`,
+      source_stage: "identity_policy_matter_freeze",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix identity/policy/matter freeze",
+      subject_ref: {
+        subject_type: "identity_policy_matter_freeze_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_identity_policy_matter_source", "rerun_identity_policy_matter_freeze", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7335,6 +7419,23 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     matter_boundary_negative_probe_blocked_count: artifacts.matter_boundary_slice?.summary?.negative_probe_blocked_count ?? 0,
     matter_boundary_failed_validation_item_count: artifacts.matter_boundary_slice?.summary?.failed_validation_item_count ?? 0,
     matter_boundary_validation_error_count: artifacts.matter_boundary_slice?.summary?.validation_error_count ?? artifacts.matter_boundary_slice?.validation?.errors?.length ?? 0,
+    identity_policy_matter_freeze_status: artifacts.identity_policy_matter_freeze?.summary?.freeze_status ?? "unknown",
+    identity_policy_matter_freeze_source_count: artifacts.identity_policy_matter_freeze?.summary?.required_source_count ?? 0,
+    identity_policy_matter_freeze_available_source_count: artifacts.identity_policy_matter_freeze?.summary?.available_required_source_count ?? 0,
+    identity_policy_matter_freeze_clean_source_count: artifacts.identity_policy_matter_freeze?.summary?.clean_source_count ?? 0,
+    identity_policy_matter_freeze_frozen_slot_count: artifacts.identity_policy_matter_freeze?.summary?.frozen_slot_count ?? 0,
+    identity_policy_matter_freeze_checkpoint_count: artifacts.identity_policy_matter_freeze?.summary?.freeze_checkpoint_count ?? 0,
+    identity_policy_matter_freeze_passed_checkpoint_count: artifacts.identity_policy_matter_freeze?.summary?.passed_freeze_checkpoint_count ?? 0,
+    identity_policy_matter_freeze_failed_checkpoint_count: artifacts.identity_policy_matter_freeze?.summary?.failed_freeze_checkpoint_count ?? 0,
+    identity_policy_matter_freeze_policy_fixture_case_count: artifacts.identity_policy_matter_freeze?.summary?.policy_fixture_case_count ?? 0,
+    identity_policy_matter_freeze_locked_policy_fixture_count: artifacts.identity_policy_matter_freeze?.summary?.locked_policy_fixture_count ?? 0,
+    identity_policy_matter_freeze_policy_decision_row_count: artifacts.identity_policy_matter_freeze?.summary?.policy_decision_row_count ?? 0,
+    identity_policy_matter_freeze_policy_pending_approval_row_count: artifacts.identity_policy_matter_freeze?.summary?.policy_pending_approval_row_count ?? 0,
+    identity_policy_matter_freeze_resource_boundary_path_count: artifacts.identity_policy_matter_freeze?.summary?.resource_boundary_path_count ?? 0,
+    identity_policy_matter_freeze_retrieval_gate_check_count: artifacts.identity_policy_matter_freeze?.summary?.retrieval_gate_check_count ?? 0,
+    identity_policy_matter_freeze_unassigned_executable_query_plan_count: artifacts.identity_policy_matter_freeze?.summary?.unassigned_executable_query_plan_count ?? 0,
+    identity_policy_matter_freeze_protected_action_executed_count: artifacts.identity_policy_matter_freeze?.summary?.protected_action_executed_count ?? 0,
+    identity_policy_matter_freeze_validation_error_count: artifacts.identity_policy_matter_freeze?.summary?.validation_error_count ?? artifacts.identity_policy_matter_freeze?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8696,6 +8797,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-operations-surface") parsed.policyOperationsSurfacePath = false;
     else if (arg === "--matter-boundary-slice") parsed.matterBoundarySlicePath = argv[++index];
     else if (arg === "--no-matter-boundary-slice") parsed.matterBoundarySlicePath = false;
+    else if (arg === "--identity-policy-matter-freeze") parsed.identityPolicyMatterFreezePath = argv[++index];
+    else if (arg === "--no-identity-policy-matter-freeze") parsed.identityPolicyMatterFreezePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8951,6 +9054,10 @@ Options:
   --no-policy-operations-surface  Do not include Policy Operations Surface status.
   --matter-boundary-slice <path>  matter-boundary-slice.json path.
   --no-matter-boundary-slice      Do not include Matter Boundary Slice status.
+  --identity-policy-matter-freeze <path>
+                                  identity-policy-matter-freeze.json path.
+  --no-identity-policy-matter-freeze
+                                  Do not include Identity/Policy/Matter Freeze status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

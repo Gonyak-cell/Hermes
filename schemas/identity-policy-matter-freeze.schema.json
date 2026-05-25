@@ -1,0 +1,216 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/identity-policy-matter-freeze.schema.json",
+  "title": "Hermes Identity Policy Matter Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "freeze_status",
+    "safe_handling",
+    "inputs",
+    "freeze_scope",
+    "freeze_source_statuses",
+    "freeze_checkpoints",
+    "freeze_note",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "identity-policy-matter-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "freeze_status": { "enum": ["blocked", "frozen_with_pending_human_actions", "frozen_clear"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "freeze_report_only",
+        "source_artifact_mutation_allowed",
+        "protected_actions_executed",
+        "external_delivery_executed",
+        "auto_approval_allowed"
+      ],
+      "properties": {
+        "freeze_report_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "protected_actions_executed": { "const": false },
+        "external_delivery_executed": { "const": false },
+        "auto_approval_allowed": { "const": false }
+      }
+    },
+    "inputs": { "type": "object" },
+    "freeze_scope": {
+      "type": "object",
+      "required": ["track", "frozen_slots", "source_phase_range", "next_planned_slot", "next_track"],
+      "properties": {
+        "track": { "type": "string" },
+        "frozen_slots": { "type": "array", "items": { "type": "string" } },
+        "source_phase_range": { "type": "string" },
+        "next_planned_slot": { "type": "string" },
+        "next_track": { "type": "string" }
+      }
+    },
+    "freeze_source_statuses": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "freeze_checkpoints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "freeze_note": {
+      "type": "object",
+      "required": [
+        "note_id",
+        "freeze_status",
+        "frozen_at",
+        "scope",
+        "next_planned_slot",
+        "next_track",
+        "residual_human_actions",
+        "verification_summary",
+        "freeze_decision"
+      ],
+      "properties": {
+        "note_id": { "type": "string" },
+        "freeze_status": { "type": "string" },
+        "frozen_at": { "type": "string", "format": "date-time" },
+        "scope": { "type": "string" },
+        "next_planned_slot": { "type": "string" },
+        "next_track": { "type": "string" },
+        "residual_human_actions": { "type": "object" },
+        "verification_summary": { "type": "object" },
+        "freeze_decision": { "type": "string" }
+      }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": [
+        "source_id",
+        "label",
+        "planned_slot",
+        "path",
+        "available",
+        "schema_version",
+        "generated_at",
+        "status_key",
+        "expected_status",
+        "observed_status",
+        "source_status",
+        "validation_error_count",
+        "content_hash",
+        "error"
+      ],
+      "properties": {
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "planned_slot": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "status_key": { "type": ["string", "null"] },
+        "expected_status": { "type": ["string", "null"] },
+        "observed_status": { "type": ["string", "null"] },
+        "source_status": { "enum": ["passed", "failed"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["checkpoint_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "checkpoint_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "required_source_count",
+        "available_required_source_count",
+        "clean_source_count",
+        "frozen_slot_count",
+        "freeze_checkpoint_count",
+        "passed_freeze_checkpoint_count",
+        "failed_freeze_checkpoint_count",
+        "policy_fixture_case_count",
+        "locked_policy_fixture_count",
+        "policy_regression_hash_count",
+        "policy_decision_row_count",
+        "policy_violation_row_count",
+        "policy_pending_approval_row_count",
+        "resource_boundary_path_count",
+        "retrieval_gate_check_count",
+        "unassigned_executable_query_plan_count",
+        "held_for_matter_tagging_resource_count",
+        "cross_workspace_probe_count",
+        "blocked_cross_workspace_probe_count",
+        "validation_error_count",
+        "protected_action_executed_count",
+        "external_delivery_executed_count",
+        "auto_approval_count",
+        "by_checkpoint_status"
+      ],
+      "properties": {
+        "freeze_status": { "type": "string" },
+        "required_source_count": { "type": "integer", "minimum": 0 },
+        "available_required_source_count": { "type": "integer", "minimum": 0 },
+        "clean_source_count": { "type": "integer", "minimum": 0 },
+        "frozen_slot_count": { "type": "integer", "minimum": 0 },
+        "freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "passed_freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "failed_freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "policy_fixture_case_count": { "type": "integer", "minimum": 0 },
+        "locked_policy_fixture_count": { "type": "integer", "minimum": 0 },
+        "policy_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "policy_decision_row_count": { "type": "integer", "minimum": 0 },
+        "policy_violation_row_count": { "type": "integer", "minimum": 0 },
+        "policy_pending_approval_row_count": { "type": "integer", "minimum": 0 },
+        "resource_boundary_path_count": { "type": "integer", "minimum": 0 },
+        "retrieval_gate_check_count": { "type": "integer", "minimum": 0 },
+        "unassigned_executable_query_plan_count": { "type": "integer", "minimum": 0 },
+        "held_for_matter_tagging_resource_count": { "type": "integer", "minimum": 0 },
+        "cross_workspace_probe_count": { "type": "integer", "minimum": 0 },
+        "blocked_cross_workspace_probe_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "external_delivery_executed_count": { "const": 0 },
+        "auto_approval_count": { "const": 0 },
+        "by_checkpoint_status": { "type": "object" }
+      }
+    }
+  }
+}

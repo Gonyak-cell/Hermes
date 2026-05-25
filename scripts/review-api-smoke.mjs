@@ -234,6 +234,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-resource-paths"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-retrieval-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/matter-boundary-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-matter-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-freeze-sources"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-freeze-checkpoints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-freeze-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1920,6 +1924,22 @@ try {
   const matterBoundaryValidations = await fetchJson(`${url}/api/matter-boundary-validations?status=passed&limit=5`);
   assert.equal(matterBoundaryValidations.collection, "matter_boundary_validations");
   assert.ok(matterBoundaryValidations.count <= 5);
+
+  const identityPolicyMatterFreezes = await fetchJson(`${url}/api/identity-policy-matter-freezes?freeze_status=frozen_with_pending_human_actions&limit=1`);
+  assert.equal(identityPolicyMatterFreezes.collection, "identity_policy_matter_freezes");
+  assert.ok(identityPolicyMatterFreezes.count <= 1);
+
+  const identityPolicyFreezeSources = await fetchJson(`${url}/api/identity-policy-freeze-sources?source_status=passed&limit=5`);
+  assert.equal(identityPolicyFreezeSources.collection, "identity_policy_freeze_sources");
+  assert.ok(identityPolicyFreezeSources.count <= 5);
+
+  const identityPolicyFreezeCheckpoints = await fetchJson(`${url}/api/identity-policy-freeze-checkpoints?status=passed&limit=5`);
+  assert.equal(identityPolicyFreezeCheckpoints.collection, "identity_policy_freeze_checkpoints");
+  assert.ok(identityPolicyFreezeCheckpoints.count <= 5);
+
+  const identityPolicyFreezeValidations = await fetchJson(`${url}/api/identity-policy-freeze-validations?status=passed&limit=5`);
+  assert.equal(identityPolicyFreezeValidations.collection, "identity_policy_freeze_validations");
+  assert.ok(identityPolicyFreezeValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

@@ -5,6 +5,7 @@ export const DEFAULT_REVIEW_DASHBOARD_OUT_DIR = "artifacts/dashboard/latest";
 export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceExpansionPath: "artifacts/resource-expansion/latest/resource-expansion-job.json",
   resourceIngestPath: "artifacts/resource-ingest/latest/resource-ingest.json",
+  resourceContractFreezePath: "artifacts/resource-contract-freeze/latest/resource-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -102,6 +103,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceIngestPath",
     source_id: "resource_ingest",
     label: "Resource Ingest",
+  },
+  {
+    option: "resourceContractFreezePath",
+    source_id: "resource_contract_freeze",
+    label: "Resource Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -661,6 +667,7 @@ function summarizeSource(sourceId, data) {
     };
   }
   if (sourceId === "resource_ingest") return data.summary ?? {};
+  if (sourceId === "resource_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -839,6 +846,7 @@ function buildStageStatuses(artifacts, sources) {
   return [
     buildResourceExpansionStage(artifacts.resource_expansion, sourceById.get("resource_expansion")),
     buildResourceIngestStage(artifacts.resource_ingest, sourceById.get("resource_ingest")),
+    buildResourceContractFreezeStage(artifacts.resource_contract_freeze, sourceById.get("resource_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -968,6 +976,38 @@ function buildResourceIngestStage(ingest, source) {
       promoted_evidence_count: ingest.summary?.promoted_evidence_count ?? 0,
       blocked_count: blocked,
       duplicate_count: ingest.summary?.duplicate_count ?? 0,
+    },
+  };
+}
+
+function buildResourceContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("resource_contract_freeze", "Resource Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "resource_contract_freeze",
+    label: "Resource Contract Freeze",
+    status,
+    message: `${summary.resource_count ?? 0} Resource v2 contract(s), ${summary.resource_version_count ?? 0} ResourceVersion v2 fixture(s), ${summary.validation_error_count ?? 0} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      resource_schema_version: summary.resource_schema_version ?? null,
+      resource_version_schema_version: summary.resource_version_schema_version ?? null,
+      resource_count: summary.resource_count ?? 0,
+      resource_version_count: summary.resource_version_count ?? 0,
+      current_resource_version_count: summary.current_resource_version_count ?? 0,
+      content_hash_count: summary.content_hash_count ?? 0,
+      source_system_count: summary.source_system_count ?? 0,
+      external_id_count: summary.external_id_count ?? 0,
+      classification_count: summary.classification_count ?? 0,
+      matter_link_count: summary.matter_link_count ?? 0,
+      latest_version_link_count: summary.latest_version_link_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5099,6 +5139,16 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     pending_stage_count: stageStatuses.filter((stage) => stage.status === "pending").length,
     resource_count: artifacts.resource_ingest?.summary?.promoted_resource_count ?? viewerSummary.resource_count ?? 0,
     evidence_count: artifacts.resource_ingest?.summary?.promoted_evidence_count ?? viewerSummary.evidence_count ?? 0,
+    resource_contract_freeze_resource_count: artifacts.resource_contract_freeze?.summary?.resource_count ?? 0,
+    resource_contract_freeze_resource_version_count: artifacts.resource_contract_freeze?.summary?.resource_version_count ?? 0,
+    resource_contract_freeze_content_hash_count: artifacts.resource_contract_freeze?.summary?.content_hash_count ?? 0,
+    resource_contract_freeze_source_system_count: artifacts.resource_contract_freeze?.summary?.source_system_count ?? 0,
+    resource_contract_freeze_external_id_count: artifacts.resource_contract_freeze?.summary?.external_id_count ?? 0,
+    resource_contract_freeze_classification_count: artifacts.resource_contract_freeze?.summary?.classification_count ?? 0,
+    resource_contract_freeze_matter_link_count: artifacts.resource_contract_freeze?.summary?.matter_link_count ?? 0,
+    resource_contract_freeze_latest_version_link_count: artifacts.resource_contract_freeze?.summary?.latest_version_link_count ?? 0,
+    resource_contract_freeze_failed_validation_item_count: artifacts.resource_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    resource_contract_freeze_validation_error_count: artifacts.resource_contract_freeze?.summary?.validation_error_count ?? artifacts.resource_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6144,6 +6194,8 @@ function parseArgs(argv) {
     else if (arg === "--run-at") parsed.runAt = argv[++index];
     else if (arg === "--resource-expansion") parsed.resourceExpansionPath = argv[++index];
     else if (arg === "--resource-ingest") parsed.resourceIngestPath = argv[++index];
+    else if (arg === "--resource-contract-freeze") parsed.resourceContractFreezePath = argv[++index];
+    else if (arg === "--no-resource-contract-freeze") parsed.resourceContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];
@@ -6323,6 +6375,9 @@ function printHelp() {
 Options:
   --resource-expansion <path>    resource-expansion-job.json path.
   --resource-ingest <path>       resource-ingest.json path.
+  --resource-contract-freeze <path>
+                                  resource-contract-freeze.json path.
+  --no-resource-contract-freeze  Do not include Resource Contract Freeze status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

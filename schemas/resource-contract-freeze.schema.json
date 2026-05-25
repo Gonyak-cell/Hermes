@@ -1,0 +1,245 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-contract-freeze.schema.json",
+  "title": "Hermes Resource Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_resource_evidence",
+    "contract_versions",
+    "summary",
+    "resource_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "resource-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["resource_ingest_path"],
+      "properties": {
+        "resource_ingest_path": { "type": "string" }
+      }
+    },
+    "source_resource_evidence": {
+      "type": "object",
+      "required": ["schema_version", "source_resource_count", "source_resource_version_count", "source_summary"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "source_resource_count": { "type": "integer", "minimum": 0 },
+        "source_resource_version_count": { "type": "integer", "minimum": 0 },
+        "source_summary": { "type": ["object", "null"] }
+      }
+    },
+    "contract_versions": {
+      "type": "object",
+      "required": ["resource_schema_version", "resource_version_schema_version", "compatibility_floor"],
+      "properties": {
+        "resource_schema_version": { "const": "resource-core.v2" },
+        "resource_version_schema_version": { "const": "resource-version.v2" },
+        "compatibility_floor": { "const": "resource-evidence.v1" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "resource_schema_version",
+        "resource_version_schema_version",
+        "resource_count",
+        "resource_version_count",
+        "current_resource_version_count",
+        "content_hash_count",
+        "source_system_count",
+        "external_id_count",
+        "classification_count",
+        "matter_link_count",
+        "latest_version_link_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_source_system",
+        "by_classification",
+        "by_matter_id"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "resource_schema_version": { "const": "resource-core.v2" },
+        "resource_version_schema_version": { "const": "resource-version.v2" },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "resource_version_count": { "type": "integer", "minimum": 0 },
+        "current_resource_version_count": { "type": "integer", "minimum": 0 },
+        "content_hash_count": { "type": "integer", "minimum": 0 },
+        "source_system_count": { "type": "integer", "minimum": 0 },
+        "external_id_count": { "type": "integer", "minimum": 0 },
+        "classification_count": { "type": "integer", "minimum": 0 },
+        "matter_link_count": { "type": "integer", "minimum": 0 },
+        "latest_version_link_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_source_system": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_matter_id": { "type": "object" }
+      }
+    },
+    "resource_contract": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "resources", "resource_versions"],
+      "properties": {
+        "schema_version": { "const": "resource-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "resources": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resource_v2" }
+        },
+        "resource_versions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resource_version_v2" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "actor": {
+      "type": "object",
+      "required": ["actor_type", "actor_id"],
+      "properties": {
+        "actor_type": { "type": "string" },
+        "actor_id": { "type": "string" },
+        "display_name": { "type": "string" }
+      }
+    },
+    "resource_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_id",
+        "tenant_id",
+        "matter_id",
+        "source_system",
+        "external_id",
+        "external_version_id",
+        "source_uri",
+        "resource_type",
+        "content_hash",
+        "content_hash_algorithm",
+        "classification",
+        "classification_source",
+        "policy_snapshot_id",
+        "latest_resource_version_id",
+        "materialization_status",
+        "ingestion_status",
+        "created_at",
+        "created_by",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-core.v2" },
+        "resource_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "source_system": { "type": "string" },
+        "external_id": { "type": "string", "minLength": 1 },
+        "external_version_id": { "type": "string", "minLength": 1 },
+        "source_uri": { "type": "string", "minLength": 1 },
+        "resource_type": { "type": "string" },
+        "content_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "content_hash_algorithm": { "const": "sha256" },
+        "classification": {
+          "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]
+        },
+        "classification_source": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "latest_resource_version_id": { "type": ["string", "null"] },
+        "materialization_status": { "type": "string" },
+        "ingestion_status": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "created_by": { "$ref": "#/$defs/actor" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "resource_version_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_version_id",
+        "resource_id",
+        "version_label",
+        "source_system",
+        "external_id",
+        "external_version_id",
+        "content_hash",
+        "content_hash_algorithm",
+        "classification",
+        "matter_id",
+        "version_status",
+        "created_at",
+        "captured_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-version.v2" },
+        "resource_version_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "version_label": { "type": "string" },
+        "source_system": { "type": "string" },
+        "external_id": { "type": "string", "minLength": 1 },
+        "external_version_id": { "type": "string", "minLength": 1 },
+        "content_hash": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "content_hash_algorithm": { "const": "sha256" },
+        "classification": {
+          "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]
+        },
+        "matter_id": { "type": "string" },
+        "version_status": { "enum": ["current", "superseded"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "enum": ["resource", "resource_version"] },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

@@ -993,6 +993,22 @@ try {
   assert.equal(contractOwnerDependencies.collection, "contract_owner_dependencies");
   assert.ok(contractOwnerDependencies.count <= 5);
 
+  const resourceContractFreezes = await fetchJson(`${url}/api/resource-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");
+  assert.ok(resourceContractFreezes.count <= 1);
+
+  const resourceV2Contracts = await fetchJson(`${url}/api/resource-v2-contracts?source_system=local_filesystem&limit=5`);
+  assert.equal(resourceV2Contracts.collection, "resource_v2_contracts");
+  assert.ok(resourceV2Contracts.count <= 5);
+
+  const resourceVersionV2Contracts = await fetchJson(`${url}/api/resource-version-v2-contracts?version_status=current&limit=5`);
+  assert.equal(resourceVersionV2Contracts.collection, "resource_version_v2_contracts");
+  assert.ok(resourceVersionV2Contracts.count <= 5);
+
+  const resourceContractValidations = await fetchJson(`${url}/api/resource-contract-validations?status=passed&limit=5`);
+  assert.equal(resourceContractValidations.collection, "resource_contract_validations");
+  assert.ok(resourceContractValidations.count <= 5);
+
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);
   assert.match(await html.text(), /Hermes Review Dashboard/);

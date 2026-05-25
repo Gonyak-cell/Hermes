@@ -107,6 +107,7 @@ import {
   validateAgainstSchema,
 } from "../src/core-contract-validator.mjs";
 import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
+import { runResourceContractFreeze } from "../src/resource-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -297,6 +298,27 @@ describe("matter harness", () => {
       assert.equal(ingest.summary.blocked_count, 1);
       assert.equal(ingest.summary.gate_status, "blocked");
       assert.match(await readFile(path.join(outDir, "ingest", "blocked-items.json"), "utf8"), /secret_or_credential_path/);
+
+      const resourceContractFreeze = await runResourceContractFreeze({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        outDir: path.join(outDir, "resource-contract-freeze"),
+        runAt: "2026-05-23T06:12:00.000Z",
+      });
+      const resourceContractFreezeSchema = JSON.parse(await readFile("schemas/resource-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(resourceContractFreeze, resourceContractFreezeSchema, {}, "resource_contract_freeze"), []);
+      assert.equal(resourceContractFreeze.summary.freeze_status, "complete");
+      assert.equal(resourceContractFreeze.summary.resource_count, ingest.summary.promoted_resource_count);
+      assert.equal(resourceContractFreeze.summary.resource_version_count, ingest.resource_evidence.resource_versions.length);
+      assert.equal(resourceContractFreeze.summary.content_hash_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(resourceContractFreeze.summary.external_id_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(resourceContractFreeze.summary.classification_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(resourceContractFreeze.summary.matter_link_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(resourceContractFreeze.summary.latest_version_link_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(resourceContractFreeze.summary.validation_error_count, 0);
+      assert.equal(resourceContractFreeze.resource_contract.resources[0].schema_version, "resource-core.v2");
+      assert.equal(resourceContractFreeze.resource_contract.resource_versions[0].schema_version, "resource-version.v2");
+      assert.ok(resourceContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "resource-contract-freeze", "summary.md"), "utf8"), /Resource Contract Freeze/);
 
       const viewer = await runEvidenceViewer({
         inputPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -963,6 +985,7 @@ describe("matter harness", () => {
       const dashboardInputs = {
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         evidenceReviewDraftPath: path.join(outDir, "evidence-review-draft", "evidence-review-draft.json"),
@@ -2559,6 +2582,10 @@ describe("matter harness", () => {
       assert.equal(contractDependencyMapCheckpoint?.acceptance_profile, "contract_dependency_map_gate");
       assert.equal(contractDependencyMapCheckpoint?.status, "passed");
       assert.equal(contractDependencyMapCheckpoint?.implementation_status, "passed");
+      const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
+      assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
+      assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
+      assert.equal(resourceContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2806,6 +2833,16 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.contract_dependency_map_high_risk_count, 0);
       assert.equal(dashboard.summary.contract_dependency_map_direction_violation_count, 0);
       assert.equal(dashboard.summary.contract_dependency_map_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_contract_freeze_resource_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_resource_version_count, resourceContractFreeze.summary.resource_version_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_content_hash_count, resourceContractFreeze.summary.content_hash_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_source_system_count, resourceContractFreeze.summary.source_system_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_external_id_count, resourceContractFreeze.summary.external_id_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_classification_count, resourceContractFreeze.summary.classification_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_matter_link_count, resourceContractFreeze.summary.matter_link_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_latest_version_link_count, resourceContractFreeze.summary.latest_version_link_count);
+      assert.equal(dashboard.summary.resource_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.resource_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3180,6 +3217,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_inventory"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_dependency_map"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3255,6 +3293,10 @@ describe("matter harness", () => {
       const routeIndexSchema = JSON.parse(await readFile("schemas/review-api-index.schema.json", "utf8"));
       assert.deepEqual(validateAgainstSchema(routeIndex, routeIndexSchema, {}, "review_api_index"), []);
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/actions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-drafts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-matrices"));
@@ -4446,6 +4488,22 @@ describe("matter harness", () => {
       const contractOwnerDependencies = JSON.parse((await buildReviewApiResponse("/api/contract-owner-dependencies?direction_status=allowed", apiOptions)).body);
       assert.equal(contractOwnerDependencies.collection, "contract_owner_dependencies");
       assert.equal(contractOwnerDependencies.count, contractDependencyMap.summary.owner_dependency_count);
+
+      const resourceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/resource-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");
+      assert.equal(resourceContractFreezes.count, 1);
+
+      const resourceV2Contracts = JSON.parse((await buildReviewApiResponse("/api/resource-v2-contracts?source_system=local_filesystem", apiOptions)).body);
+      assert.equal(resourceV2Contracts.collection, "resource_v2_contracts");
+      assert.equal(resourceV2Contracts.count, resourceContractFreeze.summary.resource_count);
+
+      const resourceVersionV2Contracts = JSON.parse((await buildReviewApiResponse("/api/resource-version-v2-contracts?version_status=current", apiOptions)).body);
+      assert.equal(resourceVersionV2Contracts.collection, "resource_version_v2_contracts");
+      assert.equal(resourceVersionV2Contracts.count, resourceContractFreeze.summary.current_resource_version_count);
+
+      const resourceContractValidations = JSON.parse((await buildReviewApiResponse("/api/resource-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceContractValidations.collection, "resource_contract_validations");
+      assert.equal(resourceContractValidations.count, resourceContractFreeze.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

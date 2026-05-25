@@ -9,6 +9,7 @@ import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs"
 import { runContractDependencyMap } from "../src/contract-dependency-map.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
+import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlaneHumanGateReceiptApplication } from "../src/control-plane-human-gate-receipt-application.mjs";
@@ -1193,6 +1194,7 @@ describe("matter harness", () => {
         contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
         contractDependencyMapPath: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
         schemaVersioningRulesPath: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
+        schemaMigrationManifestPath: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
         controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2917,6 +2919,43 @@ describe("matter harness", () => {
       assert.ok(schemaVersioningRules.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "schema-versioning-rules", "summary.md"), "utf8"), /Schema Versioning Rules/);
 
+      const schemaMigrationManifest = await runSchemaMigrationManifest({
+        schemaVersioningRulesPath: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
+        contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+        outDir: path.join(outDir, "schema-migration-manifest"),
+        runAt: "2026-05-23T06:35:07.998Z",
+      });
+      const schemaMigrationManifestSchema = JSON.parse(await readFile("schemas/schema-migration-manifest.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(schemaMigrationManifest, schemaMigrationManifestSchema, {}, "schema_migration_manifest"),
+        [],
+      );
+      assert.equal(schemaMigrationManifest.summary.migration_manifest_status, "complete");
+      assert.equal(schemaMigrationManifest.summary.source_guideline_status, "complete");
+      assert.equal(schemaMigrationManifest.summary.manifest_count, 3);
+      assert.equal(schemaMigrationManifest.summary.core_migration_count, 1);
+      assert.equal(schemaMigrationManifest.summary.pack_migration_count, 1);
+      assert.equal(schemaMigrationManifest.summary.index_migration_count, 1);
+      assert.equal(schemaMigrationManifest.summary.migration_record_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(schemaMigrationManifest.summary.declared_manifest_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(schemaMigrationManifest.summary.planned_record_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(schemaMigrationManifest.summary.not_run_dry_run_record_count, schemaMigrationManifest.summary.manifest_count);
+      assert.ok(schemaMigrationManifest.summary.data_migration_step_count >= 3);
+      assert.ok(schemaMigrationManifest.summary.index_migration_step_count >= 3);
+      assert.equal(schemaMigrationManifest.summary.dry_run_command_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(schemaMigrationManifest.summary.rollback_note_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(schemaMigrationManifest.summary.validation_command_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(schemaMigrationManifest.summary.legacy_exception_covered_count, schemaVersioningRules.summary.legacy_exception_count);
+      assert.equal(schemaMigrationManifest.summary.missing_legacy_exception_count, 0);
+      assert.equal(schemaMigrationManifest.summary.validation_error_count, 0);
+      assert.deepEqual(Object.keys(schemaMigrationManifest.summary.by_scope).sort(), ["core", "index", "pack"]);
+      assert.ok(schemaMigrationManifest.migration_manifests.every((manifest) => manifest.schema_version === "schema-migration-manifest.v1"));
+      assert.ok(schemaMigrationManifest.migration_manifests.every((manifest) => manifest.data_migration_steps.length > 0));
+      assert.ok(schemaMigrationManifest.migration_manifests.every((manifest) => manifest.index_migration_steps.length > 0));
+      assert.ok(schemaMigrationManifest.migration_records.every((record) => record.dry_run_status === "not_run"));
+      assert.ok(schemaMigrationManifest.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "schema-migration-manifest", "summary.md"), "utf8"), /Schema Migration Manifest/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -2963,6 +3002,10 @@ describe("matter harness", () => {
       assert.equal(schemaVersioningRulesCheckpoint?.acceptance_profile, "schema_versioning_rules_gate");
       assert.equal(schemaVersioningRulesCheckpoint?.status, "passed");
       assert.equal(schemaVersioningRulesCheckpoint?.implementation_status, "passed");
+      const schemaMigrationManifestCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-schema-migration-manifest");
+      assert.equal(schemaMigrationManifestCheckpoint?.acceptance_profile, "schema_migration_manifest_gate");
+      assert.equal(schemaMigrationManifestCheckpoint?.status, "passed");
+      assert.equal(schemaMigrationManifestCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3263,6 +3306,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.schema_versioning_optional_addition_rule_count, 1);
       assert.equal(dashboard.summary.schema_versioning_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.schema_versioning_validation_error_count, 0);
+      assert.equal(dashboard.summary.schema_migration_manifest_status, "complete");
+      assert.equal(dashboard.summary.schema_migration_manifest_count, schemaMigrationManifest.summary.manifest_count);
+      assert.equal(dashboard.summary.schema_migration_core_count, 1);
+      assert.equal(dashboard.summary.schema_migration_pack_count, 1);
+      assert.equal(dashboard.summary.schema_migration_index_count, 1);
+      assert.equal(dashboard.summary.schema_migration_record_count, schemaMigrationManifest.summary.migration_record_count);
+      assert.equal(dashboard.summary.schema_migration_declared_manifest_count, schemaMigrationManifest.summary.declared_manifest_count);
+      assert.equal(dashboard.summary.schema_migration_planned_record_count, schemaMigrationManifest.summary.planned_record_count);
+      assert.equal(dashboard.summary.schema_migration_not_run_dry_run_record_count, schemaMigrationManifest.summary.not_run_dry_run_record_count);
+      assert.equal(dashboard.summary.schema_migration_data_step_count, schemaMigrationManifest.summary.data_migration_step_count);
+      assert.equal(dashboard.summary.schema_migration_index_step_count, schemaMigrationManifest.summary.index_migration_step_count);
+      assert.equal(dashboard.summary.schema_migration_dry_run_command_count, schemaMigrationManifest.summary.dry_run_command_count);
+      assert.equal(dashboard.summary.schema_migration_rollback_note_count, schemaMigrationManifest.summary.rollback_note_count);
+      assert.equal(dashboard.summary.schema_migration_validation_command_count, schemaMigrationManifest.summary.validation_command_count);
+      assert.equal(dashboard.summary.schema_migration_legacy_exception_covered_count, schemaMigrationManifest.summary.legacy_exception_covered_count);
+      assert.equal(dashboard.summary.schema_migration_missing_legacy_exception_count, 0);
+      assert.equal(dashboard.summary.schema_migration_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.schema_migration_validation_error_count, 0);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_count, resourceContractFreeze.summary.resource_count);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_version_count, resourceContractFreeze.summary.resource_version_count);
       assert.equal(dashboard.summary.resource_contract_freeze_content_hash_count, resourceContractFreeze.summary.content_hash_count);
@@ -5360,6 +5421,22 @@ describe("matter harness", () => {
       const schemaVersioningValidations = JSON.parse((await buildReviewApiResponse("/api/schema-versioning-validations?status=passed", apiOptions)).body);
       assert.equal(schemaVersioningValidations.collection, "schema_versioning_validations");
       assert.equal(schemaVersioningValidations.count, schemaVersioningRules.summary.validation_item_count);
+
+      const schemaMigrationManifests = JSON.parse((await buildReviewApiResponse("/api/schema-migration-manifests?migration_manifest_status=complete", apiOptions)).body);
+      assert.equal(schemaMigrationManifests.collection, "schema_migration_manifests");
+      assert.equal(schemaMigrationManifests.count, 1);
+
+      const schemaMigrationManifestRecords = JSON.parse((await buildReviewApiResponse("/api/schema-migration-manifest-records?migration_scope=core", apiOptions)).body);
+      assert.equal(schemaMigrationManifestRecords.collection, "schema_migration_manifest_records");
+      assert.equal(schemaMigrationManifestRecords.count, 1);
+
+      const schemaMigrationRecords = JSON.parse((await buildReviewApiResponse("/api/schema-migration-records?dry_run_status=not_run", apiOptions)).body);
+      assert.equal(schemaMigrationRecords.collection, "schema_migration_records");
+      assert.equal(schemaMigrationRecords.count, schemaMigrationManifest.summary.migration_record_count);
+
+      const schemaMigrationValidations = JSON.parse((await buildReviewApiResponse("/api/schema-migration-validations?status=passed", apiOptions)).body);
+      assert.equal(schemaMigrationValidations.collection, "schema_migration_validations");
+      assert.equal(schemaMigrationValidations.count, schemaMigrationManifest.summary.validation_item_count);
 
       const resourceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/resource-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

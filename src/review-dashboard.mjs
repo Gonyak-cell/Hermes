@@ -46,6 +46,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   contractInventoryPath: "artifacts/contract-inventory/latest/contract-inventory.json",
   contractDependencyMapPath: "artifacts/contract-dependency-map/latest/contract-dependency-map.json",
   schemaVersioningRulesPath: "artifacts/schema-versioning-rules/latest/schema-versioning-rules.json",
+  schemaMigrationManifestPath: "artifacts/schema-migration-manifest/latest/schema-migration-manifest-ledger.json",
   controlPlaneAuditTrailPath: "artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
@@ -318,6 +319,11 @@ const SOURCE_DEFINITIONS = [
     option: "schemaVersioningRulesPath",
     source_id: "schema_versioning_rules",
     label: "Schema Versioning Rules",
+  },
+  {
+    option: "schemaMigrationManifestPath",
+    source_id: "schema_migration_manifest",
+    label: "Schema Migration Manifest",
   },
   {
     option: "controlPlaneAuditTrailPath",
@@ -826,6 +832,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "contract_inventory") return data.summary ?? {};
   if (sourceId === "contract_dependency_map") return data.summary ?? {};
   if (sourceId === "schema_versioning_rules") return data.summary ?? {};
+  if (sourceId === "schema_migration_manifest") return data.summary ?? {};
   if (sourceId === "control_plane_audit_trail") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
@@ -957,6 +964,7 @@ function buildStageStatuses(artifacts, sources) {
     buildContractInventoryStage(artifacts.contract_inventory, sourceById.get("contract_inventory")),
     buildContractDependencyMapStage(artifacts.contract_dependency_map, sourceById.get("contract_dependency_map")),
     buildSchemaVersioningRulesStage(artifacts.schema_versioning_rules, sourceById.get("schema_versioning_rules")),
+    buildSchemaMigrationManifestStage(artifacts.schema_migration_manifest, sourceById.get("schema_migration_manifest")),
     buildControlPlaneAuditTrailStage(artifacts.control_plane_audit_trail, sourceById.get("control_plane_audit_trail")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
@@ -2357,6 +2365,45 @@ function buildSchemaVersioningRulesStage(rules, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? rules.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildSchemaMigrationManifestStage(manifest, source) {
+  if (!manifest) return missingStage("schema_migration_manifest", "Schema Migration Manifest", source);
+  const summary = manifest.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || summary.missing_legacy_exception_count > 0 || manifest.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "schema_migration_manifest",
+    label: "Schema Migration Manifest",
+    status,
+    message: `${summary.manifest_count ?? 0} migration manifest(s), core/pack/index ${summary.core_migration_count ?? 0}/${summary.pack_migration_count ?? 0}/${summary.index_migration_count ?? 0}, ${summary.validation_error_count ?? 0} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      migration_manifest_status: summary.migration_manifest_status ?? "unknown",
+      source_guideline_status: summary.source_guideline_status ?? "unknown",
+      manifest_count: summary.manifest_count ?? 0,
+      migration_record_count: summary.migration_record_count ?? 0,
+      declared_manifest_count: summary.declared_manifest_count ?? 0,
+      planned_record_count: summary.planned_record_count ?? 0,
+      not_run_dry_run_record_count: summary.not_run_dry_run_record_count ?? 0,
+      core_migration_count: summary.core_migration_count ?? 0,
+      pack_migration_count: summary.pack_migration_count ?? 0,
+      index_migration_count: summary.index_migration_count ?? 0,
+      data_migration_step_count: summary.data_migration_step_count ?? 0,
+      index_migration_step_count: summary.index_migration_step_count ?? 0,
+      dry_run_command_count: summary.dry_run_command_count ?? 0,
+      rollback_note_count: summary.rollback_note_count ?? 0,
+      validation_command_count: summary.validation_command_count ?? 0,
+      separated_data_index_count: summary.separated_data_index_count ?? 0,
+      legacy_exception_count: summary.legacy_exception_count ?? 0,
+      legacy_exception_covered_count: summary.legacy_exception_covered_count ?? 0,
+      missing_legacy_exception_count: summary.missing_legacy_exception_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? manifest.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -6020,6 +6067,24 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     schema_versioning_optional_addition_rule_count: artifacts.schema_versioning_rules?.summary?.optional_addition_rule_count ?? 0,
     schema_versioning_failed_validation_item_count: artifacts.schema_versioning_rules?.summary?.failed_validation_item_count ?? 0,
     schema_versioning_validation_error_count: artifacts.schema_versioning_rules?.summary?.validation_error_count ?? artifacts.schema_versioning_rules?.validation?.errors?.length ?? 0,
+    schema_migration_manifest_status: artifacts.schema_migration_manifest?.summary?.migration_manifest_status ?? "unknown",
+    schema_migration_manifest_count: artifacts.schema_migration_manifest?.summary?.manifest_count ?? 0,
+    schema_migration_core_count: artifacts.schema_migration_manifest?.summary?.core_migration_count ?? 0,
+    schema_migration_pack_count: artifacts.schema_migration_manifest?.summary?.pack_migration_count ?? 0,
+    schema_migration_index_count: artifacts.schema_migration_manifest?.summary?.index_migration_count ?? 0,
+    schema_migration_record_count: artifacts.schema_migration_manifest?.summary?.migration_record_count ?? 0,
+    schema_migration_declared_manifest_count: artifacts.schema_migration_manifest?.summary?.declared_manifest_count ?? 0,
+    schema_migration_planned_record_count: artifacts.schema_migration_manifest?.summary?.planned_record_count ?? 0,
+    schema_migration_not_run_dry_run_record_count: artifacts.schema_migration_manifest?.summary?.not_run_dry_run_record_count ?? 0,
+    schema_migration_data_step_count: artifacts.schema_migration_manifest?.summary?.data_migration_step_count ?? 0,
+    schema_migration_index_step_count: artifacts.schema_migration_manifest?.summary?.index_migration_step_count ?? 0,
+    schema_migration_dry_run_command_count: artifacts.schema_migration_manifest?.summary?.dry_run_command_count ?? 0,
+    schema_migration_rollback_note_count: artifacts.schema_migration_manifest?.summary?.rollback_note_count ?? 0,
+    schema_migration_validation_command_count: artifacts.schema_migration_manifest?.summary?.validation_command_count ?? 0,
+    schema_migration_legacy_exception_covered_count: artifacts.schema_migration_manifest?.summary?.legacy_exception_covered_count ?? 0,
+    schema_migration_missing_legacy_exception_count: artifacts.schema_migration_manifest?.summary?.missing_legacy_exception_count ?? 0,
+    schema_migration_failed_validation_item_count: artifacts.schema_migration_manifest?.summary?.failed_validation_item_count ?? 0,
+    schema_migration_validation_error_count: artifacts.schema_migration_manifest?.summary?.validation_error_count ?? artifacts.schema_migration_manifest?.validation?.errors?.length ?? 0,
     health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
     health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
     health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
@@ -6968,6 +7033,8 @@ function parseArgs(argv) {
     else if (arg === "--no-contract-dependency-map") parsed.contractDependencyMapPath = false;
     else if (arg === "--schema-versioning-rules") parsed.schemaVersioningRulesPath = argv[++index];
     else if (arg === "--no-schema-versioning-rules") parsed.schemaVersioningRulesPath = false;
+    else if (arg === "--schema-migration-manifest") parsed.schemaMigrationManifestPath = argv[++index];
+    else if (arg === "--no-schema-migration-manifest") parsed.schemaMigrationManifestPath = false;
     else if (arg === "--control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = argv[++index];
     else if (arg === "--no-control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
@@ -7169,6 +7236,9 @@ Options:
   --schema-versioning-rules <path>
                                   schema-versioning-rules.json path.
   --no-schema-versioning-rules   Do not include Schema Versioning Rules status.
+  --schema-migration-manifest <path>
+                                  schema-migration-manifest-ledger.json path.
+  --no-schema-migration-manifest Do not include Schema Migration Manifest status.
   --control-plane-audit-trail <path>
                                   control-plane-audit-trail.json path.
   --no-control-plane-audit-trail  Do not include Control Plane Audit Trail status.

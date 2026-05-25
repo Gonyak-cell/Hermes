@@ -113,6 +113,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/schema-version-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/schema-legacy-exceptions"));
   assert.ok(index.routes.some((route) => route.path === "/api/schema-versioning-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-manifests"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-manifest-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1271,6 +1275,22 @@ try {
   const schemaVersioningValidations = await fetchJson(`${url}/api/schema-versioning-validations?status=passed&limit=5`);
   assert.equal(schemaVersioningValidations.collection, "schema_versioning_validations");
   assert.ok(schemaVersioningValidations.count <= 5);
+
+  const schemaMigrationManifests = await fetchJson(`${url}/api/schema-migration-manifests?migration_manifest_status=complete&limit=1`);
+  assert.equal(schemaMigrationManifests.collection, "schema_migration_manifests");
+  assert.ok(schemaMigrationManifests.count <= 1);
+
+  const schemaMigrationManifestRecords = await fetchJson(`${url}/api/schema-migration-manifest-records?migration_scope=core&limit=5`);
+  assert.equal(schemaMigrationManifestRecords.collection, "schema_migration_manifest_records");
+  assert.ok(schemaMigrationManifestRecords.count <= 5);
+
+  const schemaMigrationRecords = await fetchJson(`${url}/api/schema-migration-records?dry_run_status=not_run&limit=5`);
+  assert.equal(schemaMigrationRecords.collection, "schema_migration_records");
+  assert.ok(schemaMigrationRecords.count <= 5);
+
+  const schemaMigrationValidations = await fetchJson(`${url}/api/schema-migration-validations?status=passed&limit=5`);
+  assert.equal(schemaMigrationValidations.collection, "schema_migration_validations");
+  assert.ok(schemaMigrationValidations.count <= 5);
 
   const resourceContractFreezes = await fetchJson(`${url}/api/resource-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

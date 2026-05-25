@@ -1,0 +1,277 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schema-migration-manifest.schema.json",
+  "title": "Hermes Schema Migration Manifest Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "migration_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_versioning_rules",
+    "source_inventory",
+    "migration_manifest_schema",
+    "migration_manifests",
+    "migration_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "schema-migration-manifest-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "migration_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_versioning_rules_path", "contract_inventory_path"],
+      "properties": {
+        "schema_versioning_rules_path": { "type": "string" },
+        "contract_inventory_path": { "type": "string" }
+      }
+    },
+    "source_versioning_rules": {
+      "type": "object",
+      "required": ["guideline_status", "schema_count", "legacy_exception_count", "content_hash"],
+      "properties": {
+        "rules_id": { "type": ["string", "null"] },
+        "guideline_status": { "type": "string" },
+        "schema_count": { "type": "integer", "minimum": 0 },
+        "legacy_exception_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": "string" }
+      }
+    },
+    "source_inventory": {
+      "type": "object",
+      "required": ["inventory_status", "schema_count", "artifact_contract_count"],
+      "properties": {
+        "inventory_id": { "type": ["string", "null"] },
+        "inventory_status": { "type": "string" },
+        "schema_count": { "type": "integer", "minimum": 0 },
+        "artifact_contract_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "migration_manifest_schema": { "$ref": "#/$defs/manifest_schema" },
+    "migration_manifests": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/migration_manifest" }
+    },
+    "migration_records": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/migration_record" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "migration_manifest_status",
+        "source_guideline_status",
+        "manifest_count",
+        "migration_record_count",
+        "declared_manifest_count",
+        "planned_record_count",
+        "not_run_dry_run_record_count",
+        "core_migration_count",
+        "pack_migration_count",
+        "index_migration_count",
+        "data_migration_step_count",
+        "index_migration_step_count",
+        "dry_run_command_count",
+        "rollback_note_count",
+        "validation_command_count",
+        "legacy_exception_covered_count",
+        "missing_legacy_exception_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "migration_manifest_status": { "enum": ["complete", "blocked"] },
+        "source_guideline_status": { "type": "string" },
+        "manifest_count": { "type": "integer", "minimum": 0 },
+        "migration_record_count": { "type": "integer", "minimum": 0 },
+        "declared_manifest_count": { "type": "integer", "minimum": 0 },
+        "planned_record_count": { "type": "integer", "minimum": 0 },
+        "not_run_dry_run_record_count": { "type": "integer", "minimum": 0 },
+        "core_migration_count": { "type": "integer", "minimum": 0 },
+        "pack_migration_count": { "type": "integer", "minimum": 0 },
+        "index_migration_count": { "type": "integer", "minimum": 0 },
+        "data_migration_step_count": { "type": "integer", "minimum": 0 },
+        "index_migration_step_count": { "type": "integer", "minimum": 0 },
+        "dry_run_command_count": { "type": "integer", "minimum": 0 },
+        "rollback_note_count": { "type": "integer", "minimum": 0 },
+        "validation_command_count": { "type": "integer", "minimum": 0 },
+        "separated_data_index_count": { "type": "integer", "minimum": 0 },
+        "legacy_exception_count": { "type": "integer", "minimum": 0 },
+        "legacy_exception_covered_count": { "type": "integer", "minimum": 0 },
+        "missing_legacy_exception_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_scope": { "type": "object" },
+        "by_change_type": { "type": "object" },
+        "by_record_status": { "type": "object" },
+        "by_dry_run_status": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "manifest_schema": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "required_sections", "required_scopes", "manifest_contract"],
+      "properties": {
+        "schema_version": { "const": "schema-migration-manifest-schema.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_sections": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "required_scopes": {
+          "type": "array",
+          "items": { "enum": ["core", "pack", "index"] }
+        },
+        "manifest_contract": { "type": "object" }
+      }
+    },
+    "migration_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "migration_id",
+        "migration_scope",
+        "manifest_status",
+        "from_schema_version",
+        "to_schema_version",
+        "change_type",
+        "source_schema_ids",
+        "target_schema_ids",
+        "data_migration_steps",
+        "index_migration_steps",
+        "dry_run_command",
+        "rollback_note",
+        "validation_command",
+        "dependencies",
+        "data_and_index_separated",
+        "manifest_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "schema-migration-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "migration_id": { "type": "string" },
+        "migration_scope": { "enum": ["core", "pack", "index"] },
+        "manifest_status": { "enum": ["declared"] },
+        "from_schema_version": {},
+        "to_schema_version": {},
+        "change_type": { "type": "string" },
+        "source_schema_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "target_schema_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "data_migration_steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "index_migration_steps": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "type": "string" }
+        },
+        "dry_run_command": { "type": "string" },
+        "rollback_note": { "type": "string" },
+        "validation_command": { "type": "string" },
+        "dependencies": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "data_and_index_separated": { "const": true },
+        "manifest_hash": { "type": "string" }
+      }
+    },
+    "migration_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "migration_record_id",
+        "migration_id",
+        "migration_scope",
+        "migration_status",
+        "dry_run_status",
+        "validation_status",
+        "data_migration_step_count",
+        "index_migration_step_count",
+        "rollback_available",
+        "source_schema_ids",
+        "target_schema_ids",
+        "created_at",
+        "updated_at",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "schema-migration-record.v1" },
+        "migration_record_id": { "type": "string" },
+        "migration_id": { "type": "string" },
+        "migration_scope": { "enum": ["core", "pack", "index"] },
+        "migration_status": { "enum": ["planned"] },
+        "dry_run_status": { "enum": ["not_run"] },
+        "validation_status": { "enum": ["declared"] },
+        "data_migration_step_count": { "type": "integer", "minimum": 1 },
+        "index_migration_step_count": { "type": "integer", "minimum": 1 },
+        "rollback_available": { "const": true },
+        "source_schema_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "target_schema_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "created_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" },
+        "record_hash": { "type": "string" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

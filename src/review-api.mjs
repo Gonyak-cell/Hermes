@@ -1554,6 +1554,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/schema-migration-manifests") {
+    const manifestResult = await readDashboardSourceArtifact(dashboard, "schema_migration_manifest");
+    if (!manifestResult.available) {
+      return jsonResponse(503, buildError("schema_migration_manifest_unavailable", manifestResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_migration_manifests", [manifestResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-migration-manifest-records") {
+    const manifestResult = await readDashboardSourceArtifact(dashboard, "schema_migration_manifest");
+    if (!manifestResult.available) {
+      return jsonResponse(503, buildError("schema_migration_manifest_unavailable", manifestResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_migration_manifest_records", manifestResult.artifact.migration_manifests ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-migration-records") {
+    const manifestResult = await readDashboardSourceArtifact(dashboard, "schema_migration_manifest");
+    if (!manifestResult.available) {
+      return jsonResponse(503, buildError("schema_migration_manifest_unavailable", manifestResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_migration_records", manifestResult.artifact.migration_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-migration-validations") {
+    const manifestResult = await readDashboardSourceArtifact(dashboard, "schema_migration_manifest");
+    if (!manifestResult.available) {
+      return jsonResponse(503, buildError("schema_migration_manifest_unavailable", manifestResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_migration_validations", manifestResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -3509,6 +3553,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/schema-version-records", "Schema version records"),
       route("GET", "/api/schema-legacy-exceptions", "Legacy schema exception rows"),
       route("GET", "/api/schema-versioning-validations", "Schema versioning validation rows"),
+      route("GET", "/api/schema-migration-manifests", "Schema migration manifest ledger artifacts"),
+      route("GET", "/api/schema-migration-manifest-records", "Declared schema migration manifest records"),
+      route("GET", "/api/schema-migration-records", "Schema migration execution records"),
+      route("GET", "/api/schema-migration-validations", "Schema migration validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -3754,6 +3802,16 @@ function filterItems(items, searchParams) {
     "legacy_exception_id",
     "exception_status",
     "rule_id",
+    "migration_ledger_id",
+    "migration_record_id",
+    "migration_id",
+    "migration_scope",
+    "migration_status",
+    "migration_manifest_status",
+    "manifest_status",
+    "change_type",
+    "dry_run_status",
+    "rollback_available",
     "parse_status",
     "route_id",
     "artifact_id",
@@ -4170,6 +4228,7 @@ function readFilterValue(item, key) {
   if (key === "inventory_status") return item.summary?.inventory_status ?? item.inventory_status;
   if (key === "map_status") return item.summary?.map_status ?? item.map_status;
   if (key === "guideline_status") return item.summary?.guideline_status ?? item.guideline_status;
+  if (key === "migration_manifest_status") return item.summary?.migration_manifest_status ?? item.migration_manifest_status;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;

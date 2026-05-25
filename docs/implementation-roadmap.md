@@ -3362,6 +3362,37 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Schema Versioning Rules를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:versioning`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 110 - Schema Migration Manifest
+
+목표: Phase 109의 schema versioning rule을 실제 migration manifest 구조로 승격해 core/pack/index migration이 분리되어 추적되도록 한다.
+
+구현 산출물:
+
+- `src/schema-migration-manifest.mjs`
+- `scripts/schema-migration-manifest.mjs`
+- `schemas/schema-migration-manifest.schema.json`
+- `docs/schema-migration-manifest.md`
+- `artifacts/schema-migration-manifest/latest/schema-migration-manifest-ledger.json`
+- `artifacts/schema-migration-manifest/latest/migration-manifest-schema.json`
+- `artifacts/schema-migration-manifest/latest/core-migration-manifest.json`
+- `artifacts/schema-migration-manifest/latest/pack-migration-manifest.json`
+- `artifacts/schema-migration-manifest/latest/index-migration-manifest.json`
+- `artifacts/schema-migration-manifest/latest/migration-records.json`
+- `artifacts/schema-migration-manifest/latest/validation-report.json`
+- `artifacts/schema-migration-manifest/latest/summary.md`
+
+완료 기준:
+
+- Phase 109 `schema_versioning_rules` artifact를 입력으로 받아 migration manifest ledger를 생성한다.
+- `core`, `pack`, `index` scope가 각각 독립 manifest로 선언된다.
+- 각 manifest는 data migration steps와 index migration steps를 분리하고 dry-run command, rollback note, validation command를 가진다.
+- legacy schema exception인 `matter`, `dev-projects`가 core migration coverage로 추적된다.
+- migration record가 manifest별로 생성되고 dry-run status는 아직 실행되지 않은 상태로 유지된다.
+- Dashboard stage와 summary가 `schema_migration_manifest` 지표를 추적함
+- Review API에서 `/api/schema-migration-manifests`, `/api/schema-migration-manifest-records`, `/api/schema-migration-records`, `/api/schema-migration-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Schema Migration Manifest를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:migrations`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3370,9 +3401,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 109이다.
+- 현재 완료 기준점은 Phase 110이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P110-P312, 총 203개다.
+- 남은 계획 슬롯은 P111-P312, 총 202개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

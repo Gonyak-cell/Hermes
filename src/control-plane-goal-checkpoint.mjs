@@ -24,6 +24,7 @@ const GOAL_ITEMS = [
   sourceItem("data_classification_rule_engine", "Data classification rule engine", "identity_policy", "data_classification_rule_engine", "control-plane-data-classification-rule-engine", { acceptance_profile: "data_classification_rule_gate" }),
   sourceItem("matter_tagging_decision_ledger", "Matter tagging decision ledger", "identity_policy", "matter_tagging_decision_ledger", "control-plane-matter-tagging-decision-ledger", { acceptance_profile: "matter_tagging_decision_gate" }),
   sourceItem("access_audit_projection", "Access audit projection", "identity_policy", "access_audit_projection", "control-plane-access-audit-projection", { acceptance_profile: "access_audit_projection_gate" }),
+  sourceItem("store_policy_adapter", "Store policy adapter and RLS query enforcement", "identity_policy", "store_policy_adapter", "control-plane-store-policy-adapter", { acceptance_profile: "store_policy_adapter_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -424,6 +425,26 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.distinct_matter_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Access audit projection is implemented and exposing who can view which matter/resource by user, runtime, matter, resource, and policy snapshot.");
+    }
+  }
+
+  if (item.acceptance_profile === "store_policy_adapter_gate") {
+    const planCount = metrics.store_query_plan_count ?? 0;
+    const errors = metrics.validation_error_count ?? 0;
+    if (
+      errors === 0
+      && planCount > 0
+      && (metrics.rls_enforced_query_plan_count ?? 0) === planCount
+      && (metrics.matter_filter_enforced_count ?? 0) === planCount
+      && (metrics.classification_filter_enforced_count ?? 0) === planCount
+      && (metrics.policy_snapshot_filter_enforced_count ?? 0) === planCount
+      && (metrics.access_audit_filter_enforced_count ?? 0) === planCount
+      && (metrics.unfiltered_probe_blocked_count ?? 0) === planCount
+      && (metrics.cross_matter_probe_blocked_count ?? 0) === planCount
+      && (metrics.missing_matter_filter_probe_blocked_count ?? 0) === planCount
+      && (metrics.missing_classification_filter_probe_blocked_count ?? 0) === planCount
+    ) {
+      return passedWithOperationalGate(stage, "Store policy adapter is implemented and query-layer tenant, matter, classification, policy snapshot, and access-audit filters are enforced with negative RLS probes.");
     }
   }
 

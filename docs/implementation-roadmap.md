@@ -3852,6 +3852,29 @@ P125에서는 Matter Access Policy Evaluator의 matter/resource access decision�
 - Golden fixture 수가 27개로 증가하고 access audit projection이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run contracts:access-audit -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 126: Store Policy Adapter
+
+P126에서는 Access Audit Projection의 access audit row를 실제 store query layer가 사용할 수 있는 policy-bound query plan으로 컴파일했다. 이 단계의 목표는 “검색 후 prompt로 걸러내기”가 아니라 tenant, matter, classification, policy snapshot, access audit record filter가 query 단계에서 빠지지 않도록 강제하는 것이다.
+
+구현 내용:
+
+- `src/store-policy-adapter.mjs`와 `scripts/store-policy-adapter.mjs`를 추가해 `npm run contracts:store-policy` 명령으로 실행 가능하게 함
+- `schemas/store-policy-adapter.schema.json`과 `docs/store-policy-adapter.md`를 추가해 store policy rule, RLS filter template, query policy binding, store query plan, enforcement probe를 계약으로 고정함
+- 모든 access audit row를 store query plan으로 컴파일하고, matter/resource query 모두 `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`, `access_audit_record_id` filter를 요구하게 함
+- resource query plan은 추가로 `resource_id` filter를 요구하고 Data Classification Rule Engine의 resource classification decision과 연결함
+- `view_allowed`와 `can_retrieve = true`인 row만 `executable` query plan이 되며, review/deny row는 `held_for_human_confirmation` 또는 `blocked` 상태로 유지함
+- 각 query plan마다 baseline, missing matter filter, missing classification filter, missing policy snapshot filter, cross-matter filter, unfiltered query probe를 생성하고 dangerous probe는 모두 blocked로 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 store policy adapter를 통합함
+
+완료 기준:
+
+- Store Policy Adapter가 Access Audit Projection과 Data Classification Rule Engine을 source로 삼아 153개 store query plan과 918개 enforcement probe를 생성함
+- 모든 query plan이 RLS enforcement를 켜고 matter/classification/policy snapshot/access audit filter를 포함함
+- 153개 unfiltered query probe, cross-matter probe, missing matter/classification/policy snapshot probe가 전부 blocked로 검증됨
+- Dashboard/API에서 `/api/store-policy-adapters`, `/api/store-policy-rules`, `/api/rls-filter-templates`, `/api/store-query-plans`, `/api/store-enforcement-probes`, `/api/store-policy-validations` route로 조회 가능함
+- Golden fixture 수가 28개로 증가하고 store policy adapter가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run contracts:store-policy -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3860,9 +3883,9 @@ P125에서는 Matter Access Policy Evaluator의 matter/resource access decision�
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 125이다.
+- 현재 완료 기준점은 Phase 126이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P126-P312, 총 187개다.
+- 남은 계획 슬롯은 P127-P312, 총 186개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

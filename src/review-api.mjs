@@ -667,6 +667,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("access_audit_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/store-policy-adapters") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "store_policy_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("store_policy_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("store_policy_adapters", [adapterResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/store-policy-rules") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "store_policy_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("store_policy_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("store_policy_rules", adapterResult.artifact.store_policy_catalog?.store_policy_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rls-filter-templates") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "store_policy_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("store_policy_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rls_filter_templates", adapterResult.artifact.store_policy_catalog?.rls_filter_templates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/store-query-plans") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "store_policy_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("store_policy_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("store_query_plans", adapterResult.artifact.store_policy_catalog?.store_query_plans ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/store-enforcement-probes") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "store_policy_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("store_policy_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("store_enforcement_probes", adapterResult.artifact.store_policy_catalog?.enforcement_probes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/store-policy-validations") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "store_policy_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("store_policy_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("store_policy_validations", adapterResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4206,6 +4248,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/access-audit-actor-rollups", "Access audit rollups by user, runtime, and matter"),
       route("GET", "/api/access-audit-resource-rollups", "Access audit rollups by resource and matter"),
       route("GET", "/api/access-audit-validations", "Access audit validation rows"),
+      route("GET", "/api/store-policy-adapters", "Store policy adapter artifacts"),
+      route("GET", "/api/store-policy-rules", "Store-level policy rule rows"),
+      route("GET", "/api/rls-filter-templates", "RLS-style filter templates by protected collection"),
+      route("GET", "/api/store-query-plans", "Compiled store query plans with required matter and classification filters"),
+      route("GET", "/api/store-enforcement-probes", "Store query enforcement probe rows"),
+      route("GET", "/api/store-policy-validations", "Store policy adapter validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4662,11 +4710,25 @@ function filterItems(items, searchParams) {
     "access_audit_record_id",
     "actor_access_rollup_id",
     "resource_access_rollup_id",
+    "store_policy_adapter_id",
+    "store_policy_adapter_status",
+    "store_policy_rule_id",
+    "rule_type",
+    "rls_filter_template_id",
+    "query_policy_binding_id",
+    "store_query_plan_id",
+    "enforcement_probe_id",
     "source_decision_type",
     "source_decision_id",
     "target_type",
     "target_resource_id",
     "view_status",
+    "collection_id",
+    "query_status",
+    "probe_type",
+    "enforcement_status",
+    "observed_outcome",
+    "blocked_by_policy",
     "classification_rule_id",
     "classification_policy_binding_id",
     "resource_classification_decision_id",
@@ -5287,6 +5349,7 @@ function readFilterValue(item, key) {
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
   if (key === "matter_tagging_ledger_status") return item.summary?.matter_tagging_ledger_status ?? item.matter_tagging_ledger_status;
   if (key === "access_audit_projection_status") return item.summary?.access_audit_projection_status ?? item.access_audit_projection_status;
+  if (key === "store_policy_adapter_status") return item.summary?.store_policy_adapter_status ?? item.store_policy_adapter_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

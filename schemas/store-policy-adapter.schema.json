@@ -1,0 +1,308 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/store-policy-adapter.schema.json",
+  "title": "Hermes Store Policy Adapter",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "store_policy_adapter_id",
+    "output_dir",
+    "inputs",
+    "source_access_audit_projection",
+    "source_data_classification_rule_engine",
+    "store_policy_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "store-policy-adapter.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "store_policy_adapter_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["access_audit_projection_path", "data_classification_rule_engine_path"],
+      "properties": {
+        "access_audit_projection_path": { "type": "string" },
+        "data_classification_rule_engine_path": { "type": "string" }
+      }
+    },
+    "source_access_audit_projection": { "$ref": "#/$defs/source" },
+    "source_data_classification_rule_engine": { "$ref": "#/$defs/source" },
+    "store_policy_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "store_policy_rules",
+        "rls_filter_templates",
+        "query_policy_bindings",
+        "store_query_plans",
+        "enforcement_probes"
+      ],
+      "properties": {
+        "schema_version": { "const": "store-policy-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "store_policy_rules": { "type": "array", "items": { "$ref": "#/$defs/store_policy_rule" } },
+        "rls_filter_templates": { "type": "array", "items": { "$ref": "#/$defs/rls_filter_template" } },
+        "query_policy_bindings": { "type": "array", "items": { "$ref": "#/$defs/query_policy_binding" } },
+        "store_query_plans": { "type": "array", "items": { "$ref": "#/$defs/store_query_plan" } },
+        "enforcement_probes": { "type": "array", "items": { "$ref": "#/$defs/store_enforcement_probe" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "store_policy_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "store_policy_rule_id",
+        "rule_type",
+        "collection_ids",
+        "enforcement_layer",
+        "required_filter_keys",
+        "predicate_template",
+        "default_effect",
+        "failure_effect",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "store-policy-rule.v1" },
+        "store_policy_rule_id": { "type": "string" },
+        "rule_type": { "type": "string" },
+        "collection_ids": { "type": "array", "items": { "type": "string" } },
+        "enforcement_layer": { "type": "string" },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "predicate_template": { "type": "string" },
+        "default_effect": { "enum": ["allow", "review", "deny"] },
+        "failure_effect": { "enum": ["block_query", "hold_query"] },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "rls_filter_template": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "rls_filter_template_id",
+        "collection_id",
+        "applies_to_target_types",
+        "required_bindings",
+        "predicate_template",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "rls-filter-template.v1" },
+        "rls_filter_template_id": { "type": "string" },
+        "collection_id": { "type": "string" },
+        "label": { "type": "string" },
+        "applies_to_target_types": { "type": "array", "items": { "type": "string" } },
+        "required_bindings": { "type": "array", "items": { "type": "string" } },
+        "predicate_template": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "query_policy_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "query_policy_binding_id",
+        "access_audit_record_id",
+        "user_id",
+        "runtime_id",
+        "target_type",
+        "target_matter_id",
+        "collection_id",
+        "rls_filter_template_id",
+        "store_policy_rule_ids",
+        "required_filter_keys",
+        "classification_floor",
+        "policy_snapshot_id",
+        "access_decision",
+        "view_status",
+        "can_retrieve",
+        "binding_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "query-policy-binding.v1" },
+        "query_policy_binding_id": { "type": "string" },
+        "access_audit_record_id": { "type": "string" },
+        "source_decision_id": { "type": "string" },
+        "source_decision_type": { "type": "string" },
+        "user_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "target_type": { "enum": ["matter", "resource"] },
+        "target_matter_id": { "type": "string" },
+        "target_resource_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": "string" },
+        "resource_tenant_id": { "type": ["string", "null"] },
+        "resource_classification_decision_id": { "type": ["string", "null"] },
+        "collection_id": { "type": "string" },
+        "rls_filter_template_id": { "type": ["string", "null"] },
+        "store_policy_rule_ids": { "type": "array", "items": { "type": "string" } },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "required_filter_count": { "type": "integer", "minimum": 0 },
+        "classification_floor": { "type": "string" },
+        "resource_classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "access_decision": { "enum": ["allow", "review", "deny"] },
+        "view_status": { "type": "string" },
+        "can_retrieve": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "binding_status": { "enum": ["bound", "blocked"] },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "store_query_plan": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "store_query_plan_id",
+        "query_policy_binding_id",
+        "access_audit_record_id",
+        "user_id",
+        "runtime_id",
+        "tenant_id",
+        "target_type",
+        "target_matter_id",
+        "collection_id",
+        "query_status",
+        "rls_enforced",
+        "required_filter_keys",
+        "query_filters",
+        "missing_filter_keys",
+        "classification_floor",
+        "policy_snapshot_id",
+        "access_decision",
+        "view_status",
+        "can_retrieve",
+        "requires_human_review",
+        "executable",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "store-query-plan.v1" },
+        "store_query_plan_id": { "type": "string" },
+        "query_policy_binding_id": { "type": ["string", "null"] },
+        "access_audit_record_id": { "type": "string" },
+        "source_decision_id": { "type": "string" },
+        "source_decision_type": { "type": "string" },
+        "user_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "target_type": { "enum": ["matter", "resource"] },
+        "target_matter_id": { "type": "string" },
+        "target_resource_id": { "type": ["string", "null"] },
+        "collection_id": { "type": "string" },
+        "rls_filter_template_id": { "type": ["string", "null"] },
+        "query_status": { "enum": ["executable", "held_for_human_confirmation", "blocked"] },
+        "rls_enforced": { "type": "boolean" },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "query_filters": { "type": "object" },
+        "missing_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "classification_floor": { "type": "string" },
+        "resource_classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "access_decision": { "enum": ["allow", "review", "deny"] },
+        "view_status": { "type": "string" },
+        "can_retrieve": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "matter_tagging_required": { "type": "boolean" },
+        "executable": { "type": "boolean" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "store_enforcement_probe": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "enforcement_probe_id",
+        "store_query_plan_id",
+        "probe_type",
+        "collection_id",
+        "query_filter_keys",
+        "missing_required_filter_keys",
+        "expected_outcome",
+        "observed_outcome",
+        "blocked_by_policy",
+        "enforcement_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "store-enforcement-probe.v1" },
+        "enforcement_probe_id": { "type": "string" },
+        "store_query_plan_id": { "type": "string" },
+        "access_audit_record_id": { "type": "string" },
+        "probe_type": { "type": "string" },
+        "collection_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "target_matter_id": { "type": "string" },
+        "target_resource_id": { "type": ["string", "null"] },
+        "query_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "missing_required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "expected_outcome": { "enum": ["allowed", "held_for_human_confirmation", "blocked"] },
+        "observed_outcome": { "enum": ["allowed", "held_for_human_confirmation", "blocked"] },
+        "blocked_by_policy": { "type": "boolean" },
+        "enforcement_status": { "enum": ["passed", "failed"] },
+        "denial_reason": { "type": ["string", "null"] },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["store_policy_adapter_status", "store_query_plan_count", "validation_error_count"],
+      "properties": {
+        "store_policy_adapter_status": { "enum": ["complete", "blocked"] },
+        "store_query_plan_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

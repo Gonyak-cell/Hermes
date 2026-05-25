@@ -18,6 +18,7 @@ import { runMatterAccessPolicyEvaluator } from "../src/matter-access-policy-eval
 import { runDataClassificationRuleEngine } from "../src/data-classification-rule-engine.mjs";
 import { runMatterTaggingDecisionLedger } from "../src/matter-tagging-decision-ledger.mjs";
 import { runAccessAuditProjection } from "../src/access-audit-projection.mjs";
+import { runStorePolicyAdapter } from "../src/store-policy-adapter.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -962,6 +963,46 @@ describe("matter harness", () => {
       assert.ok(accessAuditProjection.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "access-audit", "summary.md"), "utf8"), /Access Audit Projection/);
 
+      const storePolicyAdapter = await runStorePolicyAdapter({
+        accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        outDir: path.join(outDir, "store-policy"),
+        runAt: "2026-05-23T06:35:05.125Z",
+      });
+      const storePolicyAdapterSchema = JSON.parse(await readFile("schemas/store-policy-adapter.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(storePolicyAdapter, storePolicyAdapterSchema, {}, "store_policy_adapter"), []);
+      assert.equal(storePolicyAdapter.summary.store_policy_adapter_status, "complete");
+      assert.equal(storePolicyAdapter.summary.source_access_audit_projection_status, "complete");
+      assert.equal(storePolicyAdapter.summary.source_data_classification_rule_engine_status, "complete");
+      assert.equal(storePolicyAdapter.summary.access_audit_record_count, accessAuditProjection.summary.access_audit_record_count);
+      assert.equal(storePolicyAdapter.summary.resource_classification_decision_count, dataClassificationRuleEngine.summary.resource_classification_decision_count);
+      assert.equal(storePolicyAdapter.summary.store_policy_rule_count, 5);
+      assert.equal(storePolicyAdapter.summary.rls_filter_template_count, 5);
+      assert.equal(storePolicyAdapter.summary.query_policy_binding_count, accessAuditProjection.summary.access_audit_record_count);
+      assert.equal(storePolicyAdapter.summary.store_query_plan_count, accessAuditProjection.summary.access_audit_record_count);
+      assert.equal(storePolicyAdapter.summary.enforcement_probe_count, storePolicyAdapter.summary.store_query_plan_count * 6);
+      assert.equal(storePolicyAdapter.summary.rls_enforced_query_plan_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.matter_filter_enforced_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.classification_filter_enforced_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.policy_snapshot_filter_enforced_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.access_audit_filter_enforced_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.resource_filter_enforced_count, accessAuditProjection.summary.resource_audit_record_count);
+      assert.equal(storePolicyAdapter.summary.executable_query_plan_count, accessAuditProjection.summary.can_retrieve_count);
+      assert.equal(storePolicyAdapter.summary.held_query_plan_count, accessAuditProjection.summary.view_requires_human_confirmation_count);
+      assert.equal(storePolicyAdapter.summary.blocked_query_plan_count, accessAuditProjection.summary.view_denied_count);
+      assert.equal(storePolicyAdapter.summary.unfiltered_probe_blocked_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.cross_matter_probe_blocked_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.missing_matter_filter_probe_blocked_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.missing_classification_filter_probe_blocked_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.missing_policy_snapshot_filter_probe_blocked_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(storePolicyAdapter.summary.validation_error_count, 0);
+      assert.ok(storePolicyAdapter.store_policy_catalog.store_query_plans.every((plan) => plan.rls_enforced === true));
+      assert.ok(storePolicyAdapter.store_policy_catalog.store_query_plans.every((plan) => plan.required_filter_keys.includes("matter_id") && plan.required_filter_keys.includes("classification")));
+      assert.ok(storePolicyAdapter.store_policy_catalog.store_query_plans.filter((plan) => plan.target_type === "resource").every((plan) => plan.required_filter_keys.includes("resource_id")));
+      assert.ok(storePolicyAdapter.store_policy_catalog.enforcement_probes.filter((probe) => probe.probe_type === "unfiltered_query").every((probe) => probe.observed_outcome === "blocked"));
+      assert.ok(storePolicyAdapter.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "store-policy", "summary.md"), "utf8"), /Store Policy Adapter/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1503,6 +1544,7 @@ describe("matter harness", () => {
         dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
         matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
         accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -1606,6 +1648,7 @@ describe("matter harness", () => {
         policySnapshotBindingLedgerPath: false,
         matterTaggingDecisionLedgerPath: false,
         accessAuditProjectionPath: false,
+        storePolicyAdapterPath: false,
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
@@ -3458,6 +3501,7 @@ describe("matter harness", () => {
           data_classification_rule_engine: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
           matter_tagging_decision_ledger: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
           access_audit_projection: path.join(outDir, "access-audit", "access-audit-projection.json"),
+          store_policy_adapter: path.join(outDir, "store-policy", "store-policy-adapter.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3483,8 +3527,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 27);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 27);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 28);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 28);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3502,6 +3546,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "data_classification_rule_engine"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_tagging_decision_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_audit_projection"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "store_policy_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3546,6 +3591,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:matter-tagging"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:access-audit"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:store-policy"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3639,6 +3685,10 @@ describe("matter harness", () => {
       assert.equal(accessAuditProjectionCheckpoint?.acceptance_profile, "access_audit_projection_gate");
       assert.equal(accessAuditProjectionCheckpoint?.status, "passed");
       assert.equal(accessAuditProjectionCheckpoint?.implementation_status, "passed");
+      const storePolicyAdapterCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-store-policy-adapter");
+      assert.equal(storePolicyAdapterCheckpoint?.acceptance_profile, "store_policy_adapter_gate");
+      assert.equal(storePolicyAdapterCheckpoint?.status, "passed");
+      assert.equal(storePolicyAdapterCheckpoint?.implementation_status, "passed");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4224,6 +4274,32 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.access_audit_distinct_resource_count, accessAuditProjection.summary.distinct_resource_count);
       assert.equal(dashboard.summary.access_audit_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.access_audit_validation_error_count, 0);
+      assert.equal(dashboard.summary.store_policy_adapter_status, "complete");
+      assert.equal(dashboard.summary.store_policy_source_access_audit_projection_status, "complete");
+      assert.equal(dashboard.summary.store_policy_source_data_classification_rule_engine_status, "complete");
+      assert.equal(dashboard.summary.store_policy_access_audit_record_count, storePolicyAdapter.summary.access_audit_record_count);
+      assert.equal(dashboard.summary.store_policy_resource_classification_decision_count, storePolicyAdapter.summary.resource_classification_decision_count);
+      assert.equal(dashboard.summary.store_policy_rule_count, storePolicyAdapter.summary.store_policy_rule_count);
+      assert.equal(dashboard.summary.store_policy_rls_filter_template_count, storePolicyAdapter.summary.rls_filter_template_count);
+      assert.equal(dashboard.summary.store_policy_query_policy_binding_count, storePolicyAdapter.summary.query_policy_binding_count);
+      assert.equal(dashboard.summary.store_policy_store_query_plan_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(dashboard.summary.store_policy_enforcement_probe_count, storePolicyAdapter.summary.enforcement_probe_count);
+      assert.equal(dashboard.summary.store_policy_rls_enforced_query_plan_count, storePolicyAdapter.summary.rls_enforced_query_plan_count);
+      assert.equal(dashboard.summary.store_policy_matter_filter_enforced_count, storePolicyAdapter.summary.matter_filter_enforced_count);
+      assert.equal(dashboard.summary.store_policy_classification_filter_enforced_count, storePolicyAdapter.summary.classification_filter_enforced_count);
+      assert.equal(dashboard.summary.store_policy_policy_snapshot_filter_enforced_count, storePolicyAdapter.summary.policy_snapshot_filter_enforced_count);
+      assert.equal(dashboard.summary.store_policy_access_audit_filter_enforced_count, storePolicyAdapter.summary.access_audit_filter_enforced_count);
+      assert.equal(dashboard.summary.store_policy_resource_filter_enforced_count, storePolicyAdapter.summary.resource_filter_enforced_count);
+      assert.equal(dashboard.summary.store_policy_executable_query_plan_count, storePolicyAdapter.summary.executable_query_plan_count);
+      assert.equal(dashboard.summary.store_policy_held_query_plan_count, storePolicyAdapter.summary.held_query_plan_count);
+      assert.equal(dashboard.summary.store_policy_blocked_query_plan_count, storePolicyAdapter.summary.blocked_query_plan_count);
+      assert.equal(dashboard.summary.store_policy_unfiltered_probe_blocked_count, storePolicyAdapter.summary.unfiltered_probe_blocked_count);
+      assert.equal(dashboard.summary.store_policy_cross_matter_probe_blocked_count, storePolicyAdapter.summary.cross_matter_probe_blocked_count);
+      assert.equal(dashboard.summary.store_policy_missing_matter_filter_probe_blocked_count, storePolicyAdapter.summary.missing_matter_filter_probe_blocked_count);
+      assert.equal(dashboard.summary.store_policy_missing_classification_filter_probe_blocked_count, storePolicyAdapter.summary.missing_classification_filter_probe_blocked_count);
+      assert.equal(dashboard.summary.store_policy_missing_policy_snapshot_filter_probe_blocked_count, storePolicyAdapter.summary.missing_policy_snapshot_filter_probe_blocked_count);
+      assert.equal(dashboard.summary.store_policy_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.store_policy_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -4710,6 +4786,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_snapshot_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_tagging_decision_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "access_audit_projection"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
@@ -4749,6 +4826,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_access_policy_evaluator"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "data_classification_rule_engine"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -4881,6 +4959,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-actor-rollups"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-resource-rollups"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/access-audit-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-policy-adapters"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-policy-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/rls-filter-templates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-query-plans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-enforcement-probes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-policy-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
@@ -6744,6 +6828,30 @@ describe("matter harness", () => {
       const accessAuditValidations = JSON.parse((await buildReviewApiResponse("/api/access-audit-validations?status=passed", apiOptions)).body);
       assert.equal(accessAuditValidations.collection, "access_audit_validations");
       assert.equal(accessAuditValidations.count, accessAuditProjection.summary.validation_item_count);
+
+      const storePolicyAdapters = JSON.parse((await buildReviewApiResponse("/api/store-policy-adapters?store_policy_adapter_status=complete", apiOptions)).body);
+      assert.equal(storePolicyAdapters.collection, "store_policy_adapters");
+      assert.equal(storePolicyAdapters.count, 1);
+
+      const storePolicyRules = JSON.parse((await buildReviewApiResponse("/api/store-policy-rules?rule_type=matter_scope", apiOptions)).body);
+      assert.equal(storePolicyRules.collection, "store_policy_rules");
+      assert.equal(storePolicyRules.count, 1);
+
+      const rlsFilterTemplates = JSON.parse((await buildReviewApiResponse("/api/rls-filter-templates?collection_id=resource_store", apiOptions)).body);
+      assert.equal(rlsFilterTemplates.collection, "rls_filter_templates");
+      assert.equal(rlsFilterTemplates.count, 1);
+
+      const storeQueryPlans = JSON.parse((await buildReviewApiResponse("/api/store-query-plans?query_status=held_for_human_confirmation&target_type=resource", apiOptions)).body);
+      assert.equal(storeQueryPlans.collection, "store_query_plans");
+      assert.equal(storeQueryPlans.count, accessAuditProjection.summary.resource_audit_record_count);
+
+      const storeEnforcementProbes = JSON.parse((await buildReviewApiResponse("/api/store-enforcement-probes?probe_type=unfiltered_query&observed_outcome=blocked", apiOptions)).body);
+      assert.equal(storeEnforcementProbes.collection, "store_enforcement_probes");
+      assert.equal(storeEnforcementProbes.count, storePolicyAdapter.summary.store_query_plan_count);
+
+      const storePolicyValidations = JSON.parse((await buildReviewApiResponse("/api/store-policy-validations?status=passed", apiOptions)).body);
+      assert.equal(storePolicyValidations.collection, "store_policy_validations");
+      assert.equal(storePolicyValidations.count, storePolicyAdapter.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

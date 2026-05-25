@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 125이다.
-- 남은 planned slot은 P126-P312, 총 187개다.
+- 현재 완료 기준점은 Phase 126이다.
+- 남은 planned slot은 P127-P312, 총 186개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -41,7 +41,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures 구성 | golden fixture set | Promoted to Phase 111; 대표 contract artifact 14개가 schema validation과 regression hash manifest에 사용; Phase 113에서 identity_model fixture, Phase 114에서 client_counterparty_registry fixture, Phase 115에서 matter_profile_team_ledger fixture, Phase 116에서 wall_policy_contract fixture, Phase 117에서 matter_access_policy_evaluator fixture, Phase 118에서 data_classification_rule_engine fixture, Phase 119에서 model_policy_enforcement fixture, Phase 120에서 tool_runtime_policy_enforcement fixture, Phase 121에서 output_destination_policy_enforcement fixture, Phase 122에서 approval_authority_ledger fixture, Phase 123에서 policy_snapshot_binding_ledger fixture, Phase 124에서 matter_tagging_decision_ledger fixture, Phase 125에서 access_audit_projection fixture가 추가되어 현재 27개 |
+| P111 | contract golden fixtures 구성 | golden fixture set | Promoted to Phase 111; 대표 contract artifact 14개가 schema validation과 regression hash manifest에 사용; Phase 113에서 identity_model fixture, Phase 114에서 client_counterparty_registry fixture, Phase 115에서 matter_profile_team_ledger fixture, Phase 116에서 wall_policy_contract fixture, Phase 117에서 matter_access_policy_evaluator fixture, Phase 118에서 data_classification_rule_engine fixture, Phase 119에서 model_policy_enforcement fixture, Phase 120에서 tool_runtime_policy_enforcement fixture, Phase 121에서 output_destination_policy_enforcement fixture, Phase 122에서 approval_authority_ledger fixture, Phase 123에서 policy_snapshot_binding_ledger fixture, Phase 124에서 matter_tagging_decision_ledger fixture, Phase 125에서 access_audit_projection fixture, Phase 126에서 store_policy_adapter fixture가 추가되어 현재 28개 |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -61,7 +61,7 @@
 | P123 | Policy Snapshot binding 구현 | policy snapshot binder | Promoted to Phase 123; workflow/agent/event/audit/run/gate/approval/output/delivery binding이 실행 당시 policy snapshot으로 해소되고 unresolved placeholder는 fallback_resolved reference로 추적 |
 | P124 | Matter tagging decision ledger 구현 | matter tagging ledger | Promoted to Phase 124; 자동 후보, 사람 확인 대기열, correction history가 분리되고 unassigned resource는 자동 적용 없이 pending human confirmation으로 유지 |
 | P125 | access audit projection 구현 | access audit view | Promoted to Phase 125; Matter Access Policy decision이 user/runtime/matter/resource/policy snapshot별 audit record와 actor/resource rollup으로 조회 가능 |
-| P126 | store-level policy/RLS 설계 반영 | RLS design doc, store policy adapter | query layer에서 matter/classification 필터가 강제되는 설계가 검증 |
+| P126 | store-level policy/RLS 설계 반영 | RLS design doc, store policy adapter | Promoted to Phase 126; access audit row가 store query plan으로 컴파일되고 tenant/matter/classification/policy snapshot/access audit filter와 negative RLS probe가 query layer에서 검증 |
 | P127 | conflict check interface 구현 | conflict check request/result artifact | 수임/자료접근 전 conflict signal을 남김 |
 | P128 | personal workspace boundary 구현 | personal tenant policy | 개인 프로젝트와 로펌 matter가 검색/정책 계층에서 분리 |
 | P129 | policy golden fixtures 구축 | policy fixture set | 허용/차단/승인필요 케이스가 regression test에 포함 |

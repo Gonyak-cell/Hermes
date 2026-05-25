@@ -16,6 +16,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   dataClassificationRuleEnginePath: "artifacts/data-classification-rules/latest/data-classification-rule-engine.json",
   matterTaggingDecisionLedgerPath: "artifacts/matter-tagging/latest/matter-tagging-ledger.json",
   accessAuditProjectionPath: "artifacts/access-audit/latest/access-audit-projection.json",
+  storePolicyAdapterPath: "artifacts/store-policy/latest/store-policy-adapter.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -184,6 +185,11 @@ const SOURCE_DEFINITIONS = [
     option: "accessAuditProjectionPath",
     source_id: "access_audit_projection",
     label: "Access Audit Projection",
+  },
+  {
+    option: "storePolicyAdapterPath",
+    source_id: "store_policy_adapter",
+    label: "Store Policy Adapter",
   },
   {
     option: "evidenceContractFreezePath",
@@ -834,6 +840,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "data_classification_rule_engine") return data.summary ?? {};
   if (sourceId === "matter_tagging_decision_ledger") return data.summary ?? {};
   if (sourceId === "access_audit_projection") return data.summary ?? {};
+  if (sourceId === "store_policy_adapter") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1039,6 +1046,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDataClassificationRuleEngineStage(artifacts.data_classification_rule_engine, sourceById.get("data_classification_rule_engine")),
     buildMatterTaggingDecisionLedgerStage(artifacts.matter_tagging_decision_ledger, sourceById.get("matter_tagging_decision_ledger")),
     buildAccessAuditProjectionStage(artifacts.access_audit_projection, sourceById.get("access_audit_projection")),
+    buildStorePolicyAdapterStage(artifacts.store_policy_adapter, sourceById.get("store_policy_adapter")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1595,6 +1603,58 @@ function buildAccessAuditProjectionStage(projection, source) {
       distinct_runtime_count: summary.distinct_runtime_count ?? 0,
       distinct_matter_count: summary.distinct_matter_count ?? 0,
       distinct_resource_count: summary.distinct_resource_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildStorePolicyAdapterStage(adapter, source) {
+  if (!adapter) return missingStage("store_policy_adapter", "Store Policy Adapter", source);
+  const summary = adapter.summary ?? {};
+  const errorCount = summary.validation_error_count ?? adapter.validation?.errors?.length ?? 0;
+  const planCount = summary.store_query_plan_count ?? 0;
+  const status = summary.store_policy_adapter_status === "complete"
+    && errorCount === 0
+    && planCount > 0
+    && (summary.rls_enforced_query_plan_count ?? 0) === planCount
+    && (summary.matter_filter_enforced_count ?? 0) === planCount
+    && (summary.classification_filter_enforced_count ?? 0) === planCount
+    && (summary.unfiltered_probe_blocked_count ?? 0) === planCount
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "store_policy_adapter",
+    label: "Store Policy Adapter",
+    status,
+    message: `${planCount} store query plan(s), ${summary.enforcement_probe_count ?? 0} enforcement probe(s), ${summary.unfiltered_probe_blocked_count ?? 0} unfiltered probe(s) blocked.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      store_policy_adapter_status: summary.store_policy_adapter_status ?? "unknown",
+      source_access_audit_projection_status: summary.source_access_audit_projection_status ?? "unknown",
+      source_data_classification_rule_engine_status: summary.source_data_classification_rule_engine_status ?? "unknown",
+      access_audit_record_count: summary.access_audit_record_count ?? 0,
+      resource_classification_decision_count: summary.resource_classification_decision_count ?? 0,
+      store_policy_rule_count: summary.store_policy_rule_count ?? 0,
+      rls_filter_template_count: summary.rls_filter_template_count ?? 0,
+      query_policy_binding_count: summary.query_policy_binding_count ?? 0,
+      store_query_plan_count: planCount,
+      enforcement_probe_count: summary.enforcement_probe_count ?? 0,
+      rls_enforced_query_plan_count: summary.rls_enforced_query_plan_count ?? 0,
+      matter_filter_enforced_count: summary.matter_filter_enforced_count ?? 0,
+      classification_filter_enforced_count: summary.classification_filter_enforced_count ?? 0,
+      policy_snapshot_filter_enforced_count: summary.policy_snapshot_filter_enforced_count ?? 0,
+      access_audit_filter_enforced_count: summary.access_audit_filter_enforced_count ?? 0,
+      resource_filter_enforced_count: summary.resource_filter_enforced_count ?? 0,
+      executable_query_plan_count: summary.executable_query_plan_count ?? 0,
+      held_query_plan_count: summary.held_query_plan_count ?? 0,
+      blocked_query_plan_count: summary.blocked_query_plan_count ?? 0,
+      unfiltered_probe_blocked_count: summary.unfiltered_probe_blocked_count ?? 0,
+      cross_matter_probe_blocked_count: summary.cross_matter_probe_blocked_count ?? 0,
+      missing_matter_filter_probe_blocked_count: summary.missing_matter_filter_probe_blocked_count ?? 0,
+      missing_classification_filter_probe_blocked_count: summary.missing_classification_filter_probe_blocked_count ?? 0,
+      missing_policy_snapshot_filter_probe_blocked_count: summary.missing_policy_snapshot_filter_probe_blocked_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5214,6 +5274,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.store_policy_adapter?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "store_policy_adapter";
+    items.push({
+      action_item_id: `dashboard.action.store_policy_adapter.${slugify(subjectId)}`,
+      source_stage: "store_policy_adapter",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix store policy adapter validation",
+      subject_ref: {
+        subject_type: "store_policy_adapter_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_store_policy_adapter", "rerun_store_policy_adapter", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -6755,6 +6833,32 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     access_audit_distinct_resource_count: artifacts.access_audit_projection?.summary?.distinct_resource_count ?? 0,
     access_audit_failed_validation_item_count: artifacts.access_audit_projection?.summary?.failed_validation_item_count ?? 0,
     access_audit_validation_error_count: artifacts.access_audit_projection?.summary?.validation_error_count ?? artifacts.access_audit_projection?.validation?.errors?.length ?? 0,
+    store_policy_adapter_status: artifacts.store_policy_adapter?.summary?.store_policy_adapter_status ?? "unknown",
+    store_policy_source_access_audit_projection_status: artifacts.store_policy_adapter?.summary?.source_access_audit_projection_status ?? "unknown",
+    store_policy_source_data_classification_rule_engine_status: artifacts.store_policy_adapter?.summary?.source_data_classification_rule_engine_status ?? "unknown",
+    store_policy_access_audit_record_count: artifacts.store_policy_adapter?.summary?.access_audit_record_count ?? 0,
+    store_policy_resource_classification_decision_count: artifacts.store_policy_adapter?.summary?.resource_classification_decision_count ?? 0,
+    store_policy_rule_count: artifacts.store_policy_adapter?.summary?.store_policy_rule_count ?? 0,
+    store_policy_rls_filter_template_count: artifacts.store_policy_adapter?.summary?.rls_filter_template_count ?? 0,
+    store_policy_query_policy_binding_count: artifacts.store_policy_adapter?.summary?.query_policy_binding_count ?? 0,
+    store_policy_store_query_plan_count: artifacts.store_policy_adapter?.summary?.store_query_plan_count ?? 0,
+    store_policy_enforcement_probe_count: artifacts.store_policy_adapter?.summary?.enforcement_probe_count ?? 0,
+    store_policy_rls_enforced_query_plan_count: artifacts.store_policy_adapter?.summary?.rls_enforced_query_plan_count ?? 0,
+    store_policy_matter_filter_enforced_count: artifacts.store_policy_adapter?.summary?.matter_filter_enforced_count ?? 0,
+    store_policy_classification_filter_enforced_count: artifacts.store_policy_adapter?.summary?.classification_filter_enforced_count ?? 0,
+    store_policy_policy_snapshot_filter_enforced_count: artifacts.store_policy_adapter?.summary?.policy_snapshot_filter_enforced_count ?? 0,
+    store_policy_access_audit_filter_enforced_count: artifacts.store_policy_adapter?.summary?.access_audit_filter_enforced_count ?? 0,
+    store_policy_resource_filter_enforced_count: artifacts.store_policy_adapter?.summary?.resource_filter_enforced_count ?? 0,
+    store_policy_executable_query_plan_count: artifacts.store_policy_adapter?.summary?.executable_query_plan_count ?? 0,
+    store_policy_held_query_plan_count: artifacts.store_policy_adapter?.summary?.held_query_plan_count ?? 0,
+    store_policy_blocked_query_plan_count: artifacts.store_policy_adapter?.summary?.blocked_query_plan_count ?? 0,
+    store_policy_unfiltered_probe_blocked_count: artifacts.store_policy_adapter?.summary?.unfiltered_probe_blocked_count ?? 0,
+    store_policy_cross_matter_probe_blocked_count: artifacts.store_policy_adapter?.summary?.cross_matter_probe_blocked_count ?? 0,
+    store_policy_missing_matter_filter_probe_blocked_count: artifacts.store_policy_adapter?.summary?.missing_matter_filter_probe_blocked_count ?? 0,
+    store_policy_missing_classification_filter_probe_blocked_count: artifacts.store_policy_adapter?.summary?.missing_classification_filter_probe_blocked_count ?? 0,
+    store_policy_missing_policy_snapshot_filter_probe_blocked_count: artifacts.store_policy_adapter?.summary?.missing_policy_snapshot_filter_probe_blocked_count ?? 0,
+    store_policy_failed_validation_item_count: artifacts.store_policy_adapter?.summary?.failed_validation_item_count ?? 0,
+    store_policy_validation_error_count: artifacts.store_policy_adapter?.summary?.validation_error_count ?? artifacts.store_policy_adapter?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8104,6 +8208,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-tagging-ledger") parsed.matterTaggingDecisionLedgerPath = false;
     else if (arg === "--access-audit-projection") parsed.accessAuditProjectionPath = argv[++index];
     else if (arg === "--no-access-audit-projection") parsed.accessAuditProjectionPath = false;
+    else if (arg === "--store-policy-adapter") parsed.storePolicyAdapterPath = argv[++index];
+    else if (arg === "--no-store-policy-adapter") parsed.storePolicyAdapterPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8343,6 +8449,8 @@ Options:
   --access-audit-projection <path>
                                   access-audit-projection.json path.
   --no-access-audit-projection   Do not include Access Audit Projection status.
+  --store-policy-adapter <path>  store-policy-adapter.json path.
+  --no-store-policy-adapter      Do not include Store Policy Adapter status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

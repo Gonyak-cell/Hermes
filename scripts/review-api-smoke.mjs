@@ -203,6 +203,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/access-audit-actor-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/access-audit-resource-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/access-audit-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/store-policy-adapters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/store-policy-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/rls-filter-templates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/store-query-plans"));
+  assert.ok(index.routes.some((route) => route.path === "/api/store-enforcement-probes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/store-policy-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1765,6 +1771,30 @@ try {
   const accessAuditValidations = await fetchJson(`${url}/api/access-audit-validations?status=passed&limit=5`);
   assert.equal(accessAuditValidations.collection, "access_audit_validations");
   assert.ok(accessAuditValidations.count <= 5);
+
+  const storePolicyAdapters = await fetchJson(`${url}/api/store-policy-adapters?store_policy_adapter_status=complete&limit=1`);
+  assert.equal(storePolicyAdapters.collection, "store_policy_adapters");
+  assert.ok(storePolicyAdapters.count <= 1);
+
+  const storePolicyRules = await fetchJson(`${url}/api/store-policy-rules?rule_type=matter_scope&limit=5`);
+  assert.equal(storePolicyRules.collection, "store_policy_rules");
+  assert.ok(storePolicyRules.count <= 5);
+
+  const rlsFilterTemplates = await fetchJson(`${url}/api/rls-filter-templates?collection_id=resource_store&limit=5`);
+  assert.equal(rlsFilterTemplates.collection, "rls_filter_templates");
+  assert.ok(rlsFilterTemplates.count <= 5);
+
+  const storeQueryPlans = await fetchJson(`${url}/api/store-query-plans?query_status=held_for_human_confirmation&target_type=resource&limit=5`);
+  assert.equal(storeQueryPlans.collection, "store_query_plans");
+  assert.ok(storeQueryPlans.count <= 5);
+
+  const storeEnforcementProbes = await fetchJson(`${url}/api/store-enforcement-probes?probe_type=unfiltered_query&observed_outcome=blocked&limit=5`);
+  assert.equal(storeEnforcementProbes.collection, "store_enforcement_probes");
+  assert.ok(storeEnforcementProbes.count <= 5);
+
+  const storePolicyValidations = await fetchJson(`${url}/api/store-policy-validations?status=passed&limit=5`);
+  assert.equal(storePolicyValidations.collection, "store_policy_validations");
+  assert.ok(storePolicyValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

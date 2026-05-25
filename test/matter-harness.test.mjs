@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import path from "node:path";
 import { runControlPlaneAuditTrail } from "../src/control-plane-audit-trail.mjs";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
+import { runContractDependencyMap } from "../src/contract-dependency-map.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
@@ -991,6 +992,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
         contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+        contractDependencyMapPath: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
         controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2488,6 +2490,33 @@ describe("matter harness", () => {
       assert.ok(contractInventory.owner_map.every((entry) => entry.owner_area && entry.plane && entry.stability_tier));
       assert.match(await readFile(path.join(outDir, "contract-inventory", "summary.md"), "utf8"), /Contract Inventory/);
 
+      const contractDependencyMap = await runContractDependencyMap({
+        inventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+        outDir: path.join(outDir, "contract-dependency-map"),
+        runAt: "2026-05-23T06:35:07.995Z",
+      });
+      const contractDependencyMapSchema = JSON.parse(await readFile("schemas/contract-dependency-map.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(contractDependencyMap, contractDependencyMapSchema, {}, "contract_dependency_map"),
+        [],
+      );
+      assert.equal(contractDependencyMap.summary.map_status, "complete");
+      assert.equal(contractDependencyMap.summary.source_inventory_id, contractInventory.inventory_id);
+      assert.equal(contractDependencyMap.summary.source_inventory_status, "complete");
+      assert.equal(contractDependencyMap.summary.node_count, contractInventory.summary.inventory_item_count);
+      assert.ok(contractDependencyMap.summary.edge_count >= contractInventory.summary.dashboard_source_count);
+      assert.ok(contractDependencyMap.summary.schema_dependency_edge_count >= contractInventory.summary.artifact_contract_with_schema_count);
+      assert.ok(contractDependencyMap.summary.dashboard_dependency_edge_count >= contractInventory.summary.dashboard_source_with_schema_count);
+      assert.ok(contractDependencyMap.summary.api_dependency_edge_count >= 1);
+      assert.ok(contractDependencyMap.summary.owner_dependency_count >= 1);
+      assert.equal(contractDependencyMap.summary.direction_violation_count, 0);
+      assert.equal(contractDependencyMap.summary.validation_error_count, 0);
+      assert.ok(contractDependencyMap.nodes.some((node) => node.inventory_item_id === "dashboard_source.contract_inventory"));
+      assert.ok(contractDependencyMap.edges.some((edge) => edge.edge_type === "artifact_contract_to_dashboard_source"));
+      assert.ok(contractDependencyMap.edges.some((edge) => edge.edge_type === "dashboard_source_to_api_route"));
+      assert.ok(contractDependencyMap.breaking_change_risks.some((risk) => risk.risk_type === "api_route_without_source_edge"));
+      assert.match(await readFile(path.join(outDir, "contract-dependency-map", "summary.md"), "utf8"), /Contract Dependency Map/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -2526,6 +2555,10 @@ describe("matter harness", () => {
       assert.equal(contractInventoryCheckpoint?.acceptance_profile, "contract_inventory_gate");
       assert.equal(contractInventoryCheckpoint?.status, "passed");
       assert.equal(contractInventoryCheckpoint?.implementation_status, "passed");
+      const contractDependencyMapCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-contract-dependency-map");
+      assert.equal(contractDependencyMapCheckpoint?.acceptance_profile, "contract_dependency_map_gate");
+      assert.equal(contractDependencyMapCheckpoint?.status, "passed");
+      assert.equal(contractDependencyMapCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2763,6 +2796,16 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.contract_inventory_owner_mapped_item_count, contractInventory.summary.owner_mapped_item_count);
       assert.equal(dashboard.summary.contract_inventory_owner_area_count, contractInventory.summary.owner_area_count);
       assert.equal(dashboard.summary.contract_inventory_validation_error_count, 0);
+      assert.equal(dashboard.summary.contract_dependency_map_node_count, contractDependencyMap.summary.node_count);
+      assert.equal(dashboard.summary.contract_dependency_map_edge_count, contractDependencyMap.summary.edge_count);
+      assert.equal(dashboard.summary.contract_dependency_map_schema_edge_count, contractDependencyMap.summary.schema_dependency_edge_count);
+      assert.equal(dashboard.summary.contract_dependency_map_dashboard_edge_count, contractDependencyMap.summary.dashboard_dependency_edge_count);
+      assert.equal(dashboard.summary.contract_dependency_map_api_edge_count, contractDependencyMap.summary.api_dependency_edge_count);
+      assert.equal(dashboard.summary.contract_dependency_map_owner_dependency_count, contractDependencyMap.summary.owner_dependency_count);
+      assert.equal(dashboard.summary.contract_dependency_map_risk_count, contractDependencyMap.summary.breaking_change_risk_count);
+      assert.equal(dashboard.summary.contract_dependency_map_high_risk_count, 0);
+      assert.equal(dashboard.summary.contract_dependency_map_direction_violation_count, 0);
+      assert.equal(dashboard.summary.contract_dependency_map_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3136,6 +3179,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_loop"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_goal_checkpoint"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_inventory"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_dependency_map"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3277,6 +3321,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-schemas"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-artifacts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-owner-map"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-dependency-maps"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-dependency-nodes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-dependency-edges"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-breaking-change-risks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/contract-owner-dependencies"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/control-plane-health"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/health-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/action-plans"));
@@ -4377,6 +4426,26 @@ describe("matter harness", () => {
       const contractOwnerMap = JSON.parse((await buildReviewApiResponse("/api/contract-owner-map?owner_area=core_contracts", apiOptions)).body);
       assert.equal(contractOwnerMap.collection, "contract_owner_map");
       assert.ok(contractOwnerMap.count >= 1);
+
+      const contractDependencyMaps = JSON.parse((await buildReviewApiResponse("/api/contract-dependency-maps?map_status=complete", apiOptions)).body);
+      assert.equal(contractDependencyMaps.collection, "contract_dependency_maps");
+      assert.equal(contractDependencyMaps.count, 1);
+
+      const contractDependencyNodes = JSON.parse((await buildReviewApiResponse("/api/contract-dependency-nodes?item_type=schema", apiOptions)).body);
+      assert.equal(contractDependencyNodes.collection, "contract_dependency_nodes");
+      assert.equal(contractDependencyNodes.count, contractInventory.summary.schema_count);
+
+      const contractDependencyEdges = JSON.parse((await buildReviewApiResponse("/api/contract-dependency-edges?edge_type=artifact_contract_to_dashboard_source", apiOptions)).body);
+      assert.equal(contractDependencyEdges.collection, "contract_dependency_edges");
+      assert.equal(contractDependencyEdges.count, contractDependencyMap.summary.dashboard_dependency_edge_count);
+
+      const contractBreakingChangeRisks = JSON.parse((await buildReviewApiResponse("/api/contract-breaking-change-risks?risk_level=low", apiOptions)).body);
+      assert.equal(contractBreakingChangeRisks.collection, "contract_breaking_change_risks");
+      assert.equal(contractBreakingChangeRisks.count, contractDependencyMap.summary.low_risk_count);
+
+      const contractOwnerDependencies = JSON.parse((await buildReviewApiResponse("/api/contract-owner-dependencies?direction_status=allowed", apiOptions)).body);
+      assert.equal(contractOwnerDependencies.collection, "contract_owner_dependencies");
+      assert.equal(contractOwnerDependencies.count, contractDependencyMap.summary.owner_dependency_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

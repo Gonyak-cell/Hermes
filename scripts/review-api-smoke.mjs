@@ -973,6 +973,26 @@ try {
   assert.equal(contractOwnerMap.collection, "contract_owner_map");
   assert.ok(contractOwnerMap.count <= 5);
 
+  const contractDependencyMaps = await fetchJson(`${url}/api/contract-dependency-maps?map_status=complete&limit=1`);
+  assert.equal(contractDependencyMaps.collection, "contract_dependency_maps");
+  assert.ok(contractDependencyMaps.count <= 1);
+
+  const contractDependencyNodes = await fetchJson(`${url}/api/contract-dependency-nodes?item_type=schema&limit=5`);
+  assert.equal(contractDependencyNodes.collection, "contract_dependency_nodes");
+  assert.ok(contractDependencyNodes.count <= 5);
+
+  const contractDependencyEdges = await fetchJson(`${url}/api/contract-dependency-edges?edge_type=artifact_contract_to_dashboard_source&limit=5`);
+  assert.equal(contractDependencyEdges.collection, "contract_dependency_edges");
+  assert.ok(contractDependencyEdges.count <= 5);
+
+  const contractBreakingChangeRisks = await fetchJson(`${url}/api/contract-breaking-change-risks?risk_level=low&limit=5`);
+  assert.equal(contractBreakingChangeRisks.collection, "contract_breaking_change_risks");
+  assert.ok(contractBreakingChangeRisks.count <= 5);
+
+  const contractOwnerDependencies = await fetchJson(`${url}/api/contract-owner-dependencies?direction_status=allowed&limit=5`);
+  assert.equal(contractOwnerDependencies.collection, "contract_owner_dependencies");
+  assert.ok(contractOwnerDependencies.count <= 5);
+
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);
   assert.match(await html.text(), /Hermes Review Dashboard/);

@@ -2982,6 +2982,36 @@ Phase 97은 Core Contracts, Schema, Migration Spine 트랙의 첫 단계로 현�
 - Review API에서 `/api/contract-inventories`, `/api/contract-inventory-items`, `/api/contract-schemas`, `/api/contract-artifacts`, `/api/contract-owner-map` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 98: Contract Dependency Map and Breaking Risk List
+
+Phase 98은 Phase 97 inventory를 입력으로 삼아 contract 간 dependency graph와 breaking-change risk list를 생성했다.
+
+구현:
+
+- `npm run contracts:dependencies`
+- `src/contract-dependency-map.mjs`
+- `scripts/contract-dependency-map.mjs`
+- `schemas/contract-dependency-map.schema.json`
+- `docs/contract-dependency-map.md`
+
+핵심 산출물:
+
+- `artifacts/contract-dependency-map/latest/contract-dependency-map.json`
+- `artifacts/contract-dependency-map/latest/dependency-graph.json`
+- `artifacts/contract-dependency-map/latest/breaking-change-risks.json`
+- `artifacts/contract-dependency-map/latest/owner-dependency-map.json`
+- `artifacts/contract-dependency-map/latest/summary.md`
+
+완료 기준:
+
+- schema -> artifact contract -> dashboard source -> Review API route 의존 방향이 graph edge로 기록됨
+- package script -> control-plane loop output contract -> artifact contract 연결이 기록됨
+- owner area 간 dependency aggregate와 cross-owner edge count가 기록됨
+- schema version, artifact schema mapping, dashboard/API source mapping, script/output artifact coverage에 대한 breaking-change risk list가 생성됨
+- Dashboard stage와 goal checkpoint가 `contract_dependency_map`을 추적함
+- Review API에서 `/api/contract-dependency-maps`, `/api/contract-dependency-nodes`, `/api/contract-dependency-edges`, `/api/contract-breaking-change-risks`, `/api/contract-owner-dependencies` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -2990,9 +3020,9 @@ Phase 97은 Core Contracts, Schema, Migration Spine 트랙의 첫 단계로 현�
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 97이다.
+- 현재 완료 기준점은 Phase 98이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P098-P312, 총 215개다.
+- 남은 계획 슬롯은 P099-P312, 총 214개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -17,6 +17,7 @@
     "brief": "node scripts/matter-brief.mjs examples/project-alpha-matter.json",
     "context:packets": "node scripts/context-packet-ledger.mjs",
     "contracts:inventory": "node scripts/contract-inventory.mjs",
+    "contracts:dependencies": "node scripts/contract-dependency-map.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",

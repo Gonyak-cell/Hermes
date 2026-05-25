@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/contract-dependency-map.schema.json",
+  "title": "Hermes Contract Dependency Map",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "dependency_map_id",
+    "output_dir",
+    "inputs",
+    "source_inventory",
+    "direction_contract",
+    "summary",
+    "nodes",
+    "edges",
+    "dependency_graph",
+    "owner_dependencies",
+    "breaking_change_risks",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "contract-dependency-map.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "dependency_map_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["inventory_path"],
+      "properties": {
+        "inventory_path": { "type": "string" }
+      }
+    },
+    "source_inventory": {
+      "type": "object",
+      "required": [
+        "inventory_id",
+        "schema_version",
+        "generated_at",
+        "inventory_status",
+        "inventory_item_count",
+        "owner_mapped_item_count"
+      ],
+      "properties": {
+        "inventory_id": { "type": ["string", "null"] },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "inventory_status": { "type": "string" },
+        "inventory_item_count": { "type": "integer", "minimum": 0 },
+        "owner_mapped_item_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "direction_contract": {
+      "type": "object",
+      "required": ["contract", "rules"],
+      "properties": {
+        "contract": { "type": "string" },
+        "rules": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/direction_rule" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "map_status",
+        "source_inventory_id",
+        "source_inventory_status",
+        "inventory_item_count",
+        "node_count",
+        "edge_count",
+        "schema_dependency_edge_count",
+        "script_dependency_edge_count",
+        "loop_artifact_dependency_edge_count",
+        "dashboard_dependency_edge_count",
+        "api_dependency_edge_count",
+        "owner_dependency_count",
+        "cross_owner_edge_count",
+        "direction_violation_count",
+        "breaking_change_risk_count",
+        "high_risk_count",
+        "medium_risk_count",
+        "low_risk_count",
+        "validation_error_count",
+        "by_edge_type",
+        "by_risk_level"
+      ],
+      "properties": {
+        "map_status": { "enum": ["complete", "blocked"] },
+        "source_inventory_id": { "type": ["string", "null"] },
+        "source_inventory_status": { "type": "string" },
+        "inventory_item_count": { "type": "integer", "minimum": 0 },
+        "node_count": { "type": "integer", "minimum": 0 },
+        "edge_count": { "type": "integer", "minimum": 0 },
+        "schema_dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "script_dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "loop_artifact_dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "dashboard_dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "api_dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "owner_dependency_count": { "type": "integer", "minimum": 0 },
+        "cross_owner_edge_count": { "type": "integer", "minimum": 0 },
+        "direction_violation_count": { "type": "integer", "minimum": 0 },
+        "breaking_change_risk_count": { "type": "integer", "minimum": 0 },
+        "high_risk_count": { "type": "integer", "minimum": 0 },
+        "medium_risk_count": { "type": "integer", "minimum": 0 },
+        "low_risk_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_edge_type": { "type": "object" },
+        "by_risk_level": { "type": "object" }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency_node" }
+    },
+    "edges": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/dependency_edge" }
+    },
+    "dependency_graph": {
+      "type": "object",
+      "required": ["nodes", "edges"],
+      "properties": {
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/dependency_node" } },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/dependency_edge" } }
+      }
+    },
+    "owner_dependencies": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/owner_dependency" }
+    },
+    "breaking_change_risks": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/breaking_change_risk" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "direction_rule": {
+      "type": "object",
+      "required": ["rule_id", "from_role", "to_role", "direction"],
+      "properties": {
+        "rule_id": { "type": "string" },
+        "from_role": { "type": "string" },
+        "to_role": { "type": "string" },
+        "direction": { "type": "string" }
+      }
+    },
+    "dependency_node": {
+      "type": "object",
+      "required": [
+        "node_id",
+        "inventory_item_id",
+        "item_type",
+        "name",
+        "source_ref",
+        "owner_area",
+        "plane",
+        "domain_pack",
+        "stability_tier",
+        "dependency_role"
+      ],
+      "properties": {
+        "node_id": { "type": "string" },
+        "inventory_item_id": { "type": "string" },
+        "item_type": { "type": "string" },
+        "name": { "type": "string" },
+        "source_ref": { "type": ["string", "null"] },
+        "owner_area": { "type": "string" },
+        "plane": { "type": "string" },
+        "domain_pack": { "type": ["string", "null"] },
+        "stability_tier": { "type": "string" },
+        "dependency_role": { "type": "string" }
+      }
+    },
+    "dependency_edge": {
+      "type": "object",
+      "required": [
+        "edge_id",
+        "edge_type",
+        "from_node_id",
+        "to_node_id",
+        "from_inventory_item_id",
+        "to_inventory_item_id",
+        "from_owner_area",
+        "to_owner_area",
+        "from_plane",
+        "to_plane",
+        "direction_status",
+        "dependency_reason"
+      ],
+      "properties": {
+        "edge_id": { "type": "string" },
+        "edge_type": { "type": "string" },
+        "from_node_id": { "type": "string" },
+        "to_node_id": { "type": "string" },
+        "from_inventory_item_id": { "type": "string" },
+        "to_inventory_item_id": { "type": "string" },
+        "from_owner_area": { "type": "string" },
+        "to_owner_area": { "type": "string" },
+        "from_plane": { "type": "string" },
+        "to_plane": { "type": "string" },
+        "direction_status": { "type": "string" },
+        "dependency_reason": { "type": "string" }
+      }
+    },
+    "owner_dependency": {
+      "type": "object",
+      "required": [
+        "owner_dependency_id",
+        "from_owner_area",
+        "to_owner_area",
+        "edge_type",
+        "dependency_count",
+        "cross_owner",
+        "direction_status",
+        "sample_edge_ids"
+      ],
+      "properties": {
+        "owner_dependency_id": { "type": "string" },
+        "from_owner_area": { "type": "string" },
+        "to_owner_area": { "type": "string" },
+        "edge_type": { "type": "string" },
+        "dependency_count": { "type": "integer", "minimum": 0 },
+        "cross_owner": { "type": "boolean" },
+        "direction_status": { "type": "string" },
+        "sample_edge_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "breaking_change_risk": {
+      "type": "object",
+      "required": ["risk_id", "risk_type", "risk_level", "subject_id", "message", "mitigation"],
+      "properties": {
+        "risk_id": { "type": "string" },
+        "risk_type": { "type": "string" },
+        "risk_level": { "enum": ["high", "medium", "low"] },
+        "subject_id": { "type": "string" },
+        "message": { "type": "string" },
+        "mitigation": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

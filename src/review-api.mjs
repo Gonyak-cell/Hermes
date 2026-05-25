@@ -728,6 +728,61 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/contract-dependency-maps") {
+    const dependencyResult = await readDashboardSourceArtifact(dashboard, "contract_dependency_map");
+    if (!dependencyResult.available) {
+      return jsonResponse(503, buildError("contract_dependency_map_unavailable", dependencyResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_dependency_maps", [dependencyResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-dependency-nodes") {
+    const dependencyResult = await readDashboardSourceArtifact(dashboard, "contract_dependency_map");
+    if (!dependencyResult.available) {
+      return jsonResponse(503, buildError("contract_dependency_map_unavailable", dependencyResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_dependency_nodes", dependencyResult.artifact.nodes ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-dependency-edges") {
+    const dependencyResult = await readDashboardSourceArtifact(dashboard, "contract_dependency_map");
+    if (!dependencyResult.available) {
+      return jsonResponse(503, buildError("contract_dependency_map_unavailable", dependencyResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_dependency_edges", dependencyResult.artifact.edges ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-breaking-change-risks") {
+    const dependencyResult = await readDashboardSourceArtifact(dashboard, "contract_dependency_map");
+    if (!dependencyResult.available) {
+      return jsonResponse(503, buildError("contract_dependency_map_unavailable", dependencyResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_breaking_change_risks", dependencyResult.artifact.breaking_change_risks ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-owner-dependencies") {
+    const dependencyResult = await readDashboardSourceArtifact(dashboard, "contract_dependency_map");
+    if (!dependencyResult.available) {
+      return jsonResponse(503, buildError("contract_dependency_map_unavailable", dependencyResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_owner_dependencies", dependencyResult.artifact.owner_dependencies ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -2521,7 +2576,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -2605,6 +2660,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/contract-schemas", "Contract schema inventory records"),
       route("GET", "/api/contract-artifacts", "Dashboard and loop artifact contract records"),
       route("GET", "/api/contract-owner-map", "Contract owner map entries"),
+      route("GET", "/api/contract-dependency-maps", "Contract dependency map artifacts"),
+      route("GET", "/api/contract-dependency-nodes", "Contract dependency graph nodes"),
+      route("GET", "/api/contract-dependency-edges", "Contract dependency graph edges"),
+      route("GET", "/api/contract-breaking-change-risks", "Contract dependency breaking-change risks"),
+      route("GET", "/api/contract-owner-dependencies", "Contract dependency owner boundary aggregates"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -2809,6 +2869,17 @@ function filterItems(items, searchParams) {
     "inventory_id",
     "inventory_status",
     "inventory_item_id",
+    "dependency_map_id",
+    "map_status",
+    "node_id",
+    "edge_id",
+    "edge_type",
+    "risk_id",
+    "risk_type",
+    "risk_level",
+    "direction_status",
+    "from_owner_area",
+    "to_owner_area",
     "item_type",
     "owner_area",
     "schema_id",
@@ -3140,6 +3211,7 @@ function filterItems(items, searchParams) {
 function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
   if (key === "inventory_status") return item.summary?.inventory_status ?? item.inventory_status;
+  if (key === "map_status") return item.summary?.map_status ?? item.map_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;
   if (key === "runtime_id") return item.runtime_ids ?? item.runtime_id;

@@ -1,0 +1,327 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/approval-authority-ledger.schema.json",
+  "title": "Hermes Approval Authority Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "approval_authority_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_identity_model",
+    "source_matter_profile_team_ledger",
+    "source_gate_approval_contract",
+    "source_output_delivery_contract",
+    "source_output_destination_policy",
+    "approval_authority_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "approval-authority-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "approval_authority_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "identity_model_path",
+        "matter_profile_team_ledger_path",
+        "gate_approval_contract_freeze_path",
+        "output_delivery_contract_freeze_path",
+        "output_destination_policy_enforcement_path"
+      ],
+      "properties": {
+        "identity_model_path": { "type": "string" },
+        "matter_profile_team_ledger_path": { "type": "string" },
+        "gate_approval_contract_freeze_path": { "type": "string" },
+        "output_delivery_contract_freeze_path": { "type": "string" },
+        "output_destination_policy_enforcement_path": { "type": "string" }
+      }
+    },
+    "source_identity_model": { "$ref": "#/$defs/source_summary" },
+    "source_matter_profile_team_ledger": { "$ref": "#/$defs/source_summary" },
+    "source_gate_approval_contract": { "$ref": "#/$defs/source_summary" },
+    "source_output_delivery_contract": { "$ref": "#/$defs/source_summary" },
+    "source_output_destination_policy": { "$ref": "#/$defs/source_summary" },
+    "approval_authority_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "authority_policies",
+        "artifact_authority_decisions",
+        "approval_request_authority_decisions",
+        "delivery_action_authority_decisions"
+      ],
+      "properties": {
+        "schema_version": { "const": "approval-authority-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "authority_policies": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/authority_policy" }
+        },
+        "artifact_authority_decisions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/artifact_authority_decision" }
+        },
+        "approval_request_authority_decisions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/approval_request_authority_decision" }
+        },
+        "delivery_action_authority_decisions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/delivery_action_authority_decision" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "authority_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "authority_policy_id",
+        "artifact_type",
+        "domain_pack",
+        "delivery_policy",
+        "destination_kind",
+        "required_actor",
+        "required_authority_role",
+        "required_approval_level",
+        "human_authority_required",
+        "law_firm_human_required",
+        "allowed_matter_roles",
+        "allowed_tenant_roles",
+        "required_gates",
+        "policy_status",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "authority-policy.v1" },
+        "authority_policy_id": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "delivery_policy": { "type": "string" },
+        "destination_kind": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "required_authority_role": { "type": "string" },
+        "required_approval_level": { "type": "string" },
+        "human_authority_required": { "type": "boolean" },
+        "law_firm_human_required": { "type": "boolean" },
+        "allowed_matter_roles": { "type": "array", "items": { "type": "string" } },
+        "allowed_tenant_roles": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "policy_status": { "type": "string" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "authority_decision_base": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "subject_ref",
+        "domain_pack",
+        "tenant_id",
+        "matter_id",
+        "artifact_type",
+        "delivery_policy",
+        "destination_kind",
+        "authority_policy_id",
+        "required_actor",
+        "required_authority_role",
+        "required_approval_level",
+        "human_authority_required",
+        "law_firm_human_required",
+        "final_action_required",
+        "approval_status",
+        "authority_status",
+        "assignment_status",
+        "candidate_user_ids",
+        "candidate_count",
+        "matter_profile_known",
+        "tenant_identity_known",
+        "nonhuman_authority_blocked",
+        "decision_status",
+        "gate_decision",
+        "gate_status",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "subject_ref": { "$ref": "#/$defs/subject_ref" },
+        "domain_pack": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "artifact_type": { "type": "string" },
+        "delivery_policy": { "type": "string" },
+        "destination_kind": { "type": "string" },
+        "destination_tool_id": { "type": ["string", "null"] },
+        "authority_policy_id": { "type": "string" },
+        "approval_authority_contract_id": { "type": ["string", "null"] },
+        "approval_authority_contract_status": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "required_authority_role": { "type": "string" },
+        "required_approval_level": { "type": "string" },
+        "allowed_matter_roles": { "type": "array", "items": { "type": "string" } },
+        "allowed_tenant_roles": { "type": "array", "items": { "type": "string" } },
+        "human_authority_required": { "type": "boolean" },
+        "law_firm_human_required": { "type": "boolean" },
+        "final_action_required": { "type": "boolean" },
+        "approval_status": { "type": "string" },
+        "authority_status": { "enum": ["assigned", "assignment_required"] },
+        "assignment_status": { "type": "string" },
+        "assigned_user_id": { "type": ["string", "null"] },
+        "assigned_actor_principal_id": { "type": ["string", "null"] },
+        "candidate_user_ids": { "type": "array", "items": { "type": "string" } },
+        "candidate_count": { "type": "integer", "minimum": 0 },
+        "matter_role_match_count": { "type": "integer", "minimum": 0 },
+        "tenant_role_match_count": { "type": "integer", "minimum": 0 },
+        "matter_profile_known": { "type": "boolean" },
+        "tenant_identity_known": { "type": "boolean" },
+        "nonhuman_authority_blocked": { "type": "boolean" },
+        "authority_basis": { "type": "string" },
+        "decision_status": { "type": "string" },
+        "gate_decision": { "enum": ["allow", "review", "deny"] },
+        "gate_status": { "type": "string" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "artifact_authority_decision": {
+      "allOf": [
+        { "$ref": "#/$defs/authority_decision_base" },
+        {
+          "type": "object",
+          "required": ["artifact_authority_decision_id", "output_artifact_id"],
+          "properties": {
+            "schema_version": { "const": "artifact_authority_decision.v1" },
+            "artifact_authority_decision_id": { "type": "string" },
+            "output_artifact_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "approval_request_authority_decision": {
+      "allOf": [
+        { "$ref": "#/$defs/authority_decision_base" },
+        {
+          "type": "object",
+          "required": ["approval_request_authority_decision_id", "approval_request_id"],
+          "properties": {
+            "schema_version": { "const": "approval_request_authority_decision.v1" },
+            "approval_request_authority_decision_id": { "type": "string" },
+            "approval_request_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "delivery_action_authority_decision": {
+      "allOf": [
+        { "$ref": "#/$defs/authority_decision_base" },
+        {
+          "type": "object",
+          "required": ["delivery_action_authority_decision_id", "delivery_action_id", "output_artifact_id"],
+          "properties": {
+            "schema_version": { "const": "delivery_action_authority_decision.v1" },
+            "delivery_action_authority_decision_id": { "type": "string" },
+            "delivery_action_id": { "type": "string" },
+            "output_artifact_id": { "type": "string" }
+          }
+        }
+      ]
+    },
+    "subject_ref": {
+      "type": "object",
+      "required": ["subject_type", "subject_id"],
+      "properties": {
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_type", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "approval-authority-validation.v1" },
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "approval_authority_status",
+        "authority_policy_count",
+        "artifact_authority_decision_count",
+        "approval_request_authority_decision_count",
+        "delivery_action_authority_decision_count",
+        "authority_decision_count",
+        "assigned_authority_decision_count",
+        "assignment_required_decision_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "approval_authority_status": { "enum": ["complete", "blocked"] },
+        "authority_policy_count": { "type": "integer", "minimum": 0 },
+        "artifact_authority_decision_count": { "type": "integer", "minimum": 0 },
+        "approval_request_authority_decision_count": { "type": "integer", "minimum": 0 },
+        "delivery_action_authority_decision_count": { "type": "integer", "minimum": 0 },
+        "authority_decision_count": { "type": "integer", "minimum": 0 },
+        "assigned_authority_decision_count": { "type": "integer", "minimum": 0 },
+        "assignment_required_decision_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

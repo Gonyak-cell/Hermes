@@ -34,6 +34,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   modelPolicyEnforcementPath: "artifacts/model-policy-enforcement/latest/model-policy-enforcement.json",
   toolRuntimePolicyEnforcementPath: "artifacts/tool-runtime-policy/latest/tool-runtime-policy-enforcement.json",
   outputDestinationPolicyEnforcementPath: "artifacts/output-destination-policy/latest/output-destination-policy-enforcement.json",
+  approvalAuthorityLedgerPath: "artifacts/approval-authority/latest/approval-authority-ledger.json",
   costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   tokenUsageLedgerPath: "artifacts/token-usage/latest/token-usage-ledger.json",
   costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
@@ -270,6 +271,11 @@ const SOURCE_DEFINITIONS = [
     option: "outputDestinationPolicyEnforcementPath",
     source_id: "output_destination_policy_enforcement",
     label: "Output Destination Policy Enforcement",
+  },
+  {
+    option: "approvalAuthorityLedgerPath",
+    source_id: "approval_authority_ledger",
+    label: "Approval Authority Ledger",
   },
   {
     option: "costBudgetLedgerPath",
@@ -828,6 +834,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "model_policy_enforcement") return data.summary ?? {};
   if (sourceId === "tool_runtime_policy_enforcement") return data.summary ?? {};
   if (sourceId === "output_destination_policy_enforcement") return data.summary ?? {};
+  if (sourceId === "approval_authority_ledger") return data.summary ?? {};
   if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "token_usage_ledger") return data.summary ?? {};
   if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
@@ -1029,6 +1036,7 @@ function buildStageStatuses(artifacts, sources) {
     buildModelPolicyEnforcementStage(artifacts.model_policy_enforcement, sourceById.get("model_policy_enforcement")),
     buildToolRuntimePolicyEnforcementStage(artifacts.tool_runtime_policy_enforcement, sourceById.get("tool_runtime_policy_enforcement")),
     buildOutputDestinationPolicyEnforcementStage(artifacts.output_destination_policy_enforcement, sourceById.get("output_destination_policy_enforcement")),
+    buildApprovalAuthorityLedgerStage(artifacts.approval_authority_ledger, sourceById.get("approval_authority_ledger")),
     buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildTokenUsageLedgerStage(artifacts.token_usage_ledger, sourceById.get("token_usage_ledger")),
     buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
@@ -2213,6 +2221,53 @@ function buildOutputDestinationPolicyEnforcementStage(enforcement, source) {
       missing_tool_policy_count: missingToolPolicies,
       missing_output_destination_gate_count: missingDestinationGates,
       review_gate_count: reviewGates,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildApprovalAuthorityLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("approval_authority_ledger", "Approval Authority Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const missingRoleCount = summary.missing_authority_role_count ?? 0;
+  const assignmentRequired = summary.assignment_required_decision_count ?? 0;
+  const lawFirmHumanRequired = summary.law_firm_human_required_decision_count ?? 0;
+  const lawFirmDecisions = summary.law_firm_authority_decision_count ?? 0;
+  const status = summary.approval_authority_status !== "complete" || errorCount > 0 || missingRoleCount > 0
+    ? "blocked"
+    : assignmentRequired > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "approval_authority_ledger",
+    label: "Approval Authority Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.authority_decision_count ?? 0} authority decision(s), all assigned.`
+      : `${assignmentRequired} authority assignment(s) still require human setup; ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      approval_authority_status: summary.approval_authority_status ?? "unknown",
+      source_identity_model_status: summary.source_identity_model_status ?? "unknown",
+      source_matter_profile_team_ledger_status: summary.source_matter_profile_team_ledger_status ?? "unknown",
+      source_gate_approval_contract_status: summary.source_gate_approval_contract_status ?? "unknown",
+      source_output_delivery_contract_status: summary.source_output_delivery_contract_status ?? "unknown",
+      source_output_destination_policy_status: summary.source_output_destination_policy_status ?? "unknown",
+      authority_policy_count: summary.authority_policy_count ?? 0,
+      artifact_authority_decision_count: summary.artifact_authority_decision_count ?? 0,
+      approval_request_authority_decision_count: summary.approval_request_authority_decision_count ?? 0,
+      delivery_action_authority_decision_count: summary.delivery_action_authority_decision_count ?? 0,
+      authority_decision_count: summary.authority_decision_count ?? 0,
+      human_authority_required_decision_count: summary.human_authority_required_decision_count ?? 0,
+      law_firm_authority_decision_count: lawFirmDecisions,
+      law_firm_human_required_decision_count: lawFirmHumanRequired,
+      assigned_authority_decision_count: summary.assigned_authority_decision_count ?? 0,
+      assignment_required_decision_count: assignmentRequired,
+      tenant_identity_missing_decision_count: summary.tenant_identity_missing_decision_count ?? 0,
+      matter_profile_missing_decision_count: summary.matter_profile_missing_decision_count ?? 0,
+      nonhuman_authority_blocked_count: summary.nonhuman_authority_blocked_count ?? 0,
+      missing_authority_role_count: missingRoleCount,
       validation_error_count: errorCount,
     },
   };
@@ -5039,6 +5094,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.approval_authority_ledger?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "approval_authority_ledger";
+    items.push({
+      action_item_id: `dashboard.action.approval_authority_ledger.${slugify(subjectId)}`,
+      source_stage: "approval_authority_ledger",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix approval authority ledger",
+      subject_ref: {
+        subject_type: "approval_authority_ledger_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_approval_authority_model", "rerun_approval_authority_ledger", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.cost_budget_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "cost_budget_ledger";
     items.push({
@@ -6685,6 +6758,18 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     output_destination_policy_missing_tool_policy_count: artifacts.output_destination_policy_enforcement?.summary?.missing_tool_policy_count ?? 0,
     output_destination_policy_missing_gate_count: artifacts.output_destination_policy_enforcement?.summary?.missing_output_destination_gate_count ?? 0,
     output_destination_policy_validation_error_count: artifacts.output_destination_policy_enforcement?.summary?.validation_error_count ?? artifacts.output_destination_policy_enforcement?.validation?.errors?.length ?? 0,
+    approval_authority_status: artifacts.approval_authority_ledger?.summary?.approval_authority_status ?? "unknown",
+    approval_authority_policy_count: artifacts.approval_authority_ledger?.summary?.authority_policy_count ?? 0,
+    approval_authority_decision_count: artifacts.approval_authority_ledger?.summary?.authority_decision_count ?? 0,
+    approval_authority_artifact_decision_count: artifacts.approval_authority_ledger?.summary?.artifact_authority_decision_count ?? 0,
+    approval_authority_request_decision_count: artifacts.approval_authority_ledger?.summary?.approval_request_authority_decision_count ?? 0,
+    approval_authority_delivery_action_decision_count: artifacts.approval_authority_ledger?.summary?.delivery_action_authority_decision_count ?? 0,
+    approval_authority_assigned_decision_count: artifacts.approval_authority_ledger?.summary?.assigned_authority_decision_count ?? 0,
+    approval_authority_assignment_required_count: artifacts.approval_authority_ledger?.summary?.assignment_required_decision_count ?? 0,
+    approval_authority_law_firm_human_required_count: artifacts.approval_authority_ledger?.summary?.law_firm_human_required_decision_count ?? 0,
+    approval_authority_nonhuman_blocked_count: artifacts.approval_authority_ledger?.summary?.nonhuman_authority_blocked_count ?? 0,
+    approval_authority_missing_role_count: artifacts.approval_authority_ledger?.summary?.missing_authority_role_count ?? 0,
+    approval_authority_validation_error_count: artifacts.approval_authority_ledger?.summary?.validation_error_count ?? artifacts.approval_authority_ledger?.validation?.errors?.length ?? 0,
     cost_budget_decision_count: artifacts.cost_budget_ledger?.summary?.budget_decision_count ?? 0,
     cost_budget_passed_count: artifacts.cost_budget_ledger?.summary?.passed_decision_count ?? 0,
     cost_budget_blocked_count: artifacts.cost_budget_ledger?.summary?.blocked_decision_count ?? 0,
@@ -7790,6 +7875,8 @@ function parseArgs(argv) {
     else if (arg === "--no-tool-runtime-policy") parsed.toolRuntimePolicyEnforcementPath = false;
     else if (arg === "--output-destination-policy") parsed.outputDestinationPolicyEnforcementPath = argv[++index];
     else if (arg === "--no-output-destination-policy") parsed.outputDestinationPolicyEnforcementPath = false;
+    else if (arg === "--approval-authority-ledger") parsed.approvalAuthorityLedgerPath = argv[++index];
+    else if (arg === "--no-approval-authority-ledger") parsed.approvalAuthorityLedgerPath = false;
     else if (arg === "--cost-budget-ledger") parsed.costBudgetLedgerPath = argv[++index];
     else if (arg === "--no-cost-budget-ledger") parsed.costBudgetLedgerPath = false;
     else if (arg === "--token-usage-ledger") parsed.tokenUsageLedgerPath = argv[++index];
@@ -8014,6 +8101,9 @@ Options:
   --output-destination-policy <path>
                                   output-destination-policy-enforcement.json path.
   --no-output-destination-policy  Do not include Output Destination Policy Enforcement status.
+  --approval-authority-ledger <path>
+                                  approval-authority-ledger.json path.
+  --no-approval-authority-ledger  Do not include Approval Authority Ledger status.
   --cost-budget-ledger <path>    cost-budget-ledger.json path.
   --no-cost-budget-ledger        Do not include Cost Budget Ledger status.
   --token-usage-ledger <path>    token-usage-ledger.json path.

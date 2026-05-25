@@ -85,6 +85,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-action-destination-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/final-action-separation-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/output-destination-policy-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/approval-authority-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/authority-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/artifact-authority-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/approval-request-authority-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/delivery-action-authority-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/approval-authority-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-ledgers"));
@@ -699,6 +705,30 @@ try {
   const outputDestinationPolicyValidations = await fetchJson(`${url}/api/output-destination-policy-validations?status=passed&limit=5`);
   assert.equal(outputDestinationPolicyValidations.collection, "output_destination_policy_validations");
   assert.ok(outputDestinationPolicyValidations.count <= 5);
+
+  const approvalAuthorityLedgers = await fetchJson(`${url}/api/approval-authority-ledgers?limit=1`);
+  assert.equal(approvalAuthorityLedgers.collection, "approval_authority_ledgers");
+  assert.ok(approvalAuthorityLedgers.count <= 1);
+
+  const authorityPolicies = await fetchJson(`${url}/api/authority-policies?human_authority_required=true&limit=5`);
+  assert.equal(authorityPolicies.collection, "authority_policies");
+  assert.ok(authorityPolicies.count <= 5);
+
+  const artifactAuthorityDecisions = await fetchJson(`${url}/api/artifact-authority-decisions?authority_status=assignment_required&limit=5`);
+  assert.equal(artifactAuthorityDecisions.collection, "artifact_authority_decisions");
+  assert.ok(artifactAuthorityDecisions.count <= 5);
+
+  const approvalRequestAuthorityDecisions = await fetchJson(`${url}/api/approval-request-authority-decisions?required_authority_role=responsible_partner_or_reviewer&limit=5`);
+  assert.equal(approvalRequestAuthorityDecisions.collection, "approval_request_authority_decisions");
+  assert.ok(approvalRequestAuthorityDecisions.count <= 5);
+
+  const deliveryActionAuthorityDecisions = await fetchJson(`${url}/api/delivery-action-authority-decisions?gate_status=requires_assignment&limit=5`);
+  assert.equal(deliveryActionAuthorityDecisions.collection, "delivery_action_authority_decisions");
+  assert.ok(deliveryActionAuthorityDecisions.count <= 5);
+
+  const approvalAuthorityValidations = await fetchJson(`${url}/api/approval-authority-validations?status=passed&limit=5`);
+  assert.equal(approvalAuthorityValidations.collection, "approval_authority_validations");
+  assert.ok(approvalAuthorityValidations.count <= 5);
 
   const costBudgetLedgers = await fetchJson(`${url}/api/cost-budget-ledgers?ledger_status=valid&limit=1`);
   assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");

@@ -25,6 +25,7 @@ const GOAL_ITEMS = [
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
+  sourceItem("approval_authority_ledger", "Approval authority ledger", "gate_approval", "approval_authority_ledger", "control-plane-approval-authority-ledger", { acceptance_profile: "approval_authority_gate" }),
   sourceItem("resource_contract_freeze", "Resource and ResourceVersion v2 contract freeze", "resource_evidence", "resource_contract_freeze", "control-plane-resource-contract-freeze", { acceptance_profile: "resource_contract_freeze_gate" }),
   sourceItem("matter_contract_freeze", "Matter, client, party, team, and boundary v2 contract freeze", "identity_policy", "matter_contract_freeze", "control-plane-matter-contract-freeze", { acceptance_profile: "matter_contract_freeze_gate" }),
   sourceItem("policy_contract_freeze", "Data classification and policy reference v2 contract freeze", "policy", "policy_contract_freeze", "control-plane-policy-contract-freeze", { acceptance_profile: "policy_contract_freeze_gate" }),
@@ -817,6 +818,20 @@ function evaluateStageAcceptance(item, stage) {
       + (metrics.missing_output_destination_gate_count ?? 0);
     if (errors === 0 && (metrics.artifact_destination_gate_count ?? 0) > 0 && (metrics.delivery_action_destination_gate_count ?? 0) > 0) {
       return passedWithOperationalGate(stage, "Output destination policy enforcement is implemented; pending final actions are held behind approval and receipt controls.");
+    }
+  }
+
+  if (item.acceptance_profile === "approval_authority_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.missing_authority_role_count ?? 0);
+    const lawFirmHumanCovered = (metrics.law_firm_authority_decision_count ?? 0) > 0
+      && (metrics.law_firm_human_required_decision_count ?? 0) === (metrics.law_firm_authority_decision_count ?? -1);
+    if (errors === 0
+      && lawFirmHumanCovered
+      && (metrics.authority_policy_count ?? 0) > 0
+      && (metrics.authority_decision_count ?? 0) > 0
+      && (metrics.nonhuman_authority_blocked_count ?? 0) === (metrics.authority_decision_count ?? -1)) {
+      return passedWithOperationalGate(stage, "Approval authority ledger is implemented; unresolved assignments are held as human setup work instead of auto-approval.");
     }
   }
 

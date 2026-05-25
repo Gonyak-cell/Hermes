@@ -1449,6 +1449,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("output_destination_policy_validations", enforcementResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/approval-authority-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "approval_authority_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("approval_authority_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_authority_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/authority-policies") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "approval_authority_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("approval_authority_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("authority_policies", ledgerResult.artifact.approval_authority_catalog?.authority_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/artifact-authority-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "approval_authority_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("approval_authority_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("artifact_authority_decisions", ledgerResult.artifact.approval_authority_catalog?.artifact_authority_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-request-authority-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "approval_authority_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("approval_authority_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_request_authority_decisions", ledgerResult.artifact.approval_authority_catalog?.approval_request_authority_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/delivery-action-authority-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "approval_authority_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("approval_authority_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("delivery_action_authority_decisions", ledgerResult.artifact.approval_authority_catalog?.delivery_action_authority_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/approval-authority-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "approval_authority_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("approval_authority_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("approval_authority_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/cost-budget-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "cost_budget_ledger");
     if (!ledgerResult.available) {
@@ -4113,6 +4155,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/delivery-action-destination-gates", "Delivery action destination gates"),
       route("GET", "/api/final-action-separation-gates", "Final action separation gates"),
       route("GET", "/api/output-destination-policy-validations", "Output destination policy validation rows"),
+      route("GET", "/api/approval-authority-ledgers", "Approval authority ledger artifacts"),
+      route("GET", "/api/authority-policies", "Approval authority policies"),
+      route("GET", "/api/artifact-authority-decisions", "Output artifact approval authority decisions"),
+      route("GET", "/api/approval-request-authority-decisions", "Approval request authority decisions"),
+      route("GET", "/api/delivery-action-authority-decisions", "Delivery action authority decisions"),
+      route("GET", "/api/approval-authority-validations", "Approval authority validation rows"),
       route("GET", "/api/cost-budget-ledgers", "Cost budget ledger artifacts"),
       route("GET", "/api/cost-budget-decisions", "Cost budget gate decisions"),
       route("GET", "/api/token-usage-ledgers", "Token usage ledger artifacts"),
@@ -4719,6 +4767,29 @@ function filterItems(items, searchParams) {
     "separation_status",
     "tool_policy_known",
     "protected_tool_gate_present",
+    "approval_authority_ledger_id",
+    "approval_authority_status",
+    "authority_policy_id",
+    "authority_policy_count",
+    "authority_decision_count",
+    "authority_policy_status",
+    "artifact_authority_decision_id",
+    "approval_request_authority_decision_id",
+    "delivery_action_authority_decision_id",
+    "required_authority_role",
+    "required_approval_level",
+    "law_firm_human_required",
+    "authority_status",
+    "assignment_status",
+    "assigned_user_id",
+    "assigned_actor_principal_id",
+    "candidate_count",
+    "matter_role_match_count",
+    "tenant_role_match_count",
+    "matter_profile_known",
+    "tenant_identity_known",
+    "nonhuman_authority_blocked",
+    "authority_basis",
     "budget_decision_id",
     "budget_status",
     "token_tracking_required",

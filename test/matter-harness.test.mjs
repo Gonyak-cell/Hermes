@@ -19,6 +19,7 @@ import { runDataClassificationRuleEngine } from "../src/data-classification-rule
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
+import { runApprovalAuthorityLedger } from "../src/approval-authority-ledger.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -1440,6 +1441,7 @@ describe("matter harness", () => {
         modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
         toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
         outputDestinationPolicyEnforcementPath: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
+        approvalAuthorityLedgerPath: path.join(outDir, "approval-authority", "approval-authority-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
         tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
         costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
@@ -1744,6 +1746,37 @@ describe("matter harness", () => {
       )));
       assert.ok(outputDestinationPolicyEnforcement.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "output-destination-policy", "summary.md"), "utf8"), /Output Destination Policy Enforcement/);
+
+      const approvalAuthorityLedger = await runApprovalAuthorityLedger({
+        identityModelPath: path.join(outDir, "identity-model", "identity-model.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        outputDestinationPolicyEnforcementPath: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
+        outDir: path.join(outDir, "approval-authority"),
+        runAt: "2026-05-23T06:35:05.926Z",
+      });
+      const approvalAuthorityLedgerSchema = JSON.parse(await readFile("schemas/approval-authority-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(approvalAuthorityLedger, approvalAuthorityLedgerSchema, {}, "approval_authority_ledger"),
+        [],
+      );
+      assert.equal(approvalAuthorityLedger.summary.approval_authority_status, "complete");
+      assert.equal(approvalAuthorityLedger.summary.source_gate_approval_contract_status, "complete");
+      assert.equal(approvalAuthorityLedger.summary.source_output_delivery_contract_status, "complete");
+      assert.equal(approvalAuthorityLedger.summary.source_output_destination_policy_status, "complete");
+      assert.equal(approvalAuthorityLedger.summary.artifact_authority_decision_count, outputDeliveryContractFreeze.summary.output_artifact_count);
+      assert.equal(approvalAuthorityLedger.summary.delivery_action_authority_decision_count, outputDeliveryContractFreeze.summary.delivery_action_count);
+      assert.equal(approvalAuthorityLedger.summary.approval_request_authority_decision_count, gateApprovalContractFreeze.summary.approval_request_count);
+      assert.equal(approvalAuthorityLedger.summary.law_firm_human_required_decision_count, approvalAuthorityLedger.summary.law_firm_authority_decision_count);
+      assert.equal(approvalAuthorityLedger.summary.nonhuman_authority_blocked_count, approvalAuthorityLedger.summary.authority_decision_count);
+      assert.equal(approvalAuthorityLedger.summary.missing_authority_role_count, 0);
+      assert.equal(approvalAuthorityLedger.summary.validation_error_count, 0);
+      assert.ok(approvalAuthorityLedger.approval_authority_catalog.authority_policies.some((policy) => policy.required_authority_role === "responsible_partner_or_reviewer"));
+      assert.ok(approvalAuthorityLedger.approval_authority_catalog.artifact_authority_decisions.every((decision) => decision.human_authority_required));
+      assert.ok(approvalAuthorityLedger.approval_authority_catalog.delivery_action_authority_decisions.every((decision) => decision.nonhuman_authority_blocked));
+      assert.ok(approvalAuthorityLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "approval-authority", "summary.md"), "utf8"), /Approval Authority Ledger/);
 
       const controlPlaneHumanGateReceipts = await runControlPlaneHumanGateReceipts({
         humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -3294,6 +3327,7 @@ describe("matter harness", () => {
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
+          approval_authority_ledger: path.join(outDir, "approval-authority", "approval-authority-ledger.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -3314,8 +3348,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 23);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 23);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 24);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 24);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3334,6 +3368,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_authority_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3369,6 +3404,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3466,6 +3502,10 @@ describe("matter harness", () => {
       assert.equal(outputDestinationPolicyEnforcementCheckpoint?.acceptance_profile, "output_destination_policy_gate");
       assert.equal(outputDestinationPolicyEnforcementCheckpoint?.status, "passed");
       assert.equal(outputDestinationPolicyEnforcementCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const approvalAuthorityLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-approval-authority-ledger");
+      assert.equal(approvalAuthorityLedgerCheckpoint?.acceptance_profile, "approval_authority_gate");
+      assert.equal(approvalAuthorityLedgerCheckpoint?.status, "passed");
+      assert.equal(approvalAuthorityLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3692,6 +3732,18 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.output_destination_policy_missing_tool_policy_count, 0);
       assert.equal(dashboard.summary.output_destination_policy_missing_gate_count, 0);
       assert.equal(dashboard.summary.output_destination_policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.approval_authority_status, "complete");
+      assert.equal(dashboard.summary.approval_authority_policy_count, approvalAuthorityLedger.summary.authority_policy_count);
+      assert.equal(dashboard.summary.approval_authority_decision_count, approvalAuthorityLedger.summary.authority_decision_count);
+      assert.equal(dashboard.summary.approval_authority_artifact_decision_count, approvalAuthorityLedger.summary.artifact_authority_decision_count);
+      assert.equal(dashboard.summary.approval_authority_request_decision_count, approvalAuthorityLedger.summary.approval_request_authority_decision_count);
+      assert.equal(dashboard.summary.approval_authority_delivery_action_decision_count, approvalAuthorityLedger.summary.delivery_action_authority_decision_count);
+      assert.equal(dashboard.summary.approval_authority_assigned_decision_count, approvalAuthorityLedger.summary.assigned_authority_decision_count);
+      assert.equal(dashboard.summary.approval_authority_assignment_required_count, approvalAuthorityLedger.summary.assignment_required_decision_count);
+      assert.equal(dashboard.summary.approval_authority_law_firm_human_required_count, approvalAuthorityLedger.summary.law_firm_human_required_decision_count);
+      assert.equal(dashboard.summary.approval_authority_nonhuman_blocked_count, approvalAuthorityLedger.summary.nonhuman_authority_blocked_count);
+      assert.equal(dashboard.summary.approval_authority_missing_role_count, 0);
+      assert.equal(dashboard.summary.approval_authority_validation_error_count, 0);
       assert.equal(dashboard.summary.cost_budget_decision_count, costBudgetLedger.summary.budget_decision_count);
       assert.equal(dashboard.summary.cost_budget_passed_count, costBudgetLedger.summary.passed_decision_count);
       assert.equal(dashboard.summary.cost_budget_blocked_count, 0);
@@ -4458,6 +4510,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "tool_runtime_policy_enforcement"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "output_destination_policy_enforcement"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "approval_authority_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
@@ -4633,6 +4686,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-destination-gates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/final-action-separation-gates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-destination-policy-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-authority-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/authority-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifact-authority-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-request-authority-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-authority-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/approval-authority-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-ledgers"));
@@ -5231,6 +5290,30 @@ describe("matter harness", () => {
       const outputDestinationPolicyValidations = JSON.parse((await buildReviewApiResponse("/api/output-destination-policy-validations?status=passed", apiOptions)).body);
       assert.equal(outputDestinationPolicyValidations.collection, "output_destination_policy_validations");
       assert.equal(outputDestinationPolicyValidations.count, outputDestinationPolicyEnforcement.summary.validation_item_count);
+
+      const approvalAuthorityLedgers = JSON.parse((await buildReviewApiResponse("/api/approval-authority-ledgers", apiOptions)).body);
+      assert.equal(approvalAuthorityLedgers.collection, "approval_authority_ledgers");
+      assert.equal(approvalAuthorityLedgers.count, 1);
+
+      const authorityPolicies = JSON.parse((await buildReviewApiResponse("/api/authority-policies?human_authority_required=true", apiOptions)).body);
+      assert.equal(authorityPolicies.collection, "authority_policies");
+      assert.equal(authorityPolicies.count, approvalAuthorityLedger.summary.authority_policy_count);
+
+      const assignmentRequiredArtifactAuthorities = JSON.parse((await buildReviewApiResponse("/api/artifact-authority-decisions?authority_status=assignment_required", apiOptions)).body);
+      assert.equal(assignmentRequiredArtifactAuthorities.collection, "artifact_authority_decisions");
+      assert.equal(assignmentRequiredArtifactAuthorities.count, approvalAuthorityLedger.approval_authority_catalog.artifact_authority_decisions.filter((decision) => decision.authority_status === "assignment_required").length);
+
+      const attorneyApprovalRequestAuthorities = JSON.parse((await buildReviewApiResponse("/api/approval-request-authority-decisions?required_authority_role=responsible_partner_or_reviewer", apiOptions)).body);
+      assert.equal(attorneyApprovalRequestAuthorities.collection, "approval_request_authority_decisions");
+      assert.ok(attorneyApprovalRequestAuthorities.count > 0);
+
+      const assignmentRequiredDeliveryAuthorities = JSON.parse((await buildReviewApiResponse("/api/delivery-action-authority-decisions?gate_status=requires_assignment", apiOptions)).body);
+      assert.equal(assignmentRequiredDeliveryAuthorities.collection, "delivery_action_authority_decisions");
+      assert.equal(assignmentRequiredDeliveryAuthorities.count, approvalAuthorityLedger.approval_authority_catalog.delivery_action_authority_decisions.filter((decision) => decision.gate_status === "requires_assignment").length);
+
+      const approvalAuthorityValidations = JSON.parse((await buildReviewApiResponse("/api/approval-authority-validations?status=passed", apiOptions)).body);
+      assert.equal(approvalAuthorityValidations.collection, "approval_authority_validations");
+      assert.equal(approvalAuthorityValidations.count, approvalAuthorityLedger.summary.validation_item_count);
 
       const costBudgetLedgers = JSON.parse((await buildReviewApiResponse("/api/cost-budget-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");

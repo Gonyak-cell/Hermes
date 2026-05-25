@@ -3736,6 +3736,36 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Output Destination Policy Enforcement를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:output-destination -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 122 - Approval Authority Ledger
+
+목표: Gate/Approval contract, Output/Delivery contract, Output Destination Policy, Identity Model, Matter Profile/Team Ledger를 합쳐 산출물별 승인권자를 role/matter 기준으로 판정한다.
+
+구현 산출물:
+
+- `src/approval-authority-ledger.mjs`
+- `scripts/approval-authority-ledger.mjs`
+- `schemas/approval-authority-ledger.schema.json`
+- `docs/approval-authority-ledger.md`
+- `artifacts/approval-authority/latest/approval-authority-ledger.json`
+- `artifacts/approval-authority/latest/authority-policies.json`
+- `artifacts/approval-authority/latest/artifact-authority-decisions.json`
+- `artifacts/approval-authority/latest/approval-request-authority-decisions.json`
+- `artifacts/approval-authority/latest/delivery-action-authority-decisions.json`
+- `artifacts/approval-authority/latest/validation-report.json`
+- `artifacts/approval-authority/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:approval-authority -- --check`가 Approval Authority Ledger를 생성하고 validation error 0으로 통과한다.
+- 각 OutputArtifact, ApprovalRequest, DeliveryAction마다 authority decision이 생성되고 `tenant_id`, `matter_id`, `domain_pack`, delivery policy, required authority role을 보존한다.
+- 로펌 domain decision은 모두 human authority를 요구하고 runtime/model/script actor를 최종 승인권자로 지정하지 않는다.
+- Matter Profile/Team Ledger와 Identity Model을 이용해 가능한 human candidate를 배정하고, 배정 불가 항목은 auto-approval이 아니라 `assignment_required`로 남긴다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `approval_authority_ledger` fixture가 포함되어 golden fixture set이 24개로 확장된다.
+- Dashboard stage와 summary가 `approval_authority_ledger` 지표를 추적함
+- Review API에서 `/api/approval-authority-ledgers`, `/api/authority-policies`, `/api/artifact-authority-decisions`, `/api/approval-request-authority-decisions`, `/api/delivery-action-authority-decisions`, `/api/approval-authority-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Approval Authority Ledger를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:approval-authority -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3744,9 +3774,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 121이다.
+- 현재 완료 기준점은 Phase 122이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P122-P312, 총 191개다.
+- 남은 계획 슬롯은 P123-P312, 총 190개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

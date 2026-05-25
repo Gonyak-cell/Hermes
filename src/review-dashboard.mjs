@@ -32,6 +32,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   contextPacketLedgerPath: "artifacts/context-packets/latest/context-packet-ledger.json",
   modelRoutingLedgerPath: "artifacts/model-routing/latest/model-routing-ledger.json",
   modelPolicyEnforcementPath: "artifacts/model-policy-enforcement/latest/model-policy-enforcement.json",
+  toolRuntimePolicyEnforcementPath: "artifacts/tool-runtime-policy/latest/tool-runtime-policy-enforcement.json",
   costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   tokenUsageLedgerPath: "artifacts/token-usage/latest/token-usage-ledger.json",
   costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
@@ -258,6 +259,11 @@ const SOURCE_DEFINITIONS = [
     option: "modelPolicyEnforcementPath",
     source_id: "model_policy_enforcement",
     label: "Model Policy Enforcement",
+  },
+  {
+    option: "toolRuntimePolicyEnforcementPath",
+    source_id: "tool_runtime_policy_enforcement",
+    label: "Tool/Runtime Policy Enforcement",
   },
   {
     option: "costBudgetLedgerPath",
@@ -814,6 +820,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "context_packet_ledger") return data.summary ?? {};
   if (sourceId === "model_routing_ledger") return data.summary ?? {};
   if (sourceId === "model_policy_enforcement") return data.summary ?? {};
+  if (sourceId === "tool_runtime_policy_enforcement") return data.summary ?? {};
   if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "token_usage_ledger") return data.summary ?? {};
   if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
@@ -1013,6 +1020,7 @@ function buildStageStatuses(artifacts, sources) {
     buildContextPacketLedgerStage(artifacts.context_packet_ledger, sourceById.get("context_packet_ledger")),
     buildModelRoutingLedgerStage(artifacts.model_routing_ledger, sourceById.get("model_routing_ledger")),
     buildModelPolicyEnforcementStage(artifacts.model_policy_enforcement, sourceById.get("model_policy_enforcement")),
+    buildToolRuntimePolicyEnforcementStage(artifacts.tool_runtime_policy_enforcement, sourceById.get("tool_runtime_policy_enforcement")),
     buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildTokenUsageLedgerStage(artifacts.token_usage_ledger, sourceById.get("token_usage_ledger")),
     buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
@@ -2081,6 +2089,64 @@ function buildModelPolicyEnforcementStage(enforcement, source) {
       redaction_required_resource_gate_count: summary.redaction_required_resource_gate_count ?? 0,
       redaction_blocked_route_count: summary.redaction_blocked_route_count ?? 0,
       human_approval_required_gate_count: summary.human_approval_required_gate_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildToolRuntimePolicyEnforcementStage(enforcement, source) {
+  if (!enforcement) return missingStage("tool_runtime_policy_enforcement", "Tool/Runtime Policy Enforcement", source);
+  const summary = enforcement.summary ?? {};
+  const errorCount = summary.validation_error_count ?? enforcement.validation?.errors?.length ?? 0;
+  const blockedAgentRuns = summary.agent_run_tool_gate_blocked_count ?? 0;
+  const missingToolGates = summary.missing_tool_permission_gate_count ?? 0;
+  const unknownTools = summary.unknown_tool_count ?? 0;
+  const toolOverlaps = summary.tool_overlap_count ?? 0;
+  const reviewToolGates = summary.review_tool_gate_count ?? 0;
+  const deniedToolGates = summary.denied_tool_gate_count ?? 0;
+  const status = summary.tool_runtime_policy_enforcement_status !== "complete"
+    || errorCount > 0
+    || blockedAgentRuns > 0
+    || missingToolGates > 0
+    || unknownTools > 0
+    || toolOverlaps > 0
+    ? "blocked"
+    : reviewToolGates > 0 || deniedToolGates > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "tool_runtime_policy_enforcement",
+    label: "Tool/Runtime Policy Enforcement",
+    status,
+    message: status === "passed"
+      ? `${summary.tool_permission_gate_count ?? 0} tool gate(s), ${summary.agent_run_tool_gate_count ?? 0} AgentRun gate(s), no blocked runtime tool path.`
+      : `${deniedToolGates} denied tool gate(s), ${reviewToolGates} review tool gate(s), ${blockedAgentRuns} blocked AgentRun gate(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      tool_runtime_policy_enforcement_status: summary.tool_runtime_policy_enforcement_status ?? "unknown",
+      source_runtime_contract_status: summary.source_runtime_contract_status ?? "unknown",
+      source_policy_matrix_status: summary.source_policy_matrix_status ?? "unknown",
+      source_capability_workflow_status: summary.source_capability_workflow_status ?? "unknown",
+      source_model_policy_status: summary.source_model_policy_status ?? "unknown",
+      runtime_count: summary.runtime_count ?? 0,
+      agent_run_count: summary.agent_run_count ?? 0,
+      runtime_policy_gate_count: summary.runtime_policy_gate_count ?? 0,
+      blocked_runtime_policy_gate_count: summary.blocked_runtime_policy_gate_count ?? 0,
+      restricted_runtime_policy_gate_count: summary.restricted_runtime_policy_gate_count ?? 0,
+      tool_permission_gate_count: summary.tool_permission_gate_count ?? 0,
+      allowed_tool_gate_count: summary.allowed_tool_gate_count ?? 0,
+      forbidden_tool_gate_count: summary.forbidden_tool_gate_count ?? 0,
+      forbidden_tool_blocked_count: summary.forbidden_tool_blocked_count ?? 0,
+      review_tool_gate_count: reviewToolGates,
+      denied_tool_gate_count: deniedToolGates,
+      protected_action_tool_gate_count: summary.protected_action_tool_gate_count ?? 0,
+      agent_run_tool_gate_count: summary.agent_run_tool_gate_count ?? 0,
+      agent_run_tool_gate_allow_count: summary.agent_run_tool_gate_allow_count ?? 0,
+      agent_run_tool_gate_review_count: summary.agent_run_tool_gate_review_count ?? 0,
+      agent_run_tool_gate_deny_count: summary.agent_run_tool_gate_deny_count ?? 0,
+      tool_overlap_count: toolOverlaps,
+      unknown_tool_count: unknownTools,
+      missing_tool_permission_gate_count: missingToolGates,
       validation_error_count: errorCount,
     },
   };
@@ -4871,6 +4937,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.tool_runtime_policy_enforcement?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "tool_runtime_policy_enforcement";
+    items.push({
+      action_item_id: `dashboard.action.tool_runtime_policy_enforcement.${slugify(subjectId)}`,
+      source_stage: "tool_runtime_policy_enforcement",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix tool/runtime policy enforcement",
+      subject_ref: {
+        subject_type: "tool_runtime_policy_enforcement_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_runtime_tool_policy", "rerun_tool_runtime_policy_enforcement", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.cost_budget_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "cost_budget_ledger";
     items.push({
@@ -6483,6 +6567,25 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     model_policy_redaction_blocked_route_count: artifacts.model_policy_enforcement?.summary?.redaction_blocked_route_count ?? 0,
     model_policy_human_approval_required_gate_count: artifacts.model_policy_enforcement?.summary?.human_approval_required_gate_count ?? 0,
     model_policy_validation_error_count: artifacts.model_policy_enforcement?.summary?.validation_error_count ?? artifacts.model_policy_enforcement?.validation?.errors?.length ?? 0,
+    tool_runtime_policy_enforcement_status: artifacts.tool_runtime_policy_enforcement?.summary?.tool_runtime_policy_enforcement_status ?? "unknown",
+    tool_runtime_policy_runtime_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.runtime_policy_gate_count ?? 0,
+    tool_runtime_policy_blocked_runtime_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.blocked_runtime_policy_gate_count ?? 0,
+    tool_runtime_policy_restricted_runtime_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.restricted_runtime_policy_gate_count ?? 0,
+    tool_runtime_policy_tool_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.tool_permission_gate_count ?? 0,
+    tool_runtime_policy_allowed_tool_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.allowed_tool_gate_count ?? 0,
+    tool_runtime_policy_forbidden_tool_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.forbidden_tool_gate_count ?? 0,
+    tool_runtime_policy_forbidden_tool_blocked_count: artifacts.tool_runtime_policy_enforcement?.summary?.forbidden_tool_blocked_count ?? 0,
+    tool_runtime_policy_review_tool_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.review_tool_gate_count ?? 0,
+    tool_runtime_policy_denied_tool_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.denied_tool_gate_count ?? 0,
+    tool_runtime_policy_protected_action_tool_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.protected_action_tool_gate_count ?? 0,
+    tool_runtime_policy_agent_run_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.agent_run_tool_gate_count ?? 0,
+    tool_runtime_policy_agent_run_allow_count: artifacts.tool_runtime_policy_enforcement?.summary?.agent_run_tool_gate_allow_count ?? 0,
+    tool_runtime_policy_agent_run_review_count: artifacts.tool_runtime_policy_enforcement?.summary?.agent_run_tool_gate_review_count ?? 0,
+    tool_runtime_policy_agent_run_deny_count: artifacts.tool_runtime_policy_enforcement?.summary?.agent_run_tool_gate_deny_count ?? 0,
+    tool_runtime_policy_unknown_tool_count: artifacts.tool_runtime_policy_enforcement?.summary?.unknown_tool_count ?? 0,
+    tool_runtime_policy_tool_overlap_count: artifacts.tool_runtime_policy_enforcement?.summary?.tool_overlap_count ?? 0,
+    tool_runtime_policy_missing_gate_count: artifacts.tool_runtime_policy_enforcement?.summary?.missing_tool_permission_gate_count ?? 0,
+    tool_runtime_policy_validation_error_count: artifacts.tool_runtime_policy_enforcement?.summary?.validation_error_count ?? artifacts.tool_runtime_policy_enforcement?.validation?.errors?.length ?? 0,
     cost_budget_decision_count: artifacts.cost_budget_ledger?.summary?.budget_decision_count ?? 0,
     cost_budget_passed_count: artifacts.cost_budget_ledger?.summary?.passed_decision_count ?? 0,
     cost_budget_blocked_count: artifacts.cost_budget_ledger?.summary?.blocked_decision_count ?? 0,
@@ -7584,6 +7687,8 @@ function parseArgs(argv) {
     else if (arg === "--no-model-routing-ledger") parsed.modelRoutingLedgerPath = false;
     else if (arg === "--model-policy-enforcement") parsed.modelPolicyEnforcementPath = argv[++index];
     else if (arg === "--no-model-policy-enforcement") parsed.modelPolicyEnforcementPath = false;
+    else if (arg === "--tool-runtime-policy") parsed.toolRuntimePolicyEnforcementPath = argv[++index];
+    else if (arg === "--no-tool-runtime-policy") parsed.toolRuntimePolicyEnforcementPath = false;
     else if (arg === "--cost-budget-ledger") parsed.costBudgetLedgerPath = argv[++index];
     else if (arg === "--no-cost-budget-ledger") parsed.costBudgetLedgerPath = false;
     else if (arg === "--token-usage-ledger") parsed.tokenUsageLedgerPath = argv[++index];
@@ -7803,6 +7908,8 @@ Options:
   --model-policy-enforcement <path>
                                   model-policy-enforcement.json path.
   --no-model-policy-enforcement  Do not include Model Policy Enforcement status.
+  --tool-runtime-policy <path>    tool-runtime-policy-enforcement.json path.
+  --no-tool-runtime-policy        Do not include Tool/Runtime Policy Enforcement status.
   --cost-budget-ledger <path>    cost-budget-ledger.json path.
   --no-cost-budget-ledger        Do not include Cost Budget Ledger status.
   --token-usage-ledger <path>    token-usage-ledger.json path.

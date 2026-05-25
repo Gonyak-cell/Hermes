@@ -1372,6 +1372,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("model_policy_enforcement_validations", enforcementResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/tool-runtime-policy-enforcements") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "tool_runtime_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("tool_runtime_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("tool_runtime_policy_enforcements", [enforcementResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-policy-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "tool_runtime_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("tool_runtime_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_policy_gates", enforcementResult.artifact.tool_runtime_policy_catalog?.runtime_policy_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/tool-permission-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "tool_runtime_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("tool_runtime_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("tool_permission_gates", enforcementResult.artifact.tool_runtime_policy_catalog?.tool_permission_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-run-tool-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "tool_runtime_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("tool_runtime_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_run_tool_gates", enforcementResult.artifact.tool_runtime_policy_catalog?.agent_run_tool_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/tool-runtime-policy-validations") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "tool_runtime_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("tool_runtime_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("tool_runtime_policy_validations", enforcementResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/cost-budget-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "cost_budget_ledger");
     if (!ledgerResult.available) {
@@ -4025,6 +4060,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-model-gates", "Resource-level model policy gates"),
       route("GET", "/api/route-model-gates", "Route-level model policy gates"),
       route("GET", "/api/model-policy-enforcement-validations", "Model policy enforcement validation rows"),
+      route("GET", "/api/tool-runtime-policy-enforcements", "Tool/runtime policy enforcement artifacts"),
+      route("GET", "/api/runtime-policy-gates", "Runtime/classification policy gates"),
+      route("GET", "/api/tool-permission-gates", "Runtime tool permission gates"),
+      route("GET", "/api/agent-run-tool-gates", "AgentRun tool permission gates"),
+      route("GET", "/api/tool-runtime-policy-validations", "Tool/runtime policy validation rows"),
       route("GET", "/api/cost-budget-ledgers", "Cost budget ledger artifacts"),
       route("GET", "/api/cost-budget-decisions", "Cost budget gate decisions"),
       route("GET", "/api/token-usage-ledgers", "Token usage ledger artifacts"),
@@ -4579,6 +4619,28 @@ function filterItems(items, searchParams) {
     "source_route_status",
     "source_route_mode",
     "human_approval_required",
+    "tool_runtime_policy_enforcement_id",
+    "tool_runtime_policy_enforcement_status",
+    "runtime_policy_gate_id",
+    "runtime_rule_id",
+    "command_availability_status",
+    "workspace_isolation_type",
+    "tool_permission_gate_id",
+    "requested_state",
+    "tool_policy_known",
+    "protected_action",
+    "forbidden_by_runtime",
+    "allowed_by_runtime",
+    "agent_run_tool_gate_id",
+    "requested_tool_count",
+    "allowed_tool_count",
+    "forbidden_tool_count",
+    "approval_required_tool_count",
+    "runtime_blocked_classification_count",
+    "runtime_review_classification_count",
+    "model_route_blocked_count",
+    "capability_requires_tool_permission_gate",
+    "runtime_requires_tool_permission_gate",
     "budget_decision_id",
     "budget_status",
     "token_tracking_required",

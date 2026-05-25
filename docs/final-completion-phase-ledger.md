@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 119이다.
-- 남은 planned slot은 P120-P312, 총 193개다.
+- 현재 완료 기준점은 Phase 120이다.
+- 남은 planned slot은 P121-P312, 총 192개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -41,7 +41,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures 구성 | golden fixture set | Promoted to Phase 111; 대표 contract artifact 14개가 schema validation과 regression hash manifest에 사용; Phase 113에서 identity_model fixture, Phase 114에서 client_counterparty_registry fixture, Phase 115에서 matter_profile_team_ledger fixture, Phase 116에서 wall_policy_contract fixture, Phase 117에서 matter_access_policy_evaluator fixture, Phase 118에서 data_classification_rule_engine fixture, Phase 119에서 model_policy_enforcement fixture가 추가되어 현재 21개 |
+| P111 | contract golden fixtures 구성 | golden fixture set | Promoted to Phase 111; 대표 contract artifact 14개가 schema validation과 regression hash manifest에 사용; Phase 113에서 identity_model fixture, Phase 114에서 client_counterparty_registry fixture, Phase 115에서 matter_profile_team_ledger fixture, Phase 116에서 wall_policy_contract fixture, Phase 117에서 matter_access_policy_evaluator fixture, Phase 118에서 data_classification_rule_engine fixture, Phase 119에서 model_policy_enforcement fixture, Phase 120에서 tool_runtime_policy_enforcement fixture가 추가되어 현재 22개 |
 | P112 | contract validation CLI 통합 | contract validation command | Promoted to Phase 112; 전체 contract fixture가 `npm run contracts:validate -- --check` 한 명령으로 검증되고 dashboard/API/checkpoint/loop에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary
@@ -55,7 +55,7 @@
 | P117 | Matter Access Policy evaluator 구현 | access decision artifact | Promoted to Phase 117; user/runtime/resource/matter 조합이 allow/deny/review로 판정되고 dashboard/API/golden/checkpoint/loop에 반영 |
 | P118 | Data Classification rule engine 구현 | classifier rule catalog | Promoted to Phase 118; resource classification이 PolicyReference/PolicyDecision/Matter Access decision에 연결되고 dashboard/API/golden/checkpoint/loop에 반영 |
 | P119 | Model Policy Matrix enforcement 구현 | model routing policy gate | Promoted to Phase 119; P2-P5 외부 모델 전송 제한이 classification/resource/route model gate로 강제되고 dashboard/API/golden/checkpoint/loop에 반영 |
-| P120 | Tool/Runtime Policy enforcement 구현 | tool permission gate | runtime별 허용 도구와 금지 action이 검증 |
+| P120 | Tool/Runtime Policy enforcement 구현 | tool permission gate | Promoted to Phase 120; runtime별 허용/금지 tool, protected action, AgentRun tool gate가 policy matrix와 runtime contract 기준으로 검증되고 dashboard/API/golden/checkpoint/loop에 반영 |
 | P121 | Output Destination Policy 구현 | destination policy gate | email/ERP/GitHub/delivery가 draft와 final action으로 분리 |
 | P122 | Approval Authority model 구현 | approval authority ledger | 산출물별 승인권자가 role/matter 기준으로 판정 |
 | P123 | Policy Snapshot binding 구현 | policy snapshot binder | workflow/event/run/gate가 실행 당시 policy snapshot을 참조 |

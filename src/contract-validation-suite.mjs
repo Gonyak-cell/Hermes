@@ -24,6 +24,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:matter-access",
   "contracts:classification-rules",
   "contracts:model-policy",
+  "contracts:tool-runtime",
   "contracts:resources",
   "contracts:matters",
   "contracts:policies",

@@ -74,6 +74,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/resource-model-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/route-model-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcement-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-runtime-policy-enforcements"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-policy-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-permission-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-tool-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-runtime-policy-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-ledgers"));
@@ -644,6 +649,26 @@ try {
   const modelPolicyEnforcementValidations = await fetchJson(`${url}/api/model-policy-enforcement-validations?status=passed&limit=5`);
   assert.equal(modelPolicyEnforcementValidations.collection, "model_policy_enforcement_validations");
   assert.ok(modelPolicyEnforcementValidations.count <= 5);
+
+  const toolRuntimePolicyEnforcements = await fetchJson(`${url}/api/tool-runtime-policy-enforcements?limit=1`);
+  assert.equal(toolRuntimePolicyEnforcements.collection, "tool_runtime_policy_enforcements");
+  assert.ok(toolRuntimePolicyEnforcements.count <= 1);
+
+  const runtimePolicyGates = await fetchJson(`${url}/api/runtime-policy-gates?gate_status=blocked&limit=5`);
+  assert.equal(runtimePolicyGates.collection, "runtime_policy_gates");
+  assert.ok(runtimePolicyGates.count <= 5);
+
+  const toolPermissionGates = await fetchJson(`${url}/api/tool-permission-gates?requested_state=forbidden&gate_decision=deny&limit=5`);
+  assert.equal(toolPermissionGates.collection, "tool_permission_gates");
+  assert.ok(toolPermissionGates.count <= 5);
+
+  const agentRunToolGates = await fetchJson(`${url}/api/agent-run-tool-gates?gate_status=requires_approval&limit=5`);
+  assert.equal(agentRunToolGates.collection, "agent_run_tool_gates");
+  assert.ok(agentRunToolGates.count <= 5);
+
+  const toolRuntimePolicyValidations = await fetchJson(`${url}/api/tool-runtime-policy-validations?status=passed&limit=5`);
+  assert.equal(toolRuntimePolicyValidations.collection, "tool_runtime_policy_validations");
+  assert.ok(toolRuntimePolicyValidations.count <= 5);
 
   const costBudgetLedgers = await fetchJson(`${url}/api/cost-budget-ledgers?ledger_status=valid&limit=1`);
   assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");

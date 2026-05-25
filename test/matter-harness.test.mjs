@@ -17,6 +17,7 @@ import { runWallPolicyContract } from "../src/wall-policy-contract.mjs";
 import { runMatterAccessPolicyEvaluator } from "../src/matter-access-policy-evaluator.mjs";
 import { runDataClassificationRuleEngine } from "../src/data-classification-rule-engine.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
+import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -983,6 +984,42 @@ describe("matter harness", () => {
       assert.ok(modelPolicyEnforcement.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "model-policy-enforcement", "summary.md"), "utf8"), /Model Policy Enforcement/);
 
+      const toolRuntimePolicyEnforcement = await runToolRuntimePolicyEnforcement({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        outDir: path.join(outDir, "tool-runtime-policy"),
+        runAt: "2026-05-23T06:34:54.375Z",
+      });
+      const toolRuntimePolicyEnforcementSchema = JSON.parse(await readFile("schemas/tool-runtime-policy-enforcement.schema.json", "utf8"));
+      const expectedToolGateCount = runtimeAgentRunContractFreeze.runtime_agentrun_contract.runtime_adapters.reduce((count, runtime) => {
+        const toolIds = new Set([
+          ...(runtime.tool_policy?.allowed_tools ?? []),
+          ...(runtime.tool_policy?.forbidden_tools ?? []),
+        ]);
+        return count + toolIds.size;
+      }, 0);
+      assert.deepEqual(validateAgainstSchema(toolRuntimePolicyEnforcement, toolRuntimePolicyEnforcementSchema, {}, "tool_runtime_policy_enforcement"), []);
+      assert.equal(toolRuntimePolicyEnforcement.summary.tool_runtime_policy_enforcement_status, "complete");
+      assert.equal(toolRuntimePolicyEnforcement.summary.source_runtime_contract_status, "complete");
+      assert.equal(toolRuntimePolicyEnforcement.summary.source_policy_matrix_status, "valid");
+      assert.equal(toolRuntimePolicyEnforcement.summary.source_capability_workflow_status, "complete");
+      assert.equal(toolRuntimePolicyEnforcement.summary.source_model_policy_status, "complete");
+      assert.equal(toolRuntimePolicyEnforcement.summary.runtime_policy_gate_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count * policyMatrixCatalog.summary.runtime_rule_count);
+      assert.equal(toolRuntimePolicyEnforcement.summary.tool_permission_gate_count, expectedToolGateCount);
+      assert.equal(toolRuntimePolicyEnforcement.summary.agent_run_tool_gate_count, runtimeAgentRunContractFreeze.summary.agent_run_count);
+      assert.equal(toolRuntimePolicyEnforcement.summary.unknown_tool_count, 0);
+      assert.equal(toolRuntimePolicyEnforcement.summary.tool_overlap_count, 0);
+      assert.equal(toolRuntimePolicyEnforcement.summary.missing_tool_permission_gate_count, 0);
+      assert.equal(toolRuntimePolicyEnforcement.summary.validation_error_count, 0);
+      assert.equal(toolRuntimePolicyEnforcement.summary.forbidden_tool_blocked_count, toolRuntimePolicyEnforcement.summary.forbidden_tool_gate_count);
+      assert.ok(toolRuntimePolicyEnforcement.tool_runtime_policy_catalog.tool_permission_gates.filter((gate) => gate.requested_state === "forbidden").every((gate) => gate.gate_decision === "deny"));
+      assert.ok(toolRuntimePolicyEnforcement.tool_runtime_policy_catalog.tool_permission_gates.filter((gate) => gate.approval_required).every((gate) => gate.required_gates.includes("human_approval_gate")));
+      assert.ok(toolRuntimePolicyEnforcement.tool_runtime_policy_catalog.agent_run_tool_gates.every((gate) => gate.gate_decision !== "deny"));
+      assert.ok(toolRuntimePolicyEnforcement.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "tool-runtime-policy", "summary.md"), "utf8"), /Tool\/Runtime Policy Enforcement/);
+
       const costBudgetLedger = await runCostBudgetLedger({
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
@@ -1400,6 +1437,7 @@ describe("matter harness", () => {
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
         tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
         costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
@@ -3198,6 +3236,7 @@ describe("matter harness", () => {
           matter_access_policy_evaluator: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
           data_classification_rule_engine: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
+          tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -3218,8 +3257,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 21);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 21);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 22);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 22);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3236,6 +3275,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_access_policy_evaluator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "data_classification_rule_engine"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3269,6 +3309,7 @@ describe("matter harness", () => {
       assert.equal(contractValidationSuite.summary.validation_error_count, 0);
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3358,6 +3399,10 @@ describe("matter harness", () => {
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
       assert.equal(modelPolicyEnforcementCheckpoint?.implementation_status, "passed");
+      const toolRuntimePolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-tool-runtime-policy-enforcement");
+      assert.equal(toolRuntimePolicyEnforcementCheckpoint?.acceptance_profile, "tool_runtime_policy_gate");
+      assert.equal(toolRuntimePolicyEnforcementCheckpoint?.status, "passed");
+      assert.equal(toolRuntimePolicyEnforcementCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3562,6 +3607,15 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.model_policy_external_transfer_allowed_count, modelPolicyEnforcement.summary.external_transfer_allowed_count);
       assert.equal(dashboard.summary.model_policy_unauthorized_external_allow_count, 0);
       assert.equal(dashboard.summary.model_policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.tool_runtime_policy_enforcement_status, "complete");
+      assert.equal(dashboard.summary.tool_runtime_policy_runtime_gate_count, toolRuntimePolicyEnforcement.summary.runtime_policy_gate_count);
+      assert.equal(dashboard.summary.tool_runtime_policy_tool_gate_count, toolRuntimePolicyEnforcement.summary.tool_permission_gate_count);
+      assert.equal(dashboard.summary.tool_runtime_policy_forbidden_tool_blocked_count, toolRuntimePolicyEnforcement.summary.forbidden_tool_blocked_count);
+      assert.equal(dashboard.summary.tool_runtime_policy_agent_run_gate_count, toolRuntimePolicyEnforcement.summary.agent_run_tool_gate_count);
+      assert.equal(dashboard.summary.tool_runtime_policy_unknown_tool_count, 0);
+      assert.equal(dashboard.summary.tool_runtime_policy_tool_overlap_count, 0);
+      assert.equal(dashboard.summary.tool_runtime_policy_missing_gate_count, 0);
+      assert.equal(dashboard.summary.tool_runtime_policy_validation_error_count, 0);
       assert.equal(dashboard.summary.cost_budget_decision_count, costBudgetLedger.summary.budget_decision_count);
       assert.equal(dashboard.summary.cost_budget_passed_count, costBudgetLedger.summary.passed_decision_count);
       assert.equal(dashboard.summary.cost_budget_blocked_count, 0);
@@ -4326,6 +4380,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "tool_runtime_policy_enforcement"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
@@ -4490,6 +4545,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-model-gates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/route-model-gates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcement-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-runtime-policy-enforcements"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-policy-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-permission-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/agent-run-tool-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-runtime-policy-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-ledgers"));
@@ -5043,6 +5103,26 @@ describe("matter harness", () => {
       const modelPolicyEnforcementValidations = JSON.parse((await buildReviewApiResponse("/api/model-policy-enforcement-validations?status=passed", apiOptions)).body);
       assert.equal(modelPolicyEnforcementValidations.collection, "model_policy_enforcement_validations");
       assert.equal(modelPolicyEnforcementValidations.count, modelPolicyEnforcement.summary.validation_item_count);
+
+      const toolRuntimePolicyEnforcements = JSON.parse((await buildReviewApiResponse("/api/tool-runtime-policy-enforcements", apiOptions)).body);
+      assert.equal(toolRuntimePolicyEnforcements.collection, "tool_runtime_policy_enforcements");
+      assert.equal(toolRuntimePolicyEnforcements.count, 1);
+
+      const blockedRuntimePolicyGates = JSON.parse((await buildReviewApiResponse("/api/runtime-policy-gates?gate_status=blocked", apiOptions)).body);
+      assert.equal(blockedRuntimePolicyGates.collection, "runtime_policy_gates");
+      assert.equal(blockedRuntimePolicyGates.count, toolRuntimePolicyEnforcement.summary.blocked_runtime_policy_gate_count);
+
+      const forbiddenToolPermissionGates = JSON.parse((await buildReviewApiResponse("/api/tool-permission-gates?requested_state=forbidden&gate_decision=deny", apiOptions)).body);
+      assert.equal(forbiddenToolPermissionGates.collection, "tool_permission_gates");
+      assert.equal(forbiddenToolPermissionGates.count, toolRuntimePolicyEnforcement.summary.forbidden_tool_gate_count);
+
+      const agentRunToolGates = JSON.parse((await buildReviewApiResponse("/api/agent-run-tool-gates?gate_status=requires_approval", apiOptions)).body);
+      assert.equal(agentRunToolGates.collection, "agent_run_tool_gates");
+      assert.equal(agentRunToolGates.count, toolRuntimePolicyEnforcement.summary.agent_run_tool_gate_requires_approval_count);
+
+      const toolRuntimePolicyValidations = JSON.parse((await buildReviewApiResponse("/api/tool-runtime-policy-validations?status=passed", apiOptions)).body);
+      assert.equal(toolRuntimePolicyValidations.collection, "tool_runtime_policy_validations");
+      assert.equal(toolRuntimePolicyValidations.count, toolRuntimePolicyEnforcement.summary.validation_item_count);
 
       const costBudgetLedgers = JSON.parse((await buildReviewApiResponse("/api/cost-budget-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");

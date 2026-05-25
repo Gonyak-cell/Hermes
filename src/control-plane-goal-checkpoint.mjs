@@ -23,6 +23,7 @@ const GOAL_ITEMS = [
   sourceItem("matter_access_policy_evaluator", "Matter access policy evaluator", "identity_policy", "matter_access_policy_evaluator", "control-plane-matter-access-policy-evaluator", { acceptance_profile: "matter_access_policy_gate" }),
   sourceItem("data_classification_rule_engine", "Data classification rule engine", "identity_policy", "data_classification_rule_engine", "control-plane-data-classification-rule-engine", { acceptance_profile: "data_classification_rule_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
+  sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("resource_contract_freeze", "Resource and ResourceVersion v2 contract freeze", "resource_evidence", "resource_contract_freeze", "control-plane-resource-contract-freeze", { acceptance_profile: "resource_contract_freeze_gate" }),
   sourceItem("matter_contract_freeze", "Matter, client, party, team, and boundary v2 contract freeze", "identity_policy", "matter_contract_freeze", "control-plane-matter-contract-freeze", { acceptance_profile: "matter_contract_freeze_gate" }),
   sourceItem("policy_contract_freeze", "Data classification and policy reference v2 contract freeze", "policy", "policy_contract_freeze", "control-plane-policy-contract-freeze", { acceptance_profile: "policy_contract_freeze_gate" }),
@@ -793,6 +794,17 @@ function evaluateStageAcceptance(item, stage) {
     const errors = metrics.error_record_count ?? 0;
     if (errors === 0 && (metrics.workflow_run_count ?? 0) > 0 && (metrics.event_count ?? 0) > 0) {
       return passedWithOperationalGate(stage, "Observability plane is recording runs, events, and gate blockers without runtime errors.");
+    }
+  }
+
+  if (item.acceptance_profile === "tool_runtime_policy_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.unknown_tool_count ?? 0)
+      + (metrics.tool_overlap_count ?? 0)
+      + (metrics.missing_tool_permission_gate_count ?? 0)
+      + (metrics.agent_run_tool_gate_deny_count ?? 0);
+    if (errors === 0 && (metrics.tool_permission_gate_count ?? 0) > 0 && (metrics.agent_run_tool_gate_count ?? 0) > 0) {
+      return passedWithOperationalGate(stage, "Tool/runtime policy enforcement is implemented; remaining review/deny rows are protected-action controls.");
     }
   }
 

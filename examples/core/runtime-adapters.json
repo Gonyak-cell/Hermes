@@ -378,7 +378,7 @@
       "tool_policy": {
         "allowed_tools": ["filesystem.read", "filesystem.write", "terminal.exec"],
         "forbidden_tools": ["email.send", "erp.billing.issue", "github.merge"],
-        "required_gates": ["classification_gate", "evidence_coverage_gate", "citation_gate", "format_validation_gate"]
+        "required_gates": ["classification_gate", "tool_permission_gate", "evidence_coverage_gate", "citation_gate", "format_validation_gate"]
       },
       "lifecycle": {
         "timeout_seconds": 1800,

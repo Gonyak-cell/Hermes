@@ -3670,6 +3670,39 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Model Policy Enforcement를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:model-policy`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 120 - Tool/Runtime Policy Enforcement
+
+목표: RuntimeAdapter/AgentRun contract, Policy Matrix, Capability/Workflow gate binding, Model Policy Enforcement를 합쳐 runtime별 허용 도구와 금지 action을 `tool_permission_gate`로 고정한다.
+
+구현 산출물:
+
+- `src/tool-runtime-policy-enforcement.mjs`
+- `scripts/tool-runtime-policy-enforcement.mjs`
+- `schemas/tool-runtime-policy-enforcement.schema.json`
+- `docs/tool-runtime-policy-enforcement.md`
+- `artifacts/tool-runtime-policy/latest/tool-runtime-policy-enforcement.json`
+- `artifacts/tool-runtime-policy/latest/tool-runtime-policy-catalog.json`
+- `artifacts/tool-runtime-policy/latest/runtime-policy-gates.json`
+- `artifacts/tool-runtime-policy/latest/tool-permission-gates.json`
+- `artifacts/tool-runtime-policy/latest/agent-run-tool-gates.json`
+- `artifacts/tool-runtime-policy/latest/validation-report.json`
+- `artifacts/tool-runtime-policy/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:tool-runtime -- --check`가 Tool/Runtime Policy Enforcement를 생성하고 validation error 0으로 통과한다.
+- Runtime/classification 조합마다 `runtime-policy-gate.v1`이 생성되고 forbidden runtime binding은 `blocked`로 고정된다.
+- Runtime별 `allowed_tools`와 `forbidden_tools`가 겹치면 validation failure로 잡힌다.
+- Runtime이 금지한 tool은 항상 `deny` tool permission gate로 고정된다.
+- `email.send`, `erp.billing.issue`, `github.merge` 같은 protected action은 approval-required gate와 human approval gate를 요구한다.
+- Non-manual runtime이 tool을 보유하면 `tool_permission_gate` 선언이 필수이며, `document_renderer`도 이 gate를 통과한다.
+- AgentRun마다 `agent-run-tool-gate.v1`이 생성되고 capability-required tool gate와 runtime-required tool gate가 맞물린다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `tool_runtime_policy_enforcement` fixture가 포함되어 golden fixture set이 22개로 확장된다.
+- Dashboard stage와 summary가 `tool_runtime_policy_enforcement` 지표를 추적함
+- Review API에서 `/api/tool-runtime-policy-enforcements`, `/api/runtime-policy-gates`, `/api/tool-permission-gates`, `/api/agent-run-tool-gates`, `/api/tool-runtime-policy-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Tool/Runtime Policy Enforcement를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:tool-runtime`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3678,9 +3711,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 119이다.
+- 현재 완료 기준점은 Phase 120이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P120-P312, 총 193개다.
+- 남은 계획 슬롯은 P121-P312, 총 192개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

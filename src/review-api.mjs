@@ -485,6 +485,64 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/matter-access-policy-evaluators") {
+    const evaluatorResult = await readDashboardSourceArtifact(dashboard, "matter_access_policy_evaluator");
+    if (!evaluatorResult.available) {
+      return jsonResponse(503, buildError("matter_access_policy_evaluator_unavailable", evaluatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_access_policy_evaluators", [evaluatorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-access-policy-rules") {
+    const evaluatorResult = await readDashboardSourceArtifact(dashboard, "matter_access_policy_evaluator");
+    if (!evaluatorResult.available) {
+      return jsonResponse(503, buildError("matter_access_policy_evaluator_unavailable", evaluatorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_access_policy_rules", evaluatorResult.artifact.matter_access_policy?.access_policy_rules ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-access-decisions") {
+    const evaluatorResult = await readDashboardSourceArtifact(dashboard, "matter_access_policy_evaluator");
+    if (!evaluatorResult.available) {
+      return jsonResponse(503, buildError("matter_access_policy_evaluator_unavailable", evaluatorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_access_decisions", evaluatorResult.artifact.matter_access_policy?.matter_access_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/resource-access-decisions") {
+    const evaluatorResult = await readDashboardSourceArtifact(dashboard, "matter_access_policy_evaluator");
+    if (!evaluatorResult.available) {
+      return jsonResponse(503, buildError("matter_access_policy_evaluator_unavailable", evaluatorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("resource_access_decisions", evaluatorResult.artifact.matter_access_policy?.resource_access_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-access-matrix") {
+    const evaluatorResult = await readDashboardSourceArtifact(dashboard, "matter_access_policy_evaluator");
+    if (!evaluatorResult.available) {
+      return jsonResponse(503, buildError("matter_access_policy_evaluator_unavailable", evaluatorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_access_matrix", evaluatorResult.artifact.matter_access_policy?.runtime_access_matrix ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-access-policy-validations") {
+    const evaluatorResult = await readDashboardSourceArtifact(dashboard, "matter_access_policy_evaluator");
+    if (!evaluatorResult.available) {
+      return jsonResponse(503, buildError("matter_access_policy_evaluator_unavailable", evaluatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_access_policy_validations", evaluatorResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -3792,6 +3850,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/wall-subject-bindings", "Wall subject binding rows"),
       route("GET", "/api/conflict-wall-bindings", "Conflict wall binding rows"),
       route("GET", "/api/wall-policy-validations", "Wall policy contract validation rows"),
+      route("GET", "/api/matter-access-policy-evaluators", "Matter access policy evaluator artifacts"),
+      route("GET", "/api/matter-access-policy-rules", "Matter access policy rule rows"),
+      route("GET", "/api/matter-access-decisions", "Matter-level access decision rows"),
+      route("GET", "/api/resource-access-decisions", "Resource-level access decision rows"),
+      route("GET", "/api/runtime-access-matrix", "Runtime access matrix rows"),
+      route("GET", "/api/matter-access-policy-validations", "Matter access policy validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4181,6 +4245,22 @@ function filterItems(items, searchParams) {
     "conflict_wall_binding_id",
     "binding_status",
     "applies_to_stage",
+    "access_policy_ledger_id",
+    "access_policy_status",
+    "access_policy_rule_id",
+    "matter_access_decision_id",
+    "resource_access_decision_id",
+    "runtime_access_matrix_id",
+    "context_mode",
+    "requires_human_review",
+    "resource_id",
+    "resource_matter_id",
+    "target_matter_id",
+    "resource_classification",
+    "required_classification_floor",
+    "runtime_policy_decision",
+    "runtime_context_mode",
+    "external_execution",
     "freeze_id",
     "freeze_status",
     "identity_model_id",
@@ -4682,6 +4762,7 @@ function readFilterValue(item, key) {
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "wall_policy_status") return item.summary?.wall_policy_status ?? item.wall_policy_status;
+  if (key === "access_policy_status") return item.summary?.access_policy_status ?? item.access_policy_status;
   if (key === "alias_key") return item.alias_keys ?? item.alias_key;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "identity_model_status") return item.summary?.identity_model_status ?? item.identity_model_status;

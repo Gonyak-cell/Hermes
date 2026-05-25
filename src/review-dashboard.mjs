@@ -11,6 +11,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   clientCounterpartyRegistryPath: "artifacts/client-counterparty-registry/latest/client-counterparty-registry.json",
   matterProfileTeamLedgerPath: "artifacts/matter-profile-team-ledger/latest/matter-profile-team-ledger.json",
   wallPolicyContractPath: "artifacts/wall-policy-contract/latest/wall-policy-contract.json",
+  matterAccessPolicyEvaluatorPath: "artifacts/matter-access-policy/latest/matter-access-policy-evaluator.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
@@ -150,6 +151,11 @@ const SOURCE_DEFINITIONS = [
     option: "wallPolicyContractPath",
     source_id: "wall_policy_contract",
     label: "Wall Policy Contract",
+  },
+  {
+    option: "matterAccessPolicyEvaluatorPath",
+    source_id: "matter_access_policy_evaluator",
+    label: "Matter Access Policy Evaluator",
   },
   {
     option: "policyContractFreezePath",
@@ -775,6 +781,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "client_counterparty_registry") return data.summary ?? {};
   if (sourceId === "matter_profile_team_ledger") return data.summary ?? {};
   if (sourceId === "wall_policy_contract") return data.summary ?? {};
+  if (sourceId === "matter_access_policy_evaluator") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
@@ -971,6 +978,7 @@ function buildStageStatuses(artifacts, sources) {
     buildClientCounterpartyRegistryStage(artifacts.client_counterparty_registry, sourceById.get("client_counterparty_registry")),
     buildMatterProfileTeamLedgerStage(artifacts.matter_profile_team_ledger, sourceById.get("matter_profile_team_ledger")),
     buildWallPolicyContractStage(artifacts.wall_policy_contract, sourceById.get("wall_policy_contract")),
+    buildMatterAccessPolicyEvaluatorStage(artifacts.matter_access_policy_evaluator, sourceById.get("matter_access_policy_evaluator")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
@@ -1323,6 +1331,43 @@ function buildWallPolicyContractStage(contract, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildMatterAccessPolicyEvaluatorStage(evaluator, source) {
+  if (!evaluator) return missingStage("matter_access_policy_evaluator", "Matter Access Policy Evaluator", source);
+  const summary = evaluator.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || evaluator.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "matter_access_policy_evaluator",
+    label: "Matter Access Policy Evaluator",
+    status,
+    message: `${summary.matter_access_decision_count ?? 0} matter decision(s), ${summary.resource_access_decision_count ?? 0} resource decision(s), ${summary.review_decision_count ?? 0} review decision(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      access_policy_status: summary.access_policy_status ?? "unknown",
+      source_resource_contract_status: summary.source_resource_contract_status ?? "unknown",
+      source_runtime_contract_status: summary.source_runtime_contract_status ?? "unknown",
+      source_matter_profile_team_ledger_status: summary.source_matter_profile_team_ledger_status ?? "unknown",
+      source_wall_policy_contract_status: summary.source_wall_policy_contract_status ?? "unknown",
+      access_policy_rule_count: summary.access_policy_rule_count ?? 0,
+      matter_access_decision_count: summary.matter_access_decision_count ?? 0,
+      resource_access_decision_count: summary.resource_access_decision_count ?? 0,
+      runtime_access_matrix_count: summary.runtime_access_matrix_count ?? 0,
+      allow_decision_count: summary.allow_decision_count ?? 0,
+      review_decision_count: summary.review_decision_count ?? 0,
+      deny_decision_count: summary.deny_decision_count ?? 0,
+      unassigned_resource_review_count: summary.unassigned_resource_review_count ?? 0,
+      external_runtime_decision_count: summary.external_runtime_decision_count ?? 0,
+      runtime_count: summary.runtime_count ?? 0,
+      resource_count: summary.resource_count ?? 0,
+      access_subject_count: summary.access_subject_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? evaluator.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -6042,6 +6087,31 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     wall_policy_required_filter_key_count: artifacts.wall_policy_contract?.summary?.required_filter_key_count ?? 0,
     wall_policy_failed_validation_item_count: artifacts.wall_policy_contract?.summary?.failed_validation_item_count ?? 0,
     wall_policy_validation_error_count: artifacts.wall_policy_contract?.summary?.validation_error_count ?? artifacts.wall_policy_contract?.validation?.errors?.length ?? 0,
+    matter_access_policy_status: artifacts.matter_access_policy_evaluator?.summary?.access_policy_status ?? "unknown",
+    matter_access_source_resource_contract_status: artifacts.matter_access_policy_evaluator?.summary?.source_resource_contract_status ?? "unknown",
+    matter_access_source_runtime_contract_status: artifacts.matter_access_policy_evaluator?.summary?.source_runtime_contract_status ?? "unknown",
+    matter_access_source_matter_profile_team_ledger_status: artifacts.matter_access_policy_evaluator?.summary?.source_matter_profile_team_ledger_status ?? "unknown",
+    matter_access_source_wall_policy_contract_status: artifacts.matter_access_policy_evaluator?.summary?.source_wall_policy_contract_status ?? "unknown",
+    matter_access_policy_rule_count: artifacts.matter_access_policy_evaluator?.summary?.access_policy_rule_count ?? 0,
+    matter_access_decision_count: artifacts.matter_access_policy_evaluator?.summary?.matter_access_decision_count ?? 0,
+    matter_access_resource_decision_count: artifacts.matter_access_policy_evaluator?.summary?.resource_access_decision_count ?? 0,
+    matter_access_runtime_matrix_count: artifacts.matter_access_policy_evaluator?.summary?.runtime_access_matrix_count ?? 0,
+    matter_access_allow_decision_count: artifacts.matter_access_policy_evaluator?.summary?.allow_decision_count ?? 0,
+    matter_access_review_decision_count: artifacts.matter_access_policy_evaluator?.summary?.review_decision_count ?? 0,
+    matter_access_deny_decision_count: artifacts.matter_access_policy_evaluator?.summary?.deny_decision_count ?? 0,
+    matter_access_matter_allow_decision_count: artifacts.matter_access_policy_evaluator?.summary?.matter_allow_decision_count ?? 0,
+    matter_access_matter_review_decision_count: artifacts.matter_access_policy_evaluator?.summary?.matter_review_decision_count ?? 0,
+    matter_access_matter_deny_decision_count: artifacts.matter_access_policy_evaluator?.summary?.matter_deny_decision_count ?? 0,
+    matter_access_resource_allow_decision_count: artifacts.matter_access_policy_evaluator?.summary?.resource_allow_decision_count ?? 0,
+    matter_access_resource_review_decision_count: artifacts.matter_access_policy_evaluator?.summary?.resource_review_decision_count ?? 0,
+    matter_access_resource_deny_decision_count: artifacts.matter_access_policy_evaluator?.summary?.resource_deny_decision_count ?? 0,
+    matter_access_unassigned_resource_review_count: artifacts.matter_access_policy_evaluator?.summary?.unassigned_resource_review_count ?? 0,
+    matter_access_external_runtime_decision_count: artifacts.matter_access_policy_evaluator?.summary?.external_runtime_decision_count ?? 0,
+    matter_access_runtime_count: artifacts.matter_access_policy_evaluator?.summary?.runtime_count ?? 0,
+    matter_access_resource_count: artifacts.matter_access_policy_evaluator?.summary?.resource_count ?? 0,
+    matter_access_subject_count: artifacts.matter_access_policy_evaluator?.summary?.access_subject_count ?? 0,
+    matter_access_failed_validation_item_count: artifacts.matter_access_policy_evaluator?.summary?.failed_validation_item_count ?? 0,
+    matter_access_validation_error_count: artifacts.matter_access_policy_evaluator?.summary?.validation_error_count ?? artifacts.matter_access_policy_evaluator?.validation?.errors?.length ?? 0,
     policy_contract_freeze_classification_count: artifacts.policy_contract_freeze?.summary?.classification_count ?? 0,
     policy_contract_freeze_required_classification_count: artifacts.policy_contract_freeze?.summary?.required_classification_count ?? 0,
     policy_contract_freeze_missing_classification_count: artifacts.policy_contract_freeze?.summary?.missing_classification_count ?? 0,
@@ -7320,6 +7390,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-profile-team-ledger") parsed.matterProfileTeamLedgerPath = false;
     else if (arg === "--wall-policy-contract") parsed.wallPolicyContractPath = argv[++index];
     else if (arg === "--no-wall-policy-contract") parsed.wallPolicyContractPath = false;
+    else if (arg === "--matter-access-policy") parsed.matterAccessPolicyEvaluatorPath = argv[++index];
+    else if (arg === "--no-matter-access-policy") parsed.matterAccessPolicyEvaluatorPath = false;
     else if (arg === "--policy-contract-freeze") parsed.policyContractFreezePath = argv[++index];
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
@@ -7538,6 +7610,8 @@ Options:
                                   Do not include Matter Profile/Team Ledger status.
   --wall-policy-contract <path>  wall-policy-contract.json path.
   --no-wall-policy-contract      Do not include Wall Policy Contract status.
+  --matter-access-policy <path>  matter-access-policy-evaluator.json path.
+  --no-matter-access-policy      Do not include Matter Access Policy Evaluator status.
   --policy-contract-freeze <path>
                                   policy-contract-freeze.json path.
   --no-policy-contract-freeze    Do not include Policy Contract Freeze status.

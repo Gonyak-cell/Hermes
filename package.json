@@ -26,6 +26,7 @@
     "contracts:party-registry": "node scripts/client-counterparty-registry.mjs",
     "contracts:matter-teams": "node scripts/matter-profile-team-ledger.mjs",
     "contracts:walls": "node scripts/wall-policy-contract.mjs",
+    "contracts:matter-access": "node scripts/matter-access-policy-evaluator.mjs",
     "contracts:resources": "node scripts/resource-contract-freeze.mjs",
     "contracts:matters": "node scripts/matter-contract-freeze.mjs",
     "contracts:policies": "node scripts/policy-contract-freeze.mjs",

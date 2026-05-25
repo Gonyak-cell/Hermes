@@ -1,0 +1,380 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/matter-access-policy-evaluator.schema.json",
+  "title": "Hermes Matter Access Policy Evaluator",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "access_policy_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_resource_contract",
+    "source_runtime_contract",
+    "source_matter_profile_team_ledger",
+    "source_wall_policy_contract",
+    "matter_access_policy",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "matter-access-policy-evaluator.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "access_policy_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_contract_freeze_path",
+        "runtime_agentrun_contract_freeze_path",
+        "matter_profile_team_ledger_path",
+        "wall_policy_contract_path"
+      ],
+      "properties": {
+        "resource_contract_freeze_path": { "type": "string" },
+        "runtime_agentrun_contract_freeze_path": { "type": "string" },
+        "matter_profile_team_ledger_path": { "type": "string" },
+        "wall_policy_contract_path": { "type": "string" }
+      }
+    },
+    "source_resource_contract": { "$ref": "#/$defs/source_resource_contract" },
+    "source_runtime_contract": { "$ref": "#/$defs/source_runtime_contract" },
+    "source_matter_profile_team_ledger": { "$ref": "#/$defs/source_matter_profile_team_ledger" },
+    "source_wall_policy_contract": { "$ref": "#/$defs/source_wall_policy_contract" },
+    "matter_access_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "access_policy_rules",
+        "matter_access_decisions",
+        "resource_access_decisions",
+        "runtime_access_matrix"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-access-policy.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "access_policy_rules": { "type": "array", "items": { "$ref": "#/$defs/access_policy_rule" } },
+        "matter_access_decisions": { "type": "array", "items": { "$ref": "#/$defs/matter_access_decision" } },
+        "resource_access_decisions": { "type": "array", "items": { "$ref": "#/$defs/resource_access_decision" } },
+        "runtime_access_matrix": { "type": "array", "items": { "$ref": "#/$defs/runtime_access_matrix_row" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_resource_contract": {
+      "type": "object",
+      "required": ["schema_version", "freeze_id", "freeze_status", "resource_count", "resource_version_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "freeze_id": { "type": ["string", "null"] },
+        "freeze_status": { "type": "string" },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "resource_version_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_runtime_contract": {
+      "type": "object",
+      "required": ["schema_version", "freeze_id", "freeze_status", "runtime_adapter_count", "agent_run_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "freeze_id": { "type": ["string", "null"] },
+        "freeze_status": { "type": "string" },
+        "runtime_adapter_count": { "type": "integer", "minimum": 0 },
+        "agent_run_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_matter_profile_team_ledger": {
+      "type": "object",
+      "required": ["schema_version", "ledger_id", "ledger_status", "access_subject_count", "allowed_access_subject_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "ledger_id": { "type": ["string", "null"] },
+        "ledger_status": { "type": "string" },
+        "access_subject_count": { "type": "integer", "minimum": 0 },
+        "allowed_access_subject_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "source_wall_policy_contract": {
+      "type": "object",
+      "required": ["schema_version", "wall_policy_ledger_id", "wall_policy_status", "wall_policy_rule_count", "retrieval_wall_filter_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "wall_policy_ledger_id": { "type": ["string", "null"] },
+        "wall_policy_status": { "type": "string" },
+        "wall_policy_rule_count": { "type": "integer", "minimum": 0 },
+        "retrieval_wall_filter_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "access_policy_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "access_policy_rule_id",
+        "wall_policy_rule_id",
+        "retrieval_wall_filter_id",
+        "wall_id",
+        "tenant_id",
+        "client_id",
+        "matter_id",
+        "rule_status",
+        "enforcement_stage",
+        "decision_mode",
+        "required_filter_keys",
+        "classification_floor",
+        "policy_snapshot_id",
+        "allowed_access_subject_ids",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-access-policy-rule.v1" },
+        "access_policy_rule_id": { "type": "string" },
+        "wall_policy_rule_id": { "type": "string" },
+        "retrieval_wall_filter_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "rule_status": { "enum": ["active", "inactive"] },
+        "enforcement_stage": { "const": "pre_retrieval" },
+        "decision_mode": { "const": "deny_unless_allowed" },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "classification_floor": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "allowed_access_subject_ids": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_access_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_access_decision_id",
+        "access_subject_id",
+        "user_id",
+        "runtime_id",
+        "adapter_id",
+        "external_execution",
+        "matter_id",
+        "tenant_id",
+        "client_id",
+        "wall_id",
+        "wall_policy_rule_id",
+        "retrieval_wall_filter_id",
+        "classification",
+        "access_decision",
+        "context_mode",
+        "can_retrieve",
+        "requires_human_review",
+        "required_gates",
+        "reason_codes",
+        "policy_snapshot_id",
+        "decided_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-access-decision.v1" },
+        "matter_access_decision_id": { "type": "string" },
+        "access_subject_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "external_execution": { "type": "boolean" },
+        "matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "wall_policy_rule_id": { "type": "string" },
+        "retrieval_wall_filter_id": { "type": ["string", "null"] },
+        "classification": { "type": "string" },
+        "access_decision": { "enum": ["allow", "deny", "review"] },
+        "context_mode": { "enum": ["raw", "redacted", "blocked", "review_required"] },
+        "can_retrieve": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_id": { "type": "string" },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "resource_access_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_access_decision_id",
+        "matter_access_decision_id",
+        "access_subject_id",
+        "user_id",
+        "runtime_id",
+        "adapter_id",
+        "external_execution",
+        "resource_id",
+        "resource_version_id",
+        "resource_matter_id",
+        "target_matter_id",
+        "tenant_id",
+        "resource_tenant_id",
+        "client_id",
+        "wall_id",
+        "wall_policy_rule_id",
+        "retrieval_wall_filter_id",
+        "resource_classification",
+        "required_classification_floor",
+        "access_decision",
+        "context_mode",
+        "can_retrieve",
+        "requires_human_review",
+        "required_gates",
+        "reason_codes",
+        "policy_snapshot_id",
+        "decided_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-access-decision.v1" },
+        "resource_access_decision_id": { "type": "string" },
+        "matter_access_decision_id": { "type": "string" },
+        "access_subject_id": { "type": "string" },
+        "user_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "external_execution": { "type": "boolean" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "resource_matter_id": { "type": "string" },
+        "target_matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "resource_tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "wall_policy_rule_id": { "type": "string" },
+        "retrieval_wall_filter_id": { "type": ["string", "null"] },
+        "resource_classification": { "type": "string" },
+        "required_classification_floor": { "type": "string" },
+        "access_decision": { "enum": ["allow", "deny", "review"] },
+        "context_mode": { "enum": ["raw", "redacted", "blocked", "review_required"] },
+        "can_retrieve": { "type": "boolean" },
+        "requires_human_review": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_id": { "type": "string" },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "runtime_access_matrix_row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "runtime_access_matrix_id",
+        "runtime_id",
+        "adapter_id",
+        "matter_id",
+        "wall_id",
+        "classification",
+        "risk_level",
+        "external_execution",
+        "raw_context_allowed",
+        "redacted_context_allowed",
+        "default_context_allowed",
+        "runtime_context_mode",
+        "runtime_policy_decision",
+        "required_gates",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-access-matrix-row.v1" },
+        "runtime_access_matrix_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "wall_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "risk_level": { "type": "string" },
+        "external_execution": { "type": "boolean" },
+        "raw_context_allowed": { "type": "boolean" },
+        "redacted_context_allowed": { "type": "boolean" },
+        "default_context_allowed": { "type": "boolean" },
+        "runtime_context_mode": { "enum": ["raw", "redacted", "blocked"] },
+        "runtime_policy_decision": { "enum": ["allow", "deny", "review"] },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "access_policy_status",
+        "access_policy_rule_count",
+        "matter_access_decision_count",
+        "resource_access_decision_count",
+        "runtime_access_matrix_count",
+        "allow_decision_count",
+        "review_decision_count",
+        "deny_decision_count",
+        "runtime_count",
+        "resource_count",
+        "access_subject_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "access_policy_status": { "enum": ["complete", "blocked"] },
+        "access_policy_rule_count": { "type": "integer", "minimum": 0 },
+        "matter_access_decision_count": { "type": "integer", "minimum": 0 },
+        "resource_access_decision_count": { "type": "integer", "minimum": 0 },
+        "runtime_access_matrix_count": { "type": "integer", "minimum": 0 },
+        "allow_decision_count": { "type": "integer", "minimum": 0 },
+        "review_decision_count": { "type": "integer", "minimum": 0 },
+        "deny_decision_count": { "type": "integer", "minimum": 0 },
+        "runtime_count": { "type": "integer", "minimum": 0 },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "access_subject_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

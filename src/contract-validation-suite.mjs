@@ -21,6 +21,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:party-registry",
   "contracts:matter-teams",
   "contracts:walls",
+  "contracts:matter-access",
   "contracts:resources",
   "contracts:matters",
   "contracts:policies",

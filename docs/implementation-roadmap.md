@@ -3412,7 +3412,7 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 완료 기준:
 
-- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되었고 Phase 114부터 client_counterparty_registry fixture, Phase 115부터 matter_profile_team_ledger fixture, Phase 116부터 wall_policy_contract fixture가 추가되어 현재 golden fixture set은 18개다.
+- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다. Phase 113부터 identity_model fixture가 추가되었고 Phase 114부터 client_counterparty_registry fixture, Phase 115부터 matter_profile_team_ledger fixture, Phase 116부터 wall_policy_contract fixture, Phase 117부터 matter_access_policy_evaluator fixture가 추가되어 현재 golden fixture set은 19개다.
 - 각 fixture는 artifact path, schema path, artifact schema version, content hash, schema hash, schema validation status, regression lock status를 가진다.
 - 모든 fixture가 대응 schema로 검증되고 regression hash manifest에 포함된다.
 - Dashboard stage와 summary가 `contract_golden_fixtures` 지표를 추적함
@@ -3573,6 +3573,38 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Wall Policy Contract를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:walls`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 117 - Matter Access Policy Evaluator
+
+목표: matter team, wall policy, runtime adapter, resource contract를 조합하여 retrieval 이전에 사용자/런타임/리소스/사건별 접근 결정을 명시적으로 생성한다.
+
+구현 산출물:
+
+- `src/matter-access-policy-evaluator.mjs`
+- `scripts/matter-access-policy-evaluator.mjs`
+- `schemas/matter-access-policy-evaluator.schema.json`
+- `docs/matter-access-policy-evaluator.md`
+- `artifacts/matter-access-policy/latest/matter-access-policy-evaluator.json`
+- `artifacts/matter-access-policy/latest/matter-access-policy.json`
+- `artifacts/matter-access-policy/latest/access-policy-rules.json`
+- `artifacts/matter-access-policy/latest/matter-access-decisions.json`
+- `artifacts/matter-access-policy/latest/resource-access-decisions.json`
+- `artifacts/matter-access-policy/latest/runtime-access-matrix.json`
+- `artifacts/matter-access-policy/latest/validation-report.json`
+- `artifacts/matter-access-policy/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:matter-access -- --check`가 Matter Access Policy Evaluator를 생성하고 validation error 0으로 통과한다.
+- Matter-level decision은 allowed matter access subject와 runtime adapter를 wall policy rule에 결합해 `allow`, `review`, `deny`로 판정한다.
+- Runtime classification policy상 raw context가 가능한 경우에만 `allow`, redacted context만 가능한 경우에는 `review`, 불가능한 경우에는 `deny`로 판정한다.
+- Resource-level decision은 target matter/tenant boundary를 강제하고, 미분류/unassigned resource를 항상 `review`로 보류한다.
+- unassigned resource는 retrieval `allow`가 되지 않으며 matter tagging gate가 필요한 review decision으로 남는다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `matter_access_policy_evaluator` fixture가 포함되어 golden fixture set이 19개로 확장된다.
+- Dashboard stage와 summary가 `matter_access_policy_evaluator` 지표를 추적함
+- Review API에서 `/api/matter-access-policy-evaluators`, `/api/matter-access-policy-rules`, `/api/matter-access-decisions`, `/api/resource-access-decisions`, `/api/runtime-access-matrix`, `/api/matter-access-policy-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Matter Access Policy Evaluator를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:matter-access`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3581,9 +3613,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 116이다.
+- 현재 완료 기준점은 Phase 117이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P117-P312, 총 196개다.
+- 남은 계획 슬롯은 P118-P312, 총 195개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

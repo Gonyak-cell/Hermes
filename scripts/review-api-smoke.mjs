@@ -151,6 +151,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/wall-subject-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/conflict-wall-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/wall-policy-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-access-policy-evaluators"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-access-policy-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-access-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-access-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-access-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-access-policy-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1505,6 +1511,30 @@ try {
   const wallPolicyValidations = await fetchJson(`${url}/api/wall-policy-validations?status=passed&limit=5`);
   assert.equal(wallPolicyValidations.collection, "wall_policy_validations");
   assert.ok(wallPolicyValidations.count <= 5);
+
+  const matterAccessPolicyEvaluators = await fetchJson(`${url}/api/matter-access-policy-evaluators?access_policy_status=complete&limit=1`);
+  assert.equal(matterAccessPolicyEvaluators.collection, "matter_access_policy_evaluators");
+  assert.ok(matterAccessPolicyEvaluators.count <= 1);
+
+  const matterAccessPolicyRules = await fetchJson(`${url}/api/matter-access-policy-rules?enforcement_stage=pre_retrieval&limit=5`);
+  assert.equal(matterAccessPolicyRules.collection, "matter_access_policy_rules");
+  assert.ok(matterAccessPolicyRules.count <= 5);
+
+  const matterAccessDecisions = await fetchJson(`${url}/api/matter-access-decisions?access_decision=allow&limit=5`);
+  assert.equal(matterAccessDecisions.collection, "matter_access_decisions");
+  assert.ok(matterAccessDecisions.count <= 5);
+
+  const resourceAccessDecisions = await fetchJson(`${url}/api/resource-access-decisions?access_decision=review&limit=5`);
+  assert.equal(resourceAccessDecisions.collection, "resource_access_decisions");
+  assert.ok(resourceAccessDecisions.count <= 5);
+
+  const runtimeAccessMatrix = await fetchJson(`${url}/api/runtime-access-matrix?runtime_id=harness&limit=5`);
+  assert.equal(runtimeAccessMatrix.collection, "runtime_access_matrix");
+  assert.ok(runtimeAccessMatrix.count <= 5);
+
+  const matterAccessPolicyValidations = await fetchJson(`${url}/api/matter-access-policy-validations?status=passed&limit=5`);
+  assert.equal(matterAccessPolicyValidations.collection, "matter_access_policy_validations");
+  assert.ok(matterAccessPolicyValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

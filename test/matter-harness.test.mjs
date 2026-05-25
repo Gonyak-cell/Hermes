@@ -109,6 +109,7 @@ import {
 import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
 import { runResourceContractFreeze } from "../src/resource-contract-freeze.mjs";
 import { runMatterContractFreeze } from "../src/matter-contract-freeze.mjs";
+import { runPolicyContractFreeze } from "../src/policy-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -566,6 +567,34 @@ describe("matter harness", () => {
       assert.equal(policySnapshotLedger.summary.validation_error_count, 0);
       assert.ok(policySnapshotLedger.policy_snapshots.some((snapshot) => snapshot.policy_snapshot_id === "policy.default.law_firm.v1"));
       assert.match(await readFile(path.join(outDir, "policy-snapshots", "summary.md"), "utf8"), /Policy Snapshot Ledger/);
+
+      const policyContractFreeze = await runPolicyContractFreeze({
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        outDir: path.join(outDir, "policy-contract-freeze"),
+        runAt: "2026-05-23T06:34:54.000Z",
+      });
+      const policyContractFreezeSchema = JSON.parse(await readFile("schemas/policy-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(policyContractFreeze, policyContractFreezeSchema, {}, "policy_contract_freeze"), []);
+      assert.equal(policyContractFreeze.summary.freeze_status, "complete");
+      assert.equal(policyContractFreeze.summary.classification_count, 6);
+      assert.equal(policyContractFreeze.summary.required_classification_count, 6);
+      assert.equal(policyContractFreeze.summary.missing_classification_count, 0);
+      assert.equal(policyContractFreeze.summary.extra_classification_count, 0);
+      assert.equal(policyContractFreeze.summary.runtime_rule_link_count, 6);
+      assert.equal(policyContractFreeze.summary.model_rule_link_count, 6);
+      assert.equal(policyContractFreeze.summary.resource_policy_reference_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(policyContractFreeze.summary.matter_policy_reference_count, matterContractFreeze.summary.matter_count);
+      assert.equal(policyContractFreeze.summary.matter_boundary_policy_reference_count, matterContractFreeze.summary.matter_boundary_count);
+      assert.equal(policyContractFreeze.summary.unresolved_policy_reference_count, 0);
+      assert.equal(policyContractFreeze.summary.validation_error_count, 0);
+      assert.equal(policyContractFreeze.policy_contract.data_classifications[0].schema_version, "data-classification.v2");
+      assert.equal(policyContractFreeze.policy_contract.policy_references[0].schema_version, "policy-reference.v2");
+      assert.equal(policyContractFreeze.policy_contract.policy_decisions[0].schema_version, "policy-decision.v2");
+      assert.ok(policyContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "policy-contract-freeze", "summary.md"), "utf8"), /Policy Contract Freeze/);
 
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
@@ -1025,6 +1054,7 @@ describe("matter harness", () => {
         approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -2621,6 +2651,10 @@ describe("matter harness", () => {
       assert.equal(matterContractFreezeCheckpoint?.acceptance_profile, "matter_contract_freeze_gate");
       assert.equal(matterContractFreezeCheckpoint?.status, "passed");
       assert.equal(matterContractFreezeCheckpoint?.implementation_status, "passed");
+      const policyContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-policy-contract-freeze");
+      assert.equal(policyContractFreezeCheckpoint?.acceptance_profile, "policy_contract_freeze_gate");
+      assert.equal(policyContractFreezeCheckpoint?.status, "passed");
+      assert.equal(policyContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2893,6 +2927,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.matter_contract_freeze_matter_with_policy_snapshot_count, matterContractFreeze.summary.matter_with_policy_snapshot_count);
       assert.equal(dashboard.summary.matter_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.matter_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.policy_contract_freeze_classification_count, policyContractFreeze.summary.classification_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_required_classification_count, policyContractFreeze.summary.required_classification_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_missing_classification_count, 0);
+      assert.equal(dashboard.summary.policy_contract_freeze_extra_classification_count, 0);
+      assert.equal(dashboard.summary.policy_contract_freeze_runtime_rule_link_count, policyContractFreeze.summary.runtime_rule_link_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_model_rule_link_count, policyContractFreeze.summary.model_rule_link_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_policy_decision_count, policyContractFreeze.summary.policy_decision_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_policy_reference_count, policyContractFreeze.summary.policy_reference_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_resolved_policy_reference_count, policyContractFreeze.summary.resolved_policy_reference_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_unresolved_policy_reference_count, 0);
+      assert.equal(dashboard.summary.policy_contract_freeze_resource_policy_reference_count, policyContractFreeze.summary.resource_policy_reference_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_matter_policy_reference_count, policyContractFreeze.summary.matter_policy_reference_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_matter_boundary_policy_reference_count, policyContractFreeze.summary.matter_boundary_policy_reference_count);
+      assert.equal(dashboard.summary.policy_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.policy_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3269,6 +3318,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_dependency_map"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3369,6 +3419,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-snapshot-instances"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-usages"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-contract-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/data-classification-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-reference-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-decision-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-contract-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packet-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-items"));
@@ -3638,6 +3693,28 @@ describe("matter harness", () => {
       const workflowPolicyUsages = JSON.parse((await buildReviewApiResponse("/api/policy-usages?usage_type=workflow_run", apiOptions)).body);
       assert.equal(workflowPolicyUsages.collection, "policy_usages");
       assert.equal(workflowPolicyUsages.count, policySnapshotLedger.summary.workflow_usage_count);
+
+      const policyContractFreezes = JSON.parse((await buildReviewApiResponse("/api/policy-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(policyContractFreezes.collection, "policy_contract_freezes");
+      assert.equal(policyContractFreezes.count, 1);
+
+      const dataClassificationContracts = JSON.parse((await buildReviewApiResponse("/api/data-classification-contracts?classification=P5_SECRET", apiOptions)).body);
+      assert.equal(dataClassificationContracts.collection, "data_classification_contracts");
+      assert.equal(dataClassificationContracts.count, 1);
+      assert.equal(dataClassificationContracts.items[0].external_model_policy, "forbidden");
+
+      const policyReferenceContracts = JSON.parse((await buildReviewApiResponse("/api/policy-reference-contracts?reference_status=resolved", apiOptions)).body);
+      assert.equal(policyReferenceContracts.collection, "policy_reference_contracts");
+      assert.equal(policyReferenceContracts.count, policyContractFreeze.summary.resolved_policy_reference_count);
+
+      const p2PolicyDecisionContracts = JSON.parse((await buildReviewApiResponse("/api/policy-decision-contracts?classification=P2_CLIENT_CONFIDENTIAL", apiOptions)).body);
+      assert.equal(p2PolicyDecisionContracts.collection, "policy_decision_contracts");
+      assert.equal(p2PolicyDecisionContracts.count, 1);
+      assert.equal(p2PolicyDecisionContracts.items[0].external_model_policy, "approval_required");
+
+      const policyContractValidations = JSON.parse((await buildReviewApiResponse("/api/policy-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(policyContractValidations.collection, "policy_contract_validations");
+      assert.equal(policyContractValidations.count, policyContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

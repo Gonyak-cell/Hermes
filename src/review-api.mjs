@@ -337,6 +337,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_usages", ledgerResult.artifact.usage_records ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("policy_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/data-classification-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("policy_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("data_classification_contracts", freezeResult.artifact.policy_contract?.data_classifications ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/policy-reference-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("policy_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("policy_reference_contracts", freezeResult.artifact.policy_contract?.policy_references ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/policy-decision-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("policy_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("policy_decision_contracts", freezeResult.artifact.policy_contract?.policy_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/policy-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("policy_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("policy_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -2740,6 +2791,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-snapshot-instances", "Source-level policy snapshot instances"),
       route("GET", "/api/policy-decisions", "Policy decision summaries derived from snapshots"),
       route("GET", "/api/policy-usages", "Workflow, event, and run ledger policy snapshot references"),
+      route("GET", "/api/policy-contract-freezes", "Policy contract freeze artifacts"),
+      route("GET", "/api/data-classification-contracts", "DataClassification v2 contract fixtures"),
+      route("GET", "/api/policy-reference-contracts", "PolicyReference v2 contract fixtures"),
+      route("GET", "/api/policy-decision-contracts", "PolicyDecision v2 contract fixtures"),
+      route("GET", "/api/policy-contract-validations", "Policy contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3057,6 +3113,9 @@ function filterItems(items, searchParams) {
     "ledger_status",
     "review_status",
     "policy_snapshot_id",
+    "policy_reference_id",
+    "reference_type",
+    "reference_status",
     "decision_id",
     "decision_status",
     "usage_id",

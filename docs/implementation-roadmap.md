@@ -3074,6 +3074,38 @@ Phase 100은 기존 `identity_policy.v1`를 입력으로 `client.v2`, `party.v2`
 - Review API에서 `/api/matter-contract-freezes`, `/api/client-v2-contracts`, `/api/party-v2-contracts`, `/api/matter-v2-contracts`, `/api/matter-team-v2-contracts`, `/api/matter-boundary-v2-contracts`, `/api/matter-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:matters`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 101: Data Classification and Policy Reference v2 Contract Freeze
+
+Phase 101은 Policy Matrix, Policy Snapshot Ledger, Resource v2 contract, Matter Boundary v2 contract를 입력으로 `data-classification.v2`, `policy-reference.v2`, `policy-decision.v2` fixture를 생성하고 Policy plane의 필수 계약을 고정했다.
+
+구현:
+
+- `npm run contracts:policies`
+- `src/policy-contract-freeze.mjs`
+- `scripts/policy-contract-freeze.mjs`
+- `schemas/policy-contract-freeze.schema.json`
+- `docs/policy-contract-freeze.md`
+
+핵심 산출물:
+
+- `artifacts/policy-contract-freeze/latest/policy-contract-freeze.json`
+- `artifacts/policy-contract-freeze/latest/data-classification-v2-fixture.json`
+- `artifacts/policy-contract-freeze/latest/policy-reference-v2-fixture.json`
+- `artifacts/policy-contract-freeze/latest/policy-decision-v2-fixture.json`
+- `artifacts/policy-contract-freeze/latest/validation-report.json`
+- `artifacts/policy-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- `P0_PUBLIC`부터 `P5_SECRET`까지 6개 classification이 `data-classification.v2` fixture로 존재한다
+- 각 classification이 runtime rule, model rule, required gate, external/local model policy, redaction policy를 가진다
+- `P3_PRIVILEGED`, `P4_HIGHLY_RESTRICTED`, `P5_SECRET`은 external model policy가 `forbidden`으로 고정된다
+- Policy Snapshot Ledger의 snapshot, workflow, event, run-ledger reference가 `policy-reference.v2`로 정규화된다
+- Resource v2와 Matter/Client/Boundary v2의 policy snapshot reference가 canonical snapshot id로 resolved 상태를 가진다
+- Dashboard stage와 goal checkpoint가 `policy_contract_freeze`를 추적함
+- Review API에서 `/api/policy-contract-freezes`, `/api/data-classification-contracts`, `/api/policy-reference-contracts`, `/api/policy-decision-contracts`, `/api/policy-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:policies`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3082,9 +3114,9 @@ Phase 100은 기존 `identity_policy.v1`를 입력으로 `client.v2`, `party.v2`
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 100이다.
+- 현재 완료 기준점은 Phase 101이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P101-P312, 총 212개다.
+- 남은 계획 슬롯은 P102-P312, 총 211개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

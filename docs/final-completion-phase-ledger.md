@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 100이다.
-- 남은 planned slot은 P101-P312, 총 212개다.
+- 현재 완료 기준점은 Phase 101이다.
+- 남은 planned slot은 P102-P312, 총 211개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -31,7 +31,7 @@
 | P098 | contract 간 dependency map 작성 | dependency graph, breaking-change risk list | Promoted to Phase 98; core/domain/runtime/dashboard 의존 방향, owner dependency, breaking-change risk가 목록화 |
 | P099 | Resource/ResourceVersion contract 고정 | resource schema v2, version fixture | Promoted to Phase 99; content hash, source system, external id, classification, matter link, version link가 v2 fixture와 validation item으로 검증 |
 | P100 | Matter/Client/Party contract 고정 | matter/client/counterparty schema | Promoted to Phase 100; client, party, counterparty, matter, team, boundary 필드가 v2 fixture와 validation item으로 검증 |
-| P101 | DataClassification/Policy contract 고정 | classification schema, policy reference schema | P0-P5 classification과 policy snapshot 참조가 모든 관련 artifact에 연결 |
+| P101 | DataClassification/Policy contract 고정 | classification schema, policy reference schema | Promoted to Phase 101; P0-P5 classification과 policy snapshot reference가 v2 fixture와 validation item으로 검증 |
 | P102 | Evidence/Fact/Issue/Citation contract 고정 | evidence lineage schema family | source span에서 citation까지 lineage id가 끊기지 않음 |
 | P103 | Capability/Workflow contract 고정 | capability manifest v2, workflow schema | input/output/gate/runtime/version 필드가 required/optional로 구분 |
 | P104 | Runtime/AgentRun contract 고정 | runtime adapter schema, agent run schema | runtime output, logs, artifacts, risk level, verification flag가 검증 |

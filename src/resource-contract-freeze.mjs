@@ -151,7 +151,7 @@ function projectResourceContracts(resources, resourceVersions, generatedAt) {
       content_hash_algorithm: "sha256",
       classification: resource.classification,
       classification_source: resource.metadata?.classification_source ?? "resource_expansion",
-      policy_snapshot_id: resource.metadata?.policy_snapshot_id ?? "policy.resource_contract.default.v1",
+      policy_snapshot_id: resource.metadata?.policy_snapshot_id ?? "policy.default.law_firm.v1",
       latest_resource_version_id: latestVersion?.id ?? null,
       materialization_status: resource.materialization_status,
       ingestion_status: resource.ingestion_status,

@@ -20,6 +20,7 @@
     "contracts:dependencies": "node scripts/contract-dependency-map.mjs",
     "contracts:resources": "node scripts/resource-contract-freeze.mjs",
     "contracts:matters": "node scripts/matter-contract-freeze.mjs",
+    "contracts:policies": "node scripts/policy-contract-freeze.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",

@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/policy-contract-freeze.schema.json",
+  "title": "Hermes Policy Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "summary",
+    "policy_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "policy-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "policy_matrix_catalog_path",
+        "policy_snapshot_ledger_path",
+        "resource_contract_freeze_path",
+        "matter_contract_freeze_path"
+      ],
+      "properties": {
+        "policy_matrix_catalog_path": { "type": "string" },
+        "policy_snapshot_ledger_path": { "type": "string" },
+        "resource_contract_freeze_path": { "type": "string" },
+        "matter_contract_freeze_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": ["policy_matrix_catalog", "policy_snapshot_ledger", "resource_contract_freeze", "matter_contract_freeze"],
+      "properties": {
+        "policy_matrix_catalog": { "$ref": "#/$defs/source_contract" },
+        "policy_snapshot_ledger": { "$ref": "#/$defs/source_contract" },
+        "resource_contract_freeze": { "$ref": "#/$defs/source_contract" },
+        "matter_contract_freeze": { "$ref": "#/$defs/source_contract" }
+      }
+    },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "data_classification_schema_version",
+        "policy_reference_schema_version",
+        "policy_decision_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "data_classification_schema_version": { "const": "data-classification.v2" },
+        "policy_reference_schema_version": { "const": "policy-reference.v2" },
+        "policy_decision_schema_version": { "const": "policy-decision.v2" },
+        "compatibility_floor": { "const": "policy-matrix-catalog.v1+policy-snapshot-ledger.v1" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "data_classification_schema_version",
+        "policy_reference_schema_version",
+        "policy_decision_schema_version",
+        "required_classification_count",
+        "classification_count",
+        "missing_classification_count",
+        "extra_classification_count",
+        "runtime_rule_link_count",
+        "model_rule_link_count",
+        "policy_decision_count",
+        "policy_reference_count",
+        "resolved_policy_reference_count",
+        "unresolved_policy_reference_count",
+        "snapshot_policy_reference_count",
+        "usage_policy_reference_count",
+        "resource_policy_reference_count",
+        "client_policy_reference_count",
+        "matter_policy_reference_count",
+        "matter_boundary_policy_reference_count",
+        "external_model_forbidden_count",
+        "external_model_approval_required_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_classification",
+        "by_reference_type",
+        "by_reference_status"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "data_classification_schema_version": { "const": "data-classification.v2" },
+        "policy_reference_schema_version": { "const": "policy-reference.v2" },
+        "policy_decision_schema_version": { "const": "policy-decision.v2" },
+        "required_classification_count": { "type": "integer", "minimum": 0 },
+        "classification_count": { "type": "integer", "minimum": 0 },
+        "missing_classification_count": { "type": "integer", "minimum": 0 },
+        "extra_classification_count": { "type": "integer", "minimum": 0 },
+        "runtime_rule_link_count": { "type": "integer", "minimum": 0 },
+        "model_rule_link_count": { "type": "integer", "minimum": 0 },
+        "policy_decision_count": { "type": "integer", "minimum": 0 },
+        "policy_reference_count": { "type": "integer", "minimum": 0 },
+        "resolved_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "unresolved_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "snapshot_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "usage_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "resource_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "client_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "matter_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "matter_boundary_policy_reference_count": { "type": "integer", "minimum": 0 },
+        "external_model_forbidden_count": { "type": "integer", "minimum": 0 },
+        "external_model_approval_required_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_classification": { "type": "object" },
+        "by_reference_type": { "type": "object" },
+        "by_reference_status": { "type": "object" }
+      }
+    },
+    "policy_contract": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "data_classifications", "policy_decisions", "policy_references"],
+      "properties": {
+        "schema_version": { "const": "policy-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "data_classifications": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/data_classification_v2" }
+        },
+        "policy_decisions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/policy_decision_v2" }
+        },
+        "policy_references": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/policy_reference_v2" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "classification": {
+      "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]
+    },
+    "source_contract": {
+      "type": "object",
+      "additionalProperties": true
+    },
+    "data_classification_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "classification",
+        "ordinal",
+        "name",
+        "description",
+        "default_external_model_policy",
+        "runtime_rule_id",
+        "model_rule_id",
+        "allowed_runtimes",
+        "restricted_runtimes",
+        "forbidden_runtimes",
+        "required_gates",
+        "blocking_gate_ids",
+        "external_model_policy",
+        "local_model_policy",
+        "redaction_policy",
+        "approval_required",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "data-classification.v2" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "ordinal": { "type": ["integer", "null"], "minimum": 0 },
+        "name": { "type": "string" },
+        "description": { "type": "string" },
+        "default_external_model_policy": { "type": "string" },
+        "runtime_rule_id": { "type": ["string", "null"] },
+        "model_rule_id": { "type": ["string", "null"] },
+        "allowed_runtimes": { "type": "array", "items": { "type": "string" } },
+        "restricted_runtimes": { "type": "array", "items": { "type": "string" } },
+        "forbidden_runtimes": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "blocking_gate_ids": { "type": "array", "items": { "type": "string" } },
+        "external_model_policy": { "enum": ["allowed_with_audit", "approval_required", "forbidden"] },
+        "local_model_policy": { "type": ["string", "null"] },
+        "redaction_policy": { "type": ["string", "null"] },
+        "approval_required": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "policy_decision_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "decision_id",
+        "classification",
+        "default_external_model_policy",
+        "external_model_policy",
+        "local_model_policy",
+        "redaction_policy",
+        "approval_required",
+        "allowed_runtimes",
+        "restricted_runtimes",
+        "forbidden_runtimes",
+        "required_gates",
+        "snapshot_policy_decision_ids",
+        "snapshot_policy_decision_count",
+        "decision_status",
+        "runtime_rule_id",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-decision.v2" },
+        "decision_id": { "type": "string" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "default_external_model_policy": { "type": "string" },
+        "external_model_policy": { "enum": ["allowed_with_audit", "approval_required", "forbidden"] },
+        "local_model_policy": { "type": ["string", "null"] },
+        "redaction_policy": { "type": ["string", "null"] },
+        "approval_required": { "type": "boolean" },
+        "allowed_runtimes": { "type": "array", "items": { "type": "string" } },
+        "restricted_runtimes": { "type": "array", "items": { "type": "string" } },
+        "forbidden_runtimes": { "type": "array", "items": { "type": "string" } },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "snapshot_policy_decision_ids": { "type": "array", "items": { "type": "string" } },
+        "snapshot_policy_decision_count": { "type": "integer", "minimum": 0 },
+        "decision_status": { "enum": ["passed", "blocked"] },
+        "runtime_rule_id": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "policy_reference_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_reference_id",
+        "reference_type",
+        "source_artifact",
+        "source_id",
+        "subject_type",
+        "subject_id",
+        "tenant_id",
+        "matter_id",
+        "policy_snapshot_id",
+        "classification",
+        "policy_snapshot_resolved",
+        "classification_resolved",
+        "reference_status",
+        "occurred_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-reference.v2" },
+        "policy_reference_id": { "type": "string" },
+        "reference_type": { "enum": ["snapshot", "usage", "resource", "client", "matter", "matter_boundary"] },
+        "source_artifact": { "type": "string" },
+        "source_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_resolved": { "type": "boolean" },
+        "classification_resolved": { "type": "boolean" },
+        "reference_status": { "enum": ["resolved", "unresolved"] },
+        "occurred_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

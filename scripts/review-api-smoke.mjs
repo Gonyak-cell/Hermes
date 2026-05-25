@@ -284,6 +284,26 @@ try {
   assert.equal(workflowPolicyUsages.collection, "policy_usages");
   assert.ok(workflowPolicyUsages.count <= 5);
 
+  const policyContractFreezes = await fetchJson(`${url}/api/policy-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(policyContractFreezes.collection, "policy_contract_freezes");
+  assert.ok(policyContractFreezes.count <= 1);
+
+  const dataClassificationContracts = await fetchJson(`${url}/api/data-classification-contracts?classification=P5_SECRET&limit=5`);
+  assert.equal(dataClassificationContracts.collection, "data_classification_contracts");
+  assert.ok(dataClassificationContracts.count <= 5);
+
+  const resolvedPolicyReferences = await fetchJson(`${url}/api/policy-reference-contracts?reference_status=resolved&limit=5`);
+  assert.equal(resolvedPolicyReferences.collection, "policy_reference_contracts");
+  assert.ok(resolvedPolicyReferences.count <= 5);
+
+  const p2PolicyDecisionContracts = await fetchJson(`${url}/api/policy-decision-contracts?classification=P2_CLIENT_CONFIDENTIAL&limit=5`);
+  assert.equal(p2PolicyDecisionContracts.collection, "policy_decision_contracts");
+  assert.ok(p2PolicyDecisionContracts.count <= 5);
+
+  const policyContractValidations = await fetchJson(`${url}/api/policy-contract-validations?status=passed&limit=5`);
+  assert.equal(policyContractValidations.collection, "policy_contract_validations");
+  assert.ok(policyContractValidations.count <= 5);
+
   const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
   assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");
   assert.ok(contextPacketLedgers.count <= 1);

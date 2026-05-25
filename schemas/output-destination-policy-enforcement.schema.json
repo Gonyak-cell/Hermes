@@ -1,0 +1,340 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/output-destination-policy-enforcement.schema.json",
+  "title": "Hermes Output Destination Policy Enforcement",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "output_destination_policy_enforcement_id",
+    "output_dir",
+    "inputs",
+    "source_policy_matrix_catalog",
+    "source_output_delivery_contract",
+    "source_protected_delivery_queue",
+    "source_delivery_execution_draft",
+    "source_tool_runtime_policy_enforcement",
+    "output_destination_policy_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "output-destination-policy-enforcement.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "output_destination_policy_enforcement_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "policy_matrix_catalog_path",
+        "output_delivery_contract_freeze_path",
+        "protected_delivery_queue_path",
+        "delivery_execution_draft_path",
+        "tool_runtime_policy_enforcement_path"
+      ],
+      "properties": {
+        "policy_matrix_catalog_path": { "type": "string" },
+        "output_delivery_contract_freeze_path": { "type": "string" },
+        "protected_delivery_queue_path": { "type": "string" },
+        "delivery_execution_draft_path": { "type": "string" },
+        "tool_runtime_policy_enforcement_path": { "type": "string" }
+      }
+    },
+    "source_policy_matrix_catalog": { "$ref": "#/$defs/source_summary" },
+    "source_output_delivery_contract": { "$ref": "#/$defs/source_summary" },
+    "source_protected_delivery_queue": { "$ref": "#/$defs/source_summary" },
+    "source_delivery_execution_draft": { "$ref": "#/$defs/source_summary" },
+    "source_tool_runtime_policy_enforcement": { "$ref": "#/$defs/source_summary" },
+    "output_destination_policy_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "policy_rules",
+        "artifact_destination_gates",
+        "delivery_action_destination_gates",
+        "final_action_separation_gates"
+      ],
+      "properties": {
+        "schema_version": { "const": "output-destination-policy-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "policy_rules": { "type": "array", "items": { "$ref": "#/$defs/policy_destination_rule" } },
+        "artifact_destination_gates": { "type": "array", "items": { "$ref": "#/$defs/artifact_destination_gate" } },
+        "delivery_action_destination_gates": { "type": "array", "items": { "$ref": "#/$defs/delivery_action_destination_gate" } },
+        "final_action_separation_gates": { "type": "array", "items": { "$ref": "#/$defs/final_action_separation_gate" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "policy_destination_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_destination_rule_id",
+        "artifact_type",
+        "delivery_policy",
+        "destination_kind",
+        "destination_tool_id",
+        "final_action_required",
+        "draft_generation_allowed",
+        "draft_final_action_separated",
+        "output_destination_gate_required",
+        "computed_required_gates",
+        "gate_decision",
+        "gate_status",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-destination-rule.v1" },
+        "policy_destination_rule_id": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "delivery_policy": { "type": "string" },
+        "destination_kind": { "type": "string" },
+        "destination_tool_id": { "type": ["string", "null"] },
+        "final_action_required": { "type": "boolean" },
+        "draft_generation_allowed": { "type": "boolean" },
+        "draft_final_action_separated": { "type": "boolean" },
+        "output_destination_gate_required": { "type": "boolean" },
+        "computed_required_gates": { "type": "array", "items": { "type": "string" } },
+        "gate_decision": { "enum": ["allow", "review", "deny"] },
+        "gate_status": { "enum": ["passed", "requires_approval", "blocked"] },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "artifact_destination_gate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "artifact_destination_gate_id",
+        "output_artifact_id",
+        "artifact_type",
+        "tenant_id",
+        "matter_id",
+        "policy_known",
+        "destination_kind",
+        "final_action_required",
+        "draft_generation_allowed",
+        "draft_final_action_separated",
+        "output_destination_gate_required",
+        "required_gates",
+        "gate_decision",
+        "gate_status",
+        "unsafe_final_action",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "artifact-destination-gate.v1" },
+        "artifact_destination_gate_id": { "type": "string" },
+        "output_artifact_id": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "policy_known": { "type": "boolean" },
+        "destination_kind": { "type": "string" },
+        "final_action_required": { "type": "boolean" },
+        "draft_generation_allowed": { "type": "boolean" },
+        "draft_final_action_separated": { "type": "boolean" },
+        "output_destination_gate_required": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "gate_decision": { "enum": ["allow", "review", "deny"] },
+        "gate_status": { "enum": ["passed", "requires_approval", "blocked"] },
+        "unsafe_final_action": { "type": "boolean" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "delivery_action_destination_gate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "delivery_action_destination_gate_id",
+        "delivery_action_id",
+        "output_artifact_id",
+        "artifact_type",
+        "delivery_channel",
+        "delivery_target",
+        "destination_kind",
+        "destination_tool_id",
+        "protected_action",
+        "draft_only",
+        "final_action_required",
+        "ready_for_delivery",
+        "executed",
+        "approval_required",
+        "approval_status",
+        "receipt_required",
+        "receipt_present",
+        "delivered_receipt_present",
+        "output_destination_gate_required",
+        "required_gates",
+        "gate_decision",
+        "gate_status",
+        "final_action_status",
+        "unsafe_final_action",
+        "blocked_final_action",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "delivery-action-destination-gate.v1" },
+        "delivery_action_destination_gate_id": { "type": "string" },
+        "delivery_action_id": { "type": "string" },
+        "output_artifact_id": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "delivery_channel": { "type": "string" },
+        "delivery_target": { "type": "string" },
+        "destination_kind": { "type": "string" },
+        "destination_tool_id": { "type": ["string", "null"] },
+        "protected_action": { "type": "boolean" },
+        "draft_only": { "type": "boolean" },
+        "final_action_required": { "type": "boolean" },
+        "ready_for_delivery": { "type": "boolean" },
+        "executed": { "type": "boolean" },
+        "approval_required": { "type": "boolean" },
+        "approval_status": { "type": "string" },
+        "receipt_required": { "type": "boolean" },
+        "receipt_present": { "type": "boolean" },
+        "delivered_receipt_present": { "type": "boolean" },
+        "output_destination_gate_required": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "gate_decision": { "enum": ["allow", "review", "deny"] },
+        "gate_status": { "enum": ["passed", "requires_approval", "blocked"] },
+        "final_action_status": { "type": "string" },
+        "unsafe_final_action": { "type": "boolean" },
+        "blocked_final_action": { "type": "boolean" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "final_action_separation_gate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "final_action_separation_gate_id",
+        "subject_type",
+        "subject_id",
+        "delivery_policy",
+        "destination_kind",
+        "destination_tool_id",
+        "final_action_required",
+        "current_action_count",
+        "draft_only_action_count",
+        "executed_action_count",
+        "blocked_final_action_count",
+        "pending_approval_count",
+        "unsafe_final_action_count",
+        "tool_policy_known",
+        "protected_tool_gate_present",
+        "output_destination_gate_required",
+        "separation_status",
+        "gate_decision",
+        "gate_status",
+        "required_gates",
+        "reason_codes",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "final-action-separation-gate.v1" },
+        "final_action_separation_gate_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "artifact_type": { "type": ["string", "null"] },
+        "delivery_policy": { "type": "string" },
+        "destination_kind": { "type": "string" },
+        "destination_tool_id": { "type": ["string", "null"] },
+        "final_action_required": { "type": "boolean" },
+        "current_action_count": { "type": "integer", "minimum": 0 },
+        "draft_only_action_count": { "type": "integer", "minimum": 0 },
+        "executed_action_count": { "type": "integer", "minimum": 0 },
+        "blocked_final_action_count": { "type": "integer", "minimum": 0 },
+        "pending_approval_count": { "type": "integer", "minimum": 0 },
+        "unsafe_final_action_count": { "type": "integer", "minimum": 0 },
+        "tool_policy_known": { "type": "boolean" },
+        "protected_tool_gate_present": { "type": "boolean" },
+        "output_destination_gate_required": { "type": "boolean" },
+        "separation_status": { "type": "string" },
+        "gate_decision": { "enum": ["allow", "review", "deny"] },
+        "gate_status": { "enum": ["passed", "requires_approval", "blocked"] },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_type", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "output-destination-policy-validation.v1" },
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "output_destination_policy_status",
+        "policy_rule_count",
+        "artifact_destination_gate_count",
+        "delivery_action_destination_gate_count",
+        "final_action_separation_gate_count",
+        "unsafe_final_action_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "output_destination_policy_status": { "enum": ["complete", "blocked"] },
+        "policy_rule_count": { "type": "integer", "minimum": 0 },
+        "artifact_destination_gate_count": { "type": "integer", "minimum": 0 },
+        "delivery_action_destination_gate_count": { "type": "integer", "minimum": 0 },
+        "final_action_separation_gate_count": { "type": "integer", "minimum": 0 },
+        "unsafe_final_action_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

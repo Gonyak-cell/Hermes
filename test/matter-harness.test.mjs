@@ -18,6 +18,7 @@ import { runMatterAccessPolicyEvaluator } from "../src/matter-access-policy-eval
 import { runDataClassificationRuleEngine } from "../src/data-classification-rule-engine.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
+import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -1438,6 +1439,7 @@ describe("matter harness", () => {
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         modelPolicyEnforcementPath: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
         toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        outputDestinationPolicyEnforcementPath: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
         tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
         costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
@@ -1688,6 +1690,60 @@ describe("matter harness", () => {
       assert.ok(outputDeliveryContractFreeze.output_delivery_contract.delivery_actions.every((action) => action.delivery_action_id !== action.output_artifact_id));
       assert.ok(outputDeliveryContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "output-delivery-contract-freeze", "summary.md"), "utf8"), /Output\/Delivery Contract Freeze/);
+
+      const outputDestinationPolicyEnforcement = await runOutputDestinationPolicyEnforcement({
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        outDir: path.join(outDir, "output-destination-policy"),
+        runAt: "2026-05-23T06:35:05.925Z",
+      });
+      const outputDestinationPolicyEnforcementSchema = JSON.parse(await readFile("schemas/output-destination-policy-enforcement.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(outputDestinationPolicyEnforcement, outputDestinationPolicyEnforcementSchema, {}, "output_destination_policy_enforcement"),
+        [],
+      );
+      assert.equal(
+        outputDestinationPolicyEnforcement.summary.output_destination_policy_status,
+        "complete",
+        JSON.stringify(outputDestinationPolicyEnforcement.validation.errors, null, 2),
+      );
+      assert.equal(outputDestinationPolicyEnforcement.summary.source_policy_matrix_status, "valid");
+      assert.equal(outputDestinationPolicyEnforcement.summary.source_output_delivery_contract_status, "complete");
+      assert.equal(outputDestinationPolicyEnforcement.summary.source_delivery_execution_mode, "draft_only");
+      assert.equal(outputDestinationPolicyEnforcement.summary.source_tool_runtime_policy_status, "complete");
+      assert.equal(outputDestinationPolicyEnforcement.summary.policy_rule_count, policyMatrixCatalog.summary.output_rule_count);
+      assert.equal(outputDestinationPolicyEnforcement.summary.artifact_destination_gate_count, outputDeliveryContractFreeze.summary.output_artifact_count);
+      assert.equal(outputDestinationPolicyEnforcement.summary.delivery_action_destination_gate_count, outputDeliveryContractFreeze.summary.delivery_action_count);
+      assert.equal(outputDestinationPolicyEnforcement.summary.final_action_required_delivery_count, outputDeliveryContractFreeze.summary.protected_delivery_action_count);
+      assert.equal(outputDestinationPolicyEnforcement.summary.protected_destination_count, outputDeliveryContractFreeze.summary.protected_delivery_action_count);
+      assert.equal(outputDestinationPolicyEnforcement.summary.unsafe_final_action_count, 0);
+      assert.equal(outputDestinationPolicyEnforcement.summary.missing_policy_count, 0);
+      assert.equal(outputDestinationPolicyEnforcement.summary.missing_tool_policy_count, 0);
+      assert.equal(outputDestinationPolicyEnforcement.summary.missing_output_destination_gate_count, 0);
+      assert.equal(outputDestinationPolicyEnforcement.summary.validation_error_count, 0);
+      assert.ok(outputDestinationPolicyEnforcement.output_destination_policy_catalog.policy_rules.some((rule) => (
+        rule.artifact_type === "email_draft" && rule.destination_tool_id === "email.send"
+      )));
+      assert.ok(outputDestinationPolicyEnforcement.output_destination_policy_catalog.policy_rules.some((rule) => (
+        rule.artifact_type === "erp_billing_draft" && rule.destination_tool_id === "erp.billing.issue"
+      )));
+      assert.ok(outputDestinationPolicyEnforcement.output_destination_policy_catalog.policy_rules.some((rule) => (
+        rule.artifact_type === "pr_draft" && rule.destination_tool_id === "github.merge"
+      )));
+      assert.ok(outputDestinationPolicyEnforcement.output_destination_policy_catalog.artifact_destination_gates.every((gate) => (
+        !gate.final_action_required || gate.required_gates.includes("output_destination_gate")
+      )));
+      assert.ok(outputDestinationPolicyEnforcement.output_destination_policy_catalog.delivery_action_destination_gates.every((gate) => (
+        (gate.draft_only || gate.executed) && !gate.unsafe_final_action && gate.required_gates.includes("output_destination_gate")
+      )));
+      assert.ok(outputDestinationPolicyEnforcement.output_destination_policy_catalog.final_action_separation_gates.filter((gate) => gate.destination_tool_id).every((gate) => (
+        gate.tool_policy_known && gate.protected_tool_gate_present
+      )));
+      assert.ok(outputDestinationPolicyEnforcement.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "output-destination-policy", "summary.md"), "utf8"), /Output Destination Policy Enforcement/);
 
       const controlPlaneHumanGateReceipts = await runControlPlaneHumanGateReceipts({
         humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -3237,6 +3293,7 @@ describe("matter harness", () => {
           data_classification_rule_engine: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+          output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -3257,8 +3314,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 22);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 22);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 23);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 23);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3276,6 +3333,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "data_classification_rule_engine"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3310,6 +3368,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3403,6 +3462,10 @@ describe("matter harness", () => {
       assert.equal(toolRuntimePolicyEnforcementCheckpoint?.acceptance_profile, "tool_runtime_policy_gate");
       assert.equal(toolRuntimePolicyEnforcementCheckpoint?.status, "passed");
       assert.equal(toolRuntimePolicyEnforcementCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const outputDestinationPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-output-destination-policy-enforcement");
+      assert.equal(outputDestinationPolicyEnforcementCheckpoint?.acceptance_profile, "output_destination_policy_gate");
+      assert.equal(outputDestinationPolicyEnforcementCheckpoint?.status, "passed");
+      assert.equal(outputDestinationPolicyEnforcementCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3616,6 +3679,19 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.tool_runtime_policy_tool_overlap_count, 0);
       assert.equal(dashboard.summary.tool_runtime_policy_missing_gate_count, 0);
       assert.equal(dashboard.summary.tool_runtime_policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.output_destination_policy_status, "complete");
+      assert.equal(dashboard.summary.output_destination_policy_rule_count, outputDestinationPolicyEnforcement.summary.policy_rule_count);
+      assert.equal(dashboard.summary.output_destination_policy_artifact_gate_count, outputDestinationPolicyEnforcement.summary.artifact_destination_gate_count);
+      assert.equal(dashboard.summary.output_destination_policy_delivery_action_gate_count, outputDestinationPolicyEnforcement.summary.delivery_action_destination_gate_count);
+      assert.equal(dashboard.summary.output_destination_policy_final_action_gate_count, outputDestinationPolicyEnforcement.summary.final_action_separation_gate_count);
+      assert.equal(dashboard.summary.output_destination_policy_required_delivery_count, outputDestinationPolicyEnforcement.summary.final_action_required_delivery_count);
+      assert.equal(dashboard.summary.output_destination_policy_protected_destination_count, outputDestinationPolicyEnforcement.summary.protected_destination_count);
+      assert.equal(dashboard.summary.output_destination_policy_blocked_final_action_count, outputDestinationPolicyEnforcement.summary.blocked_final_action_count);
+      assert.equal(dashboard.summary.output_destination_policy_unsafe_final_action_count, 0);
+      assert.equal(dashboard.summary.output_destination_policy_missing_policy_count, 0);
+      assert.equal(dashboard.summary.output_destination_policy_missing_tool_policy_count, 0);
+      assert.equal(dashboard.summary.output_destination_policy_missing_gate_count, 0);
+      assert.equal(dashboard.summary.output_destination_policy_validation_error_count, 0);
       assert.equal(dashboard.summary.cost_budget_decision_count, costBudgetLedger.summary.budget_decision_count);
       assert.equal(dashboard.summary.cost_budget_passed_count, costBudgetLedger.summary.passed_decision_count);
       assert.equal(dashboard.summary.cost_budget_blocked_count, 0);
@@ -4381,6 +4457,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "tool_runtime_policy_enforcement"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "output_destination_policy_enforcement"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_budget_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
@@ -4550,6 +4627,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-permission-gates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/agent-run-tool-gates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/tool-runtime-policy-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-destination-policy-enforcements"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-destination-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifact-destination-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-destination-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/final-action-separation-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-destination-policy-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/cost-budget-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/token-usage-ledgers"));
@@ -5123,6 +5206,31 @@ describe("matter harness", () => {
       const toolRuntimePolicyValidations = JSON.parse((await buildReviewApiResponse("/api/tool-runtime-policy-validations?status=passed", apiOptions)).body);
       assert.equal(toolRuntimePolicyValidations.collection, "tool_runtime_policy_validations");
       assert.equal(toolRuntimePolicyValidations.count, toolRuntimePolicyEnforcement.summary.validation_item_count);
+
+      const outputDestinationPolicyEnforcements = JSON.parse((await buildReviewApiResponse("/api/output-destination-policy-enforcements", apiOptions)).body);
+      assert.equal(outputDestinationPolicyEnforcements.collection, "output_destination_policy_enforcements");
+      assert.equal(outputDestinationPolicyEnforcements.count, 1);
+
+      const githubPolicyDestinationRules = JSON.parse((await buildReviewApiResponse("/api/policy-destination-rules?destination_kind=github", apiOptions)).body);
+      assert.equal(githubPolicyDestinationRules.collection, "policy_destination_rules");
+      assert.equal(githubPolicyDestinationRules.count, 1);
+      assert.equal(githubPolicyDestinationRules.items[0].destination_tool_id, "github.merge");
+
+      const artifactDestinationGates = JSON.parse((await buildReviewApiResponse("/api/artifact-destination-gates?gate_status=requires_approval", apiOptions)).body);
+      assert.equal(artifactDestinationGates.collection, "artifact_destination_gates");
+      assert.equal(artifactDestinationGates.count, outputDestinationPolicyEnforcement.summary.artifact_destination_gate_count);
+
+      const blockedDeliveryActionDestinationGates = JSON.parse((await buildReviewApiResponse("/api/delivery-action-destination-gates?final_action_status=blocked_pending_approval", apiOptions)).body);
+      assert.equal(blockedDeliveryActionDestinationGates.collection, "delivery_action_destination_gates");
+      assert.equal(blockedDeliveryActionDestinationGates.count, outputDestinationPolicyEnforcement.summary.blocked_final_action_count);
+
+      const pendingFinalActionSeparationGates = JSON.parse((await buildReviewApiResponse("/api/final-action-separation-gates?separation_status=draft_and_final_action_separated_pending_approval", apiOptions)).body);
+      assert.equal(pendingFinalActionSeparationGates.collection, "final_action_separation_gates");
+      assert.equal(pendingFinalActionSeparationGates.count, outputDestinationPolicyEnforcement.summary.by_separation_status.draft_and_final_action_separated_pending_approval ?? 0);
+
+      const outputDestinationPolicyValidations = JSON.parse((await buildReviewApiResponse("/api/output-destination-policy-validations?status=passed", apiOptions)).body);
+      assert.equal(outputDestinationPolicyValidations.collection, "output_destination_policy_validations");
+      assert.equal(outputDestinationPolicyValidations.count, outputDestinationPolicyEnforcement.summary.validation_item_count);
 
       const costBudgetLedgers = JSON.parse((await buildReviewApiResponse("/api/cost-budget-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");

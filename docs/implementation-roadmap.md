@@ -3703,6 +3703,39 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Tool/Runtime Policy Enforcement를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:tool-runtime`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 121 - Output Destination Policy Enforcement
+
+목표: Policy Matrix, Output/Delivery contract freeze, Protected Delivery Queue, Delivery Execution Draft, Tool/Runtime Policy Enforcement를 합쳐 산출물 draft 생성과 email/ERP/GitHub/manual delivery 같은 final action을 `output_destination_gate`로 분리한다.
+
+구현 산출물:
+
+- `src/output-destination-policy-enforcement.mjs`
+- `scripts/output-destination-policy-enforcement.mjs`
+- `schemas/output-destination-policy-enforcement.schema.json`
+- `docs/output-destination-policy-enforcement.md`
+- `artifacts/output-destination-policy/latest/output-destination-policy-enforcement.json`
+- `artifacts/output-destination-policy/latest/output-destination-policy-catalog.json`
+- `artifacts/output-destination-policy/latest/policy-destination-rules.json`
+- `artifacts/output-destination-policy/latest/artifact-destination-gates.json`
+- `artifacts/output-destination-policy/latest/delivery-action-destination-gates.json`
+- `artifacts/output-destination-policy/latest/final-action-separation-gates.json`
+- `artifacts/output-destination-policy/latest/validation-report.json`
+- `artifacts/output-destination-policy/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:output-destination -- --check`가 Output Destination Policy Enforcement를 생성하고 validation error 0으로 통과한다.
+- 각 output rule은 draft 생성과 final destination action을 분리하는 `policy-destination-rule.v1`로 materialize된다.
+- OutputArtifact마다 `artifact-destination-gate.v1`이 생성되고 tenant/matter boundary와 delivery separation 상태를 보존한다.
+- DeliveryAction마다 `delivery-action-destination-gate.v1`이 생성되고 final action은 approval/receipt 전 `draft_only`와 `blocked_pending_approval` 상태로 유지된다.
+- `email.send`, `erp.billing.issue`, `github.merge`는 `final-action-separation-gate.v1`와 Tool/Runtime protected tool gate에 연결된다.
+- `docx`, `pptx`, `email_draft`, `pr_draft`, `erp_billing_draft`, `public_content` output policy에는 `output_destination_gate`가 명시된다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `output_destination_policy_enforcement` fixture가 포함되어 golden fixture set이 23개로 확장된다.
+- Dashboard stage와 summary가 `output_destination_policy_enforcement` 지표를 추적함
+- Review API에서 `/api/output-destination-policy-enforcements`, `/api/policy-destination-rules`, `/api/artifact-destination-gates`, `/api/delivery-action-destination-gates`, `/api/final-action-separation-gates`, `/api/output-destination-policy-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Output Destination Policy Enforcement를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:output-destination -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3711,9 +3744,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 120이다.
+- 현재 완료 기준점은 Phase 121이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P121-P312, 총 192개다.
+- 남은 계획 슬롯은 P122-P312, 총 191개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

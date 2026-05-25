@@ -30,6 +30,7 @@
     "contracts:classification-rules": "node scripts/data-classification-rule-engine.mjs",
     "contracts:model-policy": "node scripts/model-policy-enforcement.mjs",
     "contracts:tool-runtime": "node scripts/tool-runtime-policy-enforcement.mjs",
+    "contracts:output-destination": "node scripts/output-destination-policy-enforcement.mjs",
     "contracts:resources": "node scripts/resource-contract-freeze.mjs",
     "contracts:matters": "node scripts/matter-contract-freeze.mjs",
     "contracts:policies": "node scripts/policy-contract-freeze.mjs",

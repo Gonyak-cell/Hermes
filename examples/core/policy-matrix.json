@@ -194,7 +194,7 @@
       "tool_id": "github.merge",
       "description": "Merge a pull request or write to protected branches.",
       "default_policy": "approval_required",
-      "required_gates": ["protected_file_gate", "test_gate", "human_approval_gate"],
+      "required_gates": ["protected_file_gate", "test_gate", "output_destination_gate", "human_approval_gate"],
       "metadata": {}
     },
     {
@@ -225,14 +225,14 @@
     {
       "artifact_type": "docx",
       "default_status": "pending_review",
-      "required_gates": ["evidence_coverage_gate", "citation_gate", "human_approval_gate"],
+      "required_gates": ["evidence_coverage_gate", "citation_gate", "output_destination_gate", "human_approval_gate"],
       "delivery_policy": "partner_approval_required",
       "metadata": {}
     },
     {
       "artifact_type": "pptx",
       "default_status": "pending_review",
-      "required_gates": ["evidence_coverage_gate", "format_validation_gate", "human_approval_gate"],
+      "required_gates": ["evidence_coverage_gate", "format_validation_gate", "output_destination_gate", "human_approval_gate"],
       "delivery_policy": "approval_required",
       "metadata": {}
     },
@@ -246,14 +246,14 @@
     {
       "artifact_type": "pr_draft",
       "default_status": "draft",
-      "required_gates": ["diff_review_gate", "test_gate"],
+      "required_gates": ["diff_review_gate", "test_gate", "output_destination_gate"],
       "delivery_policy": "test_gate_required",
       "metadata": {}
     },
     {
       "artifact_type": "erp_billing_draft",
       "default_status": "draft",
-      "required_gates": ["billing_approval_gate", "human_approval_gate"],
+      "required_gates": ["billing_approval_gate", "output_destination_gate", "human_approval_gate"],
       "delivery_policy": "partner_approval_required",
       "metadata": {}
     },
@@ -267,7 +267,7 @@
     {
       "artifact_type": "public_content",
       "default_status": "pending_review",
-      "required_gates": ["redaction_gate", "confidentiality_gate", "human_approval_gate"],
+      "required_gates": ["redaction_gate", "confidentiality_gate", "output_destination_gate", "human_approval_gate"],
       "delivery_policy": "approval_required",
       "metadata": {}
     }

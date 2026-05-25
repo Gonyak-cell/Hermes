@@ -1407,6 +1407,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("tool_runtime_policy_validations", enforcementResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/output-destination-policy-enforcements") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "output_destination_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("output_destination_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_destination_policy_enforcements", [enforcementResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-destination-rules") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "output_destination_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("output_destination_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_destination_rules", enforcementResult.artifact.output_destination_policy_catalog?.policy_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/artifact-destination-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "output_destination_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("output_destination_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("artifact_destination_gates", enforcementResult.artifact.output_destination_policy_catalog?.artifact_destination_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/delivery-action-destination-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "output_destination_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("output_destination_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("delivery_action_destination_gates", enforcementResult.artifact.output_destination_policy_catalog?.delivery_action_destination_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/final-action-separation-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "output_destination_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("output_destination_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("final_action_separation_gates", enforcementResult.artifact.output_destination_policy_catalog?.final_action_separation_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-destination-policy-validations") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "output_destination_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("output_destination_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_destination_policy_validations", enforcementResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/cost-budget-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "cost_budget_ledger");
     if (!ledgerResult.available) {
@@ -4065,6 +4107,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/tool-permission-gates", "Runtime tool permission gates"),
       route("GET", "/api/agent-run-tool-gates", "AgentRun tool permission gates"),
       route("GET", "/api/tool-runtime-policy-validations", "Tool/runtime policy validation rows"),
+      route("GET", "/api/output-destination-policy-enforcements", "Output destination policy enforcement artifacts"),
+      route("GET", "/api/policy-destination-rules", "Output policy destination rules"),
+      route("GET", "/api/artifact-destination-gates", "Output artifact destination gates"),
+      route("GET", "/api/delivery-action-destination-gates", "Delivery action destination gates"),
+      route("GET", "/api/final-action-separation-gates", "Final action separation gates"),
+      route("GET", "/api/output-destination-policy-validations", "Output destination policy validation rows"),
       route("GET", "/api/cost-budget-ledgers", "Cost budget ledger artifacts"),
       route("GET", "/api/cost-budget-decisions", "Cost budget gate decisions"),
       route("GET", "/api/token-usage-ledgers", "Token usage ledger artifacts"),
@@ -4641,6 +4689,36 @@ function filterItems(items, searchParams) {
     "model_route_blocked_count",
     "capability_requires_tool_permission_gate",
     "runtime_requires_tool_permission_gate",
+    "output_destination_policy_enforcement_id",
+    "output_destination_policy_status",
+    "policy_destination_rule_id",
+    "artifact_destination_gate_id",
+    "delivery_action_destination_gate_id",
+    "final_action_separation_gate_id",
+    "destination_kind",
+    "destination_tool_id",
+    "destination_tool_policy_known",
+    "delivery_policy",
+    "delivery_target",
+    "delivery_channel",
+    "delivery_status",
+    "draft_generation_allowed",
+    "draft_final_action_separated",
+    "draft_only",
+    "final_action_required",
+    "ready_for_delivery",
+    "executed",
+    "approval_required",
+    "receipt_required",
+    "receipt_present",
+    "delivered_receipt_present",
+    "output_destination_gate_required",
+    "final_action_status",
+    "blocked_final_action",
+    "unsafe_final_action",
+    "separation_status",
+    "tool_policy_known",
+    "protected_tool_gate_present",
     "budget_decision_id",
     "budget_status",
     "token_tracking_required",

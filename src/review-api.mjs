@@ -409,6 +409,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("extractor_adapter_validations", contractResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/source-span-stores") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "source_span_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("source_span_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_stores", [storeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-spans") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "source_span_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("source_span_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_spans", storeResult.artifact.source_span_catalog?.source_spans ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-locators") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "source_span_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("source_span_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_locators", storeResult.artifact.source_span_catalog?.source_span_locators ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-location-units") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "source_span_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("source_span_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_location_units", storeResult.artifact.source_span_catalog?.source_span_location_units ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-indexes") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "source_span_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("source_span_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_indexes", [storeResult.artifact.source_span_catalog?.source_span_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/source-span-validations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "source_span_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("source_span_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("source_span_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4643,6 +4685,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/ocr-fallback-policies", "Extractor OCR fallback policies"),
       route("GET", "/api/extractor-normalized-text-bindings", "Extractor normalized text binding rows"),
       route("GET", "/api/extractor-adapter-validations", "Extractor adapter validation rows"),
+      route("GET", "/api/source-span-stores", "Source span store artifacts"),
+      route("GET", "/api/source-spans", "Source span records"),
+      route("GET", "/api/source-span-locators", "Source span locator rows"),
+      route("GET", "/api/source-span-location-units", "Source span location unit rows"),
+      route("GET", "/api/source-span-indexes", "Source span index projections"),
+      route("GET", "/api/source-span-validations", "Source span store validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5299,6 +5347,7 @@ function filterItems(items, searchParams) {
     "principal_class",
     "binding_type",
     "binding_id",
+    "schema_version",
     "resource_id",
     "resource_version_id",
     "source_system",
@@ -5407,6 +5456,10 @@ function filterItems(items, searchParams) {
     "extractor_io_contract_id",
     "document_type_binding_id",
     "document_type",
+    "location_type",
+    "timestamp_status",
+    "span_status",
+    "locator_status",
     "ocr_fallback_policy_id",
     "execution_boundary",
     "external_service_allowed",
@@ -5904,6 +5957,7 @@ function readFilterValue(item, key) {
   if (key === "resource_version_ledger_status") return item.summary?.resource_version_ledger_status ?? item.resource_version_ledger_status;
   if (key === "normalized_text_contract_status") return item.summary?.normalized_text_contract_status ?? item.normalized_text_contract_status;
   if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
+  if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

@@ -82,6 +82,8 @@ Phase 136부터 loop는 `npm run resource:normalized-text`를 실행해 Resource
 
 Phase 137부터 loop는 `npm run resource:extractor-adapters`를 실행해 parser/OCR extractor adapter, shared input/output contract, document type binding, local/manual OCR fallback policy, normalized text binding을 dashboard와 checkpoint 전에 갱신한다.
 
+Phase 138부터 loop는 `npm run resource:source-spans`를 실행해 normalized text와 extractor binding을 whole-document/page/paragraph/line/char-range source span store로 갱신한다.
+
 Phase 134부터 loop는 `npm run object-store:layout`도 실행해 raw source/generated output의 immutable object key resolver와 collision report를 dashboard와 checkpoint 전에 갱신한다.
 
 Phase 135부터 loop는 `npm run resource:version-ledger`도 실행해 external id별 version family, change/duplicate event, raw-source object path binding을 dashboard와 checkpoint 전에 갱신한다.

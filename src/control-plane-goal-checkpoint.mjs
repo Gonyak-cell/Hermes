@@ -36,6 +36,7 @@ const GOAL_ITEMS = [
   sourceItem("resource_version_ledger", "Resource version ledger", "resource_evidence", "resource_version_ledger", "control-plane-resource-version-ledger", { acceptance_profile: "resource_version_ledger_gate" }),
   sourceItem("normalized_text_contract", "Normalized text contract", "resource_evidence", "normalized_text_contract", "control-plane-normalized-text-contract", { acceptance_profile: "normalized_text_contract_gate" }),
   sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
+  sourceItem("source_span_store", "Source span store", "resource_evidence", "source_span_store", "control-plane-source-span-store", { acceptance_profile: "source_span_store_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -379,6 +380,7 @@ function evaluateStageAcceptance(item, stage) {
     "resource_version_ledger_gate",
     "normalized_text_contract_gate",
     "extractor_adapter_contract_gate",
+    "source_span_store_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -688,6 +690,29 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.external_service_adapter_count ?? 0) === 0
     ) {
       return passedWithOperationalGate(stage, "Extractor adapter contract gives parser/OCR implementations one local-only I/O boundary and binds every normalized text artifact to a registered adapter.");
+    }
+  }
+
+  if (item.acceptance_profile === "source_span_store_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const artifactCount = metrics.normalized_text_artifact_count ?? 0;
+    const spanCount = metrics.source_span_count ?? 0;
+    if (
+      errors === 0
+      && metrics.source_span_store_status === "complete"
+      && artifactCount > 0
+      && spanCount > 0
+      && (metrics.whole_document_span_count ?? 0) === artifactCount
+      && (metrics.page_span_count ?? 0) >= artifactCount
+      && (metrics.paragraph_span_count ?? 0) >= artifactCount
+      && (metrics.line_span_count ?? 0) >= artifactCount
+      && (metrics.char_range_span_count ?? 0) === artifactCount
+      && (metrics.source_span_locator_count ?? 0) === spanCount
+      && (metrics.source_span_location_unit_count ?? 0) === spanCount
+      && (metrics.extractor_bound_span_count ?? 0) === spanCount
+      && (metrics.canonical_offset_span_count ?? 0) === spanCount
+    ) {
+      return passedWithOperationalGate(stage, "Source span store materializes whole-document, page, paragraph, line, and char-range spans with canonical offsets and extractor bindings.");
     }
   }
 

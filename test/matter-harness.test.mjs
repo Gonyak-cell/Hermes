@@ -30,6 +30,7 @@ import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-lay
 import { runResourceVersionLedger } from "../src/resource-version-ledger.mjs";
 import { runNormalizedTextContract } from "../src/normalized-text-contract.mjs";
 import { runExtractorAdapterContract } from "../src/extractor-adapter-contract.mjs";
+import { runSourceSpanStore } from "../src/source-span-store.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1646,6 +1647,7 @@ describe("matter harness", () => {
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
         normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
         extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3888,6 +3890,42 @@ describe("matter harness", () => {
       assert.ok(extractorAdapterContract.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "extractor-adapter-contract", "summary.md"), "utf8"), /Extractor Adapter Contract/);
 
+      const sourceSpanStore = await runSourceSpanStore({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+        outDir: path.join(outDir, "source-span-store"),
+        runAt: "2026-05-23T06:35:07.985Z",
+      });
+      const sourceSpanStoreSchema = JSON.parse(await readFile("schemas/source-span-store.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(sourceSpanStore, sourceSpanStoreSchema, {}, "source_span_store"),
+        [],
+      );
+      assert.equal(sourceSpanStore.summary.source_span_store_status, "complete");
+      assert.equal(sourceSpanStore.summary.normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanStore.summary.source_span_seed_count, normalizedTextContract.summary.source_span_seed_count);
+      assert.equal(sourceSpanStore.summary.whole_document_span_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanStore.summary.page_span_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanStore.summary.paragraph_span_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanStore.summary.line_span_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanStore.summary.char_range_span_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(sourceSpanStore.summary.source_span_count, normalizedTextContract.summary.normalized_text_artifact_count * 5);
+      assert.equal(sourceSpanStore.summary.source_span_locator_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanStore.summary.source_span_location_unit_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanStore.summary.extractor_bound_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanStore.summary.canonical_offset_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanStore.summary.timestamp_span_count, 0);
+      assert.equal(sourceSpanStore.summary.timestamp_not_applicable_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(sourceSpanStore.summary.validation_error_count, 0);
+      assert.ok(sourceSpanStore.source_span_catalog.source_spans.every((span) => span.schema_version === "source-span.v2"));
+      assert.ok(sourceSpanStore.source_span_catalog.source_spans.every((span) => span.locator.offset_unit === "utf16_code_unit"));
+      assert.ok(sourceSpanStore.source_span_catalog.source_spans.every((span) => span.timestamp_status === "not_applicable"));
+      assert.ok(sourceSpanStore.source_span_catalog.source_spans.every((span) => span.adapter_id && span.extractor_io_contract_id));
+      assert.ok(sourceSpanStore.source_span_catalog.source_spans.some((span) => span.location_type === "page"));
+      assert.ok(sourceSpanStore.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "source-span-store", "summary.md"), "utf8"), /Source Span Store/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3914,6 +3952,7 @@ describe("matter harness", () => {
           resource_version_ledger: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
           normalized_text_contract: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
           extractor_adapter_contract: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+          source_span_store: path.join(outDir, "source-span-store", "source-span-store.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3939,8 +3978,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 39);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 39);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 40);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 40);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3970,6 +4009,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_version_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "normalized_text_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_adapter_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4018,6 +4058,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:conflict-check"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:personal-boundary"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-golden"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:source-spans"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -4159,6 +4200,10 @@ describe("matter harness", () => {
       assert.equal(extractorAdapterContractCheckpoint?.acceptance_profile, "extractor_adapter_contract_gate");
       assert.equal(extractorAdapterContractCheckpoint?.status, "passed");
       assert.equal(extractorAdapterContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const sourceSpanStoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-source-span-store");
+      assert.equal(sourceSpanStoreCheckpoint?.acceptance_profile, "source_span_store_gate");
+      assert.equal(sourceSpanStoreCheckpoint?.status, "passed");
+      assert.equal(sourceSpanStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4938,6 +4983,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.extractor_unbound_normalized_text_count, 0);
       assert.equal(dashboard.summary.extractor_external_service_adapter_count, 0);
       assert.equal(dashboard.summary.extractor_validation_error_count, 0);
+      assert.equal(dashboard.summary.source_span_store_status, "complete");
+      assert.equal(dashboard.summary.source_span_store_contract_id, "source-span-store.v1");
+      assert.equal(dashboard.summary.source_span_schema_version, "source-span.v2");
+      assert.equal(dashboard.summary.source_span_normalized_text_artifact_count, sourceSpanStore.summary.normalized_text_artifact_count);
+      assert.equal(dashboard.summary.source_span_seed_count, sourceSpanStore.summary.source_span_seed_count);
+      assert.equal(dashboard.summary.source_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(dashboard.summary.source_span_locator_count, sourceSpanStore.summary.source_span_locator_count);
+      assert.equal(dashboard.summary.source_span_location_unit_count, sourceSpanStore.summary.source_span_location_unit_count);
+      assert.equal(dashboard.summary.source_span_whole_document_count, sourceSpanStore.summary.whole_document_span_count);
+      assert.equal(dashboard.summary.source_span_page_count, sourceSpanStore.summary.page_span_count);
+      assert.equal(dashboard.summary.source_span_paragraph_count, sourceSpanStore.summary.paragraph_span_count);
+      assert.equal(dashboard.summary.source_span_line_count, sourceSpanStore.summary.line_span_count);
+      assert.equal(dashboard.summary.source_span_char_range_count, sourceSpanStore.summary.char_range_span_count);
+      assert.equal(dashboard.summary.source_span_timestamp_count, 0);
+      assert.equal(dashboard.summary.source_span_timestamp_not_applicable_count, sourceSpanStore.summary.timestamp_not_applicable_count);
+      assert.equal(dashboard.summary.source_span_extractor_bound_count, sourceSpanStore.summary.extractor_bound_span_count);
+      assert.equal(dashboard.summary.source_span_canonical_offset_count, sourceSpanStore.summary.canonical_offset_span_count);
+      assert.equal(dashboard.summary.source_span_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5474,6 +5537,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_version_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "normalized_text_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "extractor_adapter_contract"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "source_span_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5586,6 +5650,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ocr-fallback-policies"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-normalized-text-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/extractor-adapter-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-stores"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-spans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-locators"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-location-units"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-indexes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7444,6 +7514,30 @@ describe("matter harness", () => {
       const extractorAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/extractor-adapter-validations?status=passed", apiOptions)).body);
       assert.equal(extractorAdapterValidations.collection, "extractor_adapter_validations");
       assert.equal(extractorAdapterValidations.count, extractorAdapterContract.summary.validation_item_count);
+
+      const sourceSpanStores = JSON.parse((await buildReviewApiResponse("/api/source-span-stores?source_span_store_status=complete", apiOptions)).body);
+      assert.equal(sourceSpanStores.collection, "source_span_stores");
+      assert.equal(sourceSpanStores.count, 1);
+
+      const sourceSpans = JSON.parse((await buildReviewApiResponse("/api/source-spans?location_type=page", apiOptions)).body);
+      assert.equal(sourceSpans.collection, "source_spans");
+      assert.equal(sourceSpans.count, sourceSpanStore.summary.page_span_count);
+
+      const sourceSpanLocators = JSON.parse((await buildReviewApiResponse("/api/source-span-locators?offset_unit=utf16_code_unit", apiOptions)).body);
+      assert.equal(sourceSpanLocators.collection, "source_span_locators");
+      assert.equal(sourceSpanLocators.count, sourceSpanStore.summary.source_span_locator_count);
+
+      const sourceSpanLocationUnits = JSON.parse((await buildReviewApiResponse("/api/source-span-location-units?timestamp_status=not_applicable", apiOptions)).body);
+      assert.equal(sourceSpanLocationUnits.collection, "source_span_location_units");
+      assert.equal(sourceSpanLocationUnits.count, sourceSpanStore.summary.source_span_location_unit_count);
+
+      const sourceSpanIndexes = JSON.parse((await buildReviewApiResponse("/api/source-span-indexes?schema_version=source-span-indexes.v1", apiOptions)).body);
+      assert.equal(sourceSpanIndexes.collection, "source_span_indexes");
+      assert.equal(sourceSpanIndexes.count, 1);
+
+      const sourceSpanValidations = JSON.parse((await buildReviewApiResponse("/api/source-span-validations?status=passed", apiOptions)).body);
+      assert.equal(sourceSpanValidations.collection, "source_span_validations");
+      assert.equal(sourceSpanValidations.count, sourceSpanStore.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

@@ -4147,6 +4147,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 39개로 증가하고 extractor adapter contract가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:extractor-adapters -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 138: Source Span Store
+
+목표: normalized text와 extractor adapter binding을 근거 위치 단위로 materialize해 downstream evidence/fact/issue/citation 계층이 원문 좌표를 일관되게 참조하게 한다.
+
+구현 내용:
+
+- `src/source-span-store.mjs`, `scripts/source-span-store.mjs`, `schemas/source-span-store.schema.json`, `docs/source-span-store.md`를 추가함
+- `npm run resource:source-spans -- --check` 명령을 추가해 source span store, source span catalog, locator rows, location unit rows, source span index, validation report, summary markdown을 생성함
+- P136 Normalized Text Contract의 모든 source span seed를 P137 Extractor Adapter Contract의 normalized text binding과 결합함
+- 각 normalized text artifact마다 `whole_document`, `page`, `paragraph`, `line`, `char_range` source span을 생성하고 `utf16_code_unit` 기준 offset을 보존함
+- 파일 기반 source에는 timestamp 좌표를 임의 생성하지 않고 `timestamp_status: not_applicable`로 명시해 영상/음성 transcript 확장 지점을 남김
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 source span store를 통합함
+- `/api/source-span-stores`, `/api/source-spans`, `/api/source-span-locators`, `/api/source-span-location-units`, `/api/source-span-indexes`, `/api/source-span-validations` route를 추가함
+
+완료 기준:
+
+- Source Span Store가 validation error 없이 `complete` 상태가 됨
+- 모든 P136 normalized text artifact가 whole document/page/paragraph/line/char range span을 각각 1개 이상 가짐
+- source span, locator, location unit 수가 일치함
+- 모든 source span이 P137 extractor adapter와 I/O contract binding을 보존함
+- canonical offset 단위가 `utf16_code_unit`로 통일되고 char range span 수가 normalized text artifact 수와 일치함
+- timestamp span은 0개이고 모든 file resource span은 `timestamp_status: not_applicable`로 조회됨
+- Review Dashboard summary와 stage status에서 source span count, locator count, location unit count, page/paragraph/line/char range count, extractor binding, validation 상태가 노출됨
+- Review API smoke가 source span store, span, locator, location unit, index, validation route를 모두 조회함
+- Golden fixture 수가 40개로 증가하고 source span store가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:source-spans -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4155,9 +4182,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 137이다.
+- 현재 완료 기준점은 Phase 138이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P138-P312, 총 175개다.
+- 남은 계획 슬롯은 P139-P312, 총 174개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

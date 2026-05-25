@@ -93,6 +93,12 @@ npm run api:serve
 - `GET /api/ocr-fallback-policies`: local/manual OCR fallback policy rows
 - `GET /api/extractor-normalized-text-bindings`: P136 normalized text to extractor adapter bindings
 - `GET /api/extractor-adapter-validations`: extractor adapter contract validation rows
+- `GET /api/source-span-stores`: source span store artifact
+- `GET /api/source-spans`: materialized whole-document/page/paragraph/line/char-range source span rows
+- `GET /api/source-span-locators`: source span locator rows with page, paragraph, line, char offset, and timestamp status
+- `GET /api/source-span-location-units`: normalized location unit rows used by evidence extraction
+- `GET /api/source-span-indexes`: source span index rollups by resource, normalized text, location type, and extractor
+- `GET /api/source-span-validations`: source span store validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

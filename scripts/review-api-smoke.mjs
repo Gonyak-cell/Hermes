@@ -268,6 +268,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/ocr-fallback-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/extractor-normalized-text-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/extractor-adapter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-stores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-spans"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-locators"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-location-units"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1758,6 +1764,30 @@ try {
   const extractorAdapterValidations = await fetchJson(`${url}/api/extractor-adapter-validations?status=passed&limit=5`);
   assert.equal(extractorAdapterValidations.collection, "extractor_adapter_validations");
   assert.ok(extractorAdapterValidations.count <= 5);
+
+  const sourceSpanStores = await fetchJson(`${url}/api/source-span-stores?source_span_store_status=complete&limit=1`);
+  assert.equal(sourceSpanStores.collection, "source_span_stores");
+  assert.ok(sourceSpanStores.count <= 1);
+
+  const sourceSpans = await fetchJson(`${url}/api/source-spans?location_type=page&limit=5`);
+  assert.equal(sourceSpans.collection, "source_spans");
+  assert.ok(sourceSpans.count <= 5);
+
+  const sourceSpanLocators = await fetchJson(`${url}/api/source-span-locators?offset_unit=utf16_code_unit&limit=5`);
+  assert.equal(sourceSpanLocators.collection, "source_span_locators");
+  assert.ok(sourceSpanLocators.count <= 5);
+
+  const sourceSpanLocationUnits = await fetchJson(`${url}/api/source-span-location-units?timestamp_status=not_applicable&limit=5`);
+  assert.equal(sourceSpanLocationUnits.collection, "source_span_location_units");
+  assert.ok(sourceSpanLocationUnits.count <= 5);
+
+  const sourceSpanIndexes = await fetchJson(`${url}/api/source-span-indexes?schema_version=source-span-indexes.v1&limit=1`);
+  assert.equal(sourceSpanIndexes.collection, "source_span_indexes");
+  assert.ok(sourceSpanIndexes.count <= 1);
+
+  const sourceSpanValidations = await fetchJson(`${url}/api/source-span-validations?status=passed&limit=5`);
+  assert.equal(sourceSpanValidations.collection, "source_span_validations");
+  assert.ok(sourceSpanValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

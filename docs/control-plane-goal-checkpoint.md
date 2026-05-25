@@ -46,6 +46,7 @@ npm run control-plane:goal-checkpoint -- \
 - Resource Version Ledger
 - Normalized Text Contract
 - Extractor Adapter Contract
+- Source Span Store
 - Gate and approval workflow
 - Human review packets
 - Human review agenda

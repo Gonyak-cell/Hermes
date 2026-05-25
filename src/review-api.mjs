@@ -709,6 +709,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("store_policy_validations", adapterResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/conflict-check-interfaces") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "conflict_check_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("conflict_check_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("conflict_check_interfaces", [interfaceResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/conflict-check-requests") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "conflict_check_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("conflict_check_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("conflict_check_requests", interfaceResult.artifact.conflict_check_catalog?.conflict_check_requests ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/conflict-check-results") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "conflict_check_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("conflict_check_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("conflict_check_results", interfaceResult.artifact.conflict_check_catalog?.conflict_check_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/conflict-check-signals") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "conflict_check_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("conflict_check_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("conflict_check_signals", interfaceResult.artifact.conflict_check_catalog?.conflict_signals ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/conflict-check-validations") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "conflict_check_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("conflict_check_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("conflict_check_validations", interfaceResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4254,6 +4289,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/store-query-plans", "Compiled store query plans with required matter and classification filters"),
       route("GET", "/api/store-enforcement-probes", "Store query enforcement probe rows"),
       route("GET", "/api/store-policy-validations", "Store policy adapter validation rows"),
+      route("GET", "/api/conflict-check-interfaces", "Conflict check interface artifacts"),
+      route("GET", "/api/conflict-check-requests", "Conflict check requests before intake or resource access"),
+      route("GET", "/api/conflict-check-results", "Conflict check result rows with final access effects"),
+      route("GET", "/api/conflict-check-signals", "Conflict signals bound to known parties and wall bindings"),
+      route("GET", "/api/conflict-check-validations", "Conflict check interface validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4720,6 +4760,20 @@ function filterItems(items, searchParams) {
     "enforcement_probe_id",
     "source_decision_type",
     "source_decision_id",
+    "conflict_check_interface_id",
+    "conflict_check_interface_status",
+    "conflict_check_request_id",
+    "conflict_check_result_id",
+    "conflict_signal_id",
+    "request_type",
+    "request_status",
+    "requested_stage",
+    "requested_action",
+    "result_status",
+    "final_access_effect",
+    "signal_type",
+    "signal_decision",
+    "signal_severity",
     "target_type",
     "target_resource_id",
     "view_status",
@@ -5350,6 +5404,7 @@ function readFilterValue(item, key) {
   if (key === "matter_tagging_ledger_status") return item.summary?.matter_tagging_ledger_status ?? item.matter_tagging_ledger_status;
   if (key === "access_audit_projection_status") return item.summary?.access_audit_projection_status ?? item.access_audit_projection_status;
   if (key === "store_policy_adapter_status") return item.summary?.store_policy_adapter_status ?? item.store_policy_adapter_status;
+  if (key === "conflict_check_interface_status") return item.summary?.conflict_check_interface_status ?? item.conflict_check_interface_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

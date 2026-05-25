@@ -25,6 +25,7 @@ const GOAL_ITEMS = [
   sourceItem("matter_tagging_decision_ledger", "Matter tagging decision ledger", "identity_policy", "matter_tagging_decision_ledger", "control-plane-matter-tagging-decision-ledger", { acceptance_profile: "matter_tagging_decision_gate" }),
   sourceItem("access_audit_projection", "Access audit projection", "identity_policy", "access_audit_projection", "control-plane-access-audit-projection", { acceptance_profile: "access_audit_projection_gate" }),
   sourceItem("store_policy_adapter", "Store policy adapter and RLS query enforcement", "identity_policy", "store_policy_adapter", "control-plane-store-policy-adapter", { acceptance_profile: "store_policy_adapter_gate" }),
+  sourceItem("conflict_check_interface", "Conflict check interface", "identity_policy", "conflict_check_interface", "control-plane-conflict-check-interface", { acceptance_profile: "conflict_check_interface_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -445,6 +446,26 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.missing_classification_filter_probe_blocked_count ?? 0) === planCount
     ) {
       return passedWithOperationalGate(stage, "Store policy adapter is implemented and query-layer tenant, matter, classification, policy snapshot, and access-audit filters are enforced with negative RLS probes.");
+    }
+  }
+
+  if (item.acceptance_profile === "conflict_check_interface_gate") {
+    const requestCount = metrics.conflict_check_request_count ?? 0;
+    const resultCount = metrics.conflict_check_result_count ?? 0;
+    const signalCount = metrics.conflict_signal_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.missing_conflict_reference_count ?? 0);
+    if (
+      errors === 0
+      && requestCount > 0
+      && resultCount === requestCount
+      && signalCount >= requestCount
+      && (metrics.matter_intake_request_count ?? 0) > 0
+      && (metrics.resource_access_request_count ?? 0) > 0
+      && (metrics.store_plan_linked_request_count ?? 0) === (metrics.resource_access_request_count ?? -1)
+      && (metrics.review_required_result_count ?? 0) > 0
+      && (metrics.counterparty_signal_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Conflict check interface is implemented with intake/resource requests, request-linked results, counterparty review signals, and store query plan bindings before access proceeds.");
     }
   }
 

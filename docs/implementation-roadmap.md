@@ -3875,6 +3875,26 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 28개로 증가하고 store policy adapter가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run contracts:store-policy -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 127: Conflict Check Interface
+
+목표: Client/Counterparty Registry, Matter Profile/Team Ledger, Wall Policy Contract, Store Policy Adapter를 조합해 수임 또는 자료 접근 전에 conflict check request/result/signal을 남기는 deterministic interface를 구현한다.
+
+구현 내용:
+
+- `src/conflict-check-interface.mjs`, `scripts/conflict-check-interface.mjs`, `schemas/conflict-check-interface.schema.json`, `docs/conflict-check-interface.md`를 추가함
+- matter intake request 1개와 resource access request 16개를 생성하고, 각 request가 client/counterparty conflict reference, conflict wall binding, policy snapshot, store query plan을 보존함
+- conflict signal 34개를 생성하며 client signal은 `clear`, counterparty signal은 `review`로 기록해 모든 result를 `hold_for_conflict_review` 상태로 유지함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 conflict check interface를 통합함
+- `/api/conflict-check-interfaces`, `/api/conflict-check-requests`, `/api/conflict-check-results`, `/api/conflict-check-signals`, `/api/conflict-check-validations` route를 추가함
+
+완료 기준:
+
+- Conflict Check Interface가 17개 request, 17개 result, 34개 signal을 생성하고 validation error 없이 complete 상태가 됨
+- 모든 resource access request가 store query plan에 연결되고 missing conflict reference가 0으로 검증됨
+- Counterparty conflict signal은 자동 clear되지 않고 human review가 필요한 review-held result로 남음
+- Golden fixture 수가 29개로 증가하고 conflict check interface가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run contracts:conflict-check -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3883,9 +3903,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 126이다.
+- 현재 완료 기준점은 Phase 127이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P127-P312, 총 186개다.
+- 남은 계획 슬롯은 P128-P312, 총 185개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

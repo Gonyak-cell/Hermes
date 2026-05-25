@@ -209,6 +209,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/store-query-plans"));
   assert.ok(index.routes.some((route) => route.path === "/api/store-enforcement-probes"));
   assert.ok(index.routes.some((route) => route.path === "/api/store-policy-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-interfaces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-requests"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-results"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-signals"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-check-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1795,6 +1800,26 @@ try {
   const storePolicyValidations = await fetchJson(`${url}/api/store-policy-validations?status=passed&limit=5`);
   assert.equal(storePolicyValidations.collection, "store_policy_validations");
   assert.ok(storePolicyValidations.count <= 5);
+
+  const conflictCheckInterfaces = await fetchJson(`${url}/api/conflict-check-interfaces?conflict_check_interface_status=complete&limit=1`);
+  assert.equal(conflictCheckInterfaces.collection, "conflict_check_interfaces");
+  assert.ok(conflictCheckInterfaces.count <= 1);
+
+  const conflictCheckRequests = await fetchJson(`${url}/api/conflict-check-requests?request_type=resource_access&limit=5`);
+  assert.equal(conflictCheckRequests.collection, "conflict_check_requests");
+  assert.ok(conflictCheckRequests.count <= 5);
+
+  const conflictCheckResults = await fetchJson(`${url}/api/conflict-check-results?result_status=review_required&limit=5`);
+  assert.equal(conflictCheckResults.collection, "conflict_check_results");
+  assert.ok(conflictCheckResults.count <= 5);
+
+  const conflictCheckSignals = await fetchJson(`${url}/api/conflict-check-signals?signal_decision=review&limit=5`);
+  assert.equal(conflictCheckSignals.collection, "conflict_check_signals");
+  assert.ok(conflictCheckSignals.count <= 5);
+
+  const conflictCheckValidations = await fetchJson(`${url}/api/conflict-check-validations?status=passed&limit=5`);
+  assert.equal(conflictCheckValidations.collection, "conflict_check_validations");
+  assert.ok(conflictCheckValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

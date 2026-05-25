@@ -17,6 +17,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterTaggingDecisionLedgerPath: "artifacts/matter-tagging/latest/matter-tagging-ledger.json",
   accessAuditProjectionPath: "artifacts/access-audit/latest/access-audit-projection.json",
   storePolicyAdapterPath: "artifacts/store-policy/latest/store-policy-adapter.json",
+  conflictCheckInterfacePath: "artifacts/conflict-check/latest/conflict-check-interface.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -190,6 +191,11 @@ const SOURCE_DEFINITIONS = [
     option: "storePolicyAdapterPath",
     source_id: "store_policy_adapter",
     label: "Store Policy Adapter",
+  },
+  {
+    option: "conflictCheckInterfacePath",
+    source_id: "conflict_check_interface",
+    label: "Conflict Check Interface",
   },
   {
     option: "evidenceContractFreezePath",
@@ -841,6 +847,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "matter_tagging_decision_ledger") return data.summary ?? {};
   if (sourceId === "access_audit_projection") return data.summary ?? {};
   if (sourceId === "store_policy_adapter") return data.summary ?? {};
+  if (sourceId === "conflict_check_interface") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1047,6 +1054,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterTaggingDecisionLedgerStage(artifacts.matter_tagging_decision_ledger, sourceById.get("matter_tagging_decision_ledger")),
     buildAccessAuditProjectionStage(artifacts.access_audit_projection, sourceById.get("access_audit_projection")),
     buildStorePolicyAdapterStage(artifacts.store_policy_adapter, sourceById.get("store_policy_adapter")),
+    buildConflictCheckInterfaceStage(artifacts.conflict_check_interface, sourceById.get("conflict_check_interface")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -1655,6 +1663,61 @@ function buildStorePolicyAdapterStage(adapter, source) {
       missing_matter_filter_probe_blocked_count: summary.missing_matter_filter_probe_blocked_count ?? 0,
       missing_classification_filter_probe_blocked_count: summary.missing_classification_filter_probe_blocked_count ?? 0,
       missing_policy_snapshot_filter_probe_blocked_count: summary.missing_policy_snapshot_filter_probe_blocked_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildConflictCheckInterfaceStage(conflictCheckInterface, source) {
+  if (!conflictCheckInterface) return missingStage("conflict_check_interface", "Conflict Check Interface", source);
+  const summary = conflictCheckInterface.summary ?? {};
+  const errorCount = summary.validation_error_count ?? conflictCheckInterface.validation?.errors?.length ?? 0;
+  const requestCount = summary.conflict_check_request_count ?? 0;
+  const resultCount = summary.conflict_check_result_count ?? 0;
+  const signalCount = summary.conflict_signal_count ?? 0;
+  const status = summary.conflict_check_interface_status === "complete"
+    && errorCount === 0
+    && requestCount > 0
+    && resultCount === requestCount
+    && signalCount >= requestCount
+    && (summary.missing_conflict_reference_count ?? 0) === 0
+    && (summary.review_required_result_count ?? 0) > 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "conflict_check_interface",
+    label: "Conflict Check Interface",
+    status,
+    message: `${requestCount} conflict check request(s), ${resultCount} result(s), ${signalCount} signal(s), ${summary.review_required_result_count ?? 0} review-held result(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      conflict_check_interface_status: summary.conflict_check_interface_status ?? "unknown",
+      source_client_counterparty_registry_status: summary.source_client_counterparty_registry_status ?? "unknown",
+      source_matter_profile_team_ledger_status: summary.source_matter_profile_team_ledger_status ?? "unknown",
+      source_wall_policy_contract_status: summary.source_wall_policy_contract_status ?? "unknown",
+      source_store_policy_adapter_status: summary.source_store_policy_adapter_status ?? "unknown",
+      matter_profile_count: summary.matter_profile_count ?? 0,
+      protected_resource_count: summary.protected_resource_count ?? 0,
+      conflict_reference_count: summary.conflict_reference_count ?? 0,
+      conflict_wall_binding_count: summary.conflict_wall_binding_count ?? 0,
+      store_query_plan_count: summary.store_query_plan_count ?? 0,
+      conflict_check_request_count: requestCount,
+      matter_intake_request_count: summary.matter_intake_request_count ?? 0,
+      resource_access_request_count: summary.resource_access_request_count ?? 0,
+      conflict_check_result_count: resultCount,
+      clear_result_count: summary.clear_result_count ?? 0,
+      review_required_result_count: summary.review_required_result_count ?? 0,
+      blocked_result_count: summary.blocked_result_count ?? 0,
+      conflict_signal_count: signalCount,
+      clear_signal_count: summary.clear_signal_count ?? 0,
+      review_signal_count: summary.review_signal_count ?? 0,
+      block_signal_count: summary.block_signal_count ?? 0,
+      client_signal_count: summary.client_signal_count ?? 0,
+      counterparty_signal_count: summary.counterparty_signal_count ?? 0,
+      store_plan_linked_request_count: summary.store_plan_linked_request_count ?? 0,
+      missing_conflict_reference_count: summary.missing_conflict_reference_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5292,6 +5355,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.conflict_check_interface?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "conflict_check_interface";
+    items.push({
+      action_item_id: `dashboard.action.conflict_check_interface.${slugify(subjectId)}`,
+      source_stage: "conflict_check_interface",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix conflict check interface validation",
+      subject_ref: {
+        subject_type: "conflict_check_interface_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_conflict_check_interface", "rerun_conflict_check_interface", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -6859,6 +6940,33 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     store_policy_missing_policy_snapshot_filter_probe_blocked_count: artifacts.store_policy_adapter?.summary?.missing_policy_snapshot_filter_probe_blocked_count ?? 0,
     store_policy_failed_validation_item_count: artifacts.store_policy_adapter?.summary?.failed_validation_item_count ?? 0,
     store_policy_validation_error_count: artifacts.store_policy_adapter?.summary?.validation_error_count ?? artifacts.store_policy_adapter?.validation?.errors?.length ?? 0,
+    conflict_check_interface_status: artifacts.conflict_check_interface?.summary?.conflict_check_interface_status ?? "unknown",
+    conflict_check_source_client_counterparty_registry_status: artifacts.conflict_check_interface?.summary?.source_client_counterparty_registry_status ?? "unknown",
+    conflict_check_source_matter_profile_team_ledger_status: artifacts.conflict_check_interface?.summary?.source_matter_profile_team_ledger_status ?? "unknown",
+    conflict_check_source_wall_policy_contract_status: artifacts.conflict_check_interface?.summary?.source_wall_policy_contract_status ?? "unknown",
+    conflict_check_source_store_policy_adapter_status: artifacts.conflict_check_interface?.summary?.source_store_policy_adapter_status ?? "unknown",
+    conflict_check_matter_profile_count: artifacts.conflict_check_interface?.summary?.matter_profile_count ?? 0,
+    conflict_check_protected_resource_count: artifacts.conflict_check_interface?.summary?.protected_resource_count ?? 0,
+    conflict_check_reference_count: artifacts.conflict_check_interface?.summary?.conflict_reference_count ?? 0,
+    conflict_check_wall_binding_count: artifacts.conflict_check_interface?.summary?.conflict_wall_binding_count ?? 0,
+    conflict_check_store_query_plan_count: artifacts.conflict_check_interface?.summary?.store_query_plan_count ?? 0,
+    conflict_check_request_count: artifacts.conflict_check_interface?.summary?.conflict_check_request_count ?? 0,
+    conflict_check_matter_intake_request_count: artifacts.conflict_check_interface?.summary?.matter_intake_request_count ?? 0,
+    conflict_check_resource_access_request_count: artifacts.conflict_check_interface?.summary?.resource_access_request_count ?? 0,
+    conflict_check_result_count: artifacts.conflict_check_interface?.summary?.conflict_check_result_count ?? 0,
+    conflict_check_clear_result_count: artifacts.conflict_check_interface?.summary?.clear_result_count ?? 0,
+    conflict_check_review_required_result_count: artifacts.conflict_check_interface?.summary?.review_required_result_count ?? 0,
+    conflict_check_blocked_result_count: artifacts.conflict_check_interface?.summary?.blocked_result_count ?? 0,
+    conflict_check_signal_count: artifacts.conflict_check_interface?.summary?.conflict_signal_count ?? 0,
+    conflict_check_clear_signal_count: artifacts.conflict_check_interface?.summary?.clear_signal_count ?? 0,
+    conflict_check_review_signal_count: artifacts.conflict_check_interface?.summary?.review_signal_count ?? 0,
+    conflict_check_block_signal_count: artifacts.conflict_check_interface?.summary?.block_signal_count ?? 0,
+    conflict_check_client_signal_count: artifacts.conflict_check_interface?.summary?.client_signal_count ?? 0,
+    conflict_check_counterparty_signal_count: artifacts.conflict_check_interface?.summary?.counterparty_signal_count ?? 0,
+    conflict_check_store_plan_linked_request_count: artifacts.conflict_check_interface?.summary?.store_plan_linked_request_count ?? 0,
+    conflict_check_missing_conflict_reference_count: artifacts.conflict_check_interface?.summary?.missing_conflict_reference_count ?? 0,
+    conflict_check_failed_validation_item_count: artifacts.conflict_check_interface?.summary?.failed_validation_item_count ?? 0,
+    conflict_check_validation_error_count: artifacts.conflict_check_interface?.summary?.validation_error_count ?? artifacts.conflict_check_interface?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8210,6 +8318,8 @@ function parseArgs(argv) {
     else if (arg === "--no-access-audit-projection") parsed.accessAuditProjectionPath = false;
     else if (arg === "--store-policy-adapter") parsed.storePolicyAdapterPath = argv[++index];
     else if (arg === "--no-store-policy-adapter") parsed.storePolicyAdapterPath = false;
+    else if (arg === "--conflict-check-interface") parsed.conflictCheckInterfacePath = argv[++index];
+    else if (arg === "--no-conflict-check-interface") parsed.conflictCheckInterfacePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -8451,6 +8561,9 @@ Options:
   --no-access-audit-projection   Do not include Access Audit Projection status.
   --store-policy-adapter <path>  store-policy-adapter.json path.
   --no-store-policy-adapter      Do not include Store Policy Adapter status.
+  --conflict-check-interface <path>
+                                  conflict-check-interface.json path.
+  --no-conflict-check-interface  Do not include Conflict Check Interface status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

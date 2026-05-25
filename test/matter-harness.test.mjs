@@ -19,6 +19,7 @@ import { runDataClassificationRuleEngine } from "../src/data-classification-rule
 import { runMatterTaggingDecisionLedger } from "../src/matter-tagging-decision-ledger.mjs";
 import { runAccessAuditProjection } from "../src/access-audit-projection.mjs";
 import { runStorePolicyAdapter } from "../src/store-policy-adapter.mjs";
+import { runConflictCheckInterface } from "../src/conflict-check-interface.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1003,6 +1004,48 @@ describe("matter harness", () => {
       assert.ok(storePolicyAdapter.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "store-policy", "summary.md"), "utf8"), /Store Policy Adapter/);
 
+      const conflictCheckInterface = await runConflictCheckInterface({
+        clientCounterpartyRegistryPath: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        wallPolicyContractPath: path.join(outDir, "wall-policy-contract", "wall-policy-contract.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        outDir: path.join(outDir, "conflict-check"),
+        runAt: "2026-05-23T06:35:05.250Z",
+      });
+      const conflictCheckInterfaceSchema = JSON.parse(await readFile("schemas/conflict-check-interface.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(conflictCheckInterface, conflictCheckInterfaceSchema, {}, "conflict_check_interface"), []);
+      assert.equal(conflictCheckInterface.summary.conflict_check_interface_status, "complete");
+      assert.equal(conflictCheckInterface.summary.source_client_counterparty_registry_status, "complete");
+      assert.equal(conflictCheckInterface.summary.source_matter_profile_team_ledger_status, "complete");
+      assert.equal(conflictCheckInterface.summary.source_wall_policy_contract_status, "complete");
+      assert.equal(conflictCheckInterface.summary.source_store_policy_adapter_status, "complete");
+      assert.equal(conflictCheckInterface.summary.matter_profile_count, matterProfileTeamLedger.summary.matter_profile_count);
+      assert.equal(conflictCheckInterface.summary.protected_resource_count, accessAuditProjection.summary.distinct_resource_count);
+      assert.equal(conflictCheckInterface.summary.conflict_reference_count, clientCounterpartyRegistry.summary.conflict_reference_count);
+      assert.equal(conflictCheckInterface.summary.conflict_wall_binding_count, wallPolicyContract.summary.conflict_wall_binding_count);
+      assert.equal(conflictCheckInterface.summary.store_query_plan_count, storePolicyAdapter.summary.store_query_plan_count);
+      assert.equal(conflictCheckInterface.summary.conflict_check_request_count, conflictCheckInterface.summary.matter_intake_request_count + conflictCheckInterface.summary.resource_access_request_count);
+      assert.equal(conflictCheckInterface.summary.matter_intake_request_count, matterProfileTeamLedger.summary.matter_profile_count);
+      assert.equal(conflictCheckInterface.summary.resource_access_request_count, accessAuditProjection.summary.distinct_resource_count);
+      assert.equal(conflictCheckInterface.summary.conflict_check_result_count, conflictCheckInterface.summary.conflict_check_request_count);
+      assert.equal(conflictCheckInterface.summary.review_required_result_count, conflictCheckInterface.summary.conflict_check_result_count);
+      assert.equal(conflictCheckInterface.summary.blocked_result_count, 0);
+      assert.equal(conflictCheckInterface.summary.conflict_signal_count, conflictCheckInterface.summary.conflict_check_request_count * clientCounterpartyRegistry.summary.conflict_reference_count);
+      assert.equal(conflictCheckInterface.summary.clear_signal_count, conflictCheckInterface.summary.conflict_check_request_count);
+      assert.equal(conflictCheckInterface.summary.review_signal_count, conflictCheckInterface.summary.conflict_check_request_count);
+      assert.equal(conflictCheckInterface.summary.block_signal_count, 0);
+      assert.equal(conflictCheckInterface.summary.client_signal_count, conflictCheckInterface.summary.conflict_check_request_count);
+      assert.equal(conflictCheckInterface.summary.counterparty_signal_count, conflictCheckInterface.summary.conflict_check_request_count);
+      assert.equal(conflictCheckInterface.summary.store_plan_linked_request_count, conflictCheckInterface.summary.resource_access_request_count);
+      assert.equal(conflictCheckInterface.summary.missing_conflict_reference_count, 0);
+      assert.equal(conflictCheckInterface.summary.validation_error_count, 0);
+      assert.ok(conflictCheckInterface.conflict_check_catalog.conflict_check_requests.every((request) => request.policy_snapshot_id && request.conflict_ref_ids.length === clientCounterpartyRegistry.summary.conflict_reference_count));
+      assert.ok(conflictCheckInterface.conflict_check_catalog.conflict_check_requests.filter((request) => request.request_type === "resource_access").every((request) => request.store_query_plan_ids.length > 0));
+      assert.ok(conflictCheckInterface.conflict_check_catalog.conflict_check_results.every((result) => result.result_status === "review_required" && result.final_access_effect === "hold_for_conflict_review"));
+      assert.ok(conflictCheckInterface.conflict_check_catalog.conflict_signals.filter((signal) => signal.party_type === "counterparty").every((signal) => signal.signal_decision === "review" && signal.human_review_required === true));
+      assert.ok(conflictCheckInterface.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "conflict-check", "summary.md"), "utf8"), /Conflict Check Interface/);
+
       const contextPacketLedger = await runContextPacketLedger({
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         runtimeAdaptersPath: "examples/core/runtime-adapters.json",
@@ -1545,6 +1588,7 @@ describe("matter harness", () => {
         matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
         accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
         storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        conflictCheckInterfacePath: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3502,6 +3546,7 @@ describe("matter harness", () => {
           matter_tagging_decision_ledger: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
           access_audit_projection: path.join(outDir, "access-audit", "access-audit-projection.json"),
           store_policy_adapter: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+          conflict_check_interface: path.join(outDir, "conflict-check", "conflict-check-interface.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3527,8 +3572,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 28);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 28);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 29);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 29);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3547,6 +3592,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_tagging_decision_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "access_audit_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "store_policy_adapter"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "conflict_check_interface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3592,6 +3638,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:matter-tagging"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:access-audit"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:store-policy"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:conflict-check"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -3689,6 +3736,10 @@ describe("matter harness", () => {
       assert.equal(storePolicyAdapterCheckpoint?.acceptance_profile, "store_policy_adapter_gate");
       assert.equal(storePolicyAdapterCheckpoint?.status, "passed");
       assert.equal(storePolicyAdapterCheckpoint?.implementation_status, "passed");
+      const conflictCheckInterfaceCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-conflict-check-interface");
+      assert.equal(conflictCheckInterfaceCheckpoint?.acceptance_profile, "conflict_check_interface_gate");
+      assert.equal(conflictCheckInterfaceCheckpoint?.status, "passed");
+      assert.equal(conflictCheckInterfaceCheckpoint?.implementation_status, "passed");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4300,6 +4351,32 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.store_policy_missing_policy_snapshot_filter_probe_blocked_count, storePolicyAdapter.summary.missing_policy_snapshot_filter_probe_blocked_count);
       assert.equal(dashboard.summary.store_policy_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.store_policy_validation_error_count, 0);
+      assert.equal(dashboard.summary.conflict_check_interface_status, "complete");
+      assert.equal(dashboard.summary.conflict_check_source_client_counterparty_registry_status, "complete");
+      assert.equal(dashboard.summary.conflict_check_source_matter_profile_team_ledger_status, "complete");
+      assert.equal(dashboard.summary.conflict_check_source_wall_policy_contract_status, "complete");
+      assert.equal(dashboard.summary.conflict_check_source_store_policy_adapter_status, "complete");
+      assert.equal(dashboard.summary.conflict_check_matter_profile_count, conflictCheckInterface.summary.matter_profile_count);
+      assert.equal(dashboard.summary.conflict_check_protected_resource_count, conflictCheckInterface.summary.protected_resource_count);
+      assert.equal(dashboard.summary.conflict_check_reference_count, conflictCheckInterface.summary.conflict_reference_count);
+      assert.equal(dashboard.summary.conflict_check_wall_binding_count, conflictCheckInterface.summary.conflict_wall_binding_count);
+      assert.equal(dashboard.summary.conflict_check_store_query_plan_count, conflictCheckInterface.summary.store_query_plan_count);
+      assert.equal(dashboard.summary.conflict_check_request_count, conflictCheckInterface.summary.conflict_check_request_count);
+      assert.equal(dashboard.summary.conflict_check_matter_intake_request_count, conflictCheckInterface.summary.matter_intake_request_count);
+      assert.equal(dashboard.summary.conflict_check_resource_access_request_count, conflictCheckInterface.summary.resource_access_request_count);
+      assert.equal(dashboard.summary.conflict_check_result_count, conflictCheckInterface.summary.conflict_check_result_count);
+      assert.equal(dashboard.summary.conflict_check_review_required_result_count, conflictCheckInterface.summary.review_required_result_count);
+      assert.equal(dashboard.summary.conflict_check_blocked_result_count, 0);
+      assert.equal(dashboard.summary.conflict_check_signal_count, conflictCheckInterface.summary.conflict_signal_count);
+      assert.equal(dashboard.summary.conflict_check_clear_signal_count, conflictCheckInterface.summary.clear_signal_count);
+      assert.equal(dashboard.summary.conflict_check_review_signal_count, conflictCheckInterface.summary.review_signal_count);
+      assert.equal(dashboard.summary.conflict_check_block_signal_count, 0);
+      assert.equal(dashboard.summary.conflict_check_client_signal_count, conflictCheckInterface.summary.client_signal_count);
+      assert.equal(dashboard.summary.conflict_check_counterparty_signal_count, conflictCheckInterface.summary.counterparty_signal_count);
+      assert.equal(dashboard.summary.conflict_check_store_plan_linked_request_count, conflictCheckInterface.summary.store_plan_linked_request_count);
+      assert.equal(dashboard.summary.conflict_check_missing_conflict_reference_count, 0);
+      assert.equal(dashboard.summary.conflict_check_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.conflict_check_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -4787,6 +4864,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_tagging_decision_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "access_audit_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "conflict_check_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "context_packet_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_routing_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "model_policy_enforcement"));
@@ -4827,6 +4905,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "data_classification_rule_engine"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "conflict_check_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -4965,6 +5044,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-query-plans"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-enforcement-probes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/store-policy-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-interfaces"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-requests"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-signals"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/conflict-check-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
@@ -6852,6 +6936,26 @@ describe("matter harness", () => {
       const storePolicyValidations = JSON.parse((await buildReviewApiResponse("/api/store-policy-validations?status=passed", apiOptions)).body);
       assert.equal(storePolicyValidations.collection, "store_policy_validations");
       assert.equal(storePolicyValidations.count, storePolicyAdapter.summary.validation_item_count);
+
+      const conflictCheckInterfaces = JSON.parse((await buildReviewApiResponse("/api/conflict-check-interfaces?conflict_check_interface_status=complete", apiOptions)).body);
+      assert.equal(conflictCheckInterfaces.collection, "conflict_check_interfaces");
+      assert.equal(conflictCheckInterfaces.count, 1);
+
+      const resourceConflictCheckRequests = JSON.parse((await buildReviewApiResponse("/api/conflict-check-requests?request_type=resource_access", apiOptions)).body);
+      assert.equal(resourceConflictCheckRequests.collection, "conflict_check_requests");
+      assert.equal(resourceConflictCheckRequests.count, conflictCheckInterface.summary.resource_access_request_count);
+
+      const reviewConflictCheckResults = JSON.parse((await buildReviewApiResponse("/api/conflict-check-results?result_status=review_required", apiOptions)).body);
+      assert.equal(reviewConflictCheckResults.collection, "conflict_check_results");
+      assert.equal(reviewConflictCheckResults.count, conflictCheckInterface.summary.review_required_result_count);
+
+      const counterpartyConflictSignals = JSON.parse((await buildReviewApiResponse("/api/conflict-check-signals?signal_decision=review", apiOptions)).body);
+      assert.equal(counterpartyConflictSignals.collection, "conflict_check_signals");
+      assert.equal(counterpartyConflictSignals.count, conflictCheckInterface.summary.review_signal_count);
+
+      const conflictCheckValidations = JSON.parse((await buildReviewApiResponse("/api/conflict-check-validations?status=passed", apiOptions)).body);
+      assert.equal(conflictCheckValidations.collection, "conflict_check_validations");
+      assert.equal(conflictCheckValidations.count, conflictCheckInterface.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

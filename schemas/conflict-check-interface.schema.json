@@ -1,0 +1,287 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/conflict-check-interface.schema.json",
+  "title": "Hermes Conflict Check Interface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "conflict_check_interface_id",
+    "output_dir",
+    "inputs",
+    "source_client_counterparty_registry",
+    "source_matter_profile_team_ledger",
+    "source_wall_policy_contract",
+    "source_store_policy_adapter",
+    "conflict_check_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "conflict-check-interface.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "conflict_check_interface_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "client_counterparty_registry_path",
+        "matter_profile_team_ledger_path",
+        "wall_policy_contract_path",
+        "store_policy_adapter_path"
+      ],
+      "properties": {
+        "client_counterparty_registry_path": { "type": "string" },
+        "matter_profile_team_ledger_path": { "type": "string" },
+        "wall_policy_contract_path": { "type": "string" },
+        "store_policy_adapter_path": { "type": "string" }
+      }
+    },
+    "source_client_counterparty_registry": { "$ref": "#/$defs/source" },
+    "source_matter_profile_team_ledger": { "$ref": "#/$defs/source" },
+    "source_wall_policy_contract": { "$ref": "#/$defs/source" },
+    "source_store_policy_adapter": { "$ref": "#/$defs/source" },
+    "conflict_check_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "conflict_check_requests",
+        "conflict_check_results",
+        "conflict_signals"
+      ],
+      "properties": {
+        "schema_version": { "const": "conflict-check-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "conflict_check_requests": { "type": "array", "items": { "$ref": "#/$defs/conflict_check_request" } },
+        "conflict_check_results": { "type": "array", "items": { "$ref": "#/$defs/conflict_check_result" } },
+        "conflict_signals": { "type": "array", "items": { "$ref": "#/$defs/conflict_signal" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "properties": {
+        "schema_version": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "conflict_check_request": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conflict_check_request_id",
+        "request_type",
+        "request_status",
+        "tenant_id",
+        "matter_id",
+        "requested_by_user_id",
+        "requested_stage",
+        "requested_action",
+        "policy_snapshot_id",
+        "conflict_ref_ids",
+        "client_conflict_ref_ids",
+        "counterparty_conflict_ref_ids",
+        "conflict_wall_binding_ids",
+        "store_query_plan_ids",
+        "runtime_ids",
+        "access_subject_user_ids",
+        "human_review_required",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "conflict-check-request.v1" },
+        "conflict_check_request_id": { "type": "string" },
+        "request_type": { "enum": ["matter_intake", "resource_access"] },
+        "request_status": { "enum": ["ready_for_review", "blocked"] },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "matter_id": { "type": "string" },
+        "matter_profile_id": { "type": ["string", "null"] },
+        "target_resource_id": { "type": ["string", "null"] },
+        "requested_by_user_id": { "type": "string" },
+        "requested_stage": { "type": "string" },
+        "requested_action": { "type": "string" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "party_ids": { "type": "array", "items": { "type": "string" } },
+        "conflict_ref_ids": { "type": "array", "items": { "type": "string" } },
+        "client_conflict_ref_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_conflict_ref_ids": { "type": "array", "items": { "type": "string" } },
+        "conflict_wall_binding_ids": { "type": "array", "items": { "type": "string" } },
+        "store_query_plan_ids": { "type": "array", "items": { "type": "string" } },
+        "runtime_ids": { "type": "array", "items": { "type": "string" } },
+        "access_subject_user_ids": { "type": "array", "items": { "type": "string" } },
+        "human_review_required": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "conflict_check_result": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conflict_check_result_id",
+        "conflict_check_request_id",
+        "request_type",
+        "tenant_id",
+        "matter_id",
+        "result_status",
+        "final_access_effect",
+        "signal_count",
+        "clear_signal_count",
+        "review_signal_count",
+        "block_signal_count",
+        "conflict_signal_ids",
+        "policy_snapshot_id",
+        "human_review_required",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "conflict-check-result.v1" },
+        "conflict_check_result_id": { "type": "string" },
+        "conflict_check_request_id": { "type": "string" },
+        "request_type": { "enum": ["matter_intake", "resource_access"] },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "target_resource_id": { "type": ["string", "null"] },
+        "result_status": { "enum": ["clear", "review_required", "blocked"] },
+        "final_access_effect": { "enum": ["conflict_signal_recorded", "hold_for_conflict_review", "block_pending_conflict_resolution"] },
+        "signal_count": { "type": "integer", "minimum": 0 },
+        "clear_signal_count": { "type": "integer", "minimum": 0 },
+        "review_signal_count": { "type": "integer", "minimum": 0 },
+        "block_signal_count": { "type": "integer", "minimum": 0 },
+        "conflict_signal_ids": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "human_review_required": { "type": "boolean" },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "conflict_signal": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conflict_signal_id",
+        "conflict_check_request_id",
+        "request_type",
+        "tenant_id",
+        "matter_id",
+        "conflict_ref_id",
+        "party_type",
+        "display_name",
+        "conflict_check_status",
+        "signal_type",
+        "signal_decision",
+        "signal_severity",
+        "human_review_required",
+        "reason_codes",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "conflict-signal.v1" },
+        "conflict_signal_id": { "type": "string" },
+        "conflict_check_request_id": { "type": "string" },
+        "request_type": { "enum": ["matter_intake", "resource_access"] },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "target_resource_id": { "type": ["string", "null"] },
+        "conflict_ref_id": { "type": "string" },
+        "stable_party_id": { "type": ["string", "null"] },
+        "party_type": { "type": "string" },
+        "display_name": { "type": "string" },
+        "counterparty_role": { "type": ["string", "null"] },
+        "conflict_wall_binding_id": { "type": ["string", "null"] },
+        "conflict_check_status": { "type": "string" },
+        "signal_type": { "enum": ["client_party_known", "counterparty_party_known", "related_party_known", "missing_conflict_reference"] },
+        "signal_decision": { "enum": ["clear", "review", "block"] },
+        "signal_severity": { "enum": ["info", "warning", "critical"] },
+        "human_review_required": { "type": "boolean" },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "conflict_check_interface_status",
+        "conflict_check_request_count",
+        "conflict_check_result_count",
+        "conflict_signal_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "conflict_check_interface_status": { "enum": ["complete", "blocked"] },
+        "source_client_counterparty_registry_status": { "type": "string" },
+        "source_matter_profile_team_ledger_status": { "type": "string" },
+        "source_wall_policy_contract_status": { "type": "string" },
+        "source_store_policy_adapter_status": { "type": "string" },
+        "matter_profile_count": { "type": "integer", "minimum": 0 },
+        "protected_resource_count": { "type": "integer", "minimum": 0 },
+        "conflict_reference_count": { "type": "integer", "minimum": 0 },
+        "conflict_wall_binding_count": { "type": "integer", "minimum": 0 },
+        "store_query_plan_count": { "type": "integer", "minimum": 0 },
+        "conflict_check_request_count": { "type": "integer", "minimum": 0 },
+        "matter_intake_request_count": { "type": "integer", "minimum": 0 },
+        "resource_access_request_count": { "type": "integer", "minimum": 0 },
+        "conflict_check_result_count": { "type": "integer", "minimum": 0 },
+        "clear_result_count": { "type": "integer", "minimum": 0 },
+        "review_required_result_count": { "type": "integer", "minimum": 0 },
+        "blocked_result_count": { "type": "integer", "minimum": 0 },
+        "conflict_signal_count": { "type": "integer", "minimum": 0 },
+        "clear_signal_count": { "type": "integer", "minimum": 0 },
+        "review_signal_count": { "type": "integer", "minimum": 0 },
+        "block_signal_count": { "type": "integer", "minimum": 0 },
+        "client_signal_count": { "type": "integer", "minimum": 0 },
+        "counterparty_signal_count": { "type": "integer", "minimum": 0 },
+        "store_plan_linked_request_count": { "type": "integer", "minimum": 0 },
+        "missing_conflict_reference_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_request_type": { "type": "object" },
+        "by_result_status": { "type": "object" },
+        "by_signal_decision": { "type": "object" }
+      }
+    }
+  }
+}

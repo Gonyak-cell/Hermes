@@ -25,6 +25,7 @@ import { runPolicyGoldenFixtures } from "../src/policy-golden-fixtures.mjs";
 import { runPolicyOperationsSurface } from "../src/policy-operations-surface.mjs";
 import { runMatterBoundarySlice } from "../src/matter-boundary-slice.mjs";
 import { runIdentityPolicyMatterFreeze } from "../src/identity-policy-matter-freeze.mjs";
+import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1636,6 +1637,7 @@ describe("matter harness", () => {
         policyOperationsSurfacePath: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
         matterBoundarySlicePath: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
         identityPolicyMatterFreezePath: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3732,6 +3734,38 @@ describe("matter harness", () => {
       assert.ok(identityPolicyMatterFreeze.freeze_checkpoints.every((checkpoint) => checkpoint.status === "passed"));
       assert.match(await readFile(path.join(outDir, "identity-policy-matter-freeze", "summary.md"), "utf8"), /Identity\/Policy\/Matter Freeze/);
 
+      const resourceStoreInterface = await runResourceStoreInterface({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        storePolicyAdapterPath: path.join(outDir, "store-policy", "store-policy-adapter.json"),
+        identityPolicyMatterFreezePath: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
+        outDir: path.join(outDir, "resource-store-interface"),
+        runAt: "2026-05-23T06:35:07.900Z",
+      });
+      const resourceStoreInterfaceSchema = JSON.parse(await readFile("schemas/resource-store-interface.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(resourceStoreInterface, resourceStoreInterfaceSchema, {}, "resource_store_interface"),
+        [],
+      );
+      assert.equal(resourceStoreInterface.summary.resource_store_interface_status, "complete");
+      assert.equal(resourceStoreInterface.summary.resource_store_record_count, resourceContractFreeze.summary.resource_count);
+      assert.equal(resourceStoreInterface.summary.resource_version_store_record_count, resourceContractFreeze.summary.resource_version_count);
+      assert.equal(resourceStoreInterface.summary.registry_adapter_binding_count, 1);
+      assert.equal(resourceStoreInterface.summary.ingestion_adapter_binding_count, 1);
+      assert.equal(resourceStoreInterface.summary.dashboard_adapter_binding_count, 1);
+      assert.equal(resourceStoreInterface.summary.bound_required_consumer_layer_count, resourceStoreInterface.summary.required_consumer_layer_count);
+      assert.equal(resourceStoreInterface.summary.required_resource_filter_count, 4);
+      assert.ok(resourceStoreInterface.summary.resource_store_rls_template_count > 0);
+      assert.ok(resourceStoreInterface.summary.compiled_resource_query_plan_count > 0);
+      assert.equal(resourceStoreInterface.summary.executable_resource_query_plan_count, 0);
+      assert.equal(resourceStoreInterface.summary.validation_error_count, 0);
+      assert.ok(resourceStoreInterface.resource_store_catalog.resource_store_records.every((record) => record.collection_id === "resource_store"));
+      assert.ok(resourceStoreInterface.adapter_bindings.some((binding) => binding.consumer_layer === "registry"));
+      assert.ok(resourceStoreInterface.adapter_bindings.some((binding) => binding.consumer_layer === "ingestion"));
+      assert.ok(resourceStoreInterface.adapter_bindings.some((binding) => binding.consumer_layer === "dashboard"));
+      assert.ok(resourceStoreInterface.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "resource-store-interface", "summary.md"), "utf8"), /Resource Store Interface/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3753,6 +3787,7 @@ describe("matter harness", () => {
           policy_operations_surface: path.join(outDir, "policy-operations-surface", "policy-operations-surface.json"),
           matter_boundary_slice: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
           identity_policy_matter_freeze: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
+          resource_store_interface: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3778,8 +3813,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 34);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 34);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 35);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 35);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3804,6 +3839,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_operations_surface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_boundary_slice"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_policy_matter_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_store_interface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -3973,6 +4009,10 @@ describe("matter harness", () => {
       assert.equal(identityPolicyMatterFreezeCheckpoint?.acceptance_profile, "identity_policy_matter_freeze_gate");
       assert.equal(identityPolicyMatterFreezeCheckpoint?.status, "passed");
       assert.equal(identityPolicyMatterFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const resourceStoreInterfaceCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-store-interface");
+      assert.equal(resourceStoreInterfaceCheckpoint?.acceptance_profile, "resource_store_interface_gate");
+      assert.equal(resourceStoreInterfaceCheckpoint?.status, "passed");
+      assert.equal(resourceStoreInterfaceCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4687,6 +4727,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.identity_policy_matter_freeze_unassigned_executable_query_plan_count, 0);
       assert.equal(dashboard.summary.identity_policy_matter_freeze_protected_action_executed_count, 0);
       assert.equal(dashboard.summary.identity_policy_matter_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_store_interface_status, "complete");
+      assert.equal(dashboard.summary.resource_store_interface_contract_id, "resource-store-interface.v1");
+      assert.equal(dashboard.summary.resource_store_interface_resource_record_count, resourceStoreInterface.summary.resource_store_record_count);
+      assert.equal(dashboard.summary.resource_store_interface_resource_version_record_count, resourceStoreInterface.summary.resource_version_store_record_count);
+      assert.equal(dashboard.summary.resource_store_interface_registry_projection_count, resourceStoreInterface.summary.registry_projection_count);
+      assert.equal(dashboard.summary.resource_store_interface_dashboard_projection_route_count, resourceStoreInterface.summary.dashboard_projection_route_count);
+      assert.equal(dashboard.summary.resource_store_interface_adapter_binding_count, resourceStoreInterface.summary.adapter_binding_count);
+      assert.equal(dashboard.summary.resource_store_interface_registry_adapter_binding_count, 1);
+      assert.equal(dashboard.summary.resource_store_interface_ingestion_adapter_binding_count, 1);
+      assert.equal(dashboard.summary.resource_store_interface_dashboard_adapter_binding_count, 1);
+      assert.equal(dashboard.summary.resource_store_interface_bound_required_consumer_layer_count, resourceStoreInterface.summary.required_consumer_layer_count);
+      assert.equal(dashboard.summary.resource_store_interface_required_resource_filter_count, 4);
+      assert.equal(dashboard.summary.resource_store_interface_resource_store_rls_template_count, resourceStoreInterface.summary.resource_store_rls_template_count);
+      assert.equal(dashboard.summary.resource_store_interface_compiled_query_plan_count, resourceStoreInterface.summary.compiled_resource_query_plan_count);
+      assert.equal(dashboard.summary.resource_store_interface_executable_query_plan_count, 0);
+      assert.equal(dashboard.summary.resource_store_interface_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5218,6 +5274,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "store_policy_adapter"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "conflict_check_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "personal_workspace_boundary"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_store_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5300,6 +5357,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-store-interfaces"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-store-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-store-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-store-adapter-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-store-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7038,6 +7100,26 @@ describe("matter harness", () => {
       const resourceContractValidations = JSON.parse((await buildReviewApiResponse("/api/resource-contract-validations?status=passed", apiOptions)).body);
       assert.equal(resourceContractValidations.collection, "resource_contract_validations");
       assert.equal(resourceContractValidations.count, resourceContractFreeze.summary.validation_item_count);
+
+      const resourceStoreInterfaces = JSON.parse((await buildReviewApiResponse("/api/resource-store-interfaces?resource_store_interface_status=complete", apiOptions)).body);
+      assert.equal(resourceStoreInterfaces.collection, "resource_store_interfaces");
+      assert.equal(resourceStoreInterfaces.count, 1);
+
+      const resourceStoreRecords = JSON.parse((await buildReviewApiResponse("/api/resource-store-records?collection_id=resource_store", apiOptions)).body);
+      assert.equal(resourceStoreRecords.collection, "resource_store_records");
+      assert.equal(resourceStoreRecords.count, resourceStoreInterface.summary.resource_store_record_count);
+
+      const resourceVersionStoreRecords = JSON.parse((await buildReviewApiResponse("/api/resource-version-store-records?collection_id=resource_version_store", apiOptions)).body);
+      assert.equal(resourceVersionStoreRecords.collection, "resource_version_store_records");
+      assert.equal(resourceVersionStoreRecords.count, resourceStoreInterface.summary.resource_version_store_record_count);
+
+      const resourceStoreAdapterBindings = JSON.parse((await buildReviewApiResponse("/api/resource-store-adapter-bindings?interface_contract_id=resource-store-interface.v1", apiOptions)).body);
+      assert.equal(resourceStoreAdapterBindings.collection, "resource_store_adapter_bindings");
+      assert.equal(resourceStoreAdapterBindings.count, resourceStoreInterface.summary.adapter_binding_count);
+
+      const resourceStoreValidations = JSON.parse((await buildReviewApiResponse("/api/resource-store-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceStoreValidations.collection, "resource_store_validations");
+      assert.equal(resourceStoreValidations.count, resourceStoreInterface.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

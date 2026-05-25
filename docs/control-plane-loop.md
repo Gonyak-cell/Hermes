@@ -84,6 +84,8 @@ Phase 131부터 loop는 `npm run matter-boundary:slice`도 실행해 resource in
 
 Phase 132부터 loop는 `npm run identity-policy:freeze`도 실행해 P113-P131 identity/policy/matter boundary source와 checkpoint를 regression freeze report로 고정한다.
 
+Phase 133부터 loop는 `npm run resource:store-interface`도 실행해 Resource v2/ResourceVersion v2를 registry, ingestion, dashboard가 공유하는 `resource-store-interface.v1` 계약으로 projection한다.
+
 이 finalization은 dashboard와 goal checkpoint가 방금 완료된 `control-plane-loop.json`을 읽도록 맞추는 동기화 단계다. 필요하면 `node scripts/control-plane-loop.mjs --no-finalize`로 끌 수 있다.
 
 출력:

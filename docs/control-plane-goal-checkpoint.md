@@ -41,6 +41,7 @@ npm run control-plane:goal-checkpoint -- \
 - Budget alert ledger
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
+- Resource Store Interface
 - Gate and approval workflow
 - Human review packets
 - Human review agenda
@@ -88,6 +89,7 @@ npm run control-plane:goal-checkpoint -- \
 - Human Review Agenda: reviewer별 agenda와 receipt decision template이 생성되고 validation error가 없으면 구현 통과
 - Human Review Agenda Receipt Intake: agenda decision template이 표준 human gate receipt input으로 변환되고 validation error가 없으면 구현 통과
 - Human Review Receipt Workspace: actor별 editable receipt input과 review checklist가 생성되고 validation error가 없으면 구현 통과
+- Resource Store Interface: registry, ingestion, dashboard adapter binding이 동일 interface contract에 묶이고 resource query plan이 required filter와 human confirmation gate 아래에 있으면 구현 통과
 - Human Review Receipt Workspace Merge: actor별 receipt input이 표준 receipt input으로 병합되고 validation error가 없으면 구현 통과
 - Human Review Context Bundle: pending receipt마다 gate/evidence/approval/matter context card가 생성되고 validation error가 없으면 구현 통과
 - Human Review Decision Register: context-bound decision row와 표준 receipt input이 생성되고 validation error가 없으면 구현 통과

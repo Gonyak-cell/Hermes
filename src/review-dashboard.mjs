@@ -23,6 +23,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policyOperationsSurfacePath: "artifacts/policy-operations-surface/latest/policy-operations-surface.json",
   matterBoundarySlicePath: "artifacts/matter-boundary-slice/latest/matter-boundary-slice.json",
   identityPolicyMatterFreezePath: "artifacts/identity-policy-matter-freeze/latest/identity-policy-matter-freeze.json",
+  resourceStoreInterfacePath: "artifacts/resource-store-interface/latest/resource-store-interface.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -226,6 +227,11 @@ const SOURCE_DEFINITIONS = [
     option: "identityPolicyMatterFreezePath",
     source_id: "identity_policy_matter_freeze",
     label: "Identity/Policy/Matter Freeze",
+  },
+  {
+    option: "resourceStoreInterfacePath",
+    source_id: "resource_store_interface",
+    label: "Resource Store Interface",
   },
   {
     option: "evidenceContractFreezePath",
@@ -883,6 +889,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_operations_surface") return data.summary ?? {};
   if (sourceId === "matter_boundary_slice") return data.summary ?? {};
   if (sourceId === "identity_policy_matter_freeze") return data.summary ?? {};
+  if (sourceId === "resource_store_interface") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1095,6 +1102,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicyOperationsSurfaceStage(artifacts.policy_operations_surface, sourceById.get("policy_operations_surface")),
     buildMatterBoundarySliceStage(artifacts.matter_boundary_slice, sourceById.get("matter_boundary_slice")),
     buildIdentityPolicyMatterFreezeStage(artifacts.identity_policy_matter_freeze, sourceById.get("identity_policy_matter_freeze")),
+    buildResourceStoreInterfaceStage(artifacts.resource_store_interface, sourceById.get("resource_store_interface")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2014,6 +2022,54 @@ function buildIdentityPolicyMatterFreezeStage(freeze, source) {
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       external_delivery_executed_count: summary.external_delivery_executed_count ?? 0,
       auto_approval_count: summary.auto_approval_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildResourceStoreInterfaceStage(resourceStoreInterface, source) {
+  if (!resourceStoreInterface) return missingStage("resource_store_interface", "Resource Store Interface", source);
+  const summary = resourceStoreInterface.summary ?? {};
+  const errorCount = summary.validation_error_count ?? resourceStoreInterface.validation?.errors?.length ?? 0;
+  const status = summary.resource_store_interface_status === "complete"
+    && errorCount === 0
+    && (summary.resource_store_record_count ?? 0) > 0
+    && (summary.resource_version_store_record_count ?? 0) > 0
+    && (summary.bound_required_consumer_layer_count ?? 0) === (summary.required_consumer_layer_count ?? -1)
+    && (summary.resource_store_rls_template_count ?? 0) > 0
+    && (summary.compiled_resource_query_plan_count ?? 0) > 0
+    && (summary.executable_resource_query_plan_count ?? 0) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "resource_store_interface",
+    label: "Resource Store Interface",
+    status,
+    message: `${summary.resource_store_record_count ?? 0} resource store record(s), ${summary.adapter_binding_count ?? 0} adapter binding(s), status ${summary.resource_store_interface_status ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resource_store_interface_status: summary.resource_store_interface_status ?? "unknown",
+      interface_contract_id: summary.interface_contract_id ?? null,
+      resource_store_collection_id: summary.resource_store_collection_id ?? null,
+      resource_version_store_collection_id: summary.resource_version_store_collection_id ?? null,
+      resource_store_record_count: summary.resource_store_record_count ?? 0,
+      resource_version_store_record_count: summary.resource_version_store_record_count ?? 0,
+      registry_projection_count: summary.registry_projection_count ?? 0,
+      dashboard_projection_route_count: summary.dashboard_projection_route_count ?? 0,
+      adapter_binding_count: summary.adapter_binding_count ?? 0,
+      registry_adapter_binding_count: summary.registry_adapter_binding_count ?? 0,
+      ingestion_adapter_binding_count: summary.ingestion_adapter_binding_count ?? 0,
+      dashboard_adapter_binding_count: summary.dashboard_adapter_binding_count ?? 0,
+      required_consumer_layer_count: summary.required_consumer_layer_count ?? 0,
+      bound_required_consumer_layer_count: summary.bound_required_consumer_layer_count ?? 0,
+      required_resource_filter_count: summary.required_resource_filter_count ?? 0,
+      required_resource_version_filter_count: summary.required_resource_version_filter_count ?? 0,
+      resource_store_rls_template_count: summary.resource_store_rls_template_count ?? 0,
+      compiled_resource_query_plan_count: summary.compiled_resource_query_plan_count ?? 0,
+      executable_resource_query_plan_count: summary.executable_resource_query_plan_count ?? 0,
+      held_resource_query_plan_count: summary.held_resource_query_plan_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -5757,6 +5813,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.resource_store_interface?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "resource_store_interface";
+    items.push({
+      action_item_id: `dashboard.action.resource_store_interface.${slugify(subjectId)}`,
+      source_stage: "resource_store_interface",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix resource store interface",
+      subject_ref: {
+        subject_type: "resource_store_interface_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_resource_store_interface", "rerun_resource_store_interface", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7436,6 +7510,23 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     identity_policy_matter_freeze_unassigned_executable_query_plan_count: artifacts.identity_policy_matter_freeze?.summary?.unassigned_executable_query_plan_count ?? 0,
     identity_policy_matter_freeze_protected_action_executed_count: artifacts.identity_policy_matter_freeze?.summary?.protected_action_executed_count ?? 0,
     identity_policy_matter_freeze_validation_error_count: artifacts.identity_policy_matter_freeze?.summary?.validation_error_count ?? artifacts.identity_policy_matter_freeze?.validation?.errors?.length ?? 0,
+    resource_store_interface_status: artifacts.resource_store_interface?.summary?.resource_store_interface_status ?? "unknown",
+    resource_store_interface_contract_id: artifacts.resource_store_interface?.summary?.interface_contract_id ?? null,
+    resource_store_interface_resource_record_count: artifacts.resource_store_interface?.summary?.resource_store_record_count ?? 0,
+    resource_store_interface_resource_version_record_count: artifacts.resource_store_interface?.summary?.resource_version_store_record_count ?? 0,
+    resource_store_interface_registry_projection_count: artifacts.resource_store_interface?.summary?.registry_projection_count ?? 0,
+    resource_store_interface_dashboard_projection_route_count: artifacts.resource_store_interface?.summary?.dashboard_projection_route_count ?? 0,
+    resource_store_interface_adapter_binding_count: artifacts.resource_store_interface?.summary?.adapter_binding_count ?? 0,
+    resource_store_interface_registry_adapter_binding_count: artifacts.resource_store_interface?.summary?.registry_adapter_binding_count ?? 0,
+    resource_store_interface_ingestion_adapter_binding_count: artifacts.resource_store_interface?.summary?.ingestion_adapter_binding_count ?? 0,
+    resource_store_interface_dashboard_adapter_binding_count: artifacts.resource_store_interface?.summary?.dashboard_adapter_binding_count ?? 0,
+    resource_store_interface_required_consumer_layer_count: artifacts.resource_store_interface?.summary?.required_consumer_layer_count ?? 0,
+    resource_store_interface_bound_required_consumer_layer_count: artifacts.resource_store_interface?.summary?.bound_required_consumer_layer_count ?? 0,
+    resource_store_interface_required_resource_filter_count: artifacts.resource_store_interface?.summary?.required_resource_filter_count ?? 0,
+    resource_store_interface_resource_store_rls_template_count: artifacts.resource_store_interface?.summary?.resource_store_rls_template_count ?? 0,
+    resource_store_interface_compiled_query_plan_count: artifacts.resource_store_interface?.summary?.compiled_resource_query_plan_count ?? 0,
+    resource_store_interface_executable_query_plan_count: artifacts.resource_store_interface?.summary?.executable_resource_query_plan_count ?? 0,
+    resource_store_interface_validation_error_count: artifacts.resource_store_interface?.summary?.validation_error_count ?? artifacts.resource_store_interface?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8799,6 +8890,8 @@ function parseArgs(argv) {
     else if (arg === "--no-matter-boundary-slice") parsed.matterBoundarySlicePath = false;
     else if (arg === "--identity-policy-matter-freeze") parsed.identityPolicyMatterFreezePath = argv[++index];
     else if (arg === "--no-identity-policy-matter-freeze") parsed.identityPolicyMatterFreezePath = false;
+    else if (arg === "--resource-store-interface") parsed.resourceStoreInterfacePath = argv[++index];
+    else if (arg === "--no-resource-store-interface") parsed.resourceStoreInterfacePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9058,6 +9151,9 @@ Options:
                                   identity-policy-matter-freeze.json path.
   --no-identity-policy-matter-freeze
                                   Do not include Identity/Policy/Matter Freeze status.
+  --resource-store-interface <path>
+                                  resource-store-interface.json path.
+  --no-resource-store-interface   Do not include Resource Store Interface status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

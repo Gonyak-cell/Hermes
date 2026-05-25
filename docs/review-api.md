@@ -63,6 +63,11 @@ npm run api:serve
 - `GET /api/identity-policy-freeze-sources`: P113-P131 freeze source status rows
 - `GET /api/identity-policy-freeze-checkpoints`: freeze checkpoint rows
 - `GET /api/identity-policy-freeze-validations`: freeze validation rows
+- `GET /api/resource-store-interfaces`: resource store interface artifact
+- `GET /api/resource-store-records`: Resource v2에서 projection된 resource store records
+- `GET /api/resource-version-store-records`: ResourceVersion v2에서 projection된 version store records
+- `GET /api/resource-store-adapter-bindings`: registry, ingestion, dashboard adapter binding rows
+- `GET /api/resource-store-validations`: resource store interface validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

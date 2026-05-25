@@ -144,6 +144,7 @@
     "resource:expand": "node scripts/resource-expansion.mjs",
     "resource:extract": "node scripts/resource-extract.mjs",
     "resource:ingest": "node scripts/resource-ingest.mjs",
+    "resource:store-interface": "node scripts/resource-store-interface.mjs",
     "runtime:bindings": "node scripts/runtime-bindings.mjs",
     "runtime:invoke": "node scripts/runtime-invoker.mjs",
     "slice:run": "node scripts/run-vertical-slice.mjs",

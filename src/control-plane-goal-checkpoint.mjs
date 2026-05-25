@@ -31,6 +31,7 @@ const GOAL_ITEMS = [
   sourceItem("policy_operations_surface", "Policy operations dashboard/API surface", "identity_policy", "policy_operations_surface", "control-plane-policy-operations-surface", { acceptance_profile: "policy_operations_surface_gate" }),
   sourceItem("matter_boundary_slice", "Matter boundary vertical slice", "identity_policy", "matter_boundary_slice", "control-plane-matter-boundary-slice", { acceptance_profile: "matter_boundary_slice_gate" }),
   sourceItem("identity_policy_matter_freeze", "Identity/Policy/Matter freeze", "identity_policy", "identity_policy_matter_freeze", "control-plane-identity-policy-matter-freeze", { acceptance_profile: "identity_policy_matter_freeze_gate" }),
+  sourceItem("resource_store_interface", "Resource store interface", "resource_evidence", "resource_store_interface", "control-plane-resource-store-interface", { acceptance_profile: "resource_store_interface_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -369,6 +370,7 @@ function evaluateStageAcceptance(item, stage) {
     "policy_operations_surface_gate",
     "matter_boundary_slice_gate",
     "identity_policy_matter_freeze_gate",
+    "resource_store_interface_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -591,6 +593,26 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.auto_approval_count ?? 0) === 0
     ) {
       return passedWithOperationalGate(stage, "Identity/Policy/Matter track is frozen as a regression report with policy fixtures, operations surface, matter boundary gates, and no protected actions executed.");
+    }
+  }
+
+  if (item.acceptance_profile === "resource_store_interface_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    if (
+      errors === 0
+      && metrics.resource_store_interface_status === "complete"
+      && (metrics.resource_store_record_count ?? 0) > 0
+      && (metrics.resource_version_store_record_count ?? 0) > 0
+      && (metrics.bound_required_consumer_layer_count ?? 0) === (metrics.required_consumer_layer_count ?? -1)
+      && (metrics.registry_adapter_binding_count ?? 0) > 0
+      && (metrics.ingestion_adapter_binding_count ?? 0) > 0
+      && (metrics.dashboard_adapter_binding_count ?? 0) > 0
+      && (metrics.required_resource_filter_count ?? 0) >= 4
+      && (metrics.resource_store_rls_template_count ?? 0) > 0
+      && (metrics.compiled_resource_query_plan_count ?? 0) > 0
+      && (metrics.executable_resource_query_plan_count ?? 0) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Resource store interface is implemented as a common registry, ingestion, dashboard, and policy-query contract before storage layout work begins.");
     }
   }
 

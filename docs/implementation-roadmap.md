@@ -4012,6 +4012,32 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 34개로 증가하고 identity/policy/matter freeze가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run identity-policy:freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 133: Resource Store Interface
+
+목표: Resource/Data/Evidence/Lineage 트랙의 첫 단계로 registry, ingestion, dashboard가 같은 Resource Store interface contract를 사용하도록 고정한다.
+
+구현 내용:
+
+- `src/resource-store-interface.mjs`, `scripts/resource-store-interface.mjs`, `schemas/resource-store-interface.schema.json`, `docs/resource-store-interface.md`를 추가함
+- `npm run resource:store-interface -- --check` 명령을 추가해 resource store record, resource version store record, adapter binding, query interface, validation report, summary markdown을 생성함
+- Resource Contract Freeze의 Resource v2/ResourceVersion v2를 `resource_store`와 `resource_version_store` record로 projection함
+- registry, ingestion, dashboard, policy query adapter binding이 모두 `resource-store-interface.v1`을 참조하도록 고정함
+- Store Policy Adapter의 `resource_store` RLS/filter template과 resource query plan을 query interface로 연결하고 unconfirmed resource query plan이 executable이 아님을 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 resource store interface를 통합함
+- `/api/resource-store-interfaces`, `/api/resource-store-records`, `/api/resource-version-store-records`, `/api/resource-store-adapter-bindings`, `/api/resource-store-validations` route를 추가함
+
+완료 기준:
+
+- Resource Store Interface가 validation error 없이 `complete` 상태가 됨
+- Resource v2와 ResourceVersion v2 fixture가 store record로 1:1 projection됨
+- registry, ingestion, dashboard adapter binding이 같은 interface contract를 참조함
+- resource query interface가 tenant, matter, classification, resource filter를 요구하고 store policy RLS template에 연결됨
+- unassigned/unconfirmed resource query plan은 executable 상태로 열리지 않음
+- Review Dashboard summary와 stage status에서 resource store interface 상태, record count, adapter binding count, filter/query plan count, validation 상태가 노출됨
+- Review API smoke가 interface, records, version records, adapter bindings, validation route를 모두 조회함
+- Golden fixture 수가 35개로 증가하고 resource store interface가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:store-interface -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4020,9 +4046,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 132이다.
+- 현재 완료 기준점은 Phase 133이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P133-P312, 총 180개다.
+- 남은 계획 슬롯은 P134-P312, 총 179개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

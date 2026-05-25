@@ -238,6 +238,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-freeze-sources"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-freeze-checkpoints"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-policy-freeze-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-store-interfaces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-store-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-version-store-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-store-adapter-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-store-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1608,6 +1613,26 @@ try {
   const resourceContractValidations = await fetchJson(`${url}/api/resource-contract-validations?status=passed&limit=5`);
   assert.equal(resourceContractValidations.collection, "resource_contract_validations");
   assert.ok(resourceContractValidations.count <= 5);
+
+  const resourceStoreInterfaces = await fetchJson(`${url}/api/resource-store-interfaces?resource_store_interface_status=complete&limit=1`);
+  assert.equal(resourceStoreInterfaces.collection, "resource_store_interfaces");
+  assert.ok(resourceStoreInterfaces.count <= 1);
+
+  const resourceStoreRecords = await fetchJson(`${url}/api/resource-store-records?collection_id=resource_store&limit=5`);
+  assert.equal(resourceStoreRecords.collection, "resource_store_records");
+  assert.ok(resourceStoreRecords.count <= 5);
+
+  const resourceVersionStoreRecords = await fetchJson(`${url}/api/resource-version-store-records?collection_id=resource_version_store&limit=5`);
+  assert.equal(resourceVersionStoreRecords.collection, "resource_version_store_records");
+  assert.ok(resourceVersionStoreRecords.count <= 5);
+
+  const resourceStoreAdapterBindings = await fetchJson(`${url}/api/resource-store-adapter-bindings?interface_contract_id=resource-store-interface.v1&limit=5`);
+  assert.equal(resourceStoreAdapterBindings.collection, "resource_store_adapter_bindings");
+  assert.ok(resourceStoreAdapterBindings.count <= 5);
+
+  const resourceStoreValidations = await fetchJson(`${url}/api/resource-store-validations?status=passed&limit=5`);
+  assert.equal(resourceStoreValidations.collection, "resource_store_validations");
+  assert.ok(resourceStoreValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

@@ -199,6 +199,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/resource-store-interfaces") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "resource_store_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("resource_store_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_store_interfaces", [interfaceResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-store-records") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "resource_store_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("resource_store_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_store_records", interfaceResult.artifact.resource_store_catalog?.resource_store_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-version-store-records") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "resource_store_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("resource_store_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_version_store_records", interfaceResult.artifact.resource_store_catalog?.resource_version_store_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-store-adapter-bindings") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "resource_store_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("resource_store_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_store_adapter_bindings", interfaceResult.artifact.adapter_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-store-validations") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "resource_store_interface");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("resource_store_interface_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_store_validations", interfaceResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4403,6 +4438,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-v2-contracts", "Resource v2 contract fixtures"),
       route("GET", "/api/resource-version-v2-contracts", "ResourceVersion v2 contract fixtures"),
       route("GET", "/api/resource-contract-validations", "Resource contract validation rows"),
+      route("GET", "/api/resource-store-interfaces", "Resource store interface artifacts"),
+      route("GET", "/api/resource-store-records", "Resource store records"),
+      route("GET", "/api/resource-version-store-records", "ResourceVersion store records"),
+      route("GET", "/api/resource-store-adapter-bindings", "Resource store adapter bindings"),
+      route("GET", "/api/resource-store-validations", "Resource store interface validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5650,6 +5690,7 @@ function readFilterValue(item, key) {
   if (key === "policy_golden_fixture_status") return item.summary?.policy_golden_fixture_status ?? item.policy_golden_fixture_status;
   if (key === "policy_operations_surface_status") return item.summary?.policy_operations_surface_status ?? item.policy_operations_surface_status;
   if (key === "matter_boundary_slice_status") return item.summary?.matter_boundary_slice_status ?? item.matter_boundary_slice_status;
+  if (key === "resource_store_interface_status") return item.summary?.resource_store_interface_status ?? item.resource_store_interface_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

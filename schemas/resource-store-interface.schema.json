@@ -1,0 +1,387 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-store-interface.schema.json",
+  "title": "Hermes Resource Store Interface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "resource_store_interface_id",
+    "output_dir",
+    "inputs",
+    "interface_contract",
+    "resource_store_catalog",
+    "adapter_bindings",
+    "query_interface",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "resource-store-interface.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "resource_store_interface_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_ingest_path",
+        "resource_contract_freeze_path",
+        "store_policy_adapter_path",
+        "identity_policy_matter_freeze_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "resource_ingest_path": { "type": "string" },
+        "resource_contract_freeze_path": { "type": "string" },
+        "store_policy_adapter_path": { "type": "string" },
+        "identity_policy_matter_freeze_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_resource_ingest": { "$ref": "#/$defs/source" },
+    "source_resource_contract_freeze": { "$ref": "#/$defs/source" },
+    "source_store_policy_adapter": { "$ref": "#/$defs/source" },
+    "source_identity_policy_matter_freeze": { "$ref": "#/$defs/source" },
+    "interface_contract": { "$ref": "#/$defs/interface_contract" },
+    "resource_store_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "resource_store_records",
+        "resource_version_store_records",
+        "resource_registry_projection",
+        "dashboard_projection"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-store-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "resource_store_records": { "type": "array", "items": { "$ref": "#/$defs/resource_store_record" } },
+        "resource_version_store_records": { "type": "array", "items": { "$ref": "#/$defs/resource_version_store_record" } },
+        "resource_registry_projection": { "type": "array", "items": { "$ref": "#/$defs/resource_registry_projection" } },
+        "dashboard_projection": { "$ref": "#/$defs/dashboard_projection" }
+      }
+    },
+    "adapter_bindings": { "type": "array", "items": { "$ref": "#/$defs/adapter_binding" } },
+    "query_interface": { "$ref": "#/$defs/query_interface" },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "interface_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "interface_contract_id",
+        "generated_at",
+        "canonical_resource_schema_version",
+        "canonical_resource_version_schema_version",
+        "resource_store_collection_id",
+        "resource_version_store_collection_id",
+        "required_resource_keys",
+        "required_resource_version_keys",
+        "required_resource_query_filters",
+        "required_resource_version_query_filters",
+        "consumer_layers",
+        "mutation_model",
+        "dashboard_projection_contract"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-store-interface-contract.v1" },
+        "interface_contract_id": { "const": "resource-store-interface.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "canonical_resource_schema_version": { "const": "resource-core.v2" },
+        "canonical_resource_version_schema_version": { "const": "resource-version.v2" },
+        "resource_store_collection_id": { "const": "resource_store" },
+        "resource_version_store_collection_id": { "const": "resource_version_store" },
+        "required_resource_keys": { "type": "array", "items": { "type": "string" } },
+        "required_resource_version_keys": { "type": "array", "items": { "type": "string" } },
+        "required_resource_query_filters": { "type": "array", "items": { "type": "string" } },
+        "required_resource_version_query_filters": { "type": "array", "items": { "type": "string" } },
+        "consumer_layers": { "type": "array", "items": { "enum": ["registry", "ingestion", "dashboard"] } },
+        "mutation_model": { "type": "string" },
+        "dashboard_projection_contract": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "resource_store_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "store_record_id",
+        "collection_id",
+        "resource_id",
+        "tenant_id",
+        "matter_id",
+        "source_system",
+        "external_id",
+        "content_hash",
+        "classification",
+        "policy_snapshot_id",
+        "latest_resource_version_id",
+        "store_status",
+        "registered_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-store-record.v1" },
+        "store_record_id": { "type": "string" },
+        "collection_id": { "const": "resource_store" },
+        "resource_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "source_system": { "type": "string" },
+        "external_id": { "type": "string" },
+        "external_version_id": { "type": "string" },
+        "source_uri": { "type": "string" },
+        "resource_type": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "content_hash_algorithm": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "latest_resource_version_id": { "type": "string" },
+        "materialization_status": { "type": "string" },
+        "ingestion_status": { "type": "string" },
+        "store_status": { "enum": ["registered", "indexed"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "registered_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "resource_version_store_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "store_record_id",
+        "collection_id",
+        "resource_version_id",
+        "resource_id",
+        "tenant_id",
+        "matter_id",
+        "source_system",
+        "external_id",
+        "version_status",
+        "content_hash",
+        "classification",
+        "registered_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-version-store-record.v1" },
+        "store_record_id": { "type": "string" },
+        "collection_id": { "const": "resource_version_store" },
+        "resource_version_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "source_system": { "type": "string" },
+        "external_id": { "type": "string" },
+        "version_status": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "classification": { "type": "string" },
+        "registered_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "resource_registry_projection": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_id",
+        "registry_status",
+        "tenant_id",
+        "matter_id",
+        "source_system",
+        "external_id",
+        "content_hash",
+        "classification",
+        "interface_contract_id"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-registry-projection.v1" },
+        "resource_id": { "type": "string" },
+        "registry_status": { "enum": ["registered"] },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "source_system": { "type": "string" },
+        "external_id": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "classification": { "type": "string" },
+        "interface_contract_id": { "const": "resource-store-interface.v1" }
+      },
+      "additionalProperties": true
+    },
+    "dashboard_projection": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "interface_contract_id",
+        "summary_fields",
+        "api_routes",
+        "projected_resource_count",
+        "projected_resource_version_count",
+        "policy_filtered_query_plan_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-dashboard-projection.v1" },
+        "interface_contract_id": { "const": "resource-store-interface.v1" },
+        "summary_fields": { "type": "array", "items": { "type": "string" } },
+        "api_routes": { "type": "array", "items": { "type": "string" } },
+        "projected_resource_count": { "type": "integer", "minimum": 0 },
+        "projected_resource_version_count": { "type": "integer", "minimum": 0 },
+        "policy_filtered_query_plan_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "adapter_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "adapter_binding_id",
+        "interface_contract_id",
+        "consumer_layer",
+        "source_artifact_id",
+        "source_collection",
+        "target_collection_id",
+        "entity_schema_version",
+        "operation",
+        "operation_semantics",
+        "key_fields",
+        "required_filter_keys",
+        "bound_record_count",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-store-adapter-binding.v1" },
+        "adapter_binding_id": { "type": "string" },
+        "interface_contract_id": { "const": "resource-store-interface.v1" },
+        "consumer_layer": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "source_collection": { "type": "string" },
+        "target_collection_id": { "type": "string" },
+        "entity_schema_version": { "type": "string" },
+        "operation": { "type": "string" },
+        "operation_semantics": { "type": "string" },
+        "key_fields": { "type": "array", "items": { "type": "string" } },
+        "required_filter_keys": { "type": "array", "items": { "type": "string" } },
+        "bound_record_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "query_interface": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "interface_contract_id",
+        "resource_collection_id",
+        "resource_version_collection_id",
+        "required_resource_filters",
+        "required_resource_version_filters",
+        "rls_filter_templates",
+        "compiled_resource_query_plans",
+        "query_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-store-query-interface.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "interface_contract_id": { "const": "resource-store-interface.v1" },
+        "resource_collection_id": { "const": "resource_store" },
+        "resource_version_collection_id": { "const": "resource_version_store" },
+        "required_resource_filters": { "type": "array", "items": { "type": "string" } },
+        "required_resource_version_filters": { "type": "array", "items": { "type": "string" } },
+        "rls_filter_templates": { "type": "array", "items": { "type": "object" } },
+        "compiled_resource_query_plans": { "type": "array", "items": { "type": "object" } },
+        "query_policy": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "resource_store_interface_status",
+        "interface_contract_id",
+        "resource_store_collection_id",
+        "resource_version_store_collection_id",
+        "resource_count",
+        "resource_version_count",
+        "resource_store_record_count",
+        "resource_version_store_record_count",
+        "adapter_binding_count",
+        "bound_required_consumer_layer_count",
+        "required_resource_filter_count",
+        "compiled_resource_query_plan_count",
+        "executable_resource_query_plan_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "resource_store_interface_status": { "enum": ["complete", "blocked"] },
+        "interface_contract_id": { "const": "resource-store-interface.v1" },
+        "resource_store_collection_id": { "const": "resource_store" },
+        "resource_version_store_collection_id": { "const": "resource_version_store" },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "resource_version_count": { "type": "integer", "minimum": 0 },
+        "resource_store_record_count": { "type": "integer", "minimum": 0 },
+        "resource_version_store_record_count": { "type": "integer", "minimum": 0 },
+        "adapter_binding_count": { "type": "integer", "minimum": 0 },
+        "bound_required_consumer_layer_count": { "type": "integer", "minimum": 0 },
+        "required_resource_filter_count": { "type": "integer", "minimum": 0 },
+        "compiled_resource_query_plan_count": { "type": "integer", "minimum": 0 },
+        "executable_resource_query_plan_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

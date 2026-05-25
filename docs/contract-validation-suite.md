@@ -30,6 +30,7 @@ The suite is complete only when:
 - `policy:surface` is present once policy operations surface exposes decision, violation, and pending approval rows
 - `matter-boundary:slice` is present once the matter boundary vertical slice becomes a golden fixture
 - `identity-policy:freeze` is present once the P113-P132 identity/policy/matter freeze becomes a golden fixture
+- `resource:store-interface` is present once the P133 resource store interface becomes a golden fixture
 - Phase 112 and `npm run contracts:validate` are recorded in the roadmap
 
 This makes the contract spine testable through one deterministic command before later identity, policy, evidence, runtime, or delivery phases add more behavior.

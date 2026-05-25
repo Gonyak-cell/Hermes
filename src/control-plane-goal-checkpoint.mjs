@@ -41,6 +41,7 @@ const GOAL_ITEMS = [
   sourceItem("fact_claim_store", "Fact claim store", "resource_evidence", "fact_claim_store", "control-plane-fact-claim-store", { acceptance_profile: "fact_claim_store_gate" }),
   sourceItem("issue_graph_store", "Issue graph store", "resource_evidence", "issue_graph_store", "control-plane-issue-graph-store", { acceptance_profile: "issue_graph_store_gate" }),
   sourceItem("citation_object_store", "Citation object store", "resource_evidence", "citation_object_store", "control-plane-citation-object-store", { acceptance_profile: "citation_object_store_gate" }),
+  sourceItem("lineage_graph_builder", "Lineage graph builder", "resource_evidence", "lineage_graph_builder", "control-plane-lineage-graph-builder", { acceptance_profile: "lineage_graph_builder_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -389,6 +390,7 @@ function evaluateStageAcceptance(item, stage) {
     "fact_claim_store_gate",
     "issue_graph_store_gate",
     "citation_object_store_gate",
+    "lineage_graph_builder_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -820,6 +822,31 @@ function evaluateStageAcceptance(item, stage) {
       && paragraphCount === (metrics.not_client_facing_paragraph_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Citation object store binds review-pending output paragraphs to source spans through citation objects while keeping client-facing readiness false.");
+    }
+  }
+
+  if (item.acceptance_profile === "lineage_graph_builder_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const pathCount = metrics.lineage_path_count ?? 0;
+    const edgeCount = metrics.lineage_edge_count ?? 0;
+    if (
+      errors === 0
+      && metrics.lineage_graph_status === "complete"
+      && metrics.citation_object_store_status === "complete"
+      && pathCount > 0
+      && (metrics.complete_lineage_path_count ?? 0) === pathCount
+      && (metrics.broken_lineage_path_count ?? 1) === 0
+      && (metrics.source_to_output_path_count ?? 0) === pathCount
+      && (metrics.citation_bound_lineage_count ?? 0) === pathCount
+      && (metrics.matter_preserved_path_count ?? 0) === pathCount
+      && (metrics.classification_preserved_path_count ?? 0) === pathCount
+      && (metrics.policy_snapshot_preserved_path_count ?? 0) === pathCount
+      && (metrics.not_client_facing_output_path_count ?? 0) === pathCount
+      && (metrics.client_facing_ready_path_count ?? 1) === 0
+      && (metrics.needs_review_path_count ?? 0) === pathCount
+      && edgeCount === pathCount * 5
+    ) {
+      return passedWithOperationalGate(stage, "Lineage graph builder reconstructs complete source-to-output paths through source, evidence, fact, issue, and output nodes while keeping outputs review-pending.");
     }
   }
 

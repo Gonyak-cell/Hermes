@@ -171,6 +171,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/citation-review-queue"));
   assert.ok(index.routes.some((route) => route.path === "/api/citation-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/citation-object-store-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/lineage-graphs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/lineage-nodes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/lineage-edges"));
+  assert.ok(index.routes.some((route) => route.path === "/api/lineage-paths"));
+  assert.ok(index.routes.some((route) => route.path === "/api/lineage-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/lineage-graph-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1928,6 +1934,30 @@ try {
   const citationObjectStoreValidations = await fetchJson(`${url}/api/citation-object-store-validations?status=passed&limit=5`);
   assert.equal(citationObjectStoreValidations.collection, "citation_object_store_validations");
   assert.ok(citationObjectStoreValidations.count <= 5);
+
+  const lineageGraphArtifacts = await fetchJson(`${url}/api/lineage-graphs?lineage_graph_status=complete&limit=1`);
+  assert.equal(lineageGraphArtifacts.collection, "lineage_graphs");
+  assert.ok(lineageGraphArtifacts.count <= 1);
+
+  const lineageGraphNodes = await fetchJson(`${url}/api/lineage-nodes?node_type=source_span&limit=5`);
+  assert.equal(lineageGraphNodes.collection, "lineage_nodes");
+  assert.ok(lineageGraphNodes.count <= 5);
+
+  const lineageGraphEdges = await fetchJson(`${url}/api/lineage-edges?edge_type=source_span_cited_by_output&limit=5`);
+  assert.equal(lineageGraphEdges.collection, "lineage_edges");
+  assert.ok(lineageGraphEdges.count <= 5);
+
+  const lineageGraphPaths = await fetchJson(`${url}/api/lineage-paths?path_status=complete&limit=5`);
+  assert.equal(lineageGraphPaths.collection, "lineage_paths");
+  assert.ok(lineageGraphPaths.count <= 5);
+
+  const lineageGraphIndexes = await fetchJson(`${url}/api/lineage-indexes?schema_version=lineage-indexes.v1&limit=1`);
+  assert.equal(lineageGraphIndexes.collection, "lineage_indexes");
+  assert.ok(lineageGraphIndexes.count <= 1);
+
+  const lineageGraphValidations = await fetchJson(`${url}/api/lineage-graph-validations?status=passed&limit=5`);
+  assert.equal(lineageGraphValidations.collection, "lineage_graph_validations");
+  assert.ok(lineageGraphValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

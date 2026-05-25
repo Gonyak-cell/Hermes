@@ -4285,6 +4285,34 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 44개로 증가하고 citation object store가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:citations -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 143: Lineage Graph Builder
+
+목표: P142 Citation Object Store의 citation 객체를 source span, evidence item, fact claim, issue, output paragraph 경로로 재구성해 산출물 문단의 근거 lineage를 graph artifact로 재현한다.
+
+구현 내용:
+
+- `src/lineage-graph-builder.mjs`, `scripts/lineage-graph-builder.mjs`, `schemas/lineage-graph-builder.schema.json`, `docs/lineage-graph-builder.md`를 추가함
+- `npm run resource:lineage-graph -- --check` 명령을 추가해 lineage graph, node, edge, path, index, validation report, summary markdown을 생성함
+- citation object마다 `source_span -> evidence_item -> fact_claim -> issue -> output_paragraph` canonical path를 생성하고, `source_span -> output_paragraph` direct citation edge도 함께 기록함
+- `lineage-node.v1`, `lineage-edge.v1`, `lineage-path.v1` row를 분리하고 complete path마다 canonical edge 5개를 검증함
+- `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`가 source/evidence/fact/issue/output 전체 path에서 유지되는지 필드별로 검증함
+- 모든 lineage path가 citation-bound, review-pending, not-client-facing 상태를 유지하도록 gate를 추가함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 lineage graph builder를 통합함
+- `/api/lineage-graphs`, `/api/lineage-nodes`, `/api/lineage-edges`, `/api/lineage-paths`, `/api/lineage-indexes`, `/api/lineage-graph-validations` route를 추가함
+
+완료 기준:
+
+- Lineage Graph Builder가 validation error 없이 `complete` 상태가 됨
+- lineage path 수가 citation 수와 일치하고 모든 path가 complete 상태임
+- 모든 complete path가 source, evidence, fact, issue, output node와 canonical edge 5개를 가짐
+- 모든 edge가 complete 상태이고 모든 node가 원천 store 객체로 resolve됨
+- 모든 path가 matter, classification, policy snapshot을 보존함
+- 모든 output path가 `needs_review`, `not_client_facing`, `client_facing_ready=false` 상태를 유지함
+- Review Dashboard summary와 stage status에서 node, edge, path, preservation, citation-bound, review/client-facing 상태가 노출됨
+- Review API smoke가 lineage graph, node, edge, path, index, validation route를 모두 조회함
+- Golden fixture 수가 45개로 증가하고 lineage graph builder가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:lineage-graph -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4293,9 +4321,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 142이다.
+- 현재 완료 기준점은 Phase 143이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P143-P312, 총 170개다.
+- 남은 계획 슬롯은 P144-P312, 총 169개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

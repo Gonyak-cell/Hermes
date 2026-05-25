@@ -647,6 +647,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("citation_object_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/lineage-graphs") {
+    const graphResult = await readDashboardSourceArtifact(dashboard, "lineage_graph_builder");
+    if (!graphResult.available) {
+      return jsonResponse(503, buildError("lineage_graph_builder_unavailable", graphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("lineage_graphs", [graphResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/lineage-nodes") {
+    const graphResult = await readDashboardSourceArtifact(dashboard, "lineage_graph_builder");
+    if (!graphResult.available) {
+      return jsonResponse(503, buildError("lineage_graph_builder_unavailable", graphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("lineage_nodes", graphResult.artifact.lineage_graph_catalog?.lineage_nodes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/lineage-edges") {
+    const graphResult = await readDashboardSourceArtifact(dashboard, "lineage_graph_builder");
+    if (!graphResult.available) {
+      return jsonResponse(503, buildError("lineage_graph_builder_unavailable", graphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("lineage_edges", graphResult.artifact.lineage_graph_catalog?.lineage_edges ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/lineage-paths") {
+    const graphResult = await readDashboardSourceArtifact(dashboard, "lineage_graph_builder");
+    if (!graphResult.available) {
+      return jsonResponse(503, buildError("lineage_graph_builder_unavailable", graphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("lineage_paths", graphResult.artifact.lineage_graph_catalog?.lineage_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/lineage-indexes") {
+    const graphResult = await readDashboardSourceArtifact(dashboard, "lineage_graph_builder");
+    if (!graphResult.available) {
+      return jsonResponse(503, buildError("lineage_graph_builder_unavailable", graphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("lineage_indexes", [graphResult.artifact.lineage_graph_catalog?.lineage_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/lineage-graph-validations") {
+    const graphResult = await readDashboardSourceArtifact(dashboard, "lineage_graph_builder");
+    if (!graphResult.available) {
+      return jsonResponse(503, buildError("lineage_graph_builder_unavailable", graphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("lineage_graph_validations", graphResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5173,6 +5215,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/citation-review-queue", "Citation review queue rows"),
       route("GET", "/api/citation-indexes", "Citation object store index projections"),
       route("GET", "/api/citation-object-store-validations", "Citation object store validation rows"),
+      route("GET", "/api/lineage-graphs", "Lineage graph builder artifacts"),
+      route("GET", "/api/lineage-nodes", "Lineage graph node rows"),
+      route("GET", "/api/lineage-edges", "Lineage graph edge rows"),
+      route("GET", "/api/lineage-paths", "Source-to-output lineage path rows"),
+      route("GET", "/api/lineage-indexes", "Lineage graph index projections"),
+      route("GET", "/api/lineage-graph-validations", "Lineage graph validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5374,6 +5422,14 @@ function filterItems(items, searchParams) {
     "fact_claim_store_status",
     "issue_graph_store_status",
     "citation_object_store_status",
+    "lineage_graph_status",
+    "lineage_node_id",
+    "lineage_edge_id",
+    "lineage_path_id",
+    "node_type",
+    "path_status",
+    "from_subject_id",
+    "to_subject_id",
     "evidence_id",
     "evidence_type",
     "output_paragraph_id",
@@ -6209,6 +6265,7 @@ function readFilterValue(item, key) {
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;
+  if (key === "lineage_graph_status") return item.summary?.lineage_graph_status ?? item.lineage_graph_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

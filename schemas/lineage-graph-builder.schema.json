@@ -1,0 +1,353 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/lineage-graph-builder.schema.json",
+  "title": "Hermes Lineage Graph Builder",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "lineage_graph_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "lineage_graph_contract",
+    "lineage_graph_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "lineage-graph-builder.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "lineage_graph_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "source_span_store_path",
+        "evidence_item_store_path",
+        "fact_claim_store_path",
+        "issue_graph_store_path",
+        "citation_object_store_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "source_span_store_path": { "type": "string" },
+        "evidence_item_store_path": { "type": "string" },
+        "fact_claim_store_path": { "type": "string" },
+        "issue_graph_store_path": { "type": "string" },
+        "citation_object_store_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "lineage_graph_contract": { "$ref": "#/$defs/graph_contract" },
+    "lineage_graph_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "lineage_nodes", "lineage_edges", "lineage_paths", "lineage_indexes"],
+      "properties": {
+        "schema_version": { "const": "lineage-graph-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "lineage_nodes": { "type": "array", "items": { "$ref": "#/$defs/lineage_node" } },
+        "lineage_edges": { "type": "array", "items": { "$ref": "#/$defs/lineage_edge" } },
+        "lineage_paths": { "type": "array", "items": { "$ref": "#/$defs/lineage_path" } },
+        "lineage_indexes": { "$ref": "#/$defs/lineage_indexes" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "graph_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "lineage_graph_contract_id",
+        "generated_at",
+        "lineage_node_schema_version",
+        "lineage_edge_schema_version",
+        "lineage_path_schema_version",
+        "source_inputs",
+        "required_path_order",
+        "required_identity_fields",
+        "path_rule",
+        "edge_rule",
+        "output_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "lineage-graph-contract.v1" },
+        "lineage_graph_contract_id": { "const": "lineage-graph-builder.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "lineage_node_schema_version": { "const": "lineage-node.v1" },
+        "lineage_edge_schema_version": { "const": "lineage-edge.v1" },
+        "lineage_path_schema_version": { "const": "lineage-path.v1" },
+        "source_inputs": { "type": "array", "items": { "type": "string" } },
+        "required_path_order": { "type": "array", "items": { "type": "string" } },
+        "required_identity_fields": { "type": "array", "items": { "type": "string" } },
+        "path_rule": { "type": "string" },
+        "edge_rule": { "type": "string" },
+        "output_rule": { "type": "string" }
+      }
+    },
+    "lineage_node": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "lineage_node_id",
+        "node_type",
+        "subject_id",
+        "label",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "source_schema_version",
+        "review_status",
+        "node_status",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "lineage-node.v1" },
+        "lineage_node_id": { "type": "string" },
+        "node_type": { "enum": ["source_span", "evidence_item", "fact_claim", "issue", "output_paragraph"] },
+        "subject_id": { "type": ["string", "null"] },
+        "label": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "source_schema_version": { "type": ["string", "null"] },
+        "review_status": { "type": "string" },
+        "node_status": { "enum": ["resolved", "missing"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "lineage_edge": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "lineage_edge_id",
+        "lineage_path_id",
+        "citation_id",
+        "edge_type",
+        "relation",
+        "from_node_id",
+        "to_node_id",
+        "from_subject_id",
+        "to_subject_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "edge_status",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "lineage-edge.v1" },
+        "lineage_edge_id": { "type": "string" },
+        "lineage_path_id": { "type": "string" },
+        "citation_id": { "type": "string" },
+        "edge_type": {
+          "enum": [
+            "source_span_supports_evidence",
+            "evidence_supports_fact",
+            "fact_raises_issue",
+            "issue_drafts_output",
+            "source_span_cited_by_output"
+          ]
+        },
+        "relation": { "type": "string" },
+        "from_node_id": { "type": "string" },
+        "to_node_id": { "type": "string" },
+        "from_subject_id": { "type": ["string", "null"] },
+        "to_subject_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "edge_status": { "enum": ["complete", "broken"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "lineage_path": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "lineage_path_id",
+        "citation_id",
+        "paragraph_source_binding_id",
+        "source_span_id",
+        "evidence_item_id",
+        "fact_id",
+        "issue_id",
+        "output_paragraph_id",
+        "node_ids",
+        "edge_ids",
+        "path_order",
+        "path_status",
+        "missing_ref_ids",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "matter_preserved",
+        "classification_preserved",
+        "policy_snapshot_preserved",
+        "review_status",
+        "output_client_facing_status",
+        "client_facing_ready",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "lineage-path.v1" },
+        "lineage_path_id": { "type": "string" },
+        "citation_id": { "type": "string" },
+        "paragraph_source_binding_id": { "type": ["string", "null"] },
+        "source_span_id": { "type": "string" },
+        "evidence_item_id": { "type": ["string", "null"] },
+        "fact_id": { "type": ["string", "null"] },
+        "issue_id": { "type": "string" },
+        "output_paragraph_id": { "type": "string" },
+        "node_ids": { "type": "array", "items": { "type": "string" } },
+        "edge_ids": { "type": "array", "items": { "type": "string" } },
+        "path_order": { "type": "array", "items": { "type": "string" } },
+        "path_status": { "enum": ["complete", "broken"] },
+        "missing_ref_ids": { "type": "array", "items": { "type": "string" } },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "matter_preserved": { "type": "boolean" },
+        "classification_preserved": { "type": "boolean" },
+        "policy_snapshot_preserved": { "type": "boolean" },
+        "review_status": { "type": "string" },
+        "output_client_facing_status": { "type": ["string", "null"] },
+        "client_facing_ready": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "lineage_indexes": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "by_node_type",
+        "by_edge_type",
+        "by_path_status",
+        "by_matter_id",
+        "by_classification",
+        "by_review_status",
+        "by_output_client_facing_status",
+        "by_client_facing_ready"
+      ],
+      "properties": {
+        "schema_version": { "const": "lineage-indexes.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "by_node_type": { "type": "object" },
+        "by_edge_type": { "type": "object" },
+        "by_path_status": { "type": "object" },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "by_output_client_facing_status": { "type": "object" },
+        "by_client_facing_ready": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "type": "string" },
+        "severity": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "lineage_graph_status",
+        "lineage_graph_contract_id",
+        "lineage_node_schema_version",
+        "lineage_edge_schema_version",
+        "lineage_path_schema_version",
+        "citation_count",
+        "lineage_node_count",
+        "lineage_edge_count",
+        "expected_lineage_edge_count",
+        "lineage_path_count",
+        "complete_lineage_path_count",
+        "broken_lineage_path_count",
+        "source_to_output_path_count",
+        "citation_bound_lineage_count",
+        "matter_preserved_path_count",
+        "classification_preserved_path_count",
+        "policy_snapshot_preserved_path_count",
+        "needs_review_path_count",
+        "not_client_facing_output_path_count",
+        "client_facing_ready_path_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "lineage_graph_status": { "type": "string" },
+        "lineage_graph_contract_id": { "const": "lineage-graph-builder.v1" },
+        "lineage_node_schema_version": { "const": "lineage-node.v1" },
+        "lineage_edge_schema_version": { "const": "lineage-edge.v1" },
+        "lineage_path_schema_version": { "const": "lineage-path.v1" },
+        "citation_count": { "type": "number" },
+        "lineage_node_count": { "type": "number" },
+        "lineage_edge_count": { "type": "number" },
+        "expected_lineage_edge_count": { "type": "number" },
+        "lineage_path_count": { "type": "number" },
+        "complete_lineage_path_count": { "type": "number" },
+        "broken_lineage_path_count": { "type": "number" },
+        "source_to_output_path_count": { "type": "number" },
+        "citation_bound_lineage_count": { "type": "number" },
+        "matter_preserved_path_count": { "type": "number" },
+        "classification_preserved_path_count": { "type": "number" },
+        "policy_snapshot_preserved_path_count": { "type": "number" },
+        "needs_review_path_count": { "type": "number" },
+        "not_client_facing_output_path_count": { "type": "number" },
+        "client_facing_ready_path_count": { "type": "number" },
+        "validation_error_count": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

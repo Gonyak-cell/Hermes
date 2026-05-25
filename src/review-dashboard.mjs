@@ -33,6 +33,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   factClaimStorePath: "artifacts/fact-claim-store/latest/fact-claim-store.json",
   issueGraphStorePath: "artifacts/issue-graph-store/latest/issue-graph-store.json",
   citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
+  lineageGraphBuilderPath: "artifacts/lineage-graph/latest/lineage-graph.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -286,6 +287,11 @@ const SOURCE_DEFINITIONS = [
     option: "citationObjectStorePath",
     source_id: "citation_object_store",
     label: "Citation Object Store",
+  },
+  {
+    option: "lineageGraphBuilderPath",
+    source_id: "lineage_graph_builder",
+    label: "Lineage Graph Builder",
   },
   {
     option: "evidenceContractFreezePath",
@@ -953,6 +959,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "fact_claim_store") return data.summary ?? {};
   if (sourceId === "issue_graph_store") return data.summary ?? {};
   if (sourceId === "citation_object_store") return data.summary ?? {};
+  if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1175,6 +1182,7 @@ function buildStageStatuses(artifacts, sources) {
     buildFactClaimStoreStage(artifacts.fact_claim_store, sourceById.get("fact_claim_store")),
     buildIssueGraphStoreStage(artifacts.issue_graph_store, sourceById.get("issue_graph_store")),
     buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
+    buildLineageGraphBuilderStage(artifacts.lineage_graph_builder, sourceById.get("lineage_graph_builder")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2599,6 +2607,68 @@ function buildCitationObjectStoreStage(store, source) {
       approved_count: summary.approved_count ?? 0,
       client_facing_ready_count: summary.client_facing_ready_count ?? 0,
       not_client_facing_paragraph_count: summary.not_client_facing_paragraph_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildLineageGraphBuilderStage(graph, source) {
+  if (!graph) return missingStage("lineage_graph_builder", "Lineage Graph Builder", source);
+  const summary = graph.summary ?? {};
+  const errorCount = summary.validation_error_count ?? graph.validation?.errors?.length ?? 0;
+  const pathCount = summary.lineage_path_count ?? 0;
+  const edgeCount = summary.lineage_edge_count ?? 0;
+  const status = summary.lineage_graph_status === "complete"
+    && errorCount === 0
+    && pathCount > 0
+    && (summary.complete_lineage_path_count ?? 0) === pathCount
+    && (summary.broken_lineage_path_count ?? 1) === 0
+    && (summary.source_to_output_path_count ?? 0) === pathCount
+    && (summary.citation_bound_lineage_count ?? 0) === pathCount
+    && (summary.matter_preserved_path_count ?? 0) === pathCount
+    && (summary.classification_preserved_path_count ?? 0) === pathCount
+    && (summary.policy_snapshot_preserved_path_count ?? 0) === pathCount
+    && (summary.not_client_facing_output_path_count ?? 0) === pathCount
+    && (summary.client_facing_ready_path_count ?? 1) === 0
+    && (summary.needs_review_path_count ?? 0) === pathCount
+    && edgeCount === pathCount * 5
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "lineage_graph_builder",
+    label: "Lineage Graph Builder",
+    status,
+    message: `${pathCount} lineage path(s), ${summary.lineage_node_count ?? 0} node(s), ${edgeCount} edge(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      lineage_graph_status: summary.lineage_graph_status ?? "unknown",
+      lineage_graph_contract_id: summary.lineage_graph_contract_id ?? null,
+      lineage_node_schema_version: summary.lineage_node_schema_version ?? null,
+      lineage_edge_schema_version: summary.lineage_edge_schema_version ?? null,
+      lineage_path_schema_version: summary.lineage_path_schema_version ?? null,
+      citation_object_store_status: summary.citation_object_store_status ?? "unknown",
+      citation_count: summary.citation_count ?? 0,
+      lineage_node_count: summary.lineage_node_count ?? 0,
+      source_span_node_count: summary.source_span_node_count ?? 0,
+      evidence_item_node_count: summary.evidence_item_node_count ?? 0,
+      fact_claim_node_count: summary.fact_claim_node_count ?? 0,
+      issue_node_count: summary.issue_node_count ?? 0,
+      output_paragraph_node_count: summary.output_paragraph_node_count ?? 0,
+      lineage_edge_count: edgeCount,
+      expected_lineage_edge_count: summary.expected_lineage_edge_count ?? 0,
+      lineage_path_count: pathCount,
+      complete_lineage_path_count: summary.complete_lineage_path_count ?? 0,
+      broken_lineage_path_count: summary.broken_lineage_path_count ?? 0,
+      source_to_output_path_count: summary.source_to_output_path_count ?? 0,
+      citation_bound_lineage_count: summary.citation_bound_lineage_count ?? 0,
+      matter_preserved_path_count: summary.matter_preserved_path_count ?? 0,
+      classification_preserved_path_count: summary.classification_preserved_path_count ?? 0,
+      policy_snapshot_preserved_path_count: summary.policy_snapshot_preserved_path_count ?? 0,
+      needs_review_path_count: summary.needs_review_path_count ?? 0,
+      not_client_facing_output_path_count: summary.not_client_facing_output_path_count ?? 0,
+      client_facing_ready_path_count: summary.client_facing_ready_path_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6524,6 +6594,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "lineage_graph_builder";
+    items.push({
+      action_item_id: `dashboard.action.lineage_graph_builder.${slugify(subjectId)}`,
+      source_stage: "lineage_graph_builder",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix lineage graph builder",
+      subject_ref: {
+        subject_type: "lineage_graph_builder_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_lineage_graph_builder", "rerun_lineage_graph_builder", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8379,6 +8467,32 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     citation_object_store_client_facing_ready_count: artifacts.citation_object_store?.summary?.client_facing_ready_count ?? 0,
     citation_object_store_not_client_facing_paragraph_count: artifacts.citation_object_store?.summary?.not_client_facing_paragraph_count ?? 0,
     citation_object_store_validation_error_count: artifacts.citation_object_store?.summary?.validation_error_count ?? artifacts.citation_object_store?.validation?.errors?.length ?? 0,
+    lineage_graph_builder_status: artifacts.lineage_graph_builder?.summary?.lineage_graph_status ?? "unknown",
+    lineage_graph_builder_contract_id: artifacts.lineage_graph_builder?.summary?.lineage_graph_contract_id ?? null,
+    lineage_graph_builder_node_schema_version: artifacts.lineage_graph_builder?.summary?.lineage_node_schema_version ?? null,
+    lineage_graph_builder_edge_schema_version: artifacts.lineage_graph_builder?.summary?.lineage_edge_schema_version ?? null,
+    lineage_graph_builder_path_schema_version: artifacts.lineage_graph_builder?.summary?.lineage_path_schema_version ?? null,
+    lineage_graph_builder_citation_object_store_status: artifacts.lineage_graph_builder?.summary?.citation_object_store_status ?? "unknown",
+    lineage_graph_builder_node_count: artifacts.lineage_graph_builder?.summary?.lineage_node_count ?? 0,
+    lineage_graph_builder_source_span_node_count: artifacts.lineage_graph_builder?.summary?.source_span_node_count ?? 0,
+    lineage_graph_builder_evidence_item_node_count: artifacts.lineage_graph_builder?.summary?.evidence_item_node_count ?? 0,
+    lineage_graph_builder_fact_claim_node_count: artifacts.lineage_graph_builder?.summary?.fact_claim_node_count ?? 0,
+    lineage_graph_builder_issue_node_count: artifacts.lineage_graph_builder?.summary?.issue_node_count ?? 0,
+    lineage_graph_builder_output_paragraph_node_count: artifacts.lineage_graph_builder?.summary?.output_paragraph_node_count ?? 0,
+    lineage_graph_builder_edge_count: artifacts.lineage_graph_builder?.summary?.lineage_edge_count ?? 0,
+    lineage_graph_builder_expected_edge_count: artifacts.lineage_graph_builder?.summary?.expected_lineage_edge_count ?? 0,
+    lineage_graph_builder_path_count: artifacts.lineage_graph_builder?.summary?.lineage_path_count ?? 0,
+    lineage_graph_builder_complete_path_count: artifacts.lineage_graph_builder?.summary?.complete_lineage_path_count ?? 0,
+    lineage_graph_builder_broken_path_count: artifacts.lineage_graph_builder?.summary?.broken_lineage_path_count ?? 0,
+    lineage_graph_builder_source_to_output_path_count: artifacts.lineage_graph_builder?.summary?.source_to_output_path_count ?? 0,
+    lineage_graph_builder_citation_bound_count: artifacts.lineage_graph_builder?.summary?.citation_bound_lineage_count ?? 0,
+    lineage_graph_builder_matter_preserved_count: artifacts.lineage_graph_builder?.summary?.matter_preserved_path_count ?? 0,
+    lineage_graph_builder_classification_preserved_count: artifacts.lineage_graph_builder?.summary?.classification_preserved_path_count ?? 0,
+    lineage_graph_builder_policy_snapshot_preserved_count: artifacts.lineage_graph_builder?.summary?.policy_snapshot_preserved_path_count ?? 0,
+    lineage_graph_builder_needs_review_count: artifacts.lineage_graph_builder?.summary?.needs_review_path_count ?? 0,
+    lineage_graph_builder_not_client_facing_output_path_count: artifacts.lineage_graph_builder?.summary?.not_client_facing_output_path_count ?? 0,
+    lineage_graph_builder_client_facing_ready_path_count: artifacts.lineage_graph_builder?.summary?.client_facing_ready_path_count ?? 0,
+    lineage_graph_builder_validation_error_count: artifacts.lineage_graph_builder?.summary?.validation_error_count ?? artifacts.lineage_graph_builder?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9847,6 +9961,8 @@ function parseArgs(argv) {
     else if (arg === "--no-issue-graph-store") parsed.issueGraphStorePath = false;
     else if (arg === "--citation-object-store") parsed.citationObjectStorePath = argv[++index];
     else if (arg === "--no-citation-object-store") parsed.citationObjectStorePath = false;
+    else if (arg === "--lineage-graph") parsed.lineageGraphBuilderPath = argv[++index];
+    else if (arg === "--no-lineage-graph") parsed.lineageGraphBuilderPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10048,6 +10164,8 @@ Options:
   --no-issue-graph-store          Do not include Issue Graph Store status.
   --citation-object-store <path>  citation-object-store.json path.
   --no-citation-object-store      Do not include Citation Object Store status.
+  --lineage-graph <path>          lineage-graph.json path.
+  --no-lineage-graph              Do not include Lineage Graph Builder status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

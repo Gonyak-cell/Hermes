@@ -35,6 +35,7 @@ import { runEvidenceItemStore } from "../src/evidence-item-store.mjs";
 import { runFactClaimStore } from "../src/fact-claim-store.mjs";
 import { runIssueGraphStore } from "../src/issue-graph-store.mjs";
 import { runCitationObjectStore } from "../src/citation-object-store.mjs";
+import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1656,6 +1657,7 @@ describe("matter harness", () => {
         factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
         issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
         citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        lineageGraphBuilderPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4070,6 +4072,44 @@ describe("matter harness", () => {
       assert.ok(citationObjectStore.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "citation-object-store", "summary.md"), "utf8"), /Citation Object Store/);
 
+      const lineageGraphBuilder = await runLineageGraphBuilder({
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        outDir: path.join(outDir, "lineage-graph"),
+        runAt: "2026-05-23T06:35:07.999Z",
+      });
+      const lineageGraphBuilderSchema = JSON.parse(await readFile("schemas/lineage-graph-builder.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(lineageGraphBuilder, lineageGraphBuilderSchema, {}, "lineage_graph_builder"),
+        [],
+      );
+      assert.equal(lineageGraphBuilder.summary.lineage_graph_status, "complete");
+      assert.equal(lineageGraphBuilder.summary.citation_object_store_status, "complete");
+      assert.equal(lineageGraphBuilder.summary.lineage_path_count, lineageGraphBuilder.summary.citation_count);
+      assert.equal(lineageGraphBuilder.summary.complete_lineage_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.broken_lineage_path_count, 0);
+      assert.equal(lineageGraphBuilder.summary.source_to_output_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.citation_bound_lineage_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.matter_preserved_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.classification_preserved_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.policy_snapshot_preserved_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.not_client_facing_output_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.client_facing_ready_path_count, 0);
+      assert.equal(lineageGraphBuilder.summary.needs_review_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(lineageGraphBuilder.summary.lineage_edge_count, lineageGraphBuilder.summary.lineage_path_count * 5);
+      assert.equal(lineageGraphBuilder.summary.expected_lineage_edge_count, lineageGraphBuilder.summary.lineage_edge_count);
+      assert.equal(lineageGraphBuilder.summary.validation_error_count, 0);
+      assert.ok(lineageGraphBuilder.lineage_graph_catalog.lineage_paths.every((lineagePath) => lineagePath.path_status === "complete" && lineagePath.edge_ids.length === 5));
+      assert.ok(lineageGraphBuilder.lineage_graph_catalog.lineage_edges.every((edge) => edge.edge_status === "complete"));
+      assert.deepEqual(
+        new Set(lineageGraphBuilder.lineage_graph_catalog.lineage_nodes.map((node) => node.node_type)),
+        new Set(["source_span", "evidence_item", "fact_claim", "issue", "output_paragraph"]),
+      );
+      assert.match(await readFile(path.join(outDir, "lineage-graph", "summary.md"), "utf8"), /Lineage Graph Builder/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4101,6 +4141,7 @@ describe("matter harness", () => {
           fact_claim_store: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
           issue_graph_store: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
           citation_object_store: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+          lineage_graph_builder: path.join(outDir, "lineage-graph", "lineage-graph.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4118,7 +4159,7 @@ describe("matter harness", () => {
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
-        runAt: "2026-05-23T06:35:07.999Z",
+        runAt: "2026-05-23T06:35:08.000Z",
       });
       const contractGoldenFixturesSchema = JSON.parse(await readFile("schemas/contract-golden-fixtures.schema.json", "utf8"));
       assert.deepEqual(
@@ -4126,8 +4167,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 44);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 44);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 45);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 45);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4162,6 +4203,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "fact_claim_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_graph_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_object_store"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "lineage_graph_builder"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4215,6 +4257,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:fact-claims"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:issue-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:citations"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -4376,6 +4419,10 @@ describe("matter harness", () => {
       assert.equal(citationObjectStoreCheckpoint?.acceptance_profile, "citation_object_store_gate");
       assert.equal(citationObjectStoreCheckpoint?.status, "passed");
       assert.equal(citationObjectStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lineageGraphBuilderCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-lineage-graph-builder");
+      assert.equal(lineageGraphBuilderCheckpoint?.acceptance_profile, "lineage_graph_builder_gate");
+      assert.equal(lineageGraphBuilderCheckpoint?.status, "passed");
+      assert.equal(lineageGraphBuilderCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5253,6 +5300,32 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.citation_object_store_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.citation_object_store_not_client_facing_paragraph_count, citationObjectStore.summary.not_client_facing_paragraph_count);
       assert.equal(dashboard.summary.citation_object_store_validation_error_count, 0);
+      assert.equal(dashboard.summary.lineage_graph_builder_status, "complete");
+      assert.equal(dashboard.summary.lineage_graph_builder_contract_id, "lineage-graph-builder.v1");
+      assert.equal(dashboard.summary.lineage_graph_builder_node_schema_version, "lineage-node.v1");
+      assert.equal(dashboard.summary.lineage_graph_builder_edge_schema_version, "lineage-edge.v1");
+      assert.equal(dashboard.summary.lineage_graph_builder_path_schema_version, "lineage-path.v1");
+      assert.equal(dashboard.summary.lineage_graph_builder_citation_object_store_status, "complete");
+      assert.equal(dashboard.summary.lineage_graph_builder_node_count, lineageGraphBuilder.summary.lineage_node_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_source_span_node_count, lineageGraphBuilder.summary.source_span_node_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_evidence_item_node_count, lineageGraphBuilder.summary.evidence_item_node_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_fact_claim_node_count, lineageGraphBuilder.summary.fact_claim_node_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_issue_node_count, lineageGraphBuilder.summary.issue_node_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_output_paragraph_node_count, lineageGraphBuilder.summary.output_paragraph_node_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_edge_count, lineageGraphBuilder.summary.lineage_edge_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_expected_edge_count, lineageGraphBuilder.summary.expected_lineage_edge_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_complete_path_count, lineageGraphBuilder.summary.complete_lineage_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_broken_path_count, 0);
+      assert.equal(dashboard.summary.lineage_graph_builder_source_to_output_path_count, lineageGraphBuilder.summary.source_to_output_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_citation_bound_count, lineageGraphBuilder.summary.citation_bound_lineage_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_matter_preserved_count, lineageGraphBuilder.summary.matter_preserved_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_classification_preserved_count, lineageGraphBuilder.summary.classification_preserved_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_policy_snapshot_preserved_count, lineageGraphBuilder.summary.policy_snapshot_preserved_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_needs_review_count, lineageGraphBuilder.summary.needs_review_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_not_client_facing_output_path_count, lineageGraphBuilder.summary.not_client_facing_output_path_count);
+      assert.equal(dashboard.summary.lineage_graph_builder_client_facing_ready_path_count, 0);
+      assert.equal(dashboard.summary.lineage_graph_builder_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5794,6 +5867,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "fact_claim_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "issue_graph_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "citation_object_store"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "lineage_graph_builder"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5940,6 +6014,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/citation-review-queue"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/citation-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/citation-object-store-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-graphs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-nodes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-edges"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-paths"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-indexes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-graph-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7934,6 +8014,30 @@ describe("matter harness", () => {
       const citationObjectStoreValidations = JSON.parse((await buildReviewApiResponse("/api/citation-object-store-validations?status=passed", apiOptions)).body);
       assert.equal(citationObjectStoreValidations.collection, "citation_object_store_validations");
       assert.equal(citationObjectStoreValidations.count, citationObjectStore.summary.validation_item_count);
+
+      const lineageGraphArtifacts = JSON.parse((await buildReviewApiResponse("/api/lineage-graphs?lineage_graph_status=complete", apiOptions)).body);
+      assert.equal(lineageGraphArtifacts.collection, "lineage_graphs");
+      assert.equal(lineageGraphArtifacts.count, 1);
+
+      const lineageGraphNodes = JSON.parse((await buildReviewApiResponse("/api/lineage-nodes?node_type=source_span", apiOptions)).body);
+      assert.equal(lineageGraphNodes.collection, "lineage_nodes");
+      assert.equal(lineageGraphNodes.count, lineageGraphBuilder.summary.source_span_node_count);
+
+      const lineageGraphEdges = JSON.parse((await buildReviewApiResponse("/api/lineage-edges?edge_type=source_span_cited_by_output", apiOptions)).body);
+      assert.equal(lineageGraphEdges.collection, "lineage_edges");
+      assert.equal(lineageGraphEdges.count, lineageGraphBuilder.summary.lineage_path_count);
+
+      const lineageGraphPaths = JSON.parse((await buildReviewApiResponse("/api/lineage-paths?path_status=complete", apiOptions)).body);
+      assert.equal(lineageGraphPaths.collection, "lineage_paths");
+      assert.equal(lineageGraphPaths.count, lineageGraphBuilder.summary.complete_lineage_path_count);
+
+      const lineageGraphIndexes = JSON.parse((await buildReviewApiResponse("/api/lineage-indexes?schema_version=lineage-indexes.v1", apiOptions)).body);
+      assert.equal(lineageGraphIndexes.collection, "lineage_indexes");
+      assert.equal(lineageGraphIndexes.count, 1);
+
+      const lineageGraphValidations = JSON.parse((await buildReviewApiResponse("/api/lineage-graph-validations?status=passed", apiOptions)).body);
+      assert.equal(lineageGraphValidations.collection, "lineage_graph_validations");
+      assert.equal(lineageGraphValidations.count, lineageGraphBuilder.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

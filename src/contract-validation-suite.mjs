@@ -42,6 +42,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:fact-claims",
   "resource:issue-graph",
   "resource:citations",
+  "resource:lineage-graph",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

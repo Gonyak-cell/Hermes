@@ -137,6 +137,7 @@ npm run control-plane:goal-checkpoint -- \
 - Policy Operations Surface: 통합 decision/violation/pending approval row가 있고 allow/review/deny, blocked violation, control-gated pending approval을 dashboard/API에 노출하면 구현 통과
 - Matter Boundary Slice: resource ingest부터 Resource v2, Matter Access, Access Audit, Store Query/RLS Probe, Policy Surface까지 같은 matter boundary가 보존되고 unassigned resource는 executable retrieval 없이 human gate에 held 되면 구현 통과
 - Identity/Policy/Matter Freeze: P113-P131 source artifact, policy fixture, policy operations, matter boundary, personal workspace checkpoint가 통과하고 protected action/external delivery/auto approval count가 0이면 구현 통과
+- Lineage Graph Builder: citation object마다 source span, evidence item, fact claim, issue, output paragraph가 complete path와 canonical edge 5개로 재현되고 review-pending/not-client-facing 상태가 유지되면 구현 통과
 
 이 경우 checkpoint item은 `status: passed`, `implementation_status: passed_with_operational_gate`, `operational_status: pending|blocked|attention`을 함께 기록한다.
 

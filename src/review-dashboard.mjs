@@ -30,6 +30,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   extractorAdapterContractPath: "artifacts/extractor-adapter-contract/latest/extractor-adapter-contract.json",
   sourceSpanStorePath: "artifacts/source-span-store/latest/source-span-store.json",
   evidenceItemStorePath: "artifacts/evidence-item-store/latest/evidence-item-store.json",
+  factClaimStorePath: "artifacts/fact-claim-store/latest/fact-claim-store.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -268,6 +269,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceItemStorePath",
     source_id: "evidence_item_store",
     label: "Evidence Item Store",
+  },
+  {
+    option: "factClaimStorePath",
+    source_id: "fact_claim_store",
+    label: "Fact Claim Store",
   },
   {
     option: "evidenceContractFreezePath",
@@ -932,6 +938,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "extractor_adapter_contract") return data.summary ?? {};
   if (sourceId === "source_span_store") return data.summary ?? {};
   if (sourceId === "evidence_item_store") return data.summary ?? {};
+  if (sourceId === "fact_claim_store") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1151,6 +1158,7 @@ function buildStageStatuses(artifacts, sources) {
     buildExtractorAdapterContractStage(artifacts.extractor_adapter_contract, sourceById.get("extractor_adapter_contract")),
     buildSourceSpanStoreStage(artifacts.source_span_store, sourceById.get("source_span_store")),
     buildEvidenceItemStoreStage(artifacts.evidence_item_store, sourceById.get("evidence_item_store")),
+    buildFactClaimStoreStage(artifacts.fact_claim_store, sourceById.get("fact_claim_store")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2394,6 +2402,57 @@ function buildEvidenceItemStoreStage(store, source) {
       approved_count: summary.approved_count ?? 0,
       privilege_flag_count: summary.privilege_flag_count ?? 0,
       redaction_raw_count: summary.redaction_raw_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildFactClaimStoreStage(store, source) {
+  if (!store) return missingStage("fact_claim_store", "Fact Claim Store", source);
+  const summary = store.summary ?? {};
+  const errorCount = summary.validation_error_count ?? store.validation?.errors?.length ?? 0;
+  const factCount = summary.fact_claim_count ?? 0;
+  const status = summary.fact_claim_store_status === "complete"
+    && errorCount === 0
+    && factCount > 0
+    && factCount === (summary.evidence_item_count ?? -1)
+    && factCount === (summary.fact_evidence_binding_count ?? -1)
+    && factCount === (summary.review_queue_item_count ?? -1)
+    && factCount === (summary.evidence_linked_fact_count ?? -1)
+    && factCount === (summary.reliability_preserved_fact_count ?? -1)
+    && factCount === (summary.matter_preserved_fact_count ?? -1)
+    && factCount === (summary.classification_preserved_fact_count ?? -1)
+    && factCount === (summary.policy_snapshot_preserved_fact_count ?? -1)
+    && factCount === (summary.needs_review_count ?? -1)
+    && (summary.approved_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "fact_claim_store",
+    label: "Fact Claim Store",
+    status,
+    message: `${summary.fact_claim_count ?? 0} fact claim(s), ${summary.fact_evidence_binding_count ?? 0} evidence binding(s), ${summary.review_queue_item_count ?? 0} review queue item(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      fact_claim_store_status: summary.fact_claim_store_status ?? "unknown",
+      fact_claim_store_contract_id: summary.fact_claim_store_contract_id ?? null,
+      fact_claim_schema_version: summary.fact_claim_schema_version ?? null,
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      fact_claim_count: summary.fact_claim_count ?? 0,
+      fact_evidence_binding_count: summary.fact_evidence_binding_count ?? 0,
+      review_queue_item_count: summary.review_queue_item_count ?? 0,
+      evidence_linked_fact_count: summary.evidence_linked_fact_count ?? 0,
+      reliability_preserved_fact_count: summary.reliability_preserved_fact_count ?? 0,
+      matter_preserved_fact_count: summary.matter_preserved_fact_count ?? 0,
+      classification_preserved_fact_count: summary.classification_preserved_fact_count ?? 0,
+      policy_snapshot_preserved_fact_count: summary.policy_snapshot_preserved_fact_count ?? 0,
+      machine_extracted_fact_count: summary.machine_extracted_fact_count ?? 0,
+      needs_review_count: summary.needs_review_count ?? 0,
+      approved_count: summary.approved_count ?? 0,
+      average_confidence: summary.average_confidence ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6265,6 +6324,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.fact_claim_store?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "fact_claim_store";
+    items.push({
+      action_item_id: `dashboard.action.fact_claim_store.${slugify(subjectId)}`,
+      source_stage: "fact_claim_store",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix fact claim store",
+      subject_ref: {
+        subject_type: "fact_claim_store_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_fact_claim_store", "rerun_fact_claim_store", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8053,6 +8130,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_item_store_needs_review_count: artifacts.evidence_item_store?.summary?.needs_review_count ?? 0,
     evidence_item_store_approved_count: artifacts.evidence_item_store?.summary?.approved_count ?? 0,
     evidence_item_store_validation_error_count: artifacts.evidence_item_store?.summary?.validation_error_count ?? artifacts.evidence_item_store?.validation?.errors?.length ?? 0,
+    fact_claim_store_status: artifacts.fact_claim_store?.summary?.fact_claim_store_status ?? "unknown",
+    fact_claim_store_contract_id: artifacts.fact_claim_store?.summary?.fact_claim_store_contract_id ?? null,
+    fact_claim_store_schema_version: artifacts.fact_claim_store?.summary?.fact_claim_schema_version ?? null,
+    fact_claim_store_evidence_item_count: artifacts.fact_claim_store?.summary?.evidence_item_count ?? 0,
+    fact_claim_store_fact_claim_count: artifacts.fact_claim_store?.summary?.fact_claim_count ?? 0,
+    fact_claim_store_binding_count: artifacts.fact_claim_store?.summary?.fact_evidence_binding_count ?? 0,
+    fact_claim_store_review_queue_count: artifacts.fact_claim_store?.summary?.review_queue_item_count ?? 0,
+    fact_claim_store_linked_evidence_count: artifacts.fact_claim_store?.summary?.evidence_linked_fact_count ?? 0,
+    fact_claim_store_reliability_preserved_count: artifacts.fact_claim_store?.summary?.reliability_preserved_fact_count ?? 0,
+    fact_claim_store_matter_preserved_count: artifacts.fact_claim_store?.summary?.matter_preserved_fact_count ?? 0,
+    fact_claim_store_classification_preserved_count: artifacts.fact_claim_store?.summary?.classification_preserved_fact_count ?? 0,
+    fact_claim_store_policy_snapshot_preserved_count: artifacts.fact_claim_store?.summary?.policy_snapshot_preserved_fact_count ?? 0,
+    fact_claim_store_machine_extracted_count: artifacts.fact_claim_store?.summary?.machine_extracted_fact_count ?? 0,
+    fact_claim_store_needs_review_count: artifacts.fact_claim_store?.summary?.needs_review_count ?? 0,
+    fact_claim_store_approved_count: artifacts.fact_claim_store?.summary?.approved_count ?? 0,
+    fact_claim_store_validation_error_count: artifacts.fact_claim_store?.summary?.validation_error_count ?? artifacts.fact_claim_store?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9430,6 +9523,8 @@ function parseArgs(argv) {
     else if (arg === "--no-source-span-store") parsed.sourceSpanStorePath = false;
     else if (arg === "--evidence-item-store") parsed.evidenceItemStorePath = argv[++index];
     else if (arg === "--no-evidence-item-store") parsed.evidenceItemStorePath = false;
+    else if (arg === "--fact-claim-store") parsed.factClaimStorePath = argv[++index];
+    else if (arg === "--no-fact-claim-store") parsed.factClaimStorePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9710,6 +9805,8 @@ Options:
   --no-source-span-store          Do not include Source Span Store status.
   --evidence-item-store <path>    evidence-item-store.json path.
   --no-evidence-item-store        Do not include Evidence Item Store status.
+  --fact-claim-store <path>       fact-claim-store.json path.
+  --no-fact-claim-store           Do not include Fact Claim Store status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

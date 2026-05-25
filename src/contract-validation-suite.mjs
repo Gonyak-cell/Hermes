@@ -39,6 +39,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:extractor-adapters",
   "resource:source-spans",
   "resource:evidence-items",
+  "resource:fact-claims",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

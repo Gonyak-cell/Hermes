@@ -38,6 +38,7 @@ const GOAL_ITEMS = [
   sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
   sourceItem("source_span_store", "Source span store", "resource_evidence", "source_span_store", "control-plane-source-span-store", { acceptance_profile: "source_span_store_gate" }),
   sourceItem("evidence_item_store", "Evidence item store", "resource_evidence", "evidence_item_store", "control-plane-evidence-item-store", { acceptance_profile: "evidence_item_store_gate" }),
+  sourceItem("fact_claim_store", "Fact claim store", "resource_evidence", "fact_claim_store", "control-plane-fact-claim-store", { acceptance_profile: "fact_claim_store_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -383,6 +384,7 @@ function evaluateStageAcceptance(item, stage) {
     "extractor_adapter_contract_gate",
     "source_span_store_gate",
     "evidence_item_store_gate",
+    "fact_claim_store_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -735,6 +737,28 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.approved_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Evidence item store materializes one review-pending EvidenceItem from every source span while preserving matter, classification, and policy snapshot.");
+    }
+  }
+
+  if (item.acceptance_profile === "fact_claim_store_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const factCount = metrics.fact_claim_count ?? 0;
+    if (
+      errors === 0
+      && metrics.fact_claim_store_status === "complete"
+      && factCount > 0
+      && factCount === (metrics.evidence_item_count ?? -1)
+      && factCount === (metrics.fact_evidence_binding_count ?? -1)
+      && factCount === (metrics.review_queue_item_count ?? -1)
+      && factCount === (metrics.evidence_linked_fact_count ?? -1)
+      && factCount === (metrics.reliability_preserved_fact_count ?? -1)
+      && factCount === (metrics.matter_preserved_fact_count ?? -1)
+      && factCount === (metrics.classification_preserved_fact_count ?? -1)
+      && factCount === (metrics.policy_snapshot_preserved_fact_count ?? -1)
+      && factCount === (metrics.needs_review_count ?? -1)
+      && (metrics.approved_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Fact claim store materializes one review-pending FactClaim from every evidence item while preserving evidence ids and reliability.");
     }
   }
 

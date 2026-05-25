@@ -280,6 +280,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-queue"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-store-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-claim-stores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-claims"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-evidence-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-review-queue"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-claim-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/fact-claim-store-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1818,6 +1824,30 @@ try {
   const evidenceItemStoreValidations = await fetchJson(`${url}/api/evidence-item-store-validations?status=passed&limit=5`);
   assert.equal(evidenceItemStoreValidations.collection, "evidence_item_store_validations");
   assert.ok(evidenceItemStoreValidations.count <= 5);
+
+  const factClaimStores = await fetchJson(`${url}/api/fact-claim-stores?fact_claim_store_status=complete&limit=1`);
+  assert.equal(factClaimStores.collection, "fact_claim_stores");
+  assert.ok(factClaimStores.count <= 1);
+
+  const factClaims = await fetchJson(`${url}/api/fact-claims?review_status=needs_review&limit=5`);
+  assert.equal(factClaims.collection, "fact_claims");
+  assert.ok(factClaims.count <= 5);
+
+  const factEvidenceBindings = await fetchJson(`${url}/api/fact-evidence-bindings?binding_status=bound&limit=5`);
+  assert.equal(factEvidenceBindings.collection, "fact_evidence_bindings");
+  assert.ok(factEvidenceBindings.count <= 5);
+
+  const factReviewQueue = await fetchJson(`${url}/api/fact-review-queue?review_required=true&limit=5`);
+  assert.equal(factReviewQueue.collection, "fact_review_queue");
+  assert.ok(factReviewQueue.count <= 5);
+
+  const factClaimIndexes = await fetchJson(`${url}/api/fact-claim-indexes?schema_version=fact-claim-indexes.v1&limit=1`);
+  assert.equal(factClaimIndexes.collection, "fact_claim_indexes");
+  assert.ok(factClaimIndexes.count <= 1);
+
+  const factClaimStoreValidations = await fetchJson(`${url}/api/fact-claim-store-validations?status=passed&limit=5`);
+  assert.equal(factClaimStoreValidations.collection, "fact_claim_store_validations");
+  assert.ok(factClaimStoreValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

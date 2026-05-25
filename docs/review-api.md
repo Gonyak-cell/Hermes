@@ -105,6 +105,12 @@ npm run api:serve
 - `GET /api/evidence-review-queue`: machine-extracted evidence review queue rows
 - `GET /api/evidence-item-indexes`: evidence item rollups by matter, classification, review status, evidence type, and location type
 - `GET /api/evidence-item-store-validations`: evidence item store validation rows
+- `GET /api/fact-claim-stores`: fact claim store artifact
+- `GET /api/fact-claims`: evidence-derived fact claim rows
+- `GET /api/fact-evidence-bindings`: fact claim to evidence item binding rows
+- `GET /api/fact-review-queue`: machine-extracted fact review queue rows
+- `GET /api/fact-claim-indexes`: fact claim rollups by matter, classification, review status, fact type, reliability, and binding status
+- `GET /api/fact-claim-store-validations`: fact claim store validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

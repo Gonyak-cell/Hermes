@@ -4201,6 +4201,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 41개로 증가하고 evidence item store가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:evidence-items -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 140: Fact Claim Store
+
+목표: P139 Evidence Item Store의 evidence item을 attorney-reviewable fact claim 후보로 승격하고 evidence id와 reliability를 fact 계층에 보존한다.
+
+구현 내용:
+
+- `src/fact-claim-store.mjs`, `scripts/fact-claim-store.mjs`, `schemas/fact-claim-store.schema.json`, `docs/fact-claim-store.md`를 추가함
+- `npm run resource:fact-claims -- --check` 명령을 추가해 fact claim store, fact claim rows, evidence binding rows, fact review queue rows, index, validation report, summary markdown을 생성함
+- 모든 P139 `evidence-item.v2` row에서 `fact-claim.v2` 후보를 하나씩 생성함
+- `evidence_item_ids`, `primary_evidence_item_id`, `source_span_ids`, `tenant_id`, `matter_id`, `classification`, `policy_snapshot_id`, `reliability`를 evidence item에서 fact claim으로 보존함
+- fact claim과 evidence item의 연결을 `fact-evidence-binding.v1` row로 분리하고 reliability/matter/classification/policy snapshot preservation 여부를 검증함
+- 모든 machine-extracted fact claim을 `needs_review`와 `machine_extracted_pending_review`로 두고 자동 승인 count를 0으로 유지함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 fact claim store를 통합함
+- `/api/fact-claim-stores`, `/api/fact-claims`, `/api/fact-evidence-bindings`, `/api/fact-review-queue`, `/api/fact-claim-indexes`, `/api/fact-claim-store-validations` route를 추가함
+
+완료 기준:
+
+- Fact Claim Store가 validation error 없이 `complete` 상태가 됨
+- fact claim 수가 evidence item 수와 일치함
+- 모든 fact claim이 evidence binding과 review queue row를 가짐
+- 모든 fact claim이 evidence id, reliability, matter, classification, policy snapshot, source span link를 보존함
+- 모든 machine-extracted fact claim이 human review 대기 상태이고 자동 approved count는 0임
+- Review Dashboard summary와 stage status에서 fact claim count, evidence binding count, review queue count, reliability/matter/classification/policy snapshot preservation, validation 상태가 노출됨
+- Review API smoke가 fact claim store, fact claim, evidence binding, review queue, index, validation route를 모두 조회함
+- Golden fixture 수가 42개로 증가하고 fact claim store가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:fact-claims -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4209,9 +4236,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 139이다.
+- 현재 완료 기준점은 Phase 140이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P140-P312, 총 173개다.
+- 남은 계획 슬롯은 P141-P312, 총 172개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

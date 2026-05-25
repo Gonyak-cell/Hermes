@@ -48,6 +48,7 @@ npm run control-plane:goal-checkpoint -- \
 - Extractor Adapter Contract
 - Source Span Store
 - Evidence Item Store
+- Fact Claim Store
 - Gate and approval workflow
 - Human review packets
 - Human review agenda

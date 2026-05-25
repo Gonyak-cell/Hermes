@@ -10,6 +10,8 @@ Phase 138부터 dashboard는 Source Span Store도 읽는다. whole document/page
 
 Phase 139부터 dashboard는 Evidence Item Store도 읽는다. source span에서 생성된 evidence item, source-span binding, review queue, matter/classification/policy snapshot preservation, machine-extracted review status, validation error count가 summary와 stage status에 노출된다.
 
+Phase 140부터 dashboard는 Fact Claim Store도 읽는다. evidence item에서 생성된 fact claim, evidence binding, fact review queue, reliability preservation, matter/classification/policy snapshot preservation, machine-extracted review status, validation error count가 summary와 stage status에 노출된다.
+
 ## 실행
 
 ```bash

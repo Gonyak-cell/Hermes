@@ -493,6 +493,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("evidence_item_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/fact-claim-stores") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("fact_claim_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_claim_stores", [storeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/fact-claims") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("fact_claim_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_claims", storeResult.artifact.fact_claim_catalog?.fact_claims ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/fact-evidence-bindings") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("fact_claim_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_evidence_bindings", storeResult.artifact.fact_claim_catalog?.evidence_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/fact-review-queue") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("fact_claim_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_review_queue", storeResult.artifact.fact_claim_catalog?.review_queue_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/fact-claim-indexes") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("fact_claim_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_claim_indexes", [storeResult.artifact.fact_claim_catalog?.fact_claim_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/fact-claim-store-validations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "fact_claim_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("fact_claim_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("fact_claim_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4739,6 +4781,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/evidence-review-queue", "Evidence review queue rows"),
       route("GET", "/api/evidence-item-indexes", "Evidence item index projections"),
       route("GET", "/api/evidence-item-store-validations", "Evidence item store validation rows"),
+      route("GET", "/api/fact-claim-stores", "Fact claim store artifacts"),
+      route("GET", "/api/fact-claims", "Fact claim rows"),
+      route("GET", "/api/fact-evidence-bindings", "Fact to evidence binding rows"),
+      route("GET", "/api/fact-review-queue", "Fact review queue rows"),
+      route("GET", "/api/fact-claim-indexes", "Fact claim index projections"),
+      route("GET", "/api/fact-claim-store-validations", "Fact claim store validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5195,8 +5243,12 @@ function filterItems(items, searchParams) {
   const filterKeys = [
     "status",
     "evidence_item_store_status",
+    "fact_claim_store_status",
     "evidence_id",
     "evidence_type",
+    "fact_id",
+    "fact_type",
+    "reliability",
     "verification_state",
     "review_required",
     "priority",
@@ -6012,6 +6064,7 @@ function readFilterValue(item, key) {
   if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;
   if (key === "evidence_item_store_status") return item.summary?.evidence_item_store_status ?? item.evidence_item_store_status;
+  if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

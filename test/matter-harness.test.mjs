@@ -45,6 +45,7 @@ import { runEvidenceFlags } from "../src/evidence-flags.mjs";
 import { runExhibitMap } from "../src/exhibit-map.mjs";
 import { runEvidenceExportBundle } from "../src/evidence-export-bundle.mjs";
 import { runEvidenceRegressionTests } from "../src/evidence-regression-tests.mjs";
+import { runResourceEvidenceDashboardSummary } from "../src/resource-evidence-dashboard-summary.mjs";
 import { runChainOfCustodyEvents } from "../src/chain-of-custody-events.mjs";
 import { runSearchIndexContract } from "../src/search-index-contract.mjs";
 import { runVectorIndexPolicyBoundary } from "../src/vector-index-policy-boundary.mjs";
@@ -1680,6 +1681,7 @@ describe("matter harness", () => {
         exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
         evidenceExportBundlePath: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
         evidenceRegressionTestsPath: path.join(outDir, "evidence-regression-tests", "evidence-regression-tests.json"),
+        resourceEvidenceDashboardSummaryPath: path.join(outDir, "resource-evidence-dashboard", "resource-evidence-dashboard-summary.json"),
         chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
         searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
         vectorIndexPolicyBoundaryPath: path.join(outDir, "vector-index-policy", "vector-index-policy-boundary.json"),
@@ -4504,6 +4506,49 @@ describe("matter harness", () => {
       assert.ok(evidenceRegressionTests.evidence_regression_catalog.regression_test_cases.every((testCase) => testCase.status === "passed" && testCase.regression_hash.startsWith("sha256:")));
       assert.match(await readFile(path.join(outDir, "evidence-regression-tests", "summary.md"), "utf8"), /Evidence Regression Tests/);
 
+      const resourceEvidenceDashboardSummary = await runResourceEvidenceDashboardSummary({
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        resourceQuarantineModelPath: path.join(outDir, "resource-quarantine", "resource-quarantine-model.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        evidenceCoveragePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
+        evidenceViewerDataApiPath: path.join(outDir, "evidence-viewer-data-api", "evidence-viewer-data-api.json"),
+        evidenceExportBundlePath: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
+        evidenceRegressionTestsPath: path.join(outDir, "evidence-regression-tests", "evidence-regression-tests.json"),
+        outDir: path.join(outDir, "resource-evidence-dashboard"),
+        runAt: "2026-05-23T06:35:08.446Z",
+      });
+      const resourceEvidenceDashboardSchema = JSON.parse(await readFile("schemas/resource-evidence-dashboard-summary.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(resourceEvidenceDashboardSummary, resourceEvidenceDashboardSchema, {}, "resource_evidence_dashboard_summary"),
+        [],
+      );
+      assert.equal(
+        resourceEvidenceDashboardSummary.summary.resource_evidence_dashboard_status,
+        "complete",
+        JSON.stringify(resourceEvidenceDashboardSummary.validation.errors),
+      );
+      assert.equal(resourceEvidenceDashboardSummary.summary.resource_evidence_dashboard_contract_id, "resource-evidence-dashboard-summary.v1");
+      assert.equal(resourceEvidenceDashboardSummary.summary.panel_row_count, 8);
+      assert.equal(resourceEvidenceDashboardSummary.summary.ready_panel_count, 8);
+      assert.equal(resourceEvidenceDashboardSummary.summary.attention_panel_count, 0);
+      assert.ok(resourceEvidenceDashboardSummary.summary.matter_rollup_count >= 1);
+      assert.ok(resourceEvidenceDashboardSummary.summary.classification_rollup_count >= 1);
+      assert.equal(resourceEvidenceDashboardSummary.summary.promoted_resource_count, ingest.summary.promoted_resource_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.resource_store_record_count, resourceStoreInterface.summary.resource_store_record_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.quarantine_item_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.evidence_item_count, evidenceItemStore.summary.evidence_item_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.coverage_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.export_bundle_count, evidenceExportBundle.summary.export_bundle_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.regression_test_case_count, evidenceRegressionTests.summary.regression_test_case_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.quarantine_retrieval_blocked_count, resourceEvidenceDashboardSummary.summary.quarantine_item_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.quarantine_output_delivery_blocked_count, resourceEvidenceDashboardSummary.summary.quarantine_item_count);
+      assert.equal(resourceEvidenceDashboardSummary.summary.client_facing_ready_count, 0);
+      assert.equal(resourceEvidenceDashboardSummary.summary.source_validation_error_count, 0);
+      assert.equal(resourceEvidenceDashboardSummary.summary.validation_error_count, 0);
+      assert.ok(resourceEvidenceDashboardSummary.resource_evidence_dashboard_catalog.panel_rows.every((row) => row.panel_status === "ready"));
+      assert.match(await readFile(path.join(outDir, "resource-evidence-dashboard", "summary.md"), "utf8"), /Resource\/Evidence Dashboard Summary/);
+
       const chainOfCustodyEvents = await runChainOfCustodyEvents({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
@@ -4718,6 +4763,7 @@ describe("matter harness", () => {
           evidence_viewer_data_api: path.join(outDir, "evidence-viewer-data-api", "evidence-viewer-data-api.json"),
           evidence_export_bundle: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
           evidence_regression_tests: path.join(outDir, "evidence-regression-tests", "evidence-regression-tests.json"),
+          resource_evidence_dashboard_summary: path.join(outDir, "resource-evidence-dashboard", "resource-evidence-dashboard-summary.json"),
           evidence_coverage_score: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
           evidence_flags: path.join(outDir, "evidence-flags", "evidence-flags.json"),
           exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
@@ -4750,8 +4796,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 58);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 58);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 59);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 59);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4793,6 +4839,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_data_api"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_export_bundle"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_regression_tests"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_evidence_dashboard_summary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_coverage_score"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_flags"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
@@ -5056,6 +5103,10 @@ describe("matter harness", () => {
       assert.equal(evidenceRegressionTestsCheckpoint?.acceptance_profile, "evidence_regression_tests_gate");
       assert.equal(evidenceRegressionTestsCheckpoint?.status, "passed");
       assert.equal(evidenceRegressionTestsCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const resourceEvidenceDashboardCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-evidence-dashboard-summary");
+      assert.equal(resourceEvidenceDashboardCheckpoint?.acceptance_profile, "resource_evidence_dashboard_summary_gate");
+      assert.equal(resourceEvidenceDashboardCheckpoint?.status, "passed");
+      assert.equal(resourceEvidenceDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
       const evidenceCoverageScoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-coverage-score");
       assert.equal(evidenceCoverageScoreCheckpoint?.acceptance_profile, "evidence_coverage_score_gate");
       assert.equal(evidenceCoverageScoreCheckpoint?.status, "passed");
@@ -6104,6 +6155,27 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.evidence_regression_hash_count, evidenceRegressionTests.summary.regression_hash_count);
       assert.equal(dashboard.summary.evidence_regression_locked_hash_count, evidenceRegressionTests.summary.locked_regression_hash_count);
       assert.equal(dashboard.summary.evidence_regression_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_status, "complete");
+      assert.equal(dashboard.summary.resource_evidence_dashboard_contract_id, "resource-evidence-dashboard-summary.v1");
+      assert.equal(dashboard.summary.resource_evidence_dashboard_panel_row_count, resourceEvidenceDashboardSummary.summary.panel_row_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_ready_panel_count, resourceEvidenceDashboardSummary.summary.ready_panel_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_attention_panel_count, 0);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_matter_rollup_count, resourceEvidenceDashboardSummary.summary.matter_rollup_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_classification_rollup_count, resourceEvidenceDashboardSummary.summary.classification_rollup_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_source_item_count, resourceEvidenceDashboardSummary.summary.source_item_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_promoted_resource_count, resourceEvidenceDashboardSummary.summary.promoted_resource_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_resource_store_record_count, resourceEvidenceDashboardSummary.summary.resource_store_record_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_quarantine_item_count, resourceEvidenceDashboardSummary.summary.quarantine_item_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_quarantine_retrieval_blocked_count, resourceEvidenceDashboardSummary.summary.quarantine_retrieval_blocked_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_quarantine_output_delivery_blocked_count, resourceEvidenceDashboardSummary.summary.quarantine_output_delivery_blocked_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_evidence_item_count, resourceEvidenceDashboardSummary.summary.evidence_item_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_coverage_score_count, resourceEvidenceDashboardSummary.summary.coverage_score_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_export_bundle_count, resourceEvidenceDashboardSummary.summary.export_bundle_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_regression_test_case_count, resourceEvidenceDashboardSummary.summary.regression_test_case_count);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_regression_external_service_used_case_count, 0);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_source_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_evidence_dashboard_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_coverage_status, "complete");
       assert.equal(dashboard.summary.evidence_coverage_contract_id, "evidence-coverage-score.v1");
       assert.equal(dashboard.summary.evidence_coverage_score_schema_version, "coverage-score.v1");
@@ -6801,6 +6873,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_viewer_data_api"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_export_bundle"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_regression_tests"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_evidence_dashboard_summary"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_coverage_score"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_flags"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
@@ -6952,6 +7025,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-test-cases"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-hashes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-regression-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-evidence-dashboard-summaries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-evidence-panel-rows"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-evidence-matter-rollups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-evidence-classification-rollups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-evidence-dashboard-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-golden-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claim-stores"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/fact-claims"));
@@ -9171,6 +9249,26 @@ describe("matter harness", () => {
       const evidenceRegressionValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-regression-validations?status=passed", apiOptions)).body);
       assert.equal(evidenceRegressionValidations.collection, "evidence_regression_validations");
       assert.equal(evidenceRegressionValidations.count, evidenceRegressionTests.summary.validation_item_count);
+
+      const resourceEvidenceDashboardArtifacts = JSON.parse((await buildReviewApiResponse("/api/resource-evidence-dashboard-summaries?resource_evidence_dashboard_status=complete", apiOptions)).body);
+      assert.equal(resourceEvidenceDashboardArtifacts.collection, "resource_evidence_dashboard_summaries");
+      assert.equal(resourceEvidenceDashboardArtifacts.count, 1);
+
+      const resourceEvidencePanelRows = JSON.parse((await buildReviewApiResponse("/api/resource-evidence-panel-rows?panel_status=ready", apiOptions)).body);
+      assert.equal(resourceEvidencePanelRows.collection, "resource_evidence_panel_rows");
+      assert.equal(resourceEvidencePanelRows.count, resourceEvidenceDashboardSummary.summary.ready_panel_count);
+
+      const resourceEvidenceMatterRollups = JSON.parse((await buildReviewApiResponse("/api/resource-evidence-matter-rollups?rollup_status=review_required", apiOptions)).body);
+      assert.equal(resourceEvidenceMatterRollups.collection, "resource_evidence_matter_rollups");
+      assert.equal(resourceEvidenceMatterRollups.count, resourceEvidenceDashboardSummary.summary.matter_rollup_count);
+
+      const resourceEvidenceClassificationRollups = JSON.parse((await buildReviewApiResponse("/api/resource-evidence-classification-rollups?rollup_status=review_required", apiOptions)).body);
+      assert.equal(resourceEvidenceClassificationRollups.collection, "resource_evidence_classification_rollups");
+      assert.equal(resourceEvidenceClassificationRollups.count, resourceEvidenceDashboardSummary.summary.classification_rollup_count);
+
+      const resourceEvidenceDashboardValidations = JSON.parse((await buildReviewApiResponse("/api/resource-evidence-dashboard-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceEvidenceDashboardValidations.collection, "resource_evidence_dashboard_validations");
+      assert.equal(resourceEvidenceDashboardValidations.count, resourceEvidenceDashboardSummary.summary.validation_item_count);
 
       const evidenceCoverageArtifacts = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-scores?evidence_coverage_status=complete", apiOptions)).body);
       assert.equal(evidenceCoverageArtifacts.collection, "evidence_coverage_scores");

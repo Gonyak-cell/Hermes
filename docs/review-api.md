@@ -125,6 +125,11 @@ npm run api:serve
 - `GET /api/evidence-regression-test-cases`: deterministic evidence regression case rows
 - `GET /api/evidence-regression-hashes`: locked evidence regression hash rows
 - `GET /api/evidence-regression-validations`: evidence regression validation rows
+- `GET /api/resource-evidence-dashboard-summaries`: resource/evidence dashboard summary artifact
+- `GET /api/resource-evidence-panel-rows`: ingest, store, quarantine, evidence, viewer, coverage, export, regression panel rows
+- `GET /api/resource-evidence-matter-rollups`: matter별 resource/evidence/quarantine/coverage/export rollup rows
+- `GET /api/resource-evidence-classification-rollups`: classification별 resource/evidence/quarantine/coverage/export rollup rows
+- `GET /api/resource-evidence-dashboard-validations`: resource/evidence dashboard validation rows
 - `GET /api/evidence-golden-validations`: evidence golden fixture validation rows
 - `GET /api/fact-claim-stores`: fact claim store artifact
 - `GET /api/fact-claims`: evidence-derived fact claim rows
@@ -399,6 +404,8 @@ Search index route는 `search_index_contract_status`, `search_index_id`, `search
 Vector policy route는 `vector_index_policy_boundary_status`, `vector_policy_gate_id`, `embedding_route_policy_id`, `collection_id`, `source_artifact_id`, `gate_status`, `route_status`, `embedding_execution_status`, `retrieval_execution_status`, `route_executable`, `classification`, `policy_external_embedding_decision`, `external_embedding_transfer_status`, `external_embedding_allowed`, `schema_version`, `status`, `limit` query를 지원한다.
 
 Evidence regression route는 `evidence_regression_status`, `suite_type`, `suite_status`, `status`, `regression_suite_id`, `regression_test_case_id`, `subject_id`, `matter_id`, `classification`, `external_service_used`, `locked`, `limit` query를 지원한다.
+
+Resource/evidence dashboard route는 `resource_evidence_dashboard_status`, `panel_id`, `panel_type`, `panel_status`, `source_artifact_id`, `matter_id`, `classification`, `rollup_status`, `status`, `limit` query를 지원한다.
 
 ## 검증
 

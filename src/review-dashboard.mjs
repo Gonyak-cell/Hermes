@@ -40,6 +40,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceViewerDataApiPath: "artifacts/evidence-viewer-data-api/latest/evidence-viewer-data-api.json",
   evidenceExportBundlePath: "artifacts/evidence-export-bundle/latest/evidence-export-bundle.json",
   evidenceRegressionTestsPath: "artifacts/evidence-regression-tests/latest/evidence-regression-tests.json",
+  resourceEvidenceDashboardSummaryPath: "artifacts/resource-evidence-dashboard/latest/resource-evidence-dashboard-summary.json",
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
@@ -335,6 +336,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceRegressionTestsPath",
     source_id: "evidence_regression_tests",
     label: "Evidence Regression Tests",
+  },
+  {
+    option: "resourceEvidenceDashboardSummaryPath",
+    source_id: "resource_evidence_dashboard_summary",
+    label: "Resource/Evidence Dashboard Summary",
   },
   {
     option: "evidenceCoverageScorePath",
@@ -1275,6 +1281,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceViewerDataApiStage(artifacts.evidence_viewer_data_api, sourceById.get("evidence_viewer_data_api")),
     buildEvidenceExportBundleStage(artifacts.evidence_export_bundle, sourceById.get("evidence_export_bundle")),
     buildEvidenceRegressionTestsStage(artifacts.evidence_regression_tests, sourceById.get("evidence_regression_tests")),
+    buildResourceEvidenceDashboardSummaryStage(artifacts.resource_evidence_dashboard_summary, sourceById.get("resource_evidence_dashboard_summary")),
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
@@ -3092,6 +3099,84 @@ function buildEvidenceRegressionTestsStage(regression, source) {
       external_service_used_case_count: summary.external_service_used_case_count ?? 0,
       regression_hash_count: summary.regression_hash_count ?? 0,
       locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildResourceEvidenceDashboardSummaryStage(dashboardSummary, source) {
+  if (!dashboardSummary) return missingStage("resource_evidence_dashboard_summary", "Resource/Evidence Dashboard Summary", source);
+  const summary = dashboardSummary.summary ?? {};
+  const errorCount = summary.validation_error_count ?? dashboardSummary.validation?.errors?.length ?? 0;
+  const panelCount = summary.panel_row_count ?? 0;
+  const status = summary.resource_evidence_dashboard_status === "complete"
+    && errorCount === 0
+    && panelCount >= 8
+    && (summary.ready_panel_count ?? 0) === panelCount
+    && (summary.matter_rollup_count ?? 0) > 0
+    && (summary.classification_rollup_count ?? 0) > 0
+    && (summary.promoted_resource_count ?? 0) === (summary.resource_store_record_count ?? -1)
+    && (summary.evidence_item_count ?? 0) === (summary.coverage_score_count ?? -1)
+    && (summary.coverage_score_count ?? 0) === (summary.export_bundle_count ?? -1)
+    && (summary.quarantine_retrieval_blocked_count ?? 0) === (summary.quarantine_item_count ?? -1)
+    && (summary.quarantine_output_delivery_blocked_count ?? 0) === (summary.quarantine_item_count ?? -1)
+    && (summary.client_facing_ready_count ?? 1) === 0
+    && (summary.regression_external_service_used_case_count ?? 1) === 0
+    && (summary.source_validation_error_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "resource_evidence_dashboard_summary",
+    label: "Resource/Evidence Dashboard Summary",
+    status,
+    message: `${panelCount} panel(s), ${summary.matter_rollup_count ?? 0} matter rollup(s), ${summary.classification_rollup_count ?? 0} classification rollup(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resource_evidence_dashboard_status: summary.resource_evidence_dashboard_status ?? "unknown",
+      resource_evidence_dashboard_contract_id: summary.resource_evidence_dashboard_contract_id ?? null,
+      resource_ingest_status: summary.resource_ingest_status ?? "unknown",
+      resource_store_interface_status: summary.resource_store_interface_status ?? "unknown",
+      resource_quarantine_status: summary.resource_quarantine_status ?? "unknown",
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      evidence_viewer_data_status: summary.evidence_viewer_data_status ?? "unknown",
+      evidence_coverage_status: summary.evidence_coverage_status ?? "unknown",
+      evidence_export_bundle_status: summary.evidence_export_bundle_status ?? "unknown",
+      evidence_regression_status: summary.evidence_regression_status ?? "unknown",
+      panel_row_count: panelCount,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      attention_panel_count: summary.attention_panel_count ?? 0,
+      matter_rollup_count: summary.matter_rollup_count ?? 0,
+      classification_rollup_count: summary.classification_rollup_count ?? 0,
+      source_item_count: summary.source_item_count ?? 0,
+      promoted_resource_count: summary.promoted_resource_count ?? 0,
+      promoted_evidence_count: summary.promoted_evidence_count ?? 0,
+      resource_store_record_count: summary.resource_store_record_count ?? 0,
+      quarantine_item_count: summary.quarantine_item_count ?? 0,
+      quarantine_pending_human_review_count: summary.quarantine_pending_human_review_count ?? 0,
+      quarantine_retrieval_blocked_count: summary.quarantine_retrieval_blocked_count ?? 0,
+      quarantine_external_transfer_blocked_count: summary.quarantine_external_transfer_blocked_count ?? 0,
+      quarantine_output_delivery_blocked_count: summary.quarantine_output_delivery_blocked_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      evidence_needs_review_count: summary.evidence_needs_review_count ?? 0,
+      viewer_card_count: summary.viewer_card_count ?? 0,
+      coverage_score_count: summary.coverage_score_count ?? 0,
+      coverage_dimension_count: summary.coverage_dimension_count ?? 0,
+      missing_required_dimension_count: summary.missing_required_dimension_count ?? 0,
+      full_coverage_score_count: summary.full_coverage_score_count ?? 0,
+      partial_coverage_score_count: summary.partial_coverage_score_count ?? 0,
+      average_coverage_score: summary.average_coverage_score ?? 0,
+      export_bundle_count: summary.export_bundle_count ?? 0,
+      export_delivery_blocked_bundle_count: summary.export_delivery_blocked_bundle_count ?? 0,
+      export_external_transfer_blocked_bundle_count: summary.export_external_transfer_blocked_bundle_count ?? 0,
+      export_client_facing_ready_bundle_count: summary.export_client_facing_ready_bundle_count ?? 0,
+      regression_test_case_count: summary.regression_test_case_count ?? 0,
+      regression_failed_case_count: summary.regression_failed_case_count ?? 0,
+      regression_hash_count: summary.regression_hash_count ?? 0,
+      regression_external_service_used_case_count: summary.regression_external_service_used_case_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9700,6 +9785,50 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_regression_hash_count: artifacts.evidence_regression_tests?.summary?.regression_hash_count ?? 0,
     evidence_regression_locked_hash_count: artifacts.evidence_regression_tests?.summary?.locked_regression_hash_count ?? 0,
     evidence_regression_validation_error_count: artifacts.evidence_regression_tests?.summary?.validation_error_count ?? artifacts.evidence_regression_tests?.validation?.errors?.length ?? 0,
+    resource_evidence_dashboard_status: artifacts.resource_evidence_dashboard_summary?.summary?.resource_evidence_dashboard_status ?? "unknown",
+    resource_evidence_dashboard_contract_id: artifacts.resource_evidence_dashboard_summary?.summary?.resource_evidence_dashboard_contract_id ?? null,
+    resource_evidence_dashboard_resource_ingest_status: artifacts.resource_evidence_dashboard_summary?.summary?.resource_ingest_status ?? "unknown",
+    resource_evidence_dashboard_resource_store_interface_status: artifacts.resource_evidence_dashboard_summary?.summary?.resource_store_interface_status ?? "unknown",
+    resource_evidence_dashboard_resource_quarantine_status: artifacts.resource_evidence_dashboard_summary?.summary?.resource_quarantine_status ?? "unknown",
+    resource_evidence_dashboard_evidence_item_store_status: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_item_store_status ?? "unknown",
+    resource_evidence_dashboard_evidence_viewer_data_status: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_viewer_data_status ?? "unknown",
+    resource_evidence_dashboard_evidence_coverage_status: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_coverage_status ?? "unknown",
+    resource_evidence_dashboard_evidence_export_bundle_status: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_export_bundle_status ?? "unknown",
+    resource_evidence_dashboard_evidence_regression_status: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_regression_status ?? "unknown",
+    resource_evidence_dashboard_panel_row_count: artifacts.resource_evidence_dashboard_summary?.summary?.panel_row_count ?? 0,
+    resource_evidence_dashboard_ready_panel_count: artifacts.resource_evidence_dashboard_summary?.summary?.ready_panel_count ?? 0,
+    resource_evidence_dashboard_attention_panel_count: artifacts.resource_evidence_dashboard_summary?.summary?.attention_panel_count ?? 0,
+    resource_evidence_dashboard_matter_rollup_count: artifacts.resource_evidence_dashboard_summary?.summary?.matter_rollup_count ?? 0,
+    resource_evidence_dashboard_classification_rollup_count: artifacts.resource_evidence_dashboard_summary?.summary?.classification_rollup_count ?? 0,
+    resource_evidence_dashboard_source_item_count: artifacts.resource_evidence_dashboard_summary?.summary?.source_item_count ?? 0,
+    resource_evidence_dashboard_promoted_resource_count: artifacts.resource_evidence_dashboard_summary?.summary?.promoted_resource_count ?? 0,
+    resource_evidence_dashboard_promoted_evidence_count: artifacts.resource_evidence_dashboard_summary?.summary?.promoted_evidence_count ?? 0,
+    resource_evidence_dashboard_resource_store_record_count: artifacts.resource_evidence_dashboard_summary?.summary?.resource_store_record_count ?? 0,
+    resource_evidence_dashboard_quarantine_item_count: artifacts.resource_evidence_dashboard_summary?.summary?.quarantine_item_count ?? 0,
+    resource_evidence_dashboard_quarantine_pending_human_review_count: artifacts.resource_evidence_dashboard_summary?.summary?.quarantine_pending_human_review_count ?? 0,
+    resource_evidence_dashboard_quarantine_retrieval_blocked_count: artifacts.resource_evidence_dashboard_summary?.summary?.quarantine_retrieval_blocked_count ?? 0,
+    resource_evidence_dashboard_quarantine_external_transfer_blocked_count: artifacts.resource_evidence_dashboard_summary?.summary?.quarantine_external_transfer_blocked_count ?? 0,
+    resource_evidence_dashboard_quarantine_output_delivery_blocked_count: artifacts.resource_evidence_dashboard_summary?.summary?.quarantine_output_delivery_blocked_count ?? 0,
+    resource_evidence_dashboard_evidence_item_count: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_item_count ?? 0,
+    resource_evidence_dashboard_evidence_needs_review_count: artifacts.resource_evidence_dashboard_summary?.summary?.evidence_needs_review_count ?? 0,
+    resource_evidence_dashboard_viewer_card_count: artifacts.resource_evidence_dashboard_summary?.summary?.viewer_card_count ?? 0,
+    resource_evidence_dashboard_coverage_score_count: artifacts.resource_evidence_dashboard_summary?.summary?.coverage_score_count ?? 0,
+    resource_evidence_dashboard_coverage_dimension_count: artifacts.resource_evidence_dashboard_summary?.summary?.coverage_dimension_count ?? 0,
+    resource_evidence_dashboard_missing_required_dimension_count: artifacts.resource_evidence_dashboard_summary?.summary?.missing_required_dimension_count ?? 0,
+    resource_evidence_dashboard_full_coverage_score_count: artifacts.resource_evidence_dashboard_summary?.summary?.full_coverage_score_count ?? 0,
+    resource_evidence_dashboard_partial_coverage_score_count: artifacts.resource_evidence_dashboard_summary?.summary?.partial_coverage_score_count ?? 0,
+    resource_evidence_dashboard_average_coverage_score: artifacts.resource_evidence_dashboard_summary?.summary?.average_coverage_score ?? 0,
+    resource_evidence_dashboard_export_bundle_count: artifacts.resource_evidence_dashboard_summary?.summary?.export_bundle_count ?? 0,
+    resource_evidence_dashboard_export_delivery_blocked_bundle_count: artifacts.resource_evidence_dashboard_summary?.summary?.export_delivery_blocked_bundle_count ?? 0,
+    resource_evidence_dashboard_export_external_transfer_blocked_bundle_count: artifacts.resource_evidence_dashboard_summary?.summary?.export_external_transfer_blocked_bundle_count ?? 0,
+    resource_evidence_dashboard_export_client_facing_ready_bundle_count: artifacts.resource_evidence_dashboard_summary?.summary?.export_client_facing_ready_bundle_count ?? 0,
+    resource_evidence_dashboard_regression_test_case_count: artifacts.resource_evidence_dashboard_summary?.summary?.regression_test_case_count ?? 0,
+    resource_evidence_dashboard_regression_failed_case_count: artifacts.resource_evidence_dashboard_summary?.summary?.regression_failed_case_count ?? 0,
+    resource_evidence_dashboard_regression_hash_count: artifacts.resource_evidence_dashboard_summary?.summary?.regression_hash_count ?? 0,
+    resource_evidence_dashboard_regression_external_service_used_case_count: artifacts.resource_evidence_dashboard_summary?.summary?.regression_external_service_used_case_count ?? 0,
+    resource_evidence_dashboard_client_facing_ready_count: artifacts.resource_evidence_dashboard_summary?.summary?.client_facing_ready_count ?? 0,
+    resource_evidence_dashboard_source_validation_error_count: artifacts.resource_evidence_dashboard_summary?.summary?.source_validation_error_count ?? 0,
+    resource_evidence_dashboard_validation_error_count: artifacts.resource_evidence_dashboard_summary?.summary?.validation_error_count ?? artifacts.resource_evidence_dashboard_summary?.validation?.errors?.length ?? 0,
     evidence_coverage_status: artifacts.evidence_coverage_score?.summary?.evidence_coverage_status ?? "unknown",
     evidence_coverage_contract_id: artifacts.evidence_coverage_score?.summary?.evidence_coverage_contract_id ?? null,
     evidence_coverage_score_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_score_schema_version ?? null,
@@ -11372,6 +11501,8 @@ function parseArgs(argv) {
     else if (arg === "--no-evidence-export-bundle") parsed.evidenceExportBundlePath = false;
     else if (arg === "--evidence-regression-tests") parsed.evidenceRegressionTestsPath = argv[++index];
     else if (arg === "--no-evidence-regression-tests") parsed.evidenceRegressionTestsPath = false;
+    else if (arg === "--resource-evidence-dashboard") parsed.resourceEvidenceDashboardSummaryPath = argv[++index];
+    else if (arg === "--no-resource-evidence-dashboard") parsed.resourceEvidenceDashboardSummaryPath = false;
     else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
     else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
     else if (arg === "--evidence-flags") parsed.evidenceFlagsPath = argv[++index];
@@ -11604,6 +11735,10 @@ Options:
   --evidence-regression-tests <path>
                                   evidence-regression-tests.json path.
   --no-evidence-regression-tests  Do not include Evidence Regression Tests status.
+  --resource-evidence-dashboard <path>
+                                  resource-evidence-dashboard-summary.json path.
+  --no-resource-evidence-dashboard
+                                  Do not include Resource/Evidence Dashboard Summary status.
   --evidence-coverage <path>      evidence-coverage-score.json path.
   --no-evidence-coverage          Do not include Evidence Coverage Score status.
   --evidence-flags <path>         evidence-flags.json path.

@@ -230,6 +230,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-test-cases"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-hashes"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-regression-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-dashboard-summaries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-panel-rows"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-matter-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-classification-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-dashboard-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
@@ -1980,6 +1985,26 @@ try {
   const evidenceRegressionValidations = await fetchJson(`${url}/api/evidence-regression-validations?status=passed&limit=5`);
   assert.equal(evidenceRegressionValidations.collection, "evidence_regression_validations");
   assert.ok(evidenceRegressionValidations.count <= 5);
+
+  const resourceEvidenceDashboardSummaries = await fetchJson(`${url}/api/resource-evidence-dashboard-summaries?resource_evidence_dashboard_status=complete&limit=1`);
+  assert.equal(resourceEvidenceDashboardSummaries.collection, "resource_evidence_dashboard_summaries");
+  assert.ok(resourceEvidenceDashboardSummaries.count <= 1);
+
+  const resourceEvidencePanelRows = await fetchJson(`${url}/api/resource-evidence-panel-rows?panel_status=ready&limit=5`);
+  assert.equal(resourceEvidencePanelRows.collection, "resource_evidence_panel_rows");
+  assert.ok(resourceEvidencePanelRows.count <= 5);
+
+  const resourceEvidenceMatterRollups = await fetchJson(`${url}/api/resource-evidence-matter-rollups?rollup_status=review_required&limit=5`);
+  assert.equal(resourceEvidenceMatterRollups.collection, "resource_evidence_matter_rollups");
+  assert.ok(resourceEvidenceMatterRollups.count <= 5);
+
+  const resourceEvidenceClassificationRollups = await fetchJson(`${url}/api/resource-evidence-classification-rollups?rollup_status=review_required&limit=5`);
+  assert.equal(resourceEvidenceClassificationRollups.collection, "resource_evidence_classification_rollups");
+  assert.ok(resourceEvidenceClassificationRollups.count <= 5);
+
+  const resourceEvidenceDashboardValidations = await fetchJson(`${url}/api/resource-evidence-dashboard-validations?status=passed&limit=5`);
+  assert.equal(resourceEvidenceDashboardValidations.collection, "resource_evidence_dashboard_validations");
+  assert.ok(resourceEvidenceDashboardValidations.count <= 5);
 
   const evidenceGoldenValidations = await fetchJson(`${url}/api/evidence-golden-validations?status=passed&limit=5`);
   assert.equal(evidenceGoldenValidations.collection, "evidence_golden_validations");

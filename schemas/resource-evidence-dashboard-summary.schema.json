@@ -1,0 +1,255 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-evidence-dashboard-summary.schema.json",
+  "title": "Hermes Resource Evidence Dashboard Summary",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "resource_evidence_dashboard_summary_id",
+    "output_dir",
+    "inputs",
+    "source_statuses",
+    "resource_evidence_dashboard_contract",
+    "resource_evidence_dashboard_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "resource-evidence-dashboard-summary.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "resource_evidence_dashboard_summary_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_statuses": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/source_status" }
+    },
+    "resource_evidence_dashboard_contract": { "$ref": "#/$defs/contract" },
+    "resource_evidence_dashboard_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "panel_rows", "matter_rollups", "classification_rollups"],
+      "properties": {
+        "schema_version": { "const": "resource-evidence-dashboard-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "panel_rows": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/panel_row" } },
+        "matter_rollups": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/matter_rollup" } },
+        "classification_rollups": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/classification_rollup" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": ["schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resource_evidence_dashboard_contract_id",
+        "generated_at",
+        "source_rule",
+        "matter_boundary_rule",
+        "delivery_rule",
+        "api_routes"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-evidence-dashboard-contract.v1" },
+        "resource_evidence_dashboard_contract_id": { "const": "resource-evidence-dashboard-summary.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_rule": { "type": "string" },
+        "matter_boundary_rule": { "type": "string" },
+        "delivery_rule": { "type": "string" },
+        "api_routes": { "type": "array", "minItems": 5, "items": { "type": "string" } }
+      }
+    },
+    "panel_row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "panel_id",
+        "panel_type",
+        "label",
+        "source_artifact_id",
+        "source_status",
+        "panel_status",
+        "primary_count",
+        "secondary_count",
+        "attention_count",
+        "blocked_count",
+        "review_required_count",
+        "validation_error_count",
+        "route_refs",
+        "message",
+        "generated_at",
+        "metrics"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-evidence-dashboard-panel-row.v1" },
+        "panel_id": { "type": "string" },
+        "panel_type": { "enum": ["ingest", "store", "quarantine", "evidence", "viewer", "coverage", "export", "regression"] },
+        "label": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "source_status": { "type": "string" },
+        "panel_status": { "enum": ["ready", "attention"] },
+        "primary_count": { "type": "integer", "minimum": 0 },
+        "secondary_count": { "type": "integer", "minimum": 0 },
+        "attention_count": { "type": "integer", "minimum": 0 },
+        "blocked_count": { "type": "integer", "minimum": 0 },
+        "review_required_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "route_refs": { "type": "array", "items": { "type": "string" } },
+        "message": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "metrics": { "type": "object" }
+      }
+    },
+    "matter_rollup": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_id",
+        "primary_classification",
+        "resource_count",
+        "quarantine_item_count",
+        "evidence_item_count",
+        "coverage_score_count",
+        "export_bundle_count",
+        "pending_review_count",
+        "retrieval_blocked_count",
+        "delivery_blocked_count",
+        "client_facing_ready_count",
+        "rollup_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-evidence-dashboard-matter-rollup.v1" },
+        "matter_id": { "type": "string" },
+        "primary_classification": { "type": ["string", "null"] },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "quarantine_item_count": { "type": "integer", "minimum": 0 },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "coverage_score_count": { "type": "integer", "minimum": 0 },
+        "export_bundle_count": { "type": "integer", "minimum": 0 },
+        "pending_review_count": { "type": "integer", "minimum": 0 },
+        "retrieval_blocked_count": { "type": "integer", "minimum": 0 },
+        "delivery_blocked_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_count": { "const": 0 },
+        "rollup_status": { "enum": ["ready", "review_required"] },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "classification_rollup": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "classification",
+        "resource_count",
+        "quarantine_item_count",
+        "evidence_item_count",
+        "coverage_score_count",
+        "export_bundle_count",
+        "pending_review_count",
+        "retrieval_blocked_count",
+        "delivery_blocked_count",
+        "client_facing_ready_count",
+        "rollup_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-evidence-dashboard-classification-rollup.v1" },
+        "classification": { "type": "string" },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "quarantine_item_count": { "type": "integer", "minimum": 0 },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "coverage_score_count": { "type": "integer", "minimum": 0 },
+        "export_bundle_count": { "type": "integer", "minimum": 0 },
+        "pending_review_count": { "type": "integer", "minimum": 0 },
+        "retrieval_blocked_count": { "type": "integer", "minimum": 0 },
+        "delivery_blocked_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_count": { "const": 0 },
+        "rollup_status": { "enum": ["ready", "review_required"] },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "resource_evidence_dashboard_status",
+        "resource_evidence_dashboard_contract_id",
+        "panel_row_count",
+        "matter_rollup_count",
+        "classification_rollup_count",
+        "promoted_resource_count",
+        "resource_store_record_count",
+        "quarantine_item_count",
+        "evidence_item_count",
+        "coverage_score_count",
+        "export_bundle_count",
+        "regression_test_case_count",
+        "client_facing_ready_count",
+        "source_validation_error_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "resource_evidence_dashboard_status": { "enum": ["complete", "blocked"] },
+        "resource_evidence_dashboard_contract_id": { "const": "resource-evidence-dashboard-summary.v1" },
+        "panel_row_count": { "type": "integer", "minimum": 8 },
+        "matter_rollup_count": { "type": "integer", "minimum": 1 },
+        "classification_rollup_count": { "type": "integer", "minimum": 1 },
+        "promoted_resource_count": { "type": "integer", "minimum": 0 },
+        "resource_store_record_count": { "type": "integer", "minimum": 0 },
+        "quarantine_item_count": { "type": "integer", "minimum": 0 },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "coverage_score_count": { "type": "integer", "minimum": 0 },
+        "export_bundle_count": { "type": "integer", "minimum": 0 },
+        "regression_test_case_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_count": { "const": 0 },
+        "source_validation_error_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

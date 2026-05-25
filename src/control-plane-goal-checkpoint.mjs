@@ -51,6 +51,7 @@ const GOAL_ITEMS = [
   sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
   sourceItem("evidence_export_bundle", "Evidence export bundle", "resource_evidence", "evidence_export_bundle", "control-plane-evidence-export-bundle", { acceptance_profile: "evidence_export_bundle_gate" }),
   sourceItem("evidence_regression_tests", "Evidence regression tests", "resource_evidence", "evidence_regression_tests", "control-plane-evidence-regression-tests", { acceptance_profile: "evidence_regression_tests_gate" }),
+  sourceItem("resource_evidence_dashboard_summary", "Resource/evidence dashboard summary", "resource_evidence", "resource_evidence_dashboard_summary", "control-plane-resource-evidence-dashboard-summary", { acceptance_profile: "resource_evidence_dashboard_summary_gate" }),
   sourceItem("chain_of_custody_events", "Chain of custody events", "resource_evidence", "chain_of_custody_events", "control-plane-chain-of-custody-events", { acceptance_profile: "chain_of_custody_events_gate" }),
   sourceItem("search_index_contract", "Search index contract", "resource_evidence", "search_index_contract", "control-plane-search-index-contract", { acceptance_profile: "search_index_contract_gate" }),
   sourceItem("vector_index_policy_boundary", "Vector index policy boundary", "resource_evidence", "vector_index_policy_boundary", "control-plane-vector-index-policy-boundary", { acceptance_profile: "vector_index_policy_boundary_gate" }),
@@ -413,6 +414,7 @@ function evaluateStageAcceptance(item, stage) {
     "exhibit_map_gate",
     "evidence_export_bundle_gate",
     "evidence_regression_tests_gate",
+    "resource_evidence_dashboard_summary_gate",
     "chain_of_custody_events_gate",
     "search_index_contract_gate",
     "vector_index_policy_boundary_gate",
@@ -1101,6 +1103,37 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.locked_regression_hash_count ?? 0) === caseCount
     ) {
       return passedWithOperationalGate(stage, "Evidence regression tests lock extractor, lineage, and coverage fixtures with deterministic hashes while blocking external services and client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "resource_evidence_dashboard_summary_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const panelCount = metrics.panel_row_count ?? 0;
+    if (
+      errors === 0
+      && metrics.resource_evidence_dashboard_status === "complete"
+      && ["passed", "blocked"].includes(metrics.resource_ingest_status)
+      && metrics.resource_store_interface_status === "complete"
+      && metrics.resource_quarantine_status === "complete"
+      && metrics.evidence_item_store_status === "complete"
+      && metrics.evidence_viewer_data_status === "complete"
+      && metrics.evidence_coverage_status === "complete"
+      && metrics.evidence_export_bundle_status === "complete"
+      && metrics.evidence_regression_status === "complete"
+      && panelCount >= 8
+      && (metrics.ready_panel_count ?? 0) === panelCount
+      && (metrics.matter_rollup_count ?? 0) > 0
+      && (metrics.classification_rollup_count ?? 0) > 0
+      && (metrics.promoted_resource_count ?? 0) === (metrics.resource_store_record_count ?? -1)
+      && (metrics.evidence_item_count ?? 0) === (metrics.coverage_score_count ?? -1)
+      && (metrics.coverage_score_count ?? 0) === (metrics.export_bundle_count ?? -1)
+      && (metrics.quarantine_retrieval_blocked_count ?? 0) === (metrics.quarantine_item_count ?? -1)
+      && (metrics.quarantine_output_delivery_blocked_count ?? 0) === (metrics.quarantine_item_count ?? -1)
+      && (metrics.client_facing_ready_count ?? 1) === 0
+      && (metrics.source_validation_error_count ?? 1) === 0
+      && (metrics.regression_external_service_used_case_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Resource/evidence dashboard summary exposes ingest, quarantine, evidence, coverage, export, and regression status as read-only panels and rollups while blocking client-facing readiness.");
     }
   }
 

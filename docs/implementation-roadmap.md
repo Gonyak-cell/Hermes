@@ -4684,6 +4684,35 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 58개로 증가하고 evidence regression tests가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run evidence:regression-tests -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 157: Resource/Evidence Dashboard Summary
+
+목표: Resource ingest, store, quarantine, evidence, viewer, coverage, export, regression 상태를 하나의 read-only 운영 dashboard summary로 묶어 Evidence Plane의 현재 상태를 matter/classification 단위로 확인할 수 있게 한다.
+
+구현 내용:
+
+- `src/resource-evidence-dashboard-summary.mjs`, `scripts/resource-evidence-dashboard-summary.mjs`, `schemas/resource-evidence-dashboard-summary.schema.json`, `docs/resource-evidence-dashboard-summary.md`를 추가함
+- `npm run resource:evidence-dashboard -- --check` 명령을 추가해 dashboard summary, panel rows, matter rollups, classification rollups, validation report, summary markdown을 생성함
+- Resource Ingest, Resource Store Interface, Resource Quarantine Model, Evidence Item Store, Evidence Viewer Data API, Evidence Coverage Score, Evidence Export Bundle, Evidence Regression Tests를 입력으로 삼아 8개 dashboard panel을 구성함
+- Matter별, classification별로 resource, quarantine, evidence, coverage, export, pending review, retrieval block, delivery block, client-facing readiness를 rollup함
+- Dashboard summary는 내부 운영 projection이며 output delivery, external transfer, client-facing legal output readiness를 직접 허용하지 않음
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Resource/Evidence Dashboard Summary를 통합함
+- `/api/resource-evidence-dashboard-summaries`, `/api/resource-evidence-panel-rows`, `/api/resource-evidence-matter-rollups`, `/api/resource-evidence-classification-rollups`, `/api/resource-evidence-dashboard-validations` route를 추가함
+
+완료 기준:
+
+- Resource/Evidence Dashboard Summary가 validation error 없이 `complete` 상태가 됨
+- ingest, store, quarantine, evidence, viewer, coverage, export, regression 8개 panel이 모두 `ready` 상태가 됨
+- matter rollup과 classification rollup이 하나 이상 생성됨
+- promoted resource 수가 Resource Store record 수와 일치함
+- evidence item 수가 coverage score 수와 일치하고 coverage score 수가 export bundle 수와 일치함
+- quarantine item은 retrieval과 output delivery가 모두 차단됨
+- coverage/export/regression 어디에서도 client-facing ready 상태가 생성되지 않음
+- regression source가 external service를 사용하지 않음
+- Review Dashboard summary와 stage status에서 panel, rollup, count, review/block guard, validation count가 노출됨
+- Review API smoke가 dashboard summary, panel row, matter rollup, classification rollup, validation route를 모두 조회함
+- Golden fixture 수가 59개로 증가하고 resource evidence dashboard summary가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:evidence-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4692,9 +4721,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 156이다.
+- 현재 완료 기준점은 Phase 157이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P157-P312, 총 156개다.
+- 남은 계획 슬롯은 P158-P312, 총 155개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

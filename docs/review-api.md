@@ -88,6 +88,11 @@ npm run api:serve
 - `GET /api/resource-duplicate-candidate-links`: duplicate candidate와 hash/version family link rows
 - `GET /api/resource-hash-integrity-checks`: resource 및 resource version sha256 integrity check rows
 - `GET /api/resource-dedup-hash-validations`: resource dedup/hash validation rows
+- `GET /api/resource-quarantine-models`: resource quarantine model artifact
+- `GET /api/resource-quarantine-rules`: 민감/오류/암호화 또는 materialization/대용량/불명확/duplicate hold rule rows
+- `GET /api/resource-quarantine-items`: retrieval/external transfer/output delivery가 차단된 held resource rows
+- `GET /api/resource-quarantine-review-queue`: quarantine release/correction을 위한 pending human review rows
+- `GET /api/resource-quarantine-validations`: resource quarantine validation rows
 - `GET /api/normalized-text-contracts`: normalized text contract artifact
 - `GET /api/normalized-text-artifacts`: source-span-ready normalized text artifact rows
 - `GET /api/normalized-text-location-maps`: page/paragraph/line/char offset maps

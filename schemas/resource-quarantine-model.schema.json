@@ -1,0 +1,323 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-quarantine-model.schema.json",
+  "title": "Hermes Resource Quarantine Model",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "resource_quarantine_model_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "quarantine_contract",
+    "quarantine_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "resource-quarantine-model.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "resource_quarantine_model_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_expansion_path",
+        "resource_ingest_path",
+        "resource_store_interface_path",
+        "resource_dedup_hash_ledger_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "resource_expansion_path": { "type": "string" },
+        "resource_ingest_path": { "type": "string" },
+        "resource_store_interface_path": { "type": "string" },
+        "resource_dedup_hash_ledger_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "quarantine_contract": { "$ref": "#/$defs/quarantine_contract" },
+    "quarantine_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "quarantine_rules",
+        "quarantine_items",
+        "quarantine_review_queue"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-quarantine-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "quarantine_rules": { "type": "array", "items": { "$ref": "#/$defs/quarantine_rule" } },
+        "quarantine_items": { "type": "array", "items": { "$ref": "#/$defs/quarantine_item" } },
+        "quarantine_review_queue": { "type": "array", "items": { "$ref": "#/$defs/quarantine_review_item" } }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "quarantine_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "quarantine_model_contract_id",
+        "generated_at",
+        "required_categories",
+        "hold_rule",
+        "release_rule",
+        "mutation_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-quarantine-contract.v1" },
+        "quarantine_model_contract_id": { "const": "resource-quarantine-model.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_categories": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "sensitive_data",
+              "extraction_error",
+              "encrypted_or_materialization_required",
+              "oversized_file",
+              "ambiguous_matter_or_type",
+              "duplicate_or_hash_hold"
+            ]
+          },
+          "minItems": 6
+        },
+        "hold_rule": { "type": "string" },
+        "release_rule": { "type": "string" },
+        "mutation_rule": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "quarantine_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "quarantine_rule_id",
+        "category",
+        "trigger_statuses",
+        "trigger_reasons",
+        "default_hold_status",
+        "retrieval_allowed",
+        "external_transfer_allowed",
+        "auto_release_allowed",
+        "human_review_required",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-quarantine-rule.v1" },
+        "quarantine_rule_id": { "type": "string" },
+        "category": { "$ref": "#/$defs/category" },
+        "trigger_statuses": { "type": "array", "items": { "type": "string" } },
+        "trigger_reasons": { "type": "array", "items": { "type": "string" } },
+        "default_hold_status": { "const": "held_for_human_review" },
+        "retrieval_allowed": { "const": false },
+        "external_transfer_allowed": { "const": false },
+        "auto_release_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "generated_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "quarantine_item": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "quarantine_item_id",
+        "source_kind",
+        "source_refs",
+        "hold_reasons",
+        "hold_categories",
+        "data_classification",
+        "hold_status",
+        "retrieval_allowed",
+        "external_transfer_allowed",
+        "output_delivery_allowed",
+        "auto_release_allowed",
+        "human_review_required",
+        "hold_severity",
+        "release_requirements",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-quarantine-item.v1" },
+        "quarantine_item_id": { "type": "string" },
+        "resource_id": { "type": ["string", "null"] },
+        "resource_version_id": { "type": ["string", "null"] },
+        "source_kind": { "type": "string" },
+        "source_refs": { "type": "object" },
+        "hold_reasons": { "type": "array", "items": { "$ref": "#/$defs/hold_reason" }, "minItems": 1 },
+        "hold_categories": { "type": "array", "items": { "$ref": "#/$defs/category" }, "minItems": 1 },
+        "data_classification": { "type": "string" },
+        "matter_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "source_path": { "type": ["string", "null"] },
+        "relative_path": { "type": ["string", "null"] },
+        "size_bytes": { "type": ["integer", "null"], "minimum": 0 },
+        "content_hash": { "type": ["string", "null"] },
+        "hold_status": { "const": "held_for_human_review" },
+        "retrieval_allowed": { "const": false },
+        "external_transfer_allowed": { "const": false },
+        "output_delivery_allowed": { "const": false },
+        "auto_release_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "hold_severity": { "enum": ["low", "medium", "high", "critical"] },
+        "release_requirements": { "type": "array", "items": { "type": "string" }, "contains": { "const": "manual_release_receipt" } },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "hold_reason": {
+      "type": "object",
+      "required": ["schema_version", "category", "reason_code", "severity"],
+      "properties": {
+        "schema_version": { "const": "resource-quarantine-hold-reason.v1" },
+        "category": { "$ref": "#/$defs/category" },
+        "reason_code": { "type": "string" },
+        "severity": { "enum": ["low", "medium", "high", "critical"] }
+      },
+      "additionalProperties": true
+    },
+    "quarantine_review_item": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "review_item_id",
+        "quarantine_item_id",
+        "review_status",
+        "required_reviewer_role",
+        "required_actions",
+        "blocked_actions",
+        "human_review_required",
+        "auto_release_allowed",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-quarantine-review-item.v1" },
+        "review_item_id": { "type": "string" },
+        "quarantine_item_id": { "type": "string" },
+        "resource_id": { "type": ["string", "null"] },
+        "resource_version_id": { "type": ["string", "null"] },
+        "review_status": { "const": "pending_human_review" },
+        "required_reviewer_role": { "type": "string" },
+        "required_actions": { "type": "array", "items": { "type": "string" } },
+        "blocked_actions": { "type": "array", "items": { "type": "string" } },
+        "human_review_required": { "const": true },
+        "auto_release_allowed": { "const": false },
+        "created_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "resource_quarantine_status",
+        "quarantine_contract_id",
+        "quarantine_rule_count",
+        "required_quarantine_category_count",
+        "quarantine_item_count",
+        "review_queue_item_count",
+        "pending_human_review_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "resource_quarantine_status": { "enum": ["complete", "blocked"] },
+        "quarantine_contract_id": { "const": "resource-quarantine-model.v1" },
+        "source_expansion_item_count": { "type": "integer", "minimum": 0 },
+        "source_sensitive_item_count": { "type": "integer", "minimum": 0 },
+        "source_failed_item_count": { "type": "integer", "minimum": 0 },
+        "source_quarantined_item_count": { "type": "integer", "minimum": 0 },
+        "source_ambiguous_item_count": { "type": "integer", "minimum": 0 },
+        "source_dedup_review_decision_count": { "type": "integer", "minimum": 0 },
+        "quarantine_rule_count": { "type": "integer", "minimum": 0 },
+        "required_quarantine_category_count": { "type": "integer", "minimum": 0 },
+        "quarantine_item_count": { "type": "integer", "minimum": 0 },
+        "sensitive_hold_count": { "type": "integer", "minimum": 0 },
+        "extraction_error_hold_count": { "type": "integer", "minimum": 0 },
+        "encrypted_or_materialization_hold_count": { "type": "integer", "minimum": 0 },
+        "oversized_hold_count": { "type": "integer", "minimum": 0 },
+        "ambiguous_hold_count": { "type": "integer", "minimum": 0 },
+        "duplicate_or_hash_hold_count": { "type": "integer", "minimum": 0 },
+        "critical_hold_count": { "type": "integer", "minimum": 0 },
+        "high_hold_count": { "type": "integer", "minimum": 0 },
+        "medium_hold_count": { "type": "integer", "minimum": 0 },
+        "retrieval_blocked_count": { "type": "integer", "minimum": 0 },
+        "external_transfer_blocked_count": { "type": "integer", "minimum": 0 },
+        "output_delivery_blocked_count": { "type": "integer", "minimum": 0 },
+        "auto_release_allowed_count": { "type": "integer", "minimum": 0 },
+        "review_queue_item_count": { "type": "integer", "minimum": 0 },
+        "pending_human_review_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "category": {
+      "enum": [
+        "sensitive_data",
+        "extraction_error",
+        "encrypted_or_materialization_required",
+        "oversized_file",
+        "ambiguous_matter_or_type",
+        "duplicate_or_hash_hold"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

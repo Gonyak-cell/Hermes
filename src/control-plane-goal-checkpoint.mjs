@@ -35,6 +35,7 @@ const GOAL_ITEMS = [
   sourceItem("immutable_object_store_layout", "Immutable object store layout", "resource_evidence", "immutable_object_store_layout", "control-plane-immutable-object-store-layout", { acceptance_profile: "immutable_object_store_layout_gate" }),
   sourceItem("resource_version_ledger", "Resource version ledger", "resource_evidence", "resource_version_ledger", "control-plane-resource-version-ledger", { acceptance_profile: "resource_version_ledger_gate" }),
   sourceItem("resource_dedup_hash_ledger", "Resource dedup/hash ledger", "resource_evidence", "resource_dedup_hash_ledger", "control-plane-resource-dedup-hash-ledger", { acceptance_profile: "resource_dedup_hash_gate" }),
+  sourceItem("resource_quarantine_model", "Resource quarantine model", "resource_evidence", "resource_quarantine_model", "control-plane-resource-quarantine-model", { acceptance_profile: "resource_quarantine_gate" }),
   sourceItem("normalized_text_contract", "Normalized text contract", "resource_evidence", "normalized_text_contract", "control-plane-normalized-text-contract", { acceptance_profile: "normalized_text_contract_gate" }),
   sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
   sourceItem("source_span_store", "Source span store", "resource_evidence", "source_span_store", "control-plane-source-span-store", { acceptance_profile: "source_span_store_gate" }),
@@ -393,6 +394,7 @@ function evaluateStageAcceptance(item, stage) {
     "immutable_object_store_layout_gate",
     "resource_version_ledger_gate",
     "resource_dedup_hash_gate",
+    "resource_quarantine_gate",
     "normalized_text_contract_gate",
     "extractor_adapter_contract_gate",
     "source_span_store_gate",
@@ -701,6 +703,27 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.failed_hash_integrity_check_count ?? -1) === 0
     ) {
       return passedWithOperationalGate(stage, "Resource dedup/hash ledger classifies resources by content hash, external id, and version criteria without allowing destructive mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "resource_quarantine_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const itemCount = metrics.quarantine_item_count ?? 0;
+    if (
+      errors === 0
+      && metrics.resource_quarantine_status === "complete"
+      && (metrics.quarantine_rule_count ?? 0) >= 6
+      && itemCount > 0
+      && (metrics.review_queue_item_count ?? 0) === itemCount
+      && (metrics.pending_human_review_count ?? 0) === itemCount
+      && (metrics.retrieval_blocked_count ?? 0) === itemCount
+      && (metrics.external_transfer_blocked_count ?? 0) === itemCount
+      && (metrics.output_delivery_blocked_count ?? 0) === itemCount
+      && (metrics.auto_release_allowed_count ?? -1) === 0
+      && (metrics.sensitive_hold_count ?? 0) >= (metrics.source_sensitive_item_count ?? 0)
+      && (metrics.ambiguous_hold_count ?? 0) >= (metrics.source_ambiguous_item_count ?? 0)
+    ) {
+      return passedWithOperationalGate(stage, "Resource quarantine model holds sensitive, ambiguous, failed, oversized, encrypted/materialization, and duplicate/hash-review resources behind manual human release.");
     }
   }
 

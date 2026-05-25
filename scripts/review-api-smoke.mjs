@@ -1818,6 +1818,26 @@ try {
   assert.equal(resourceDedupHashValidations.collection, "resource_dedup_hash_validations");
   assert.ok(resourceDedupHashValidations.count <= 5);
 
+  const resourceQuarantineModels = await fetchJson(`${url}/api/resource-quarantine-models?resource_quarantine_status=complete&limit=1`);
+  assert.equal(resourceQuarantineModels.collection, "resource_quarantine_models");
+  assert.ok(resourceQuarantineModels.count <= 1);
+
+  const resourceQuarantineRules = await fetchJson(`${url}/api/resource-quarantine-rules?category=sensitive_data&limit=5`);
+  assert.equal(resourceQuarantineRules.collection, "resource_quarantine_rules");
+  assert.ok(resourceQuarantineRules.count <= 5);
+
+  const resourceQuarantineItems = await fetchJson(`${url}/api/resource-quarantine-items?quarantine_item_status=held_for_human_review&limit=5`);
+  assert.equal(resourceQuarantineItems.collection, "resource_quarantine_items");
+  assert.ok(resourceQuarantineItems.count <= 5);
+
+  const resourceQuarantineReviewQueue = await fetchJson(`${url}/api/resource-quarantine-review-queue?review_status=pending_human_review&limit=5`);
+  assert.equal(resourceQuarantineReviewQueue.collection, "resource_quarantine_review_queue");
+  assert.ok(resourceQuarantineReviewQueue.count <= 5);
+
+  const resourceQuarantineValidations = await fetchJson(`${url}/api/resource-quarantine-validations?status=passed&limit=5`);
+  assert.equal(resourceQuarantineValidations.collection, "resource_quarantine_validations");
+  assert.ok(resourceQuarantineValidations.count <= 5);
+
   const normalizedTextContracts = await fetchJson(`${url}/api/normalized-text-contracts?normalized_text_contract_status=complete&limit=1`);
   assert.equal(normalizedTextContracts.collection, "normalized_text_contracts");
   assert.ok(normalizedTextContracts.count <= 1);

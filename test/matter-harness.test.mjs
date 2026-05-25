@@ -29,6 +29,7 @@ import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
 import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-layout.mjs";
 import { runResourceVersionLedger } from "../src/resource-version-ledger.mjs";
 import { runResourceDedupHashLedger } from "../src/resource-dedup-hash-ledger.mjs";
+import { runResourceQuarantineModel } from "../src/resource-quarantine-model.mjs";
 import { runNormalizedTextContract } from "../src/normalized-text-contract.mjs";
 import { runExtractorAdapterContract } from "../src/extractor-adapter-contract.mjs";
 import { runSourceSpanStore } from "../src/source-span-store.mjs";
@@ -1660,6 +1661,7 @@ describe("matter harness", () => {
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
         resourceDedupHashLedgerPath: path.join(outDir, "resource-dedup-hash", "resource-dedup-hash-ledger.json"),
+        resourceQuarantineModelPath: path.join(outDir, "resource-quarantine", "resource-quarantine-model.json"),
         normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
         extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
         sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
@@ -3889,6 +3891,55 @@ describe("matter harness", () => {
       assert.ok(resourceDedupHashLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "resource-dedup-hash", "summary.md"), "utf8"), /Resource Dedup\/Hash Ledger/);
 
+      const resourceQuarantineModel = await runResourceQuarantineModel({
+        resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        resourceDedupHashLedgerPath: path.join(outDir, "resource-dedup-hash", "resource-dedup-hash-ledger.json"),
+        outDir: path.join(outDir, "resource-quarantine"),
+        runAt: "2026-05-23T06:35:07.951Z",
+      });
+      const resourceQuarantineModelSchema = JSON.parse(await readFile("schemas/resource-quarantine-model.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(resourceQuarantineModel, resourceQuarantineModelSchema, {}, "resource_quarantine_model"),
+        [],
+      );
+      assert.equal(resourceQuarantineModel.summary.resource_quarantine_status, "complete");
+      assert.equal(resourceQuarantineModel.summary.quarantine_contract_id, "resource-quarantine-model.v1");
+      assert.equal(resourceQuarantineModel.summary.quarantine_rule_count, 6);
+      assert.equal(resourceQuarantineModel.summary.required_quarantine_category_count, 6);
+      assert.equal(resourceQuarantineModel.summary.source_expansion_item_count, second.summary.discovered_count);
+      assert.equal(resourceQuarantineModel.summary.source_sensitive_item_count, 1);
+      assert.equal(resourceQuarantineModel.summary.sensitive_hold_count, resourceQuarantineModel.summary.source_sensitive_item_count);
+      assert.ok(resourceQuarantineModel.summary.ambiguous_hold_count >= resourceQuarantineModel.summary.source_ambiguous_item_count);
+      assert.equal(resourceQuarantineModel.summary.quarantine_item_count, resourceQuarantineModel.summary.review_queue_item_count);
+      assert.equal(resourceQuarantineModel.summary.pending_human_review_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(resourceQuarantineModel.summary.retrieval_blocked_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(resourceQuarantineModel.summary.external_transfer_blocked_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(resourceQuarantineModel.summary.output_delivery_blocked_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(resourceQuarantineModel.summary.auto_release_allowed_count, 0);
+      assert.equal(resourceQuarantineModel.summary.validation_error_count, 0);
+      assert.deepEqual(
+        new Set(resourceQuarantineModel.quarantine_catalog.quarantine_rules.map((rule) => rule.category)),
+        new Set(["sensitive_data", "extraction_error", "encrypted_or_materialization_required", "oversized_file", "ambiguous_matter_or_type", "duplicate_or_hash_hold"]),
+      );
+      assert.ok(resourceQuarantineModel.quarantine_catalog.quarantine_items.every((item) => (
+        item.hold_status === "held_for_human_review"
+        && item.retrieval_allowed === false
+        && item.external_transfer_allowed === false
+        && item.output_delivery_allowed === false
+        && item.auto_release_allowed === false
+        && item.human_review_required === true
+        && item.release_requirements.includes("manual_release_receipt")
+      )));
+      assert.ok(resourceQuarantineModel.quarantine_catalog.quarantine_review_queue.every((item) => (
+        item.review_status === "pending_human_review"
+        && item.human_review_required === true
+        && item.auto_release_allowed === false
+      )));
+      assert.ok(resourceQuarantineModel.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "resource-quarantine", "summary.md"), "utf8"), /Resource Quarantine Model/);
+
       const normalizedTextContract = await runNormalizedTextContract({
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
@@ -4526,6 +4577,7 @@ describe("matter harness", () => {
           immutable_object_store_layout: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
           resource_version_ledger: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
           resource_dedup_hash_ledger: path.join(outDir, "resource-dedup-hash", "resource-dedup-hash-ledger.json"),
+          resource_quarantine_model: path.join(outDir, "resource-quarantine", "resource-quarantine-model.json"),
           normalized_text_contract: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
           extractor_adapter_contract: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
           source_span_store: path.join(outDir, "source-span-store", "source-span-store.json"),
@@ -4567,8 +4619,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 54);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 54);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 55);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 55);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4597,6 +4649,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "immutable_object_store_layout"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_version_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_dedup_hash_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_quarantine_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "normalized_text_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_store"));
@@ -4660,6 +4713,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:retrieval-filters"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:vector-policy"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:dedup-hash"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:quarantine"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4813,6 +4867,10 @@ describe("matter harness", () => {
       assert.equal(resourceDedupHashLedgerCheckpoint?.acceptance_profile, "resource_dedup_hash_gate");
       assert.equal(resourceDedupHashLedgerCheckpoint?.status, "passed");
       assert.equal(resourceDedupHashLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const resourceQuarantineModelCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-quarantine-model");
+      assert.equal(resourceQuarantineModelCheckpoint?.acceptance_profile, "resource_quarantine_gate");
+      assert.equal(resourceQuarantineModelCheckpoint?.status, "passed");
+      assert.equal(resourceQuarantineModelCheckpoint?.implementation_status, "passed_with_operational_gate");
       const normalizedTextContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-normalized-text-contract");
       assert.equal(normalizedTextContractCheckpoint?.acceptance_profile, "normalized_text_contract_gate");
       assert.equal(normalizedTextContractCheckpoint?.status, "passed");
@@ -5643,6 +5701,20 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.resource_dedup_hash_hash_integrity_check_count, resourceDedupHashLedger.summary.hash_integrity_check_count);
       assert.equal(dashboard.summary.resource_dedup_hash_failed_hash_integrity_check_count, 0);
       assert.equal(dashboard.summary.resource_dedup_hash_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_quarantine_status, "complete");
+      assert.equal(dashboard.summary.resource_quarantine_contract_id, "resource-quarantine-model.v1");
+      assert.equal(dashboard.summary.resource_quarantine_rule_count, resourceQuarantineModel.summary.quarantine_rule_count);
+      assert.equal(dashboard.summary.resource_quarantine_required_category_count, 6);
+      assert.equal(dashboard.summary.resource_quarantine_item_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(dashboard.summary.resource_quarantine_sensitive_hold_count, resourceQuarantineModel.summary.sensitive_hold_count);
+      assert.equal(dashboard.summary.resource_quarantine_ambiguous_hold_count, resourceQuarantineModel.summary.ambiguous_hold_count);
+      assert.equal(dashboard.summary.resource_quarantine_retrieval_blocked_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(dashboard.summary.resource_quarantine_external_transfer_blocked_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(dashboard.summary.resource_quarantine_output_delivery_blocked_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(dashboard.summary.resource_quarantine_auto_release_allowed_count, 0);
+      assert.equal(dashboard.summary.resource_quarantine_review_queue_item_count, resourceQuarantineModel.summary.review_queue_item_count);
+      assert.equal(dashboard.summary.resource_quarantine_pending_human_review_count, resourceQuarantineModel.summary.quarantine_item_count);
+      assert.equal(dashboard.summary.resource_quarantine_validation_error_count, 0);
       assert.equal(dashboard.summary.normalized_text_contract_status, "complete");
       assert.equal(dashboard.summary.normalized_text_contract_id, "normalized-text-artifact.v1");
       assert.equal(dashboard.summary.normalized_text_source_count, normalizedTextContract.summary.source_normalized_text_count);
@@ -6495,6 +6567,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "immutable_object_store_layout"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_version_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_dedup_hash_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_quarantine_model"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "normalized_text_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "extractor_adapter_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "source_span_store"));
@@ -6618,6 +6691,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-duplicate-candidate-links"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-hash-integrity-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-dedup-hash-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-quarantine-models"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-quarantine-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-quarantine-items"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-quarantine-review-queue"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-quarantine-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-artifacts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-location-maps"));
@@ -8542,6 +8620,26 @@ describe("matter harness", () => {
       const resourceDedupHashValidations = JSON.parse((await buildReviewApiResponse("/api/resource-dedup-hash-validations?status=passed", apiOptions)).body);
       assert.equal(resourceDedupHashValidations.collection, "resource_dedup_hash_validations");
       assert.equal(resourceDedupHashValidations.count, resourceDedupHashLedger.summary.validation_item_count);
+
+      const resourceQuarantineModels = JSON.parse((await buildReviewApiResponse("/api/resource-quarantine-models?resource_quarantine_status=complete", apiOptions)).body);
+      assert.equal(resourceQuarantineModels.collection, "resource_quarantine_models");
+      assert.equal(resourceQuarantineModels.count, 1);
+
+      const resourceQuarantineRules = JSON.parse((await buildReviewApiResponse("/api/resource-quarantine-rules?category=sensitive_data", apiOptions)).body);
+      assert.equal(resourceQuarantineRules.collection, "resource_quarantine_rules");
+      assert.equal(resourceQuarantineRules.count, 1);
+
+      const resourceQuarantineItems = JSON.parse((await buildReviewApiResponse("/api/resource-quarantine-items?quarantine_item_status=held_for_human_review", apiOptions)).body);
+      assert.equal(resourceQuarantineItems.collection, "resource_quarantine_items");
+      assert.equal(resourceQuarantineItems.count, resourceQuarantineModel.summary.quarantine_item_count);
+
+      const resourceQuarantineReviewQueue = JSON.parse((await buildReviewApiResponse("/api/resource-quarantine-review-queue?review_status=pending_human_review", apiOptions)).body);
+      assert.equal(resourceQuarantineReviewQueue.collection, "resource_quarantine_review_queue");
+      assert.equal(resourceQuarantineReviewQueue.count, resourceQuarantineModel.summary.review_queue_item_count);
+
+      const resourceQuarantineValidations = JSON.parse((await buildReviewApiResponse("/api/resource-quarantine-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceQuarantineValidations.collection, "resource_quarantine_validations");
+      assert.equal(resourceQuarantineValidations.count, resourceQuarantineModel.summary.validation_item_count);
 
       const normalizedTextContracts = JSON.parse((await buildReviewApiResponse("/api/normalized-text-contracts?normalized_text_contract_status=complete", apiOptions)).body);
       assert.equal(normalizedTextContracts.collection, "normalized_text_contracts");

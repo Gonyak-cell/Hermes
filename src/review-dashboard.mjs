@@ -27,6 +27,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   immutableObjectStoreLayoutPath: "artifacts/immutable-object-store-layout/latest/immutable-object-store-layout.json",
   resourceVersionLedgerPath: "artifacts/resource-version-ledger/latest/resource-version-ledger.json",
   resourceDedupHashLedgerPath: "artifacts/resource-dedup-hash/latest/resource-dedup-hash-ledger.json",
+  resourceQuarantineModelPath: "artifacts/resource-quarantine/latest/resource-quarantine-model.json",
   normalizedTextContractPath: "artifacts/normalized-text-contract/latest/normalized-text-contract.json",
   extractorAdapterContractPath: "artifacts/extractor-adapter-contract/latest/extractor-adapter-contract.json",
   sourceSpanStorePath: "artifacts/source-span-store/latest/source-span-store.json",
@@ -266,6 +267,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceDedupHashLedgerPath",
     source_id: "resource_dedup_hash_ledger",
     label: "Resource Dedup/Hash Ledger",
+  },
+  {
+    option: "resourceQuarantineModelPath",
+    source_id: "resource_quarantine_model",
+    label: "Resource Quarantine Model",
   },
   {
     option: "normalizedTextContractPath",
@@ -1238,6 +1244,7 @@ function buildStageStatuses(artifacts, sources) {
     buildImmutableObjectStoreLayoutStage(artifacts.immutable_object_store_layout, sourceById.get("immutable_object_store_layout")),
     buildResourceVersionLedgerStage(artifacts.resource_version_ledger, sourceById.get("resource_version_ledger")),
     buildResourceDedupHashLedgerStage(artifacts.resource_dedup_hash_ledger, sourceById.get("resource_dedup_hash_ledger")),
+    buildResourceQuarantineModelStage(artifacts.resource_quarantine_model, sourceById.get("resource_quarantine_model")),
     buildNormalizedTextContractStage(artifacts.normalized_text_contract, sourceById.get("normalized_text_contract")),
     buildExtractorAdapterContractStage(artifacts.extractor_adapter_contract, sourceById.get("extractor_adapter_contract")),
     buildSourceSpanStoreStage(artifacts.source_span_store, sourceById.get("source_span_store")),
@@ -2360,6 +2367,63 @@ function buildResourceDedupHashLedgerStage(ledger, source) {
       hash_integrity_check_count: summary.hash_integrity_check_count ?? 0,
       passed_hash_integrity_check_count: summary.passed_hash_integrity_check_count ?? 0,
       failed_hash_integrity_check_count: summary.failed_hash_integrity_check_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildResourceQuarantineModelStage(model, source) {
+  if (!model) return missingStage("resource_quarantine_model", "Resource Quarantine Model", source);
+  const summary = model.summary ?? {};
+  const errorCount = summary.validation_error_count ?? model.validation?.errors?.length ?? 0;
+  const itemCount = summary.quarantine_item_count ?? 0;
+  const status = summary.resource_quarantine_status === "complete"
+    && errorCount === 0
+    && (summary.quarantine_rule_count ?? 0) >= 6
+    && itemCount > 0
+    && (summary.review_queue_item_count ?? 0) === itemCount
+    && (summary.pending_human_review_count ?? 0) === itemCount
+    && (summary.retrieval_blocked_count ?? 0) === itemCount
+    && (summary.external_transfer_blocked_count ?? 0) === itemCount
+    && (summary.output_delivery_blocked_count ?? 0) === itemCount
+    && (summary.auto_release_allowed_count ?? -1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "resource_quarantine_model",
+    label: "Resource Quarantine Model",
+    status,
+    message: `${summary.quarantine_item_count ?? 0} held item(s), ${summary.review_queue_item_count ?? 0} review queue item(s), ${summary.quarantine_rule_count ?? 0} rule(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resource_quarantine_status: summary.resource_quarantine_status ?? "unknown",
+      quarantine_contract_id: summary.quarantine_contract_id ?? null,
+      source_expansion_item_count: summary.source_expansion_item_count ?? 0,
+      source_sensitive_item_count: summary.source_sensitive_item_count ?? 0,
+      source_failed_item_count: summary.source_failed_item_count ?? 0,
+      source_quarantined_item_count: summary.source_quarantined_item_count ?? 0,
+      source_ambiguous_item_count: summary.source_ambiguous_item_count ?? 0,
+      source_dedup_review_decision_count: summary.source_dedup_review_decision_count ?? 0,
+      quarantine_rule_count: summary.quarantine_rule_count ?? 0,
+      required_quarantine_category_count: summary.required_quarantine_category_count ?? 0,
+      quarantine_item_count: itemCount,
+      sensitive_hold_count: summary.sensitive_hold_count ?? 0,
+      extraction_error_hold_count: summary.extraction_error_hold_count ?? 0,
+      encrypted_or_materialization_hold_count: summary.encrypted_or_materialization_hold_count ?? 0,
+      oversized_hold_count: summary.oversized_hold_count ?? 0,
+      ambiguous_hold_count: summary.ambiguous_hold_count ?? 0,
+      duplicate_or_hash_hold_count: summary.duplicate_or_hash_hold_count ?? 0,
+      critical_hold_count: summary.critical_hold_count ?? 0,
+      high_hold_count: summary.high_hold_count ?? 0,
+      medium_hold_count: summary.medium_hold_count ?? 0,
+      retrieval_blocked_count: summary.retrieval_blocked_count ?? 0,
+      external_transfer_blocked_count: summary.external_transfer_blocked_count ?? 0,
+      output_delivery_blocked_count: summary.output_delivery_blocked_count ?? 0,
+      auto_release_allowed_count: summary.auto_release_allowed_count ?? 0,
+      review_queue_item_count: summary.review_queue_item_count ?? 0,
+      pending_human_review_count: summary.pending_human_review_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9176,6 +9240,30 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_dedup_hash_passed_hash_integrity_check_count: artifacts.resource_dedup_hash_ledger?.summary?.passed_hash_integrity_check_count ?? 0,
     resource_dedup_hash_failed_hash_integrity_check_count: artifacts.resource_dedup_hash_ledger?.summary?.failed_hash_integrity_check_count ?? 0,
     resource_dedup_hash_validation_error_count: artifacts.resource_dedup_hash_ledger?.summary?.validation_error_count ?? artifacts.resource_dedup_hash_ledger?.validation?.errors?.length ?? 0,
+    resource_quarantine_status: artifacts.resource_quarantine_model?.summary?.resource_quarantine_status ?? "unknown",
+    resource_quarantine_contract_id: artifacts.resource_quarantine_model?.summary?.quarantine_contract_id ?? null,
+    resource_quarantine_source_expansion_item_count: artifacts.resource_quarantine_model?.summary?.source_expansion_item_count ?? 0,
+    resource_quarantine_source_sensitive_item_count: artifacts.resource_quarantine_model?.summary?.source_sensitive_item_count ?? 0,
+    resource_quarantine_source_failed_item_count: artifacts.resource_quarantine_model?.summary?.source_failed_item_count ?? 0,
+    resource_quarantine_source_quarantined_item_count: artifacts.resource_quarantine_model?.summary?.source_quarantined_item_count ?? 0,
+    resource_quarantine_source_ambiguous_item_count: artifacts.resource_quarantine_model?.summary?.source_ambiguous_item_count ?? 0,
+    resource_quarantine_source_dedup_review_decision_count: artifacts.resource_quarantine_model?.summary?.source_dedup_review_decision_count ?? 0,
+    resource_quarantine_rule_count: artifacts.resource_quarantine_model?.summary?.quarantine_rule_count ?? 0,
+    resource_quarantine_required_category_count: artifacts.resource_quarantine_model?.summary?.required_quarantine_category_count ?? 0,
+    resource_quarantine_item_count: artifacts.resource_quarantine_model?.summary?.quarantine_item_count ?? 0,
+    resource_quarantine_sensitive_hold_count: artifacts.resource_quarantine_model?.summary?.sensitive_hold_count ?? 0,
+    resource_quarantine_extraction_error_hold_count: artifacts.resource_quarantine_model?.summary?.extraction_error_hold_count ?? 0,
+    resource_quarantine_encrypted_or_materialization_hold_count: artifacts.resource_quarantine_model?.summary?.encrypted_or_materialization_hold_count ?? 0,
+    resource_quarantine_oversized_hold_count: artifacts.resource_quarantine_model?.summary?.oversized_hold_count ?? 0,
+    resource_quarantine_ambiguous_hold_count: artifacts.resource_quarantine_model?.summary?.ambiguous_hold_count ?? 0,
+    resource_quarantine_duplicate_or_hash_hold_count: artifacts.resource_quarantine_model?.summary?.duplicate_or_hash_hold_count ?? 0,
+    resource_quarantine_retrieval_blocked_count: artifacts.resource_quarantine_model?.summary?.retrieval_blocked_count ?? 0,
+    resource_quarantine_external_transfer_blocked_count: artifacts.resource_quarantine_model?.summary?.external_transfer_blocked_count ?? 0,
+    resource_quarantine_output_delivery_blocked_count: artifacts.resource_quarantine_model?.summary?.output_delivery_blocked_count ?? 0,
+    resource_quarantine_auto_release_allowed_count: artifacts.resource_quarantine_model?.summary?.auto_release_allowed_count ?? 0,
+    resource_quarantine_review_queue_item_count: artifacts.resource_quarantine_model?.summary?.review_queue_item_count ?? 0,
+    resource_quarantine_pending_human_review_count: artifacts.resource_quarantine_model?.summary?.pending_human_review_count ?? 0,
+    resource_quarantine_validation_error_count: artifacts.resource_quarantine_model?.summary?.validation_error_count ?? artifacts.resource_quarantine_model?.validation?.errors?.length ?? 0,
     normalized_text_contract_status: artifacts.normalized_text_contract?.summary?.normalized_text_contract_status ?? "unknown",
     normalized_text_contract_id: artifacts.normalized_text_contract?.summary?.normalized_text_contract_id ?? null,
     normalized_text_source_count: artifacts.normalized_text_contract?.summary?.source_normalized_text_count ?? 0,
@@ -10910,6 +10998,8 @@ function parseArgs(argv) {
     else if (arg === "--no-resource-version-ledger") parsed.resourceVersionLedgerPath = false;
     else if (arg === "--resource-dedup-hash") parsed.resourceDedupHashLedgerPath = argv[++index];
     else if (arg === "--no-resource-dedup-hash") parsed.resourceDedupHashLedgerPath = false;
+    else if (arg === "--resource-quarantine") parsed.resourceQuarantineModelPath = argv[++index];
+    else if (arg === "--no-resource-quarantine") parsed.resourceQuarantineModelPath = false;
     else if (arg === "--normalized-text-contract") parsed.normalizedTextContractPath = argv[++index];
     else if (arg === "--no-normalized-text-contract") parsed.normalizedTextContractPath = false;
     else if (arg === "--extractor-adapter-contract") parsed.extractorAdapterContractPath = argv[++index];
@@ -11213,6 +11303,8 @@ Options:
   --no-resource-version-ledger    Do not include Resource Version Ledger status.
   --resource-dedup-hash <path>    resource-dedup-hash-ledger.json path.
   --no-resource-dedup-hash        Do not include Resource Dedup/Hash Ledger status.
+  --resource-quarantine <path>    resource-quarantine-model.json path.
+  --no-resource-quarantine        Do not include Resource Quarantine Model status.
   --normalized-text-contract <path>
                                   normalized-text-contract.json path.
   --no-normalized-text-contract   Do not include Normalized Text Contract status.

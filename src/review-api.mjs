@@ -374,6 +374,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("resource_dedup_hash_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/resource-quarantine-models") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "resource_quarantine_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("resource_quarantine_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_quarantine_models", [modelResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-quarantine-rules") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "resource_quarantine_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("resource_quarantine_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_quarantine_rules", modelResult.artifact.quarantine_catalog?.quarantine_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-quarantine-items") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "resource_quarantine_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("resource_quarantine_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_quarantine_items", modelResult.artifact.quarantine_catalog?.quarantine_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-quarantine-review-queue") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "resource_quarantine_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("resource_quarantine_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_quarantine_review_queue", modelResult.artifact.quarantine_catalog?.quarantine_review_queue ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-quarantine-validations") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "resource_quarantine_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("resource_quarantine_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_quarantine_validations", modelResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/normalized-text-contracts") {
     const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
     if (!contractResult.available) {
@@ -5240,6 +5275,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-duplicate-candidate-links", "Resource duplicate candidate dedup links"),
       route("GET", "/api/resource-hash-integrity-checks", "Resource hash integrity checks"),
       route("GET", "/api/resource-dedup-hash-validations", "Resource dedup/hash validation rows"),
+      route("GET", "/api/resource-quarantine-models", "Resource quarantine model artifacts"),
+      route("GET", "/api/resource-quarantine-rules", "Resource quarantine rule rows"),
+      route("GET", "/api/resource-quarantine-items", "Resource quarantine held item rows"),
+      route("GET", "/api/resource-quarantine-review-queue", "Resource quarantine pending review queue"),
+      route("GET", "/api/resource-quarantine-validations", "Resource quarantine validation rows"),
       route("GET", "/api/normalized-text-contracts", "Normalized text contract artifacts"),
       route("GET", "/api/normalized-text-artifacts", "Normalized text artifacts"),
       route("GET", "/api/normalized-text-location-maps", "Normalized text location maps"),
@@ -5788,6 +5828,7 @@ function filterItems(items, searchParams) {
     "status",
     "evidence_item_store_status",
     "resource_dedup_hash_status",
+    "resource_quarantine_status",
     "hash_group_id",
     "group_status",
     "external_id_group_id",
@@ -5796,6 +5837,13 @@ function filterItems(items, searchParams) {
     "decision_scope",
     "hash_integrity_check_id",
     "integrity_status",
+    "quarantine_rule_id",
+    "quarantine_item_id",
+    "quarantine_item_status",
+    "category",
+    "hold_status",
+    "hold_severity",
+    "review_status",
     "evidence_golden_fixture_status",
     "evidence_golden_case_id",
     "fixture_group",
@@ -6712,6 +6760,9 @@ function readFilterValue(item, key) {
   if (key === "object_store_layout_status") return item.summary?.object_store_layout_status ?? item.object_store_layout_status;
   if (key === "resource_version_ledger_status") return item.summary?.resource_version_ledger_status ?? item.resource_version_ledger_status;
   if (key === "resource_dedup_hash_status") return item.summary?.resource_dedup_hash_status ?? item.resource_dedup_hash_status;
+  if (key === "resource_quarantine_status") return item.summary?.resource_quarantine_status ?? item.resource_quarantine_status;
+  if (key === "quarantine_item_status") return item.hold_status ?? item.review_status;
+  if (key === "category") return item.category ?? item.hold_categories;
   if (key === "normalized_text_contract_status") return item.summary?.normalized_text_contract_status ?? item.normalized_text_contract_status;
   if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;

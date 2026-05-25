@@ -819,6 +819,68 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/event-audit-run-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "event_audit_run_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("event_audit_run_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_audit_run_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-record-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "event_audit_run_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("event_audit_run_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_record_v2_contracts", freezeResult.artifact.event_audit_run_contract?.event_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/audit-event-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "event_audit_run_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("event_audit_run_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_event_v2_contracts", freezeResult.artifact.event_audit_run_contract?.audit_events ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/run-ledger-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "event_audit_run_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("event_audit_run_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("run_ledger_v2_contracts", freezeResult.artifact.event_audit_run_contract?.run_ledgers ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-run-bindings") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "event_audit_run_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("event_audit_run_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_run_bindings", freezeResult.artifact.event_audit_run_contract?.event_run_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-audit-run-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "event_audit_run_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("event_audit_run_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_audit_run_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -3268,6 +3330,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/output-delivery-bindings", "Output to delivery binding fixtures"),
       route("GET", "/api/delivery-state-transitions", "Delivery state transition fixtures"),
       route("GET", "/api/output-delivery-contract-validations", "Output/Delivery contract validation rows"),
+      route("GET", "/api/event-audit-run-contract-freezes", "Event/Audit/Run Ledger contract freeze artifacts"),
+      route("GET", "/api/event-record-v2-contracts", "EventRecord v2 contract fixtures"),
+      route("GET", "/api/audit-event-v2-contracts", "AuditEvent v2 contract fixtures"),
+      route("GET", "/api/run-ledger-v2-contracts", "RunLedger v2 contract fixtures"),
+      route("GET", "/api/event-run-bindings", "Event to RunLedger binding fixtures"),
+      route("GET", "/api/event-audit-run-contract-validations", "Event/Audit/Run Ledger contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3700,8 +3768,14 @@ function filterItems(items, searchParams) {
     "run_id",
     "audit_trail_id",
     "audit_status",
+    "event_record_id",
     "audit_event_id",
+    "run_ledger_id",
+    "event_run_binding_id",
+    "source_event_kind",
+    "source_kind",
     "workflow_run_id",
+    "run_status",
     "runtime_id",
     "actor_type",
     "actor_id",
@@ -3709,6 +3783,8 @@ function filterItems(items, searchParams) {
     "event_type",
     "event_category",
     "correlation_id",
+    "policy_snapshot_status",
+    "schema_version_status",
     "protected_action_event",
     "protected_action_executed",
     "cost_type",

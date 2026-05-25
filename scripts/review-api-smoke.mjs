@@ -52,6 +52,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/output-delivery-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/delivery-state-transitions"));
   assert.ok(index.routes.some((route) => route.path === "/api/output-delivery-contract-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-audit-run-contract-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-record-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/audit-event-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/run-ledger-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-run-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-audit-run-contract-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packet-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
@@ -478,6 +484,30 @@ try {
   const deliveryStateTransitions = await fetchJson(`${url}/api/delivery-state-transitions?transition_type=catalog_to_delivery_queue&limit=5`);
   assert.equal(deliveryStateTransitions.collection, "delivery_state_transitions");
   assert.ok(deliveryStateTransitions.count <= 5);
+
+  const eventAuditRunContractFreezes = await fetchJson(`${url}/api/event-audit-run-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(eventAuditRunContractFreezes.collection, "event_audit_run_contract_freezes");
+  assert.ok(eventAuditRunContractFreezes.count <= 1);
+
+  const eventRecordV2Contracts = await fetchJson(`${url}/api/event-record-v2-contracts?policy_snapshot_status=source_declared&limit=5`);
+  assert.equal(eventRecordV2Contracts.collection, "event_record_v2_contracts");
+  assert.ok(eventRecordV2Contracts.count <= 5);
+
+  const auditEventV2Contracts = await fetchJson(`${url}/api/audit-event-v2-contracts?actor_type=human&limit=5`);
+  assert.equal(auditEventV2Contracts.collection, "audit_event_v2_contracts");
+  assert.ok(auditEventV2Contracts.count <= 5);
+
+  const runLedgerV2Contracts = await fetchJson(`${url}/api/run-ledger-v2-contracts?run_status=blocked&limit=5`);
+  assert.equal(runLedgerV2Contracts.collection, "run_ledger_v2_contracts");
+  assert.ok(runLedgerV2Contracts.count <= 5);
+
+  const eventRunBindings = await fetchJson(`${url}/api/event-run-bindings?binding_status=linked&limit=5`);
+  assert.equal(eventRunBindings.collection, "event_run_bindings");
+  assert.ok(eventRunBindings.count <= 5);
+
+  const eventAuditRunContractValidations = await fetchJson(`${url}/api/event-audit-run-contract-validations?status=passed&limit=5`);
+  assert.equal(eventAuditRunContractValidations.collection, "event_audit_run_contract_validations");
+  assert.ok(eventAuditRunContractValidations.count <= 5);
 
   const outputDeliveryContractValidations = await fetchJson(`${url}/api/output-delivery-contract-validations?status=passed&limit=5`);
   assert.equal(outputDeliveryContractValidations.collection, "output_delivery_contract_validations");

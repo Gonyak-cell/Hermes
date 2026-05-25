@@ -13,6 +13,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
+  eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -150,6 +151,11 @@ const SOURCE_DEFINITIONS = [
     option: "outputDeliveryContractFreezePath",
     source_id: "output_delivery_contract_freeze",
     label: "Output Delivery Contract Freeze",
+  },
+  {
+    option: "eventAuditRunContractFreezePath",
+    source_id: "event_audit_run_contract_freeze",
+    label: "Event Audit Run Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -717,6 +723,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
+  if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -903,6 +910,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
+    buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -1361,6 +1369,49 @@ function buildOutputDeliveryContractFreezeStage(freeze, source) {
       pending_receipt_count: summary.pending_receipt_count ?? 0,
       linked_binding_count: summary.linked_binding_count ?? 0,
       attention_binding_count: summary.attention_binding_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildEventAuditRunContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("event_audit_run_contract_freeze", "Event Audit Run Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "event_audit_run_contract_freeze",
+    label: "Event Audit Run Contract Freeze",
+    status,
+    message: `${summary.event_record_count ?? 0} EventRecord v2, ${summary.audit_event_count ?? 0} AuditEvent v2, ${summary.run_ledger_count ?? 0} RunLedger v2; ${summary.correlation_id_count ?? summary.correlation_id_declared_count ?? 0} correlation id(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      event_record_schema_version: summary.event_record_schema_version ?? null,
+      audit_event_schema_version: summary.audit_event_schema_version ?? null,
+      run_ledger_schema_version: summary.run_ledger_schema_version ?? null,
+      event_run_binding_schema_version: summary.event_run_binding_schema_version ?? null,
+      event_record_count: summary.event_record_count ?? 0,
+      audit_event_count: summary.audit_event_count ?? 0,
+      run_ledger_count: summary.run_ledger_count ?? 0,
+      event_run_binding_count: summary.event_run_binding_count ?? 0,
+      linked_event_run_binding_count: summary.linked_event_run_binding_count ?? 0,
+      external_audit_event_count: summary.external_audit_event_count ?? 0,
+      missing_event_run_binding_count: summary.missing_event_run_binding_count ?? 0,
+      correlation_id_count: summary.correlation_id_count ?? summary.correlation_id_declared_count ?? 0,
+      missing_correlation_id_count: summary.missing_correlation_id_count ?? 0,
+      actor_declared_count: summary.actor_declared_count ?? 0,
+      missing_actor_count: summary.missing_actor_count ?? 0,
+      policy_snapshot_declared_count: summary.policy_snapshot_declared_count ?? 0,
+      fallback_policy_snapshot_count: summary.fallback_policy_snapshot_count ?? 0,
+      missing_policy_snapshot_count: summary.missing_policy_snapshot_count ?? 0,
+      source_schema_version_declared_count: summary.source_schema_version_declared_count ?? 0,
+      run_with_event_count: summary.run_with_event_count ?? 0,
+      run_with_agent_count: summary.run_with_agent_count ?? 0,
+      run_with_policy_snapshot_count: summary.run_with_policy_snapshot_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
@@ -5630,6 +5681,26 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     output_delivery_contract_freeze_attention_binding_count: artifacts.output_delivery_contract_freeze?.summary?.attention_binding_count ?? 0,
     output_delivery_contract_freeze_failed_validation_item_count: artifacts.output_delivery_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     output_delivery_contract_freeze_validation_error_count: artifacts.output_delivery_contract_freeze?.summary?.validation_error_count ?? artifacts.output_delivery_contract_freeze?.validation?.errors?.length ?? 0,
+    event_audit_run_contract_freeze_event_record_count: artifacts.event_audit_run_contract_freeze?.summary?.event_record_count ?? 0,
+    event_audit_run_contract_freeze_audit_event_count: artifacts.event_audit_run_contract_freeze?.summary?.audit_event_count ?? 0,
+    event_audit_run_contract_freeze_run_ledger_count: artifacts.event_audit_run_contract_freeze?.summary?.run_ledger_count ?? 0,
+    event_audit_run_contract_freeze_event_run_binding_count: artifacts.event_audit_run_contract_freeze?.summary?.event_run_binding_count ?? 0,
+    event_audit_run_contract_freeze_linked_event_run_binding_count: artifacts.event_audit_run_contract_freeze?.summary?.linked_event_run_binding_count ?? 0,
+    event_audit_run_contract_freeze_external_audit_event_count: artifacts.event_audit_run_contract_freeze?.summary?.external_audit_event_count ?? 0,
+    event_audit_run_contract_freeze_missing_event_run_binding_count: artifacts.event_audit_run_contract_freeze?.summary?.missing_event_run_binding_count ?? 0,
+    event_audit_run_contract_freeze_correlation_id_count: artifacts.event_audit_run_contract_freeze?.summary?.correlation_id_count ?? artifacts.event_audit_run_contract_freeze?.summary?.correlation_id_declared_count ?? 0,
+    event_audit_run_contract_freeze_missing_correlation_id_count: artifacts.event_audit_run_contract_freeze?.summary?.missing_correlation_id_count ?? 0,
+    event_audit_run_contract_freeze_actor_declared_count: artifacts.event_audit_run_contract_freeze?.summary?.actor_declared_count ?? 0,
+    event_audit_run_contract_freeze_missing_actor_count: artifacts.event_audit_run_contract_freeze?.summary?.missing_actor_count ?? 0,
+    event_audit_run_contract_freeze_policy_snapshot_declared_count: artifacts.event_audit_run_contract_freeze?.summary?.policy_snapshot_declared_count ?? 0,
+    event_audit_run_contract_freeze_fallback_policy_snapshot_count: artifacts.event_audit_run_contract_freeze?.summary?.fallback_policy_snapshot_count ?? 0,
+    event_audit_run_contract_freeze_missing_policy_snapshot_count: artifacts.event_audit_run_contract_freeze?.summary?.missing_policy_snapshot_count ?? 0,
+    event_audit_run_contract_freeze_source_schema_version_declared_count: artifacts.event_audit_run_contract_freeze?.summary?.source_schema_version_declared_count ?? 0,
+    event_audit_run_contract_freeze_run_with_event_count: artifacts.event_audit_run_contract_freeze?.summary?.run_with_event_count ?? 0,
+    event_audit_run_contract_freeze_run_with_agent_count: artifacts.event_audit_run_contract_freeze?.summary?.run_with_agent_count ?? 0,
+    event_audit_run_contract_freeze_run_with_policy_snapshot_count: artifacts.event_audit_run_contract_freeze?.summary?.run_with_policy_snapshot_count ?? 0,
+    event_audit_run_contract_freeze_failed_validation_item_count: artifacts.event_audit_run_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    event_audit_run_contract_freeze_validation_error_count: artifacts.event_audit_run_contract_freeze?.summary?.validation_error_count ?? artifacts.event_audit_run_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6691,6 +6762,8 @@ function parseArgs(argv) {
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
     else if (arg === "--no-output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = false;
+    else if (arg === "--event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = argv[++index];
+    else if (arg === "--no-event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];

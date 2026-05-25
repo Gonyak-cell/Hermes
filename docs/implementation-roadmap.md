@@ -3276,6 +3276,35 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Review API에서 `/api/output-delivery-contract-freezes`, `/api/output-artifact-v2-contracts`, `/api/delivery-action-v2-contracts`, `/api/delivery-receipt-v2-contracts`, `/api/output-delivery-bindings`, `/api/delivery-state-transitions`, `/api/output-delivery-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:outputs`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 107 - Event/Audit/Run Ledger Contract Freeze
+
+목표: EventRecord, AuditEvent, RunLedger를 v2 계약으로 고정해 모든 주요 실행 기록이 correlation id, actor, policy snapshot, schema version을 보존하도록 한다.
+
+구현 산출물:
+
+- `src/event-audit-run-contract-freeze.mjs`
+- `scripts/event-audit-run-contract-freeze.mjs`
+- `schemas/event-audit-run-contract-freeze.schema.json`
+- `docs/event-audit-run-contract-freeze.md`
+- `artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json`
+- `artifacts/event-audit-run-contract-freeze/latest/event-record-v2-fixture.json`
+- `artifacts/event-audit-run-contract-freeze/latest/audit-event-v2-fixture.json`
+- `artifacts/event-audit-run-contract-freeze/latest/run-ledger-v2-fixture.json`
+- `artifacts/event-audit-run-contract-freeze/latest/event-run-binding-v2-fixture.json`
+- `artifacts/event-audit-run-contract-freeze/latest/validation-report.json`
+- `artifacts/event-audit-run-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- `event-record.v2`, `audit-event.v2`, `run-ledger.v2`, `event-run-binding.v2` fixture가 생성됨
+- 모든 EventRecord v2가 correlation id, actor, subject, policy snapshot, schema version, RunLedger link를 보존함
+- AuditEvent v2는 RunLedger에 연결되거나 external control event로 명시되어 audit-only 행위와 workflow-linked 행위가 구분됨
+- RunLedger v2는 workflow run, capability, matter, policy snapshot, event id, agent run id, gate/approval/output link를 보존함
+- EventRunBinding v2가 event/audit record와 run ledger를 correlation id로 연결함
+- Dashboard stage와 summary가 `event_audit_run_contract_freeze` 지표를 추적함
+- Review API에서 `/api/event-audit-run-contract-freezes`, `/api/event-record-v2-contracts`, `/api/audit-event-v2-contracts`, `/api/run-ledger-v2-contracts`, `/api/event-run-bindings`, `/api/event-audit-run-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:events`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3284,9 +3313,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 106이다.
+- 현재 완료 기준점은 Phase 107이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P107-P312, 총 206개다.
+- 남은 계획 슬롯은 P108-P312, 총 205개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

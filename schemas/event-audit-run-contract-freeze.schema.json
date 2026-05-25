@@ -1,0 +1,325 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/event-audit-run-contract-freeze.schema.json",
+  "title": "Hermes Event Audit Run Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "field_requirements",
+    "summary",
+    "event_audit_run_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "event-audit-run-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "event_record_schema_version",
+        "audit_event_schema_version",
+        "run_ledger_schema_version",
+        "event_run_binding_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "event_record_schema_version": { "const": "event-record.v2" },
+        "audit_event_schema_version": { "const": "audit-event.v2" },
+        "run_ledger_schema_version": { "const": "run-ledger.v2" },
+        "event_run_binding_schema_version": { "const": "event-run-binding.v2" },
+        "compatibility_floor": { "const": "observability-catalog.v1+control-plane-audit-trail.v1" }
+      }
+    },
+    "field_requirements": {
+      "type": "object",
+      "required": [
+        "event_record_v2",
+        "audit_event_v2",
+        "run_ledger_v2",
+        "event_run_binding_v2"
+      ],
+      "additionalProperties": { "$ref": "#/$defs/field_requirement" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "event_record_schema_version",
+        "audit_event_schema_version",
+        "run_ledger_schema_version",
+        "event_run_binding_schema_version",
+        "event_record_count",
+        "audit_event_count",
+        "run_ledger_count",
+        "event_run_binding_count",
+        "linked_event_run_binding_count",
+        "missing_event_run_binding_count",
+        "correlation_required_count",
+        "correlation_id_declared_count",
+        "correlation_id_count",
+        "missing_correlation_id_count",
+        "actor_required_count",
+        "actor_declared_count",
+        "missing_actor_count",
+        "policy_snapshot_required_count",
+        "policy_snapshot_declared_count",
+        "missing_policy_snapshot_count",
+        "fallback_policy_snapshot_count",
+        "source_schema_version_declared_count",
+        "run_with_event_count",
+        "run_with_agent_count",
+        "run_with_policy_snapshot_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "event_record_schema_version": { "const": "event-record.v2" },
+        "audit_event_schema_version": { "const": "audit-event.v2" },
+        "run_ledger_schema_version": { "const": "run-ledger.v2" },
+        "event_run_binding_schema_version": { "const": "event-run-binding.v2" },
+        "event_record_count": { "type": "integer", "minimum": 0 },
+        "audit_event_count": { "type": "integer", "minimum": 0 },
+        "run_ledger_count": { "type": "integer", "minimum": 0 },
+        "event_run_binding_count": { "type": "integer", "minimum": 0 },
+        "linked_event_run_binding_count": { "type": "integer", "minimum": 0 },
+        "external_audit_event_count": { "type": "integer", "minimum": 0 },
+        "missing_event_run_binding_count": { "type": "integer", "minimum": 0 },
+        "correlation_required_count": { "type": "integer", "minimum": 0 },
+        "correlation_id_declared_count": { "type": "integer", "minimum": 0 },
+        "correlation_id_count": { "type": "integer", "minimum": 0 },
+        "missing_correlation_id_count": { "type": "integer", "minimum": 0 },
+        "actor_required_count": { "type": "integer", "minimum": 0 },
+        "actor_declared_count": { "type": "integer", "minimum": 0 },
+        "missing_actor_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_required_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_declared_count": { "type": "integer", "minimum": 0 },
+        "missing_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "fallback_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "source_schema_version_declared_count": { "type": "integer", "minimum": 0 },
+        "run_with_event_count": { "type": "integer", "minimum": 0 },
+        "run_with_agent_count": { "type": "integer", "minimum": 0 },
+        "run_with_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "event_audit_run_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "event_records",
+        "audit_events",
+        "run_ledgers",
+        "event_run_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-audit-run-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_records": { "type": "array", "items": { "$ref": "#/$defs/event_record_v2" } },
+        "audit_events": { "type": "array", "items": { "$ref": "#/$defs/audit_event_v2" } },
+        "run_ledgers": { "type": "array", "items": { "$ref": "#/$defs/run_ledger_v2" } },
+        "event_run_bindings": { "type": "array", "items": { "$ref": "#/$defs/event_run_binding_v2" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    }
+  },
+  "$defs": {
+    "field_requirement": {
+      "type": "object",
+      "required": ["required_fields", "optional_fields", "required_groups"],
+      "properties": {
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "optional_fields": { "type": "array", "items": { "type": "string" } },
+        "required_groups": { "type": "object" }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "required": ["actor_type", "actor_id", "display_name"],
+      "properties": {
+        "actor_type": { "type": "string" },
+        "actor_id": { "type": "string" },
+        "display_name": { "type": "string" }
+      }
+    },
+    "subject": {
+      "type": "object",
+      "required": ["subject_type", "subject_id"],
+      "properties": {
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" }
+      }
+    },
+    "event_record_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_record_id",
+        "event_type",
+        "event_time",
+        "tenant_id",
+        "correlation_id",
+        "actor",
+        "subject",
+        "policy_snapshot_id",
+        "source_schema_version",
+        "policy_snapshot_status",
+        "schema_version_status",
+        "run_link_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-record.v2" },
+        "event_record_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_time": { "type": "string", "format": "date-time" },
+        "tenant_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "actor": { "$ref": "#/$defs/actor" },
+        "subject": { "$ref": "#/$defs/subject" },
+        "policy_snapshot_id": { "type": "string" },
+        "policy_snapshot_status": { "type": "string" },
+        "source_schema_version": { "type": "string" },
+        "schema_version_status": { "type": "string" },
+        "run_link_status": { "type": "string" }
+      }
+    },
+    "audit_event_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "audit_event_id",
+        "event_type",
+        "event_time",
+        "tenant_id",
+        "correlation_id",
+        "actor",
+        "subject",
+        "policy_snapshot_id",
+        "source_schema_version",
+        "policy_snapshot_status",
+        "schema_version_status",
+        "run_link_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "audit-event.v2" },
+        "audit_event_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_time": { "type": "string", "format": "date-time" },
+        "tenant_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "actor": { "$ref": "#/$defs/actor" },
+        "subject": { "$ref": "#/$defs/subject" },
+        "policy_snapshot_id": { "type": "string" },
+        "policy_snapshot_status": { "type": "string" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "schema_version_status": { "type": "string" },
+        "run_link_status": { "type": "string" }
+      }
+    },
+    "run_ledger_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "run_ledger_id",
+        "tenant_id",
+        "workflow_run_id",
+        "correlation_id",
+        "capability_id",
+        "policy_snapshot_id",
+        "policy_snapshot_status",
+        "actor_refs",
+        "event_ids",
+        "run_status",
+        "started_at",
+        "updated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "run-ledger.v2" },
+        "run_ledger_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "capability_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": "string" },
+        "policy_snapshot_status": { "type": "string" },
+        "actor_refs": { "type": "array", "items": { "type": "string" } },
+        "actor_count": { "type": "integer", "minimum": 0 },
+        "event_ids": { "type": "array", "items": { "type": "string" } },
+        "run_status": { "type": "string" },
+        "started_at": { "type": "string", "format": "date-time" },
+        "updated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "event_run_binding_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_run_binding_id",
+        "source_kind",
+        "source_event_kind",
+        "source_id",
+        "event_type",
+        "correlation_id",
+        "binding_status",
+        "policy_snapshot_id"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-run-binding.v2" },
+        "event_run_binding_id": { "type": "string" },
+        "source_kind": { "enum": ["event_record", "audit_event"] },
+        "source_event_kind": { "enum": ["event_record", "audit_event"] },
+        "source_id": { "type": "string" },
+        "event_record_id": { "type": ["string", "null"] },
+        "audit_event_id": { "type": ["string", "null"] },
+        "event_type": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "binding_status": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "actor_id": { "type": ["string", "null"] }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

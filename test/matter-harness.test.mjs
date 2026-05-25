@@ -115,6 +115,7 @@ import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
+import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -1165,6 +1166,7 @@ describe("matter harness", () => {
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -1254,6 +1256,7 @@ describe("matter harness", () => {
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
         outputDeliveryContractFreezePath: false,
+        eventAuditRunContractFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
         humanReviewPacketLedgerPath: false,
         humanReviewAgendaPath: false,
@@ -2668,6 +2671,46 @@ describe("matter harness", () => {
       assert.equal(controlPlaneAuditTrail.summary.protected_action_executed_count, closeoutReceiptApplication.audit_events.length);
       assert.match(await readFile(path.join(outDir, "control-plane-audit-trail", "summary.md"), "utf8"), /Control Plane Audit Trail/);
 
+      const eventAuditRunContractFreeze = await runEventAuditRunContractFreeze({
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        outDir: path.join(outDir, "event-audit-run-contract-freeze"),
+        runAt: "2026-05-23T06:35:07.750Z",
+      });
+      const eventAuditRunContractFreezeSchema = JSON.parse(await readFile("schemas/event-audit-run-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(eventAuditRunContractFreeze, eventAuditRunContractFreezeSchema, {}, "event_audit_run_contract_freeze"),
+        [],
+      );
+      assert.equal(eventAuditRunContractFreeze.summary.freeze_status, "complete");
+      assert.equal(eventAuditRunContractFreeze.summary.event_record_count, observabilityCatalog.summary.event_count);
+      assert.equal(eventAuditRunContractFreeze.summary.run_ledger_count, observabilityCatalog.summary.run_ledger_count);
+      assert.equal(eventAuditRunContractFreeze.summary.audit_event_count, controlPlaneAuditTrail.summary.audit_event_count);
+      assert.equal(
+        eventAuditRunContractFreeze.summary.correlation_id_count,
+        eventAuditRunContractFreeze.summary.event_record_count + eventAuditRunContractFreeze.summary.audit_event_count + eventAuditRunContractFreeze.summary.run_ledger_count,
+      );
+      assert.equal(eventAuditRunContractFreeze.summary.missing_correlation_id_count, 0);
+      assert.equal(eventAuditRunContractFreeze.summary.missing_actor_count, 0);
+      assert.equal(eventAuditRunContractFreeze.summary.missing_policy_snapshot_count, 0);
+      assert.equal(eventAuditRunContractFreeze.summary.run_with_event_count, eventAuditRunContractFreeze.summary.run_ledger_count);
+      assert.equal(eventAuditRunContractFreeze.summary.run_with_agent_count, eventAuditRunContractFreeze.summary.run_ledger_count);
+      assert.equal(eventAuditRunContractFreeze.summary.validation_error_count, 0);
+      assert.equal(eventAuditRunContractFreeze.event_audit_run_contract.event_records[0].schema_version, "event-record.v2");
+      assert.equal(eventAuditRunContractFreeze.event_audit_run_contract.audit_events[0].schema_version, "audit-event.v2");
+      assert.equal(eventAuditRunContractFreeze.event_audit_run_contract.run_ledgers[0].schema_version, "run-ledger.v2");
+      assert.equal(eventAuditRunContractFreeze.event_audit_run_contract.event_run_bindings[0].schema_version, "event-run-binding.v2");
+      assert.ok(eventAuditRunContractFreeze.event_audit_run_contract.event_records.every((event) => event.correlation_id && event.policy_snapshot_id && event.actor?.actor_id));
+      assert.ok(eventAuditRunContractFreeze.event_audit_run_contract.audit_events.every((event) => event.correlation_id && event.policy_snapshot_id && event.actor?.actor_id));
+      assert.ok(eventAuditRunContractFreeze.event_audit_run_contract.run_ledgers.every((run) => run.event_ids.length > 0 && run.agent_run_ids.length > 0));
+      assert.ok(eventAuditRunContractFreeze.event_audit_run_contract.event_run_bindings.every((binding) => ["linked", "external_control_event"].includes(binding.binding_status)));
+      assert.ok(eventAuditRunContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "event-audit-run-contract-freeze", "summary.md"), "utf8"), /Event\/Audit\/Run Ledger Contract Freeze/);
+
       const controlPlaneLoop = await runControlPlaneLoop({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.900Z",
@@ -2876,6 +2919,10 @@ describe("matter harness", () => {
       assert.equal(outputDeliveryContractFreezeCheckpoint?.acceptance_profile, "output_delivery_contract_freeze_gate");
       assert.equal(outputDeliveryContractFreezeCheckpoint?.status, "passed");
       assert.equal(outputDeliveryContractFreezeCheckpoint?.implementation_status, "passed");
+      const eventAuditRunContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-event-audit-run-contract-freeze");
+      assert.equal(eventAuditRunContractFreezeCheckpoint?.acceptance_profile, "event_audit_run_contract_freeze_gate");
+      assert.equal(eventAuditRunContractFreezeCheckpoint?.status, "passed");
+      assert.equal(eventAuditRunContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -3250,6 +3297,26 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.output_delivery_contract_freeze_delivered_receipt_count, outputDeliveryContractFreeze.summary.delivered_receipt_count);
       assert.equal(dashboard.summary.output_delivery_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.output_delivery_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_event_record_count, eventAuditRunContractFreeze.summary.event_record_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_audit_event_count, eventAuditRunContractFreeze.summary.audit_event_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_run_ledger_count, eventAuditRunContractFreeze.summary.run_ledger_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_event_run_binding_count, eventAuditRunContractFreeze.summary.event_run_binding_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_linked_event_run_binding_count, eventAuditRunContractFreeze.summary.linked_event_run_binding_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_external_audit_event_count, eventAuditRunContractFreeze.summary.external_audit_event_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_missing_event_run_binding_count, 0);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_correlation_id_count, eventAuditRunContractFreeze.summary.correlation_id_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_missing_correlation_id_count, 0);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_actor_declared_count, eventAuditRunContractFreeze.summary.actor_declared_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_missing_actor_count, 0);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_policy_snapshot_declared_count, eventAuditRunContractFreeze.summary.policy_snapshot_declared_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_fallback_policy_snapshot_count, eventAuditRunContractFreeze.summary.fallback_policy_snapshot_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_missing_policy_snapshot_count, 0);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_source_schema_version_declared_count, eventAuditRunContractFreeze.summary.source_schema_version_declared_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_run_with_event_count, eventAuditRunContractFreeze.summary.run_with_event_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_run_with_agent_count, eventAuditRunContractFreeze.summary.run_with_agent_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_run_with_policy_snapshot_count, eventAuditRunContractFreeze.summary.run_with_policy_snapshot_count);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.event_audit_run_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -4199,6 +4266,30 @@ describe("matter harness", () => {
       const outputDeliveryContractValidations = JSON.parse((await buildReviewApiResponse("/api/output-delivery-contract-validations?status=passed", apiOptions)).body);
       assert.equal(outputDeliveryContractValidations.collection, "output_delivery_contract_validations");
       assert.equal(outputDeliveryContractValidations.count, outputDeliveryContractFreeze.summary.validation_item_count);
+
+      const eventAuditRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/event-audit-run-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(eventAuditRunContractFreezes.collection, "event_audit_run_contract_freezes");
+      assert.equal(eventAuditRunContractFreezes.count, 1);
+
+      const eventRecordV2Contracts = JSON.parse((await buildReviewApiResponse("/api/event-record-v2-contracts?policy_snapshot_status=source_declared", apiOptions)).body);
+      assert.equal(eventRecordV2Contracts.collection, "event_record_v2_contracts");
+      assert.equal(eventRecordV2Contracts.count, eventAuditRunContractFreeze.event_audit_run_contract.event_records.filter((event) => event.policy_snapshot_status === "source_declared").length);
+
+      const auditEventV2Contracts = JSON.parse((await buildReviewApiResponse("/api/audit-event-v2-contracts?actor_type=human", apiOptions)).body);
+      assert.equal(auditEventV2Contracts.collection, "audit_event_v2_contracts");
+      assert.equal(auditEventV2Contracts.count, eventAuditRunContractFreeze.event_audit_run_contract.audit_events.filter((event) => event.actor_type === "human").length);
+
+      const runLedgerV2Contracts = JSON.parse((await buildReviewApiResponse("/api/run-ledger-v2-contracts?run_status=blocked", apiOptions)).body);
+      assert.equal(runLedgerV2Contracts.collection, "run_ledger_v2_contracts");
+      assert.equal(runLedgerV2Contracts.count, eventAuditRunContractFreeze.event_audit_run_contract.run_ledgers.filter((run) => run.run_status === "blocked").length);
+
+      const eventRunBindings = JSON.parse((await buildReviewApiResponse("/api/event-run-bindings?binding_status=linked", apiOptions)).body);
+      assert.equal(eventRunBindings.collection, "event_run_bindings");
+      assert.equal(eventRunBindings.count, eventAuditRunContractFreeze.summary.linked_event_run_binding_count);
+
+      const eventAuditRunContractValidations = JSON.parse((await buildReviewApiResponse("/api/event-audit-run-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(eventAuditRunContractValidations.collection, "event_audit_run_contract_validations");
+      assert.equal(eventAuditRunContractValidations.count, eventAuditRunContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

@@ -340,6 +340,12 @@ npm run api:serve
 - `GET /api/evidence-viewer-source-spans`: viewer source span panel row
 - `GET /api/evidence-viewer-lineage-paths`: viewer lineage path panel row
 - `GET /api/evidence-viewer-data-validations`: Evidence Viewer Data API validation row
+- `GET /api/evidence-export-bundles`: Evidence Export Bundle artifact
+- `GET /api/evidence-export-bundle-records`: source/citation/coverage/exhibit 묶음 row
+- `GET /api/evidence-export-source-packages`: export source locator/preview package row
+- `GET /api/evidence-export-citation-packages`: export citation/output paragraph package row
+- `GET /api/evidence-export-coverage-packages`: export coverage dimension package row
+- `GET /api/evidence-export-bundle-validations`: Evidence Export Bundle validation row
 - `GET /api/evidence-coverage-scores`: Evidence Coverage Score artifact
 - `GET /api/evidence-coverage-records`: per-output coverage score row
 - `GET /api/evidence-coverage-dimensions`: claim/date/party/amount/legal-basis dimension row
@@ -373,6 +379,8 @@ Budget alert route는 `alert_record_id`, `attribution_id`, `budget_decision_id`,
 Lineage graph route는 `lineage_graph_status`, `lineage_node_id`, `lineage_edge_id`, `lineage_path_id`, `node_type`, `edge_type`, `path_status`, `from_subject_id`, `to_subject_id`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `limit` query를 지원한다.
 
 Evidence viewer data route는 `evidence_viewer_data_status`, `viewer_card_id`, `source_span_panel_id`, `lineage_path_panel_id`, `source_span_id`, `evidence_id`, `lineage_path_id`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `binding_status`, `path_status`, `status`, `limit` query를 지원한다.
+
+Evidence export bundle route는 `evidence_export_bundle_status`, `export_bundle_id`, `export_status`, `bundle_status`, `source_package_id`, `citation_package_id`, `coverage_package_id`, `source_span_id`, `evidence_id`, `citation_id`, `coverage_score_id`, `lineage_path_id`, `output_paragraph_id`, `exhibit_id`, `matter_id`, `classification`, `policy_snapshot_id`, `package_status`, `status`, `limit` query를 지원한다.
 
 Evidence coverage route는 `evidence_coverage_status`, `coverage_score_id`, `coverage_dimension_id`, `coverage_status`, `dimension`, `coverage_subject_id`, `covered`, `required`, `missing_required_dimension_count`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `limit` query를 지원한다.
 

@@ -182,6 +182,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-source-spans"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-lineage-paths"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-data-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-export-bundles"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-export-bundle-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-export-source-packages"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-export-citation-packages"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-export-coverage-packages"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-export-bundle-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-scores"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-dimensions"));
@@ -2090,6 +2096,30 @@ try {
   const evidenceViewerDataValidations = await fetchJson(`${url}/api/evidence-viewer-data-validations?status=passed&limit=5`);
   assert.equal(evidenceViewerDataValidations.collection, "evidence_viewer_data_validations");
   assert.ok(evidenceViewerDataValidations.count <= 5);
+
+  const evidenceExportBundles = await fetchJson(`${url}/api/evidence-export-bundles?evidence_export_bundle_status=complete&limit=1`);
+  assert.equal(evidenceExportBundles.collection, "evidence_export_bundles");
+  assert.ok(evidenceExportBundles.count <= 1);
+
+  const evidenceExportBundleRecords = await fetchJson(`${url}/api/evidence-export-bundle-records?export_status=internal_review_only&limit=5`);
+  assert.equal(evidenceExportBundleRecords.collection, "evidence_export_bundle_records");
+  assert.ok(evidenceExportBundleRecords.count <= 5);
+
+  const evidenceExportSourcePackages = await fetchJson(`${url}/api/evidence-export-source-packages?package_status=bound&limit=5`);
+  assert.equal(evidenceExportSourcePackages.collection, "evidence_export_source_packages");
+  assert.ok(evidenceExportSourcePackages.count <= 5);
+
+  const evidenceExportCitationPackages = await fetchJson(`${url}/api/evidence-export-citation-packages?package_status=bound&limit=5`);
+  assert.equal(evidenceExportCitationPackages.collection, "evidence_export_citation_packages");
+  assert.ok(evidenceExportCitationPackages.count <= 5);
+
+  const evidenceExportCoveragePackages = await fetchJson(`${url}/api/evidence-export-coverage-packages?package_status=bound&limit=5`);
+  assert.equal(evidenceExportCoveragePackages.collection, "evidence_export_coverage_packages");
+  assert.ok(evidenceExportCoveragePackages.count <= 5);
+
+  const evidenceExportBundleValidations = await fetchJson(`${url}/api/evidence-export-bundle-validations?status=passed&limit=5`);
+  assert.equal(evidenceExportBundleValidations.collection, "evidence_export_bundle_validations");
+  assert.ok(evidenceExportBundleValidations.count <= 5);
 
   const evidenceCoverageScores = await fetchJson(`${url}/api/evidence-coverage-scores?evidence_coverage_status=complete&limit=1`);
   assert.equal(evidenceCoverageScores.collection, "evidence_coverage_scores");

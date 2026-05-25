@@ -38,6 +38,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
   lineageGraphBuilderPath: "artifacts/lineage-graph/latest/lineage-graph.json",
   evidenceViewerDataApiPath: "artifacts/evidence-viewer-data-api/latest/evidence-viewer-data-api.json",
+  evidenceExportBundlePath: "artifacts/evidence-export-bundle/latest/evidence-export-bundle.json",
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
@@ -323,6 +324,11 @@ const SOURCE_DEFINITIONS = [
     option: "evidenceViewerDataApiPath",
     source_id: "evidence_viewer_data_api",
     label: "Evidence Viewer Data API",
+  },
+  {
+    option: "evidenceExportBundlePath",
+    source_id: "evidence_export_bundle",
+    label: "Evidence Export Bundle",
   },
   {
     option: "evidenceCoverageScorePath",
@@ -1261,6 +1267,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
     buildLineageGraphBuilderStage(artifacts.lineage_graph_builder, sourceById.get("lineage_graph_builder")),
     buildEvidenceViewerDataApiStage(artifacts.evidence_viewer_data_api, sourceById.get("evidence_viewer_data_api")),
+    buildEvidenceExportBundleStage(artifacts.evidence_export_bundle, sourceById.get("evidence_export_bundle")),
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
@@ -2954,6 +2961,67 @@ function buildEvidenceViewerDataApiStage(dataApi, source) {
       lineage_path_panel_count: summary.lineage_path_panel_count ?? 0,
       complete_lineage_path_panel_count: summary.complete_lineage_path_panel_count ?? 0,
       read_only_card_count: summary.read_only_card_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceExportBundleStage(bundle, source) {
+  if (!bundle) return missingStage("evidence_export_bundle", "Evidence Export Bundle", source);
+  const summary = bundle.summary ?? {};
+  const errorCount = summary.validation_error_count ?? bundle.validation?.errors?.length ?? 0;
+  const bundleCount = summary.export_bundle_count ?? 0;
+  const status = summary.evidence_export_bundle_status === "complete"
+    && errorCount === 0
+    && bundleCount > 0
+    && (summary.source_bound_bundle_count ?? 0) === bundleCount
+    && (summary.citation_bound_bundle_count ?? 0) === bundleCount
+    && (summary.coverage_bound_bundle_count ?? 0) === bundleCount
+    && (summary.lineage_bound_bundle_count ?? 0) === bundleCount
+    && (summary.exhibit_bound_bundle_count ?? 0) === bundleCount
+    && (summary.held_for_review_bundle_count ?? 0) === bundleCount
+    && (summary.attorney_review_required_bundle_count ?? 0) === bundleCount
+    && (summary.read_only_bundle_count ?? 0) === bundleCount
+    && (summary.delivery_blocked_bundle_count ?? 0) === bundleCount
+    && (summary.external_transfer_blocked_bundle_count ?? 0) === bundleCount
+    && (summary.client_facing_ready_bundle_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_export_bundle",
+    label: "Evidence Export Bundle",
+    status,
+    message: `${bundleCount} export bundle(s), ${summary.source_package_count ?? 0} source package(s), ${summary.coverage_package_count ?? 0} coverage package(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_export_bundle_status: summary.evidence_export_bundle_status ?? "unknown",
+      evidence_export_bundle_contract_id: summary.evidence_export_bundle_contract_id ?? null,
+      evidence_viewer_data_status: summary.evidence_viewer_data_status ?? "unknown",
+      citation_object_store_status: summary.citation_object_store_status ?? "unknown",
+      evidence_coverage_status: summary.evidence_coverage_status ?? "unknown",
+      exhibit_map_status: summary.exhibit_map_status ?? "unknown",
+      export_bundle_count: bundleCount,
+      source_package_count: summary.source_package_count ?? 0,
+      citation_package_count: summary.citation_package_count ?? 0,
+      coverage_package_count: summary.coverage_package_count ?? 0,
+      exhibit_package_count: summary.exhibit_package_count ?? 0,
+      lineage_package_count: summary.lineage_package_count ?? 0,
+      source_bound_bundle_count: summary.source_bound_bundle_count ?? 0,
+      citation_bound_bundle_count: summary.citation_bound_bundle_count ?? 0,
+      coverage_bound_bundle_count: summary.coverage_bound_bundle_count ?? 0,
+      lineage_bound_bundle_count: summary.lineage_bound_bundle_count ?? 0,
+      exhibit_bound_bundle_count: summary.exhibit_bound_bundle_count ?? 0,
+      held_for_review_bundle_count: summary.held_for_review_bundle_count ?? 0,
+      attorney_review_required_bundle_count: summary.attorney_review_required_bundle_count ?? 0,
+      read_only_bundle_count: summary.read_only_bundle_count ?? 0,
+      delivery_blocked_bundle_count: summary.delivery_blocked_bundle_count ?? 0,
+      external_transfer_blocked_bundle_count: summary.external_transfer_blocked_bundle_count ?? 0,
+      client_facing_ready_bundle_count: summary.client_facing_ready_bundle_count ?? 0,
+      matter_preserved_bundle_count: summary.matter_preserved_bundle_count ?? 0,
+      classification_preserved_bundle_count: summary.classification_preserved_bundle_count ?? 0,
+      policy_snapshot_preserved_bundle_count: summary.policy_snapshot_preserved_bundle_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9508,6 +9576,33 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     evidence_viewer_data_complete_lineage_path_panel_count: artifacts.evidence_viewer_data_api?.summary?.complete_lineage_path_panel_count ?? 0,
     evidence_viewer_data_read_only_card_count: artifacts.evidence_viewer_data_api?.summary?.read_only_card_count ?? 0,
     evidence_viewer_data_validation_error_count: artifacts.evidence_viewer_data_api?.summary?.validation_error_count ?? artifacts.evidence_viewer_data_api?.validation?.errors?.length ?? 0,
+    evidence_export_bundle_status: artifacts.evidence_export_bundle?.summary?.evidence_export_bundle_status ?? "unknown",
+    evidence_export_bundle_contract_id: artifacts.evidence_export_bundle?.summary?.evidence_export_bundle_contract_id ?? null,
+    evidence_export_bundle_viewer_data_status: artifacts.evidence_export_bundle?.summary?.evidence_viewer_data_status ?? "unknown",
+    evidence_export_bundle_citation_object_store_status: artifacts.evidence_export_bundle?.summary?.citation_object_store_status ?? "unknown",
+    evidence_export_bundle_evidence_coverage_status: artifacts.evidence_export_bundle?.summary?.evidence_coverage_status ?? "unknown",
+    evidence_export_bundle_exhibit_map_status: artifacts.evidence_export_bundle?.summary?.exhibit_map_status ?? "unknown",
+    evidence_export_bundle_count: artifacts.evidence_export_bundle?.summary?.export_bundle_count ?? 0,
+    evidence_export_source_package_count: artifacts.evidence_export_bundle?.summary?.source_package_count ?? 0,
+    evidence_export_citation_package_count: artifacts.evidence_export_bundle?.summary?.citation_package_count ?? 0,
+    evidence_export_coverage_package_count: artifacts.evidence_export_bundle?.summary?.coverage_package_count ?? 0,
+    evidence_export_exhibit_package_count: artifacts.evidence_export_bundle?.summary?.exhibit_package_count ?? 0,
+    evidence_export_lineage_package_count: artifacts.evidence_export_bundle?.summary?.lineage_package_count ?? 0,
+    evidence_export_source_bound_bundle_count: artifacts.evidence_export_bundle?.summary?.source_bound_bundle_count ?? 0,
+    evidence_export_citation_bound_bundle_count: artifacts.evidence_export_bundle?.summary?.citation_bound_bundle_count ?? 0,
+    evidence_export_coverage_bound_bundle_count: artifacts.evidence_export_bundle?.summary?.coverage_bound_bundle_count ?? 0,
+    evidence_export_lineage_bound_bundle_count: artifacts.evidence_export_bundle?.summary?.lineage_bound_bundle_count ?? 0,
+    evidence_export_exhibit_bound_bundle_count: artifacts.evidence_export_bundle?.summary?.exhibit_bound_bundle_count ?? 0,
+    evidence_export_held_for_review_bundle_count: artifacts.evidence_export_bundle?.summary?.held_for_review_bundle_count ?? 0,
+    evidence_export_attorney_review_required_bundle_count: artifacts.evidence_export_bundle?.summary?.attorney_review_required_bundle_count ?? 0,
+    evidence_export_read_only_bundle_count: artifacts.evidence_export_bundle?.summary?.read_only_bundle_count ?? 0,
+    evidence_export_delivery_blocked_bundle_count: artifacts.evidence_export_bundle?.summary?.delivery_blocked_bundle_count ?? 0,
+    evidence_export_external_transfer_blocked_bundle_count: artifacts.evidence_export_bundle?.summary?.external_transfer_blocked_bundle_count ?? 0,
+    evidence_export_client_facing_ready_bundle_count: artifacts.evidence_export_bundle?.summary?.client_facing_ready_bundle_count ?? 0,
+    evidence_export_matter_preserved_bundle_count: artifacts.evidence_export_bundle?.summary?.matter_preserved_bundle_count ?? 0,
+    evidence_export_classification_preserved_bundle_count: artifacts.evidence_export_bundle?.summary?.classification_preserved_bundle_count ?? 0,
+    evidence_export_policy_snapshot_preserved_bundle_count: artifacts.evidence_export_bundle?.summary?.policy_snapshot_preserved_bundle_count ?? 0,
+    evidence_export_validation_error_count: artifacts.evidence_export_bundle?.summary?.validation_error_count ?? artifacts.evidence_export_bundle?.validation?.errors?.length ?? 0,
     evidence_coverage_status: artifacts.evidence_coverage_score?.summary?.evidence_coverage_status ?? "unknown",
     evidence_coverage_contract_id: artifacts.evidence_coverage_score?.summary?.evidence_coverage_contract_id ?? null,
     evidence_coverage_score_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_score_schema_version ?? null,
@@ -11176,6 +11271,8 @@ function parseArgs(argv) {
     else if (arg === "--no-lineage-graph") parsed.lineageGraphBuilderPath = false;
     else if (arg === "--evidence-viewer-data-api") parsed.evidenceViewerDataApiPath = argv[++index];
     else if (arg === "--no-evidence-viewer-data-api") parsed.evidenceViewerDataApiPath = false;
+    else if (arg === "--evidence-export-bundle") parsed.evidenceExportBundlePath = argv[++index];
+    else if (arg === "--no-evidence-export-bundle") parsed.evidenceExportBundlePath = false;
     else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
     else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
     else if (arg === "--evidence-flags") parsed.evidenceFlagsPath = argv[++index];
@@ -11403,6 +11500,8 @@ Options:
   --evidence-viewer-data-api <path>
                                   evidence-viewer-data-api.json path.
   --no-evidence-viewer-data-api   Do not include Evidence Viewer Data API status.
+  --evidence-export-bundle <path> evidence-export-bundle.json path.
+  --no-evidence-export-bundle     Do not include Evidence Export Bundle status.
   --evidence-coverage <path>      evidence-coverage-score.json path.
   --no-evidence-coverage          Do not include Evidence Coverage Score status.
   --evidence-flags <path>         evidence-flags.json path.

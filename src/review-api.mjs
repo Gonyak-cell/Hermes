@@ -843,6 +843,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("evidence_viewer_data_validations", dataResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-export-bundles") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "evidence_export_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("evidence_export_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_export_bundles", [bundleResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-export-bundle-records") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "evidence_export_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("evidence_export_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_export_bundle_records", bundleResult.artifact.evidence_export_catalog?.export_bundles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-export-source-packages") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "evidence_export_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("evidence_export_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_export_source_packages", bundleResult.artifact.evidence_export_catalog?.export_source_packages ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-export-citation-packages") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "evidence_export_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("evidence_export_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_export_citation_packages", bundleResult.artifact.evidence_export_catalog?.export_citation_packages ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-export-coverage-packages") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "evidence_export_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("evidence_export_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_export_coverage_packages", bundleResult.artifact.evidence_export_catalog?.export_coverage_packages ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-export-bundle-validations") {
+    const bundleResult = await readDashboardSourceArtifact(dashboard, "evidence_export_bundle");
+    if (!bundleResult.available) {
+      return jsonResponse(503, buildError("evidence_export_bundle_unavailable", bundleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_export_bundle_validations", bundleResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-coverage-scores") {
     const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
     if (!coverageResult.available) {
@@ -5635,6 +5677,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/evidence-viewer-source-spans", "Evidence viewer source span panel rows"),
       route("GET", "/api/evidence-viewer-lineage-paths", "Evidence viewer lineage path panel rows"),
       route("GET", "/api/evidence-viewer-data-validations", "Evidence viewer data API validation rows"),
+      route("GET", "/api/evidence-export-bundles", "Evidence export bundle artifacts"),
+      route("GET", "/api/evidence-export-bundle-records", "Evidence export bundle rows"),
+      route("GET", "/api/evidence-export-source-packages", "Evidence export source package rows"),
+      route("GET", "/api/evidence-export-citation-packages", "Evidence export citation package rows"),
+      route("GET", "/api/evidence-export-coverage-packages", "Evidence export coverage package rows"),
+      route("GET", "/api/evidence-export-bundle-validations", "Evidence export bundle validation rows"),
       route("GET", "/api/evidence-coverage-scores", "Evidence coverage score artifacts"),
       route("GET", "/api/evidence-coverage-records", "Per-output evidence coverage score rows"),
       route("GET", "/api/evidence-coverage-dimensions", "Evidence coverage dimension rows"),
@@ -5898,6 +5946,14 @@ function filterItems(items, searchParams) {
     "viewer_card_id",
     "source_span_panel_id",
     "lineage_path_panel_id",
+    "evidence_export_bundle_status",
+    "export_bundle_id",
+    "export_status",
+    "bundle_status",
+    "source_package_id",
+    "citation_package_id",
+    "coverage_package_id",
+    "package_status",
     "evidence_coverage_status",
     "evidence_flags_status",
     "exhibit_map_status",
@@ -6817,6 +6873,7 @@ function readFilterValue(item, key) {
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;
   if (key === "lineage_graph_status") return item.summary?.lineage_graph_status ?? item.lineage_graph_status;
   if (key === "evidence_viewer_data_status") return item.summary?.evidence_viewer_data_status ?? item.evidence_viewer_data_status;
+  if (key === "evidence_export_bundle_status") return item.summary?.evidence_export_bundle_status ?? item.evidence_export_bundle_status;
   if (key === "evidence_coverage_status") return item.summary?.evidence_coverage_status ?? item.evidence_coverage_status;
   if (key === "evidence_flags_status") return item.summary?.evidence_flags_status ?? item.evidence_flags_status;
   if (key === "exhibit_map_status") return item.summary?.exhibit_map_status ?? item.exhibit_map_status;

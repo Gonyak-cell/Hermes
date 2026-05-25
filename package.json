@@ -148,6 +148,7 @@
     "resource:evidence-items": "node scripts/evidence-item-store.mjs",
     "evidence:golden-fixtures": "node scripts/evidence-golden-fixtures.mjs",
     "evidence:viewer-data": "node scripts/evidence-viewer-data-api.mjs",
+    "evidence:export-bundle": "node scripts/evidence-export-bundle.mjs",
     "resource:fact-claims": "node scripts/fact-claim-store.mjs",
     "resource:issue-graph": "node scripts/issue-graph-store.mjs",
     "resource:citations": "node scripts/citation-object-store.mjs",

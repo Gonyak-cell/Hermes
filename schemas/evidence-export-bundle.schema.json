@@ -1,0 +1,269 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-export-bundle.schema.json",
+  "title": "Hermes Evidence Export Bundle",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_export_bundle_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "evidence_export_bundle_contract",
+    "evidence_export_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-export-bundle.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_export_bundle_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "evidence_viewer_data_api_path",
+        "citation_object_store_path",
+        "evidence_coverage_path",
+        "exhibit_map_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "evidence_viewer_data_api_path": { "type": "string" },
+        "citation_object_store_path": { "type": "string" },
+        "evidence_coverage_path": { "type": "string" },
+        "exhibit_map_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_store" } },
+    "evidence_export_bundle_contract": { "$ref": "#/$defs/export_contract" },
+    "evidence_export_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "export_bundles",
+        "export_source_packages",
+        "export_citation_packages",
+        "export_coverage_packages",
+        "export_indexes"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-export-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "export_bundles": { "type": "array", "items": { "$ref": "#/$defs/export_bundle" } },
+        "export_source_packages": { "type": "array", "items": { "$ref": "#/$defs/export_package" } },
+        "export_citation_packages": { "type": "array", "items": { "$ref": "#/$defs/export_package" } },
+        "export_coverage_packages": { "type": "array", "items": { "$ref": "#/$defs/export_package" } },
+        "export_indexes": { "type": "object" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_store": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "export_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_export_bundle_contract_id",
+        "generated_at",
+        "export_bundle_schema_version",
+        "export_package_schema_version",
+        "source_inputs",
+        "required_package_types",
+        "export_rule",
+        "delivery_rule",
+        "api_routes"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-export-bundle-contract.v1" },
+        "evidence_export_bundle_contract_id": { "const": "evidence-export-bundle.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "export_bundle_schema_version": { "const": "evidence-export-bundle-record.v1" },
+        "export_package_schema_version": { "const": "evidence-export-package.v1" },
+        "source_inputs": { "type": "array", "items": { "type": "string" } },
+        "required_package_types": { "type": "array", "items": { "type": "string" } },
+        "export_rule": { "type": "string" },
+        "delivery_rule": { "type": "string" },
+        "api_routes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "export_bundle": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "export_bundle_id",
+        "export_sequence",
+        "generated_at",
+        "bundle_status",
+        "export_status",
+        "output_paragraph_id",
+        "citation_id",
+        "coverage_score_id",
+        "lineage_path_id",
+        "evidence_id",
+        "source_span_id",
+        "source_package",
+        "citation_package",
+        "coverage_package",
+        "lineage_package",
+        "exhibit_package",
+        "review_gate",
+        "bundle_actions",
+        "preservation"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-export-bundle-record.v1" },
+        "export_bundle_id": { "type": "string" },
+        "export_sequence": { "type": "integer", "minimum": 1 },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "bundle_status": { "const": "held_for_attorney_review" },
+        "export_status": { "const": "internal_review_only" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "output_paragraph_id": { "type": "string" },
+        "citation_id": { "type": "string" },
+        "coverage_score_id": { "type": "string" },
+        "lineage_path_id": { "type": "string" },
+        "evidence_id": { "type": "string" },
+        "source_span_id": { "type": "string" },
+        "exhibit_id": { "type": ["string", "null"] },
+        "exhibit_reference": { "type": ["string", "null"] },
+        "source_package": { "$ref": "#/$defs/export_package" },
+        "citation_package": { "$ref": "#/$defs/export_package" },
+        "coverage_package": { "$ref": "#/$defs/export_package" },
+        "lineage_package": { "$ref": "#/$defs/export_package" },
+        "exhibit_package": { "$ref": "#/$defs/export_package" },
+        "review_gate": { "$ref": "#/$defs/review_gate" },
+        "bundle_actions": { "$ref": "#/$defs/bundle_actions" },
+        "preservation": { "$ref": "#/$defs/preservation" }
+      },
+      "additionalProperties": true
+    },
+    "export_package": {
+      "type": "object",
+      "required": ["schema_version", "export_bundle_id", "generated_at", "package_type", "package_status"],
+      "properties": {
+        "schema_version": { "const": "evidence-export-package.v1" },
+        "export_bundle_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "package_type": { "type": "string" },
+        "package_status": { "enum": ["bound", "missing"] }
+      },
+      "additionalProperties": true
+    },
+    "review_gate": {
+      "type": "object",
+      "required": [
+        "human_review_required",
+        "attorney_review_required",
+        "approval_required_before_delivery",
+        "output_delivery_allowed",
+        "external_transfer_allowed",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "human_review_required": { "const": true },
+        "attorney_review_required": { "const": true },
+        "approval_required_before_delivery": { "const": true },
+        "output_delivery_allowed": { "const": false },
+        "external_transfer_allowed": { "const": false },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "bundle_actions": {
+      "type": "object",
+      "required": ["output_delivery_allowed", "external_transfer_allowed", "client_facing_delivery_allowed"],
+      "properties": {
+        "output_delivery_allowed": { "const": false },
+        "external_transfer_allowed": { "const": false },
+        "client_facing_delivery_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "preservation": {
+      "type": "object",
+      "required": ["matter_preserved", "classification_preserved", "policy_snapshot_preserved"],
+      "properties": {
+        "matter_preserved": { "type": "boolean" },
+        "classification_preserved": { "type": "boolean" },
+        "policy_snapshot_preserved": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "validation-item.v1" },
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_export_bundle_status",
+        "evidence_export_bundle_contract_id",
+        "export_bundle_count",
+        "source_package_count",
+        "citation_package_count",
+        "coverage_package_count",
+        "held_for_review_bundle_count",
+        "attorney_review_required_bundle_count",
+        "delivery_blocked_bundle_count",
+        "external_transfer_blocked_bundle_count",
+        "client_facing_ready_bundle_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_export_bundle_status": { "enum": ["complete", "blocked"] },
+        "evidence_export_bundle_contract_id": { "const": "evidence-export-bundle.v1" },
+        "export_bundle_count": { "type": "integer", "minimum": 0 },
+        "source_package_count": { "type": "integer", "minimum": 0 },
+        "citation_package_count": { "type": "integer", "minimum": 0 },
+        "coverage_package_count": { "type": "integer", "minimum": 0 },
+        "held_for_review_bundle_count": { "type": "integer", "minimum": 0 },
+        "attorney_review_required_bundle_count": { "type": "integer", "minimum": 0 },
+        "delivery_blocked_bundle_count": { "type": "integer", "minimum": 0 },
+        "external_transfer_blocked_bundle_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_bundle_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

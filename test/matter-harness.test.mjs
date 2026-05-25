@@ -39,6 +39,7 @@ import { runFactClaimStore } from "../src/fact-claim-store.mjs";
 import { runIssueGraphStore } from "../src/issue-graph-store.mjs";
 import { runCitationObjectStore } from "../src/citation-object-store.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
+import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
 import { runEvidenceFlags } from "../src/evidence-flags.mjs";
 import { runExhibitMap } from "../src/exhibit-map.mjs";
@@ -1671,6 +1672,7 @@ describe("matter harness", () => {
         issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
         citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
         lineageGraphBuilderPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        evidenceViewerDataApiPath: path.join(outDir, "evidence-viewer-data-api", "evidence-viewer-data-api.json"),
         evidenceCoverageScorePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
         evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
         exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
@@ -4260,6 +4262,37 @@ describe("matter harness", () => {
       );
       assert.match(await readFile(path.join(outDir, "lineage-graph", "summary.md"), "utf8"), /Lineage Graph Builder/);
 
+      const evidenceViewerDataApi = await runEvidenceViewerDataApi({
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        outDir: path.join(outDir, "evidence-viewer-data-api"),
+        runAt: "2026-05-23T06:35:07.999Z",
+      });
+      const evidenceViewerDataApiSchema = JSON.parse(await readFile("schemas/evidence-viewer-data-api.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(evidenceViewerDataApi, evidenceViewerDataApiSchema, {}, "evidence_viewer_data_api"),
+        [],
+      );
+      assert.equal(evidenceViewerDataApi.summary.evidence_viewer_data_status, "complete");
+      assert.equal(evidenceViewerDataApi.summary.evidence_viewer_data_contract_id, "evidence-viewer-data-api.v1");
+      assert.equal(evidenceViewerDataApi.summary.source_span_store_status, "complete");
+      assert.equal(evidenceViewerDataApi.summary.evidence_item_store_status, "complete");
+      assert.equal(evidenceViewerDataApi.summary.lineage_graph_status, "complete");
+      assert.equal(evidenceViewerDataApi.summary.viewer_card_count, evidenceItemStore.summary.evidence_item_count);
+      assert.equal(evidenceViewerDataApi.summary.card_source_span_bound_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(evidenceViewerDataApi.summary.card_lineage_path_bound_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(evidenceViewerDataApi.summary.source_span_panel_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(evidenceViewerDataApi.summary.source_span_panel_bound_count, evidenceViewerDataApi.summary.source_span_panel_count);
+      assert.equal(evidenceViewerDataApi.summary.lineage_path_panel_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(evidenceViewerDataApi.summary.complete_lineage_path_panel_count, evidenceViewerDataApi.summary.lineage_path_panel_count);
+      assert.equal(evidenceViewerDataApi.summary.read_only_card_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(evidenceViewerDataApi.summary.validation_error_count, 0);
+      assert.ok(evidenceViewerDataApi.evidence_viewer_data_catalog.viewer_cards.every((card) => card.source_span && card.lineage_path_count > 0 && card.viewer_actions.output_delivery_allowed === false));
+      assert.ok(evidenceViewerDataApi.evidence_viewer_data_catalog.source_span_panels.every((panel) => panel.binding_status === "bound"));
+      assert.ok(evidenceViewerDataApi.evidence_viewer_data_catalog.lineage_path_panels.every((panel) => panel.node_count > 0 && panel.edge_count > 0));
+      assert.match(await readFile(path.join(outDir, "evidence-viewer-data-api", "summary.md"), "utf8"), /Evidence Viewer Data API/);
+
       const evidenceCoverageScore = await runEvidenceCoverageScore({
         lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
         sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
@@ -4587,6 +4620,7 @@ describe("matter harness", () => {
           issue_graph_store: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
           citation_object_store: path.join(outDir, "citation-object-store", "citation-object-store.json"),
           lineage_graph_builder: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+          evidence_viewer_data_api: path.join(outDir, "evidence-viewer-data-api", "evidence-viewer-data-api.json"),
           evidence_coverage_score: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
           evidence_flags: path.join(outDir, "evidence-flags", "evidence-flags.json"),
           exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
@@ -4619,8 +4653,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 55);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 55);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 56);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 56);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4659,6 +4693,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_graph_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_object_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "lineage_graph_builder"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_data_api"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_coverage_score"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_flags"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
@@ -4730,6 +4765,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:issue-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:citations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-data"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -4907,6 +4943,10 @@ describe("matter harness", () => {
       assert.equal(lineageGraphBuilderCheckpoint?.acceptance_profile, "lineage_graph_builder_gate");
       assert.equal(lineageGraphBuilderCheckpoint?.status, "passed");
       assert.equal(lineageGraphBuilderCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const evidenceViewerDataApiCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer-data-api");
+      assert.equal(evidenceViewerDataApiCheckpoint?.acceptance_profile, "evidence_viewer_data_api_gate");
+      assert.equal(evidenceViewerDataApiCheckpoint?.status, "passed");
+      assert.equal(evidenceViewerDataApiCheckpoint?.implementation_status, "passed_with_operational_gate");
       const evidenceCoverageScoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-coverage-score");
       assert.equal(evidenceCoverageScoreCheckpoint?.acceptance_profile, "evidence_coverage_score_gate");
       assert.equal(evidenceCoverageScoreCheckpoint?.status, "passed");
@@ -5883,6 +5923,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.lineage_graph_builder_not_client_facing_output_path_count, lineageGraphBuilder.summary.not_client_facing_output_path_count);
       assert.equal(dashboard.summary.lineage_graph_builder_client_facing_ready_path_count, 0);
       assert.equal(dashboard.summary.lineage_graph_builder_validation_error_count, 0);
+      assert.equal(dashboard.summary.evidence_viewer_data_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_data_contract_id, "evidence-viewer-data-api.v1");
+      assert.equal(dashboard.summary.evidence_viewer_data_source_span_store_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_data_evidence_item_store_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_data_lineage_graph_status, "complete");
+      assert.equal(dashboard.summary.evidence_viewer_data_source_span_count, sourceSpanStore.summary.source_span_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_evidence_item_count, evidenceItemStore.summary.evidence_item_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_lineage_path_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_card_count, evidenceViewerDataApi.summary.viewer_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_card_source_span_bound_count, evidenceViewerDataApi.summary.card_source_span_bound_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_card_lineage_path_bound_count, evidenceViewerDataApi.summary.card_lineage_path_bound_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_needs_review_card_count, evidenceViewerDataApi.summary.needs_review_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_source_span_panel_count, evidenceViewerDataApi.summary.source_span_panel_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_source_span_panel_bound_count, evidenceViewerDataApi.summary.source_span_panel_bound_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_lineage_path_panel_count, evidenceViewerDataApi.summary.lineage_path_panel_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_complete_lineage_path_panel_count, evidenceViewerDataApi.summary.complete_lineage_path_panel_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_read_only_card_count, evidenceViewerDataApi.summary.read_only_card_count);
+      assert.equal(dashboard.summary.evidence_viewer_data_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_coverage_status, "complete");
       assert.equal(dashboard.summary.evidence_coverage_contract_id, "evidence-coverage-score.v1");
       assert.equal(dashboard.summary.evidence_coverage_score_schema_version, "coverage-score.v1");
@@ -6577,6 +6635,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "issue_graph_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "citation_object_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "lineage_graph_builder"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_viewer_data_api"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_coverage_score"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_flags"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
@@ -6753,6 +6812,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-paths"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-graph-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-data"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-cards"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-source-spans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-lineage-paths"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-viewer-data-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-scores"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-dimensions"));
@@ -8868,6 +8932,26 @@ describe("matter harness", () => {
       const lineageGraphValidations = JSON.parse((await buildReviewApiResponse("/api/lineage-graph-validations?status=passed", apiOptions)).body);
       assert.equal(lineageGraphValidations.collection, "lineage_graph_validations");
       assert.equal(lineageGraphValidations.count, lineageGraphBuilder.summary.validation_item_count);
+
+      const evidenceViewerData = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-data?evidence_viewer_data_status=complete", apiOptions)).body);
+      assert.equal(evidenceViewerData.collection, "evidence_viewer_data");
+      assert.equal(evidenceViewerData.count, 1);
+
+      const evidenceViewerCards = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-cards?review_status=needs_review", apiOptions)).body);
+      assert.equal(evidenceViewerCards.collection, "evidence_viewer_cards");
+      assert.equal(evidenceViewerCards.count, evidenceViewerDataApi.summary.needs_review_card_count);
+
+      const evidenceViewerSourceSpans = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-source-spans?binding_status=bound", apiOptions)).body);
+      assert.equal(evidenceViewerSourceSpans.collection, "evidence_viewer_source_spans");
+      assert.equal(evidenceViewerSourceSpans.count, evidenceViewerDataApi.summary.source_span_panel_bound_count);
+
+      const evidenceViewerLineagePaths = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-lineage-paths?path_status=complete", apiOptions)).body);
+      assert.equal(evidenceViewerLineagePaths.collection, "evidence_viewer_lineage_paths");
+      assert.equal(evidenceViewerLineagePaths.count, evidenceViewerDataApi.summary.complete_lineage_path_panel_count);
+
+      const evidenceViewerDataValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-viewer-data-validations?status=passed", apiOptions)).body);
+      assert.equal(evidenceViewerDataValidations.collection, "evidence_viewer_data_validations");
+      assert.equal(evidenceViewerDataValidations.count, evidenceViewerDataApi.summary.validation_item_count);
 
       const evidenceCoverageArtifacts = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-scores?evidence_coverage_status=complete", apiOptions)).body);
       assert.equal(evidenceCoverageArtifacts.collection, "evidence_coverage_scores");

@@ -808,6 +808,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("lineage_graph_validations", graphResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-viewer-data") {
+    const dataResult = await readDashboardSourceArtifact(dashboard, "evidence_viewer_data_api");
+    if (!dataResult.available) {
+      return jsonResponse(503, buildError("evidence_viewer_data_api_unavailable", dataResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_data", [dataResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-cards") {
+    const dataResult = await readDashboardSourceArtifact(dashboard, "evidence_viewer_data_api");
+    if (!dataResult.available) {
+      return jsonResponse(503, buildError("evidence_viewer_data_api_unavailable", dataResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_cards", dataResult.artifact.evidence_viewer_data_catalog?.viewer_cards ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-source-spans") {
+    const dataResult = await readDashboardSourceArtifact(dashboard, "evidence_viewer_data_api");
+    if (!dataResult.available) {
+      return jsonResponse(503, buildError("evidence_viewer_data_api_unavailable", dataResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_source_spans", dataResult.artifact.evidence_viewer_data_catalog?.source_span_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-lineage-paths") {
+    const dataResult = await readDashboardSourceArtifact(dashboard, "evidence_viewer_data_api");
+    if (!dataResult.available) {
+      return jsonResponse(503, buildError("evidence_viewer_data_api_unavailable", dataResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_lineage_paths", dataResult.artifact.evidence_viewer_data_catalog?.lineage_path_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-viewer-data-validations") {
+    const dataResult = await readDashboardSourceArtifact(dashboard, "evidence_viewer_data_api");
+    if (!dataResult.available) {
+      return jsonResponse(503, buildError("evidence_viewer_data_api_unavailable", dataResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_viewer_data_validations", dataResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-coverage-scores") {
     const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
     if (!coverageResult.available) {
@@ -5595,6 +5630,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/lineage-paths", "Source-to-output lineage path rows"),
       route("GET", "/api/lineage-indexes", "Lineage graph index projections"),
       route("GET", "/api/lineage-graph-validations", "Lineage graph validation rows"),
+      route("GET", "/api/evidence-viewer-data", "Evidence viewer data API artifact"),
+      route("GET", "/api/evidence-viewer-cards", "Evidence viewer card rows joined to source spans and lineage"),
+      route("GET", "/api/evidence-viewer-source-spans", "Evidence viewer source span panel rows"),
+      route("GET", "/api/evidence-viewer-lineage-paths", "Evidence viewer lineage path panel rows"),
+      route("GET", "/api/evidence-viewer-data-validations", "Evidence viewer data API validation rows"),
       route("GET", "/api/evidence-coverage-scores", "Evidence coverage score artifacts"),
       route("GET", "/api/evidence-coverage-records", "Per-output evidence coverage score rows"),
       route("GET", "/api/evidence-coverage-dimensions", "Evidence coverage dimension rows"),
@@ -5854,6 +5894,10 @@ function filterItems(items, searchParams) {
     "issue_graph_store_status",
     "citation_object_store_status",
     "lineage_graph_status",
+    "evidence_viewer_data_status",
+    "viewer_card_id",
+    "source_span_panel_id",
+    "lineage_path_panel_id",
     "evidence_coverage_status",
     "evidence_flags_status",
     "exhibit_map_status",
@@ -6772,6 +6816,7 @@ function readFilterValue(item, key) {
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;
   if (key === "lineage_graph_status") return item.summary?.lineage_graph_status ?? item.lineage_graph_status;
+  if (key === "evidence_viewer_data_status") return item.summary?.evidence_viewer_data_status ?? item.evidence_viewer_data_status;
   if (key === "evidence_coverage_status") return item.summary?.evidence_coverage_status ?? item.evidence_coverage_status;
   if (key === "evidence_flags_status") return item.summary?.evidence_flags_status ?? item.evidence_flags_status;
   if (key === "exhibit_map_status") return item.summary?.exhibit_map_status ?? item.exhibit_map_status;

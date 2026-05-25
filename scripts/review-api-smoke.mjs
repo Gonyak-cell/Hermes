@@ -177,6 +177,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/lineage-paths"));
   assert.ok(index.routes.some((route) => route.path === "/api/lineage-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/lineage-graph-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-data"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-cards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-source-spans"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-lineage-paths"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-viewer-data-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-scores"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-dimensions"));
@@ -2065,6 +2070,26 @@ try {
   const lineageGraphValidations = await fetchJson(`${url}/api/lineage-graph-validations?status=passed&limit=5`);
   assert.equal(lineageGraphValidations.collection, "lineage_graph_validations");
   assert.ok(lineageGraphValidations.count <= 5);
+
+  const evidenceViewerData = await fetchJson(`${url}/api/evidence-viewer-data?evidence_viewer_data_status=complete&limit=1`);
+  assert.equal(evidenceViewerData.collection, "evidence_viewer_data");
+  assert.ok(evidenceViewerData.count <= 1);
+
+  const evidenceViewerCards = await fetchJson(`${url}/api/evidence-viewer-cards?review_status=needs_review&limit=5`);
+  assert.equal(evidenceViewerCards.collection, "evidence_viewer_cards");
+  assert.ok(evidenceViewerCards.count <= 5);
+
+  const evidenceViewerSourceSpans = await fetchJson(`${url}/api/evidence-viewer-source-spans?binding_status=bound&limit=5`);
+  assert.equal(evidenceViewerSourceSpans.collection, "evidence_viewer_source_spans");
+  assert.ok(evidenceViewerSourceSpans.count <= 5);
+
+  const evidenceViewerLineagePaths = await fetchJson(`${url}/api/evidence-viewer-lineage-paths?path_status=complete&limit=5`);
+  assert.equal(evidenceViewerLineagePaths.collection, "evidence_viewer_lineage_paths");
+  assert.ok(evidenceViewerLineagePaths.count <= 5);
+
+  const evidenceViewerDataValidations = await fetchJson(`${url}/api/evidence-viewer-data-validations?status=passed&limit=5`);
+  assert.equal(evidenceViewerDataValidations.collection, "evidence_viewer_data_validations");
+  assert.ok(evidenceViewerDataValidations.count <= 5);
 
   const evidenceCoverageScores = await fetchJson(`${url}/api/evidence-coverage-scores?evidence_coverage_status=complete&limit=1`);
   assert.equal(evidenceCoverageScores.collection, "evidence_coverage_scores");

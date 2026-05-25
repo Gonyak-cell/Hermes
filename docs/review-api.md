@@ -335,6 +335,11 @@ npm run api:serve
 - `GET /api/lineage-paths`: source-to-output lineage path
 - `GET /api/lineage-indexes`: lineage graph index projection
 - `GET /api/lineage-graph-validations`: lineage graph validation row
+- `GET /api/evidence-viewer-data`: Evidence Viewer Data API artifact
+- `GET /api/evidence-viewer-cards`: EvidenceItem, SourceSpan, LineagePath를 결합한 viewer card row
+- `GET /api/evidence-viewer-source-spans`: viewer source span panel row
+- `GET /api/evidence-viewer-lineage-paths`: viewer lineage path panel row
+- `GET /api/evidence-viewer-data-validations`: Evidence Viewer Data API validation row
 - `GET /api/evidence-coverage-scores`: Evidence Coverage Score artifact
 - `GET /api/evidence-coverage-records`: per-output coverage score row
 - `GET /api/evidence-coverage-dimensions`: claim/date/party/amount/legal-basis dimension row
@@ -366,6 +371,8 @@ Cost attribution route는 `attribution_id`, `budget_decision_id`, `token_usage_i
 Budget alert route는 `alert_record_id`, `attribution_id`, `budget_decision_id`, `token_usage_id`, `routing_decision_id`, `runtime_id`, `workflow_run_id`, `capability_id`, `classification`, `alert_status`, `requires_human`, `matter_id`, `tenant_id`, `ledger_status`, `limit` query를 지원한다.
 
 Lineage graph route는 `lineage_graph_status`, `lineage_node_id`, `lineage_edge_id`, `lineage_path_id`, `node_type`, `edge_type`, `path_status`, `from_subject_id`, `to_subject_id`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `limit` query를 지원한다.
+
+Evidence viewer data route는 `evidence_viewer_data_status`, `viewer_card_id`, `source_span_panel_id`, `lineage_path_panel_id`, `source_span_id`, `evidence_id`, `lineage_path_id`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `binding_status`, `path_status`, `status`, `limit` query를 지원한다.
 
 Evidence coverage route는 `evidence_coverage_status`, `coverage_score_id`, `coverage_dimension_id`, `coverage_status`, `dimension`, `coverage_subject_id`, `covered`, `required`, `missing_required_dimension_count`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `limit` query를 지원한다.
 

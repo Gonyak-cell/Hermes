@@ -4599,6 +4599,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 55개로 증가하고 resource quarantine model이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:quarantine -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 154: Evidence Viewer Data API
+
+목표: Source Span Store, Evidence Item Store, Lineage Graph Builder를 evidence viewer가 바로 조회할 수 있는 read-only API 데이터 계약으로 묶는다.
+
+구현 내용:
+
+- `src/evidence-viewer-data-api.mjs`, `scripts/evidence-viewer-data-api.mjs`, `schemas/evidence-viewer-data-api.schema.json`, `docs/evidence-viewer-data-api.md`를 추가함
+- `npm run evidence:viewer-data -- --check` 명령을 추가해 viewer card, source span panel, lineage path panel, validation report, summary markdown을 생성함
+- 모든 EvidenceItem을 하나의 viewer card로 투영하고, 각 card에 primary source span, source locator, lineage path sequence, review queue summary를 함께 노출함
+- 모든 SourceSpan을 source span panel로 투영해 evidence id와 lineage path id를 역방향으로 조회할 수 있게 함
+- 모든 LineagePath를 lineage path panel로 투영해 node sequence와 edge sequence를 viewer에서 바로 그릴 수 있게 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Evidence Viewer Data API를 통합함
+- `/api/evidence-viewer-data`, `/api/evidence-viewer-cards`, `/api/evidence-viewer-source-spans`, `/api/evidence-viewer-lineage-paths`, `/api/evidence-viewer-data-validations` route를 추가함
+
+완료 기준:
+
+- Evidence Viewer Data API가 validation error 없이 `complete` 상태가 됨
+- viewer card 수가 Evidence Item Store의 evidence item 수와 일치함
+- 모든 viewer card가 source span과 lineage path를 하나 이상 가진다
+- source span panel 수가 Source Span Store의 source span 수와 일치하고 모두 evidence item에 bound됨
+- lineage path panel 수가 Lineage Graph Builder의 lineage path 수와 일치하고 모두 node/edge sequence를 가진다
+- viewer data는 read-only이며 output delivery를 허용하지 않음
+- Review Dashboard summary와 stage status에서 card, source span panel, lineage path panel, validation count가 노출됨
+- Review API smoke가 evidence viewer data, card, source span panel, lineage path panel, validation route를 모두 조회함
+- Golden fixture 수가 56개로 증가하고 evidence viewer data API가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run evidence:viewer-data -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4607,9 +4634,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 153이다.
+- 현재 완료 기준점은 Phase 154이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P154-P312, 총 159개다.
+- 남은 계획 슬롯은 P155-P312, 총 158개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

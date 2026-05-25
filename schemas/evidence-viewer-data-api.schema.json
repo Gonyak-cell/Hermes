@@ -1,0 +1,320 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-viewer-data-api.schema.json",
+  "title": "Hermes Evidence Viewer Data API",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_viewer_data_api_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "evidence_viewer_data_contract",
+    "evidence_viewer_data_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-viewer-data-api.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_viewer_data_api_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["source_span_store_path", "evidence_item_store_path", "lineage_graph_path", "package_path", "roadmap_path"],
+      "properties": {
+        "source_span_store_path": { "type": "string" },
+        "evidence_item_store_path": { "type": "string" },
+        "lineage_graph_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_store" } },
+    "evidence_viewer_data_contract": { "$ref": "#/$defs/viewer_contract" },
+    "evidence_viewer_data_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "viewer_cards", "source_span_panels", "lineage_path_panels", "viewer_indexes"],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-data-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "viewer_cards": { "type": "array", "items": { "$ref": "#/$defs/viewer_card" } },
+        "source_span_panels": { "type": "array", "items": { "$ref": "#/$defs/source_span_panel" } },
+        "lineage_path_panels": { "type": "array", "items": { "$ref": "#/$defs/lineage_path_panel" } },
+        "viewer_indexes": { "$ref": "#/$defs/viewer_indexes" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_store": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "viewer_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_viewer_data_contract_id",
+        "generated_at",
+        "source_inputs",
+        "required_card_links",
+        "required_panel_links",
+        "api_routes",
+        "delivery_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-data-contract.v1" },
+        "evidence_viewer_data_contract_id": { "const": "evidence-viewer-data-api.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_inputs": { "type": "array", "items": { "type": "string" } },
+        "required_card_links": { "type": "array", "items": { "type": "string" } },
+        "required_panel_links": { "type": "array", "items": { "type": "string" } },
+        "api_routes": { "type": "array", "items": { "type": "string" } },
+        "delivery_rule": { "type": "string" }
+      }
+    },
+    "viewer_card": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "viewer_card_id",
+        "generated_at",
+        "evidence_id",
+        "primary_source_span_id",
+        "source_span_ids",
+        "source_span_count",
+        "bound_source_span_count",
+        "lineage_path_ids",
+        "lineage_path_count",
+        "source_preview",
+        "source_locator",
+        "source_span",
+        "lineage_paths",
+        "viewer_actions"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-card.v1" },
+        "viewer_card_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "evidence_id": { "type": "string" },
+        "evidence_type": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "review_status": { "type": ["string", "null"] },
+        "reliability": { "type": ["string", "null"] },
+        "verification_state": { "type": ["string", "null"] },
+        "privilege_flag": { "type": "boolean" },
+        "redaction_state": { "type": ["string", "null"] },
+        "source_span_ids": { "type": "array", "items": { "type": "string" } },
+        "primary_source_span_id": { "type": "string" },
+        "source_span_count": { "type": "integer", "minimum": 0 },
+        "bound_source_span_count": { "type": "integer", "minimum": 0 },
+        "lineage_path_ids": { "type": "array", "items": { "type": "string" } },
+        "lineage_path_count": { "type": "integer", "minimum": 0 },
+        "source_preview": { "type": "string" },
+        "source_locator": { "type": "object" },
+        "summary": { "type": ["string", "null"] },
+        "source_span": { "type": ["object", "null"] },
+        "lineage_paths": { "type": "array", "items": { "type": "object" } },
+        "review_queue": { "type": ["object", "null"] },
+        "viewer_actions": { "$ref": "#/$defs/viewer_actions" }
+      },
+      "additionalProperties": true
+    },
+    "source_span_panel": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_span_panel_id",
+        "generated_at",
+        "source_span_id",
+        "resource_id",
+        "resource_version_id",
+        "location_type",
+        "span_status",
+        "review_status",
+        "locator",
+        "content_preview",
+        "evidence_ids",
+        "evidence_binding_count",
+        "lineage_path_ids",
+        "lineage_path_count",
+        "binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-source-span-panel.v1" },
+        "source_span_panel_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_span_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "normalized_text_id": { "type": "string" },
+        "location_type": { "type": "string" },
+        "span_status": { "type": "string" },
+        "review_status": { "type": "string" },
+        "locator": { "type": "object" },
+        "content_preview": { "type": "string" },
+        "evidence_ids": { "type": "array", "items": { "type": "string" } },
+        "evidence_binding_count": { "type": "integer", "minimum": 0 },
+        "lineage_path_ids": { "type": "array", "items": { "type": "string" } },
+        "lineage_path_count": { "type": "integer", "minimum": 0 },
+        "binding_status": { "enum": ["bound", "unbound"] }
+      },
+      "additionalProperties": true
+    },
+    "lineage_path_panel": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "lineage_path_panel_id",
+        "generated_at",
+        "lineage_path_id",
+        "path_status",
+        "source_span_id",
+        "evidence_id",
+        "node_ids",
+        "edge_ids",
+        "node_count",
+        "edge_count",
+        "node_sequence",
+        "edge_sequence",
+        "source_preview"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-lineage-path-panel.v1" },
+        "lineage_path_panel_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "lineage_path_id": { "type": "string" },
+        "path_status": { "type": "string" },
+        "citation_id": { "type": ["string", "null"] },
+        "source_span_id": { "type": "string" },
+        "evidence_id": { "type": "string" },
+        "fact_id": { "type": ["string", "null"] },
+        "issue_id": { "type": ["string", "null"] },
+        "output_paragraph_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "review_status": { "type": ["string", "null"] },
+        "node_ids": { "type": "array", "items": { "type": "string" } },
+        "edge_ids": { "type": "array", "items": { "type": "string" } },
+        "node_count": { "type": "integer", "minimum": 0 },
+        "edge_count": { "type": "integer", "minimum": 0 },
+        "node_sequence": { "type": "array", "items": { "type": "object" } },
+        "edge_sequence": { "type": "array", "items": { "type": "object" } },
+        "source_preview": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "viewer_actions": {
+      "type": "object",
+      "required": ["source_span_view_allowed", "lineage_view_allowed", "human_review_required", "output_delivery_allowed"],
+      "properties": {
+        "source_span_view_allowed": { "type": "boolean" },
+        "lineage_view_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" },
+        "output_delivery_allowed": { "type": "boolean" }
+      }
+    },
+    "viewer_indexes": {
+      "type": "object",
+      "required": ["schema_version", "by_matter_id", "by_classification", "by_review_status", "source_span_by_location_type", "lineage_by_path_status"],
+      "properties": {
+        "schema_version": { "const": "evidence-viewer-indexes.v1" },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "source_span_by_location_type": { "type": "object" },
+        "lineage_by_path_status": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "subject_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "validation-item.v1" },
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_viewer_data_status",
+        "evidence_viewer_data_contract_id",
+        "viewer_card_count",
+        "card_source_span_bound_count",
+        "card_lineage_path_bound_count",
+        "source_span_panel_count",
+        "lineage_path_panel_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_viewer_data_status": { "enum": ["complete", "blocked"] },
+        "evidence_viewer_data_contract_id": { "const": "evidence-viewer-data-api.v1" },
+        "source_span_store_status": { "type": "string" },
+        "evidence_item_store_status": { "type": "string" },
+        "lineage_graph_status": { "type": "string" },
+        "source_span_count": { "type": "integer", "minimum": 0 },
+        "evidence_item_count": { "type": "integer", "minimum": 0 },
+        "lineage_path_count": { "type": "integer", "minimum": 0 },
+        "viewer_card_count": { "type": "integer", "minimum": 0 },
+        "card_source_span_bound_count": { "type": "integer", "minimum": 0 },
+        "card_lineage_path_bound_count": { "type": "integer", "minimum": 0 },
+        "needs_review_card_count": { "type": "integer", "minimum": 0 },
+        "source_span_panel_count": { "type": "integer", "minimum": 0 },
+        "source_span_panel_bound_count": { "type": "integer", "minimum": 0 },
+        "lineage_path_panel_count": { "type": "integer", "minimum": 0 },
+        "complete_lineage_path_panel_count": { "type": "integer", "minimum": 0 },
+        "read_only_card_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_review_status": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

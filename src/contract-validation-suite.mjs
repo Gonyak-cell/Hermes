@@ -46,6 +46,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:issue-graph",
   "resource:citations",
   "resource:lineage-graph",
+  "evidence:viewer-data",
   "resource:evidence-coverage",
   "resource:evidence-flags",
   "resource:exhibit-map",

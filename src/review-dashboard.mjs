@@ -37,6 +37,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   issueGraphStorePath: "artifacts/issue-graph-store/latest/issue-graph-store.json",
   citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
   lineageGraphBuilderPath: "artifacts/lineage-graph/latest/lineage-graph.json",
+  evidenceViewerDataApiPath: "artifacts/evidence-viewer-data-api/latest/evidence-viewer-data-api.json",
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
@@ -317,6 +318,11 @@ const SOURCE_DEFINITIONS = [
     option: "lineageGraphBuilderPath",
     source_id: "lineage_graph_builder",
     label: "Lineage Graph Builder",
+  },
+  {
+    option: "evidenceViewerDataApiPath",
+    source_id: "evidence_viewer_data_api",
+    label: "Evidence Viewer Data API",
   },
   {
     option: "evidenceCoverageScorePath",
@@ -1254,6 +1260,7 @@ function buildStageStatuses(artifacts, sources) {
     buildIssueGraphStoreStage(artifacts.issue_graph_store, sourceById.get("issue_graph_store")),
     buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
     buildLineageGraphBuilderStage(artifacts.lineage_graph_builder, sourceById.get("lineage_graph_builder")),
+    buildEvidenceViewerDataApiStage(artifacts.evidence_viewer_data_api, sourceById.get("evidence_viewer_data_api")),
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
@@ -2901,6 +2908,52 @@ function buildLineageGraphBuilderStage(graph, source) {
       needs_review_path_count: summary.needs_review_path_count ?? 0,
       not_client_facing_output_path_count: summary.not_client_facing_output_path_count ?? 0,
       client_facing_ready_path_count: summary.client_facing_ready_path_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceViewerDataApiStage(dataApi, source) {
+  if (!dataApi) return missingStage("evidence_viewer_data_api", "Evidence Viewer Data API", source);
+  const summary = dataApi.summary ?? {};
+  const errorCount = summary.validation_error_count ?? dataApi.validation?.errors?.length ?? 0;
+  const cardCount = summary.viewer_card_count ?? 0;
+  const status = summary.evidence_viewer_data_status === "complete"
+    && errorCount === 0
+    && cardCount > 0
+    && (summary.card_source_span_bound_count ?? 0) === cardCount
+    && (summary.card_lineage_path_bound_count ?? 0) === cardCount
+    && (summary.source_span_panel_bound_count ?? 0) === (summary.source_span_panel_count ?? -1)
+    && (summary.complete_lineage_path_panel_count ?? 0) === (summary.lineage_path_panel_count ?? -1)
+    && (summary.read_only_card_count ?? 0) === cardCount
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_viewer_data_api",
+    label: "Evidence Viewer Data API",
+    status,
+    message: `${cardCount} viewer card(s), ${summary.source_span_panel_count ?? 0} source span panel(s), ${summary.lineage_path_panel_count ?? 0} lineage panel(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_viewer_data_status: summary.evidence_viewer_data_status ?? "unknown",
+      evidence_viewer_data_contract_id: summary.evidence_viewer_data_contract_id ?? null,
+      source_span_store_status: summary.source_span_store_status ?? "unknown",
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      lineage_graph_status: summary.lineage_graph_status ?? "unknown",
+      source_span_count: summary.source_span_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      lineage_path_count: summary.lineage_path_count ?? 0,
+      viewer_card_count: cardCount,
+      card_source_span_bound_count: summary.card_source_span_bound_count ?? 0,
+      card_lineage_path_bound_count: summary.card_lineage_path_bound_count ?? 0,
+      needs_review_card_count: summary.needs_review_card_count ?? 0,
+      source_span_panel_count: summary.source_span_panel_count ?? 0,
+      source_span_panel_bound_count: summary.source_span_panel_bound_count ?? 0,
+      lineage_path_panel_count: summary.lineage_path_panel_count ?? 0,
+      complete_lineage_path_panel_count: summary.complete_lineage_path_panel_count ?? 0,
+      read_only_card_count: summary.read_only_card_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9437,6 +9490,24 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     lineage_graph_builder_not_client_facing_output_path_count: artifacts.lineage_graph_builder?.summary?.not_client_facing_output_path_count ?? 0,
     lineage_graph_builder_client_facing_ready_path_count: artifacts.lineage_graph_builder?.summary?.client_facing_ready_path_count ?? 0,
     lineage_graph_builder_validation_error_count: artifacts.lineage_graph_builder?.summary?.validation_error_count ?? artifacts.lineage_graph_builder?.validation?.errors?.length ?? 0,
+    evidence_viewer_data_status: artifacts.evidence_viewer_data_api?.summary?.evidence_viewer_data_status ?? "unknown",
+    evidence_viewer_data_contract_id: artifacts.evidence_viewer_data_api?.summary?.evidence_viewer_data_contract_id ?? null,
+    evidence_viewer_data_source_span_store_status: artifacts.evidence_viewer_data_api?.summary?.source_span_store_status ?? "unknown",
+    evidence_viewer_data_evidence_item_store_status: artifacts.evidence_viewer_data_api?.summary?.evidence_item_store_status ?? "unknown",
+    evidence_viewer_data_lineage_graph_status: artifacts.evidence_viewer_data_api?.summary?.lineage_graph_status ?? "unknown",
+    evidence_viewer_data_source_span_count: artifacts.evidence_viewer_data_api?.summary?.source_span_count ?? 0,
+    evidence_viewer_data_evidence_item_count: artifacts.evidence_viewer_data_api?.summary?.evidence_item_count ?? 0,
+    evidence_viewer_data_lineage_path_count: artifacts.evidence_viewer_data_api?.summary?.lineage_path_count ?? 0,
+    evidence_viewer_data_card_count: artifacts.evidence_viewer_data_api?.summary?.viewer_card_count ?? 0,
+    evidence_viewer_data_card_source_span_bound_count: artifacts.evidence_viewer_data_api?.summary?.card_source_span_bound_count ?? 0,
+    evidence_viewer_data_card_lineage_path_bound_count: artifacts.evidence_viewer_data_api?.summary?.card_lineage_path_bound_count ?? 0,
+    evidence_viewer_data_needs_review_card_count: artifacts.evidence_viewer_data_api?.summary?.needs_review_card_count ?? 0,
+    evidence_viewer_data_source_span_panel_count: artifacts.evidence_viewer_data_api?.summary?.source_span_panel_count ?? 0,
+    evidence_viewer_data_source_span_panel_bound_count: artifacts.evidence_viewer_data_api?.summary?.source_span_panel_bound_count ?? 0,
+    evidence_viewer_data_lineage_path_panel_count: artifacts.evidence_viewer_data_api?.summary?.lineage_path_panel_count ?? 0,
+    evidence_viewer_data_complete_lineage_path_panel_count: artifacts.evidence_viewer_data_api?.summary?.complete_lineage_path_panel_count ?? 0,
+    evidence_viewer_data_read_only_card_count: artifacts.evidence_viewer_data_api?.summary?.read_only_card_count ?? 0,
+    evidence_viewer_data_validation_error_count: artifacts.evidence_viewer_data_api?.summary?.validation_error_count ?? artifacts.evidence_viewer_data_api?.validation?.errors?.length ?? 0,
     evidence_coverage_status: artifacts.evidence_coverage_score?.summary?.evidence_coverage_status ?? "unknown",
     evidence_coverage_contract_id: artifacts.evidence_coverage_score?.summary?.evidence_coverage_contract_id ?? null,
     evidence_coverage_score_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_score_schema_version ?? null,
@@ -11103,6 +11174,8 @@ function parseArgs(argv) {
     else if (arg === "--no-citation-object-store") parsed.citationObjectStorePath = false;
     else if (arg === "--lineage-graph") parsed.lineageGraphBuilderPath = argv[++index];
     else if (arg === "--no-lineage-graph") parsed.lineageGraphBuilderPath = false;
+    else if (arg === "--evidence-viewer-data-api") parsed.evidenceViewerDataApiPath = argv[++index];
+    else if (arg === "--no-evidence-viewer-data-api") parsed.evidenceViewerDataApiPath = false;
     else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
     else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
     else if (arg === "--evidence-flags") parsed.evidenceFlagsPath = argv[++index];
@@ -11327,6 +11400,9 @@ Options:
   --no-citation-object-store      Do not include Citation Object Store status.
   --lineage-graph <path>          lineage-graph.json path.
   --no-lineage-graph              Do not include Lineage Graph Builder status.
+  --evidence-viewer-data-api <path>
+                                  evidence-viewer-data-api.json path.
+  --no-evidence-viewer-data-api   Do not include Evidence Viewer Data API status.
   --evidence-coverage <path>      evidence-coverage-score.json path.
   --no-evidence-coverage          Do not include Evidence Coverage Score status.
   --evidence-flags <path>         evidence-flags.json path.

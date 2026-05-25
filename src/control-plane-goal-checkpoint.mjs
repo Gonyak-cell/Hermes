@@ -45,6 +45,7 @@ const GOAL_ITEMS = [
   sourceItem("issue_graph_store", "Issue graph store", "resource_evidence", "issue_graph_store", "control-plane-issue-graph-store", { acceptance_profile: "issue_graph_store_gate" }),
   sourceItem("citation_object_store", "Citation object store", "resource_evidence", "citation_object_store", "control-plane-citation-object-store", { acceptance_profile: "citation_object_store_gate" }),
   sourceItem("lineage_graph_builder", "Lineage graph builder", "resource_evidence", "lineage_graph_builder", "control-plane-lineage-graph-builder", { acceptance_profile: "lineage_graph_builder_gate" }),
+  sourceItem("evidence_viewer_data_api", "Evidence viewer data API", "resource_evidence", "evidence_viewer_data_api", "control-plane-evidence-viewer-data-api", { acceptance_profile: "evidence_viewer_data_api_gate" }),
   sourceItem("evidence_coverage_score", "Evidence coverage score", "resource_evidence", "evidence_coverage_score", "control-plane-evidence-coverage-score", { acceptance_profile: "evidence_coverage_score_gate" }),
   sourceItem("evidence_flags", "Evidence flags", "resource_evidence", "evidence_flags", "control-plane-evidence-flags", { acceptance_profile: "evidence_flags_gate" }),
   sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
@@ -404,6 +405,7 @@ function evaluateStageAcceptance(item, stage) {
     "issue_graph_store_gate",
     "citation_object_store_gate",
     "lineage_graph_builder_gate",
+    "evidence_viewer_data_api_gate",
     "evidence_coverage_score_gate",
     "evidence_flags_gate",
     "exhibit_map_gate",
@@ -925,6 +927,26 @@ function evaluateStageAcceptance(item, stage) {
       && edgeCount === pathCount * 5
     ) {
       return passedWithOperationalGate(stage, "Lineage graph builder reconstructs complete source-to-output paths through source, evidence, fact, issue, and output nodes while keeping outputs review-pending.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_viewer_data_api_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const cardCount = metrics.viewer_card_count ?? 0;
+    if (
+      errors === 0
+      && metrics.evidence_viewer_data_status === "complete"
+      && metrics.source_span_store_status === "complete"
+      && metrics.evidence_item_store_status === "complete"
+      && metrics.lineage_graph_status === "complete"
+      && cardCount > 0
+      && (metrics.card_source_span_bound_count ?? 0) === cardCount
+      && (metrics.card_lineage_path_bound_count ?? 0) === cardCount
+      && (metrics.source_span_panel_bound_count ?? 0) === (metrics.source_span_panel_count ?? -1)
+      && (metrics.complete_lineage_path_panel_count ?? 0) === (metrics.lineage_path_panel_count ?? -1)
+      && (metrics.read_only_card_count ?? 0) === cardCount
+    ) {
+      return passedWithOperationalGate(stage, "Evidence viewer data API joins every evidence card to source span and lineage path panels while remaining read-only.");
     }
   }
 

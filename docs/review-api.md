@@ -50,6 +50,11 @@ npm run api:serve
 - `GET /api/policy-outcome-matrix`: fixture group별 outcome matrix
 - `GET /api/policy-regression-hashes`: locked policy regression hash
 - `GET /api/policy-golden-fixture-validations`: policy golden fixture validation item
+- `GET /api/policy-operation-surfaces`: policy operations surface artifact
+- `GET /api/policy-decision-rows`: unified policy decision rows
+- `GET /api/policy-violation-rows`: unified policy violation rows
+- `GET /api/policy-pending-approvals`: unified pending policy approval rows
+- `GET /api/policy-surface-validations`: policy operations surface validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

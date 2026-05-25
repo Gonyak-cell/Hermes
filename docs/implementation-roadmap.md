@@ -3938,6 +3938,29 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 31개로 증가하고 policy golden fixtures가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run contracts:policy-golden -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 130: Policy Operations Surface
+
+목표: Identity/Policy/Matter Boundary 계층에서 흩어져 있던 policy decision, violation, pending approval을 dashboard/API에서 바로 조회 가능한 운영 표면으로 묶는다.
+
+구현 내용:
+
+- `src/policy-operations-surface.mjs`, `scripts/policy-operations-surface.mjs`, `schemas/policy-operations-surface.schema.json`, `docs/policy-operations-surface.md`를 추가함
+- `npm run policy:surface -- --check` 명령을 추가해 policy operations catalog, decision rows, violation rows, pending approval rows, validation report, summary markdown을 생성함
+- Matter Access, Data Classification, Model Policy, Tool/Runtime Policy, Output Destination, Approval Authority, Matter Tagging, Conflict Check, Store Policy, Personal Workspace Boundary, Policy Golden Fixtures artifact를 같은 row contract로 정규화함
+- 각 decision row는 policy layer, decision, gate status, control effect, tenant/matter/resource/runtime/classification/policy snapshot, required gates, reason codes, approval/protected-action 여부를 함께 보존함
+- 각 violation row는 deny decision을 critical/warning remediation queue로 노출하고, pending approval row는 human reviewer 또는 assignment required 항목을 별도 queue로 노출함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 policy operations surface를 통합함
+- `/api/policy-operation-surfaces`, `/api/policy-decision-rows`, `/api/policy-violation-rows`, `/api/policy-pending-approvals`, `/api/policy-surface-validations` route를 추가함
+
+완료 기준:
+
+- Policy Operations Surface가 decision, violation, pending approval row를 생성하고 validation error 없이 complete 상태가 됨
+- allow/review/deny decision이 모두 존재하고 critical/warning violation과 human gate 또는 assignment required pending approval이 조회 가능함
+- Review Dashboard summary와 stage status에서 policy operations surface 상태, decision/violation/pending approval count, validation error count가 노출됨
+- Review API smoke가 policy operations surface, decision, violation, pending approval, validation route를 모두 조회함
+- Golden fixture 수가 32개로 증가하고 policy operations surface가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run policy:surface -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3946,9 +3969,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 129이다.
+- 현재 완료 기준점은 Phase 130이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P130-P312, 총 183개다.
+- 남은 계획 슬롯은 P131-P312, 총 182개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

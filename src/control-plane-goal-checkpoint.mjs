@@ -28,6 +28,7 @@ const GOAL_ITEMS = [
   sourceItem("conflict_check_interface", "Conflict check interface", "identity_policy", "conflict_check_interface", "control-plane-conflict-check-interface", { acceptance_profile: "conflict_check_interface_gate" }),
   sourceItem("personal_workspace_boundary", "Personal workspace boundary", "identity_policy", "personal_workspace_boundary", "control-plane-personal-workspace-boundary", { acceptance_profile: "personal_workspace_boundary_gate" }),
   sourceItem("policy_golden_fixtures", "Policy golden fixtures", "identity_policy", "policy_golden_fixtures", "control-plane-policy-golden-fixtures", { acceptance_profile: "policy_golden_fixtures_gate" }),
+  sourceItem("policy_operations_surface", "Policy operations dashboard/API surface", "identity_policy", "policy_operations_surface", "control-plane-policy-operations-surface", { acceptance_profile: "policy_operations_surface_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -363,6 +364,7 @@ function evaluateStageAcceptance(item, stage) {
       : "attention";
   const evaluateProfileWhenPassed = new Set([
     "policy_golden_fixtures_gate",
+    "policy_operations_surface_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -514,6 +516,25 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.locked_regression_hash_count ?? 0) === caseCount
     ) {
       return passedWithOperationalGate(stage, "Policy golden fixtures are implemented with locked allow, review, and deny/block regression cases across policy evaluators.");
+    }
+  }
+
+  if (item.acceptance_profile === "policy_operations_surface_gate") {
+    const decisionCount = metrics.policy_decision_row_count ?? 0;
+    const pendingApprovalCount = metrics.policy_pending_approval_row_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.failed_validation_item_count ?? 0);
+    if (
+      errors === 0
+      && decisionCount > 0
+      && (metrics.allow_decision_count ?? 0) > 0
+      && (metrics.review_decision_count ?? 0) > 0
+      && (metrics.deny_decision_count ?? 0) > 0
+      && (metrics.policy_violation_row_count ?? 0) > 0
+      && pendingApprovalCount > 0
+      && (metrics.human_gate_pending_approval_count ?? 0) > 0
+      && (metrics.distinct_policy_layer_count ?? 0) >= 6
+    ) {
+      return passedWithOperationalGate(stage, "Policy operations surface is implemented with unified allow, review, deny, violation, and pending approval rows across policy layers for dashboard/API review.");
     }
   }
 

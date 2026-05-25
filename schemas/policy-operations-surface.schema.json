@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/policy-operations-surface.schema.json",
+  "title": "Hermes Policy Operations Surface",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "policy_operations_surface_id",
+    "output_dir",
+    "inputs",
+    "source_statuses",
+    "policy_operations_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "policy-operations-surface.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "policy_operations_surface_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_statuses": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": { "$ref": "#/$defs/source_status" }
+    },
+    "policy_operations_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "policy_decision_rows",
+        "policy_violation_rows",
+        "policy_pending_approval_rows"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-operations-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "policy_decision_rows": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/policy_decision_row" }
+        },
+        "policy_violation_rows": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/policy_violation_row" }
+        },
+        "policy_pending_approval_rows": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/policy_pending_approval_row" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": ["schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "policy_decision_row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_decision_row_id",
+        "source_artifact_id",
+        "source_record_type",
+        "source_record_id",
+        "policy_layer",
+        "decision",
+        "gate_status",
+        "control_effect",
+        "tenant_id",
+        "matter_id",
+        "resource_id",
+        "runtime_id",
+        "classification",
+        "policy_snapshot_id",
+        "required_gates",
+        "reason_codes",
+        "human_review_required",
+        "approval_required",
+        "protected_action",
+        "pending_approval",
+        "violation_candidate",
+        "decided_at",
+        "captured_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-decision-row.v1" },
+        "policy_decision_row_id": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "source_record_type": { "type": "string" },
+        "source_record_id": { "type": "string" },
+        "policy_layer": { "type": "string" },
+        "decision": { "enum": ["allow", "review", "deny"] },
+        "gate_status": { "type": "string" },
+        "control_effect": { "enum": ["permit", "hold_for_review", "block"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "resource_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "human_review_required": { "type": "boolean" },
+        "approval_required": { "type": "boolean" },
+        "protected_action": { "type": "boolean" },
+        "pending_approval": { "type": "boolean" },
+        "violation_candidate": { "type": "boolean" },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "policy_violation_row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_violation_row_id",
+        "policy_decision_row_id",
+        "source_artifact_id",
+        "source_record_type",
+        "source_record_id",
+        "policy_layer",
+        "violation_type",
+        "severity",
+        "decision",
+        "gate_status",
+        "tenant_id",
+        "matter_id",
+        "resource_id",
+        "runtime_id",
+        "classification",
+        "policy_snapshot_id",
+        "reason_codes",
+        "remediation",
+        "detected_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-violation-row.v1" },
+        "policy_violation_row_id": { "type": "string" },
+        "policy_decision_row_id": { "type": "string" },
+        "source_artifact_id": { "type": "string" },
+        "source_record_type": { "type": "string" },
+        "source_record_id": { "type": "string" },
+        "policy_layer": { "type": "string" },
+        "violation_type": { "type": "string" },
+        "severity": { "enum": ["info", "warning", "critical"] },
+        "decision": { "enum": ["deny"] },
+        "gate_status": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "resource_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "remediation": { "type": "string" },
+        "detected_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "policy_pending_approval_row": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_pending_approval_id",
+        "policy_decision_row_id",
+        "source_artifact_id",
+        "source_record_type",
+        "source_record_id",
+        "policy_layer",
+        "approval_type",
+        "required_actor",
+        "required_gates",
+        "tenant_id",
+        "matter_id",
+        "resource_id",
+        "runtime_id",
+        "classification",
+        "policy_snapshot_id",
+        "pending_reason",
+        "status",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "policy-pending-approval-row.v1" },
+        "policy_pending_approval_id": { "type": "string" },
+        "policy_decision_row_id": { "type": ["string", "null"] },
+        "source_artifact_id": { "type": "string" },
+        "source_record_type": { "type": "string" },
+        "source_record_id": { "type": "string" },
+        "policy_layer": { "type": "string" },
+        "approval_type": { "type": "string" },
+        "required_actor": { "type": "string" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "resource_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "pending_reason": { "type": "string" },
+        "status": { "enum": ["pending", "assignment_required"] },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "policy_operations_surface_status",
+        "policy_decision_row_count",
+        "allow_decision_count",
+        "review_decision_count",
+        "deny_decision_count",
+        "policy_violation_row_count",
+        "critical_violation_count",
+        "warning_violation_count",
+        "policy_pending_approval_row_count",
+        "assignment_required_approval_count",
+        "human_gate_pending_approval_count",
+        "distinct_policy_layer_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "policy_operations_surface_status": { "enum": ["complete", "blocked"] },
+        "policy_decision_row_count": { "type": "integer", "minimum": 0 },
+        "allow_decision_count": { "type": "integer", "minimum": 0 },
+        "review_decision_count": { "type": "integer", "minimum": 0 },
+        "deny_decision_count": { "type": "integer", "minimum": 0 },
+        "policy_violation_row_count": { "type": "integer", "minimum": 0 },
+        "critical_violation_count": { "type": "integer", "minimum": 0 },
+        "warning_violation_count": { "type": "integer", "minimum": 0 },
+        "policy_pending_approval_row_count": { "type": "integer", "minimum": 0 },
+        "assignment_required_approval_count": { "type": "integer", "minimum": 0 },
+        "human_gate_pending_approval_count": { "type": "integer", "minimum": 0 },
+        "distinct_policy_layer_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_policy_layer": { "type": "object" },
+        "by_decision": { "type": "object" },
+        "by_violation_type": { "type": "object" },
+        "by_approval_type": { "type": "object" }
+      }
+    }
+  }
+}

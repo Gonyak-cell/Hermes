@@ -821,6 +821,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_golden_fixture_validations", fixturesResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-operation-surfaces") {
+    const surfaceResult = await readDashboardSourceArtifact(dashboard, "policy_operations_surface");
+    if (!surfaceResult.available) {
+      return jsonResponse(503, buildError("policy_operations_surface_unavailable", surfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_operation_surfaces", [surfaceResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-decision-rows") {
+    const surfaceResult = await readDashboardSourceArtifact(dashboard, "policy_operations_surface");
+    if (!surfaceResult.available) {
+      return jsonResponse(503, buildError("policy_operations_surface_unavailable", surfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_decision_rows", surfaceResult.artifact.policy_operations_catalog?.policy_decision_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-violation-rows") {
+    const surfaceResult = await readDashboardSourceArtifact(dashboard, "policy_operations_surface");
+    if (!surfaceResult.available) {
+      return jsonResponse(503, buildError("policy_operations_surface_unavailable", surfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_violation_rows", surfaceResult.artifact.policy_operations_catalog?.policy_violation_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-pending-approvals") {
+    const surfaceResult = await readDashboardSourceArtifact(dashboard, "policy_operations_surface");
+    if (!surfaceResult.available) {
+      return jsonResponse(503, buildError("policy_operations_surface_unavailable", surfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_pending_approvals", surfaceResult.artifact.policy_operations_catalog?.policy_pending_approval_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-surface-validations") {
+    const surfaceResult = await readDashboardSourceArtifact(dashboard, "policy_operations_surface");
+    if (!surfaceResult.available) {
+      return jsonResponse(503, buildError("policy_operations_surface_unavailable", surfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_surface_validations", surfaceResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -4382,6 +4417,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/policy-outcome-matrix", "Policy fixture outcome matrix"),
       route("GET", "/api/policy-regression-hashes", "Policy fixture regression hash rows"),
       route("GET", "/api/policy-golden-fixture-validations", "Policy golden fixture validation rows"),
+      route("GET", "/api/policy-operation-surfaces", "Policy operations dashboard/API surface artifacts"),
+      route("GET", "/api/policy-decision-rows", "Unified policy decision rows"),
+      route("GET", "/api/policy-violation-rows", "Unified policy violation rows"),
+      route("GET", "/api/policy-pending-approvals", "Unified policy pending approval rows"),
+      route("GET", "/api/policy-surface-validations", "Policy operations surface validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -4882,6 +4922,26 @@ function filterItems(items, searchParams) {
     "observed_decision",
     "case_status",
     "policy_regression_hash_id",
+    "policy_operations_surface_status",
+    "policy_decision_row_id",
+    "policy_violation_row_id",
+    "policy_pending_approval_id",
+    "source_artifact_id",
+    "source_record_type",
+    "source_record_id",
+    "policy_layer",
+    "decision",
+    "gate_status",
+    "control_effect",
+    "violation_type",
+    "severity",
+    "approval_type",
+    "required_actor",
+    "tenant_id",
+    "matter_id",
+    "runtime_id",
+    "classification",
+    "policy_snapshot_id",
     "target_type",
     "target_resource_id",
     "view_status",
@@ -5515,6 +5575,7 @@ function readFilterValue(item, key) {
   if (key === "conflict_check_interface_status") return item.summary?.conflict_check_interface_status ?? item.conflict_check_interface_status;
   if (key === "personal_workspace_boundary_status") return item.summary?.personal_workspace_boundary_status ?? item.personal_workspace_boundary_status;
   if (key === "policy_golden_fixture_status") return item.summary?.policy_golden_fixture_status ?? item.policy_golden_fixture_status;
+  if (key === "policy_operations_surface_status") return item.summary?.policy_operations_surface_status ?? item.policy_operations_surface_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

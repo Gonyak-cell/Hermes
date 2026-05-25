@@ -29,6 +29,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:conflict-check",
   "contracts:personal-boundary",
   "contracts:policy-golden",
+  "policy:surface",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

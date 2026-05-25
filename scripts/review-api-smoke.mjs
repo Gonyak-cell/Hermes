@@ -225,6 +225,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/policy-outcome-matrix"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-regression-hashes"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-golden-fixture-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-operation-surfaces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-decision-rows"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-violation-rows"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-pending-approvals"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-surface-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1875,6 +1880,26 @@ try {
   const policyGoldenFixtureValidations = await fetchJson(`${url}/api/policy-golden-fixture-validations?status=passed&limit=5`);
   assert.equal(policyGoldenFixtureValidations.collection, "policy_golden_fixture_validations");
   assert.ok(policyGoldenFixtureValidations.count <= 5);
+
+  const policyOperationSurfaces = await fetchJson(`${url}/api/policy-operation-surfaces?policy_operations_surface_status=complete&limit=1`);
+  assert.equal(policyOperationSurfaces.collection, "policy_operation_surfaces");
+  assert.ok(policyOperationSurfaces.count <= 1);
+
+  const policyDecisionRows = await fetchJson(`${url}/api/policy-decision-rows?decision=deny&limit=5`);
+  assert.equal(policyDecisionRows.collection, "policy_decision_rows");
+  assert.ok(policyDecisionRows.count <= 5);
+
+  const policyViolationRows = await fetchJson(`${url}/api/policy-violation-rows?severity=critical&limit=5`);
+  assert.equal(policyViolationRows.collection, "policy_violation_rows");
+  assert.ok(policyViolationRows.count <= 5);
+
+  const policyPendingApprovals = await fetchJson(`${url}/api/policy-pending-approvals?status=pending&limit=5`);
+  assert.equal(policyPendingApprovals.collection, "policy_pending_approvals");
+  assert.ok(policyPendingApprovals.count <= 5);
+
+  const policySurfaceValidations = await fetchJson(`${url}/api/policy-surface-validations?status=passed&limit=5`);
+  assert.equal(policySurfaceValidations.collection, "policy_surface_validations");
+  assert.ok(policySurfaceValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

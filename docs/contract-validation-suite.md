@@ -27,6 +27,7 @@ The suite is complete only when:
 - every fixture regression status is passed
 - all required contract package scripts exist
 - `contracts:policy-golden` is present once policy golden fixtures are part of the fixture set
+- `policy:surface` is present once policy operations surface exposes decision, violation, and pending approval rows
 - Phase 112 and `npm run contracts:validate` are recorded in the roadmap
 
 This makes the contract spine testable through one deterministic command before later identity, policy, evidence, runtime, or delivery phases add more behavior.

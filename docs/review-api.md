@@ -81,6 +81,13 @@ npm run api:serve
 - `GET /api/resource-duplicate-candidates`: skipped duplicate candidate rows
 - `GET /api/resource-version-object-bindings`: ResourceVersion과 raw-source object path binding rows
 - `GET /api/resource-version-ledger-validations`: resource version ledger validation rows
+- `GET /api/resource-dedup-hash-ledgers`: resource dedup/hash ledger artifact
+- `GET /api/resource-hash-groups`: content hash 기준 resource/version group rows
+- `GET /api/resource-external-id-groups`: source system/external id 기준 version family rows
+- `GET /api/resource-dedup-decisions`: content hash, external id, resource version 기준 dedup classification decisions
+- `GET /api/resource-duplicate-candidate-links`: duplicate candidate와 hash/version family link rows
+- `GET /api/resource-hash-integrity-checks`: resource 및 resource version sha256 integrity check rows
+- `GET /api/resource-dedup-hash-validations`: resource dedup/hash validation rows
 - `GET /api/normalized-text-contracts`: normalized text contract artifact
 - `GET /api/normalized-text-artifacts`: source-span-ready normalized text artifact rows
 - `GET /api/normalized-text-location-maps`: page/paragraph/line/char offset maps

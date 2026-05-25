@@ -325,6 +325,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("resource_version_ledger_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/resource-dedup-hash-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_dedup_hash_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-hash-groups") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_hash_groups", ledgerResult.artifact.dedup_hash_catalog?.hash_groups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-external-id-groups") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_external_id_groups", ledgerResult.artifact.dedup_hash_catalog?.external_id_groups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-dedup-decisions") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_dedup_decisions", ledgerResult.artifact.dedup_hash_catalog?.dedup_decisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-duplicate-candidate-links") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_duplicate_candidate_links", ledgerResult.artifact.dedup_hash_catalog?.duplicate_candidate_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-hash-integrity-checks") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_hash_integrity_checks", ledgerResult.artifact.dedup_hash_catalog?.hash_integrity_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-dedup-hash-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "resource_dedup_hash_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("resource_dedup_hash_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_dedup_hash_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/normalized-text-contracts") {
     const contractResult = await readDashboardSourceArtifact(dashboard, "normalized_text_contract");
     if (!contractResult.available) {
@@ -5184,6 +5233,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-duplicate-candidates", "Resource duplicate candidates"),
       route("GET", "/api/resource-version-object-bindings", "ResourceVersion object path bindings"),
       route("GET", "/api/resource-version-ledger-validations", "Resource version ledger validation rows"),
+      route("GET", "/api/resource-dedup-hash-ledgers", "Resource dedup/hash ledger artifacts"),
+      route("GET", "/api/resource-hash-groups", "Resource content hash groups"),
+      route("GET", "/api/resource-external-id-groups", "Resource source external id groups"),
+      route("GET", "/api/resource-dedup-decisions", "Resource dedup classification decisions"),
+      route("GET", "/api/resource-duplicate-candidate-links", "Resource duplicate candidate dedup links"),
+      route("GET", "/api/resource-hash-integrity-checks", "Resource hash integrity checks"),
+      route("GET", "/api/resource-dedup-hash-validations", "Resource dedup/hash validation rows"),
       route("GET", "/api/normalized-text-contracts", "Normalized text contract artifacts"),
       route("GET", "/api/normalized-text-artifacts", "Normalized text artifacts"),
       route("GET", "/api/normalized-text-location-maps", "Normalized text location maps"),
@@ -5731,6 +5787,15 @@ function filterItems(items, searchParams) {
   const filterKeys = [
     "status",
     "evidence_item_store_status",
+    "resource_dedup_hash_status",
+    "hash_group_id",
+    "group_status",
+    "external_id_group_id",
+    "dedup_status",
+    "dedup_decision_id",
+    "decision_scope",
+    "hash_integrity_check_id",
+    "integrity_status",
     "evidence_golden_fixture_status",
     "evidence_golden_case_id",
     "fixture_group",
@@ -6646,6 +6711,7 @@ function readFilterValue(item, key) {
   if (key === "resource_store_interface_status") return item.summary?.resource_store_interface_status ?? item.resource_store_interface_status;
   if (key === "object_store_layout_status") return item.summary?.object_store_layout_status ?? item.object_store_layout_status;
   if (key === "resource_version_ledger_status") return item.summary?.resource_version_ledger_status ?? item.resource_version_ledger_status;
+  if (key === "resource_dedup_hash_status") return item.summary?.resource_dedup_hash_status ?? item.resource_dedup_hash_status;
   if (key === "normalized_text_contract_status") return item.summary?.normalized_text_contract_status ?? item.normalized_text_contract_status;
   if (key === "extractor_adapter_contract_status") return item.summary?.extractor_adapter_contract_status ?? item.extractor_adapter_contract_status;
   if (key === "source_span_store_status") return item.summary?.source_span_store_status ?? item.source_span_store_status;

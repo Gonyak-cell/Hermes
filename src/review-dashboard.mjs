@@ -26,6 +26,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceStoreInterfacePath: "artifacts/resource-store-interface/latest/resource-store-interface.json",
   immutableObjectStoreLayoutPath: "artifacts/immutable-object-store-layout/latest/immutable-object-store-layout.json",
   resourceVersionLedgerPath: "artifacts/resource-version-ledger/latest/resource-version-ledger.json",
+  resourceDedupHashLedgerPath: "artifacts/resource-dedup-hash/latest/resource-dedup-hash-ledger.json",
   normalizedTextContractPath: "artifacts/normalized-text-contract/latest/normalized-text-contract.json",
   extractorAdapterContractPath: "artifacts/extractor-adapter-contract/latest/extractor-adapter-contract.json",
   sourceSpanStorePath: "artifacts/source-span-store/latest/source-span-store.json",
@@ -260,6 +261,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceVersionLedgerPath",
     source_id: "resource_version_ledger",
     label: "Resource Version Ledger",
+  },
+  {
+    option: "resourceDedupHashLedgerPath",
+    source_id: "resource_dedup_hash_ledger",
+    label: "Resource Dedup/Hash Ledger",
   },
   {
     option: "normalizedTextContractPath",
@@ -1231,6 +1237,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceStoreInterfaceStage(artifacts.resource_store_interface, sourceById.get("resource_store_interface")),
     buildImmutableObjectStoreLayoutStage(artifacts.immutable_object_store_layout, sourceById.get("immutable_object_store_layout")),
     buildResourceVersionLedgerStage(artifacts.resource_version_ledger, sourceById.get("resource_version_ledger")),
+    buildResourceDedupHashLedgerStage(artifacts.resource_dedup_hash_ledger, sourceById.get("resource_dedup_hash_ledger")),
     buildNormalizedTextContractStage(artifacts.normalized_text_contract, sourceById.get("normalized_text_contract")),
     buildExtractorAdapterContractStage(artifacts.extractor_adapter_contract, sourceById.get("extractor_adapter_contract")),
     buildSourceSpanStoreStage(artifacts.source_span_store, sourceById.get("source_span_store")),
@@ -2301,6 +2308,58 @@ function buildResourceVersionLedgerStage(ledger, source) {
       object_path_binding_count: summary.object_path_binding_count ?? 0,
       bound_object_path_count: summary.bound_object_path_count ?? 0,
       unbound_object_path_count: summary.unbound_object_path_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildResourceDedupHashLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("resource_dedup_hash_ledger", "Resource Dedup/Hash Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const status = summary.resource_dedup_hash_status === "complete"
+    && errorCount === 0
+    && (summary.hash_group_count ?? 0) > 0
+    && (summary.external_id_group_count ?? 0) > 0
+    && (summary.dedup_decision_count ?? 0) >= (summary.resource_version_count ?? 0)
+    && (summary.passed_hash_integrity_check_count ?? 0) === (summary.hash_integrity_check_count ?? -1)
+    && (summary.failed_hash_integrity_check_count ?? -1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "resource_dedup_hash_ledger",
+    label: "Resource Dedup/Hash Ledger",
+    status,
+    message: `${summary.hash_group_count ?? 0} hash group(s), ${summary.external_id_group_count ?? 0} external id group(s), ${summary.dedup_decision_count ?? 0} dedup decision(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      resource_dedup_hash_status: summary.resource_dedup_hash_status ?? "unknown",
+      dedup_hash_contract_id: summary.dedup_hash_contract_id ?? null,
+      resource_count: summary.resource_count ?? 0,
+      resource_version_count: summary.resource_version_count ?? 0,
+      hash_group_count: summary.hash_group_count ?? 0,
+      unique_hash_group_count: summary.unique_hash_group_count ?? 0,
+      duplicate_hash_group_count: summary.duplicate_hash_group_count ?? 0,
+      external_id_group_count: summary.external_id_group_count ?? 0,
+      singleton_external_id_group_count: summary.singleton_external_id_group_count ?? 0,
+      changed_external_id_group_count: summary.changed_external_id_group_count ?? 0,
+      duplicate_external_id_group_count: summary.duplicate_external_id_group_count ?? 0,
+      dedup_decision_count: summary.dedup_decision_count ?? 0,
+      unique_version_decision_count: summary.unique_version_decision_count ?? 0,
+      changed_version_decision_count: summary.changed_version_decision_count ?? 0,
+      duplicate_version_decision_count: summary.duplicate_version_decision_count ?? 0,
+      skipped_duplicate_decision_count: summary.skipped_duplicate_decision_count ?? 0,
+      human_review_required_decision_count: summary.human_review_required_decision_count ?? 0,
+      content_hash_criteria_count: summary.content_hash_criteria_count ?? 0,
+      external_id_criteria_count: summary.external_id_criteria_count ?? 0,
+      resource_version_criteria_count: summary.resource_version_criteria_count ?? 0,
+      duplicate_candidate_link_count: summary.duplicate_candidate_link_count ?? 0,
+      skipped_duplicate_candidate_link_count: summary.skipped_duplicate_candidate_link_count ?? 0,
+      hash_integrity_check_count: summary.hash_integrity_check_count ?? 0,
+      passed_hash_integrity_check_count: summary.passed_hash_integrity_check_count ?? 0,
+      failed_hash_integrity_check_count: summary.failed_hash_integrity_check_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -9092,6 +9151,31 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_version_ledger_object_path_binding_count: artifacts.resource_version_ledger?.summary?.object_path_binding_count ?? 0,
     resource_version_ledger_unbound_object_path_count: artifacts.resource_version_ledger?.summary?.unbound_object_path_count ?? 0,
     resource_version_ledger_validation_error_count: artifacts.resource_version_ledger?.summary?.validation_error_count ?? artifacts.resource_version_ledger?.validation?.errors?.length ?? 0,
+    resource_dedup_hash_status: artifacts.resource_dedup_hash_ledger?.summary?.resource_dedup_hash_status ?? "unknown",
+    resource_dedup_hash_contract_id: artifacts.resource_dedup_hash_ledger?.summary?.dedup_hash_contract_id ?? null,
+    resource_dedup_hash_resource_count: artifacts.resource_dedup_hash_ledger?.summary?.resource_count ?? 0,
+    resource_dedup_hash_resource_version_count: artifacts.resource_dedup_hash_ledger?.summary?.resource_version_count ?? 0,
+    resource_dedup_hash_group_count: artifacts.resource_dedup_hash_ledger?.summary?.hash_group_count ?? 0,
+    resource_dedup_hash_unique_group_count: artifacts.resource_dedup_hash_ledger?.summary?.unique_hash_group_count ?? 0,
+    resource_dedup_hash_duplicate_group_count: artifacts.resource_dedup_hash_ledger?.summary?.duplicate_hash_group_count ?? 0,
+    resource_dedup_hash_external_id_group_count: artifacts.resource_dedup_hash_ledger?.summary?.external_id_group_count ?? 0,
+    resource_dedup_hash_singleton_external_id_group_count: artifacts.resource_dedup_hash_ledger?.summary?.singleton_external_id_group_count ?? 0,
+    resource_dedup_hash_changed_external_id_group_count: artifacts.resource_dedup_hash_ledger?.summary?.changed_external_id_group_count ?? 0,
+    resource_dedup_hash_duplicate_external_id_group_count: artifacts.resource_dedup_hash_ledger?.summary?.duplicate_external_id_group_count ?? 0,
+    resource_dedup_hash_decision_count: artifacts.resource_dedup_hash_ledger?.summary?.dedup_decision_count ?? 0,
+    resource_dedup_hash_unique_version_decision_count: artifacts.resource_dedup_hash_ledger?.summary?.unique_version_decision_count ?? 0,
+    resource_dedup_hash_changed_version_decision_count: artifacts.resource_dedup_hash_ledger?.summary?.changed_version_decision_count ?? 0,
+    resource_dedup_hash_duplicate_version_decision_count: artifacts.resource_dedup_hash_ledger?.summary?.duplicate_version_decision_count ?? 0,
+    resource_dedup_hash_skipped_duplicate_decision_count: artifacts.resource_dedup_hash_ledger?.summary?.skipped_duplicate_decision_count ?? 0,
+    resource_dedup_hash_human_review_required_decision_count: artifacts.resource_dedup_hash_ledger?.summary?.human_review_required_decision_count ?? 0,
+    resource_dedup_hash_content_hash_criteria_count: artifacts.resource_dedup_hash_ledger?.summary?.content_hash_criteria_count ?? 0,
+    resource_dedup_hash_external_id_criteria_count: artifacts.resource_dedup_hash_ledger?.summary?.external_id_criteria_count ?? 0,
+    resource_dedup_hash_resource_version_criteria_count: artifacts.resource_dedup_hash_ledger?.summary?.resource_version_criteria_count ?? 0,
+    resource_dedup_hash_duplicate_candidate_link_count: artifacts.resource_dedup_hash_ledger?.summary?.duplicate_candidate_link_count ?? 0,
+    resource_dedup_hash_hash_integrity_check_count: artifacts.resource_dedup_hash_ledger?.summary?.hash_integrity_check_count ?? 0,
+    resource_dedup_hash_passed_hash_integrity_check_count: artifacts.resource_dedup_hash_ledger?.summary?.passed_hash_integrity_check_count ?? 0,
+    resource_dedup_hash_failed_hash_integrity_check_count: artifacts.resource_dedup_hash_ledger?.summary?.failed_hash_integrity_check_count ?? 0,
+    resource_dedup_hash_validation_error_count: artifacts.resource_dedup_hash_ledger?.summary?.validation_error_count ?? artifacts.resource_dedup_hash_ledger?.validation?.errors?.length ?? 0,
     normalized_text_contract_status: artifacts.normalized_text_contract?.summary?.normalized_text_contract_status ?? "unknown",
     normalized_text_contract_id: artifacts.normalized_text_contract?.summary?.normalized_text_contract_id ?? null,
     normalized_text_source_count: artifacts.normalized_text_contract?.summary?.source_normalized_text_count ?? 0,
@@ -10824,6 +10908,8 @@ function parseArgs(argv) {
     else if (arg === "--no-immutable-object-store-layout") parsed.immutableObjectStoreLayoutPath = false;
     else if (arg === "--resource-version-ledger") parsed.resourceVersionLedgerPath = argv[++index];
     else if (arg === "--no-resource-version-ledger") parsed.resourceVersionLedgerPath = false;
+    else if (arg === "--resource-dedup-hash") parsed.resourceDedupHashLedgerPath = argv[++index];
+    else if (arg === "--no-resource-dedup-hash") parsed.resourceDedupHashLedgerPath = false;
     else if (arg === "--normalized-text-contract") parsed.normalizedTextContractPath = argv[++index];
     else if (arg === "--no-normalized-text-contract") parsed.normalizedTextContractPath = false;
     else if (arg === "--extractor-adapter-contract") parsed.extractorAdapterContractPath = argv[++index];
@@ -11125,6 +11211,8 @@ Options:
   --resource-version-ledger <path>
                                   resource-version-ledger.json path.
   --no-resource-version-ledger    Do not include Resource Version Ledger status.
+  --resource-dedup-hash <path>    resource-dedup-hash-ledger.json path.
+  --no-resource-dedup-hash        Do not include Resource Dedup/Hash Ledger status.
   --normalized-text-contract <path>
                                   normalized-text-contract.json path.
   --no-normalized-text-contract   Do not include Normalized Text Contract status.

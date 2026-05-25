@@ -4545,6 +4545,34 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 53개로 증가하고 evidence golden fixtures가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run evidence:golden-fixtures -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 152: Resource Dedup/Hash Ledger
+
+목표: Resource Store와 Resource Version Ledger 위에 content hash, source external id, resource version 기준의 deterministic dedup ledger를 추가해 중복·변경·skipped duplicate 후보를 분류한다.
+
+구현 내용:
+
+- `src/resource-dedup-hash-ledger.mjs`, `scripts/resource-dedup-hash-ledger.mjs`, `schemas/resource-dedup-hash-ledger.schema.json`, `docs/resource-dedup-hash-ledger.md`를 추가함
+- `npm run resource:dedup-hash -- --check` 명령을 추가해 hash group, external id group, dedup decision, duplicate candidate link, hash integrity check, validation report, summary markdown을 생성함
+- 모든 ResourceVersion store record를 content hash group과 `source_system + external_id` group에 배정함
+- 모든 ResourceVersion과 skipped duplicate candidate에 대해 `content_hash`, `external_id`, `resource_version` 기준을 가진 classification-only dedup decision을 생성함
+- resource 및 resource version의 sha256 hash format/algorithm integrity check를 생성하고 실패 시 validation error로 처리함
+- 중복 후보가 source/object/evidence/output 삭제로 이어지지 않도록 모든 decision을 `mutation_allowed=false`로 고정함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Resource Dedup/Hash Ledger를 통합함
+- `/api/resource-dedup-hash-ledgers`, `/api/resource-hash-groups`, `/api/resource-external-id-groups`, `/api/resource-dedup-decisions`, `/api/resource-duplicate-candidate-links`, `/api/resource-hash-integrity-checks`, `/api/resource-dedup-hash-validations` route를 추가함
+
+완료 기준:
+
+- Resource Dedup/Hash Ledger가 validation error 없이 `complete` 상태가 됨
+- hash group과 external id group이 모든 ResourceVersion store record를 누락 없이 커버함
+- dedup decision 수가 ResourceVersion 수와 skipped duplicate candidate 수의 합과 일치함
+- 모든 resource-version decision이 content hash, external id, resource version 기준을 포함함
+- 모든 dedup decision이 classification-only이며 destructive mutation을 허용하지 않음
+- resource와 resource version hash integrity check가 모두 통과함
+- Review Dashboard summary와 stage status에서 hash group, external id group, decision, integrity check, validation count가 노출됨
+- Review API smoke가 dedup ledger, hash group, external id group, decision, candidate link, integrity check, validation route를 모두 조회함
+- Golden fixture 수가 54개로 증가하고 resource dedup/hash ledger가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:dedup-hash -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4553,9 +4581,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 151이다.
+- 현재 완료 기준점은 Phase 152이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P152-P312, 총 161개다.
+- 남은 계획 슬롯은 P153-P312, 총 160개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

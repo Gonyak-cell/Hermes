@@ -35,6 +35,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:store-interface",
   "object-store:layout",
   "resource:version-ledger",
+  "resource:dedup-hash",
   "resource:normalized-text",
   "resource:extractor-adapters",
   "resource:source-spans",

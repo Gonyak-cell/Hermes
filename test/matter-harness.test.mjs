@@ -28,6 +28,7 @@ import { runIdentityPolicyMatterFreeze } from "../src/identity-policy-matter-fre
 import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
 import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-layout.mjs";
 import { runResourceVersionLedger } from "../src/resource-version-ledger.mjs";
+import { runResourceDedupHashLedger } from "../src/resource-dedup-hash-ledger.mjs";
 import { runNormalizedTextContract } from "../src/normalized-text-contract.mjs";
 import { runExtractorAdapterContract } from "../src/extractor-adapter-contract.mjs";
 import { runSourceSpanStore } from "../src/source-span-store.mjs";
@@ -1658,6 +1659,7 @@ describe("matter harness", () => {
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
         resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        resourceDedupHashLedgerPath: path.join(outDir, "resource-dedup-hash", "resource-dedup-hash-ledger.json"),
         normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
         extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
         sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
@@ -3855,6 +3857,38 @@ describe("matter harness", () => {
       assert.ok(resourceVersionLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "resource-version-ledger", "summary.md"), "utf8"), /Resource Version Ledger/);
 
+      const resourceDedupHashLedger = await runResourceDedupHashLedger({
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
+        resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
+        outDir: path.join(outDir, "resource-dedup-hash"),
+        runAt: "2026-05-23T06:35:07.947Z",
+      });
+      const resourceDedupHashLedgerSchema = JSON.parse(await readFile("schemas/resource-dedup-hash-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(resourceDedupHashLedger, resourceDedupHashLedgerSchema, {}, "resource_dedup_hash_ledger"),
+        [],
+      );
+      assert.equal(resourceDedupHashLedger.summary.resource_dedup_hash_status, "complete");
+      assert.equal(resourceDedupHashLedger.summary.resource_count, resourceStoreInterface.summary.resource_store_record_count);
+      assert.equal(resourceDedupHashLedger.summary.resource_version_count, resourceStoreInterface.summary.resource_version_store_record_count);
+      assert.equal(resourceDedupHashLedger.summary.hash_group_count, resourceVersionLedger.summary.content_hash_group_count);
+      assert.equal(resourceDedupHashLedger.summary.external_id_group_count, resourceVersionLedger.summary.version_family_count);
+      assert.equal(resourceDedupHashLedger.summary.dedup_decision_count, resourceVersionLedger.summary.resource_version_count + resourceVersionLedger.summary.duplicate_candidate_count);
+      assert.equal(resourceDedupHashLedger.summary.content_hash_criteria_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(resourceDedupHashLedger.summary.external_id_criteria_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(resourceDedupHashLedger.summary.resource_version_criteria_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(resourceDedupHashLedger.summary.failed_hash_integrity_check_count, 0);
+      assert.equal(resourceDedupHashLedger.summary.passed_hash_integrity_check_count, resourceDedupHashLedger.summary.hash_integrity_check_count);
+      assert.equal(resourceDedupHashLedger.summary.validation_error_count, 0);
+      assert.ok(resourceDedupHashLedger.dedup_hash_catalog.hash_groups.every((group) => group.content_hash_algorithm === "sha256"));
+      assert.ok(resourceDedupHashLedger.dedup_hash_catalog.dedup_decisions.every((decision) => decision.mutation_allowed === false));
+      assert.ok(resourceDedupHashLedger.dedup_hash_catalog.dedup_decisions.every((decision) => decision.criteria.content_hash && decision.criteria.external_id));
+      assert.ok(resourceDedupHashLedger.dedup_hash_catalog.hash_integrity_checks.every((check) => check.integrity_status === "passed"));
+      assert.ok(resourceDedupHashLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "resource-dedup-hash", "summary.md"), "utf8"), /Resource Dedup\/Hash Ledger/);
+
       const normalizedTextContract = await runNormalizedTextContract({
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
@@ -4491,6 +4525,7 @@ describe("matter harness", () => {
           resource_store_interface: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
           immutable_object_store_layout: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
           resource_version_ledger: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+          resource_dedup_hash_ledger: path.join(outDir, "resource-dedup-hash", "resource-dedup-hash-ledger.json"),
           normalized_text_contract: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
           extractor_adapter_contract: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
           source_span_store: path.join(outDir, "source-span-store", "source-span-store.json"),
@@ -4532,8 +4567,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 53);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 53);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 54);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 54);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4561,6 +4596,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_store_interface"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "immutable_object_store_layout"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_version_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_dedup_hash_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "normalized_text_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "extractor_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_store"));
@@ -4623,6 +4659,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:retrieval-filters"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:vector-policy"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:dedup-hash"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4772,6 +4809,10 @@ describe("matter harness", () => {
       assert.equal(resourceVersionLedgerCheckpoint?.acceptance_profile, "resource_version_ledger_gate");
       assert.equal(resourceVersionLedgerCheckpoint?.status, "passed");
       assert.equal(resourceVersionLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const resourceDedupHashLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-dedup-hash-ledger");
+      assert.equal(resourceDedupHashLedgerCheckpoint?.acceptance_profile, "resource_dedup_hash_gate");
+      assert.equal(resourceDedupHashLedgerCheckpoint?.status, "passed");
+      assert.equal(resourceDedupHashLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const normalizedTextContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-normalized-text-contract");
       assert.equal(normalizedTextContractCheckpoint?.acceptance_profile, "normalized_text_contract_gate");
       assert.equal(normalizedTextContractCheckpoint?.status, "passed");
@@ -5589,6 +5630,19 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.resource_version_ledger_object_path_binding_count, resourceVersionLedger.summary.object_path_binding_count);
       assert.equal(dashboard.summary.resource_version_ledger_unbound_object_path_count, 0);
       assert.equal(dashboard.summary.resource_version_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.resource_dedup_hash_status, "complete");
+      assert.equal(dashboard.summary.resource_dedup_hash_contract_id, "resource-dedup-hash-ledger.v1");
+      assert.equal(dashboard.summary.resource_dedup_hash_resource_count, resourceDedupHashLedger.summary.resource_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_resource_version_count, resourceDedupHashLedger.summary.resource_version_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_group_count, resourceDedupHashLedger.summary.hash_group_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_external_id_group_count, resourceDedupHashLedger.summary.external_id_group_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_decision_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_content_hash_criteria_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_external_id_criteria_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_resource_version_criteria_count, resourceDedupHashLedger.summary.dedup_decision_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_hash_integrity_check_count, resourceDedupHashLedger.summary.hash_integrity_check_count);
+      assert.equal(dashboard.summary.resource_dedup_hash_failed_hash_integrity_check_count, 0);
+      assert.equal(dashboard.summary.resource_dedup_hash_validation_error_count, 0);
       assert.equal(dashboard.summary.normalized_text_contract_status, "complete");
       assert.equal(dashboard.summary.normalized_text_contract_id, "normalized-text-artifact.v1");
       assert.equal(dashboard.summary.normalized_text_source_count, normalizedTextContract.summary.source_normalized_text_count);
@@ -6440,6 +6494,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_store_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "immutable_object_store_layout"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_version_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_dedup_hash_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "normalized_text_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "extractor_adapter_contract"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "source_span_store"));
@@ -6556,6 +6611,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-duplicate-candidates"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-object-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-ledger-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-dedup-hash-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-hash-groups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-external-id-groups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-dedup-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-duplicate-candidate-links"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-hash-integrity-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-dedup-hash-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-artifacts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-text-location-maps"));
@@ -8452,6 +8514,34 @@ describe("matter harness", () => {
       const resourceVersionLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/resource-version-ledger-validations?status=passed", apiOptions)).body);
       assert.equal(resourceVersionLedgerValidations.collection, "resource_version_ledger_validations");
       assert.equal(resourceVersionLedgerValidations.count, resourceVersionLedger.summary.validation_item_count);
+
+      const resourceDedupHashLedgers = JSON.parse((await buildReviewApiResponse("/api/resource-dedup-hash-ledgers?resource_dedup_hash_status=complete", apiOptions)).body);
+      assert.equal(resourceDedupHashLedgers.collection, "resource_dedup_hash_ledgers");
+      assert.equal(resourceDedupHashLedgers.count, 1);
+
+      const resourceHashGroups = JSON.parse((await buildReviewApiResponse("/api/resource-hash-groups", apiOptions)).body);
+      assert.equal(resourceHashGroups.collection, "resource_hash_groups");
+      assert.equal(resourceHashGroups.count, resourceDedupHashLedger.summary.hash_group_count);
+
+      const resourceExternalIdGroups = JSON.parse((await buildReviewApiResponse("/api/resource-external-id-groups", apiOptions)).body);
+      assert.equal(resourceExternalIdGroups.collection, "resource_external_id_groups");
+      assert.equal(resourceExternalIdGroups.count, resourceDedupHashLedger.summary.external_id_group_count);
+
+      const resourceDedupDecisions = JSON.parse((await buildReviewApiResponse("/api/resource-dedup-decisions?decision_scope=resource_version", apiOptions)).body);
+      assert.equal(resourceDedupDecisions.collection, "resource_dedup_decisions");
+      assert.equal(resourceDedupDecisions.count, resourceDedupHashLedger.summary.resource_version_count);
+
+      const resourceDuplicateCandidateLinks = JSON.parse((await buildReviewApiResponse("/api/resource-duplicate-candidate-links", apiOptions)).body);
+      assert.equal(resourceDuplicateCandidateLinks.collection, "resource_duplicate_candidate_links");
+      assert.equal(resourceDuplicateCandidateLinks.count, resourceDedupHashLedger.summary.duplicate_candidate_link_count);
+
+      const resourceHashIntegrityChecks = JSON.parse((await buildReviewApiResponse("/api/resource-hash-integrity-checks?integrity_status=passed", apiOptions)).body);
+      assert.equal(resourceHashIntegrityChecks.collection, "resource_hash_integrity_checks");
+      assert.equal(resourceHashIntegrityChecks.count, resourceDedupHashLedger.summary.hash_integrity_check_count);
+
+      const resourceDedupHashValidations = JSON.parse((await buildReviewApiResponse("/api/resource-dedup-hash-validations?status=passed", apiOptions)).body);
+      assert.equal(resourceDedupHashValidations.collection, "resource_dedup_hash_validations");
+      assert.equal(resourceDedupHashValidations.count, resourceDedupHashLedger.summary.validation_item_count);
 
       const normalizedTextContracts = JSON.parse((await buildReviewApiResponse("/api/normalized-text-contracts?normalized_text_contract_status=complete", apiOptions)).body);
       assert.equal(normalizedTextContracts.collection, "normalized_text_contracts");

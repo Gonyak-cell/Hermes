@@ -34,6 +34,7 @@ const GOAL_ITEMS = [
   sourceItem("resource_store_interface", "Resource store interface", "resource_evidence", "resource_store_interface", "control-plane-resource-store-interface", { acceptance_profile: "resource_store_interface_gate" }),
   sourceItem("immutable_object_store_layout", "Immutable object store layout", "resource_evidence", "immutable_object_store_layout", "control-plane-immutable-object-store-layout", { acceptance_profile: "immutable_object_store_layout_gate" }),
   sourceItem("resource_version_ledger", "Resource version ledger", "resource_evidence", "resource_version_ledger", "control-plane-resource-version-ledger", { acceptance_profile: "resource_version_ledger_gate" }),
+  sourceItem("resource_dedup_hash_ledger", "Resource dedup/hash ledger", "resource_evidence", "resource_dedup_hash_ledger", "control-plane-resource-dedup-hash-ledger", { acceptance_profile: "resource_dedup_hash_gate" }),
   sourceItem("normalized_text_contract", "Normalized text contract", "resource_evidence", "normalized_text_contract", "control-plane-normalized-text-contract", { acceptance_profile: "normalized_text_contract_gate" }),
   sourceItem("extractor_adapter_contract", "Parser/OCR extractor adapter contract", "resource_evidence", "extractor_adapter_contract", "control-plane-extractor-adapter-contract", { acceptance_profile: "extractor_adapter_contract_gate" }),
   sourceItem("source_span_store", "Source span store", "resource_evidence", "source_span_store", "control-plane-source-span-store", { acceptance_profile: "source_span_store_gate" }),
@@ -391,6 +392,7 @@ function evaluateStageAcceptance(item, stage) {
     "resource_store_interface_gate",
     "immutable_object_store_layout_gate",
     "resource_version_ledger_gate",
+    "resource_dedup_hash_gate",
     "normalized_text_contract_gate",
     "extractor_adapter_contract_gate",
     "source_span_store_gate",
@@ -680,6 +682,25 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.version_event_count ?? 0) >= (metrics.resource_version_count ?? 0)
     ) {
       return passedWithOperationalGate(stage, "Resource version ledger groups versions by source/external id, distinguishes changed and duplicate content, and binds every version to an immutable raw-source object path.");
+    }
+  }
+
+  if (item.acceptance_profile === "resource_dedup_hash_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const decisionCount = metrics.dedup_decision_count ?? 0;
+    if (
+      errors === 0
+      && metrics.resource_dedup_hash_status === "complete"
+      && (metrics.hash_group_count ?? 0) > 0
+      && (metrics.external_id_group_count ?? 0) > 0
+      && decisionCount >= (metrics.resource_version_count ?? 0)
+      && (metrics.content_hash_criteria_count ?? 0) === decisionCount
+      && (metrics.external_id_criteria_count ?? 0) === decisionCount
+      && (metrics.resource_version_criteria_count ?? 0) === decisionCount
+      && (metrics.passed_hash_integrity_check_count ?? 0) === (metrics.hash_integrity_check_count ?? -1)
+      && (metrics.failed_hash_integrity_check_count ?? -1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Resource dedup/hash ledger classifies resources by content hash, external id, and version criteria without allowing destructive mutation.");
     }
   }
 

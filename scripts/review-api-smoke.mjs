@@ -1790,6 +1790,34 @@ try {
   assert.equal(resourceVersionLedgerValidations.collection, "resource_version_ledger_validations");
   assert.ok(resourceVersionLedgerValidations.count <= 5);
 
+  const resourceDedupHashLedgers = await fetchJson(`${url}/api/resource-dedup-hash-ledgers?resource_dedup_hash_status=complete&limit=1`);
+  assert.equal(resourceDedupHashLedgers.collection, "resource_dedup_hash_ledgers");
+  assert.ok(resourceDedupHashLedgers.count <= 1);
+
+  const resourceHashGroups = await fetchJson(`${url}/api/resource-hash-groups?group_status=unique_content_hash&limit=5`);
+  assert.equal(resourceHashGroups.collection, "resource_hash_groups");
+  assert.ok(resourceHashGroups.count <= 5);
+
+  const resourceExternalIdGroups = await fetchJson(`${url}/api/resource-external-id-groups?group_status=singleton_external_id&limit=5`);
+  assert.equal(resourceExternalIdGroups.collection, "resource_external_id_groups");
+  assert.ok(resourceExternalIdGroups.count <= 5);
+
+  const resourceDedupDecisions = await fetchJson(`${url}/api/resource-dedup-decisions?decision_scope=resource_version&limit=5`);
+  assert.equal(resourceDedupDecisions.collection, "resource_dedup_decisions");
+  assert.ok(resourceDedupDecisions.count <= 5);
+
+  const resourceDuplicateCandidateLinks = await fetchJson(`${url}/api/resource-duplicate-candidate-links?limit=5`);
+  assert.equal(resourceDuplicateCandidateLinks.collection, "resource_duplicate_candidate_links");
+  assert.ok(resourceDuplicateCandidateLinks.count <= 5);
+
+  const resourceHashIntegrityChecks = await fetchJson(`${url}/api/resource-hash-integrity-checks?integrity_status=passed&limit=5`);
+  assert.equal(resourceHashIntegrityChecks.collection, "resource_hash_integrity_checks");
+  assert.ok(resourceHashIntegrityChecks.count <= 5);
+
+  const resourceDedupHashValidations = await fetchJson(`${url}/api/resource-dedup-hash-validations?status=passed&limit=5`);
+  assert.equal(resourceDedupHashValidations.collection, "resource_dedup_hash_validations");
+  assert.ok(resourceDedupHashValidations.count <= 5);
+
   const normalizedTextContracts = await fetchJson(`${url}/api/normalized-text-contracts?normalized_text_contract_status=complete&limit=1`);
   assert.equal(normalizedTextContracts.collection, "normalized_text_contracts");
   assert.ok(normalizedTextContracts.count <= 1);

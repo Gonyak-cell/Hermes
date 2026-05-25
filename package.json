@@ -158,6 +158,7 @@
     "resource:search-index": "node scripts/search-index-contract.mjs",
     "resource:vector-policy": "node scripts/vector-index-policy-boundary.mjs",
     "resource:retrieval-filters": "node scripts/retrieval-filter-compiler.mjs",
+    "resource:dedup-hash": "node scripts/resource-dedup-hash-ledger.mjs",
     "resource:ingest": "node scripts/resource-ingest.mjs",
     "resource:normalized-text": "node scripts/normalized-text-contract.mjs",
     "resource:source-spans": "node scripts/source-span-store.mjs",

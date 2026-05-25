@@ -1,0 +1,347 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/resource-dedup-hash-ledger.schema.json",
+  "title": "Hermes Resource Dedup Hash Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "resource_dedup_hash_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "dedup_hash_contract",
+    "dedup_hash_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "resource-dedup-hash-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "resource_dedup_hash_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_store_interface_path",
+        "resource_version_ledger_path",
+        "immutable_object_store_layout_path",
+        "resource_ingest_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "resource_store_interface_path": { "type": "string" },
+        "resource_version_ledger_path": { "type": "string" },
+        "immutable_object_store_layout_path": { "type": "string" },
+        "resource_ingest_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "dedup_hash_contract": { "$ref": "#/$defs/dedup_hash_contract" },
+    "dedup_hash_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "hash_groups",
+        "external_id_groups",
+        "dedup_decisions",
+        "duplicate_candidate_links",
+        "hash_integrity_checks"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-dedup-hash-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "hash_groups": { "type": "array", "items": { "$ref": "#/$defs/hash_group" } },
+        "external_id_groups": { "type": "array", "items": { "$ref": "#/$defs/external_id_group" } },
+        "dedup_decisions": { "type": "array", "items": { "$ref": "#/$defs/dedup_decision" } },
+        "duplicate_candidate_links": { "type": "array", "items": { "$ref": "#/$defs/duplicate_candidate_link" } },
+        "hash_integrity_checks": { "type": "array", "items": { "$ref": "#/$defs/hash_integrity_check" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "dedup_hash_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "dedup_hash_ledger_id",
+        "generated_at",
+        "required_criteria",
+        "hash_algorithm",
+        "content_hash_rule",
+        "external_id_rule",
+        "resource_version_rule",
+        "duplicate_candidate_rule",
+        "mutation_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-dedup-hash-contract.v1" },
+        "dedup_hash_ledger_id": { "const": "resource-dedup-hash-ledger.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_criteria": {
+          "type": "array",
+          "items": { "enum": ["content_hash", "external_id", "resource_version"] },
+          "minItems": 3
+        },
+        "hash_algorithm": { "const": "sha256" },
+        "content_hash_rule": { "type": "string" },
+        "external_id_rule": { "type": "string" },
+        "resource_version_rule": { "type": "string" },
+        "duplicate_candidate_rule": { "type": "string" },
+        "mutation_rule": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "hash_group": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "hash_group_id",
+        "content_hash",
+        "content_hash_algorithm",
+        "group_status",
+        "resource_version_ids",
+        "resource_ids",
+        "source_system_external_ids",
+        "version_count",
+        "resource_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-hash-group.v1" },
+        "hash_group_id": { "type": "string" },
+        "content_hash": { "type": "string" },
+        "content_hash_algorithm": { "const": "sha256" },
+        "group_status": { "enum": ["unique_content_hash", "duplicate_content_hash"] },
+        "resource_version_ids": { "type": "array", "items": { "type": "string" } },
+        "resource_ids": { "type": "array", "items": { "type": "string" } },
+        "tenant_ids": { "type": "array", "items": { "type": "string" } },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "classifications": { "type": "array", "items": { "type": "string" } },
+        "source_system_external_ids": { "type": "array", "items": { "type": "string" } },
+        "source_uris": { "type": "array", "items": { "type": "string" } },
+        "version_count": { "type": "integer", "minimum": 0 },
+        "resource_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "external_id_group": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "external_id_group_id",
+        "external_id_group_key",
+        "source_system",
+        "external_id",
+        "group_status",
+        "resource_version_ids",
+        "resource_ids",
+        "content_hashes",
+        "version_count",
+        "distinct_content_hash_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-external-id-group.v1" },
+        "external_id_group_id": { "type": "string" },
+        "external_id_group_key": { "type": "string" },
+        "source_system": { "type": "string" },
+        "external_id": { "type": "string" },
+        "group_status": { "enum": ["singleton_external_id", "changed_external_id", "duplicate_external_id_version"] },
+        "resource_version_ids": { "type": "array", "items": { "type": "string" } },
+        "resource_ids": { "type": "array", "items": { "type": "string" } },
+        "content_hashes": { "type": "array", "items": { "type": "string" } },
+        "version_count": { "type": "integer", "minimum": 0 },
+        "distinct_content_hash_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "dedup_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "dedup_decision_id",
+        "decision_scope",
+        "dedup_status",
+        "decision_status",
+        "source_system",
+        "external_id",
+        "content_hash",
+        "content_hash_algorithm",
+        "criteria",
+        "mutation_allowed",
+        "human_review_required",
+        "decided_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-dedup-decision.v1" },
+        "dedup_decision_id": { "type": "string" },
+        "decision_scope": { "enum": ["resource_version", "skipped_duplicate_candidate"] },
+        "dedup_status": { "enum": ["unique_version", "changed_version", "duplicate_version", "duplicate_content_hash", "skipped_duplicate_candidate"] },
+        "decision_status": { "enum": ["promote_or_keep", "hold_duplicate", "metadata_only_skip"] },
+        "source_system": { "type": "string" },
+        "external_id": { "type": ["string", "null"] },
+        "resource_id": { "type": ["string", "null"] },
+        "resource_version_id": { "type": ["string", "null"] },
+        "content_hash": { "type": ["string", "null"] },
+        "content_hash_algorithm": { "const": "sha256" },
+        "hash_group_id": { "type": ["string", "null"] },
+        "external_id_group_key": { "type": "string" },
+        "version_family_id": { "type": ["string", "null"] },
+        "object_path_id": { "type": ["string", "null"] },
+        "criteria": { "type": "object" },
+        "mutation_allowed": { "const": false },
+        "human_review_required": { "type": "boolean" },
+        "decided_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "duplicate_candidate_link": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "duplicate_candidate_link_id",
+        "link_type",
+        "link_status",
+        "resource_version_ids",
+        "matched_version_family_ids",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-duplicate-candidate-link.v1" },
+        "duplicate_candidate_link_id": { "type": "string" },
+        "link_type": { "type": "string" },
+        "link_status": { "type": "string" },
+        "content_hash": { "type": ["string", "null"] },
+        "resource_version_ids": { "type": "array", "items": { "type": "string" } },
+        "matched_version_family_ids": { "type": "array", "items": { "type": "string" } },
+        "source_version_event_id": { "type": ["string", "null"] },
+        "generated_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "hash_integrity_check": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "hash_integrity_check_id",
+        "entity_type",
+        "entity_id",
+        "content_hash",
+        "content_hash_algorithm",
+        "algorithm_status",
+        "hash_format_status",
+        "integrity_status",
+        "checked_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "resource-hash-integrity-check.v1" },
+        "hash_integrity_check_id": { "type": "string" },
+        "entity_type": { "enum": ["resource", "resource_version"] },
+        "entity_id": { "type": "string" },
+        "content_hash": { "type": ["string", "null"] },
+        "content_hash_algorithm": { "type": ["string", "null"] },
+        "object_key": { "type": ["string", "null"] },
+        "algorithm_status": { "enum": ["passed", "failed"] },
+        "hash_format_status": { "enum": ["passed", "failed"] },
+        "integrity_status": { "enum": ["passed", "failed"] },
+        "checked_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "resource_dedup_hash_status",
+        "dedup_hash_contract_id",
+        "resource_count",
+        "resource_version_count",
+        "hash_group_count",
+        "external_id_group_count",
+        "dedup_decision_count",
+        "hash_integrity_check_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "resource_dedup_hash_status": { "enum": ["complete", "blocked"] },
+        "dedup_hash_contract_id": { "const": "resource-dedup-hash-ledger.v1" },
+        "resource_count": { "type": "integer", "minimum": 0 },
+        "resource_version_count": { "type": "integer", "minimum": 0 },
+        "hash_group_count": { "type": "integer", "minimum": 0 },
+        "unique_hash_group_count": { "type": "integer", "minimum": 0 },
+        "duplicate_hash_group_count": { "type": "integer", "minimum": 0 },
+        "external_id_group_count": { "type": "integer", "minimum": 0 },
+        "singleton_external_id_group_count": { "type": "integer", "minimum": 0 },
+        "changed_external_id_group_count": { "type": "integer", "minimum": 0 },
+        "duplicate_external_id_group_count": { "type": "integer", "minimum": 0 },
+        "dedup_decision_count": { "type": "integer", "minimum": 0 },
+        "unique_version_decision_count": { "type": "integer", "minimum": 0 },
+        "changed_version_decision_count": { "type": "integer", "minimum": 0 },
+        "duplicate_version_decision_count": { "type": "integer", "minimum": 0 },
+        "skipped_duplicate_decision_count": { "type": "integer", "minimum": 0 },
+        "human_review_required_decision_count": { "type": "integer", "minimum": 0 },
+        "content_hash_criteria_count": { "type": "integer", "minimum": 0 },
+        "external_id_criteria_count": { "type": "integer", "minimum": 0 },
+        "resource_version_criteria_count": { "type": "integer", "minimum": 0 },
+        "duplicate_candidate_link_count": { "type": "integer", "minimum": 0 },
+        "skipped_duplicate_candidate_link_count": { "type": "integer", "minimum": 0 },
+        "hash_integrity_check_count": { "type": "integer", "minimum": 0 },
+        "passed_hash_integrity_check_count": { "type": "integer", "minimum": 0 },
+        "failed_hash_integrity_check_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

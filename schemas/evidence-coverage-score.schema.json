@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-coverage-score.schema.json",
+  "title": "Hermes Evidence Coverage Score",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "evidence_coverage_score_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "evidence_coverage_contract",
+    "evidence_coverage_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-coverage-score.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "evidence_coverage_score_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "lineage_graph_path",
+        "source_span_store_path",
+        "evidence_item_store_path",
+        "fact_claim_store_path",
+        "issue_graph_store_path",
+        "citation_object_store_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "lineage_graph_path": { "type": "string" },
+        "source_span_store_path": { "type": "string" },
+        "evidence_item_store_path": { "type": "string" },
+        "fact_claim_store_path": { "type": "string" },
+        "issue_graph_store_path": { "type": "string" },
+        "citation_object_store_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "evidence_coverage_contract": { "$ref": "#/$defs/coverage_contract" },
+    "evidence_coverage_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "coverage_scores", "coverage_dimensions", "coverage_indexes"],
+      "properties": {
+        "schema_version": { "const": "evidence-coverage-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "coverage_scores": { "type": "array", "items": { "$ref": "#/$defs/coverage_score" } },
+        "coverage_dimensions": { "type": "array", "items": { "$ref": "#/$defs/coverage_dimension" } },
+        "coverage_indexes": { "$ref": "#/$defs/coverage_indexes" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "coverage_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "evidence_coverage_contract_id",
+        "generated_at",
+        "coverage_score_schema_version",
+        "coverage_dimension_schema_version",
+        "required_dimensions",
+        "source_inputs",
+        "scoring_rule",
+        "output_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-coverage-contract.v1" },
+        "evidence_coverage_contract_id": { "const": "evidence-coverage-score.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "coverage_score_schema_version": { "const": "coverage-score.v1" },
+        "coverage_dimension_schema_version": { "const": "coverage-dimension.v1" },
+        "required_dimensions": { "type": "array", "items": { "type": "string" } },
+        "source_inputs": { "type": "array", "items": { "type": "string" } },
+        "scoring_rule": { "type": "string" },
+        "output_rule": { "type": "string" }
+      }
+    },
+    "coverage_score": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "coverage_score_id",
+        "lineage_path_id",
+        "coverage_subject_type",
+        "coverage_subject_id",
+        "output_paragraph_id",
+        "citation_id",
+        "issue_id",
+        "fact_id",
+        "evidence_item_id",
+        "source_span_id",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "coverage_status",
+        "coverage_score",
+        "required_dimension_count",
+        "covered_required_dimension_count",
+        "missing_required_dimension_count",
+        "not_applicable_dimension_count",
+        "dimension_count",
+        "review_status",
+        "human_review_required",
+        "output_client_facing_status",
+        "client_facing_ready",
+        "matter_preserved",
+        "classification_preserved",
+        "policy_snapshot_preserved",
+        "source_binding_status",
+        "paragraph_binding_status",
+        "legal_basis_status",
+        "dimension_ids",
+        "coverage_dimensions",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "coverage-score.v1" },
+        "coverage_score_id": { "type": "string" },
+        "lineage_path_id": { "type": "string" },
+        "coverage_subject_type": { "type": "string" },
+        "coverage_subject_id": { "type": "string" },
+        "output_paragraph_id": { "type": "string" },
+        "citation_id": { "type": "string" },
+        "issue_id": { "type": "string" },
+        "fact_id": { "type": ["string", "null"] },
+        "evidence_item_id": { "type": ["string", "null"] },
+        "source_span_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "coverage_status": { "enum": ["complete", "partial"] },
+        "coverage_score": { "type": "number" },
+        "required_dimension_count": { "type": "number" },
+        "covered_required_dimension_count": { "type": "number" },
+        "missing_required_dimension_count": { "type": "number" },
+        "not_applicable_dimension_count": { "type": "number" },
+        "dimension_count": { "type": "number" },
+        "review_status": { "type": "string" },
+        "human_review_required": { "type": "boolean" },
+        "output_client_facing_status": { "type": ["string", "null"] },
+        "client_facing_ready": { "type": "boolean" },
+        "matter_preserved": { "type": "boolean" },
+        "classification_preserved": { "type": "boolean" },
+        "policy_snapshot_preserved": { "type": "boolean" },
+        "source_binding_status": { "type": "string" },
+        "paragraph_binding_status": { "type": "string" },
+        "legal_basis_status": { "type": "string" },
+        "dimension_ids": { "type": "array", "items": { "type": "string" } },
+        "coverage_dimensions": { "type": "array", "items": { "$ref": "#/$defs/coverage_dimension" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "coverage_dimension": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "coverage_dimension_id",
+        "coverage_score_id",
+        "lineage_path_id",
+        "output_paragraph_id",
+        "dimension",
+        "required",
+        "covered",
+        "coverage_status",
+        "signal_count",
+        "signals",
+        "evidence_refs",
+        "review_status",
+        "human_review_required",
+        "created_at",
+        "rationale"
+      ],
+      "properties": {
+        "schema_version": { "const": "coverage-dimension.v1" },
+        "coverage_dimension_id": { "type": "string" },
+        "coverage_score_id": { "type": "string" },
+        "lineage_path_id": { "type": "string" },
+        "output_paragraph_id": { "type": "string" },
+        "dimension": { "enum": ["claim", "date", "party", "amount", "legal_basis"] },
+        "required": { "type": "boolean" },
+        "covered": { "type": "boolean" },
+        "coverage_status": { "enum": ["covered", "missing", "not_applicable"] },
+        "signal_count": { "type": "number" },
+        "signals": { "type": "array", "items": { "type": "string" } },
+        "evidence_refs": { "type": "array", "items": { "$ref": "#/$defs/evidence_ref" } },
+        "review_status": { "type": "string" },
+        "human_review_required": { "type": "boolean" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "rationale": { "type": "string" }
+      }
+    },
+    "evidence_ref": {
+      "type": "object",
+      "required": ["ref_type", "ref_id"],
+      "properties": {
+        "ref_type": { "type": "string" },
+        "ref_id": { "type": "string" }
+      }
+    },
+    "coverage_indexes": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "by_matter_id",
+        "by_classification",
+        "by_coverage_status",
+        "by_review_status",
+        "by_output_client_facing_status",
+        "by_dimension",
+        "by_dimension_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "coverage-indexes.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "by_matter_id": { "type": "object" },
+        "by_classification": { "type": "object" },
+        "by_coverage_status": { "type": "object" },
+        "by_review_status": { "type": "object" },
+        "by_output_client_facing_status": { "type": "object" },
+        "by_dimension": { "type": "object" },
+        "by_dimension_status": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "type": "string" },
+        "severity": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_coverage_status",
+        "evidence_coverage_contract_id",
+        "coverage_score_schema_version",
+        "coverage_dimension_schema_version",
+        "lineage_graph_status",
+        "coverage_score_count",
+        "coverage_dimension_count",
+        "required_dimension_count",
+        "covered_required_dimension_count",
+        "missing_required_dimension_count",
+        "average_coverage_score",
+        "claim_covered_count",
+        "date_dimension_count",
+        "party_dimension_count",
+        "amount_dimension_count",
+        "legal_basis_covered_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_coverage_status": { "type": "string" },
+        "evidence_coverage_contract_id": { "const": "evidence-coverage-score.v1" },
+        "coverage_score_schema_version": { "const": "coverage-score.v1" },
+        "coverage_dimension_schema_version": { "const": "coverage-dimension.v1" },
+        "lineage_graph_status": { "type": "string" },
+        "coverage_score_count": { "type": "number" },
+        "coverage_dimension_count": { "type": "number" },
+        "required_dimension_count": { "type": "number" },
+        "covered_required_dimension_count": { "type": "number" },
+        "missing_required_dimension_count": { "type": "number" },
+        "average_coverage_score": { "type": "number" },
+        "claim_covered_count": { "type": "number" },
+        "date_dimension_count": { "type": "number" },
+        "party_dimension_count": { "type": "number" },
+        "amount_dimension_count": { "type": "number" },
+        "legal_basis_covered_count": { "type": "number" },
+        "validation_error_count": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

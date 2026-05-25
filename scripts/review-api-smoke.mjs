@@ -177,6 +177,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/lineage-paths"));
   assert.ok(index.routes.some((route) => route.path === "/api/lineage-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/lineage-graph-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-scores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-dimensions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-coverage-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1958,6 +1963,26 @@ try {
   const lineageGraphValidations = await fetchJson(`${url}/api/lineage-graph-validations?status=passed&limit=5`);
   assert.equal(lineageGraphValidations.collection, "lineage_graph_validations");
   assert.ok(lineageGraphValidations.count <= 5);
+
+  const evidenceCoverageScores = await fetchJson(`${url}/api/evidence-coverage-scores?evidence_coverage_status=complete&limit=1`);
+  assert.equal(evidenceCoverageScores.collection, "evidence_coverage_scores");
+  assert.ok(evidenceCoverageScores.count <= 1);
+
+  const evidenceCoverageRecords = await fetchJson(`${url}/api/evidence-coverage-records?review_status=needs_review&limit=5`);
+  assert.equal(evidenceCoverageRecords.collection, "evidence_coverage_records");
+  assert.ok(evidenceCoverageRecords.count <= 5);
+
+  const evidenceCoverageDimensions = await fetchJson(`${url}/api/evidence-coverage-dimensions?dimension=legal_basis&limit=5`);
+  assert.equal(evidenceCoverageDimensions.collection, "evidence_coverage_dimensions");
+  assert.ok(evidenceCoverageDimensions.count <= 5);
+
+  const evidenceCoverageIndexes = await fetchJson(`${url}/api/evidence-coverage-indexes?schema_version=coverage-indexes.v1&limit=1`);
+  assert.equal(evidenceCoverageIndexes.collection, "evidence_coverage_indexes");
+  assert.ok(evidenceCoverageIndexes.count <= 1);
+
+  const evidenceCoverageValidations = await fetchJson(`${url}/api/evidence-coverage-validations?status=passed&limit=5`);
+  assert.equal(evidenceCoverageValidations.collection, "evidence_coverage_validations");
+  assert.ok(evidenceCoverageValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

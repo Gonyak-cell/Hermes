@@ -43,6 +43,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "resource:issue-graph",
   "resource:citations",
   "resource:lineage-graph",
+  "resource:evidence-coverage",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

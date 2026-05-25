@@ -106,6 +106,8 @@ Phase 133부터 loop는 `npm run resource:store-interface`도 실행해 Resource
 
 Phase 143부터 loop는 `npm run resource:lineage-graph`도 실행해 source span, evidence item, fact claim, issue, output paragraph가 citation object를 통해 complete lineage path로 재현되는지 검증한다.
 
+Phase 144부터 loop는 `npm run resource:evidence-coverage`도 실행해 각 lineage path의 claim/date/party/amount/legal-basis coverage score와 review-pending/not-client-facing gate를 갱신한다.
+
 이 finalization은 dashboard와 goal checkpoint가 방금 완료된 `control-plane-loop.json`을 읽도록 맞추는 동기화 단계다. 필요하면 `node scripts/control-plane-loop.mjs --no-finalize`로 끌 수 있다.
 
 출력:

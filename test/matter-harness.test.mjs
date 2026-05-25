@@ -36,6 +36,7 @@ import { runFactClaimStore } from "../src/fact-claim-store.mjs";
 import { runIssueGraphStore } from "../src/issue-graph-store.mjs";
 import { runCitationObjectStore } from "../src/citation-object-store.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
+import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1658,6 +1659,7 @@ describe("matter harness", () => {
         issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
         citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
         lineageGraphBuilderPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        evidenceCoverageScorePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4110,6 +4112,47 @@ describe("matter harness", () => {
       );
       assert.match(await readFile(path.join(outDir, "lineage-graph", "summary.md"), "utf8"), /Lineage Graph Builder/);
 
+      const evidenceCoverageScore = await runEvidenceCoverageScore({
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        outDir: path.join(outDir, "evidence-coverage"),
+        runAt: "2026-05-23T06:35:08.000Z",
+      });
+      const evidenceCoverageScoreSchema = JSON.parse(await readFile("schemas/evidence-coverage-score.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(evidenceCoverageScore, evidenceCoverageScoreSchema, {}, "evidence_coverage_score"),
+        [],
+      );
+      assert.equal(evidenceCoverageScore.summary.evidence_coverage_status, "complete");
+      assert.equal(evidenceCoverageScore.summary.lineage_graph_status, "complete");
+      assert.equal(evidenceCoverageScore.summary.coverage_score_count, lineageGraphBuilder.summary.lineage_path_count);
+      assert.equal(evidenceCoverageScore.summary.coverage_dimension_count, evidenceCoverageScore.summary.coverage_score_count * 5);
+      assert.equal(evidenceCoverageScore.summary.claim_dimension_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.claim_covered_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.legal_basis_dimension_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.legal_basis_covered_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.date_dimension_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.party_dimension_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.amount_dimension_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(
+        evidenceCoverageScore.summary.coverage_score_count,
+        evidenceCoverageScore.summary.full_coverage_score_count + evidenceCoverageScore.summary.partial_coverage_score_count,
+      );
+      assert.equal(evidenceCoverageScore.summary.matter_preserved_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.classification_preserved_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.policy_snapshot_preserved_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.needs_review_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.not_client_facing_output_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(evidenceCoverageScore.summary.client_facing_ready_score_count, 0);
+      assert.equal(evidenceCoverageScore.summary.validation_error_count, 0);
+      assert.ok(evidenceCoverageScore.evidence_coverage_catalog.coverage_scores.every((score) => score.coverage_dimensions.length === 5 && score.review_status === "needs_review"));
+      assert.ok(evidenceCoverageScore.evidence_coverage_catalog.coverage_dimensions.every((dimension) => ["covered", "missing", "not_applicable"].includes(dimension.coverage_status)));
+      assert.match(await readFile(path.join(outDir, "evidence-coverage", "summary.md"), "utf8"), /Evidence Coverage Score/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4142,6 +4185,7 @@ describe("matter harness", () => {
           issue_graph_store: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
           citation_object_store: path.join(outDir, "citation-object-store", "citation-object-store.json"),
           lineage_graph_builder: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+          evidence_coverage_score: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4167,8 +4211,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 45);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 45);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 46);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 46);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4204,6 +4248,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_graph_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_object_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "lineage_graph_builder"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_coverage_score"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4243,6 +4288,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4423,6 +4469,10 @@ describe("matter harness", () => {
       assert.equal(lineageGraphBuilderCheckpoint?.acceptance_profile, "lineage_graph_builder_gate");
       assert.equal(lineageGraphBuilderCheckpoint?.status, "passed");
       assert.equal(lineageGraphBuilderCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const evidenceCoverageScoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-coverage-score");
+      assert.equal(evidenceCoverageScoreCheckpoint?.acceptance_profile, "evidence_coverage_score_gate");
+      assert.equal(evidenceCoverageScoreCheckpoint?.status, "passed");
+      assert.equal(evidenceCoverageScoreCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5326,6 +5376,29 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.lineage_graph_builder_not_client_facing_output_path_count, lineageGraphBuilder.summary.not_client_facing_output_path_count);
       assert.equal(dashboard.summary.lineage_graph_builder_client_facing_ready_path_count, 0);
       assert.equal(dashboard.summary.lineage_graph_builder_validation_error_count, 0);
+      assert.equal(dashboard.summary.evidence_coverage_status, "complete");
+      assert.equal(dashboard.summary.evidence_coverage_contract_id, "evidence-coverage-score.v1");
+      assert.equal(dashboard.summary.evidence_coverage_score_schema_version, "coverage-score.v1");
+      assert.equal(dashboard.summary.evidence_coverage_dimension_schema_version, "coverage-dimension.v1");
+      assert.equal(dashboard.summary.evidence_coverage_lineage_graph_status, "complete");
+      assert.equal(dashboard.summary.evidence_coverage_score_count, evidenceCoverageScore.summary.coverage_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_dimension_count, evidenceCoverageScore.summary.coverage_dimension_count);
+      assert.equal(dashboard.summary.evidence_coverage_required_dimension_count, evidenceCoverageScore.summary.required_dimension_count);
+      assert.equal(dashboard.summary.evidence_coverage_covered_required_dimension_count, evidenceCoverageScore.summary.covered_required_dimension_count);
+      assert.equal(dashboard.summary.evidence_coverage_missing_required_dimension_count, evidenceCoverageScore.summary.missing_required_dimension_count);
+      assert.equal(dashboard.summary.evidence_coverage_full_score_count, evidenceCoverageScore.summary.full_coverage_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_partial_score_count, evidenceCoverageScore.summary.partial_coverage_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_claim_dimension_count, evidenceCoverageScore.summary.claim_dimension_count);
+      assert.equal(dashboard.summary.evidence_coverage_claim_covered_count, evidenceCoverageScore.summary.claim_covered_count);
+      assert.equal(dashboard.summary.evidence_coverage_legal_basis_dimension_count, evidenceCoverageScore.summary.legal_basis_dimension_count);
+      assert.equal(dashboard.summary.evidence_coverage_legal_basis_covered_count, evidenceCoverageScore.summary.legal_basis_covered_count);
+      assert.equal(dashboard.summary.evidence_coverage_matter_preserved_count, evidenceCoverageScore.summary.matter_preserved_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_classification_preserved_count, evidenceCoverageScore.summary.classification_preserved_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_policy_snapshot_preserved_count, evidenceCoverageScore.summary.policy_snapshot_preserved_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_needs_review_count, evidenceCoverageScore.summary.needs_review_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_not_client_facing_output_count, evidenceCoverageScore.summary.not_client_facing_output_score_count);
+      assert.equal(dashboard.summary.evidence_coverage_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.evidence_coverage_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5868,6 +5941,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "issue_graph_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "citation_object_store"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "lineage_graph_builder"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_coverage_score"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -6020,6 +6094,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-paths"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/lineage-graph-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-scores"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-dimensions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-indexes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-coverage-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -8038,6 +8117,26 @@ describe("matter harness", () => {
       const lineageGraphValidations = JSON.parse((await buildReviewApiResponse("/api/lineage-graph-validations?status=passed", apiOptions)).body);
       assert.equal(lineageGraphValidations.collection, "lineage_graph_validations");
       assert.equal(lineageGraphValidations.count, lineageGraphBuilder.summary.validation_item_count);
+
+      const evidenceCoverageArtifacts = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-scores?evidence_coverage_status=complete", apiOptions)).body);
+      assert.equal(evidenceCoverageArtifacts.collection, "evidence_coverage_scores");
+      assert.equal(evidenceCoverageArtifacts.count, 1);
+
+      const evidenceCoverageRecords = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-records?review_status=needs_review", apiOptions)).body);
+      assert.equal(evidenceCoverageRecords.collection, "evidence_coverage_records");
+      assert.equal(evidenceCoverageRecords.count, evidenceCoverageScore.summary.coverage_score_count);
+
+      const evidenceCoverageDimensions = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-dimensions?dimension=legal_basis", apiOptions)).body);
+      assert.equal(evidenceCoverageDimensions.collection, "evidence_coverage_dimensions");
+      assert.equal(evidenceCoverageDimensions.count, evidenceCoverageScore.summary.legal_basis_dimension_count);
+
+      const evidenceCoverageIndexes = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-indexes?schema_version=coverage-indexes.v1", apiOptions)).body);
+      assert.equal(evidenceCoverageIndexes.collection, "evidence_coverage_indexes");
+      assert.equal(evidenceCoverageIndexes.count, 1);
+
+      const evidenceCoverageValidations = JSON.parse((await buildReviewApiResponse("/api/evidence-coverage-validations?status=passed", apiOptions)).body);
+      assert.equal(evidenceCoverageValidations.collection, "evidence_coverage_validations");
+      assert.equal(evidenceCoverageValidations.count, evidenceCoverageScore.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

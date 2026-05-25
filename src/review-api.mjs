@@ -689,6 +689,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("lineage_graph_validations", graphResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-coverage-scores") {
+    const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
+    if (!coverageResult.available) {
+      return jsonResponse(503, buildError("evidence_coverage_score_unavailable", coverageResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_coverage_scores", [coverageResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-coverage-records") {
+    const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
+    if (!coverageResult.available) {
+      return jsonResponse(503, buildError("evidence_coverage_score_unavailable", coverageResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_coverage_records", coverageResult.artifact.evidence_coverage_catalog?.coverage_scores ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-coverage-dimensions") {
+    const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
+    if (!coverageResult.available) {
+      return jsonResponse(503, buildError("evidence_coverage_score_unavailable", coverageResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_coverage_dimensions", coverageResult.artifact.evidence_coverage_catalog?.coverage_dimensions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-coverage-indexes") {
+    const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
+    if (!coverageResult.available) {
+      return jsonResponse(503, buildError("evidence_coverage_score_unavailable", coverageResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_coverage_indexes", [coverageResult.artifact.evidence_coverage_catalog?.coverage_indexes ?? {}], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-coverage-validations") {
+    const coverageResult = await readDashboardSourceArtifact(dashboard, "evidence_coverage_score");
+    if (!coverageResult.available) {
+      return jsonResponse(503, buildError("evidence_coverage_score_unavailable", coverageResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_coverage_validations", coverageResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5221,6 +5256,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/lineage-paths", "Source-to-output lineage path rows"),
       route("GET", "/api/lineage-indexes", "Lineage graph index projections"),
       route("GET", "/api/lineage-graph-validations", "Lineage graph validation rows"),
+      route("GET", "/api/evidence-coverage-scores", "Evidence coverage score artifacts"),
+      route("GET", "/api/evidence-coverage-records", "Per-output evidence coverage score rows"),
+      route("GET", "/api/evidence-coverage-dimensions", "Evidence coverage dimension rows"),
+      route("GET", "/api/evidence-coverage-indexes", "Evidence coverage index projections"),
+      route("GET", "/api/evidence-coverage-validations", "Evidence coverage validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5423,6 +5463,15 @@ function filterItems(items, searchParams) {
     "issue_graph_store_status",
     "citation_object_store_status",
     "lineage_graph_status",
+    "evidence_coverage_status",
+    "coverage_score_id",
+    "coverage_dimension_id",
+    "coverage_status",
+    "dimension",
+    "coverage_subject_id",
+    "covered",
+    "required",
+    "missing_required_dimension_count",
     "lineage_node_id",
     "lineage_edge_id",
     "lineage_path_id",
@@ -6266,6 +6315,7 @@ function readFilterValue(item, key) {
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;
   if (key === "lineage_graph_status") return item.summary?.lineage_graph_status ?? item.lineage_graph_status;
+  if (key === "evidence_coverage_status") return item.summary?.evidence_coverage_status ?? item.evidence_coverage_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

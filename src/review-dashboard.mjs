@@ -34,6 +34,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   issueGraphStorePath: "artifacts/issue-graph-store/latest/issue-graph-store.json",
   citationObjectStorePath: "artifacts/citation-object-store/latest/citation-object-store.json",
   lineageGraphBuilderPath: "artifacts/lineage-graph/latest/lineage-graph.json",
+  evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -292,6 +293,11 @@ const SOURCE_DEFINITIONS = [
     option: "lineageGraphBuilderPath",
     source_id: "lineage_graph_builder",
     label: "Lineage Graph Builder",
+  },
+  {
+    option: "evidenceCoverageScorePath",
+    source_id: "evidence_coverage_score",
+    label: "Evidence Coverage Score",
   },
   {
     option: "evidenceContractFreezePath",
@@ -960,6 +966,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "issue_graph_store") return data.summary ?? {};
   if (sourceId === "citation_object_store") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
+  if (sourceId === "evidence_coverage_score") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1183,6 +1190,7 @@ function buildStageStatuses(artifacts, sources) {
     buildIssueGraphStoreStage(artifacts.issue_graph_store, sourceById.get("issue_graph_store")),
     buildCitationObjectStoreStage(artifacts.citation_object_store, sourceById.get("citation_object_store")),
     buildLineageGraphBuilderStage(artifacts.lineage_graph_builder, sourceById.get("lineage_graph_builder")),
+    buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2669,6 +2677,80 @@ function buildLineageGraphBuilderStage(graph, source) {
       needs_review_path_count: summary.needs_review_path_count ?? 0,
       not_client_facing_output_path_count: summary.not_client_facing_output_path_count ?? 0,
       client_facing_ready_path_count: summary.client_facing_ready_path_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidenceCoverageScoreStage(coverage, source) {
+  if (!coverage) return missingStage("evidence_coverage_score", "Evidence Coverage Score", source);
+  const summary = coverage.summary ?? {};
+  const errorCount = summary.validation_error_count ?? coverage.validation?.errors?.length ?? 0;
+  const scoreCount = summary.coverage_score_count ?? 0;
+  const dimensionCount = summary.coverage_dimension_count ?? 0;
+  const status = summary.evidence_coverage_status === "complete"
+    && errorCount === 0
+    && scoreCount > 0
+    && dimensionCount === scoreCount * 5
+    && (summary.claim_covered_count ?? 0) === scoreCount
+    && (summary.legal_basis_covered_count ?? 0) === scoreCount
+    && (summary.matter_preserved_score_count ?? 0) === scoreCount
+    && (summary.classification_preserved_score_count ?? 0) === scoreCount
+    && (summary.policy_snapshot_preserved_score_count ?? 0) === scoreCount
+    && (summary.not_client_facing_output_score_count ?? 0) === scoreCount
+    && (summary.client_facing_ready_score_count ?? 1) === 0
+    && (summary.needs_review_score_count ?? 0) === scoreCount
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_coverage_score",
+    label: "Evidence Coverage Score",
+    status,
+    message: `${scoreCount} coverage score(s), ${dimensionCount} dimension(s), average ${summary.average_coverage_score ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_coverage_status: summary.evidence_coverage_status ?? "unknown",
+      evidence_coverage_contract_id: summary.evidence_coverage_contract_id ?? null,
+      coverage_score_schema_version: summary.coverage_score_schema_version ?? null,
+      coverage_dimension_schema_version: summary.coverage_dimension_schema_version ?? null,
+      lineage_graph_status: summary.lineage_graph_status ?? "unknown",
+      source_span_store_status: summary.source_span_store_status ?? "unknown",
+      evidence_item_store_status: summary.evidence_item_store_status ?? "unknown",
+      fact_claim_store_status: summary.fact_claim_store_status ?? "unknown",
+      issue_graph_store_status: summary.issue_graph_store_status ?? "unknown",
+      citation_object_store_status: summary.citation_object_store_status ?? "unknown",
+      lineage_path_count: summary.lineage_path_count ?? 0,
+      output_paragraph_count: summary.output_paragraph_count ?? 0,
+      coverage_score_count: scoreCount,
+      coverage_dimension_count: dimensionCount,
+      required_dimension_count: summary.required_dimension_count ?? 0,
+      covered_required_dimension_count: summary.covered_required_dimension_count ?? 0,
+      missing_required_dimension_count: summary.missing_required_dimension_count ?? 0,
+      not_applicable_dimension_count: summary.not_applicable_dimension_count ?? 0,
+      full_coverage_score_count: summary.full_coverage_score_count ?? 0,
+      partial_coverage_score_count: summary.partial_coverage_score_count ?? 0,
+      average_coverage_score: summary.average_coverage_score ?? 0,
+      claim_dimension_count: summary.claim_dimension_count ?? 0,
+      claim_covered_count: summary.claim_covered_count ?? 0,
+      date_dimension_count: summary.date_dimension_count ?? 0,
+      date_required_count: summary.date_required_count ?? 0,
+      date_covered_count: summary.date_covered_count ?? 0,
+      party_dimension_count: summary.party_dimension_count ?? 0,
+      party_required_count: summary.party_required_count ?? 0,
+      party_covered_count: summary.party_covered_count ?? 0,
+      amount_dimension_count: summary.amount_dimension_count ?? 0,
+      amount_required_count: summary.amount_required_count ?? 0,
+      amount_covered_count: summary.amount_covered_count ?? 0,
+      legal_basis_dimension_count: summary.legal_basis_dimension_count ?? 0,
+      legal_basis_covered_count: summary.legal_basis_covered_count ?? 0,
+      matter_preserved_score_count: summary.matter_preserved_score_count ?? 0,
+      classification_preserved_score_count: summary.classification_preserved_score_count ?? 0,
+      policy_snapshot_preserved_score_count: summary.policy_snapshot_preserved_score_count ?? 0,
+      needs_review_score_count: summary.needs_review_score_count ?? 0,
+      not_client_facing_output_score_count: summary.not_client_facing_output_score_count ?? 0,
+      client_facing_ready_score_count: summary.client_facing_ready_score_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6612,6 +6694,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.evidence_coverage_score?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "evidence_coverage_score";
+    items.push({
+      action_item_id: `dashboard.action.evidence_coverage_score.${slugify(subjectId)}`,
+      source_stage: "evidence_coverage_score",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix evidence coverage score",
+      subject_ref: {
+        subject_type: "evidence_coverage_score_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_evidence_coverage_score", "rerun_evidence_coverage_score", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8493,6 +8593,47 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     lineage_graph_builder_not_client_facing_output_path_count: artifacts.lineage_graph_builder?.summary?.not_client_facing_output_path_count ?? 0,
     lineage_graph_builder_client_facing_ready_path_count: artifacts.lineage_graph_builder?.summary?.client_facing_ready_path_count ?? 0,
     lineage_graph_builder_validation_error_count: artifacts.lineage_graph_builder?.summary?.validation_error_count ?? artifacts.lineage_graph_builder?.validation?.errors?.length ?? 0,
+    evidence_coverage_status: artifacts.evidence_coverage_score?.summary?.evidence_coverage_status ?? "unknown",
+    evidence_coverage_contract_id: artifacts.evidence_coverage_score?.summary?.evidence_coverage_contract_id ?? null,
+    evidence_coverage_score_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_score_schema_version ?? null,
+    evidence_coverage_dimension_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_dimension_schema_version ?? null,
+    evidence_coverage_lineage_graph_status: artifacts.evidence_coverage_score?.summary?.lineage_graph_status ?? "unknown",
+    evidence_coverage_source_span_store_status: artifacts.evidence_coverage_score?.summary?.source_span_store_status ?? "unknown",
+    evidence_coverage_evidence_item_store_status: artifacts.evidence_coverage_score?.summary?.evidence_item_store_status ?? "unknown",
+    evidence_coverage_fact_claim_store_status: artifacts.evidence_coverage_score?.summary?.fact_claim_store_status ?? "unknown",
+    evidence_coverage_issue_graph_store_status: artifacts.evidence_coverage_score?.summary?.issue_graph_store_status ?? "unknown",
+    evidence_coverage_citation_object_store_status: artifacts.evidence_coverage_score?.summary?.citation_object_store_status ?? "unknown",
+    evidence_coverage_lineage_path_count: artifacts.evidence_coverage_score?.summary?.lineage_path_count ?? 0,
+    evidence_coverage_output_paragraph_count: artifacts.evidence_coverage_score?.summary?.output_paragraph_count ?? 0,
+    evidence_coverage_score_count: artifacts.evidence_coverage_score?.summary?.coverage_score_count ?? 0,
+    evidence_coverage_dimension_count: artifacts.evidence_coverage_score?.summary?.coverage_dimension_count ?? 0,
+    evidence_coverage_required_dimension_count: artifacts.evidence_coverage_score?.summary?.required_dimension_count ?? 0,
+    evidence_coverage_covered_required_dimension_count: artifacts.evidence_coverage_score?.summary?.covered_required_dimension_count ?? 0,
+    evidence_coverage_missing_required_dimension_count: artifacts.evidence_coverage_score?.summary?.missing_required_dimension_count ?? 0,
+    evidence_coverage_not_applicable_dimension_count: artifacts.evidence_coverage_score?.summary?.not_applicable_dimension_count ?? 0,
+    evidence_coverage_full_score_count: artifacts.evidence_coverage_score?.summary?.full_coverage_score_count ?? 0,
+    evidence_coverage_partial_score_count: artifacts.evidence_coverage_score?.summary?.partial_coverage_score_count ?? 0,
+    evidence_coverage_average_score: artifacts.evidence_coverage_score?.summary?.average_coverage_score ?? 0,
+    evidence_coverage_claim_dimension_count: artifacts.evidence_coverage_score?.summary?.claim_dimension_count ?? 0,
+    evidence_coverage_claim_covered_count: artifacts.evidence_coverage_score?.summary?.claim_covered_count ?? 0,
+    evidence_coverage_date_dimension_count: artifacts.evidence_coverage_score?.summary?.date_dimension_count ?? 0,
+    evidence_coverage_date_required_count: artifacts.evidence_coverage_score?.summary?.date_required_count ?? 0,
+    evidence_coverage_date_covered_count: artifacts.evidence_coverage_score?.summary?.date_covered_count ?? 0,
+    evidence_coverage_party_dimension_count: artifacts.evidence_coverage_score?.summary?.party_dimension_count ?? 0,
+    evidence_coverage_party_required_count: artifacts.evidence_coverage_score?.summary?.party_required_count ?? 0,
+    evidence_coverage_party_covered_count: artifacts.evidence_coverage_score?.summary?.party_covered_count ?? 0,
+    evidence_coverage_amount_dimension_count: artifacts.evidence_coverage_score?.summary?.amount_dimension_count ?? 0,
+    evidence_coverage_amount_required_count: artifacts.evidence_coverage_score?.summary?.amount_required_count ?? 0,
+    evidence_coverage_amount_covered_count: artifacts.evidence_coverage_score?.summary?.amount_covered_count ?? 0,
+    evidence_coverage_legal_basis_dimension_count: artifacts.evidence_coverage_score?.summary?.legal_basis_dimension_count ?? 0,
+    evidence_coverage_legal_basis_covered_count: artifacts.evidence_coverage_score?.summary?.legal_basis_covered_count ?? 0,
+    evidence_coverage_matter_preserved_count: artifacts.evidence_coverage_score?.summary?.matter_preserved_score_count ?? 0,
+    evidence_coverage_classification_preserved_count: artifacts.evidence_coverage_score?.summary?.classification_preserved_score_count ?? 0,
+    evidence_coverage_policy_snapshot_preserved_count: artifacts.evidence_coverage_score?.summary?.policy_snapshot_preserved_score_count ?? 0,
+    evidence_coverage_needs_review_count: artifacts.evidence_coverage_score?.summary?.needs_review_score_count ?? 0,
+    evidence_coverage_not_client_facing_output_count: artifacts.evidence_coverage_score?.summary?.not_client_facing_output_score_count ?? 0,
+    evidence_coverage_client_facing_ready_count: artifacts.evidence_coverage_score?.summary?.client_facing_ready_score_count ?? 0,
+    evidence_coverage_validation_error_count: artifacts.evidence_coverage_score?.summary?.validation_error_count ?? artifacts.evidence_coverage_score?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -9963,6 +10104,8 @@ function parseArgs(argv) {
     else if (arg === "--no-citation-object-store") parsed.citationObjectStorePath = false;
     else if (arg === "--lineage-graph") parsed.lineageGraphBuilderPath = argv[++index];
     else if (arg === "--no-lineage-graph") parsed.lineageGraphBuilderPath = false;
+    else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
+    else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10166,6 +10309,8 @@ Options:
   --no-citation-object-store      Do not include Citation Object Store status.
   --lineage-graph <path>          lineage-graph.json path.
   --no-lineage-graph              Do not include Lineage Graph Builder status.
+  --evidence-coverage <path>      evidence-coverage-score.json path.
+  --no-evidence-coverage          Do not include Evidence Coverage Score status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

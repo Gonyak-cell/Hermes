@@ -276,6 +276,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/client-counterparty-registries") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("client_counterparty_registries", [registryResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/party-registry") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("party_registry", registryResult.artifact.registry_contract?.party_registry ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/client-registry") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("client_registry", registryResult.artifact.registry_contract?.client_registry ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/counterparty-registry") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("counterparty_registry", registryResult.artifact.registry_contract?.counterparty_registry ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-party-links") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_party_links", registryResult.artifact.registry_contract?.matter_party_links ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/conflict-reference-index") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("conflict_reference_index", registryResult.artifact.registry_contract?.conflict_reference_index ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/client-counterparty-validations") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "client_counterparty_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("client_counterparty_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("client_counterparty_validations", registryResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -3564,6 +3641,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/matter-team-v2-contracts", "MatterTeam v2 contract fixtures"),
       route("GET", "/api/matter-boundary-v2-contracts", "MatterBoundary v2 contract fixtures"),
       route("GET", "/api/matter-contract-validations", "Matter contract validation rows"),
+      route("GET", "/api/client-counterparty-registries", "Client/counterparty registry artifacts"),
+      route("GET", "/api/party-registry", "Stable party registry rows"),
+      route("GET", "/api/client-registry", "Client registry rows"),
+      route("GET", "/api/counterparty-registry", "Counterparty registry rows"),
+      route("GET", "/api/matter-party-links", "Matter-party link rows"),
+      route("GET", "/api/conflict-reference-index", "Conflict reference index rows"),
+      route("GET", "/api/client-counterparty-validations", "Client/counterparty registry validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -3915,6 +3999,16 @@ function filterItems(items, searchParams) {
     "inventory_item_id",
     "dependency_map_id",
     "map_status",
+    "registry_id",
+    "registry_status",
+    "stable_party_id",
+    "canonical_name",
+    "alias_key",
+    "counterparty_role",
+    "conflict_ref_id",
+    "conflict_check_status",
+    "matter_party_link_id",
+    "link_status",
     "freeze_id",
     "freeze_status",
     "identity_model_id",
@@ -4415,6 +4509,8 @@ function readFilterValue(item, key) {
   if (key === "migration_manifest_status") return item.summary?.migration_manifest_status ?? item.migration_manifest_status;
   if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
   if (key === "validation_suite_status") return item.summary?.validation_suite_status ?? item.validation_suite_status;
+  if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
+  if (key === "alias_key") return item.alias_keys ?? item.alias_key;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "identity_model_status") return item.summary?.identity_model_status ?? item.identity_model_status;
   if (key === "checkpoint_key") return item.key;

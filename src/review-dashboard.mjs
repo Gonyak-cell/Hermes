@@ -8,6 +8,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   identityModelPath: "artifacts/identity-model/latest/identity-model.json",
   resourceContractFreezePath: "artifacts/resource-contract-freeze/latest/resource-contract-freeze.json",
   matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
+  clientCounterpartyRegistryPath: "artifacts/client-counterparty-registry/latest/client-counterparty-registry.json",
   policyContractFreezePath: "artifacts/policy-contract-freeze/latest/policy-contract-freeze.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
@@ -132,6 +133,11 @@ const SOURCE_DEFINITIONS = [
     option: "matterContractFreezePath",
     source_id: "matter_contract_freeze",
     label: "Matter Contract Freeze",
+  },
+  {
+    option: "clientCounterpartyRegistryPath",
+    source_id: "client_counterparty_registry",
+    label: "Client/Counterparty Registry",
   },
   {
     option: "policyContractFreezePath",
@@ -754,6 +760,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "identity_model") return data.summary ?? {};
   if (sourceId === "resource_contract_freeze") return data.summary ?? {};
   if (sourceId === "matter_contract_freeze") return data.summary ?? {};
+  if (sourceId === "client_counterparty_registry") return data.summary ?? {};
   if (sourceId === "policy_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
@@ -947,6 +954,7 @@ function buildStageStatuses(artifacts, sources) {
     buildIdentityModelStage(artifacts.identity_model, sourceById.get("identity_model")),
     buildResourceContractFreezeStage(artifacts.resource_contract_freeze, sourceById.get("resource_contract_freeze")),
     buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
+    buildClientCounterpartyRegistryStage(artifacts.client_counterparty_registry, sourceById.get("client_counterparty_registry")),
     buildPolicyContractFreezeStage(artifacts.policy_contract_freeze, sourceById.get("policy_contract_freeze")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
@@ -1195,6 +1203,38 @@ function buildMatterContractFreezeStage(freeze, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildClientCounterpartyRegistryStage(registry, source) {
+  if (!registry) return missingStage("client_counterparty_registry", "Client/Counterparty Registry", source);
+  const summary = registry.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || registry.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "client_counterparty_registry",
+    label: "Client/Counterparty Registry",
+    status,
+    message: `${summary.party_count ?? 0} stable part${summary.party_count === 1 ? "y" : "ies"}, ${summary.client_count ?? 0} client(s), ${summary.counterparty_count ?? 0} counterparty row(s), ${summary.conflict_reference_count ?? 0} conflict reference(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      registry_status: summary.registry_status ?? "unknown",
+      source_matter_contract_status: summary.source_matter_contract_status ?? "unknown",
+      party_count: summary.party_count ?? 0,
+      client_count: summary.client_count ?? 0,
+      counterparty_count: summary.counterparty_count ?? 0,
+      stable_party_id_count: summary.stable_party_id_count ?? 0,
+      alias_key_count: summary.alias_key_count ?? 0,
+      conflict_reference_count: summary.conflict_reference_count ?? 0,
+      matter_party_link_count: summary.matter_party_link_count ?? 0,
+      matter_with_client_link_count: summary.matter_with_client_link_count ?? 0,
+      matter_with_counterparty_link_count: summary.matter_with_counterparty_link_count ?? 0,
+      duplicate_alias_count: summary.duplicate_alias_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? registry.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5864,6 +5904,20 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     matter_contract_freeze_matter_with_policy_snapshot_count: artifacts.matter_contract_freeze?.summary?.matter_with_policy_snapshot_count ?? 0,
     matter_contract_freeze_failed_validation_item_count: artifacts.matter_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     matter_contract_freeze_validation_error_count: artifacts.matter_contract_freeze?.summary?.validation_error_count ?? artifacts.matter_contract_freeze?.validation?.errors?.length ?? 0,
+    client_counterparty_registry_status: artifacts.client_counterparty_registry?.summary?.registry_status ?? "unknown",
+    client_counterparty_source_matter_contract_status: artifacts.client_counterparty_registry?.summary?.source_matter_contract_status ?? "unknown",
+    client_counterparty_party_count: artifacts.client_counterparty_registry?.summary?.party_count ?? 0,
+    client_counterparty_client_count: artifacts.client_counterparty_registry?.summary?.client_count ?? 0,
+    client_counterparty_counterparty_count: artifacts.client_counterparty_registry?.summary?.counterparty_count ?? 0,
+    client_counterparty_stable_party_id_count: artifacts.client_counterparty_registry?.summary?.stable_party_id_count ?? 0,
+    client_counterparty_alias_key_count: artifacts.client_counterparty_registry?.summary?.alias_key_count ?? 0,
+    client_counterparty_conflict_reference_count: artifacts.client_counterparty_registry?.summary?.conflict_reference_count ?? 0,
+    client_counterparty_matter_party_link_count: artifacts.client_counterparty_registry?.summary?.matter_party_link_count ?? 0,
+    client_counterparty_matter_with_client_link_count: artifacts.client_counterparty_registry?.summary?.matter_with_client_link_count ?? 0,
+    client_counterparty_matter_with_counterparty_link_count: artifacts.client_counterparty_registry?.summary?.matter_with_counterparty_link_count ?? 0,
+    client_counterparty_duplicate_alias_count: artifacts.client_counterparty_registry?.summary?.duplicate_alias_count ?? 0,
+    client_counterparty_failed_validation_item_count: artifacts.client_counterparty_registry?.summary?.failed_validation_item_count ?? 0,
+    client_counterparty_validation_error_count: artifacts.client_counterparty_registry?.summary?.validation_error_count ?? artifacts.client_counterparty_registry?.validation?.errors?.length ?? 0,
     policy_contract_freeze_classification_count: artifacts.policy_contract_freeze?.summary?.classification_count ?? 0,
     policy_contract_freeze_required_classification_count: artifacts.policy_contract_freeze?.summary?.required_classification_count ?? 0,
     policy_contract_freeze_missing_classification_count: artifacts.policy_contract_freeze?.summary?.missing_classification_count ?? 0,
@@ -7136,6 +7190,8 @@ function parseArgs(argv) {
     else if (arg === "--no-resource-contract-freeze") parsed.resourceContractFreezePath = false;
     else if (arg === "--matter-contract-freeze") parsed.matterContractFreezePath = argv[++index];
     else if (arg === "--no-matter-contract-freeze") parsed.matterContractFreezePath = false;
+    else if (arg === "--client-counterparty-registry") parsed.clientCounterpartyRegistryPath = argv[++index];
+    else if (arg === "--no-client-counterparty-registry") parsed.clientCounterpartyRegistryPath = false;
     else if (arg === "--policy-contract-freeze") parsed.policyContractFreezePath = argv[++index];
     else if (arg === "--no-policy-contract-freeze") parsed.policyContractFreezePath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
@@ -7344,6 +7400,10 @@ Options:
   --resource-contract-freeze <path>
                                   resource-contract-freeze.json path.
   --no-resource-contract-freeze  Do not include Resource Contract Freeze status.
+  --client-counterparty-registry <path>
+                                  client-counterparty-registry.json path.
+  --no-client-counterparty-registry
+                                  Do not include Client/Counterparty Registry status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

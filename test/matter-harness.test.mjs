@@ -11,6 +11,7 @@ import { runContractGoldenFixtures } from "../src/contract-golden-fixtures.mjs";
 import { runContractValidationSuite } from "../src/contract-validation-suite.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runIdentityModel } from "../src/identity-model.mjs";
+import { runClientCounterpartyRegistry } from "../src/client-counterparty-registry.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
@@ -384,6 +385,32 @@ describe("matter harness", () => {
       assert.ok(identityModel.identity_contract.actor_principals.some((actor) => actor.principal_class !== "human_actor" && actor.human_user_id === null));
       assert.ok(identityModel.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "identity-model", "summary.md"), "utf8"), /Identity Model/);
+
+      const clientCounterpartyRegistry = await runClientCounterpartyRegistry({
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        outDir: path.join(outDir, "client-counterparty-registry"),
+        runAt: "2026-05-23T06:13:45.000Z",
+      });
+      const clientCounterpartyRegistrySchema = JSON.parse(await readFile("schemas/client-counterparty-registry.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(clientCounterpartyRegistry, clientCounterpartyRegistrySchema, {}, "client_counterparty_registry"), []);
+      assert.equal(clientCounterpartyRegistry.summary.registry_status, "complete");
+      assert.equal(clientCounterpartyRegistry.summary.source_matter_contract_status, "complete");
+      assert.equal(clientCounterpartyRegistry.summary.party_count, matterContractFreeze.summary.party_count);
+      assert.equal(clientCounterpartyRegistry.summary.client_count, matterContractFreeze.summary.client_count);
+      assert.equal(clientCounterpartyRegistry.summary.counterparty_count, matterContractFreeze.summary.counterparty_count);
+      assert.equal(clientCounterpartyRegistry.summary.stable_party_id_count, clientCounterpartyRegistry.summary.party_count);
+      assert.equal(clientCounterpartyRegistry.summary.conflict_reference_count, clientCounterpartyRegistry.summary.party_count);
+      assert.equal(clientCounterpartyRegistry.summary.matter_party_link_count, matterContractFreeze.matter_contract.matters[0].party_ids.length);
+      assert.equal(clientCounterpartyRegistry.summary.matter_with_client_link_count, matterContractFreeze.summary.matter_with_client_count);
+      assert.equal(clientCounterpartyRegistry.summary.matter_with_counterparty_link_count, matterContractFreeze.summary.matter_with_counterparty_count);
+      assert.equal(clientCounterpartyRegistry.summary.duplicate_alias_count, 0);
+      assert.equal(clientCounterpartyRegistry.summary.validation_error_count, 0);
+      assert.ok(clientCounterpartyRegistry.registry_contract.client_registry.some((entry) => entry.client_id === "client.alpha"));
+      assert.ok(clientCounterpartyRegistry.registry_contract.counterparty_registry.some((entry) => entry.stable_party_id === "party.counterparty.beta_seller"));
+      assert.ok(clientCounterpartyRegistry.registry_contract.party_registry.every((entry) => entry.conflict_ref_id));
+      assert.ok(clientCounterpartyRegistry.registry_contract.conflict_reference_index.every((entry) => entry.conflict_check_status === "ready"));
+      assert.ok(clientCounterpartyRegistry.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "client-counterparty-registry", "summary.md"), "utf8"), /Client\/Counterparty Registry/);
 
       const viewer = await runEvidenceViewer({
         inputPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -1181,6 +1208,7 @@ describe("matter harness", () => {
         identityModelPath: path.join(outDir, "identity-model", "identity-model.json"),
         resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
         matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        clientCounterpartyRegistryPath: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         evidenceReviewDraftPath: path.join(outDir, "evidence-review-draft", "evidence-review-draft.json"),
@@ -2991,6 +3019,7 @@ describe("matter harness", () => {
           schema_versioning_rules: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
           schema_migration_manifest: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
           identity_model: path.join(outDir, "identity-model", "identity-model.json"),
+          client_counterparty_registry: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
           resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
           matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
           policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
@@ -3011,8 +3040,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 15);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 15);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 16);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 16);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3023,6 +3052,7 @@ describe("matter harness", () => {
       assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_contract_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_model"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "client_counterparty_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -3121,6 +3151,10 @@ describe("matter harness", () => {
       assert.equal(identityModelCheckpoint?.acceptance_profile, "identity_model_gate");
       assert.equal(identityModelCheckpoint?.status, "passed");
       assert.equal(identityModelCheckpoint?.implementation_status, "passed");
+      const clientCounterpartyRegistryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-client-counterparty-registry");
+      assert.equal(clientCounterpartyRegistryCheckpoint?.acceptance_profile, "client_counterparty_registry_gate");
+      assert.equal(clientCounterpartyRegistryCheckpoint?.status, "passed");
+      assert.equal(clientCounterpartyRegistryCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3507,6 +3541,19 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.matter_contract_freeze_matter_with_policy_snapshot_count, matterContractFreeze.summary.matter_with_policy_snapshot_count);
       assert.equal(dashboard.summary.matter_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.matter_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.client_counterparty_registry_status, "complete");
+      assert.equal(dashboard.summary.client_counterparty_party_count, clientCounterpartyRegistry.summary.party_count);
+      assert.equal(dashboard.summary.client_counterparty_client_count, clientCounterpartyRegistry.summary.client_count);
+      assert.equal(dashboard.summary.client_counterparty_counterparty_count, clientCounterpartyRegistry.summary.counterparty_count);
+      assert.equal(dashboard.summary.client_counterparty_stable_party_id_count, clientCounterpartyRegistry.summary.stable_party_id_count);
+      assert.equal(dashboard.summary.client_counterparty_alias_key_count, clientCounterpartyRegistry.summary.alias_key_count);
+      assert.equal(dashboard.summary.client_counterparty_conflict_reference_count, clientCounterpartyRegistry.summary.conflict_reference_count);
+      assert.equal(dashboard.summary.client_counterparty_matter_party_link_count, clientCounterpartyRegistry.summary.matter_party_link_count);
+      assert.equal(dashboard.summary.client_counterparty_matter_with_client_link_count, clientCounterpartyRegistry.summary.matter_with_client_link_count);
+      assert.equal(dashboard.summary.client_counterparty_matter_with_counterparty_link_count, clientCounterpartyRegistry.summary.matter_with_counterparty_link_count);
+      assert.equal(dashboard.summary.client_counterparty_duplicate_alias_count, 0);
+      assert.equal(dashboard.summary.client_counterparty_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.client_counterparty_validation_error_count, 0);
       assert.equal(dashboard.summary.policy_contract_freeze_classification_count, policyContractFreeze.summary.classification_count);
       assert.equal(dashboard.summary.policy_contract_freeze_required_classification_count, policyContractFreeze.summary.required_classification_count);
       assert.equal(dashboard.summary.policy_contract_freeze_missing_classification_count, 0);
@@ -4035,6 +4082,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "identity_model"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "client_counterparty_registry"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "policy_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
@@ -5700,6 +5748,34 @@ describe("matter harness", () => {
       const matterContractValidations = JSON.parse((await buildReviewApiResponse("/api/matter-contract-validations?status=passed", apiOptions)).body);
       assert.equal(matterContractValidations.collection, "matter_contract_validations");
       assert.equal(matterContractValidations.count, matterContractFreeze.summary.validation_item_count);
+
+      const clientCounterpartyRegistries = JSON.parse((await buildReviewApiResponse("/api/client-counterparty-registries?registry_status=complete", apiOptions)).body);
+      assert.equal(clientCounterpartyRegistries.collection, "client_counterparty_registries");
+      assert.equal(clientCounterpartyRegistries.count, 1);
+
+      const partyRegistry = JSON.parse((await buildReviewApiResponse("/api/party-registry?party_type=client", apiOptions)).body);
+      assert.equal(partyRegistry.collection, "party_registry");
+      assert.equal(partyRegistry.count, matterContractFreeze.summary.client_party_count);
+
+      const clientRegistry = JSON.parse((await buildReviewApiResponse("/api/client-registry?client_id=client.alpha", apiOptions)).body);
+      assert.equal(clientRegistry.collection, "client_registry");
+      assert.equal(clientRegistry.count, clientCounterpartyRegistry.summary.client_count);
+
+      const counterpartyRegistry = JSON.parse((await buildReviewApiResponse("/api/counterparty-registry?counterparty_role=seller", apiOptions)).body);
+      assert.equal(counterpartyRegistry.collection, "counterparty_registry");
+      assert.equal(counterpartyRegistry.count, clientCounterpartyRegistry.summary.counterparty_count);
+
+      const matterPartyLinks = JSON.parse((await buildReviewApiResponse("/api/matter-party-links?link_status=active", apiOptions)).body);
+      assert.equal(matterPartyLinks.collection, "matter_party_links");
+      assert.equal(matterPartyLinks.count, clientCounterpartyRegistry.summary.matter_party_link_count);
+
+      const conflictReferenceIndex = JSON.parse((await buildReviewApiResponse("/api/conflict-reference-index?conflict_check_status=ready", apiOptions)).body);
+      assert.equal(conflictReferenceIndex.collection, "conflict_reference_index");
+      assert.equal(conflictReferenceIndex.count, clientCounterpartyRegistry.summary.conflict_reference_count);
+
+      const clientCounterpartyValidations = JSON.parse((await buildReviewApiResponse("/api/client-counterparty-validations?status=passed", apiOptions)).body);
+      assert.equal(clientCounterpartyValidations.collection, "client_counterparty_validations");
+      assert.equal(clientCounterpartyValidations.count, clientCounterpartyRegistry.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

@@ -132,6 +132,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/identity-actors"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/client-counterparty-registries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/party-registry"));
+  assert.ok(index.routes.some((route) => route.path === "/api/client-registry"));
+  assert.ok(index.routes.some((route) => route.path === "/api/counterparty-registry"));
+  assert.ok(index.routes.some((route) => route.path === "/api/matter-party-links"));
+  assert.ok(index.routes.some((route) => route.path === "/api/conflict-reference-index"));
+  assert.ok(index.routes.some((route) => route.path === "/api/client-counterparty-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1410,6 +1417,34 @@ try {
   const matterContractValidations = await fetchJson(`${url}/api/matter-contract-validations?status=passed&limit=5`);
   assert.equal(matterContractValidations.collection, "matter_contract_validations");
   assert.ok(matterContractValidations.count <= 5);
+
+  const clientCounterpartyRegistries = await fetchJson(`${url}/api/client-counterparty-registries?registry_status=complete&limit=1`);
+  assert.equal(clientCounterpartyRegistries.collection, "client_counterparty_registries");
+  assert.ok(clientCounterpartyRegistries.count <= 1);
+
+  const partyRegistry = await fetchJson(`${url}/api/party-registry?party_type=client&limit=5`);
+  assert.equal(partyRegistry.collection, "party_registry");
+  assert.ok(partyRegistry.count <= 5);
+
+  const clientRegistry = await fetchJson(`${url}/api/client-registry?client_id=client.alpha&limit=5`);
+  assert.equal(clientRegistry.collection, "client_registry");
+  assert.ok(clientRegistry.count <= 5);
+
+  const counterpartyRegistry = await fetchJson(`${url}/api/counterparty-registry?counterparty_role=seller&limit=5`);
+  assert.equal(counterpartyRegistry.collection, "counterparty_registry");
+  assert.ok(counterpartyRegistry.count <= 5);
+
+  const matterPartyLinks = await fetchJson(`${url}/api/matter-party-links?link_status=active&limit=5`);
+  assert.equal(matterPartyLinks.collection, "matter_party_links");
+  assert.ok(matterPartyLinks.count <= 5);
+
+  const conflictReferenceIndex = await fetchJson(`${url}/api/conflict-reference-index?conflict_check_status=ready&limit=5`);
+  assert.equal(conflictReferenceIndex.collection, "conflict_reference_index");
+  assert.ok(conflictReferenceIndex.count <= 5);
+
+  const clientCounterpartyValidations = await fetchJson(`${url}/api/client-counterparty-validations?status=passed&limit=5`);
+  assert.equal(clientCounterpartyValidations.collection, "client_counterparty_validations");
+  assert.ok(clientCounterpartyValidations.count <= 5);
 
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);

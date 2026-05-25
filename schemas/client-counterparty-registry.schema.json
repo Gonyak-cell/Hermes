@@ -1,0 +1,356 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/client-counterparty-registry.schema.json",
+  "title": "Hermes Client Counterparty Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "registry_id",
+    "output_dir",
+    "inputs",
+    "source_matter_contract",
+    "registry_contract",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "client-counterparty-registry.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "registry_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["matter_contract_freeze_path"],
+      "properties": {
+        "matter_contract_freeze_path": { "type": "string" }
+      }
+    },
+    "source_matter_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "freeze_id",
+        "freeze_status",
+        "matter_contract_schema_version",
+        "client_count",
+        "party_count",
+        "matter_count",
+        "counterparty_count"
+      ],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "freeze_id": { "type": ["string", "null"] },
+        "freeze_status": { "type": "string" },
+        "matter_contract_schema_version": { "type": ["string", "null"] },
+        "client_count": { "type": "integer", "minimum": 0 },
+        "party_count": { "type": "integer", "minimum": 0 },
+        "matter_count": { "type": "integer", "minimum": 0 },
+        "counterparty_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "registry_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "party_registry",
+        "client_registry",
+        "counterparty_registry",
+        "matter_party_links",
+        "conflict_reference_index"
+      ],
+      "properties": {
+        "schema_version": { "const": "client-counterparty-registry-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "party_registry": { "type": "array", "items": { "$ref": "#/$defs/party_registry_entry" } },
+        "client_registry": { "type": "array", "items": { "$ref": "#/$defs/client_registry_entry" } },
+        "counterparty_registry": { "type": "array", "items": { "$ref": "#/$defs/counterparty_registry_entry" } },
+        "matter_party_links": { "type": "array", "items": { "$ref": "#/$defs/matter_party_link" } },
+        "conflict_reference_index": { "type": "array", "items": { "$ref": "#/$defs/conflict_reference_entry" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "registry_status",
+        "source_matter_contract_status",
+        "party_count",
+        "client_count",
+        "counterparty_count",
+        "stable_party_id_count",
+        "alias_key_count",
+        "conflict_reference_count",
+        "matter_party_link_count",
+        "matter_with_client_link_count",
+        "matter_with_counterparty_link_count",
+        "duplicate_alias_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_party_type",
+        "by_counterparty_role",
+        "by_tenant_id"
+      ],
+      "properties": {
+        "registry_status": { "enum": ["complete", "blocked"] },
+        "source_matter_contract_status": { "type": "string" },
+        "party_count": { "type": "integer", "minimum": 0 },
+        "client_count": { "type": "integer", "minimum": 0 },
+        "counterparty_count": { "type": "integer", "minimum": 0 },
+        "stable_party_id_count": { "type": "integer", "minimum": 0 },
+        "alias_key_count": { "type": "integer", "minimum": 0 },
+        "conflict_reference_count": { "type": "integer", "minimum": 0 },
+        "matter_party_link_count": { "type": "integer", "minimum": 0 },
+        "matter_with_client_link_count": { "type": "integer", "minimum": 0 },
+        "matter_with_counterparty_link_count": { "type": "integer", "minimum": 0 },
+        "duplicate_alias_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_party_type": { "type": "object" },
+        "by_counterparty_role": { "type": "object" },
+        "by_tenant_id": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "party_registry_entry": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "party_registry_id",
+        "stable_party_id",
+        "tenant_id",
+        "party_type",
+        "display_name",
+        "canonical_name",
+        "alias_keys",
+        "client_id",
+        "source_entity_id",
+        "matter_ids",
+        "counterparty_role",
+        "classification_floor",
+        "conflict_ref_id",
+        "registry_status",
+        "created_at",
+        "source_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "party-registry-entry.v1" },
+        "party_registry_id": { "type": "string" },
+        "stable_party_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "party_type": { "enum": ["client", "counterparty", "affiliate", "third_party", "unknown"] },
+        "display_name": { "type": "string" },
+        "canonical_name": { "type": "string" },
+        "alias_keys": { "type": "array", "items": { "type": "string" } },
+        "client_id": { "type": ["string", "null"] },
+        "source_entity_id": { "type": ["string", "null"] },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_role": { "type": ["string", "null"] },
+        "classification_floor": { "type": ["string", "null"] },
+        "conflict_ref_id": { "type": "string" },
+        "registry_status": { "enum": ["active", "inactive", "superseded", "quarantined"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "metadata": { "type": "object" }
+      }
+    },
+    "client_registry_entry": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "client_registry_id",
+        "client_id",
+        "stable_party_id",
+        "tenant_id",
+        "display_name",
+        "legal_name",
+        "canonical_name",
+        "alias_keys",
+        "matter_ids",
+        "classification_floor",
+        "default_policy_snapshot_id",
+        "conflict_ref_id",
+        "registry_status",
+        "created_at",
+        "source_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "client-registry-entry.v1" },
+        "client_registry_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "stable_party_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "legal_name": { "type": "string" },
+        "canonical_name": { "type": "string" },
+        "alias_keys": { "type": "array", "items": { "type": "string" } },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "classification_floor": { "type": "string" },
+        "default_policy_snapshot_id": { "type": ["string", "null"] },
+        "conflict_ref_id": { "type": ["string", "null"] },
+        "registry_status": { "enum": ["active", "inactive", "superseded", "quarantined"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "metadata": { "type": "object" }
+      }
+    },
+    "counterparty_registry_entry": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "counterparty_registry_id",
+        "counterparty_id",
+        "stable_party_id",
+        "tenant_id",
+        "party_type",
+        "display_name",
+        "canonical_name",
+        "alias_keys",
+        "matter_ids",
+        "counterparty_role",
+        "classification_floor",
+        "conflict_ref_id",
+        "registry_status",
+        "created_at",
+        "source_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "counterparty-registry-entry.v1" },
+        "counterparty_registry_id": { "type": "string" },
+        "counterparty_id": { "type": "string" },
+        "stable_party_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "party_type": { "enum": ["counterparty", "affiliate", "third_party", "unknown"] },
+        "display_name": { "type": "string" },
+        "canonical_name": { "type": "string" },
+        "alias_keys": { "type": "array", "items": { "type": "string" } },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_role": { "type": "string" },
+        "classification_floor": { "type": ["string", "null"] },
+        "conflict_ref_id": { "type": "string" },
+        "registry_status": { "enum": ["active", "inactive", "superseded", "quarantined"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_party_link": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_party_link_id",
+        "matter_id",
+        "tenant_id",
+        "client_id",
+        "stable_party_id",
+        "party_type",
+        "link_role",
+        "counterparty_role",
+        "link_status",
+        "wall_ids",
+        "classification",
+        "classification_floor",
+        "conflict_ref_id",
+        "created_at",
+        "source_matter_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-party-link.v1" },
+        "matter_party_link_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "stable_party_id": { "type": "string" },
+        "party_type": { "enum": ["client", "counterparty", "affiliate", "third_party", "unknown"] },
+        "link_role": { "enum": ["client", "counterparty"] },
+        "counterparty_role": { "type": ["string", "null"] },
+        "link_status": { "enum": ["active", "inactive", "superseded", "quarantined"] },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "classification": { "type": "string" },
+        "classification_floor": { "type": "string" },
+        "conflict_ref_id": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_matter_schema_version": { "type": ["string", "null"] },
+        "metadata": { "type": "object" }
+      }
+    },
+    "conflict_reference_entry": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "conflict_ref_id",
+        "stable_party_id",
+        "tenant_id",
+        "party_type",
+        "client_id",
+        "display_name",
+        "canonical_name",
+        "alias_keys",
+        "matter_ids",
+        "counterparty_role",
+        "classification_floor",
+        "conflict_check_status",
+        "source_registry_id",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "conflict-reference-entry.v1" },
+        "conflict_ref_id": { "type": "string" },
+        "stable_party_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "party_type": { "enum": ["client", "counterparty", "affiliate", "third_party", "unknown"] },
+        "client_id": { "type": ["string", "null"] },
+        "display_name": { "type": "string" },
+        "canonical_name": { "type": "string" },
+        "alias_keys": { "type": "array", "items": { "type": "string" } },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_role": { "type": ["string", "null"] },
+        "classification_floor": { "type": ["string", "null"] },
+        "conflict_check_status": { "enum": ["ready", "review_required", "blocked"] },
+        "source_registry_id": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

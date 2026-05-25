@@ -3246,6 +3246,36 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Review API에서 `/api/gate-approval-contract-freezes`, `/api/gate-result-contracts`, `/api/approval-request-contracts`, `/api/approval-decision-contracts`, `/api/human-gate-v2-contracts`, `/api/approval-authority-contracts`, `/api/gate-approval-bindings`, `/api/gate-approval-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:gates`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 106 - Output/Delivery Contract Freeze
+
+목표: 생성 산출물과 보호된 전달 행위, 전달 receipt를 v2 계약으로 분리해 OutputArtifact가 곧바로 발송/전달을 의미하지 않도록 고정한다.
+
+구현 산출물:
+
+- `src/output-delivery-contract-freeze.mjs`
+- `scripts/output-delivery-contract-freeze.mjs`
+- `schemas/output-delivery-contract-freeze.schema.json`
+- `docs/output-delivery-contract-freeze.md`
+- `artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json`
+- `artifacts/output-delivery-contract-freeze/latest/output-artifact-v2-fixture.json`
+- `artifacts/output-delivery-contract-freeze/latest/delivery-action-v2-fixture.json`
+- `artifacts/output-delivery-contract-freeze/latest/delivery-receipt-v2-fixture.json`
+- `artifacts/output-delivery-contract-freeze/latest/output-delivery-binding-v2-fixture.json`
+- `artifacts/output-delivery-contract-freeze/latest/delivery-state-transition-v2-fixture.json`
+- `artifacts/output-delivery-contract-freeze/latest/validation-report.json`
+- `artifacts/output-delivery-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- `output-artifact.v2`, `delivery-action.v2`, `delivery-receipt.v2`, `output-delivery-binding.v2`, `delivery-state-transition.v2` fixture가 생성됨
+- 모든 OutputArtifact v2가 `tenant_id`, `matter_id`, `workflow_run_id`, `content_hash`, approval request link, delivery action link를 보존함
+- pending approval artifact는 별도 `ApprovalRequest v2`에 연결되고, delivery는 별도 `DeliveryAction v2`에 연결됨
+- protected delivery action은 human approval requirement와 draft-only 상태를 보존하고 receipt 없이는 executed로 취급되지 않음
+- 전달 receipt는 DeliveryReceipt v2로 분리되며 delivered receipt에는 실행자, 실행시각, delivery reference가 요구됨
+- Dashboard stage와 summary가 `output_delivery_contract_freeze` 지표를 추적함
+- Review API에서 `/api/output-delivery-contract-freezes`, `/api/output-artifact-v2-contracts`, `/api/delivery-action-v2-contracts`, `/api/delivery-receipt-v2-contracts`, `/api/output-delivery-bindings`, `/api/delivery-state-transitions`, `/api/output-delivery-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:outputs`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3254,9 +3284,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 105이다.
+- 현재 완료 기준점은 Phase 106이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P106-P312, 총 207개다.
+- 남은 계획 슬롯은 P107-P312, 총 206개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

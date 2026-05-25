@@ -12,6 +12,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
+  outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -144,6 +145,11 @@ const SOURCE_DEFINITIONS = [
     option: "gateApprovalContractFreezePath",
     source_id: "gate_approval_contract_freeze",
     label: "Gate Approval Contract Freeze",
+  },
+  {
+    option: "outputDeliveryContractFreezePath",
+    source_id: "output_delivery_contract_freeze",
+    label: "Output Delivery Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -710,6 +716,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
+  if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -895,6 +902,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
+    buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -1308,6 +1316,51 @@ function buildGateApprovalContractFreezeStage(freeze, source) {
       pending_approval_request_count: summary.pending_approval_request_count ?? 0,
       linked_approval_decision_count: summary.linked_approval_decision_count ?? 0,
       orphan_approval_decision_count: summary.orphan_approval_decision_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildOutputDeliveryContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("output_delivery_contract_freeze", "Output Delivery Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "output_delivery_contract_freeze",
+    label: "Output Delivery Contract Freeze",
+    status,
+    message: `${summary.output_artifact_count ?? 0} OutputArtifact v2 contract(s), ${summary.delivery_action_count ?? 0} DeliveryAction v2 contract(s), ${summary.artifact_hash_count ?? 0}/${summary.output_artifact_count ?? 0} artifact hash(es) tracked.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      output_artifact_schema_version: summary.output_artifact_schema_version ?? null,
+      delivery_action_schema_version: summary.delivery_action_schema_version ?? null,
+      delivery_receipt_schema_version: summary.delivery_receipt_schema_version ?? null,
+      output_delivery_binding_schema_version: summary.output_delivery_binding_schema_version ?? null,
+      delivery_state_transition_schema_version: summary.delivery_state_transition_schema_version ?? null,
+      output_artifact_count: summary.output_artifact_count ?? 0,
+      delivery_action_count: summary.delivery_action_count ?? 0,
+      delivery_receipt_count: summary.delivery_receipt_count ?? 0,
+      output_delivery_binding_count: summary.output_delivery_binding_count ?? 0,
+      delivery_state_transition_count: summary.delivery_state_transition_count ?? 0,
+      artifact_hash_count: summary.artifact_hash_count ?? 0,
+      missing_artifact_hash_count: summary.missing_artifact_hash_count ?? 0,
+      linked_delivery_action_count: summary.linked_delivery_action_count ?? 0,
+      missing_delivery_action_count: summary.missing_delivery_action_count ?? 0,
+      pending_approval_artifact_count: summary.pending_approval_artifact_count ?? 0,
+      approval_request_linked_artifact_count: summary.approval_request_linked_artifact_count ?? 0,
+      protected_delivery_action_count: summary.protected_delivery_action_count ?? 0,
+      draft_only_delivery_action_count: summary.draft_only_delivery_action_count ?? 0,
+      ready_delivery_action_count: summary.ready_delivery_action_count ?? 0,
+      executed_delivery_action_count: summary.executed_delivery_action_count ?? 0,
+      delivered_receipt_count: summary.delivered_receipt_count ?? 0,
+      pending_receipt_count: summary.pending_receipt_count ?? 0,
+      linked_binding_count: summary.linked_binding_count ?? 0,
+      attention_binding_count: summary.attention_binding_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
@@ -5556,6 +5609,27 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     gate_approval_contract_freeze_orphan_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.orphan_approval_decision_count ?? 0,
     gate_approval_contract_freeze_failed_validation_item_count: artifacts.gate_approval_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     gate_approval_contract_freeze_validation_error_count: artifacts.gate_approval_contract_freeze?.summary?.validation_error_count ?? artifacts.gate_approval_contract_freeze?.validation?.errors?.length ?? 0,
+    output_delivery_contract_freeze_output_artifact_count: artifacts.output_delivery_contract_freeze?.summary?.output_artifact_count ?? 0,
+    output_delivery_contract_freeze_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.delivery_action_count ?? 0,
+    output_delivery_contract_freeze_delivery_receipt_count: artifacts.output_delivery_contract_freeze?.summary?.delivery_receipt_count ?? 0,
+    output_delivery_contract_freeze_output_delivery_binding_count: artifacts.output_delivery_contract_freeze?.summary?.output_delivery_binding_count ?? 0,
+    output_delivery_contract_freeze_delivery_state_transition_count: artifacts.output_delivery_contract_freeze?.summary?.delivery_state_transition_count ?? 0,
+    output_delivery_contract_freeze_artifact_hash_count: artifacts.output_delivery_contract_freeze?.summary?.artifact_hash_count ?? 0,
+    output_delivery_contract_freeze_missing_artifact_hash_count: artifacts.output_delivery_contract_freeze?.summary?.missing_artifact_hash_count ?? 0,
+    output_delivery_contract_freeze_linked_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.linked_delivery_action_count ?? 0,
+    output_delivery_contract_freeze_missing_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.missing_delivery_action_count ?? 0,
+    output_delivery_contract_freeze_pending_approval_artifact_count: artifacts.output_delivery_contract_freeze?.summary?.pending_approval_artifact_count ?? 0,
+    output_delivery_contract_freeze_approval_request_linked_artifact_count: artifacts.output_delivery_contract_freeze?.summary?.approval_request_linked_artifact_count ?? 0,
+    output_delivery_contract_freeze_protected_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.protected_delivery_action_count ?? 0,
+    output_delivery_contract_freeze_draft_only_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.draft_only_delivery_action_count ?? 0,
+    output_delivery_contract_freeze_ready_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.ready_delivery_action_count ?? 0,
+    output_delivery_contract_freeze_executed_delivery_action_count: artifacts.output_delivery_contract_freeze?.summary?.executed_delivery_action_count ?? 0,
+    output_delivery_contract_freeze_delivered_receipt_count: artifacts.output_delivery_contract_freeze?.summary?.delivered_receipt_count ?? 0,
+    output_delivery_contract_freeze_pending_receipt_count: artifacts.output_delivery_contract_freeze?.summary?.pending_receipt_count ?? 0,
+    output_delivery_contract_freeze_linked_binding_count: artifacts.output_delivery_contract_freeze?.summary?.linked_binding_count ?? 0,
+    output_delivery_contract_freeze_attention_binding_count: artifacts.output_delivery_contract_freeze?.summary?.attention_binding_count ?? 0,
+    output_delivery_contract_freeze_failed_validation_item_count: artifacts.output_delivery_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    output_delivery_contract_freeze_validation_error_count: artifacts.output_delivery_contract_freeze?.summary?.validation_error_count ?? artifacts.output_delivery_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6615,6 +6689,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-agentrun-contract-freeze") parsed.runtimeAgentRunContractFreezePath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
+    else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
+    else if (arg === "--no-output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];

@@ -746,6 +746,79 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/output-delivery-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_delivery_contract_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-artifact-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("output_artifact_v2_contracts", freezeResult.artifact.output_delivery_contract?.output_artifacts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/delivery-action-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_action_v2_contracts", freezeResult.artifact.output_delivery_contract?.delivery_actions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/delivery-receipt-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_receipt_v2_contracts", freezeResult.artifact.output_delivery_contract?.delivery_receipts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/output-delivery-bindings") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("output_delivery_bindings", freezeResult.artifact.output_delivery_contract?.output_delivery_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/delivery-state-transitions") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("delivery_state_transitions", freezeResult.artifact.output_delivery_contract?.delivery_state_transitions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/output-delivery-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "output_delivery_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("output_delivery_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("output_delivery_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/context-packet-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "context_packet_ledger");
     if (!ledgerResult.available) {
@@ -3188,6 +3261,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/approval-authority-contracts", "Approval authority contract fixtures"),
       route("GET", "/api/gate-approval-bindings", "Gate to approval binding fixtures"),
       route("GET", "/api/gate-approval-contract-validations", "Gate/Approval contract validation rows"),
+      route("GET", "/api/output-delivery-contract-freezes", "Output/Delivery contract freeze artifacts"),
+      route("GET", "/api/output-artifact-v2-contracts", "OutputArtifact v2 contract fixtures"),
+      route("GET", "/api/delivery-action-v2-contracts", "DeliveryAction v2 contract fixtures"),
+      route("GET", "/api/delivery-receipt-v2-contracts", "DeliveryReceipt v2 contract fixtures"),
+      route("GET", "/api/output-delivery-bindings", "Output to delivery binding fixtures"),
+      route("GET", "/api/delivery-state-transitions", "Delivery state transition fixtures"),
+      route("GET", "/api/output-delivery-contract-validations", "Output/Delivery contract validation rows"),
       route("GET", "/api/context-packet-ledgers", "Context packet ledger artifacts"),
       route("GET", "/api/context-packets", "Runtime-scoped context packets"),
       route("GET", "/api/context-items", "Context items compiled for runtime packets"),
@@ -3545,6 +3625,25 @@ function filterItems(items, searchParams) {
     "approval_authority_status",
     "gate_approval_binding_id",
     "binding_status",
+    "output_artifact_id",
+    "hash_status",
+    "delivery_separation_status",
+    "approval_separation_status",
+    "receipt_separation_status",
+    "delivery_receipt_id",
+    "output_delivery_binding_id",
+    "approval_binding_status",
+    "delivery_binding_status",
+    "receipt_binding_status",
+    "separation_status",
+    "delivery_state_transition_id",
+    "transition_type",
+    "source_state",
+    "target_state",
+    "draft_only",
+    "ready_for_delivery",
+    "executed",
+    "receipt_application_status",
     "output_trust",
     "log_capture_status",
     "artifact_capture_status",

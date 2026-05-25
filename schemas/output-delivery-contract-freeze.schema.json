@@ -1,0 +1,319 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/output-delivery-contract-freeze.schema.json",
+  "title": "Hermes Output Delivery Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "contract_versions",
+    "field_requirements",
+    "summary",
+    "output_delivery_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "output-delivery-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "output_artifact_schema_version",
+        "delivery_action_schema_version",
+        "delivery_receipt_schema_version",
+        "output_delivery_binding_schema_version",
+        "delivery_state_transition_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "output_artifact_schema_version": { "const": "output-artifact.v2" },
+        "delivery_action_schema_version": { "const": "delivery-action.v2" },
+        "delivery_receipt_schema_version": { "const": "delivery-receipt.v2" },
+        "output_delivery_binding_schema_version": { "const": "output-delivery-binding.v2" },
+        "delivery_state_transition_schema_version": { "const": "delivery-state-transition.v2" },
+        "compatibility_floor": { "const": "output-artifact-catalog.v1+gate-approval-contract.v2" }
+      }
+    },
+    "field_requirements": {
+      "type": "object",
+      "required": [
+        "output_artifact_v2",
+        "delivery_action_v2",
+        "delivery_receipt_v2",
+        "output_delivery_binding_v2",
+        "delivery_state_transition_v2"
+      ],
+      "additionalProperties": { "$ref": "#/$defs/field_requirement" }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "output_artifact_schema_version",
+        "delivery_action_schema_version",
+        "delivery_receipt_schema_version",
+        "output_delivery_binding_schema_version",
+        "delivery_state_transition_schema_version",
+        "output_artifact_count",
+        "delivery_action_count",
+        "delivery_receipt_count",
+        "output_delivery_binding_count",
+        "delivery_state_transition_count",
+        "artifact_hash_count",
+        "missing_artifact_hash_count",
+        "linked_delivery_action_count",
+        "missing_delivery_action_count",
+        "pending_approval_artifact_count",
+        "approval_request_linked_artifact_count",
+        "protected_delivery_action_count",
+        "draft_only_delivery_action_count",
+        "ready_delivery_action_count",
+        "delivered_receipt_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "output_artifact_schema_version": { "const": "output-artifact.v2" },
+        "delivery_action_schema_version": { "const": "delivery-action.v2" },
+        "delivery_receipt_schema_version": { "const": "delivery-receipt.v2" },
+        "output_delivery_binding_schema_version": { "const": "output-delivery-binding.v2" },
+        "delivery_state_transition_schema_version": { "const": "delivery-state-transition.v2" },
+        "output_artifact_count": { "type": "integer", "minimum": 0 },
+        "delivery_action_count": { "type": "integer", "minimum": 0 },
+        "delivery_receipt_count": { "type": "integer", "minimum": 0 },
+        "output_delivery_binding_count": { "type": "integer", "minimum": 0 },
+        "delivery_state_transition_count": { "type": "integer", "minimum": 0 },
+        "artifact_hash_count": { "type": "integer", "minimum": 0 },
+        "missing_artifact_hash_count": { "type": "integer", "minimum": 0 },
+        "linked_delivery_action_count": { "type": "integer", "minimum": 0 },
+        "missing_delivery_action_count": { "type": "integer", "minimum": 0 },
+        "pending_approval_artifact_count": { "type": "integer", "minimum": 0 },
+        "approval_request_linked_artifact_count": { "type": "integer", "minimum": 0 },
+        "protected_delivery_action_count": { "type": "integer", "minimum": 0 },
+        "draft_only_delivery_action_count": { "type": "integer", "minimum": 0 },
+        "ready_delivery_action_count": { "type": "integer", "minimum": 0 },
+        "executed_delivery_action_count": { "type": "integer", "minimum": 0 },
+        "delivered_receipt_count": { "type": "integer", "minimum": 0 },
+        "pending_receipt_count": { "type": "integer", "minimum": 0 },
+        "linked_binding_count": { "type": "integer", "minimum": 0 },
+        "attention_binding_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "output_delivery_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "output_artifacts",
+        "delivery_actions",
+        "delivery_receipts",
+        "output_delivery_bindings",
+        "delivery_state_transitions"
+      ],
+      "properties": {
+        "schema_version": { "const": "output-delivery-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "output_artifacts": { "type": "array", "items": { "$ref": "#/$defs/output_artifact_v2" } },
+        "delivery_actions": { "type": "array", "items": { "$ref": "#/$defs/delivery_action_v2" } },
+        "delivery_receipts": { "type": "array", "items": { "$ref": "#/$defs/delivery_receipt_v2" } },
+        "output_delivery_bindings": { "type": "array", "items": { "$ref": "#/$defs/output_delivery_binding_v2" } },
+        "delivery_state_transitions": { "type": "array", "items": { "$ref": "#/$defs/delivery_state_transition_v2" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    }
+  },
+  "$defs": {
+    "field_requirement": {
+      "type": "object",
+      "required": ["required_fields", "optional_fields", "required_groups"],
+      "properties": {
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "optional_fields": { "type": "array", "items": { "type": "string" } },
+        "required_groups": { "type": "object" }
+      }
+    },
+    "output_artifact_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "output_artifact_id",
+        "artifact_type",
+        "artifact_uri",
+        "content_hash",
+        "hash_status",
+        "workflow_run_id",
+        "tenant_id",
+        "matter_id",
+        "approval_request_ids",
+        "delivery_action_ids",
+        "delivery_receipt_ids",
+        "approval_separation_status",
+        "delivery_separation_status",
+        "receipt_separation_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "output-artifact.v2" },
+        "output_artifact_id": { "type": "string" },
+        "artifact_type": { "type": ["string", "null"] },
+        "artifact_uri": { "type": ["string", "null"] },
+        "content_hash": { "type": ["string", "null"] },
+        "hash_status": { "enum": ["present", "missing"] },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "approval_request_ids": { "type": "array", "items": { "type": "string" } },
+        "delivery_action_ids": { "type": "array", "items": { "type": "string" } },
+        "delivery_receipt_ids": { "type": "array", "items": { "type": "string" } },
+        "approval_separation_status": { "type": "string" },
+        "delivery_separation_status": { "type": "string" },
+        "receipt_separation_status": { "type": "string" }
+      }
+    },
+    "delivery_action_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "delivery_action_id",
+        "output_artifact_id",
+        "delivery_target",
+        "delivery_channel",
+        "delivery_status",
+        "protected_action",
+        "draft_only",
+        "requires_human_approval",
+        "ready_for_delivery",
+        "executed",
+        "delivery_receipt_ids"
+      ],
+      "properties": {
+        "schema_version": { "const": "delivery-action.v2" },
+        "delivery_action_id": { "type": "string" },
+        "output_artifact_id": { "type": "string" },
+        "delivery_target": { "type": ["string", "null"] },
+        "delivery_channel": { "type": ["string", "null"] },
+        "delivery_status": { "type": "string" },
+        "protected_action": { "type": "boolean" },
+        "draft_only": { "type": "boolean" },
+        "requires_human_approval": { "type": "boolean" },
+        "ready_for_delivery": { "type": "boolean" },
+        "executed": { "type": "boolean" },
+        "delivery_receipt_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "delivery_receipt_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "delivery_receipt_id",
+        "packet_id",
+        "receipt_status",
+        "status_after",
+        "receipt_application_status",
+        "artifact_ids",
+        "delivery_action_ids"
+      ],
+      "properties": {
+        "schema_version": { "const": "delivery-receipt.v2" },
+        "delivery_receipt_id": { "type": "string" },
+        "packet_id": { "type": ["string", "null"] },
+        "receipt_status": { "type": "string" },
+        "status_after": { "type": "string" },
+        "receipt_application_status": { "type": "string" },
+        "artifact_ids": { "type": "array", "items": { "type": "string" } },
+        "delivery_action_ids": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "output_delivery_binding_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "output_delivery_binding_id",
+        "output_artifact_id",
+        "approval_request_ids",
+        "delivery_action_ids",
+        "delivery_receipt_ids",
+        "binding_status",
+        "separation_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "output-delivery-binding.v2" },
+        "output_delivery_binding_id": { "type": "string" },
+        "output_artifact_id": { "type": "string" },
+        "approval_request_ids": { "type": "array", "items": { "type": "string" } },
+        "delivery_action_ids": { "type": "array", "items": { "type": "string" } },
+        "delivery_receipt_ids": { "type": "array", "items": { "type": "string" } },
+        "binding_status": { "type": "string" },
+        "separation_status": { "type": "string" }
+      }
+    },
+    "delivery_state_transition_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "delivery_state_transition_id",
+        "transition_type",
+        "output_artifact_id",
+        "delivery_action_id",
+        "source_state",
+        "target_state",
+        "protected_action",
+        "draft_only",
+        "executed"
+      ],
+      "properties": {
+        "schema_version": { "const": "delivery-state-transition.v2" },
+        "delivery_state_transition_id": { "type": "string" },
+        "transition_type": { "type": "string" },
+        "output_artifact_id": { "type": ["string", "null"] },
+        "delivery_action_id": { "type": "string" },
+        "source_state": { "type": ["string", "null"] },
+        "target_state": { "type": ["string", "null"] },
+        "protected_action": { "type": "boolean" },
+        "draft_only": { "type": "boolean" },
+        "executed": { "type": "boolean" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

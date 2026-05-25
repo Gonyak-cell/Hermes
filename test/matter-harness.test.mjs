@@ -114,6 +114,7 @@ import { runEvidenceContractFreeze } from "../src/evidence-contract-freeze.mjs";
 import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-contract-freeze.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
+import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -1163,6 +1164,7 @@ describe("matter harness", () => {
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -1251,6 +1253,7 @@ describe("matter harness", () => {
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
+        outputDeliveryContractFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
         humanReviewPacketLedgerPath: false,
         humanReviewAgendaPath: false,
@@ -1365,6 +1368,49 @@ describe("matter harness", () => {
       assert.ok(gateApprovalContractFreeze.gate_approval_contract.gate_approval_bindings.filter((binding) => binding.human_approval_gate).every((binding) => binding.binding_status === "linked"));
       assert.ok(gateApprovalContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "gate-approval-contract-freeze", "summary.md"), "utf8"), /Gate\/Approval Contract Freeze/);
+
+      const outputDeliveryContractFreeze = await runOutputDeliveryContractFreeze({
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        approvalInboxDecisionPath: path.join(outDir, "approval-inbox-decisions", "approval-inbox-decision-result.json"),
+        deliveryExecutionDraftPath: path.join(outDir, "delivery-execution", "delivery-execution-draft.json"),
+        deliveryReceiptLedgerPath: path.join(outDir, "closeout-receipt-application", "delivery-receipt-ledger.json"),
+        postDeliveryReconciliationPath: path.join(outDir, "post-delivery-reconciliation", "post-delivery-reconciliation.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
+        outDir: path.join(outDir, "output-delivery-contract-freeze"),
+        runAt: "2026-05-23T06:35:05.900Z",
+      });
+      const outputDeliveryContractFreezeSchema = JSON.parse(await readFile("schemas/output-delivery-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(outputDeliveryContractFreeze, outputDeliveryContractFreezeSchema, {}, "output_delivery_contract_freeze"),
+        [],
+      );
+      assert.equal(outputDeliveryContractFreeze.summary.freeze_status, "complete");
+      assert.equal(outputDeliveryContractFreeze.summary.output_artifact_count, outputCatalog.summary.artifact_count);
+      assert.equal(outputDeliveryContractFreeze.summary.delivery_action_count, deliveryQueue.summary.delivery_action_count);
+      assert.equal(outputDeliveryContractFreeze.summary.delivery_receipt_count, closeoutReceiptApplication.delivery_receipt_ledger.summary.applied_receipt_count);
+      assert.equal(outputDeliveryContractFreeze.summary.artifact_hash_count, outputCatalog.summary.artifact_count);
+      assert.equal(outputDeliveryContractFreeze.summary.missing_artifact_hash_count, 0);
+      assert.equal(outputDeliveryContractFreeze.summary.linked_delivery_action_count, outputCatalog.summary.artifact_count);
+      assert.equal(outputDeliveryContractFreeze.summary.missing_delivery_action_count, 0);
+      assert.equal(outputDeliveryContractFreeze.summary.pending_approval_artifact_count, outputCatalog.summary.approval_pending_count);
+      assert.equal(outputDeliveryContractFreeze.summary.approval_request_linked_artifact_count, outputCatalog.summary.approval_pending_count);
+      assert.equal(outputDeliveryContractFreeze.summary.protected_delivery_action_count, deliveryQueue.summary.protected_action_count);
+      assert.equal(outputDeliveryContractFreeze.summary.delivered_receipt_count, closeoutReceiptApplication.delivery_receipt_ledger.summary.delivered_packet_count);
+      assert.equal(outputDeliveryContractFreeze.summary.validation_error_count, 0);
+      assert.equal(outputDeliveryContractFreeze.output_delivery_contract.output_artifacts[0].schema_version, "output-artifact.v2");
+      assert.equal(outputDeliveryContractFreeze.output_delivery_contract.delivery_actions[0].schema_version, "delivery-action.v2");
+      assert.equal(outputDeliveryContractFreeze.output_delivery_contract.delivery_receipts[0].schema_version, "delivery-receipt.v2");
+      assert.equal(outputDeliveryContractFreeze.output_delivery_contract.output_delivery_bindings[0].schema_version, "output-delivery-binding.v2");
+      assert.equal(outputDeliveryContractFreeze.output_delivery_contract.delivery_state_transitions[0].schema_version, "delivery-state-transition.v2");
+      assert.ok(outputDeliveryContractFreeze.output_delivery_contract.output_artifacts.every((artifact) => artifact.hash_status === "present"));
+      assert.ok(outputDeliveryContractFreeze.output_delivery_contract.output_artifacts.every((artifact) => artifact.delivery_separation_status === "separate_delivery_action_linked"));
+      assert.ok(outputDeliveryContractFreeze.output_delivery_contract.output_delivery_bindings.every((binding) => binding.binding_status === "linked"));
+      assert.ok(outputDeliveryContractFreeze.output_delivery_contract.delivery_actions.every((action) => action.delivery_action_id !== action.output_artifact_id));
+      assert.ok(outputDeliveryContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "output-delivery-contract-freeze", "summary.md"), "utf8"), /Output\/Delivery Contract Freeze/);
 
       const controlPlaneHumanGateReceipts = await runControlPlaneHumanGateReceipts({
         humanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2826,6 +2872,10 @@ describe("matter harness", () => {
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
       assert.equal(gateApprovalContractFreezeCheckpoint?.implementation_status, "passed");
+      const outputDeliveryContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-output-delivery-contract-freeze");
+      assert.equal(outputDeliveryContractFreezeCheckpoint?.acceptance_profile, "output_delivery_contract_freeze_gate");
+      assert.equal(outputDeliveryContractFreezeCheckpoint?.status, "passed");
+      assert.equal(outputDeliveryContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -3185,6 +3235,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_authority_declared_count, gateApprovalContractFreeze.summary.approval_authority_declared_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_output_artifact_count, outputDeliveryContractFreeze.summary.output_artifact_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_delivery_action_count, outputDeliveryContractFreeze.summary.delivery_action_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_delivery_receipt_count, outputDeliveryContractFreeze.summary.delivery_receipt_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_output_delivery_binding_count, outputDeliveryContractFreeze.summary.output_delivery_binding_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_delivery_state_transition_count, outputDeliveryContractFreeze.summary.delivery_state_transition_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_artifact_hash_count, outputDeliveryContractFreeze.summary.artifact_hash_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_missing_artifact_hash_count, 0);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_linked_delivery_action_count, outputDeliveryContractFreeze.summary.linked_delivery_action_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_missing_delivery_action_count, 0);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_pending_approval_artifact_count, outputDeliveryContractFreeze.summary.pending_approval_artifact_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_approval_request_linked_artifact_count, outputDeliveryContractFreeze.summary.approval_request_linked_artifact_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_protected_delivery_action_count, outputDeliveryContractFreeze.summary.protected_delivery_action_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_delivered_receipt_count, outputDeliveryContractFreeze.summary.delivered_receipt_count);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.output_delivery_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3670,6 +3735,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-reference-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-decision-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-contract-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-receipt-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-state-transitions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-delivery-contract-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packet-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-items"));
@@ -4099,6 +4171,34 @@ describe("matter harness", () => {
       const gateApprovalContractValidations = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-validations?status=passed", apiOptions)).body);
       assert.equal(gateApprovalContractValidations.collection, "gate_approval_contract_validations");
       assert.equal(gateApprovalContractValidations.count, gateApprovalContractFreeze.summary.validation_item_count);
+
+      const outputDeliveryContractFreezes = JSON.parse((await buildReviewApiResponse("/api/output-delivery-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(outputDeliveryContractFreezes.collection, "output_delivery_contract_freezes");
+      assert.equal(outputDeliveryContractFreezes.count, 1);
+
+      const outputArtifactV2Contracts = JSON.parse((await buildReviewApiResponse("/api/output-artifact-v2-contracts?hash_status=present", apiOptions)).body);
+      assert.equal(outputArtifactV2Contracts.collection, "output_artifact_v2_contracts");
+      assert.equal(outputArtifactV2Contracts.count, outputDeliveryContractFreeze.summary.artifact_hash_count);
+
+      const deliveryActionV2Contracts = JSON.parse((await buildReviewApiResponse("/api/delivery-action-v2-contracts?protected_action=true", apiOptions)).body);
+      assert.equal(deliveryActionV2Contracts.collection, "delivery_action_v2_contracts");
+      assert.equal(deliveryActionV2Contracts.count, outputDeliveryContractFreeze.summary.protected_delivery_action_count);
+
+      const deliveryReceiptV2Contracts = JSON.parse((await buildReviewApiResponse("/api/delivery-receipt-v2-contracts?receipt_status=delivered", apiOptions)).body);
+      assert.equal(deliveryReceiptV2Contracts.collection, "delivery_receipt_v2_contracts");
+      assert.equal(deliveryReceiptV2Contracts.count, outputDeliveryContractFreeze.summary.delivered_receipt_count);
+
+      const outputDeliveryBindings = JSON.parse((await buildReviewApiResponse("/api/output-delivery-bindings?binding_status=linked", apiOptions)).body);
+      assert.equal(outputDeliveryBindings.collection, "output_delivery_bindings");
+      assert.equal(outputDeliveryBindings.count, outputDeliveryContractFreeze.summary.linked_binding_count);
+
+      const deliveryStateTransitions = JSON.parse((await buildReviewApiResponse("/api/delivery-state-transitions?transition_type=catalog_to_delivery_queue", apiOptions)).body);
+      assert.equal(deliveryStateTransitions.collection, "delivery_state_transitions");
+      assert.equal(deliveryStateTransitions.count, outputDeliveryContractFreeze.summary.delivery_action_count);
+
+      const outputDeliveryContractValidations = JSON.parse((await buildReviewApiResponse("/api/output-delivery-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(outputDeliveryContractValidations.collection, "output_delivery_contract_validations");
+      assert.equal(outputDeliveryContractValidations.count, outputDeliveryContractFreeze.summary.validation_item_count);
 
       const contextPacketLedgers = JSON.parse((await buildReviewApiResponse("/api/context-packet-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

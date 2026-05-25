@@ -45,6 +45,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/citation-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-lineage-edges"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-contract-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-delivery-contract-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-artifact-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/delivery-action-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/delivery-receipt-v2-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-delivery-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/delivery-state-transitions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-delivery-contract-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packet-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
@@ -447,6 +454,34 @@ try {
   const gateApprovalContractValidations = await fetchJson(`${url}/api/gate-approval-contract-validations?status=passed&limit=5`);
   assert.equal(gateApprovalContractValidations.collection, "gate_approval_contract_validations");
   assert.ok(gateApprovalContractValidations.count <= 5);
+
+  const outputDeliveryContractFreezes = await fetchJson(`${url}/api/output-delivery-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(outputDeliveryContractFreezes.collection, "output_delivery_contract_freezes");
+  assert.ok(outputDeliveryContractFreezes.count <= 1);
+
+  const outputArtifactV2Contracts = await fetchJson(`${url}/api/output-artifact-v2-contracts?hash_status=present&limit=5`);
+  assert.equal(outputArtifactV2Contracts.collection, "output_artifact_v2_contracts");
+  assert.ok(outputArtifactV2Contracts.count <= 5);
+
+  const deliveryActionV2Contracts = await fetchJson(`${url}/api/delivery-action-v2-contracts?protected_action=true&limit=5`);
+  assert.equal(deliveryActionV2Contracts.collection, "delivery_action_v2_contracts");
+  assert.ok(deliveryActionV2Contracts.count <= 5);
+
+  const deliveryReceiptV2Contracts = await fetchJson(`${url}/api/delivery-receipt-v2-contracts?limit=5`);
+  assert.equal(deliveryReceiptV2Contracts.collection, "delivery_receipt_v2_contracts");
+  assert.ok(deliveryReceiptV2Contracts.count <= 5);
+
+  const outputDeliveryBindings = await fetchJson(`${url}/api/output-delivery-bindings?binding_status=linked&limit=5`);
+  assert.equal(outputDeliveryBindings.collection, "output_delivery_bindings");
+  assert.ok(outputDeliveryBindings.count <= 5);
+
+  const deliveryStateTransitions = await fetchJson(`${url}/api/delivery-state-transitions?transition_type=catalog_to_delivery_queue&limit=5`);
+  assert.equal(deliveryStateTransitions.collection, "delivery_state_transitions");
+  assert.ok(deliveryStateTransitions.count <= 5);
+
+  const outputDeliveryContractValidations = await fetchJson(`${url}/api/output-delivery-contract-validations?status=passed&limit=5`);
+  assert.equal(outputDeliveryContractValidations.collection, "output_delivery_contract_validations");
+  assert.ok(outputDeliveryContractValidations.count <= 5);
 
   const contextPacketLedgers = await fetchJson(`${url}/api/context-packet-ledgers?ledger_status=valid&limit=1`);
   assert.equal(contextPacketLedgers.collection, "context_packet_ledgers");

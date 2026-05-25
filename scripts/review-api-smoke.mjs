@@ -108,6 +108,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/contract-schemas"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-artifacts"));
   assert.ok(index.routes.some((route) => route.path === "/api/contract-owner-map"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-versioning-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-version-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-version-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-legacy-exceptions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/schema-versioning-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1246,6 +1251,26 @@ try {
   const contractOwnerDependencies = await fetchJson(`${url}/api/contract-owner-dependencies?direction_status=allowed&limit=5`);
   assert.equal(contractOwnerDependencies.collection, "contract_owner_dependencies");
   assert.ok(contractOwnerDependencies.count <= 5);
+
+  const schemaVersioningRules = await fetchJson(`${url}/api/schema-versioning-rules?guideline_status=complete&limit=1`);
+  assert.equal(schemaVersioningRules.collection, "schema_versioning_rules");
+  assert.ok(schemaVersioningRules.count <= 1);
+
+  const schemaVersionPolicies = await fetchJson(`${url}/api/schema-version-policies?rule_id=optional_addition_default&limit=5`);
+  assert.equal(schemaVersionPolicies.collection, "schema_version_policies");
+  assert.ok(schemaVersionPolicies.count <= 5);
+
+  const schemaVersionRecords = await fetchJson(`${url}/api/schema-version-records?version_status=versioned&limit=5`);
+  assert.equal(schemaVersionRecords.collection, "schema_version_records");
+  assert.ok(schemaVersionRecords.count <= 5);
+
+  const schemaLegacyExceptions = await fetchJson(`${url}/api/schema-legacy-exceptions?exception_status=allowed&limit=5`);
+  assert.equal(schemaLegacyExceptions.collection, "schema_legacy_exceptions");
+  assert.ok(schemaLegacyExceptions.count <= 5);
+
+  const schemaVersioningValidations = await fetchJson(`${url}/api/schema-versioning-validations?status=passed&limit=5`);
+  assert.equal(schemaVersioningValidations.collection, "schema_versioning_validations");
+  assert.ok(schemaVersioningValidations.count <= 5);
 
   const resourceContractFreezes = await fetchJson(`${url}/api/resource-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

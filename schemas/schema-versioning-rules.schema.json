@@ -1,0 +1,249 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schema-versioning-rules.schema.json",
+  "title": "Hermes Schema Versioning Rules",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "rules_id",
+    "output_dir",
+    "inputs",
+    "source_inventory",
+    "rulebook",
+    "schema_versions",
+    "legacy_exceptions",
+    "migration_contract",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "schema-versioning-rules.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "rules_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["contract_inventory_path", "schema_dir"],
+      "properties": {
+        "contract_inventory_path": { "type": "string" },
+        "schema_dir": { "type": "string" }
+      }
+    },
+    "source_inventory": {
+      "type": "object",
+      "required": ["inventory_status", "schema_count", "parsed_schema_count", "content_hash"],
+      "properties": {
+        "inventory_id": { "type": ["string", "null"] },
+        "inventory_status": { "type": "string" },
+        "schema_count": { "type": "integer", "minimum": 0 },
+        "parsed_schema_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": "string" }
+      }
+    },
+    "rulebook": { "$ref": "#/$defs/rulebook" },
+    "schema_versions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/schema_version_record" }
+    },
+    "legacy_exceptions": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/legacy_exception" }
+    },
+    "migration_contract": { "$ref": "#/$defs/migration_contract" },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "guideline_status",
+        "schema_count",
+        "versioned_schema_count",
+        "legacy_exception_count",
+        "non_compliant_schema_count",
+        "optional_addition_compatible_count",
+        "closed_world_schema_count",
+        "migration_manifest_rule_count",
+        "deprecation_rule_count",
+        "optional_addition_rule_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "guideline_status": { "enum": ["complete", "blocked"] },
+        "source_inventory_id": { "type": ["string", "null"] },
+        "source_inventory_status": { "type": "string" },
+        "schema_count": { "type": "integer", "minimum": 0 },
+        "parsed_schema_count": { "type": "integer", "minimum": 0 },
+        "versioned_schema_count": { "type": "integer", "minimum": 0 },
+        "legacy_exception_count": { "type": "integer", "minimum": 0 },
+        "non_compliant_schema_count": { "type": "integer", "minimum": 0 },
+        "optional_addition_compatible_count": { "type": "integer", "minimum": 0 },
+        "closed_world_schema_count": { "type": "integer", "minimum": 0 },
+        "deprecated_field_count": { "type": "integer", "minimum": 0 },
+        "migration_manifest_rule_count": { "type": "integer", "minimum": 0 },
+        "deprecation_rule_count": { "type": "integer", "minimum": 0 },
+        "optional_addition_rule_count": { "type": "integer", "minimum": 0 },
+        "unknown_field_preservation_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_version_status": { "type": "object" },
+        "by_owner_area": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "rulebook": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_id",
+        "generated_at",
+        "compatibility_mode",
+        "version_const_pattern",
+        "required_rules",
+        "optional_addition_policy",
+        "deprecation_policy",
+        "migration_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "schema-versioning-guideline.v1" },
+        "policy_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "compatibility_mode": { "type": "string" },
+        "version_const_pattern": { "type": "string" },
+        "required_rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["rule_id", "status", "description"],
+            "properties": {
+              "rule_id": { "type": "string" },
+              "status": { "type": "string" },
+              "description": { "type": "string" }
+            }
+          }
+        },
+        "optional_addition_policy": { "type": "object" },
+        "deprecation_policy": { "type": "object" },
+        "migration_policy": { "type": "object" }
+      }
+    },
+    "schema_version_record": {
+      "type": "object",
+      "required": [
+        "schema_version_record_id",
+        "schema_id",
+        "schema_path",
+        "owner_area",
+        "version_family",
+        "version_status",
+        "parse_status",
+        "schema_version_required",
+        "required_field_count",
+        "top_level_property_count",
+        "optional_field_count",
+        "additional_properties_policy",
+        "optional_addition_policy",
+        "deprecation_policy",
+        "migration_policy",
+        "deprecated_field_count",
+        "deprecated_fields",
+        "migration_required_on_breaking_change",
+        "unknown_fields_preserved"
+      ],
+      "properties": {
+        "schema_version_record_id": { "type": "string" },
+        "schema_id": { "type": "string" },
+        "schema_path": { "type": "string" },
+        "owner_area": { "type": "string" },
+        "schema_version_const": { "type": ["string", "null"] },
+        "version_family": { "type": "string" },
+        "major_version": { "type": ["integer", "null"], "minimum": 0 },
+        "version_status": { "enum": ["versioned", "legacy_exception", "non_compliant"] },
+        "legacy_exception_id": { "type": ["string", "null"] },
+        "parse_status": { "type": "string" },
+        "schema_version_required": { "type": "boolean" },
+        "required_field_count": { "type": "integer", "minimum": 0 },
+        "top_level_property_count": { "type": "integer", "minimum": 0 },
+        "optional_field_count": { "type": "integer", "minimum": 0 },
+        "additional_properties_policy": { "type": "string" },
+        "optional_addition_policy": { "type": "string" },
+        "deprecation_policy": { "type": "string" },
+        "migration_policy": { "type": "string" },
+        "deprecated_field_count": { "type": "integer", "minimum": 0 },
+        "deprecated_fields": { "type": "array" },
+        "migration_required_on_breaking_change": { "type": "boolean" },
+        "unknown_fields_preserved": { "type": "boolean" },
+        "content_hash": { "type": ["string", "null"] }
+      }
+    },
+    "legacy_exception": {
+      "type": "object",
+      "required": ["legacy_exception_id", "schema_id", "exception_status", "reason", "containment", "migration_target"],
+      "properties": {
+        "legacy_exception_id": { "type": "string" },
+        "schema_id": { "type": "string" },
+        "exception_status": { "type": "string" },
+        "reason": { "type": "string" },
+        "containment": { "type": "string" },
+        "migration_target": { "type": "string" }
+      }
+    },
+    "migration_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "migration_policy_id",
+        "generated_at",
+        "migration_manifest_status",
+        "required_manifest_sections",
+        "forward_compatibility_rules"
+      ],
+      "properties": {
+        "schema_version": { "const": "schema-migration-rule.v1" },
+        "migration_policy_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "migration_manifest_status": { "type": "string" },
+        "required_manifest_sections": { "type": "array", "items": { "type": "string" } },
+        "forward_compatibility_rules": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

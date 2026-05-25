@@ -1499,6 +1499,61 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/schema-versioning-rules") {
+    const rulesResult = await readDashboardSourceArtifact(dashboard, "schema_versioning_rules");
+    if (!rulesResult.available) {
+      return jsonResponse(503, buildError("schema_versioning_rules_unavailable", rulesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_versioning_rules", [rulesResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-version-policies") {
+    const rulesResult = await readDashboardSourceArtifact(dashboard, "schema_versioning_rules");
+    if (!rulesResult.available) {
+      return jsonResponse(503, buildError("schema_versioning_rules_unavailable", rulesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_version_policies", rulesResult.artifact.rulebook?.required_rules ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-version-records") {
+    const rulesResult = await readDashboardSourceArtifact(dashboard, "schema_versioning_rules");
+    if (!rulesResult.available) {
+      return jsonResponse(503, buildError("schema_versioning_rules_unavailable", rulesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_version_records", rulesResult.artifact.schema_versions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-legacy-exceptions") {
+    const rulesResult = await readDashboardSourceArtifact(dashboard, "schema_versioning_rules");
+    if (!rulesResult.available) {
+      return jsonResponse(503, buildError("schema_versioning_rules_unavailable", rulesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_legacy_exceptions", rulesResult.artifact.legacy_exceptions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/schema-versioning-validations") {
+    const rulesResult = await readDashboardSourceArtifact(dashboard, "schema_versioning_rules");
+    if (!rulesResult.available) {
+      return jsonResponse(503, buildError("schema_versioning_rules_unavailable", rulesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("schema_versioning_validations", rulesResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -3449,6 +3504,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/contract-dependency-edges", "Contract dependency graph edges"),
       route("GET", "/api/contract-breaking-change-risks", "Contract dependency breaking-change risks"),
       route("GET", "/api/contract-owner-dependencies", "Contract dependency owner boundary aggregates"),
+      route("GET", "/api/schema-versioning-rules", "Schema versioning rule artifacts"),
+      route("GET", "/api/schema-version-policies", "Schema versioning policy rows"),
+      route("GET", "/api/schema-version-records", "Schema version records"),
+      route("GET", "/api/schema-legacy-exceptions", "Legacy schema exception rows"),
+      route("GET", "/api/schema-versioning-validations", "Schema versioning validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -3685,6 +3745,15 @@ function filterItems(items, searchParams) {
     "item_type",
     "owner_area",
     "schema_id",
+    "schema_version_record_id",
+    "guideline_status",
+    "version_status",
+    "version_family",
+    "schema_version_required",
+    "additional_properties_policy",
+    "legacy_exception_id",
+    "exception_status",
+    "rule_id",
     "parse_status",
     "route_id",
     "artifact_id",
@@ -4100,6 +4169,7 @@ function readFilterValue(item, key) {
   if (key === "valid") return item.validation?.valid;
   if (key === "inventory_status") return item.summary?.inventory_status ?? item.inventory_status;
   if (key === "map_status") return item.summary?.map_status ?? item.map_status;
+  if (key === "guideline_status") return item.summary?.guideline_status ?? item.guideline_status;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;

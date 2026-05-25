@@ -8,6 +8,7 @@ import { runControlPlaneAuditTrail } from "../src/control-plane-audit-trail.mjs"
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runContractDependencyMap } from "../src/contract-dependency-map.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
+import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runControlPlaneGoalCheckpoint } from "../src/control-plane-goal-checkpoint.mjs";
 import { runControlPlaneHealth } from "../src/control-plane-health.mjs";
 import { runControlPlaneHumanGateReceiptApplication } from "../src/control-plane-human-gate-receipt-application.mjs";
@@ -1191,6 +1192,7 @@ describe("matter harness", () => {
         controlPlaneGoalCheckpointPath: path.join(outDir, "control-plane-goal-checkpoint", "control-plane-goal-checkpoint.json"),
         contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
         contractDependencyMapPath: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
+        schemaVersioningRulesPath: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
         controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2887,6 +2889,34 @@ describe("matter harness", () => {
       assert.ok(contractDependencyMap.breaking_change_risks.some((risk) => risk.risk_type === "api_route_without_source_edge"));
       assert.match(await readFile(path.join(outDir, "contract-dependency-map", "summary.md"), "utf8"), /Contract Dependency Map/);
 
+      const schemaVersioningRules = await runSchemaVersioningRules({
+        contractInventoryPath: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+        outDir: path.join(outDir, "schema-versioning-rules"),
+        runAt: "2026-05-23T06:35:07.997Z",
+      });
+      const schemaVersioningRulesSchema = JSON.parse(await readFile("schemas/schema-versioning-rules.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(schemaVersioningRules, schemaVersioningRulesSchema, {}, "schema_versioning_rules"),
+        [],
+      );
+      assert.equal(schemaVersioningRules.summary.guideline_status, "complete");
+      assert.equal(schemaVersioningRules.summary.source_inventory_id, contractInventory.inventory_id);
+      assert.equal(schemaVersioningRules.summary.source_inventory_status, "complete");
+      assert.equal(schemaVersioningRules.summary.schema_count, contractInventory.summary.schema_count);
+      assert.equal(schemaVersioningRules.summary.versioned_schema_count + schemaVersioningRules.summary.legacy_exception_count, schemaVersioningRules.summary.schema_count);
+      assert.equal(schemaVersioningRules.summary.legacy_exception_count, 2);
+      assert.equal(schemaVersioningRules.summary.non_compliant_schema_count, 0);
+      assert.equal(schemaVersioningRules.summary.closed_world_schema_count, 0);
+      assert.equal(schemaVersioningRules.summary.migration_manifest_rule_count, 1);
+      assert.equal(schemaVersioningRules.summary.validation_error_count, 0);
+      assert.ok(schemaVersioningRules.rulebook.required_rules.some((rule) => rule.rule_id === "optional_addition_default"));
+      assert.ok(schemaVersioningRules.rulebook.required_rules.some((rule) => rule.rule_id === "migration_manifest_required"));
+      assert.ok(schemaVersioningRules.schema_versions.every((record) => record.version_status !== "non_compliant"));
+      assert.ok(schemaVersioningRules.legacy_exceptions.some((exception) => exception.schema_id === "matter"));
+      assert.ok(schemaVersioningRules.legacy_exceptions.some((exception) => exception.schema_id === "dev-projects"));
+      assert.ok(schemaVersioningRules.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "schema-versioning-rules", "summary.md"), "utf8"), /Schema Versioning Rules/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -2929,6 +2959,10 @@ describe("matter harness", () => {
       assert.equal(contractDependencyMapCheckpoint?.acceptance_profile, "contract_dependency_map_gate");
       assert.equal(contractDependencyMapCheckpoint?.status, "passed");
       assert.equal(contractDependencyMapCheckpoint?.implementation_status, "passed");
+      const schemaVersioningRulesCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-schema-versioning-rules");
+      assert.equal(schemaVersioningRulesCheckpoint?.acceptance_profile, "schema_versioning_rules_gate");
+      assert.equal(schemaVersioningRulesCheckpoint?.status, "passed");
+      assert.equal(schemaVersioningRulesCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3216,6 +3250,19 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.contract_dependency_map_high_risk_count, 0);
       assert.equal(dashboard.summary.contract_dependency_map_direction_violation_count, 0);
       assert.equal(dashboard.summary.contract_dependency_map_validation_error_count, 0);
+      assert.equal(dashboard.summary.schema_versioning_guideline_status, "complete");
+      assert.equal(dashboard.summary.schema_versioning_schema_count, schemaVersioningRules.summary.schema_count);
+      assert.equal(dashboard.summary.schema_versioning_versioned_schema_count, schemaVersioningRules.summary.versioned_schema_count);
+      assert.equal(dashboard.summary.schema_versioning_legacy_exception_count, schemaVersioningRules.summary.legacy_exception_count);
+      assert.equal(dashboard.summary.schema_versioning_non_compliant_schema_count, 0);
+      assert.equal(dashboard.summary.schema_versioning_optional_addition_compatible_count, schemaVersioningRules.summary.optional_addition_compatible_count);
+      assert.equal(dashboard.summary.schema_versioning_closed_world_schema_count, 0);
+      assert.equal(dashboard.summary.schema_versioning_deprecated_field_count, schemaVersioningRules.summary.deprecated_field_count);
+      assert.equal(dashboard.summary.schema_versioning_migration_manifest_rule_count, 1);
+      assert.equal(dashboard.summary.schema_versioning_deprecation_rule_count, 1);
+      assert.equal(dashboard.summary.schema_versioning_optional_addition_rule_count, 1);
+      assert.equal(dashboard.summary.schema_versioning_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.schema_versioning_validation_error_count, 0);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_count, resourceContractFreeze.summary.resource_count);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_version_count, resourceContractFreeze.summary.resource_version_count);
       assert.equal(dashboard.summary.resource_contract_freeze_content_hash_count, resourceContractFreeze.summary.content_hash_count);
@@ -5293,6 +5340,26 @@ describe("matter harness", () => {
       const contractOwnerDependencies = JSON.parse((await buildReviewApiResponse("/api/contract-owner-dependencies?direction_status=allowed", apiOptions)).body);
       assert.equal(contractOwnerDependencies.collection, "contract_owner_dependencies");
       assert.equal(contractOwnerDependencies.count, contractDependencyMap.summary.owner_dependency_count);
+
+      const schemaVersioningRuleArtifacts = JSON.parse((await buildReviewApiResponse("/api/schema-versioning-rules?guideline_status=complete", apiOptions)).body);
+      assert.equal(schemaVersioningRuleArtifacts.collection, "schema_versioning_rules");
+      assert.equal(schemaVersioningRuleArtifacts.count, 1);
+
+      const schemaVersionPolicies = JSON.parse((await buildReviewApiResponse("/api/schema-version-policies?rule_id=optional_addition_default", apiOptions)).body);
+      assert.equal(schemaVersionPolicies.collection, "schema_version_policies");
+      assert.equal(schemaVersionPolicies.count, 1);
+
+      const schemaVersionRecords = JSON.parse((await buildReviewApiResponse("/api/schema-version-records?version_status=versioned", apiOptions)).body);
+      assert.equal(schemaVersionRecords.collection, "schema_version_records");
+      assert.equal(schemaVersionRecords.count, schemaVersioningRules.summary.versioned_schema_count);
+
+      const schemaLegacyExceptions = JSON.parse((await buildReviewApiResponse("/api/schema-legacy-exceptions?exception_status=allowed", apiOptions)).body);
+      assert.equal(schemaLegacyExceptions.collection, "schema_legacy_exceptions");
+      assert.equal(schemaLegacyExceptions.count, schemaVersioningRules.summary.legacy_exception_count);
+
+      const schemaVersioningValidations = JSON.parse((await buildReviewApiResponse("/api/schema-versioning-validations?status=passed", apiOptions)).body);
+      assert.equal(schemaVersioningValidations.collection, "schema_versioning_validations");
+      assert.equal(schemaVersioningValidations.count, schemaVersioningRules.summary.validation_item_count);
 
       const resourceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/resource-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

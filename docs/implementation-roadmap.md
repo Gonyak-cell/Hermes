@@ -3333,6 +3333,35 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Error/Cost/Observability contract freeze를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:observability`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 109 - Schema Versioning Rules
+
+목표: schema versioning guideline을 확정해 optional addition, deprecation, migration manifest rule이 문서와 validator에서 함께 검증되도록 한다.
+
+구현 산출물:
+
+- `src/schema-versioning-rules.mjs`
+- `scripts/schema-versioning-rules.mjs`
+- `schemas/schema-versioning-rules.schema.json`
+- `docs/schema-versioning-rules.md`
+- `artifacts/schema-versioning-rules/latest/schema-versioning-rules.json`
+- `artifacts/schema-versioning-rules/latest/schema-versioning-guideline.json`
+- `artifacts/schema-versioning-rules/latest/schema-version-records.json`
+- `artifacts/schema-versioning-rules/latest/legacy-schema-exceptions.json`
+- `artifacts/schema-versioning-rules/latest/validation-report.json`
+- `artifacts/schema-versioning-rules/latest/summary.md`
+
+완료 기준:
+
+- 모든 non-legacy schema가 `*.vN` schema version const와 required `schema_version` field를 가진다.
+- `matter.schema.json`, `dev-projects.schema.json`은 legacy exception으로 reason, containment, migration target을 가진다.
+- optional addition rule은 새 field를 기본 optional로 요구하고 closed-world schema를 차단한다.
+- deprecation rule은 field 제거 전에 deprecated/replaced/removed metadata를 요구한다.
+- migration rule은 breaking change에 migration manifest를 요구하고 data migration과 index migration을 분리한다.
+- Dashboard stage와 summary가 `schema_versioning_rules` 지표를 추적함
+- Review API에서 `/api/schema-versioning-rules`, `/api/schema-version-policies`, `/api/schema-version-records`, `/api/schema-legacy-exceptions`, `/api/schema-versioning-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Schema Versioning Rules를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:versioning`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3341,9 +3370,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 108이다.
+- 현재 완료 기준점은 Phase 109이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P109-P312, 총 204개다.
+- 남은 계획 슬롯은 P110-P312, 총 203개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

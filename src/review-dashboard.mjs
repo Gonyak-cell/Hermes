@@ -45,6 +45,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   controlPlaneGoalCheckpointPath: "artifacts/control-plane-goal-checkpoint/latest/control-plane-goal-checkpoint.json",
   contractInventoryPath: "artifacts/contract-inventory/latest/contract-inventory.json",
   contractDependencyMapPath: "artifacts/contract-dependency-map/latest/contract-dependency-map.json",
+  schemaVersioningRulesPath: "artifacts/schema-versioning-rules/latest/schema-versioning-rules.json",
   controlPlaneAuditTrailPath: "artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
@@ -312,6 +313,11 @@ const SOURCE_DEFINITIONS = [
     option: "contractDependencyMapPath",
     source_id: "contract_dependency_map",
     label: "Contract Dependency Map",
+  },
+  {
+    option: "schemaVersioningRulesPath",
+    source_id: "schema_versioning_rules",
+    label: "Schema Versioning Rules",
   },
   {
     option: "controlPlaneAuditTrailPath",
@@ -819,6 +825,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "control_plane_goal_checkpoint") return data.summary ?? {};
   if (sourceId === "contract_inventory") return data.summary ?? {};
   if (sourceId === "contract_dependency_map") return data.summary ?? {};
+  if (sourceId === "schema_versioning_rules") return data.summary ?? {};
   if (sourceId === "control_plane_audit_trail") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
@@ -949,6 +956,7 @@ function buildStageStatuses(artifacts, sources) {
     buildControlPlaneGoalCheckpointStage(artifacts.control_plane_goal_checkpoint, sourceById.get("control_plane_goal_checkpoint")),
     buildContractInventoryStage(artifacts.contract_inventory, sourceById.get("contract_inventory")),
     buildContractDependencyMapStage(artifacts.contract_dependency_map, sourceById.get("contract_dependency_map")),
+    buildSchemaVersioningRulesStage(artifacts.schema_versioning_rules, sourceById.get("schema_versioning_rules")),
     buildControlPlaneAuditTrailStage(artifacts.control_plane_audit_trail, sourceById.get("control_plane_audit_trail")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
@@ -2315,6 +2323,40 @@ function buildContractDependencyMapStage(dependencyMap, source) {
       medium_risk_count: summary.medium_risk_count ?? 0,
       low_risk_count: summary.low_risk_count ?? 0,
       validation_error_count: summary.validation_error_count ?? dependencyMap.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildSchemaVersioningRulesStage(rules, source) {
+  if (!rules) return missingStage("schema_versioning_rules", "Schema Versioning Rules", source);
+  const summary = rules.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.non_compliant_schema_count > 0 || rules.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "schema_versioning_rules",
+    label: "Schema Versioning Rules",
+    status,
+    message: `${summary.versioned_schema_count ?? 0}/${summary.schema_count ?? 0} schema(s) versioned, ${summary.legacy_exception_count ?? 0} legacy exception(s), ${summary.validation_error_count ?? 0} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      guideline_status: summary.guideline_status ?? "unknown",
+      source_inventory_status: summary.source_inventory_status ?? "unknown",
+      schema_count: summary.schema_count ?? 0,
+      parsed_schema_count: summary.parsed_schema_count ?? 0,
+      versioned_schema_count: summary.versioned_schema_count ?? 0,
+      legacy_exception_count: summary.legacy_exception_count ?? 0,
+      non_compliant_schema_count: summary.non_compliant_schema_count ?? 0,
+      optional_addition_compatible_count: summary.optional_addition_compatible_count ?? 0,
+      closed_world_schema_count: summary.closed_world_schema_count ?? 0,
+      deprecated_field_count: summary.deprecated_field_count ?? 0,
+      migration_manifest_rule_count: summary.migration_manifest_rule_count ?? 0,
+      deprecation_rule_count: summary.deprecation_rule_count ?? 0,
+      optional_addition_rule_count: summary.optional_addition_rule_count ?? 0,
+      unknown_field_preservation_count: summary.unknown_field_preservation_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? rules.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -5965,6 +6007,19 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     contract_dependency_map_high_risk_count: artifacts.contract_dependency_map?.summary?.high_risk_count ?? 0,
     contract_dependency_map_direction_violation_count: artifacts.contract_dependency_map?.summary?.direction_violation_count ?? 0,
     contract_dependency_map_validation_error_count: artifacts.contract_dependency_map?.summary?.validation_error_count ?? artifacts.contract_dependency_map?.validation?.errors?.length ?? 0,
+    schema_versioning_guideline_status: artifacts.schema_versioning_rules?.summary?.guideline_status ?? "unknown",
+    schema_versioning_schema_count: artifacts.schema_versioning_rules?.summary?.schema_count ?? 0,
+    schema_versioning_versioned_schema_count: artifacts.schema_versioning_rules?.summary?.versioned_schema_count ?? 0,
+    schema_versioning_legacy_exception_count: artifacts.schema_versioning_rules?.summary?.legacy_exception_count ?? 0,
+    schema_versioning_non_compliant_schema_count: artifacts.schema_versioning_rules?.summary?.non_compliant_schema_count ?? 0,
+    schema_versioning_optional_addition_compatible_count: artifacts.schema_versioning_rules?.summary?.optional_addition_compatible_count ?? 0,
+    schema_versioning_closed_world_schema_count: artifacts.schema_versioning_rules?.summary?.closed_world_schema_count ?? 0,
+    schema_versioning_deprecated_field_count: artifacts.schema_versioning_rules?.summary?.deprecated_field_count ?? 0,
+    schema_versioning_migration_manifest_rule_count: artifacts.schema_versioning_rules?.summary?.migration_manifest_rule_count ?? 0,
+    schema_versioning_deprecation_rule_count: artifacts.schema_versioning_rules?.summary?.deprecation_rule_count ?? 0,
+    schema_versioning_optional_addition_rule_count: artifacts.schema_versioning_rules?.summary?.optional_addition_rule_count ?? 0,
+    schema_versioning_failed_validation_item_count: artifacts.schema_versioning_rules?.summary?.failed_validation_item_count ?? 0,
+    schema_versioning_validation_error_count: artifacts.schema_versioning_rules?.summary?.validation_error_count ?? artifacts.schema_versioning_rules?.validation?.errors?.length ?? 0,
     health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
     health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
     health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
@@ -6911,6 +6966,8 @@ function parseArgs(argv) {
     else if (arg === "--no-contract-inventory") parsed.contractInventoryPath = false;
     else if (arg === "--contract-dependency-map") parsed.contractDependencyMapPath = argv[++index];
     else if (arg === "--no-contract-dependency-map") parsed.contractDependencyMapPath = false;
+    else if (arg === "--schema-versioning-rules") parsed.schemaVersioningRulesPath = argv[++index];
+    else if (arg === "--no-schema-versioning-rules") parsed.schemaVersioningRulesPath = false;
     else if (arg === "--control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = argv[++index];
     else if (arg === "--no-control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
@@ -7109,6 +7166,9 @@ Options:
   --contract-dependency-map <path>
                                   contract-dependency-map.json path.
   --no-contract-dependency-map   Do not include Contract Dependency Map status.
+  --schema-versioning-rules <path>
+                                  schema-versioning-rules.json path.
+  --no-schema-versioning-rules   Do not include Schema Versioning Rules status.
   --control-plane-audit-trail <path>
                                   control-plane-audit-trail.json path.
   --no-control-plane-audit-trail  Do not include Control Plane Audit Trail status.

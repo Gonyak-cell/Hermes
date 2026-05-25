@@ -3393,6 +3393,33 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Schema Migration Manifest를 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:migrations`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 111 - Contract Golden Fixtures
+
+목표: 대표 contract artifact를 golden fixture set으로 고정해 schema validation과 regression hash test에 사용한다.
+
+구현 산출물:
+
+- `src/contract-golden-fixtures.mjs`
+- `scripts/contract-golden-fixtures.mjs`
+- `schemas/contract-golden-fixtures.schema.json`
+- `docs/contract-golden-fixtures.md`
+- `artifacts/contract-golden-fixtures/latest/contract-golden-fixtures.json`
+- `artifacts/contract-golden-fixtures/latest/golden-fixture-manifest.json`
+- `artifacts/contract-golden-fixtures/latest/golden-fixture-records.json`
+- `artifacts/contract-golden-fixtures/latest/regression-hash-manifest.json`
+- `artifacts/contract-golden-fixtures/latest/validation-report.json`
+- `artifacts/contract-golden-fixtures/latest/summary.md`
+
+완료 기준:
+
+- contract inventory, dependency map, schema versioning, schema migration, Resource, Matter, Policy, Evidence, Capability/Workflow, Runtime/AgentRun, Gate/Approval, Output/Delivery, Event/Audit/Run, Error/Cost/Observability 대표 artifact 14개가 golden fixture로 등록된다.
+- 각 fixture는 artifact path, schema path, artifact schema version, content hash, schema hash, schema validation status, regression lock status를 가진다.
+- 모든 fixture가 대응 schema로 검증되고 regression hash manifest에 포함된다.
+- Dashboard stage와 summary가 `contract_golden_fixtures` 지표를 추적함
+- Review API에서 `/api/contract-golden-fixtures`, `/api/contract-golden-fixture-records`, `/api/contract-golden-regression-hashes`, `/api/contract-golden-fixture-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Contract Golden Fixtures를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:golden-fixtures`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3401,9 +3428,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 110이다.
+- 현재 완료 기준점은 Phase 111이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P111-P312, 총 202개다.
+- 남은 계획 슬롯은 P112-P312, 총 201개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

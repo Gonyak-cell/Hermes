@@ -1598,6 +1598,50 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/contract-golden-fixtures") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "contract_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("contract_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_golden_fixtures", [fixturesResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-golden-fixture-records") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "contract_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("contract_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_golden_fixture_records", fixturesResult.artifact.golden_fixtures ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-golden-regression-hashes") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "contract_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("contract_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_golden_regression_hashes", fixturesResult.artifact.regression_hash_manifest?.regression_hashes ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/contract-golden-fixture-validations") {
+    const fixturesResult = await readDashboardSourceArtifact(dashboard, "contract_golden_fixtures");
+    if (!fixturesResult.available) {
+      return jsonResponse(503, buildError("contract_golden_fixtures_unavailable", fixturesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("contract_golden_fixture_validations", fixturesResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/control-plane-health") {
     const healthResult = await readDashboardSourceArtifact(dashboard, "control_plane_health");
     if (!healthResult.available) {
@@ -3557,6 +3601,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/schema-migration-manifest-records", "Declared schema migration manifest records"),
       route("GET", "/api/schema-migration-records", "Schema migration execution records"),
       route("GET", "/api/schema-migration-validations", "Schema migration validation rows"),
+      route("GET", "/api/contract-golden-fixtures", "Contract golden fixture set artifacts"),
+      route("GET", "/api/contract-golden-fixture-records", "Contract golden fixture records"),
+      route("GET", "/api/contract-golden-regression-hashes", "Contract golden fixture regression hash rows"),
+      route("GET", "/api/contract-golden-fixture-validations", "Contract golden fixture validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -3812,6 +3860,15 @@ function filterItems(items, searchParams) {
     "change_type",
     "dry_run_status",
     "rollback_available",
+    "golden_fixture_set_id",
+    "golden_fixture_id",
+    "golden_fixture_status",
+    "fixture_id",
+    "fixture_scope",
+    "fixture_status",
+    "schema_validation_status",
+    "regression_hash_id",
+    "regression_status",
     "parse_status",
     "route_id",
     "artifact_id",
@@ -4229,6 +4286,7 @@ function readFilterValue(item, key) {
   if (key === "map_status") return item.summary?.map_status ?? item.map_status;
   if (key === "guideline_status") return item.summary?.guideline_status ?? item.guideline_status;
   if (key === "migration_manifest_status") return item.summary?.migration_manifest_status ?? item.migration_manifest_status;
+  if (key === "golden_fixture_status") return item.summary?.golden_fixture_status ?? item.golden_fixture_status;
   if (key === "freeze_status") return item.summary?.freeze_status ?? item.freeze_status;
   if (key === "checkpoint_key") return item.key;
   if (key === "checkpoint_status") return item.status;

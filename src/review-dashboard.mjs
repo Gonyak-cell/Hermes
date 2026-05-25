@@ -47,6 +47,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   contractDependencyMapPath: "artifacts/contract-dependency-map/latest/contract-dependency-map.json",
   schemaVersioningRulesPath: "artifacts/schema-versioning-rules/latest/schema-versioning-rules.json",
   schemaMigrationManifestPath: "artifacts/schema-migration-manifest/latest/schema-migration-manifest-ledger.json",
+  contractGoldenFixturesPath: "artifacts/contract-golden-fixtures/latest/contract-golden-fixtures.json",
   controlPlaneAuditTrailPath: "artifacts/control-plane-audit-trail/latest/control-plane-audit-trail.json",
   controlPlaneHealthPath: "artifacts/control-plane-health/latest/control-plane-health.json",
   controlPlaneActionPlanPath: "artifacts/control-plane-action-plan/latest/control-plane-action-plan.json",
@@ -324,6 +325,11 @@ const SOURCE_DEFINITIONS = [
     option: "schemaMigrationManifestPath",
     source_id: "schema_migration_manifest",
     label: "Schema Migration Manifest",
+  },
+  {
+    option: "contractGoldenFixturesPath",
+    source_id: "contract_golden_fixtures",
+    label: "Contract Golden Fixtures",
   },
   {
     option: "controlPlaneAuditTrailPath",
@@ -833,6 +839,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "contract_dependency_map") return data.summary ?? {};
   if (sourceId === "schema_versioning_rules") return data.summary ?? {};
   if (sourceId === "schema_migration_manifest") return data.summary ?? {};
+  if (sourceId === "contract_golden_fixtures") return data.summary ?? {};
   if (sourceId === "control_plane_audit_trail") return data.summary ?? {};
   if (sourceId === "control_plane_health") return data.summary ?? {};
   if (sourceId === "control_plane_action_plan") return data.summary ?? {};
@@ -965,6 +972,7 @@ function buildStageStatuses(artifacts, sources) {
     buildContractDependencyMapStage(artifacts.contract_dependency_map, sourceById.get("contract_dependency_map")),
     buildSchemaVersioningRulesStage(artifacts.schema_versioning_rules, sourceById.get("schema_versioning_rules")),
     buildSchemaMigrationManifestStage(artifacts.schema_migration_manifest, sourceById.get("schema_migration_manifest")),
+    buildContractGoldenFixturesStage(artifacts.contract_golden_fixtures, sourceById.get("contract_golden_fixtures")),
     buildControlPlaneAuditTrailStage(artifacts.control_plane_audit_trail, sourceById.get("control_plane_audit_trail")),
     buildControlPlaneHealthStage(artifacts.control_plane_health, sourceById.get("control_plane_health")),
     buildControlPlaneActionPlanStage(artifacts.control_plane_action_plan, sourceById.get("control_plane_action_plan")),
@@ -2404,6 +2412,37 @@ function buildSchemaMigrationManifestStage(manifest, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? manifest.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildContractGoldenFixturesStage(fixtures, source) {
+  if (!fixtures) return missingStage("contract_golden_fixtures", "Contract Golden Fixtures", source);
+  const summary = fixtures.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || summary.schema_invalid_fixture_count > 0 || summary.missing_artifact_count > 0 || fixtures.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "contract_golden_fixtures",
+    label: "Contract Golden Fixtures",
+    status,
+    message: `${summary.schema_valid_fixture_count ?? 0}/${summary.fixture_count ?? 0} fixture(s) schema-valid, ${summary.locked_regression_hash_count ?? 0} regression hash(es), ${summary.validation_error_count ?? 0} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      golden_fixture_status: summary.golden_fixture_status ?? "unknown",
+      fixture_count: summary.fixture_count ?? 0,
+      required_fixture_count: summary.required_fixture_count ?? 0,
+      locked_fixture_count: summary.locked_fixture_count ?? 0,
+      blocked_fixture_count: summary.blocked_fixture_count ?? 0,
+      schema_valid_fixture_count: summary.schema_valid_fixture_count ?? 0,
+      schema_invalid_fixture_count: summary.schema_invalid_fixture_count ?? 0,
+      regression_hash_count: summary.regression_hash_count ?? 0,
+      locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
+      missing_artifact_count: summary.missing_artifact_count ?? 0,
+      schema_version_present_count: summary.schema_version_present_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -6085,6 +6124,19 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     schema_migration_missing_legacy_exception_count: artifacts.schema_migration_manifest?.summary?.missing_legacy_exception_count ?? 0,
     schema_migration_failed_validation_item_count: artifacts.schema_migration_manifest?.summary?.failed_validation_item_count ?? 0,
     schema_migration_validation_error_count: artifacts.schema_migration_manifest?.summary?.validation_error_count ?? artifacts.schema_migration_manifest?.validation?.errors?.length ?? 0,
+    contract_golden_fixture_status: artifacts.contract_golden_fixtures?.summary?.golden_fixture_status ?? "unknown",
+    contract_golden_fixture_count: artifacts.contract_golden_fixtures?.summary?.fixture_count ?? 0,
+    contract_golden_required_fixture_count: artifacts.contract_golden_fixtures?.summary?.required_fixture_count ?? 0,
+    contract_golden_locked_fixture_count: artifacts.contract_golden_fixtures?.summary?.locked_fixture_count ?? 0,
+    contract_golden_blocked_fixture_count: artifacts.contract_golden_fixtures?.summary?.blocked_fixture_count ?? 0,
+    contract_golden_schema_valid_fixture_count: artifacts.contract_golden_fixtures?.summary?.schema_valid_fixture_count ?? 0,
+    contract_golden_schema_invalid_fixture_count: artifacts.contract_golden_fixtures?.summary?.schema_invalid_fixture_count ?? 0,
+    contract_golden_regression_hash_count: artifacts.contract_golden_fixtures?.summary?.regression_hash_count ?? 0,
+    contract_golden_locked_regression_hash_count: artifacts.contract_golden_fixtures?.summary?.locked_regression_hash_count ?? 0,
+    contract_golden_missing_artifact_count: artifacts.contract_golden_fixtures?.summary?.missing_artifact_count ?? 0,
+    contract_golden_schema_version_present_count: artifacts.contract_golden_fixtures?.summary?.schema_version_present_count ?? 0,
+    contract_golden_failed_validation_item_count: artifacts.contract_golden_fixtures?.summary?.failed_validation_item_count ?? 0,
+    contract_golden_validation_error_count: artifacts.contract_golden_fixtures?.summary?.validation_error_count ?? artifacts.contract_golden_fixtures?.validation?.errors?.length ?? 0,
     health_check_count: artifacts.control_plane_health?.summary?.check_count ?? 0,
     health_passed_check_count: artifacts.control_plane_health?.summary?.passed_check_count ?? 0,
     health_attention_check_count: artifacts.control_plane_health?.summary?.attention_check_count ?? 0,
@@ -7035,6 +7087,8 @@ function parseArgs(argv) {
     else if (arg === "--no-schema-versioning-rules") parsed.schemaVersioningRulesPath = false;
     else if (arg === "--schema-migration-manifest") parsed.schemaMigrationManifestPath = argv[++index];
     else if (arg === "--no-schema-migration-manifest") parsed.schemaMigrationManifestPath = false;
+    else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
+    else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = argv[++index];
     else if (arg === "--no-control-plane-audit-trail") parsed.controlPlaneAuditTrailPath = false;
     else if (arg === "--control-plane-health") parsed.controlPlaneHealthPath = argv[++index];
@@ -7239,6 +7293,9 @@ Options:
   --schema-migration-manifest <path>
                                   schema-migration-manifest-ledger.json path.
   --no-schema-migration-manifest Do not include Schema Migration Manifest status.
+  --contract-golden-fixtures <path>
+                                  contract-golden-fixtures.json path.
+  --no-contract-golden-fixtures Do not include Contract Golden Fixtures status.
   --control-plane-audit-trail <path>
                                   control-plane-audit-trail.json path.
   --no-control-plane-audit-trail  Do not include Control Plane Audit Trail status.

@@ -7,6 +7,7 @@ import path from "node:path";
 import { runControlPlaneAuditTrail } from "../src/control-plane-audit-trail.mjs";
 import { runControlPlaneActionPlan } from "../src/control-plane-action-plan.mjs";
 import { runContractDependencyMap } from "../src/contract-dependency-map.mjs";
+import { runContractGoldenFixtures } from "../src/contract-golden-fixtures.mjs";
 import { runContractInventory } from "../src/contract-inventory.mjs";
 import { runSchemaVersioningRules } from "../src/schema-versioning-rules.mjs";
 import { runSchemaMigrationManifest } from "../src/schema-migration-manifest.mjs";
@@ -1195,6 +1196,7 @@ describe("matter harness", () => {
         contractDependencyMapPath: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
         schemaVersioningRulesPath: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
         schemaMigrationManifestPath: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
+        contractGoldenFixturesPath: path.join(outDir, "contract-golden-fixtures", "contract-golden-fixtures.json"),
         controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
         controlPlaneActionPlanPath: path.join(outDir, "control-plane-action-plan", "control-plane-action-plan.json"),
         controlPlaneHumanGatesPath: path.join(outDir, "control-plane-human-gates", "control-plane-human-gates.json"),
@@ -2956,6 +2958,48 @@ describe("matter harness", () => {
       assert.ok(schemaMigrationManifest.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "schema-migration-manifest", "summary.md"), "utf8"), /Schema Migration Manifest/);
 
+      const contractGoldenFixtures = await runContractGoldenFixtures({
+        artifactPaths: {
+          contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
+          contract_dependency_map: path.join(outDir, "contract-dependency-map", "contract-dependency-map.json"),
+          schema_versioning_rules: path.join(outDir, "schema-versioning-rules", "schema-versioning-rules.json"),
+          schema_migration_manifest: path.join(outDir, "schema-migration-manifest", "schema-migration-manifest-ledger.json"),
+          resource_contract_freeze: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+          matter_contract_freeze: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+          policy_contract_freeze: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+          evidence_contract_freeze: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
+          capability_workflow_contract_freeze: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+          runtime_agentrun_contract_freeze: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+          gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+          output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+          event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+          error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
+        },
+        outDir: path.join(outDir, "contract-golden-fixtures"),
+        runAt: "2026-05-23T06:35:07.999Z",
+      });
+      const contractGoldenFixturesSchema = JSON.parse(await readFile("schemas/contract-golden-fixtures.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(contractGoldenFixtures, contractGoldenFixturesSchema, {}, "contract_golden_fixtures"),
+        [],
+      );
+      assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 14);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 14);
+      assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
+      assert.equal(contractGoldenFixtures.summary.regression_hash_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractGoldenFixtures.summary.locked_regression_hash_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractGoldenFixtures.summary.missing_artifact_count, 0);
+      assert.equal(contractGoldenFixtures.summary.schema_version_present_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(contractGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_contract_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
+      assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "contract-golden-fixtures", "summary.md"), "utf8"), /Contract Golden Fixtures/);
+
       await runReviewDashboard({
         ...dashboardInputs,
         controlPlaneHealthPath: path.join(outDir, "control-plane-health", "control-plane-health.json"),
@@ -3006,6 +3050,10 @@ describe("matter harness", () => {
       assert.equal(schemaMigrationManifestCheckpoint?.acceptance_profile, "schema_migration_manifest_gate");
       assert.equal(schemaMigrationManifestCheckpoint?.status, "passed");
       assert.equal(schemaMigrationManifestCheckpoint?.implementation_status, "passed");
+      const contractGoldenFixturesCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-contract-golden-fixtures");
+      assert.equal(contractGoldenFixturesCheckpoint?.acceptance_profile, "contract_golden_fixtures_gate");
+      assert.equal(contractGoldenFixturesCheckpoint?.status, "passed");
+      assert.equal(contractGoldenFixturesCheckpoint?.implementation_status, "passed");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -3324,6 +3372,19 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.schema_migration_missing_legacy_exception_count, 0);
       assert.equal(dashboard.summary.schema_migration_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.schema_migration_validation_error_count, 0);
+      assert.equal(dashboard.summary.contract_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.contract_golden_fixture_count, contractGoldenFixtures.summary.fixture_count);
+      assert.equal(dashboard.summary.contract_golden_required_fixture_count, contractGoldenFixtures.summary.required_fixture_count);
+      assert.equal(dashboard.summary.contract_golden_locked_fixture_count, contractGoldenFixtures.summary.locked_fixture_count);
+      assert.equal(dashboard.summary.contract_golden_blocked_fixture_count, 0);
+      assert.equal(dashboard.summary.contract_golden_schema_valid_fixture_count, contractGoldenFixtures.summary.schema_valid_fixture_count);
+      assert.equal(dashboard.summary.contract_golden_schema_invalid_fixture_count, 0);
+      assert.equal(dashboard.summary.contract_golden_regression_hash_count, contractGoldenFixtures.summary.regression_hash_count);
+      assert.equal(dashboard.summary.contract_golden_locked_regression_hash_count, contractGoldenFixtures.summary.locked_regression_hash_count);
+      assert.equal(dashboard.summary.contract_golden_missing_artifact_count, 0);
+      assert.equal(dashboard.summary.contract_golden_schema_version_present_count, contractGoldenFixtures.summary.schema_version_present_count);
+      assert.equal(dashboard.summary.contract_golden_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.contract_golden_validation_error_count, 0);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_count, resourceContractFreeze.summary.resource_count);
       assert.equal(dashboard.summary.resource_contract_freeze_resource_version_count, resourceContractFreeze.summary.resource_version_count);
       assert.equal(dashboard.summary.resource_contract_freeze_content_hash_count, resourceContractFreeze.summary.content_hash_count);
@@ -5437,6 +5498,22 @@ describe("matter harness", () => {
       const schemaMigrationValidations = JSON.parse((await buildReviewApiResponse("/api/schema-migration-validations?status=passed", apiOptions)).body);
       assert.equal(schemaMigrationValidations.collection, "schema_migration_validations");
       assert.equal(schemaMigrationValidations.count, schemaMigrationManifest.summary.validation_item_count);
+
+      const contractGoldenFixtureArtifacts = JSON.parse((await buildReviewApiResponse("/api/contract-golden-fixtures?golden_fixture_status=complete", apiOptions)).body);
+      assert.equal(contractGoldenFixtureArtifacts.collection, "contract_golden_fixtures");
+      assert.equal(contractGoldenFixtureArtifacts.count, 1);
+
+      const contractGoldenFixtureRecords = JSON.parse((await buildReviewApiResponse("/api/contract-golden-fixture-records?schema_validation_status=passed", apiOptions)).body);
+      assert.equal(contractGoldenFixtureRecords.collection, "contract_golden_fixture_records");
+      assert.equal(contractGoldenFixtureRecords.count, contractGoldenFixtures.summary.schema_valid_fixture_count);
+
+      const contractGoldenRegressionHashes = JSON.parse((await buildReviewApiResponse("/api/contract-golden-regression-hashes?regression_status=locked", apiOptions)).body);
+      assert.equal(contractGoldenRegressionHashes.collection, "contract_golden_regression_hashes");
+      assert.equal(contractGoldenRegressionHashes.count, contractGoldenFixtures.summary.locked_regression_hash_count);
+
+      const contractGoldenFixtureValidations = JSON.parse((await buildReviewApiResponse("/api/contract-golden-fixture-validations?status=passed", apiOptions)).body);
+      assert.equal(contractGoldenFixtureValidations.collection, "contract_golden_fixture_validations");
+      assert.equal(contractGoldenFixtureValidations.count, contractGoldenFixtures.summary.validation_item_count);
 
       const resourceContractFreezes = JSON.parse((await buildReviewApiResponse("/api/resource-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

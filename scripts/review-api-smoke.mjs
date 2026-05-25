@@ -117,6 +117,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-manifest-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/schema-migration-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-fixtures"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-fixture-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-regression-hashes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/contract-golden-fixture-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1291,6 +1295,22 @@ try {
   const schemaMigrationValidations = await fetchJson(`${url}/api/schema-migration-validations?status=passed&limit=5`);
   assert.equal(schemaMigrationValidations.collection, "schema_migration_validations");
   assert.ok(schemaMigrationValidations.count <= 5);
+
+  const contractGoldenFixtures = await fetchJson(`${url}/api/contract-golden-fixtures?golden_fixture_status=complete&limit=1`);
+  assert.equal(contractGoldenFixtures.collection, "contract_golden_fixtures");
+  assert.ok(contractGoldenFixtures.count <= 1);
+
+  const contractGoldenFixtureRecords = await fetchJson(`${url}/api/contract-golden-fixture-records?schema_validation_status=passed&limit=5`);
+  assert.equal(contractGoldenFixtureRecords.collection, "contract_golden_fixture_records");
+  assert.ok(contractGoldenFixtureRecords.count <= 5);
+
+  const contractGoldenRegressionHashes = await fetchJson(`${url}/api/contract-golden-regression-hashes?regression_status=locked&limit=5`);
+  assert.equal(contractGoldenRegressionHashes.collection, "contract_golden_regression_hashes");
+  assert.ok(contractGoldenRegressionHashes.count <= 5);
+
+  const contractGoldenFixtureValidations = await fetchJson(`${url}/api/contract-golden-fixture-validations?status=passed&limit=5`);
+  assert.equal(contractGoldenFixtureValidations.collection, "contract_golden_fixture_validations");
+  assert.ok(contractGoldenFixtureValidations.count <= 5);
 
   const resourceContractFreezes = await fetchJson(`${url}/api/resource-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(resourceContractFreezes.collection, "resource_contract_freezes");

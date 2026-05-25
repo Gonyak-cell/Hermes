@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 110이다.
-- 남은 planned slot은 P111-P312, 총 202개다.
+- 현재 완료 기준점은 Phase 111이다.
+- 남은 planned slot은 P112-P312, 총 201개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -41,7 +41,7 @@
 | P108 | Error/Cost/Observability contract 고정 | error, cost, trace projection schema | Promoted to Phase 108; ErrorRecord v2, CostObservation v2, TraceProjection v2가 실패, retry, token, cost, latency를 독립 projection으로 검증 |
 | P109 | schema versioning rule 확정 | schema versioning guideline | Promoted to Phase 109; optional addition, deprecation, migration manifest rule이 schema-versioning validator와 dashboard/API/checkpoint에 반영 |
 | P110 | migration manifest 구조 확정 | migration manifest schema | Promoted to Phase 110; core/pack/index migration manifest, migration record, validation, dashboard/API/checkpoint/loop가 분리 추적 |
-| P111 | contract golden fixtures 구성 | golden fixture set | 대표 artifact가 schema validation과 regression test에 사용 |
+| P111 | contract golden fixtures 구성 | golden fixture set | Promoted to Phase 111; 대표 contract artifact 14개가 schema validation과 regression hash manifest에 사용 |
 | P112 | contract validation CLI 통합 | contract validation command | 전체 contract fixture가 한 명령으로 검증되고 roadmap에 반영 |
 
 ## P113-P132 Identity, Policy, Matter Boundary

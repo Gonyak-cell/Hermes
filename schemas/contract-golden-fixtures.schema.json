@@ -1,0 +1,232 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/contract-golden-fixtures.schema.json",
+  "title": "Hermes Contract Golden Fixtures",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "golden_fixture_set_id",
+    "output_dir",
+    "inputs",
+    "golden_fixture_manifest",
+    "golden_fixtures",
+    "regression_hash_manifest",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "contract-golden-fixtures.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "golden_fixture_set_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["schema_dir", "artifact_paths"],
+      "properties": {
+        "schema_dir": { "type": "string" },
+        "artifact_paths": { "type": "object" }
+      }
+    },
+    "golden_fixture_manifest": { "$ref": "#/$defs/golden_fixture_manifest" },
+    "golden_fixtures": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/golden_fixture_record" }
+    },
+    "regression_hash_manifest": { "$ref": "#/$defs/regression_hash_manifest" },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "golden_fixture_status",
+        "fixture_count",
+        "required_fixture_count",
+        "locked_fixture_count",
+        "blocked_fixture_count",
+        "schema_valid_fixture_count",
+        "schema_invalid_fixture_count",
+        "regression_hash_count",
+        "locked_regression_hash_count",
+        "missing_artifact_count",
+        "schema_version_present_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "golden_fixture_status": { "enum": ["complete", "blocked"] },
+        "fixture_count": { "type": "integer", "minimum": 0 },
+        "required_fixture_count": { "type": "integer", "minimum": 0 },
+        "locked_fixture_count": { "type": "integer", "minimum": 0 },
+        "blocked_fixture_count": { "type": "integer", "minimum": 0 },
+        "schema_valid_fixture_count": { "type": "integer", "minimum": 0 },
+        "schema_invalid_fixture_count": { "type": "integer", "minimum": 0 },
+        "regression_hash_count": { "type": "integer", "minimum": 0 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "missing_artifact_count": { "type": "integer", "minimum": 0 },
+        "schema_version_present_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_fixture_scope": { "type": "object" },
+        "by_owner_area": { "type": "object" },
+        "by_schema_validation_status": { "type": "object" },
+        "by_regression_status": { "type": "object" }
+      }
+    }
+  },
+  "$defs": {
+    "golden_fixture_manifest": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "required_fixture_count", "fixture_definitions"],
+      "properties": {
+        "schema_version": { "const": "contract-golden-fixture-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_fixture_count": { "type": "integer", "minimum": 0 },
+        "fixture_definitions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["fixture_id", "label", "fixture_scope", "schema_file"],
+            "properties": {
+              "fixture_id": { "type": "string" },
+              "label": { "type": "string" },
+              "fixture_scope": { "type": "string" },
+              "schema_file": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "golden_fixture_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "golden_fixture_id",
+        "fixture_id",
+        "artifact_id",
+        "label",
+        "fixture_scope",
+        "owner_area",
+        "artifact_path",
+        "schema_path",
+        "artifact_schema_version",
+        "fixture_status",
+        "schema_validation_status",
+        "regression_status",
+        "content_hash",
+        "schema_hash",
+        "captured_at",
+        "validation_error_count",
+        "validation_errors"
+      ],
+      "properties": {
+        "schema_version": { "const": "contract-golden-fixture-record.v1" },
+        "golden_fixture_id": { "type": "string" },
+        "fixture_id": { "type": "string" },
+        "artifact_id": { "type": "string" },
+        "label": { "type": "string" },
+        "fixture_scope": { "type": "string" },
+        "owner_area": { "type": "string" },
+        "artifact_path": { "type": ["string", "null"] },
+        "schema_path": { "type": "string" },
+        "artifact_schema_version": { "type": ["string", "null"] },
+        "fixture_status": { "enum": ["locked", "blocked"] },
+        "schema_validation_status": { "enum": ["passed", "failed"] },
+        "regression_status": { "enum": ["locked", "missing_hash"] },
+        "content_hash": { "type": ["string", "null"] },
+        "schema_hash": { "type": ["string", "null"] },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "validation_errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message"],
+            "properties": {
+              "path": { "type": ["string", "null"] },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "regression_hash_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "regression_hash_count",
+        "locked_regression_hash_count",
+        "regression_hashes"
+      ],
+      "properties": {
+        "schema_version": { "const": "contract-golden-regression-hash-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "regression_hash_count": { "type": "integer", "minimum": 0 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "regression_hashes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "regression_hash_id",
+              "golden_fixture_id",
+              "fixture_id",
+              "fixture_scope",
+              "content_hash",
+              "schema_hash",
+              "regression_status"
+            ],
+            "properties": {
+              "regression_hash_id": { "type": "string" },
+              "golden_fixture_id": { "type": "string" },
+              "fixture_id": { "type": "string" },
+              "fixture_scope": { "type": "string" },
+              "content_hash": { "type": ["string", "null"] },
+              "schema_hash": { "type": ["string", "null"] },
+              "regression_status": { "enum": ["locked", "missing_hash"] }
+            }
+          }
+        }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_item_id", "path", "check_id", "status", "message"],
+      "properties": {
+        "validation_item_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

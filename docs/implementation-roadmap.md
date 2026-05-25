@@ -3042,6 +3042,38 @@ Phase 99는 기존 `resource-evidence.v1` ingest 결과를 입력으로 `resourc
 - Review API에서 `/api/resource-contract-freezes`, `/api/resource-v2-contracts`, `/api/resource-version-v2-contracts`, `/api/resource-contract-validations` route를 제공함
 - `npm test`, `npm run validate`, `npm run contracts:resources`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
 
+## Phase 100: Matter, Client, Party, Team, and Boundary v2 Contract Freeze
+
+Phase 100은 기존 `identity_policy.v1`를 입력으로 `client.v2`, `party.v2`, `matter-core.v2`, `matter-team.v2`, `matter-boundary.v2` fixture를 생성하고 Matter Boundary plane의 필수 계약을 고정했다.
+
+구현:
+
+- `npm run contracts:matters`
+- `src/matter-contract-freeze.mjs`
+- `scripts/matter-contract-freeze.mjs`
+- `schemas/matter-contract-freeze.schema.json`
+- `docs/matter-contract-freeze.md`
+
+핵심 산출물:
+
+- `artifacts/matter-contract-freeze/latest/matter-contract-freeze.json`
+- `artifacts/matter-contract-freeze/latest/matter-contract-v2-fixture.json`
+- `artifacts/matter-contract-freeze/latest/party-contract-v2-fixture.json`
+- `artifacts/matter-contract-freeze/latest/matter-boundary-v2-fixture.json`
+- `artifacts/matter-contract-freeze/latest/validation-report.json`
+- `artifacts/matter-contract-freeze/latest/summary.md`
+
+완료 기준:
+
+- Client v2 fixture가 `client_id`, `tenant_id`, `display_name`, `classification_floor`, `default_policy_snapshot_id`를 필수 계약으로 가진다
+- Party v2 fixture가 client와 counterparty를 같은 party registry 안에 보존하고, counterparty는 matter link를 가진다
+- Matter v2 fixture가 `client_id`, `matter_team_id`, `party_ids`, `counterparty_party_ids`, `wall_ids`, `default_policy_snapshot_id`를 필수 계약으로 가진다
+- MatterTeam v2 fixture가 member role, responsible partner, wall id를 검증한다
+- MatterBoundary v2 fixture가 tenant/client/matter/team/wall/classification retrieval filter를 노출한다
+- Dashboard stage와 goal checkpoint가 `matter_contract_freeze`를 추적함
+- Review API에서 `/api/matter-contract-freezes`, `/api/client-v2-contracts`, `/api/party-v2-contracts`, `/api/matter-v2-contracts`, `/api/matter-team-v2-contracts`, `/api/matter-boundary-v2-contracts`, `/api/matter-contract-validations` route를 제공함
+- `npm test`, `npm run validate`, `npm run contracts:matters`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3050,9 +3082,9 @@ Phase 99는 기존 `resource-evidence.v1` ingest 결과를 입력으로 `resourc
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 99이다.
+- 현재 완료 기준점은 Phase 100이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P100-P312, 총 213개다.
+- 남은 계획 슬롯은 P101-P312, 총 212개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

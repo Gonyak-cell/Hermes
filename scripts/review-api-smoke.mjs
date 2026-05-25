@@ -1009,6 +1009,34 @@ try {
   assert.equal(resourceContractValidations.collection, "resource_contract_validations");
   assert.ok(resourceContractValidations.count <= 5);
 
+  const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
+  assert.equal(matterContractFreezes.collection, "matter_contract_freezes");
+  assert.ok(matterContractFreezes.count <= 1);
+
+  const clientV2Contracts = await fetchJson(`${url}/api/client-v2-contracts?client_id=client.alpha&limit=5`);
+  assert.equal(clientV2Contracts.collection, "client_v2_contracts");
+  assert.ok(clientV2Contracts.count <= 5);
+
+  const partyV2Contracts = await fetchJson(`${url}/api/party-v2-contracts?party_type=counterparty&limit=5`);
+  assert.equal(partyV2Contracts.collection, "party_v2_contracts");
+  assert.ok(partyV2Contracts.count <= 5);
+
+  const matterV2Contracts = await fetchJson(`${url}/api/matter-v2-contracts?matter_status=active&limit=5`);
+  assert.equal(matterV2Contracts.collection, "matter_v2_contracts");
+  assert.ok(matterV2Contracts.count <= 5);
+
+  const matterTeamV2Contracts = await fetchJson(`${url}/api/matter-team-v2-contracts?team_status=active&limit=5`);
+  assert.equal(matterTeamV2Contracts.collection, "matter_team_v2_contracts");
+  assert.ok(matterTeamV2Contracts.count <= 5);
+
+  const matterBoundaryV2Contracts = await fetchJson(`${url}/api/matter-boundary-v2-contracts?boundary_status=active&limit=5`);
+  assert.equal(matterBoundaryV2Contracts.collection, "matter_boundary_v2_contracts");
+  assert.ok(matterBoundaryV2Contracts.count <= 5);
+
+  const matterContractValidations = await fetchJson(`${url}/api/matter-contract-validations?status=passed&limit=5`);
+  assert.equal(matterContractValidations.collection, "matter_contract_validations");
+  assert.ok(matterContractValidations.count <= 5);
+
   const html = await fetch(`${url}/`);
   assert.equal(html.status, 200);
   assert.match(await html.text(), /Hermes Review Dashboard/);

@@ -150,6 +150,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/matter-contract-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_contract_freezes", [freezeResult.artifact], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/client-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("client_v2_contracts", freezeResult.artifact.matter_contract?.clients ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/party-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("party_v2_contracts", freezeResult.artifact.matter_contract?.parties ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_v2_contracts", freezeResult.artifact.matter_contract?.matters ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-team-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_team_v2_contracts", freezeResult.artifact.matter_contract?.matter_teams ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-boundary-v2-contracts") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_boundary_v2_contracts", freezeResult.artifact.matter_contract?.matter_boundaries ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/matter-contract-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("matter_contract_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("matter_contract_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/evidence-review-drafts") {
     const draftResult = await readDashboardSourceArtifact(dashboard, "evidence_review_draft");
     if (!draftResult.available) {
@@ -2642,6 +2719,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-v2-contracts", "Resource v2 contract fixtures"),
       route("GET", "/api/resource-version-v2-contracts", "ResourceVersion v2 contract fixtures"),
       route("GET", "/api/resource-contract-validations", "Resource contract validation rows"),
+      route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
+      route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
+      route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
+      route("GET", "/api/matter-v2-contracts", "Matter v2 contract fixtures"),
+      route("GET", "/api/matter-team-v2-contracts", "MatterTeam v2 contract fixtures"),
+      route("GET", "/api/matter-boundary-v2-contracts", "MatterBoundary v2 contract fixtures"),
+      route("GET", "/api/matter-contract-validations", "Matter contract validation rows"),
       route("GET", "/api/evidence-review-drafts", "Evidence review decision draft artifacts"),
       route("GET", "/api/evidence-review-items", "Evidence review draft items"),
       route("GET", "/api/policy-matrices", "Policy matrix catalog artifacts"),
@@ -2926,6 +3010,16 @@ function filterItems(items, searchParams) {
     "source_system",
     "external_id",
     "version_status",
+    "client_id",
+    "party_id",
+    "party_type",
+    "matter_team_id",
+    "matter_boundary_id",
+    "boundary_status",
+    "practice_area",
+    "matter_status",
+    "team_status",
+    "access_scope",
     "check_id",
     "node_id",
     "edge_id",

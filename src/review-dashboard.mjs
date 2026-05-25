@@ -6,6 +6,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   resourceExpansionPath: "artifacts/resource-expansion/latest/resource-expansion-job.json",
   resourceIngestPath: "artifacts/resource-ingest/latest/resource-ingest.json",
   resourceContractFreezePath: "artifacts/resource-contract-freeze/latest/resource-contract-freeze.json",
+  matterContractFreezePath: "artifacts/matter-contract-freeze/latest/matter-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
   evidenceReviewDraftPath: "artifacts/evidence-review-draft/latest/evidence-review-draft.json",
@@ -108,6 +109,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceContractFreezePath",
     source_id: "resource_contract_freeze",
     label: "Resource Contract Freeze",
+  },
+  {
+    option: "matterContractFreezePath",
+    source_id: "matter_contract_freeze",
+    label: "Matter Contract Freeze",
   },
   {
     option: "evidenceViewerPath",
@@ -668,6 +674,7 @@ function summarizeSource(sourceId, data) {
   }
   if (sourceId === "resource_ingest") return data.summary ?? {};
   if (sourceId === "resource_contract_freeze") return data.summary ?? {};
+  if (sourceId === "matter_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
   if (sourceId === "evidence_review_draft") return data.summary ?? {};
@@ -847,6 +854,7 @@ function buildStageStatuses(artifacts, sources) {
     buildResourceExpansionStage(artifacts.resource_expansion, sourceById.get("resource_expansion")),
     buildResourceIngestStage(artifacts.resource_ingest, sourceById.get("resource_ingest")),
     buildResourceContractFreezeStage(artifacts.resource_contract_freeze, sourceById.get("resource_contract_freeze")),
+    buildMatterContractFreezeStage(artifacts.matter_contract_freeze, sourceById.get("matter_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
     buildEvidenceReviewDraftStage(artifacts.evidence_review_draft, sourceById.get("evidence_review_draft")),
@@ -1005,6 +1013,45 @@ function buildResourceContractFreezeStage(freeze, source) {
       classification_count: summary.classification_count ?? 0,
       matter_link_count: summary.matter_link_count ?? 0,
       latest_version_link_count: summary.latest_version_link_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildMatterContractFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("matter_contract_freeze", "Matter Contract Freeze", source);
+  const summary = freeze.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || freeze.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "matter_contract_freeze",
+    label: "Matter Contract Freeze",
+    status,
+    message: `${summary.matter_count ?? 0} Matter v2 contract(s), ${summary.party_count ?? 0} Party v2 fixture(s), ${summary.matter_boundary_count ?? 0} boundary fixture(s), ${summary.validation_error_count ?? 0} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      freeze_status: summary.freeze_status ?? "unknown",
+      client_schema_version: summary.client_schema_version ?? null,
+      party_schema_version: summary.party_schema_version ?? null,
+      matter_schema_version: summary.matter_schema_version ?? null,
+      matter_team_schema_version: summary.matter_team_schema_version ?? null,
+      matter_boundary_schema_version: summary.matter_boundary_schema_version ?? null,
+      client_count: summary.client_count ?? 0,
+      party_count: summary.party_count ?? 0,
+      client_party_count: summary.client_party_count ?? 0,
+      counterparty_count: summary.counterparty_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      matter_team_count: summary.matter_team_count ?? 0,
+      matter_boundary_count: summary.matter_boundary_count ?? 0,
+      matter_with_client_count: summary.matter_with_client_count ?? 0,
+      matter_with_party_count: summary.matter_with_party_count ?? 0,
+      matter_with_counterparty_count: summary.matter_with_counterparty_count ?? 0,
+      matter_with_team_count: summary.matter_with_team_count ?? 0,
+      matter_with_wall_count: summary.matter_with_wall_count ?? 0,
+      matter_with_policy_snapshot_count: summary.matter_with_policy_snapshot_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
@@ -5149,6 +5196,21 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_contract_freeze_latest_version_link_count: artifacts.resource_contract_freeze?.summary?.latest_version_link_count ?? 0,
     resource_contract_freeze_failed_validation_item_count: artifacts.resource_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     resource_contract_freeze_validation_error_count: artifacts.resource_contract_freeze?.summary?.validation_error_count ?? artifacts.resource_contract_freeze?.validation?.errors?.length ?? 0,
+    matter_contract_freeze_client_count: artifacts.matter_contract_freeze?.summary?.client_count ?? 0,
+    matter_contract_freeze_party_count: artifacts.matter_contract_freeze?.summary?.party_count ?? 0,
+    matter_contract_freeze_client_party_count: artifacts.matter_contract_freeze?.summary?.client_party_count ?? 0,
+    matter_contract_freeze_counterparty_count: artifacts.matter_contract_freeze?.summary?.counterparty_count ?? 0,
+    matter_contract_freeze_matter_count: artifacts.matter_contract_freeze?.summary?.matter_count ?? 0,
+    matter_contract_freeze_matter_team_count: artifacts.matter_contract_freeze?.summary?.matter_team_count ?? 0,
+    matter_contract_freeze_matter_boundary_count: artifacts.matter_contract_freeze?.summary?.matter_boundary_count ?? 0,
+    matter_contract_freeze_matter_with_client_count: artifacts.matter_contract_freeze?.summary?.matter_with_client_count ?? 0,
+    matter_contract_freeze_matter_with_party_count: artifacts.matter_contract_freeze?.summary?.matter_with_party_count ?? 0,
+    matter_contract_freeze_matter_with_counterparty_count: artifacts.matter_contract_freeze?.summary?.matter_with_counterparty_count ?? 0,
+    matter_contract_freeze_matter_with_team_count: artifacts.matter_contract_freeze?.summary?.matter_with_team_count ?? 0,
+    matter_contract_freeze_matter_with_wall_count: artifacts.matter_contract_freeze?.summary?.matter_with_wall_count ?? 0,
+    matter_contract_freeze_matter_with_policy_snapshot_count: artifacts.matter_contract_freeze?.summary?.matter_with_policy_snapshot_count ?? 0,
+    matter_contract_freeze_failed_validation_item_count: artifacts.matter_contract_freeze?.summary?.failed_validation_item_count ?? 0,
+    matter_contract_freeze_validation_error_count: artifacts.matter_contract_freeze?.summary?.validation_error_count ?? artifacts.matter_contract_freeze?.validation?.errors?.length ?? 0,
     evidence_needs_review_count: patchedEvidence ? reviewCounts.needs_review ?? 0 : viewerSummary.needs_review_count ?? 0,
     evidence_approved_count: patchedEvidence ? reviewCounts.approved ?? 0 : 0,
     evidence_rejected_count: patchedEvidence ? reviewCounts.rejected ?? 0 : 0,
@@ -6196,6 +6258,8 @@ function parseArgs(argv) {
     else if (arg === "--resource-ingest") parsed.resourceIngestPath = argv[++index];
     else if (arg === "--resource-contract-freeze") parsed.resourceContractFreezePath = argv[++index];
     else if (arg === "--no-resource-contract-freeze") parsed.resourceContractFreezePath = false;
+    else if (arg === "--matter-contract-freeze") parsed.matterContractFreezePath = argv[++index];
+    else if (arg === "--no-matter-contract-freeze") parsed.matterContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
     else if (arg === "--approval-queue") parsed.approvalQueuePath = argv[++index];
     else if (arg === "--evidence-review-draft") parsed.evidenceReviewDraftPath = argv[++index];

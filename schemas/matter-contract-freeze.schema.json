@@ -1,0 +1,406 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/matter-contract-freeze.schema.json",
+  "title": "Hermes Matter Contract Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "inputs",
+    "source_identity_policy",
+    "contract_versions",
+    "summary",
+    "matter_contract",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "matter-contract-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": ["vertical_slice_path"],
+      "properties": {
+        "vertical_slice_path": { "type": "string" }
+      }
+    },
+    "source_identity_policy": {
+      "type": "object",
+      "required": ["schema_version", "tenant_count", "user_count", "client_count", "matter_count", "policy_snapshot_count"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "tenant_count": { "type": "integer", "minimum": 0 },
+        "user_count": { "type": "integer", "minimum": 0 },
+        "client_count": { "type": "integer", "minimum": 0 },
+        "matter_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_count": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "contract_versions": {
+      "type": "object",
+      "required": [
+        "client_schema_version",
+        "party_schema_version",
+        "matter_schema_version",
+        "matter_team_schema_version",
+        "matter_boundary_schema_version",
+        "compatibility_floor"
+      ],
+      "properties": {
+        "client_schema_version": { "const": "client.v2" },
+        "party_schema_version": { "const": "party.v2" },
+        "matter_schema_version": { "const": "matter-core.v2" },
+        "matter_team_schema_version": { "const": "matter-team.v2" },
+        "matter_boundary_schema_version": { "const": "matter-boundary.v2" },
+        "compatibility_floor": { "const": "identity-policy.v1" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "freeze_status",
+        "client_schema_version",
+        "party_schema_version",
+        "matter_schema_version",
+        "matter_team_schema_version",
+        "matter_boundary_schema_version",
+        "tenant_count",
+        "user_count",
+        "policy_snapshot_count",
+        "client_count",
+        "party_count",
+        "client_party_count",
+        "counterparty_count",
+        "matter_count",
+        "matter_team_count",
+        "matter_boundary_count",
+        "matter_with_client_count",
+        "matter_with_party_count",
+        "matter_with_counterparty_count",
+        "matter_with_team_count",
+        "matter_with_wall_count",
+        "matter_with_policy_snapshot_count",
+        "team_member_count",
+        "responsible_partner_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count",
+        "by_classification",
+        "by_practice_area",
+        "by_matter_status",
+        "by_tenant_id"
+      ],
+      "properties": {
+        "freeze_status": { "enum": ["complete", "blocked"] },
+        "client_schema_version": { "const": "client.v2" },
+        "party_schema_version": { "const": "party.v2" },
+        "matter_schema_version": { "const": "matter-core.v2" },
+        "matter_team_schema_version": { "const": "matter-team.v2" },
+        "matter_boundary_schema_version": { "const": "matter-boundary.v2" },
+        "tenant_count": { "type": "integer", "minimum": 0 },
+        "user_count": { "type": "integer", "minimum": 0 },
+        "policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "client_count": { "type": "integer", "minimum": 0 },
+        "party_count": { "type": "integer", "minimum": 0 },
+        "client_party_count": { "type": "integer", "minimum": 0 },
+        "counterparty_count": { "type": "integer", "minimum": 0 },
+        "matter_count": { "type": "integer", "minimum": 0 },
+        "matter_team_count": { "type": "integer", "minimum": 0 },
+        "matter_boundary_count": { "type": "integer", "minimum": 0 },
+        "matter_with_client_count": { "type": "integer", "minimum": 0 },
+        "matter_with_party_count": { "type": "integer", "minimum": 0 },
+        "matter_with_counterparty_count": { "type": "integer", "minimum": 0 },
+        "matter_with_team_count": { "type": "integer", "minimum": 0 },
+        "matter_with_wall_count": { "type": "integer", "minimum": 0 },
+        "matter_with_policy_snapshot_count": { "type": "integer", "minimum": 0 },
+        "team_member_count": { "type": "integer", "minimum": 0 },
+        "responsible_partner_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_classification": { "type": "object" },
+        "by_practice_area": { "type": "object" },
+        "by_matter_status": { "type": "object" },
+        "by_tenant_id": { "type": "object" }
+      }
+    },
+    "matter_contract": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "clients", "parties", "matters", "matter_teams", "matter_boundaries"],
+      "properties": {
+        "schema_version": { "const": "matter-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "clients": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/client_v2" }
+        },
+        "parties": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/party_v2" }
+        },
+        "matters": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/matter_v2" }
+        },
+        "matter_teams": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/matter_team_v2" }
+        },
+        "matter_boundaries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/matter_boundary_v2" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "classification": {
+      "enum": ["P0_PUBLIC", "P1_INTERNAL", "P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]
+    },
+    "client_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "client_id",
+        "tenant_id",
+        "display_name",
+        "legal_name",
+        "client_status",
+        "classification_floor",
+        "default_policy_snapshot_id",
+        "created_at",
+        "source_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "client.v2" },
+        "client_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "legal_name": { "type": "string" },
+        "client_status": { "type": "string" },
+        "classification_floor": { "$ref": "#/$defs/classification" },
+        "default_policy_snapshot_id": { "type": ["string", "null"] },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "party_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "party_id",
+        "tenant_id",
+        "party_type",
+        "source_entity_id",
+        "display_name",
+        "client_id",
+        "matter_ids",
+        "counterparty_role",
+        "classification_floor",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "party.v2" },
+        "party_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "party_type": { "enum": ["client", "counterparty", "affiliate", "third_party", "unknown"] },
+        "source_entity_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "client_id": { "type": ["string", "null"] },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_role": { "type": ["string", "null"] },
+        "classification_floor": { "$ref": "#/$defs/classification" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_id",
+        "tenant_id",
+        "client_id",
+        "matter_name",
+        "practice_area",
+        "matter_status",
+        "classification",
+        "classification_floor",
+        "default_policy_snapshot_id",
+        "matter_team_id",
+        "wall_ids",
+        "party_ids",
+        "counterparty_party_ids",
+        "responsible_partner_user_ids",
+        "created_at",
+        "source_schema_version",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-core.v2" },
+        "matter_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_name": { "type": "string" },
+        "practice_area": { "type": "string" },
+        "matter_status": { "type": "string" },
+        "classification": { "$ref": "#/$defs/classification" },
+        "classification_floor": { "$ref": "#/$defs/classification" },
+        "default_policy_snapshot_id": { "type": ["string", "null"] },
+        "matter_team_id": { "type": ["string", "null"] },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "party_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_party_ids": { "type": "array", "items": { "type": "string" } },
+        "responsible_partner_user_ids": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "source_schema_version": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_team_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_team_id",
+        "tenant_id",
+        "client_id",
+        "matter_id",
+        "team_status",
+        "member_count",
+        "members",
+        "responsible_partner_user_ids",
+        "reviewer_user_ids",
+        "wall_ids",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-team.v2" },
+        "matter_team_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "team_status": { "type": "string" },
+        "member_count": { "type": "integer", "minimum": 0 },
+        "members": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/matter_team_member" }
+        },
+        "responsible_partner_user_ids": { "type": "array", "items": { "type": "string" } },
+        "reviewer_user_ids": { "type": "array", "items": { "type": "string" } },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "matter_team_member": {
+      "type": "object",
+      "required": ["user_id", "display_name", "matter_role", "tenant_id"],
+      "properties": {
+        "user_id": { "type": "string" },
+        "display_name": { "type": "string" },
+        "matter_role": { "type": "string" },
+        "tenant_id": { "type": "string" }
+      }
+    },
+    "matter_boundary_v2": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "matter_boundary_id",
+        "tenant_id",
+        "client_id",
+        "matter_id",
+        "matter_team_id",
+        "party_ids",
+        "counterparty_party_ids",
+        "wall_ids",
+        "team_member_user_ids",
+        "responsible_partner_user_ids",
+        "classification",
+        "classification_floor",
+        "policy_snapshot_id",
+        "access_scope",
+        "retrieval_filters",
+        "boundary_status",
+        "created_at",
+        "metadata"
+      ],
+      "properties": {
+        "schema_version": { "const": "matter-boundary.v2" },
+        "matter_boundary_id": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "matter_team_id": { "type": ["string", "null"] },
+        "party_ids": { "type": "array", "items": { "type": "string" } },
+        "counterparty_party_ids": { "type": "array", "items": { "type": "string" } },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "team_member_user_ids": { "type": "array", "items": { "type": "string" } },
+        "responsible_partner_user_ids": { "type": "array", "items": { "type": "string" } },
+        "classification": { "$ref": "#/$defs/classification" },
+        "classification_floor": { "$ref": "#/$defs/classification" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "access_scope": { "enum": ["matter_team_only", "tenant_admin", "public", "restricted"] },
+        "retrieval_filters": { "$ref": "#/$defs/retrieval_filters" },
+        "boundary_status": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "retrieval_filters": {
+      "type": "object",
+      "required": ["tenant_id", "client_id", "matter_id", "wall_ids", "classification"],
+      "properties": {
+        "tenant_id": { "type": "string" },
+        "client_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "wall_ids": { "type": "array", "items": { "type": "string" } },
+        "classification": { "$ref": "#/$defs/classification" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_type", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "warning", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

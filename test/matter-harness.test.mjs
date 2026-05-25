@@ -108,6 +108,7 @@ import {
 } from "../src/core-contract-validator.mjs";
 import { runResourceExpansionJob } from "../src/resource-expansion.mjs";
 import { runResourceContractFreeze } from "../src/resource-contract-freeze.mjs";
+import { runMatterContractFreeze } from "../src/matter-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
 import { inspectRuntimeCommandBindings, invokeRuntimeAdapter } from "../src/runtime-invoker.mjs";
@@ -319,6 +320,35 @@ describe("matter harness", () => {
       assert.equal(resourceContractFreeze.resource_contract.resource_versions[0].schema_version, "resource-version.v2");
       assert.ok(resourceContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "resource-contract-freeze", "summary.md"), "utf8"), /Resource Contract Freeze/);
+
+      const matterContractFreeze = await runMatterContractFreeze({
+        verticalSlicePath: "examples/core/vertical-slice-example.json",
+        outDir: path.join(outDir, "matter-contract-freeze"),
+        runAt: "2026-05-23T06:13:00.000Z",
+      });
+      const matterContractFreezeSchema = JSON.parse(await readFile("schemas/matter-contract-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterContractFreeze, matterContractFreezeSchema, {}, "matter_contract_freeze"), []);
+      assert.equal(matterContractFreeze.summary.freeze_status, "complete");
+      assert.equal(matterContractFreeze.summary.client_count, 1);
+      assert.equal(matterContractFreeze.summary.matter_count, 1);
+      assert.equal(matterContractFreeze.summary.party_count, 2);
+      assert.equal(matterContractFreeze.summary.counterparty_count, 1);
+      assert.equal(matterContractFreeze.summary.matter_team_count, 1);
+      assert.equal(matterContractFreeze.summary.matter_boundary_count, 1);
+      assert.equal(matterContractFreeze.summary.matter_with_client_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterContractFreeze.summary.matter_with_party_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterContractFreeze.summary.matter_with_counterparty_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterContractFreeze.summary.matter_with_team_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterContractFreeze.summary.matter_with_wall_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterContractFreeze.summary.matter_with_policy_snapshot_count, matterContractFreeze.summary.matter_count);
+      assert.equal(matterContractFreeze.summary.validation_error_count, 0);
+      assert.equal(matterContractFreeze.matter_contract.clients[0].schema_version, "client.v2");
+      assert.equal(matterContractFreeze.matter_contract.parties[0].schema_version, "party.v2");
+      assert.equal(matterContractFreeze.matter_contract.matters[0].schema_version, "matter-core.v2");
+      assert.equal(matterContractFreeze.matter_contract.matter_teams[0].schema_version, "matter-team.v2");
+      assert.equal(matterContractFreeze.matter_contract.matter_boundaries[0].schema_version, "matter-boundary.v2");
+      assert.ok(matterContractFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "matter-contract-freeze", "summary.md"), "utf8"), /Matter Contract Freeze/);
 
       const viewer = await runEvidenceViewer({
         inputPath: path.join(outDir, "ingest", "resource-ingest.json"),
@@ -986,6 +1016,7 @@ describe("matter harness", () => {
         resourceExpansionPath: path.join(outDir, "resource-expansion-job.json"),
         resourceIngestPath: path.join(outDir, "ingest", "resource-ingest.json"),
         resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
         evidenceViewerPath: path.join(outDir, "viewer", "evidence-viewer.json"),
         approvalQueuePath: path.join(outDir, "approval-queue", "approval-queue.json"),
         evidenceReviewDraftPath: path.join(outDir, "evidence-review-draft", "evidence-review-draft.json"),
@@ -2586,6 +2617,10 @@ describe("matter harness", () => {
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
       assert.equal(resourceContractFreezeCheckpoint?.implementation_status, "passed");
+      const matterContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-contract-freeze");
+      assert.equal(matterContractFreezeCheckpoint?.acceptance_profile, "matter_contract_freeze_gate");
+      assert.equal(matterContractFreezeCheckpoint?.status, "passed");
+      assert.equal(matterContractFreezeCheckpoint?.implementation_status, "passed");
       const evidenceViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-evidence-viewer");
       assert.equal(evidenceViewerCheckpoint?.acceptance_profile, "evidence_review_gate");
       assert.ok(["passed", "passed_with_operational_gate", "blocked", "attention"].includes(evidenceViewerCheckpoint?.implementation_status));
@@ -2843,6 +2878,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.resource_contract_freeze_latest_version_link_count, resourceContractFreeze.summary.latest_version_link_count);
       assert.equal(dashboard.summary.resource_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.resource_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_contract_freeze_client_count, matterContractFreeze.summary.client_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_party_count, matterContractFreeze.summary.party_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_client_party_count, matterContractFreeze.summary.client_party_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_counterparty_count, matterContractFreeze.summary.counterparty_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_count, matterContractFreeze.summary.matter_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_team_count, matterContractFreeze.summary.matter_team_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_boundary_count, matterContractFreeze.summary.matter_boundary_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_with_client_count, matterContractFreeze.summary.matter_with_client_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_with_party_count, matterContractFreeze.summary.matter_with_party_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_with_counterparty_count, matterContractFreeze.summary.matter_with_counterparty_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_with_team_count, matterContractFreeze.summary.matter_with_team_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_with_wall_count, matterContractFreeze.summary.matter_with_wall_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_matter_with_policy_snapshot_count, matterContractFreeze.summary.matter_with_policy_snapshot_count);
+      assert.equal(dashboard.summary.matter_contract_freeze_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.matter_contract_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.health_check_count, 8);
       assert.ok(dashboard.summary.health_passed_check_count >= 1);
       assert.ok(dashboard.summary.health_blocked_check_count >= 1);
@@ -3218,6 +3268,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_inventory"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "contract_dependency_map"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_contract_freeze"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "matter_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_action_plan"));
@@ -3297,6 +3348,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-team-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-boundary-v2-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-drafts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/evidence-review-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/policy-matrices"));
@@ -4504,6 +4562,34 @@ describe("matter harness", () => {
       const resourceContractValidations = JSON.parse((await buildReviewApiResponse("/api/resource-contract-validations?status=passed", apiOptions)).body);
       assert.equal(resourceContractValidations.collection, "resource_contract_validations");
       assert.equal(resourceContractValidations.count, resourceContractFreeze.summary.validation_item_count);
+
+      const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
+      assert.equal(matterContractFreezes.collection, "matter_contract_freezes");
+      assert.equal(matterContractFreezes.count, 1);
+
+      const clientV2Contracts = JSON.parse((await buildReviewApiResponse("/api/client-v2-contracts?client_id=client.alpha", apiOptions)).body);
+      assert.equal(clientV2Contracts.collection, "client_v2_contracts");
+      assert.equal(clientV2Contracts.count, matterContractFreeze.summary.client_count);
+
+      const partyV2Contracts = JSON.parse((await buildReviewApiResponse("/api/party-v2-contracts?party_type=counterparty", apiOptions)).body);
+      assert.equal(partyV2Contracts.collection, "party_v2_contracts");
+      assert.equal(partyV2Contracts.count, matterContractFreeze.summary.counterparty_count);
+
+      const matterV2Contracts = JSON.parse((await buildReviewApiResponse("/api/matter-v2-contracts?matter_status=active", apiOptions)).body);
+      assert.equal(matterV2Contracts.collection, "matter_v2_contracts");
+      assert.equal(matterV2Contracts.count, matterContractFreeze.summary.matter_count);
+
+      const matterTeamV2Contracts = JSON.parse((await buildReviewApiResponse("/api/matter-team-v2-contracts?team_status=active", apiOptions)).body);
+      assert.equal(matterTeamV2Contracts.collection, "matter_team_v2_contracts");
+      assert.equal(matterTeamV2Contracts.count, matterContractFreeze.summary.matter_team_count);
+
+      const matterBoundaryV2Contracts = JSON.parse((await buildReviewApiResponse("/api/matter-boundary-v2-contracts?boundary_status=active", apiOptions)).body);
+      assert.equal(matterBoundaryV2Contracts.collection, "matter_boundary_v2_contracts");
+      assert.equal(matterBoundaryV2Contracts.count, matterContractFreeze.summary.matter_boundary_count);
+
+      const matterContractValidations = JSON.parse((await buildReviewApiResponse("/api/matter-contract-validations?status=passed", apiOptions)).body);
+      assert.equal(matterContractValidations.collection, "matter_contract_validations");
+      assert.equal(matterContractValidations.count, matterContractFreeze.summary.validation_item_count);
 
       const health = JSON.parse((await buildReviewApiResponse("/health", apiOptions)).body);
       assert.equal(health.dashboard_available, true);

@@ -13,6 +13,7 @@ const GOAL_ITEMS = [
   sourceItem("contract_inventory", "Contract inventory and owner map", "contracts", "contract_inventory", "control-plane-contract-inventory", { acceptance_profile: "contract_inventory_gate" }),
   sourceItem("contract_dependency_map", "Contract dependency map and breaking risk list", "contracts", "contract_dependency_map", "control-plane-contract-dependency-map", { acceptance_profile: "contract_dependency_map_gate" }),
   sourceItem("resource_contract_freeze", "Resource and ResourceVersion v2 contract freeze", "resource_evidence", "resource_contract_freeze", "control-plane-resource-contract-freeze", { acceptance_profile: "resource_contract_freeze_gate" }),
+  sourceItem("matter_contract_freeze", "Matter, client, party, team, and boundary v2 contract freeze", "identity_policy", "matter_contract_freeze", "control-plane-matter-contract-freeze", { acceptance_profile: "matter_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
   sourceItem("context_packet_ledger", "Context builder and retrieval filters", "context", "context_packet_ledger", "control-plane-context-builder"),

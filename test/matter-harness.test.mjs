@@ -39,6 +39,7 @@ import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
 import { runEvidenceFlags } from "../src/evidence-flags.mjs";
 import { runExhibitMap } from "../src/exhibit-map.mjs";
+import { runChainOfCustodyEvents } from "../src/chain-of-custody-events.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1664,6 +1665,7 @@ describe("matter harness", () => {
         evidenceCoverageScorePath: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
         evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
         exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
+        chainOfCustodyEventsPath: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -4232,6 +4234,56 @@ describe("matter harness", () => {
       assert.ok(exhibitMap.exhibit_catalog.exhibit_bindings.every((binding) => binding.binding_status === "bound"));
       assert.match(await readFile(path.join(outDir, "exhibit-map", "summary.md"), "utf8"), /Exhibit Map/);
 
+      const chainOfCustodyEvents = await runChainOfCustodyEvents({
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        evidenceFlagsPath: path.join(outDir, "evidence-flags", "evidence-flags.json"),
+        exhibitMapPath: path.join(outDir, "exhibit-map", "exhibit-map.json"),
+        outDir: path.join(outDir, "chain-of-custody"),
+        runAt: "2026-05-23T06:35:08.003Z",
+      });
+      const custodyEventsSchema = JSON.parse(await readFile("schemas/chain-of-custody-events.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(chainOfCustodyEvents, custodyEventsSchema, {}, "chain_of_custody_events"),
+        [],
+      );
+      assert.equal(chainOfCustodyEvents.summary.custody_event_ledger_status, "complete");
+      assert.equal(chainOfCustodyEvents.summary.resource_version_count, resourceVersionLedger.summary.resource_version_count);
+      assert.equal(chainOfCustodyEvents.summary.normalized_text_artifact_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(chainOfCustodyEvents.summary.exhibit_record_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(chainOfCustodyEvents.summary.upload_event_count, resourceVersionLedger.summary.resource_version_count);
+      assert.equal(chainOfCustodyEvents.summary.normalize_event_count, normalizedTextContract.summary.normalized_text_artifact_count);
+      assert.equal(chainOfCustodyEvents.summary.extract_event_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(chainOfCustodyEvents.summary.review_event_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(chainOfCustodyEvents.summary.approve_event_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(
+        chainOfCustodyEvents.summary.custody_event_count,
+        chainOfCustodyEvents.summary.upload_event_count + chainOfCustodyEvents.summary.normalize_event_count + chainOfCustodyEvents.summary.extract_event_count + chainOfCustodyEvents.summary.review_event_count + chainOfCustodyEvents.summary.approve_event_count,
+      );
+      assert.equal(chainOfCustodyEvents.summary.custody_event_link_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.append_only_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.hashed_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.previous_hash_linked_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.complete_resource_chain_count, resourceVersionLedger.summary.resource_version_count);
+      assert.equal(chainOfCustodyEvents.summary.complete_evidence_chain_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(chainOfCustodyEvents.summary.matter_preserved_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.classification_preserved_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.policy_snapshot_preserved_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(chainOfCustodyEvents.summary.pending_approval_event_count, exhibitMap.summary.exhibit_record_count);
+      assert.equal(chainOfCustodyEvents.summary.approved_event_count, 0);
+      assert.equal(chainOfCustodyEvents.summary.client_facing_ready_event_count, 0);
+      assert.equal(chainOfCustodyEvents.summary.validation_error_count, 0);
+      assert.ok(chainOfCustodyEvents.custody_event_catalog.custody_events.every((event) => event.append_only === true && event.immutable === true && event.event_hash));
+      assert.ok(chainOfCustodyEvents.custody_event_catalog.custody_events.filter((event) => event.event_stage === "review" || event.event_stage === "approve").every((event) => event.actor.human_approval_actor_required === true));
+      assert.match(await readFile(path.join(outDir, "chain-of-custody", "summary.md"), "utf8"), /Chain of Custody Events/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -4267,6 +4319,7 @@ describe("matter harness", () => {
           evidence_coverage_score: path.join(outDir, "evidence-coverage", "evidence-coverage-score.json"),
           evidence_flags: path.join(outDir, "evidence-flags", "evidence-flags.json"),
           exhibit_map: path.join(outDir, "exhibit-map", "exhibit-map.json"),
+          chain_of_custody_events: path.join(outDir, "chain-of-custody", "chain-of-custody-events.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -4292,8 +4345,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 48);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 48);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 49);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 49);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4332,6 +4385,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_coverage_score"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_flags"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "exhibit_map"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "chain_of_custody_events"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4374,6 +4428,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:output-destination"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:approval-authority"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:policy-bindings"));
@@ -4566,6 +4621,10 @@ describe("matter harness", () => {
       assert.equal(exhibitMapCheckpoint?.acceptance_profile, "exhibit_map_gate");
       assert.equal(exhibitMapCheckpoint?.status, "passed");
       assert.equal(exhibitMapCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const chainOfCustodyCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-chain-of-custody-events");
+      assert.equal(chainOfCustodyCheckpoint?.acceptance_profile, "chain_of_custody_events_gate");
+      assert.equal(chainOfCustodyCheckpoint?.status, "passed");
+      assert.equal(chainOfCustodyCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -5531,6 +5590,27 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.exhibit_map_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.exhibit_map_external_transfer_requires_approval_count, exhibitMap.summary.external_transfer_requires_approval_count);
       assert.equal(dashboard.summary.exhibit_map_validation_error_count, 0);
+      assert.equal(dashboard.summary.chain_of_custody_events_status, "complete");
+      assert.equal(dashboard.summary.chain_of_custody_events_contract_id, "chain-of-custody-events.v1");
+      assert.equal(dashboard.summary.chain_of_custody_events_event_count, chainOfCustodyEvents.summary.custody_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_link_count, chainOfCustodyEvents.summary.custody_event_link_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_upload_count, chainOfCustodyEvents.summary.upload_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_normalize_count, chainOfCustodyEvents.summary.normalize_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_extract_count, chainOfCustodyEvents.summary.extract_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_review_count, chainOfCustodyEvents.summary.review_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_approve_count, chainOfCustodyEvents.summary.approve_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_append_only_count, chainOfCustodyEvents.summary.append_only_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_hashed_count, chainOfCustodyEvents.summary.hashed_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_previous_hash_linked_count, chainOfCustodyEvents.summary.previous_hash_linked_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_complete_resource_chain_count, chainOfCustodyEvents.summary.complete_resource_chain_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_complete_evidence_chain_count, chainOfCustodyEvents.summary.complete_evidence_chain_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_matter_preserved_count, chainOfCustodyEvents.summary.matter_preserved_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_classification_preserved_count, chainOfCustodyEvents.summary.classification_preserved_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_policy_snapshot_preserved_count, chainOfCustodyEvents.summary.policy_snapshot_preserved_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_pending_approval_count, chainOfCustodyEvents.summary.pending_approval_event_count);
+      assert.equal(dashboard.summary.chain_of_custody_events_approved_count, 0);
+      assert.equal(dashboard.summary.chain_of_custody_events_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.chain_of_custody_events_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -6076,6 +6156,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_coverage_score"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_flags"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "exhibit_map"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "chain_of_custody_events"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -6243,6 +6324,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-indexes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/exhibit-map-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-event-ledgers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-events"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-event-links"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-stage-indexes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/custody-event-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -8321,6 +8407,26 @@ describe("matter harness", () => {
       const exhibitMapValidations = JSON.parse((await buildReviewApiResponse("/api/exhibit-map-validations?status=passed", apiOptions)).body);
       assert.equal(exhibitMapValidations.collection, "exhibit_map_validations");
       assert.equal(exhibitMapValidations.count, exhibitMap.summary.validation_item_count);
+
+      const custodyLedgers = JSON.parse((await buildReviewApiResponse("/api/custody-event-ledgers?custody_event_ledger_status=complete", apiOptions)).body);
+      assert.equal(custodyLedgers.collection, "custody_event_ledgers");
+      assert.equal(custodyLedgers.count, 1);
+
+      const custodyEvents = JSON.parse((await buildReviewApiResponse("/api/custody-events?event_stage=approve", apiOptions)).body);
+      assert.equal(custodyEvents.collection, "custody_events");
+      assert.equal(custodyEvents.count, chainOfCustodyEvents.summary.approve_event_count);
+
+      const custodyEventLinks = JSON.parse((await buildReviewApiResponse("/api/custody-event-links?link_status=bound", apiOptions)).body);
+      assert.equal(custodyEventLinks.collection, "custody_event_links");
+      assert.equal(custodyEventLinks.count, chainOfCustodyEvents.summary.custody_event_link_count);
+
+      const custodyStageIndexes = JSON.parse((await buildReviewApiResponse("/api/custody-stage-indexes?event_stage=approve", apiOptions)).body);
+      assert.equal(custodyStageIndexes.collection, "custody_stage_indexes");
+      assert.equal(custodyStageIndexes.count, 1);
+
+      const custodyEventValidations = JSON.parse((await buildReviewApiResponse("/api/custody-event-validations?status=passed", apiOptions)).body);
+      assert.equal(custodyEventValidations.collection, "custody_event_validations");
+      assert.equal(custodyEventValidations.count, chainOfCustodyEvents.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

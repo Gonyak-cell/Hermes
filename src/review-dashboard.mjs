@@ -37,6 +37,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
+  chainOfCustodyEventsPath: "artifacts/chain-of-custody/latest/chain-of-custody-events.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -310,6 +311,11 @@ const SOURCE_DEFINITIONS = [
     option: "exhibitMapPath",
     source_id: "exhibit_map",
     label: "Exhibit Map",
+  },
+  {
+    option: "chainOfCustodyEventsPath",
+    source_id: "chain_of_custody_events",
+    label: "Chain of Custody Events",
   },
   {
     option: "evidenceContractFreezePath",
@@ -981,6 +987,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
   if (sourceId === "evidence_flags") return data.summary ?? {};
   if (sourceId === "exhibit_map") return data.summary ?? {};
+  if (sourceId === "chain_of_custody_events") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1207,6 +1214,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
+    buildChainOfCustodyEventsStage(artifacts.chain_of_custody_events, sourceById.get("chain_of_custody_events")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2903,6 +2911,81 @@ function buildExhibitMapStage(exhibitMap, source) {
       not_client_facing_exhibit_count: summary.not_client_facing_exhibit_count ?? 0,
       client_facing_ready_exhibit_count: summary.client_facing_ready_exhibit_count ?? 0,
       external_transfer_requires_approval_count: summary.external_transfer_requires_approval_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildChainOfCustodyEventsStage(custodyLedger, source) {
+  if (!custodyLedger) return missingStage("chain_of_custody_events", "Chain of Custody Events", source);
+  const summary = custodyLedger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? custodyLedger.validation?.errors?.length ?? 0;
+  const eventCount = summary.custody_event_count ?? 0;
+  const expectedEventCount = (summary.resource_version_count ?? 0) + (summary.normalized_text_artifact_count ?? 0) + (summary.exhibit_record_count ?? 0) * 3;
+  const status = summary.custody_event_ledger_status === "complete"
+    && errorCount === 0
+    && eventCount > 0
+    && eventCount === expectedEventCount
+    && (summary.custody_event_link_count ?? 0) === eventCount
+    && (summary.upload_event_count ?? 0) === (summary.resource_version_count ?? 0)
+    && (summary.normalize_event_count ?? 0) === (summary.normalized_text_artifact_count ?? 0)
+    && (summary.extract_event_count ?? 0) === (summary.exhibit_record_count ?? 0)
+    && (summary.review_event_count ?? 0) === (summary.exhibit_record_count ?? 0)
+    && (summary.approve_event_count ?? 0) === (summary.exhibit_record_count ?? 0)
+    && (summary.append_only_event_count ?? 0) === eventCount
+    && (summary.hashed_event_count ?? 0) === eventCount
+    && (summary.previous_hash_linked_event_count ?? 0) === eventCount
+    && (summary.matter_preserved_event_count ?? 0) === eventCount
+    && (summary.classification_preserved_event_count ?? 0) === eventCount
+    && (summary.policy_snapshot_preserved_event_count ?? 0) === eventCount
+    && (summary.pending_approval_event_count ?? 0) === (summary.exhibit_record_count ?? 0)
+    && (summary.approved_event_count ?? 1) === 0
+    && (summary.client_facing_ready_event_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "chain_of_custody_events",
+    label: "Chain of Custody Events",
+    status,
+    message: `${eventCount} custody event(s), ${summary.custody_chain_count ?? 0} chain(s), ${summary.pending_approval_event_count ?? 0} approval hold(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      custody_event_ledger_status: summary.custody_event_ledger_status ?? "unknown",
+      custody_event_contract_id: summary.custody_event_contract_id ?? null,
+      custody_event_schema_version: summary.custody_event_schema_version ?? null,
+      custody_event_link_schema_version: summary.custody_event_link_schema_version ?? null,
+      resource_store_interface_status: summary.resource_store_interface_status ?? "unknown",
+      resource_version_ledger_status: summary.resource_version_ledger_status ?? "unknown",
+      normalized_text_contract_status: summary.normalized_text_contract_status ?? "unknown",
+      exhibit_map_status: summary.exhibit_map_status ?? "unknown",
+      resource_version_count: summary.resource_version_count ?? 0,
+      normalized_text_artifact_count: summary.normalized_text_artifact_count ?? 0,
+      evidence_item_count: summary.evidence_item_count ?? 0,
+      exhibit_record_count: summary.exhibit_record_count ?? 0,
+      custody_event_count: eventCount,
+      expected_custody_event_count: expectedEventCount,
+      custody_event_link_count: summary.custody_event_link_count ?? 0,
+      custody_stage_index_count: summary.custody_stage_index_count ?? 0,
+      upload_event_count: summary.upload_event_count ?? 0,
+      normalize_event_count: summary.normalize_event_count ?? 0,
+      extract_event_count: summary.extract_event_count ?? 0,
+      review_event_count: summary.review_event_count ?? 0,
+      approve_event_count: summary.approve_event_count ?? 0,
+      append_only_event_count: summary.append_only_event_count ?? 0,
+      hashed_event_count: summary.hashed_event_count ?? 0,
+      previous_hash_linked_event_count: summary.previous_hash_linked_event_count ?? 0,
+      custody_chain_count: summary.custody_chain_count ?? 0,
+      complete_resource_chain_count: summary.complete_resource_chain_count ?? 0,
+      complete_evidence_chain_count: summary.complete_evidence_chain_count ?? 0,
+      matter_preserved_event_count: summary.matter_preserved_event_count ?? 0,
+      classification_preserved_event_count: summary.classification_preserved_event_count ?? 0,
+      policy_snapshot_preserved_event_count: summary.policy_snapshot_preserved_event_count ?? 0,
+      needs_review_event_count: summary.needs_review_event_count ?? 0,
+      pending_approval_event_count: summary.pending_approval_event_count ?? 0,
+      approved_event_count: summary.approved_event_count ?? 0,
+      client_facing_ready_event_count: summary.client_facing_ready_event_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -6900,6 +6983,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.chain_of_custody_events?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "chain_of_custody_events";
+    items.push({
+      action_item_id: `dashboard.action.chain_of_custody_events.${slugify(subjectId)}`,
+      source_stage: "chain_of_custody_events",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix chain of custody events",
+      subject_ref: {
+        subject_type: "chain_of_custody_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_chain_of_custody_events", "rerun_custody_events", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -8866,6 +8967,35 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     exhibit_map_client_facing_ready_count: artifacts.exhibit_map?.summary?.client_facing_ready_exhibit_count ?? 0,
     exhibit_map_external_transfer_requires_approval_count: artifacts.exhibit_map?.summary?.external_transfer_requires_approval_count ?? 0,
     exhibit_map_validation_error_count: artifacts.exhibit_map?.summary?.validation_error_count ?? artifacts.exhibit_map?.validation?.errors?.length ?? 0,
+    chain_of_custody_events_status: artifacts.chain_of_custody_events?.summary?.custody_event_ledger_status ?? "unknown",
+    chain_of_custody_events_contract_id: artifacts.chain_of_custody_events?.summary?.custody_event_contract_id ?? null,
+    chain_of_custody_events_schema_version: artifacts.chain_of_custody_events?.summary?.custody_event_schema_version ?? null,
+    chain_of_custody_events_link_schema_version: artifacts.chain_of_custody_events?.summary?.custody_event_link_schema_version ?? null,
+    chain_of_custody_events_resource_version_count: artifacts.chain_of_custody_events?.summary?.resource_version_count ?? 0,
+    chain_of_custody_events_normalized_text_artifact_count: artifacts.chain_of_custody_events?.summary?.normalized_text_artifact_count ?? 0,
+    chain_of_custody_events_exhibit_record_count: artifacts.chain_of_custody_events?.summary?.exhibit_record_count ?? 0,
+    chain_of_custody_events_event_count: artifacts.chain_of_custody_events?.summary?.custody_event_count ?? 0,
+    chain_of_custody_events_link_count: artifacts.chain_of_custody_events?.summary?.custody_event_link_count ?? 0,
+    chain_of_custody_events_stage_index_count: artifacts.chain_of_custody_events?.summary?.custody_stage_index_count ?? 0,
+    chain_of_custody_events_upload_count: artifacts.chain_of_custody_events?.summary?.upload_event_count ?? 0,
+    chain_of_custody_events_normalize_count: artifacts.chain_of_custody_events?.summary?.normalize_event_count ?? 0,
+    chain_of_custody_events_extract_count: artifacts.chain_of_custody_events?.summary?.extract_event_count ?? 0,
+    chain_of_custody_events_review_count: artifacts.chain_of_custody_events?.summary?.review_event_count ?? 0,
+    chain_of_custody_events_approve_count: artifacts.chain_of_custody_events?.summary?.approve_event_count ?? 0,
+    chain_of_custody_events_append_only_count: artifacts.chain_of_custody_events?.summary?.append_only_event_count ?? 0,
+    chain_of_custody_events_hashed_count: artifacts.chain_of_custody_events?.summary?.hashed_event_count ?? 0,
+    chain_of_custody_events_previous_hash_linked_count: artifacts.chain_of_custody_events?.summary?.previous_hash_linked_event_count ?? 0,
+    chain_of_custody_events_chain_count: artifacts.chain_of_custody_events?.summary?.custody_chain_count ?? 0,
+    chain_of_custody_events_complete_resource_chain_count: artifacts.chain_of_custody_events?.summary?.complete_resource_chain_count ?? 0,
+    chain_of_custody_events_complete_evidence_chain_count: artifacts.chain_of_custody_events?.summary?.complete_evidence_chain_count ?? 0,
+    chain_of_custody_events_matter_preserved_count: artifacts.chain_of_custody_events?.summary?.matter_preserved_event_count ?? 0,
+    chain_of_custody_events_classification_preserved_count: artifacts.chain_of_custody_events?.summary?.classification_preserved_event_count ?? 0,
+    chain_of_custody_events_policy_snapshot_preserved_count: artifacts.chain_of_custody_events?.summary?.policy_snapshot_preserved_event_count ?? 0,
+    chain_of_custody_events_needs_review_count: artifacts.chain_of_custody_events?.summary?.needs_review_event_count ?? 0,
+    chain_of_custody_events_pending_approval_count: artifacts.chain_of_custody_events?.summary?.pending_approval_event_count ?? 0,
+    chain_of_custody_events_approved_count: artifacts.chain_of_custody_events?.summary?.approved_event_count ?? 0,
+    chain_of_custody_events_client_facing_ready_count: artifacts.chain_of_custody_events?.summary?.client_facing_ready_event_count ?? 0,
+    chain_of_custody_events_validation_error_count: artifacts.chain_of_custody_events?.summary?.validation_error_count ?? artifacts.chain_of_custody_events?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -10342,6 +10472,8 @@ function parseArgs(argv) {
     else if (arg === "--no-evidence-flags") parsed.evidenceFlagsPath = false;
     else if (arg === "--exhibit-map") parsed.exhibitMapPath = argv[++index];
     else if (arg === "--no-exhibit-map") parsed.exhibitMapPath = false;
+    else if (arg === "--chain-of-custody") parsed.chainOfCustodyEventsPath = argv[++index];
+    else if (arg === "--no-chain-of-custody") parsed.chainOfCustodyEventsPath = false;
     else if (arg === "--contract-golden-fixtures") parsed.contractGoldenFixturesPath = argv[++index];
     else if (arg === "--no-contract-golden-fixtures") parsed.contractGoldenFixturesPath = false;
     else if (arg === "--contract-validation-suite") parsed.contractValidationSuitePath = argv[++index];
@@ -10551,6 +10683,8 @@ Options:
   --no-evidence-flags             Do not include Evidence Flags status.
   --exhibit-map <path>            exhibit-map.json path.
   --no-exhibit-map                Do not include Exhibit Map status.
+  --chain-of-custody <path>       chain-of-custody-events.json path.
+  --no-chain-of-custody           Do not include Chain of Custody Events status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

@@ -112,6 +112,8 @@ Phase 145부터 loop는 `npm run resource:evidence-flags`도 실행해 coverage 
 
 Phase 146부터 loop는 `npm run resource:exhibit-map`도 실행해 evidence/citation/output paragraph/lineage path가 `별첨 n` exhibit reference에 bound되는지 검증한다.
 
+Phase 147부터 loop는 `npm run resource:custody-events`도 실행해 upload, normalize, extract, review, approve-hold가 append-only hashed custody event로 기록되는지 검증한다.
+
 이 finalization은 dashboard와 goal checkpoint가 방금 완료된 `control-plane-loop.json`을 읽도록 맞추는 동기화 단계다. 필요하면 `node scripts/control-plane-loop.mjs --no-finalize`로 끌 수 있다.
 
 출력:

@@ -153,6 +153,7 @@
     "resource:evidence-coverage": "node scripts/evidence-coverage-score.mjs",
     "resource:evidence-flags": "node scripts/evidence-flags.mjs",
     "resource:exhibit-map": "node scripts/exhibit-map.mjs",
+    "resource:custody-events": "node scripts/chain-of-custody-events.mjs",
     "resource:ingest": "node scripts/resource-ingest.mjs",
     "resource:normalized-text": "node scripts/normalized-text-contract.mjs",
     "resource:source-spans": "node scripts/source-span-store.mjs",

@@ -45,6 +45,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_coverage_score", "Evidence coverage score", "resource_evidence", "evidence_coverage_score", "control-plane-evidence-coverage-score", { acceptance_profile: "evidence_coverage_score_gate" }),
   sourceItem("evidence_flags", "Evidence flags", "resource_evidence", "evidence_flags", "control-plane-evidence-flags", { acceptance_profile: "evidence_flags_gate" }),
   sourceItem("exhibit_map", "Exhibit map", "resource_evidence", "exhibit_map", "control-plane-exhibit-map", { acceptance_profile: "exhibit_map_gate" }),
+  sourceItem("chain_of_custody_events", "Chain of custody events", "resource_evidence", "chain_of_custody_events", "control-plane-chain-of-custody-events", { acceptance_profile: "chain_of_custody_events_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -397,6 +398,7 @@ function evaluateStageAcceptance(item, stage) {
     "evidence_coverage_score_gate",
     "evidence_flags_gate",
     "exhibit_map_gate",
+    "chain_of_custody_events_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -942,6 +944,42 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.client_facing_ready_exhibit_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Exhibit map assigns stable Korean exhibit references and binds each exhibit to evidence, citation, output paragraph, and lineage path while keeping outputs attorney-review pending.");
+    }
+  }
+
+  if (item.acceptance_profile === "chain_of_custody_events_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const eventCount = metrics.custody_event_count ?? 0;
+    const exhibitCount = metrics.exhibit_record_count ?? 0;
+    const expectedEventCount = (metrics.resource_version_count ?? 0) + (metrics.normalized_text_artifact_count ?? 0) + exhibitCount * 3;
+    if (
+      errors === 0
+      && metrics.custody_event_ledger_status === "complete"
+      && metrics.resource_store_interface_status === "complete"
+      && metrics.resource_version_ledger_status === "complete"
+      && metrics.normalized_text_contract_status === "complete"
+      && metrics.exhibit_map_status === "complete"
+      && eventCount > 0
+      && eventCount === expectedEventCount
+      && (metrics.custody_event_link_count ?? 0) === eventCount
+      && (metrics.upload_event_count ?? 0) === (metrics.resource_version_count ?? 0)
+      && (metrics.normalize_event_count ?? 0) === (metrics.normalized_text_artifact_count ?? 0)
+      && (metrics.extract_event_count ?? 0) === exhibitCount
+      && (metrics.review_event_count ?? 0) === exhibitCount
+      && (metrics.approve_event_count ?? 0) === exhibitCount
+      && (metrics.append_only_event_count ?? 0) === eventCount
+      && (metrics.hashed_event_count ?? 0) === eventCount
+      && (metrics.previous_hash_linked_event_count ?? 0) === eventCount
+      && (metrics.matter_preserved_event_count ?? 0) === eventCount
+      && (metrics.classification_preserved_event_count ?? 0) === eventCount
+      && (metrics.policy_snapshot_preserved_event_count ?? 0) === eventCount
+      && (metrics.complete_resource_chain_count ?? 0) === (metrics.resource_version_count ?? 0)
+      && (metrics.complete_evidence_chain_count ?? 0) === exhibitCount
+      && (metrics.pending_approval_event_count ?? 0) === exhibitCount
+      && (metrics.approved_event_count ?? 1) === 0
+      && (metrics.client_facing_ready_event_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Chain of custody events record upload, normalize, extract, review, and approval-hold stages as append-only hashed events without auto-approval or client-facing delivery.");
     }
   }
 

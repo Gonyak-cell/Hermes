@@ -192,6 +192,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/exhibit-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/exhibit-indexes"));
   assert.ok(index.routes.some((route) => route.path === "/api/exhibit-map-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/custody-event-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/custody-events"));
+  assert.ok(index.routes.some((route) => route.path === "/api/custody-event-links"));
+  assert.ok(index.routes.some((route) => route.path === "/api/custody-stage-indexes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/custody-event-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -2033,6 +2038,26 @@ try {
   const exhibitMapValidations = await fetchJson(`${url}/api/exhibit-map-validations?status=passed&limit=5`);
   assert.equal(exhibitMapValidations.collection, "exhibit_map_validations");
   assert.ok(exhibitMapValidations.count <= 5);
+
+  const custodyLedgers = await fetchJson(`${url}/api/custody-event-ledgers?custody_event_ledger_status=complete&limit=1`);
+  assert.equal(custodyLedgers.collection, "custody_event_ledgers");
+  assert.ok(custodyLedgers.count <= 1);
+
+  const custodyEvents = await fetchJson(`${url}/api/custody-events?event_stage=approve&limit=5`);
+  assert.equal(custodyEvents.collection, "custody_events");
+  assert.ok(custodyEvents.count <= 5);
+
+  const custodyEventLinks = await fetchJson(`${url}/api/custody-event-links?link_status=bound&limit=5`);
+  assert.equal(custodyEventLinks.collection, "custody_event_links");
+  assert.ok(custodyEventLinks.count <= 5);
+
+  const custodyStageIndexes = await fetchJson(`${url}/api/custody-stage-indexes?schema_version=custody-stage-index.v1&limit=5`);
+  assert.equal(custodyStageIndexes.collection, "custody_stage_indexes");
+  assert.ok(custodyStageIndexes.count <= 5);
+
+  const custodyEventValidations = await fetchJson(`${url}/api/custody-event-validations?status=passed&limit=5`);
+  assert.equal(custodyEventValidations.collection, "custody_event_validations");
+  assert.ok(custodyEventValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

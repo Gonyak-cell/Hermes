@@ -794,6 +794,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("exhibit_map_validations", exhibitMapResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/custody-event-ledgers") {
+    const custodyResult = await readDashboardSourceArtifact(dashboard, "chain_of_custody_events");
+    if (!custodyResult.available) {
+      return jsonResponse(503, buildError("chain_of_custody_events_unavailable", custodyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("custody_event_ledgers", [custodyResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/custody-events") {
+    const custodyResult = await readDashboardSourceArtifact(dashboard, "chain_of_custody_events");
+    if (!custodyResult.available) {
+      return jsonResponse(503, buildError("chain_of_custody_events_unavailable", custodyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("custody_events", custodyResult.artifact.custody_event_catalog?.custody_events ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/custody-event-links") {
+    const custodyResult = await readDashboardSourceArtifact(dashboard, "chain_of_custody_events");
+    if (!custodyResult.available) {
+      return jsonResponse(503, buildError("chain_of_custody_events_unavailable", custodyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("custody_event_links", custodyResult.artifact.custody_event_catalog?.custody_event_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/custody-stage-indexes") {
+    const custodyResult = await readDashboardSourceArtifact(dashboard, "chain_of_custody_events");
+    if (!custodyResult.available) {
+      return jsonResponse(503, buildError("chain_of_custody_events_unavailable", custodyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("custody_stage_indexes", custodyResult.artifact.custody_event_catalog?.custody_stage_indexes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/custody-event-validations") {
+    const custodyResult = await readDashboardSourceArtifact(dashboard, "chain_of_custody_events");
+    if (!custodyResult.available) {
+      return jsonResponse(503, buildError("chain_of_custody_events_unavailable", custodyResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("custody_event_validations", custodyResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -5341,6 +5376,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/exhibit-bindings", "Exhibit-to-evidence binding rows"),
       route("GET", "/api/exhibit-indexes", "Exhibit map index projections"),
       route("GET", "/api/exhibit-map-validations", "Exhibit map validation rows"),
+      route("GET", "/api/custody-event-ledgers", "Chain of custody event ledger artifacts"),
+      route("GET", "/api/custody-events", "Append-only custody event rows"),
+      route("GET", "/api/custody-event-links", "Custody event subject link rows"),
+      route("GET", "/api/custody-stage-indexes", "Custody stage index projections"),
+      route("GET", "/api/custody-event-validations", "Custody event validation rows"),
       route("GET", "/api/control-plane-health", "Control Plane health artifact"),
       route("GET", "/api/health-checks", "Control Plane health checks"),
       route("GET", "/api/action-plans", "Control Plane action plan artifact"),
@@ -5546,6 +5586,16 @@ function filterItems(items, searchParams) {
     "evidence_coverage_status",
     "evidence_flags_status",
     "exhibit_map_status",
+    "custody_event_ledger_status",
+    "custody_event_id",
+    "custody_event_link_id",
+    "custody_chain_id",
+    "event_stage",
+    "event_type",
+    "event_status",
+    "subject_type",
+    "subject_id",
+    "link_status",
     "coverage_score_id",
     "coverage_dimension_id",
     "evidence_flag_record_id",
@@ -6415,6 +6465,7 @@ function readFilterValue(item, key) {
   if (key === "evidence_coverage_status") return item.summary?.evidence_coverage_status ?? item.evidence_coverage_status;
   if (key === "evidence_flags_status") return item.summary?.evidence_flags_status ?? item.evidence_flags_status;
   if (key === "exhibit_map_status") return item.summary?.exhibit_map_status ?? item.exhibit_map_status;
+  if (key === "custody_event_ledger_status") return item.summary?.custody_event_ledger_status ?? item.custody_event_ledger_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

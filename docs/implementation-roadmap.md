@@ -4398,6 +4398,36 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 48개로 증가하고 exhibit map이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:exhibit-map -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 147: Chain of Custody Events
+
+목표: P146 Exhibit Map까지 이어진 resource/evidence/output 경로를 append-only custody event ledger로 묶어, 업로드, 정규화, 추출, 검토, 승인대기 상태가 actor, matter, classification, policy snapshot, event hash와 함께 재현되도록 한다.
+
+구현 내용:
+
+- `src/chain-of-custody-events.mjs`, `scripts/chain-of-custody-events.mjs`, `schemas/chain-of-custody-events.schema.json`, `docs/chain-of-custody-events.md`를 추가함
+- `npm run resource:custody-events -- --check` 명령을 추가해 custody ledger, event rows, event link rows, stage index, validation report, summary markdown을 생성함
+- ResourceVersion마다 `upload`, NormalizedTextArtifact마다 `normalize`, Exhibit record마다 `extract -> review -> approve` custody event를 생성함
+- 각 event가 `custody_chain_id`, global/chain sequence, previous event hash, event hash, actor, subject, linked refs를 보존함
+- resource chain은 upload/normalize, evidence chain은 extract/review/approve-hold 단계가 모두 포함되도록 검증함
+- `review`와 `approve` 단계는 사람 승인 actor가 필요하며, 자동 approval 없이 `held_pending_human_approval` 상태로 남김
+- 모든 event가 tenant, matter, classification, policy snapshot을 보존하고 `client_facing_ready=false`를 유지하도록 gate를 추가함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 custody event ledger를 통합함
+- `/api/custody-event-ledgers`, `/api/custody-events`, `/api/custody-event-links`, `/api/custody-stage-indexes`, `/api/custody-event-validations` route를 추가함
+
+완료 기준:
+
+- Chain of Custody Events가 validation error 없이 `complete` 상태가 됨
+- custody event 수가 resource version 수 + normalized text artifact 수 + exhibit record 수의 3배와 일치함
+- upload, normalize, extract, review, approve stage count가 각 source artifact 수와 일치함
+- 모든 event가 append-only/immutable이고 event hash를 가지며 chain 내 previous hash가 연결됨
+- 모든 event가 matter, classification, policy snapshot, actor/runtime을 보존함
+- 모든 review/approve event가 human approval actor를 요구하고 approve event는 자동 승인 없이 held 상태를 유지함
+- 모든 event가 client-facing ready가 아님
+- Review Dashboard summary와 stage status에서 custody event count, stage count, chain count, preservation, pending approval 상태가 노출됨
+- Review API smoke가 custody ledger, event, link, stage index, validation route를 모두 조회함
+- Golden fixture 수가 49개로 증가하고 chain of custody events가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:custody-events -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4406,9 +4436,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 146이다.
+- 현재 완료 기준점은 Phase 147이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P147-P312, 총 166개다.
+- 남은 계획 슬롯은 P148-P312, 총 165개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

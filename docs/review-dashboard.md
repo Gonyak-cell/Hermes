@@ -186,6 +186,7 @@ npm run dashboard:build -- \
 - Evidence Coverage Score의 claim/date/party/amount/legal-basis coverage, missing required dimension, preservation, review/client-facing 상태
 - Evidence Flags의 extraction, human confirmation, privilege, redaction, external-transfer 상태와 review/client-facing 보류 상태
 - Exhibit Map의 `별첨 n` reference, evidence/citation/output paragraph/lineage binding, attorney review/client-facing 보류 상태
+- Chain of Custody Events의 upload/normalize/extract/review/approve event, append-only hash chain, human approval hold 상태
 - Law Firm LDD Slice의 issue, RFI, citation, attorney approval 상태
 - Personal Dev Slice의 worktree isolation과 merge approval 상태
 - Creative Document Slice의 slide, artifact, format validation, human approval 상태

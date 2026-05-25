@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/chain-of-custody-events.schema.json",
+  "title": "Hermes Chain of Custody Events",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "custody_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_stores",
+    "custody_event_contract",
+    "custody_event_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "chain-of-custody-events.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "custody_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_stores": { "type": "array", "items": { "$ref": "#/$defs/source_summary" } },
+    "custody_event_contract": { "$ref": "#/$defs/custody_event_contract" },
+    "custody_event_catalog": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "custody_events", "custody_event_links", "custody_stage_indexes"],
+      "properties": {
+        "schema_version": { "const": "custody-event-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "custody_events": { "type": "array", "items": { "$ref": "#/$defs/custody_event" } },
+        "custody_event_links": { "type": "array", "items": { "$ref": "#/$defs/custody_event_link" } },
+        "custody_stage_indexes": { "type": "array", "items": { "$ref": "#/$defs/custody_stage_index" } }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/validation_error" } }
+      }
+    },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_summary": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"] },
+        "summary": { "type": ["object", "null"] }
+      }
+    },
+    "custody_event_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "custody_event_contract_id",
+        "generated_at",
+        "custody_event_schema_version",
+        "custody_event_link_schema_version",
+        "required_stages",
+        "append_only_rule",
+        "hash_rule",
+        "human_gate_rule",
+        "output_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "chain-of-custody-event-contract.v1" },
+        "custody_event_contract_id": { "const": "chain-of-custody-events.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "custody_event_schema_version": { "const": "custody-event.v1" },
+        "custody_event_link_schema_version": { "const": "custody-event-link.v1" },
+        "custody_stage_index_schema_version": { "const": "custody-stage-index.v1" },
+        "required_stages": {
+          "type": "array",
+          "items": { "enum": ["upload", "normalize", "extract", "review", "approve"] }
+        },
+        "append_only_rule": { "type": "string" },
+        "hash_rule": { "type": "string" },
+        "human_gate_rule": { "type": "string" },
+        "output_rule": { "type": "string" }
+      }
+    },
+    "custody_event": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "custody_event_id",
+        "custody_ledger_id",
+        "custody_chain_id",
+        "global_sequence",
+        "chain_sequence",
+        "previous_event_hash",
+        "event_hash",
+        "event_stage",
+        "event_type",
+        "event_status",
+        "append_only",
+        "immutable",
+        "event_time",
+        "actor",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "subject_ref",
+        "linked_refs",
+        "custody_state",
+        "source_ref"
+      ],
+      "properties": {
+        "schema_version": { "const": "custody-event.v1" },
+        "custody_event_id": { "type": "string" },
+        "custody_ledger_id": { "type": "string" },
+        "custody_chain_id": { "type": "string" },
+        "global_sequence": { "type": "integer", "minimum": 1 },
+        "chain_sequence": { "type": "integer", "minimum": 1 },
+        "previous_event_hash": { "type": ["string", "null"] },
+        "event_hash": { "type": "string" },
+        "event_stage": { "enum": ["upload", "normalize", "extract", "review", "approve"] },
+        "event_type": { "type": "string" },
+        "event_status": { "type": "string" },
+        "append_only": { "const": true },
+        "immutable": { "const": true },
+        "event_time": { "type": "string", "format": "date-time" },
+        "actor": { "$ref": "#/$defs/actor" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "subject_ref": { "$ref": "#/$defs/subject_ref" },
+        "linked_refs": { "type": "array", "items": { "$ref": "#/$defs/subject_ref" } },
+        "custody_state": { "$ref": "#/$defs/custody_state" },
+        "source_ref": { "$ref": "#/$defs/source_ref" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "custody_event_link": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "custody_event_link_id",
+        "custody_event_id",
+        "custody_chain_id",
+        "event_stage",
+        "subject_type",
+        "subject_id",
+        "target_type",
+        "target_id",
+        "link_status",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "custody-event-link.v1" },
+        "custody_event_link_id": { "type": "string" },
+        "custody_event_id": { "type": "string" },
+        "custody_chain_id": { "type": "string" },
+        "event_stage": { "type": "string" },
+        "event_type": { "type": "string" },
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "target_type": { "type": "string" },
+        "target_id": { "type": "string" },
+        "linked_ref_count": { "type": "integer", "minimum": 0 },
+        "link_status": { "enum": ["bound", "missing_target"] },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "policy_snapshot_id": { "type": "string" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "custody_stage_index": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "custody_stage_index_id",
+        "event_stage",
+        "event_count",
+        "custody_event_ids",
+        "custody_chain_ids",
+        "by_event_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "custody-stage-index.v1" },
+        "custody_stage_index_id": { "type": "string" },
+        "event_stage": { "enum": ["upload", "normalize", "extract", "review", "approve"] },
+        "event_count": { "type": "integer", "minimum": 0 },
+        "custody_event_ids": { "type": "array", "items": { "type": "string" } },
+        "custody_chain_ids": { "type": "array", "items": { "type": "string" } },
+        "by_event_status": { "type": "object" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "actor": {
+      "type": "object",
+      "required": ["actor_type", "actor_id", "runtime_id", "human_approval_actor_required"],
+      "properties": {
+        "actor_type": { "type": "string" },
+        "actor_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "human_approval_actor_required": { "type": "boolean" }
+      }
+    },
+    "subject_ref": {
+      "type": "object",
+      "required": ["subject_type", "subject_id"],
+      "properties": {
+        "subject_type": { "type": "string" },
+        "subject_id": { "type": ["string", "null"] }
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": ["source_artifact_id", "source_schema_version", "source_record_id"],
+      "properties": {
+        "source_artifact_id": { "type": "string" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "source_record_id": { "type": ["string", "null"] }
+      }
+    },
+    "custody_state": {
+      "type": "object",
+      "required": [
+        "review_status",
+        "approval_status",
+        "human_review_required",
+        "attorney_review_required",
+        "output_client_facing_status",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "review_status": { "type": "string" },
+        "approval_status": { "type": "string" },
+        "human_review_required": { "type": "boolean" },
+        "attorney_review_required": { "type": "boolean" },
+        "output_client_facing_status": { "type": "string" },
+        "client_facing_ready": { "const": false }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "path", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "custody_event_ledger_status",
+        "custody_event_contract_id",
+        "custody_event_count",
+        "custody_event_link_count",
+        "upload_event_count",
+        "normalize_event_count",
+        "extract_event_count",
+        "review_event_count",
+        "approve_event_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "custody_event_ledger_status": { "enum": ["complete", "blocked"] },
+        "custody_event_contract_id": { "const": "chain-of-custody-events.v1" },
+        "custody_event_count": { "type": "integer", "minimum": 0 },
+        "custody_event_link_count": { "type": "integer", "minimum": 0 },
+        "upload_event_count": { "type": "integer", "minimum": 0 },
+        "normalize_event_count": { "type": "integer", "minimum": 0 },
+        "extract_event_count": { "type": "integer", "minimum": 0 },
+        "review_event_count": { "type": "integer", "minimum": 0 },
+        "approve_event_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

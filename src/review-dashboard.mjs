@@ -31,6 +31,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policySnapshotLedgerPath: "artifacts/policy-snapshots/latest/policy-snapshot-ledger.json",
   contextPacketLedgerPath: "artifacts/context-packets/latest/context-packet-ledger.json",
   modelRoutingLedgerPath: "artifacts/model-routing/latest/model-routing-ledger.json",
+  modelPolicyEnforcementPath: "artifacts/model-policy-enforcement/latest/model-policy-enforcement.json",
   costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   tokenUsageLedgerPath: "artifacts/token-usage/latest/token-usage-ledger.json",
   costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
@@ -252,6 +253,11 @@ const SOURCE_DEFINITIONS = [
     option: "modelRoutingLedgerPath",
     source_id: "model_routing_ledger",
     label: "Model Routing Ledger",
+  },
+  {
+    option: "modelPolicyEnforcementPath",
+    source_id: "model_policy_enforcement",
+    label: "Model Policy Enforcement",
   },
   {
     option: "costBudgetLedgerPath",
@@ -807,6 +813,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_snapshot_ledger") return data.summary ?? {};
   if (sourceId === "context_packet_ledger") return data.summary ?? {};
   if (sourceId === "model_routing_ledger") return data.summary ?? {};
+  if (sourceId === "model_policy_enforcement") return data.summary ?? {};
   if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "token_usage_ledger") return data.summary ?? {};
   if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
@@ -1005,6 +1012,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicySnapshotLedgerStage(artifacts.policy_snapshot_ledger, sourceById.get("policy_snapshot_ledger")),
     buildContextPacketLedgerStage(artifacts.context_packet_ledger, sourceById.get("context_packet_ledger")),
     buildModelRoutingLedgerStage(artifacts.model_routing_ledger, sourceById.get("model_routing_ledger")),
+    buildModelPolicyEnforcementStage(artifacts.model_policy_enforcement, sourceById.get("model_policy_enforcement")),
     buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildTokenUsageLedgerStage(artifacts.token_usage_ledger, sourceById.get("token_usage_ledger")),
     buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
@@ -2029,6 +2037,50 @@ function buildModelRoutingLedgerStage(ledger, source) {
       local_route_count: summary.local_route_count ?? 0,
       redaction_enforced_count: summary.redaction_enforced_count ?? 0,
       runtime_restricted_count: summary.runtime_restricted_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildModelPolicyEnforcementStage(enforcement, source) {
+  if (!enforcement) return missingStage("model_policy_enforcement", "Model Policy Enforcement", source);
+  const summary = enforcement.summary ?? {};
+  const errorCount = summary.validation_error_count ?? enforcement.validation?.errors?.length ?? 0;
+  const unauthorized = summary.unauthorized_external_allow_count ?? 0;
+  const approvals = summary.external_transfer_review_count ?? 0;
+  const denied = summary.external_transfer_denied_count ?? 0;
+  const status = summary.model_policy_enforcement_status !== "complete" || errorCount > 0 || unauthorized > 0
+    ? "blocked"
+    : approvals > 0 || denied > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "model_policy_enforcement",
+    label: "Model Policy Enforcement",
+    status,
+    message: status === "passed"
+      ? `${summary.route_model_gate_count ?? 0} route gate(s), ${summary.external_transfer_route_count ?? 0} external transfer(s), no unauthorized P2-P5 allow.`
+      : `${unauthorized} unauthorized external allow(s), ${approvals} approval route(s), ${denied} denied route(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      model_policy_enforcement_status: summary.model_policy_enforcement_status ?? "unknown",
+      source_data_classification_rule_engine_status: summary.source_data_classification_rule_engine_status ?? "unknown",
+      source_model_routing_ledger_status: summary.source_model_routing_ledger_status ?? "unknown",
+      source_policy_contract_status: summary.source_policy_contract_status ?? "unknown",
+      classification_model_gate_count: summary.classification_model_gate_count ?? 0,
+      resource_model_gate_count: summary.resource_model_gate_count ?? 0,
+      route_model_gate_count: summary.route_model_gate_count ?? 0,
+      p2_p5_classification_gate_count: summary.p2_p5_classification_gate_count ?? 0,
+      p2_p5_resource_gate_count: summary.p2_p5_resource_gate_count ?? 0,
+      external_transfer_route_count: summary.external_transfer_route_count ?? 0,
+      p2_p5_external_transfer_route_count: summary.p2_p5_external_transfer_route_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      external_transfer_review_count: approvals,
+      external_transfer_denied_count: denied,
+      unauthorized_external_allow_count: unauthorized,
+      redaction_required_resource_gate_count: summary.redaction_required_resource_gate_count ?? 0,
+      redaction_blocked_route_count: summary.redaction_blocked_route_count ?? 0,
+      human_approval_required_gate_count: summary.human_approval_required_gate_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -4801,6 +4853,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.model_policy_enforcement?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "model_policy_enforcement";
+    items.push({
+      action_item_id: `dashboard.action.model_policy_enforcement.${slugify(subjectId)}`,
+      source_stage: "model_policy_enforcement",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix model policy enforcement",
+      subject_ref: {
+        subject_type: "model_policy_enforcement_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_model_policy_gate", "rerun_model_policy_enforcement", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.cost_budget_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "cost_budget_ledger";
     items.push({
@@ -6397,6 +6467,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     model_route_local_count: artifacts.model_routing_ledger?.summary?.local_route_count ?? 0,
     model_route_redaction_enforced_count: artifacts.model_routing_ledger?.summary?.redaction_enforced_count ?? 0,
     model_route_validation_error_count: artifacts.model_routing_ledger?.summary?.validation_error_count ?? artifacts.model_routing_ledger?.validation?.errors?.length ?? 0,
+    model_policy_enforcement_status: artifacts.model_policy_enforcement?.summary?.model_policy_enforcement_status ?? "unknown",
+    model_policy_classification_gate_count: artifacts.model_policy_enforcement?.summary?.classification_model_gate_count ?? 0,
+    model_policy_resource_gate_count: artifacts.model_policy_enforcement?.summary?.resource_model_gate_count ?? 0,
+    model_policy_route_gate_count: artifacts.model_policy_enforcement?.summary?.route_model_gate_count ?? 0,
+    model_policy_p2_p5_classification_gate_count: artifacts.model_policy_enforcement?.summary?.p2_p5_classification_gate_count ?? 0,
+    model_policy_p2_p5_resource_gate_count: artifacts.model_policy_enforcement?.summary?.p2_p5_resource_gate_count ?? 0,
+    model_policy_external_transfer_route_count: artifacts.model_policy_enforcement?.summary?.external_transfer_route_count ?? 0,
+    model_policy_p2_p5_external_transfer_route_count: artifacts.model_policy_enforcement?.summary?.p2_p5_external_transfer_route_count ?? 0,
+    model_policy_external_transfer_allowed_count: artifacts.model_policy_enforcement?.summary?.external_transfer_allowed_count ?? 0,
+    model_policy_external_transfer_review_count: artifacts.model_policy_enforcement?.summary?.external_transfer_review_count ?? 0,
+    model_policy_external_transfer_denied_count: artifacts.model_policy_enforcement?.summary?.external_transfer_denied_count ?? 0,
+    model_policy_unauthorized_external_allow_count: artifacts.model_policy_enforcement?.summary?.unauthorized_external_allow_count ?? 0,
+    model_policy_redaction_required_resource_gate_count: artifacts.model_policy_enforcement?.summary?.redaction_required_resource_gate_count ?? 0,
+    model_policy_redaction_blocked_route_count: artifacts.model_policy_enforcement?.summary?.redaction_blocked_route_count ?? 0,
+    model_policy_human_approval_required_gate_count: artifacts.model_policy_enforcement?.summary?.human_approval_required_gate_count ?? 0,
+    model_policy_validation_error_count: artifacts.model_policy_enforcement?.summary?.validation_error_count ?? artifacts.model_policy_enforcement?.validation?.errors?.length ?? 0,
     cost_budget_decision_count: artifacts.cost_budget_ledger?.summary?.budget_decision_count ?? 0,
     cost_budget_passed_count: artifacts.cost_budget_ledger?.summary?.passed_decision_count ?? 0,
     cost_budget_blocked_count: artifacts.cost_budget_ledger?.summary?.blocked_decision_count ?? 0,
@@ -7496,6 +7582,8 @@ function parseArgs(argv) {
     else if (arg === "--no-context-packet-ledger") parsed.contextPacketLedgerPath = false;
     else if (arg === "--model-routing-ledger") parsed.modelRoutingLedgerPath = argv[++index];
     else if (arg === "--no-model-routing-ledger") parsed.modelRoutingLedgerPath = false;
+    else if (arg === "--model-policy-enforcement") parsed.modelPolicyEnforcementPath = argv[++index];
+    else if (arg === "--no-model-policy-enforcement") parsed.modelPolicyEnforcementPath = false;
     else if (arg === "--cost-budget-ledger") parsed.costBudgetLedgerPath = argv[++index];
     else if (arg === "--no-cost-budget-ledger") parsed.costBudgetLedgerPath = false;
     else if (arg === "--token-usage-ledger") parsed.tokenUsageLedgerPath = argv[++index];
@@ -7712,6 +7800,9 @@ Options:
   --no-context-packet-ledger     Do not include Context Packet Ledger status.
   --model-routing-ledger <path>  model-routing-ledger.json path.
   --no-model-routing-ledger      Do not include Model Routing Ledger status.
+  --model-policy-enforcement <path>
+                                  model-policy-enforcement.json path.
+  --no-model-policy-enforcement  Do not include Model Policy Enforcement status.
   --cost-budget-ledger <path>    cost-budget-ledger.json path.
   --no-cost-budget-ledger        Do not include Cost Budget Ledger status.
   --token-usage-ledger <path>    token-usage-ledger.json path.

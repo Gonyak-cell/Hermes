@@ -1337,6 +1337,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("model_routing_decisions", ledgerResult.artifact.routing_decisions ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/model-policy-enforcements") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "model_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("model_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("model_policy_enforcements", [enforcementResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/classification-model-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "model_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("model_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("classification_model_gates", enforcementResult.artifact.model_policy_gate_catalog?.classification_model_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resource-model-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "model_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("model_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resource_model_gates", enforcementResult.artifact.model_policy_gate_catalog?.resource_model_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/route-model-gates") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "model_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("model_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("route_model_gates", enforcementResult.artifact.model_policy_gate_catalog?.route_model_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/model-policy-enforcement-validations") {
+    const enforcementResult = await readDashboardSourceArtifact(dashboard, "model_policy_enforcement");
+    if (!enforcementResult.available) {
+      return jsonResponse(503, buildError("model_policy_enforcement_unavailable", enforcementResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("model_policy_enforcement_validations", enforcementResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/cost-budget-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "cost_budget_ledger");
     if (!ledgerResult.available) {
@@ -3985,6 +4020,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/context-retrieval-filters", "Matter and policy retrieval filters for context packets"),
       route("GET", "/api/model-routing-ledgers", "Model routing ledger artifacts"),
       route("GET", "/api/model-routing-decisions", "Runtime model routing and external-transfer decisions"),
+      route("GET", "/api/model-policy-enforcements", "Model policy enforcement artifacts"),
+      route("GET", "/api/classification-model-gates", "Classification-level model policy gates"),
+      route("GET", "/api/resource-model-gates", "Resource-level model policy gates"),
+      route("GET", "/api/route-model-gates", "Route-level model policy gates"),
+      route("GET", "/api/model-policy-enforcement-validations", "Model policy enforcement validation rows"),
       route("GET", "/api/cost-budget-ledgers", "Cost budget ledger artifacts"),
       route("GET", "/api/cost-budget-decisions", "Cost budget gate decisions"),
       route("GET", "/api/token-usage-ledgers", "Token usage ledger artifacts"),
@@ -4526,6 +4566,19 @@ function filterItems(items, searchParams) {
     "runtime_policy_status",
     "redaction_status",
     "audit_required",
+    "model_policy_enforcement_id",
+    "model_policy_enforcement_status",
+    "classification_model_gate_id",
+    "resource_model_gate_id",
+    "route_model_gate_id",
+    "classification_ordinal",
+    "sensitive_data",
+    "gate_decision",
+    "gate_status",
+    "external_transfer_gate_status",
+    "source_route_status",
+    "source_route_mode",
+    "human_approval_required",
     "budget_decision_id",
     "budget_status",
     "token_tracking_required",

@@ -3637,6 +3637,39 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 - Control Plane Loop와 Goal Checkpoint가 Data Classification Rule Engine을 독립 단계와 checkpoint로 검증함
 - `npm test`, `npm run validate`, `npm run contracts:classification-rules`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 119 - Model Policy Matrix Enforcement
+
+목표: Data Classification Rule Engine과 Model Routing Ledger를 대조해 P2-P5 자료가 외부 모델 경계를 `allow` 상태로 통과하지 못하도록 별도 model policy gate를 고정한다.
+
+구현 산출물:
+
+- `src/model-policy-enforcement.mjs`
+- `scripts/model-policy-enforcement.mjs`
+- `schemas/model-policy-enforcement.schema.json`
+- `docs/model-policy-enforcement.md`
+- `artifacts/model-policy-enforcement/latest/model-policy-enforcement.json`
+- `artifacts/model-policy-enforcement/latest/model-policy-gates.json`
+- `artifacts/model-policy-enforcement/latest/classification-model-gates.json`
+- `artifacts/model-policy-enforcement/latest/resource-model-gates.json`
+- `artifacts/model-policy-enforcement/latest/route-model-gates.json`
+- `artifacts/model-policy-enforcement/latest/validation-report.json`
+- `artifacts/model-policy-enforcement/latest/summary.md`
+
+완료 기준:
+
+- `npm run contracts:model-policy -- --check`가 Model Policy Enforcement를 생성하고 validation error 0으로 통과한다.
+- P0-P5 classification rule마다 `classification-model-policy-gate.v1`이 생성된다.
+- Resource classification decision마다 `resource-model-policy-gate.v1`이 생성된다.
+- Model routing decision마다 `route-model-policy-gate.v1`이 생성된다.
+- P2 classification은 외부 모델 route가 `review`/approval gate를 요구하고, P3-P5 classification은 외부 모델 route가 `deny`가 된다.
+- P2-P5 external transfer route가 `allow`로 통과하는 경우는 `unauthorized_external_allow_count`로 잡히며 현재 0이다.
+- 외부 전송 route에서 required redaction이 누락되면 route model gate가 `deny`로 고정된다.
+- Contract Golden Fixtures와 Contract Validation Suite에 `model_policy_enforcement` fixture가 포함되어 golden fixture set이 21개로 확장된다.
+- Dashboard stage와 summary가 `model_policy_enforcement` 지표를 추적함
+- Review API에서 `/api/model-policy-enforcements`, `/api/classification-model-gates`, `/api/resource-model-gates`, `/api/route-model-gates`, `/api/model-policy-enforcement-validations` route를 제공함
+- Control Plane Loop와 Goal Checkpoint가 Model Policy Enforcement를 독립 단계와 checkpoint로 검증함
+- `npm test`, `npm run validate`, `npm run contracts:model-policy`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -3645,9 +3678,9 @@ Phase 104는 `runtime-adapter-registry.v1`, `runtime-command-bindings.v1`, Phase
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 118이다.
+- 현재 완료 기준점은 Phase 119이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P119-P312, 총 194개다.
+- 남은 계획 슬롯은 P120-P312, 총 193개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

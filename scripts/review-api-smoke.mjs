@@ -69,6 +69,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/context-retrieval-filters"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
+  assert.ok(index.routes.some((route) => route.path === "/api/classification-model-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resource-model-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/route-model-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcement-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-budget-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-ledgers"));
@@ -619,6 +624,26 @@ try {
   const externalModelRoutes = await fetchJson(`${url}/api/model-routing-decisions?external_transfer=true&limit=5`);
   assert.equal(externalModelRoutes.collection, "model_routing_decisions");
   assert.ok(externalModelRoutes.count <= 5);
+
+  const modelPolicyEnforcements = await fetchJson(`${url}/api/model-policy-enforcements?limit=1`);
+  assert.equal(modelPolicyEnforcements.collection, "model_policy_enforcements");
+  assert.ok(modelPolicyEnforcements.count <= 1);
+
+  const classificationModelGates = await fetchJson(`${url}/api/classification-model-gates?sensitive_data=true&limit=5`);
+  assert.equal(classificationModelGates.collection, "classification_model_gates");
+  assert.ok(classificationModelGates.count <= 5);
+
+  const resourceModelGates = await fetchJson(`${url}/api/resource-model-gates?gate_status=requires_approval&limit=5`);
+  assert.equal(resourceModelGates.collection, "resource_model_gates");
+  assert.ok(resourceModelGates.count <= 5);
+
+  const routeModelGates = await fetchJson(`${url}/api/route-model-gates?external_transfer=true&limit=5`);
+  assert.equal(routeModelGates.collection, "route_model_gates");
+  assert.ok(routeModelGates.count <= 5);
+
+  const modelPolicyEnforcementValidations = await fetchJson(`${url}/api/model-policy-enforcement-validations?status=passed&limit=5`);
+  assert.equal(modelPolicyEnforcementValidations.collection, "model_policy_enforcement_validations");
+  assert.ok(modelPolicyEnforcementValidations.count <= 5);
 
   const costBudgetLedgers = await fetchJson(`${url}/api/cost-budget-ledgers?ledger_status=valid&limit=1`);
   assert.equal(costBudgetLedgers.collection, "cost_budget_ledgers");

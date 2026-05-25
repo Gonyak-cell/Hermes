@@ -102,6 +102,7 @@ npm run dashboard:build -- \
 - Matter Boundary Slice의 resource boundary path, retrieval gate, store filter, negative probe, matter tagging hold 상태
 - Identity/Policy/Matter Freeze의 P113-P131 source status, freeze checkpoint, protected action 0-count 상태
 - Resource Store Interface의 resource/version store record, registry/ingestion/dashboard adapter binding, required filter, query plan 상태
+- Immutable Object Store Layout의 raw source/generated output path resolver, content-addressed path, collision, absolute path leakage 상태
 - Context Packet Ledger의 runtime별 context packet, redaction mode, retrieval filter 상태
 - Model Routing Ledger의 runtime/provider boundary, 외부전송, redaction enforcement, approval/block 상태
 - Cost Budget Ledger의 capability cost policy, observed cost, token tracking 상태

@@ -33,6 +33,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "matter-boundary:slice",
   "identity-policy:freeze",
   "resource:store-interface",
+  "object-store:layout",
   "contracts:model-policy",
   "contracts:tool-runtime",
   "contracts:output-destination",

@@ -42,6 +42,7 @@ npm run control-plane:goal-checkpoint -- \
 - Plugin-style domain packs
 - Resource Expansion / Resource Ingest / Evidence Viewer
 - Resource Store Interface
+- Immutable Object Store Layout
 - Gate and approval workflow
 - Human review packets
 - Human review agenda

@@ -24,6 +24,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   matterBoundarySlicePath: "artifacts/matter-boundary-slice/latest/matter-boundary-slice.json",
   identityPolicyMatterFreezePath: "artifacts/identity-policy-matter-freeze/latest/identity-policy-matter-freeze.json",
   resourceStoreInterfacePath: "artifacts/resource-store-interface/latest/resource-store-interface.json",
+  immutableObjectStoreLayoutPath: "artifacts/immutable-object-store-layout/latest/immutable-object-store-layout.json",
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
@@ -232,6 +233,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceStoreInterfacePath",
     source_id: "resource_store_interface",
     label: "Resource Store Interface",
+  },
+  {
+    option: "immutableObjectStoreLayoutPath",
+    source_id: "immutable_object_store_layout",
+    label: "Immutable Object Store Layout",
   },
   {
     option: "evidenceContractFreezePath",
@@ -890,6 +896,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "matter_boundary_slice") return data.summary ?? {};
   if (sourceId === "identity_policy_matter_freeze") return data.summary ?? {};
   if (sourceId === "resource_store_interface") return data.summary ?? {};
+  if (sourceId === "immutable_object_store_layout") return data.summary ?? {};
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
@@ -1103,6 +1110,7 @@ function buildStageStatuses(artifacts, sources) {
     buildMatterBoundarySliceStage(artifacts.matter_boundary_slice, sourceById.get("matter_boundary_slice")),
     buildIdentityPolicyMatterFreezeStage(artifacts.identity_policy_matter_freeze, sourceById.get("identity_policy_matter_freeze")),
     buildResourceStoreInterfaceStage(artifacts.resource_store_interface, sourceById.get("resource_store_interface")),
+    buildImmutableObjectStoreLayoutStage(artifacts.immutable_object_store_layout, sourceById.get("immutable_object_store_layout")),
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
@@ -2068,6 +2076,45 @@ function buildResourceStoreInterfaceStage(resourceStoreInterface, source) {
       compiled_resource_query_plan_count: summary.compiled_resource_query_plan_count ?? 0,
       executable_resource_query_plan_count: summary.executable_resource_query_plan_count ?? 0,
       held_resource_query_plan_count: summary.held_resource_query_plan_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildImmutableObjectStoreLayoutStage(layout, source) {
+  if (!layout) return missingStage("immutable_object_store_layout", "Immutable Object Store Layout", source);
+  const summary = layout.summary ?? {};
+  const errorCount = summary.validation_error_count ?? layout.validation?.errors?.length ?? 0;
+  const status = summary.object_store_layout_status === "complete"
+    && errorCount === 0
+    && (summary.raw_source_object_path_count ?? 0) > 0
+    && (summary.generated_output_object_path_count ?? 0) > 0
+    && (summary.collision_count ?? -1) === 0
+    && (summary.absolute_source_path_key_count ?? -1) === 0
+    && (summary.content_addressed_path_count ?? 0) === (summary.total_object_path_count ?? -1)
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "immutable_object_store_layout",
+    label: "Immutable Object Store Layout",
+    status,
+    message: `${summary.raw_source_object_path_count ?? 0} raw source path(s), ${summary.generated_output_object_path_count ?? 0} generated output path(s), ${summary.collision_count ?? 0} collision(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      object_store_layout_status: summary.object_store_layout_status ?? "unknown",
+      layout_contract_id: summary.layout_contract_id ?? null,
+      object_store_root: summary.object_store_root ?? null,
+      namespace_count: summary.namespace_count ?? 0,
+      path_resolver_count: summary.path_resolver_count ?? 0,
+      raw_source_object_path_count: summary.raw_source_object_path_count ?? 0,
+      generated_output_object_path_count: summary.generated_output_object_path_count ?? 0,
+      total_object_path_count: summary.total_object_path_count ?? 0,
+      collision_count: summary.collision_count ?? 0,
+      overwrite_forbidden_resolver_count: summary.overwrite_forbidden_resolver_count ?? 0,
+      content_addressed_path_count: summary.content_addressed_path_count ?? 0,
+      absolute_source_path_key_count: summary.absolute_source_path_key_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -5831,6 +5878,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.immutable_object_store_layout?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "immutable_object_store_layout";
+    items.push({
+      action_item_id: `dashboard.action.immutable_object_store_layout.${slugify(subjectId)}`,
+      source_stage: "immutable_object_store_layout",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix immutable object store layout",
+      subject_ref: {
+        subject_type: "immutable_object_store_layout_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_object_store_layout", "rerun_object_store_layout", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.context_packet_ledger?.validation?.errors ?? []) {
     const subjectId = error.path ?? "context_packet_ledger";
     items.push({
@@ -7527,6 +7592,18 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_store_interface_compiled_query_plan_count: artifacts.resource_store_interface?.summary?.compiled_resource_query_plan_count ?? 0,
     resource_store_interface_executable_query_plan_count: artifacts.resource_store_interface?.summary?.executable_resource_query_plan_count ?? 0,
     resource_store_interface_validation_error_count: artifacts.resource_store_interface?.summary?.validation_error_count ?? artifacts.resource_store_interface?.validation?.errors?.length ?? 0,
+    immutable_object_store_layout_status: artifacts.immutable_object_store_layout?.summary?.object_store_layout_status ?? "unknown",
+    immutable_object_store_layout_contract_id: artifacts.immutable_object_store_layout?.summary?.layout_contract_id ?? null,
+    immutable_object_store_layout_root: artifacts.immutable_object_store_layout?.summary?.object_store_root ?? null,
+    immutable_object_store_namespace_count: artifacts.immutable_object_store_layout?.summary?.namespace_count ?? 0,
+    immutable_object_store_path_resolver_count: artifacts.immutable_object_store_layout?.summary?.path_resolver_count ?? 0,
+    immutable_object_store_raw_source_object_path_count: artifacts.immutable_object_store_layout?.summary?.raw_source_object_path_count ?? 0,
+    immutable_object_store_generated_output_object_path_count: artifacts.immutable_object_store_layout?.summary?.generated_output_object_path_count ?? 0,
+    immutable_object_store_total_object_path_count: artifacts.immutable_object_store_layout?.summary?.total_object_path_count ?? 0,
+    immutable_object_store_collision_count: artifacts.immutable_object_store_layout?.summary?.collision_count ?? 0,
+    immutable_object_store_content_addressed_path_count: artifacts.immutable_object_store_layout?.summary?.content_addressed_path_count ?? 0,
+    immutable_object_store_absolute_source_path_key_count: artifacts.immutable_object_store_layout?.summary?.absolute_source_path_key_count ?? 0,
+    immutable_object_store_validation_error_count: artifacts.immutable_object_store_layout?.summary?.validation_error_count ?? artifacts.immutable_object_store_layout?.validation?.errors?.length ?? 0,
     evidence_contract_freeze_source_span_count: artifacts.evidence_contract_freeze?.summary?.source_span_count ?? 0,
     evidence_contract_freeze_evidence_item_count: artifacts.evidence_contract_freeze?.summary?.evidence_item_count ?? 0,
     evidence_contract_freeze_fact_claim_count: artifacts.evidence_contract_freeze?.summary?.fact_claim_count ?? 0,
@@ -8892,6 +8969,8 @@ function parseArgs(argv) {
     else if (arg === "--no-identity-policy-matter-freeze") parsed.identityPolicyMatterFreezePath = false;
     else if (arg === "--resource-store-interface") parsed.resourceStoreInterfacePath = argv[++index];
     else if (arg === "--no-resource-store-interface") parsed.resourceStoreInterfacePath = false;
+    else if (arg === "--immutable-object-store-layout") parsed.immutableObjectStoreLayoutPath = argv[++index];
+    else if (arg === "--no-immutable-object-store-layout") parsed.immutableObjectStoreLayoutPath = false;
     else if (arg === "--evidence-contract-freeze") parsed.evidenceContractFreezePath = argv[++index];
     else if (arg === "--no-evidence-contract-freeze") parsed.evidenceContractFreezePath = false;
     else if (arg === "--capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = argv[++index];
@@ -9154,6 +9233,10 @@ Options:
   --resource-store-interface <path>
                                   resource-store-interface.json path.
   --no-resource-store-interface   Do not include Resource Store Interface status.
+  --immutable-object-store-layout <path>
+                                  immutable-object-store-layout.json path.
+  --no-immutable-object-store-layout
+                                  Do not include Immutable Object Store Layout status.
   --capability-workflow-contract-freeze <path>
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze

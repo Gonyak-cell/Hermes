@@ -243,6 +243,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/resource-version-store-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/resource-store-adapter-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/resource-store-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/immutable-object-store-layouts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/object-path-resolvers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/raw-source-object-paths"));
+  assert.ok(index.routes.some((route) => route.path === "/api/generated-output-object-paths"));
+  assert.ok(index.routes.some((route) => route.path === "/api/object-store-collisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/object-store-layout-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/control-plane-health"));
   assert.ok(index.routes.some((route) => route.path === "/api/health-checks"));
   assert.ok(index.routes.some((route) => route.path === "/api/action-plans"));
@@ -1633,6 +1639,30 @@ try {
   const resourceStoreValidations = await fetchJson(`${url}/api/resource-store-validations?status=passed&limit=5`);
   assert.equal(resourceStoreValidations.collection, "resource_store_validations");
   assert.ok(resourceStoreValidations.count <= 5);
+
+  const immutableObjectStoreLayouts = await fetchJson(`${url}/api/immutable-object-store-layouts?object_store_layout_status=complete&limit=1`);
+  assert.equal(immutableObjectStoreLayouts.collection, "immutable_object_store_layouts");
+  assert.ok(immutableObjectStoreLayouts.count <= 1);
+
+  const objectPathResolvers = await fetchJson(`${url}/api/object-path-resolvers?overwrite_policy=forbidden&limit=5`);
+  assert.equal(objectPathResolvers.collection, "object_path_resolvers");
+  assert.ok(objectPathResolvers.count <= 5);
+
+  const rawSourceObjectPaths = await fetchJson(`${url}/api/raw-source-object-paths?namespace=raw-source&limit=5`);
+  assert.equal(rawSourceObjectPaths.collection, "raw_source_object_paths");
+  assert.ok(rawSourceObjectPaths.count <= 5);
+
+  const generatedOutputObjectPaths = await fetchJson(`${url}/api/generated-output-object-paths?namespace=generated-output&limit=5`);
+  assert.equal(generatedOutputObjectPaths.collection, "generated_output_object_paths");
+  assert.ok(generatedOutputObjectPaths.count <= 5);
+
+  const objectStoreCollisions = await fetchJson(`${url}/api/object-store-collisions?limit=5`);
+  assert.equal(objectStoreCollisions.collection, "object_store_collisions");
+  assert.ok(objectStoreCollisions.count <= 5);
+
+  const objectStoreLayoutValidations = await fetchJson(`${url}/api/object-store-layout-validations?status=passed&limit=5`);
+  assert.equal(objectStoreLayoutValidations.collection, "object_store_layout_validations");
+  assert.ok(objectStoreLayoutValidations.count <= 5);
 
   const matterContractFreezes = await fetchJson(`${url}/api/matter-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

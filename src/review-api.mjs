@@ -234,6 +234,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("resource_store_validations", interfaceResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/immutable-object-store-layouts") {
+    const layoutResult = await readDashboardSourceArtifact(dashboard, "immutable_object_store_layout");
+    if (!layoutResult.available) {
+      return jsonResponse(503, buildError("immutable_object_store_layout_unavailable", layoutResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("immutable_object_store_layouts", [layoutResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/object-path-resolvers") {
+    const layoutResult = await readDashboardSourceArtifact(dashboard, "immutable_object_store_layout");
+    if (!layoutResult.available) {
+      return jsonResponse(503, buildError("immutable_object_store_layout_unavailable", layoutResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("object_path_resolvers", layoutResult.artifact.object_store_catalog?.path_resolvers ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/raw-source-object-paths") {
+    const layoutResult = await readDashboardSourceArtifact(dashboard, "immutable_object_store_layout");
+    if (!layoutResult.available) {
+      return jsonResponse(503, buildError("immutable_object_store_layout_unavailable", layoutResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("raw_source_object_paths", layoutResult.artifact.object_store_catalog?.raw_source_object_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/generated-output-object-paths") {
+    const layoutResult = await readDashboardSourceArtifact(dashboard, "immutable_object_store_layout");
+    if (!layoutResult.available) {
+      return jsonResponse(503, buildError("immutable_object_store_layout_unavailable", layoutResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("generated_output_object_paths", layoutResult.artifact.object_store_catalog?.generated_output_object_paths ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/object-store-collisions") {
+    const layoutResult = await readDashboardSourceArtifact(dashboard, "immutable_object_store_layout");
+    if (!layoutResult.available) {
+      return jsonResponse(503, buildError("immutable_object_store_layout_unavailable", layoutResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("object_store_collisions", layoutResult.artifact.object_store_catalog?.collision_report?.collisions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/object-store-layout-validations") {
+    const layoutResult = await readDashboardSourceArtifact(dashboard, "immutable_object_store_layout");
+    if (!layoutResult.available) {
+      return jsonResponse(503, buildError("immutable_object_store_layout_unavailable", layoutResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("object_store_layout_validations", layoutResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "matter_contract_freeze");
     if (!freezeResult.available) {
@@ -4443,6 +4485,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-version-store-records", "ResourceVersion store records"),
       route("GET", "/api/resource-store-adapter-bindings", "Resource store adapter bindings"),
       route("GET", "/api/resource-store-validations", "Resource store interface validation rows"),
+      route("GET", "/api/immutable-object-store-layouts", "Immutable object store layout artifacts"),
+      route("GET", "/api/object-path-resolvers", "Immutable object path resolvers"),
+      route("GET", "/api/raw-source-object-paths", "Raw source immutable object paths"),
+      route("GET", "/api/generated-output-object-paths", "Generated output immutable object paths"),
+      route("GET", "/api/object-store-collisions", "Immutable object store collision rows"),
+      route("GET", "/api/object-store-layout-validations", "Immutable object store validation rows"),
       route("GET", "/api/matter-contract-freezes", "Matter contract freeze artifacts"),
       route("GET", "/api/client-v2-contracts", "Client v2 contract fixtures"),
       route("GET", "/api/party-v2-contracts", "Party v2 contract fixtures"),
@@ -5691,6 +5739,7 @@ function readFilterValue(item, key) {
   if (key === "policy_operations_surface_status") return item.summary?.policy_operations_surface_status ?? item.policy_operations_surface_status;
   if (key === "matter_boundary_slice_status") return item.summary?.matter_boundary_slice_status ?? item.matter_boundary_slice_status;
   if (key === "resource_store_interface_status") return item.summary?.resource_store_interface_status ?? item.resource_store_interface_status;
+  if (key === "object_store_layout_status") return item.summary?.object_store_layout_status ?? item.object_store_layout_status;
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;

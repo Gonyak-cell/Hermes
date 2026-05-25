@@ -26,6 +26,7 @@ import { runPolicyOperationsSurface } from "../src/policy-operations-surface.mjs
 import { runMatterBoundarySlice } from "../src/matter-boundary-slice.mjs";
 import { runIdentityPolicyMatterFreeze } from "../src/identity-policy-matter-freeze.mjs";
 import { runResourceStoreInterface } from "../src/resource-store-interface.mjs";
+import { runImmutableObjectStoreLayout } from "../src/immutable-object-store-layout.mjs";
 import { runModelPolicyEnforcement } from "../src/model-policy-enforcement.mjs";
 import { runToolRuntimePolicyEnforcement } from "../src/tool-runtime-policy-enforcement.mjs";
 import { runOutputDestinationPolicyEnforcement } from "../src/output-destination-policy-enforcement.mjs";
@@ -1638,6 +1639,7 @@ describe("matter harness", () => {
         matterBoundarySlicePath: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
         identityPolicyMatterFreezePath: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -3766,6 +3768,32 @@ describe("matter harness", () => {
       assert.ok(resourceStoreInterface.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "resource-store-interface", "summary.md"), "utf8"), /Resource Store Interface/);
 
+      const immutableObjectStoreLayout = await runImmutableObjectStoreLayout({
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        outDir: path.join(outDir, "immutable-object-store-layout"),
+        runAt: "2026-05-23T06:35:07.925Z",
+      });
+      const immutableObjectStoreLayoutSchema = JSON.parse(await readFile("schemas/immutable-object-store-layout.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(immutableObjectStoreLayout, immutableObjectStoreLayoutSchema, {}, "immutable_object_store_layout"),
+        [],
+      );
+      assert.equal(immutableObjectStoreLayout.summary.object_store_layout_status, "complete");
+      assert.equal(immutableObjectStoreLayout.summary.raw_source_object_path_count, resourceStoreInterface.summary.resource_version_store_record_count);
+      assert.equal(immutableObjectStoreLayout.summary.generated_output_object_path_count, outputDeliveryContractFreeze.summary.output_artifact_count);
+      assert.equal(immutableObjectStoreLayout.summary.path_resolver_count, 2);
+      assert.equal(immutableObjectStoreLayout.summary.collision_count, 0);
+      assert.equal(immutableObjectStoreLayout.summary.absolute_source_path_key_count, 0);
+      assert.equal(immutableObjectStoreLayout.summary.content_addressed_path_count, immutableObjectStoreLayout.summary.total_object_path_count);
+      assert.equal(immutableObjectStoreLayout.summary.validation_error_count, 0);
+      assert.ok(immutableObjectStoreLayout.object_store_catalog.raw_source_object_paths.every((record) => record.namespace === "raw-source"));
+      assert.ok(immutableObjectStoreLayout.object_store_catalog.generated_output_object_paths.every((record) => record.namespace === "generated-output"));
+      assert.ok(immutableObjectStoreLayout.object_store_catalog.path_resolvers.every((resolver) => resolver.overwrite_policy === "forbidden"));
+      assert.ok(immutableObjectStoreLayout.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "immutable-object-store-layout", "summary.md"), "utf8"), /Immutable Object Store Layout/);
+
       const contractGoldenFixtures = await runContractGoldenFixtures({
         artifactPaths: {
           contract_inventory: path.join(outDir, "contract-inventory", "contract-inventory.json"),
@@ -3788,6 +3816,7 @@ describe("matter harness", () => {
           matter_boundary_slice: path.join(outDir, "matter-boundary-slice", "matter-boundary-slice.json"),
           identity_policy_matter_freeze: path.join(outDir, "identity-policy-matter-freeze", "identity-policy-matter-freeze.json"),
           resource_store_interface: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+          immutable_object_store_layout: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
           model_policy_enforcement: path.join(outDir, "model-policy-enforcement", "model-policy-enforcement.json"),
           tool_runtime_policy_enforcement: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
           output_destination_policy_enforcement: path.join(outDir, "output-destination-policy", "output-destination-policy-enforcement.json"),
@@ -3813,8 +3842,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 35);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 35);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 36);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 36);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -3840,6 +3869,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_boundary_slice"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "identity_policy_matter_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "resource_store_interface"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "immutable_object_store_layout"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "model_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_runtime_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
@@ -4013,6 +4043,10 @@ describe("matter harness", () => {
       assert.equal(resourceStoreInterfaceCheckpoint?.acceptance_profile, "resource_store_interface_gate");
       assert.equal(resourceStoreInterfaceCheckpoint?.status, "passed");
       assert.equal(resourceStoreInterfaceCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const immutableObjectStoreLayoutCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-immutable-object-store-layout");
+      assert.equal(immutableObjectStoreLayoutCheckpoint?.acceptance_profile, "immutable_object_store_layout_gate");
+      assert.equal(immutableObjectStoreLayoutCheckpoint?.status, "passed");
+      assert.equal(immutableObjectStoreLayoutCheckpoint?.implementation_status, "passed_with_operational_gate");
       const modelPolicyEnforcementCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-model-policy-enforcement");
       assert.equal(modelPolicyEnforcementCheckpoint?.acceptance_profile, "model_policy_enforcement_gate");
       assert.equal(modelPolicyEnforcementCheckpoint?.status, "passed");
@@ -4743,6 +4777,18 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.resource_store_interface_compiled_query_plan_count, resourceStoreInterface.summary.compiled_resource_query_plan_count);
       assert.equal(dashboard.summary.resource_store_interface_executable_query_plan_count, 0);
       assert.equal(dashboard.summary.resource_store_interface_validation_error_count, 0);
+      assert.equal(dashboard.summary.immutable_object_store_layout_status, "complete");
+      assert.equal(dashboard.summary.immutable_object_store_layout_contract_id, "immutable-object-store-layout.v1");
+      assert.equal(dashboard.summary.immutable_object_store_layout_root, "object-store/immutable");
+      assert.equal(dashboard.summary.immutable_object_store_namespace_count, immutableObjectStoreLayout.summary.namespace_count);
+      assert.equal(dashboard.summary.immutable_object_store_path_resolver_count, immutableObjectStoreLayout.summary.path_resolver_count);
+      assert.equal(dashboard.summary.immutable_object_store_raw_source_object_path_count, immutableObjectStoreLayout.summary.raw_source_object_path_count);
+      assert.equal(dashboard.summary.immutable_object_store_generated_output_object_path_count, immutableObjectStoreLayout.summary.generated_output_object_path_count);
+      assert.equal(dashboard.summary.immutable_object_store_total_object_path_count, immutableObjectStoreLayout.summary.total_object_path_count);
+      assert.equal(dashboard.summary.immutable_object_store_collision_count, 0);
+      assert.equal(dashboard.summary.immutable_object_store_content_addressed_path_count, immutableObjectStoreLayout.summary.total_object_path_count);
+      assert.equal(dashboard.summary.immutable_object_store_absolute_source_path_key_count, 0);
+      assert.equal(dashboard.summary.immutable_object_store_validation_error_count, 0);
       assert.equal(dashboard.summary.evidence_contract_freeze_source_span_count, evidenceContractFreeze.summary.source_span_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_evidence_item_count, evidenceContractFreeze.summary.evidence_item_count);
       assert.equal(dashboard.summary.evidence_contract_freeze_fact_claim_count, evidenceContractFreeze.summary.fact_claim_count);
@@ -5275,6 +5321,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "conflict_check_interface"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "personal_workspace_boundary"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "resource_store_interface"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "immutable_object_store_layout"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
@@ -5362,6 +5409,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-store-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-store-adapter-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-store-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/immutable-object-store-layouts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/object-path-resolvers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/raw-source-object-paths"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/generated-output-object-paths"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/object-store-collisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/object-store-layout-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matter-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/client-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/party-v2-contracts"));
@@ -7120,6 +7173,30 @@ describe("matter harness", () => {
       const resourceStoreValidations = JSON.parse((await buildReviewApiResponse("/api/resource-store-validations?status=passed", apiOptions)).body);
       assert.equal(resourceStoreValidations.collection, "resource_store_validations");
       assert.equal(resourceStoreValidations.count, resourceStoreInterface.summary.validation_item_count);
+
+      const immutableObjectStoreLayouts = JSON.parse((await buildReviewApiResponse("/api/immutable-object-store-layouts?object_store_layout_status=complete", apiOptions)).body);
+      assert.equal(immutableObjectStoreLayouts.collection, "immutable_object_store_layouts");
+      assert.equal(immutableObjectStoreLayouts.count, 1);
+
+      const objectPathResolvers = JSON.parse((await buildReviewApiResponse("/api/object-path-resolvers?overwrite_policy=forbidden", apiOptions)).body);
+      assert.equal(objectPathResolvers.collection, "object_path_resolvers");
+      assert.equal(objectPathResolvers.count, immutableObjectStoreLayout.summary.path_resolver_count);
+
+      const rawSourceObjectPaths = JSON.parse((await buildReviewApiResponse("/api/raw-source-object-paths?namespace=raw-source", apiOptions)).body);
+      assert.equal(rawSourceObjectPaths.collection, "raw_source_object_paths");
+      assert.equal(rawSourceObjectPaths.count, immutableObjectStoreLayout.summary.raw_source_object_path_count);
+
+      const generatedOutputObjectPaths = JSON.parse((await buildReviewApiResponse("/api/generated-output-object-paths?namespace=generated-output", apiOptions)).body);
+      assert.equal(generatedOutputObjectPaths.collection, "generated_output_object_paths");
+      assert.equal(generatedOutputObjectPaths.count, immutableObjectStoreLayout.summary.generated_output_object_path_count);
+
+      const objectStoreCollisions = JSON.parse((await buildReviewApiResponse("/api/object-store-collisions", apiOptions)).body);
+      assert.equal(objectStoreCollisions.collection, "object_store_collisions");
+      assert.equal(objectStoreCollisions.count, 0);
+
+      const objectStoreLayoutValidations = JSON.parse((await buildReviewApiResponse("/api/object-store-layout-validations?status=passed", apiOptions)).body);
+      assert.equal(objectStoreLayoutValidations.collection, "object_store_layout_validations");
+      assert.equal(objectStoreLayoutValidations.count, immutableObjectStoreLayout.summary.validation_item_count);
 
       const matterContractFreezes = JSON.parse((await buildReviewApiResponse("/api/matter-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(matterContractFreezes.collection, "matter_contract_freezes");

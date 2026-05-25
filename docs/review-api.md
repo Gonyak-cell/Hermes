@@ -68,6 +68,12 @@ npm run api:serve
 - `GET /api/resource-version-store-records`: ResourceVersion v2에서 projection된 version store records
 - `GET /api/resource-store-adapter-bindings`: registry, ingestion, dashboard adapter binding rows
 - `GET /api/resource-store-validations`: resource store interface validation rows
+- `GET /api/immutable-object-store-layouts`: immutable object store layout artifact
+- `GET /api/object-path-resolvers`: raw source/generated output path resolver rows
+- `GET /api/raw-source-object-paths`: raw source namespace object key rows
+- `GET /api/generated-output-object-paths`: generated output namespace object key rows
+- `GET /api/object-store-collisions`: object key collision rows
+- `GET /api/object-store-layout-validations`: immutable object store layout validation rows
 - `GET /api/context-packet-ledgers`: context packet ledger artifact
 - `GET /api/context-packets`: runtime별 context packet
 - `GET /api/context-items`: packet에 포함된 context item

@@ -4038,6 +4038,34 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 35개로 증가하고 resource store interface가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:store-interface -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 134: Immutable Object Store Layout
+
+목표: raw source와 generated output이 충돌 없이 immutable object key로 resolve되도록 path resolver 계약을 고정한다.
+
+구현 내용:
+
+- `src/immutable-object-store-layout.mjs`, `scripts/immutable-object-store-layout.mjs`, `schemas/immutable-object-store-layout.schema.json`, `docs/immutable-object-store-layout.md`를 추가함
+- `npm run object-store:layout -- --check` 명령을 추가해 layout contract, raw source path, generated output path, resolver, collision report, validation report, summary markdown을 생성함
+- Resource Store Interface의 ResourceVersion store record를 `raw-source` namespace의 content-addressed object key로 projection함
+- OutputArtifact/Delivery v2 contract의 OutputArtifact를 `generated-output` namespace의 content-addressed object key로 projection함
+- object key가 tenant, matter, namespace, stable id, content hash를 포함하고 절대 로컬 source path를 포함하지 않음을 검증함
+- raw source/generated output namespace를 분리하고 duplicate object key collision이 0개임을 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 immutable object store layout을 통합함
+- `/api/immutable-object-store-layouts`, `/api/object-path-resolvers`, `/api/raw-source-object-paths`, `/api/generated-output-object-paths`, `/api/object-store-collisions`, `/api/object-store-layout-validations` route를 추가함
+
+완료 기준:
+
+- Immutable Object Store Layout이 validation error 없이 `complete` 상태가 됨
+- raw source object path 수가 ResourceVersion store record 수와 일치함
+- generated output object path 수가 OutputArtifact v2 수와 일치함
+- raw source와 generated output이 서로 다른 namespace와 resolver를 사용함
+- 모든 object key가 `object-store/immutable` 아래에 있고 content hash segment를 포함함
+- object key collision이 0개이고 절대 source path가 key에 포함되지 않음
+- Review Dashboard summary와 stage status에서 layout status, resolver count, raw/generated path count, collision count, validation 상태가 노출됨
+- Review API smoke가 layout, resolver, raw source path, generated output path, collision, validation route를 모두 조회함
+- Golden fixture 수가 36개로 증가하고 immutable object store layout이 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run object-store:layout -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4046,9 +4074,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 133이다.
+- 현재 완료 기준점은 Phase 134이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P134-P312, 총 179개다.
+- 남은 계획 슬롯은 P135-P312, 총 178개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

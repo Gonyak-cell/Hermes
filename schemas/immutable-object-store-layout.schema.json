@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/immutable-object-store-layout.schema.json",
+  "title": "Hermes Immutable Object Store Layout",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "object_store_layout_id",
+    "output_dir",
+    "inputs",
+    "layout_contract",
+    "object_store_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "immutable-object-store-layout.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "object_store_layout_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "resource_store_interface_path",
+        "output_artifact_catalog_path",
+        "output_delivery_contract_freeze_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "resource_store_interface_path": { "type": "string" },
+        "output_artifact_catalog_path": { "type": "string" },
+        "output_delivery_contract_freeze_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_resource_store_interface": { "$ref": "#/$defs/source" },
+    "source_output_artifact_catalog": { "$ref": "#/$defs/source" },
+    "source_output_delivery_contract_freeze": { "$ref": "#/$defs/source" },
+    "layout_contract": { "$ref": "#/$defs/layout_contract" },
+    "object_store_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "path_resolvers",
+        "raw_source_object_paths",
+        "generated_output_object_paths",
+        "namespace_index",
+        "collision_report"
+      ],
+      "properties": {
+        "schema_version": { "const": "immutable-object-store-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "path_resolvers": { "type": "array", "items": { "$ref": "#/$defs/path_resolver" } },
+        "raw_source_object_paths": { "type": "array", "items": { "$ref": "#/$defs/object_path" } },
+        "generated_output_object_paths": { "type": "array", "items": { "$ref": "#/$defs/object_path" } },
+        "namespace_index": { "$ref": "#/$defs/namespace_index" },
+        "collision_report": { "$ref": "#/$defs/collision_report" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "generated_at", "summary"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "summary": { "type": ["object", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "layout_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "layout_contract_id",
+        "generated_at",
+        "object_store_root",
+        "immutability_model",
+        "overwrite_policy",
+        "allowed_namespaces",
+        "raw_source_namespace",
+        "generated_output_namespace",
+        "required_path_components",
+        "collision_strategy",
+        "resolver_contract"
+      ],
+      "properties": {
+        "schema_version": { "const": "object-store-layout-contract.v1" },
+        "layout_contract_id": { "const": "immutable-object-store-layout.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "object_store_root": { "const": "object-store/immutable" },
+        "immutability_model": { "const": "write_once_content_addressed" },
+        "overwrite_policy": { "const": "forbidden" },
+        "allowed_namespaces": { "type": "array", "items": { "enum": ["raw-source", "generated-output"] } },
+        "raw_source_namespace": { "const": "raw-source" },
+        "generated_output_namespace": { "const": "generated-output" },
+        "required_path_components": { "type": "array", "items": { "type": "string" } },
+        "collision_strategy": { "const": "fail_on_duplicate_object_key" },
+        "resolver_contract": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "path_resolver": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resolver_id",
+        "namespace",
+        "generated_at",
+        "input_schema_versions",
+        "required_inputs",
+        "path_template",
+        "immutability_key_fields",
+        "collision_strategy",
+        "overwrite_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "object-path-resolver.v1" },
+        "resolver_id": { "type": "string" },
+        "namespace": { "enum": ["raw-source", "generated-output"] },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "input_schema_versions": { "type": "array", "items": { "type": "string" } },
+        "required_inputs": { "type": "array", "items": { "type": "string" } },
+        "path_template": { "type": "string" },
+        "immutability_key_fields": { "type": "array", "items": { "type": "string" } },
+        "collision_strategy": { "const": "fail_on_duplicate_object_key" },
+        "overwrite_policy": { "const": "forbidden" }
+      },
+      "additionalProperties": true
+    },
+    "object_path": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "object_path_id",
+        "resolver_id",
+        "namespace",
+        "object_key",
+        "tenant_id",
+        "matter_id",
+        "content_hash",
+        "content_hash_algorithm",
+        "object_status",
+        "overwrite_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "object-store-path.v1" },
+        "object_path_id": { "type": "string" },
+        "resolver_id": { "type": "string" },
+        "namespace": { "enum": ["raw-source", "generated-output"] },
+        "object_key": { "type": "string" },
+        "tenant_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification": { "type": "string" },
+        "source_system": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "resource_version_id": { "type": "string" },
+        "source_uri": { "type": ["string", "null"] },
+        "source_uri_stored_as_metadata_only": { "type": "boolean" },
+        "domain_pack": { "type": "string" },
+        "output_artifact_id": { "type": "string" },
+        "artifact_type": { "type": "string" },
+        "artifact_uri": { "type": ["string", "null"] },
+        "content_hash": { "type": "string" },
+        "content_hash_algorithm": { "type": "string" },
+        "output_status": { "type": ["string", "null"] },
+        "object_status": { "const": "layout_only" },
+        "overwrite_policy": { "const": "forbidden" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "namespace_index": {
+      "type": "object",
+      "required": ["schema_version", "root", "namespaces"],
+      "properties": {
+        "schema_version": { "const": "object-store-namespace-index.v1" },
+        "root": { "const": "object-store/immutable" },
+        "namespaces": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["namespace", "resolver_id", "object_path_count", "path_prefix"],
+            "properties": {
+              "namespace": { "enum": ["raw-source", "generated-output"] },
+              "resolver_id": { "type": "string" },
+              "object_path_count": { "type": "number" },
+              "path_prefix": { "type": "string" }
+            }
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "collision_report": {
+      "type": "object",
+      "required": ["schema_version", "object_key_count", "object_path_count", "collision_count", "collisions"],
+      "properties": {
+        "schema_version": { "const": "object-store-collision-report.v1" },
+        "object_key_count": { "type": "number" },
+        "object_path_count": { "type": "number" },
+        "collision_count": { "type": "number" },
+        "collisions": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["validation_id", "subject_id", "check_id", "status", "severity", "message"],
+      "properties": {
+        "validation_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "severity": { "enum": ["info", "error"] },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "object_store_layout_status",
+        "layout_contract_id",
+        "object_store_root",
+        "namespace_count",
+        "path_resolver_count",
+        "raw_source_object_path_count",
+        "generated_output_object_path_count",
+        "total_object_path_count",
+        "collision_count",
+        "overwrite_forbidden_resolver_count",
+        "content_addressed_path_count",
+        "absolute_source_path_key_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "object_store_layout_status": { "enum": ["complete", "blocked"] },
+        "layout_contract_id": { "const": "immutable-object-store-layout.v1" },
+        "object_store_root": { "const": "object-store/immutable" },
+        "namespace_count": { "type": "number" },
+        "path_resolver_count": { "type": "number" },
+        "raw_source_object_path_count": { "type": "number" },
+        "generated_output_object_path_count": { "type": "number" },
+        "total_object_path_count": { "type": "number" },
+        "collision_count": { "type": "number" },
+        "raw_source_namespace": { "const": "raw-source" },
+        "generated_output_namespace": { "const": "generated-output" },
+        "overwrite_forbidden_resolver_count": { "type": "number" },
+        "content_addressed_path_count": { "type": "number" },
+        "absolute_source_path_key_count": { "type": "number" },
+        "validation_item_count": { "type": "number" },
+        "failed_validation_item_count": { "type": "number" },
+        "validation_error_count": { "type": "number" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

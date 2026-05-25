@@ -32,6 +32,7 @@ const GOAL_ITEMS = [
   sourceItem("matter_boundary_slice", "Matter boundary vertical slice", "identity_policy", "matter_boundary_slice", "control-plane-matter-boundary-slice", { acceptance_profile: "matter_boundary_slice_gate" }),
   sourceItem("identity_policy_matter_freeze", "Identity/Policy/Matter freeze", "identity_policy", "identity_policy_matter_freeze", "control-plane-identity-policy-matter-freeze", { acceptance_profile: "identity_policy_matter_freeze_gate" }),
   sourceItem("resource_store_interface", "Resource store interface", "resource_evidence", "resource_store_interface", "control-plane-resource-store-interface", { acceptance_profile: "resource_store_interface_gate" }),
+  sourceItem("immutable_object_store_layout", "Immutable object store layout", "resource_evidence", "immutable_object_store_layout", "control-plane-immutable-object-store-layout", { acceptance_profile: "immutable_object_store_layout_gate" }),
   sourceItem("model_policy_enforcement", "Model policy matrix enforcement", "identity_policy", "model_policy_enforcement", "control-plane-model-policy-enforcement", { acceptance_profile: "model_policy_enforcement_gate" }),
   sourceItem("tool_runtime_policy_enforcement", "Tool and runtime policy enforcement", "gate_approval", "tool_runtime_policy_enforcement", "control-plane-tool-runtime-policy-enforcement", { acceptance_profile: "tool_runtime_policy_gate" }),
   sourceItem("output_destination_policy_enforcement", "Output destination policy enforcement", "gate_approval", "output_destination_policy_enforcement", "control-plane-output-destination-policy-enforcement", { acceptance_profile: "output_destination_policy_gate" }),
@@ -371,6 +372,7 @@ function evaluateStageAcceptance(item, stage) {
     "matter_boundary_slice_gate",
     "identity_policy_matter_freeze_gate",
     "resource_store_interface_gate",
+    "immutable_object_store_layout_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -613,6 +615,22 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.executable_resource_query_plan_count ?? 0) === 0
     ) {
       return passedWithOperationalGate(stage, "Resource store interface is implemented as a common registry, ingestion, dashboard, and policy-query contract before storage layout work begins.");
+    }
+  }
+
+  if (item.acceptance_profile === "immutable_object_store_layout_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    if (
+      errors === 0
+      && metrics.object_store_layout_status === "complete"
+      && (metrics.raw_source_object_path_count ?? 0) > 0
+      && (metrics.generated_output_object_path_count ?? 0) > 0
+      && (metrics.collision_count ?? -1) === 0
+      && (metrics.absolute_source_path_key_count ?? -1) === 0
+      && (metrics.content_addressed_path_count ?? 0) === (metrics.total_object_path_count ?? -1)
+      && (metrics.path_resolver_count ?? 0) >= 2
+    ) {
+      return passedWithOperationalGate(stage, "Immutable object store layout resolves raw source and generated output keys without collisions or absolute source path leakage.");
     }
   }
 

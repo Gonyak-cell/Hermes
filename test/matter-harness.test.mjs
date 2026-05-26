@@ -180,6 +180,7 @@ import { runWorkflowQueueRetryBackoffContract } from "../src/workflow-queue-retr
 import { runWorkflowIdempotencyLedger } from "../src/workflow-idempotency-ledger.mjs";
 import { runWorkflowResumeCancelContract } from "../src/workflow-resume-cancel-contract.mjs";
 import { runWorkflowContextBuilderContract } from "../src/workflow-context-builder-contract.mjs";
+import { runWorkflowRetrievalCompiler } from "../src/workflow-retrieval-compiler.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1812,6 +1813,7 @@ describe("matter harness", () => {
         workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
         workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
         workflowContextBuilderContractPath: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
+        workflowRetrievalCompilerPath: path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -5818,6 +5820,52 @@ describe("matter harness", () => {
       assert.ok(retrievalFilterCompiler.retrieval_filter_catalog.retrieval_filter_probes.every((probe) => probe.probe_status === "blocked" && probe.blocked === true));
       assert.match(await readFile(path.join(outDir, "retrieval-filters", "summary.md"), "utf8"), /Retrieval Filter Compiler/);
 
+      const workflowRetrievalCompiler = await runWorkflowRetrievalCompiler({
+        workflowContextBuilderContractPath: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
+        retrievalFilterCompilerPath: path.join(outDir, "retrieval-filters", "retrieval-filter-compiler.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
+        outDir: path.join(outDir, "workflow-retrieval-compiler"),
+        runAt: "2026-05-23T06:35:08.458Z",
+      });
+      const workflowRetrievalCompilerSchema = JSON.parse(await readFile("schemas/workflow-retrieval-compiler.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowRetrievalCompiler, workflowRetrievalCompilerSchema, {}, "workflow_retrieval_compiler"),
+        [],
+      );
+      assert.equal(workflowRetrievalCompiler.summary.workflow_retrieval_compiler_status, "complete");
+      assert.equal(workflowRetrievalCompiler.summary.retrieval_compiler_contract_id, "workflow-retrieval-compiler.v1");
+      assert.equal(workflowRetrievalCompiler.summary.source_workflow_context_builder_status, "complete");
+      assert.equal(workflowRetrievalCompiler.summary.source_retrieval_filter_compiler_status, "complete");
+      assert.equal(workflowRetrievalCompiler.summary.source_source_span_store_status, "complete");
+      assert.equal(workflowRetrievalCompiler.summary.source_search_index_contract_status, "complete");
+      assert.equal(workflowRetrievalCompiler.summary.retrieval_request_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowRetrievalCompiler.summary.packet_with_retrieval_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.request_with_selected_candidate_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.ok(workflowRetrievalCompiler.summary.retrieval_candidate_count >= workflowContextBuilderContract.summary.accessible_resource_count);
+      assert.ok(workflowRetrievalCompiler.summary.selected_candidate_count >= workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.source_span_priority_record_count, workflowRetrievalCompiler.summary.retrieval_candidate_count);
+      assert.equal(workflowRetrievalCompiler.summary.retrieval_guard_record_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.matter_wall_applied_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.classification_filter_applied_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.relevance_ranking_applied_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.source_span_priority_applied_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.retrieval_guard_passed_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.cross_matter_candidate_count, 0);
+      assert.equal(workflowRetrievalCompiler.summary.blocked_classification_candidate_count, 0);
+      assert.equal(workflowRetrievalCompiler.summary.query_execution_allowed_count, 0);
+      assert.equal(workflowRetrievalCompiler.summary.external_transfer_allowed_count, 0);
+      assert.equal(workflowRetrievalCompiler.summary.protected_action_executed_count, 0);
+      assert.ok(workflowRetrievalCompiler.summary.law_firm_retrieval_request_count > 0);
+      assert.equal(workflowRetrievalCompiler.summary.law_firm_human_review_request_count, workflowRetrievalCompiler.summary.law_firm_retrieval_request_count);
+      assert.equal(workflowRetrievalCompiler.summary.validation_error_count, 0);
+      assert.ok(workflowRetrievalCompiler.retrieval_request_records.every((record) => record.retrieval_request_status === "compiled_held_for_query_adapter" && record.matter_wall_applied && record.classification_filter_applied && record.relevance_ranking_applied && record.source_span_priority_applied && record.query_execution_allowed === false));
+      assert.ok(workflowRetrievalCompiler.retrieval_candidate_records.every((record) => record.matter_wall_status === "passed" && record.classification_status === "passed" && record.query_execution_allowed === false && record.external_transfer_allowed === false));
+      assert.ok(workflowRetrievalCompiler.source_span_priority_records.every((record) => record.source_span_priority_status === "applied" && Number.isInteger(record.source_span_priority_rank)));
+      assert.ok(workflowRetrievalCompiler.retrieval_guard_records.every((record) => record.retrieval_guard_status === "passed" && record.query_execution_allowed === false && record.external_transfer_allowed === false && record.protected_action_execution_allowed === false));
+      assert.ok(workflowRetrievalCompiler.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-retrieval-compiler", "summary.md"), "utf8"), /Workflow Retrieval Compiler/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -5966,6 +6014,7 @@ describe("matter harness", () => {
           workflow_idempotency_ledger: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
           workflow_resume_cancel_contract: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
           workflow_context_builder_contract: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
+          workflow_retrieval_compiler: path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5977,8 +6026,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 86);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 86);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 87);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 87);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6052,6 +6101,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_idempotency_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_resume_cancel_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_context_builder_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_retrieval_compiler"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6114,6 +6164,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:idempotency"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:resume-cancel"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:context-builder"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:retrieval-compiler"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6466,6 +6517,10 @@ describe("matter harness", () => {
       assert.equal(workflowContextBuilderCheckpoint?.acceptance_profile, "workflow_context_builder_gate");
       assert.equal(workflowContextBuilderCheckpoint?.status, "passed");
       assert.equal(workflowContextBuilderCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowRetrievalCompilerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-retrieval-compiler");
+      assert.equal(workflowRetrievalCompilerCheckpoint?.acceptance_profile, "workflow_retrieval_compiler_gate");
+      assert.equal(workflowRetrievalCompilerCheckpoint?.status, "passed");
+      assert.equal(workflowRetrievalCompilerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -8030,6 +8085,41 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_context_builder_external_transfer_allowed_count, 0);
       assert.equal(dashboard.summary.workflow_context_builder_protected_action_executed_count, 0);
       assert.equal(dashboard.summary.workflow_context_builder_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_status, "complete");
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_contract_id, "workflow-retrieval-compiler.v1");
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_workflow_context_builder_status, "complete");
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_retrieval_filter_compiler_status, "complete");
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_source_span_store_status, "complete");
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_search_index_contract_status, "complete");
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_context_packet_v2_count, workflowRetrievalCompiler.summary.source_context_packet_v2_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_accessible_resource_count, workflowRetrievalCompiler.summary.source_accessible_resource_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_excluded_resource_count, workflowRetrievalCompiler.summary.source_excluded_resource_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_compiled_retrieval_filter_count, workflowRetrievalCompiler.summary.source_compiled_retrieval_filter_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_retrieval_query_binding_count, workflowRetrievalCompiler.summary.source_retrieval_query_binding_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_source_span_count, workflowRetrievalCompiler.summary.source_source_span_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_search_index_query_plan_count, workflowRetrievalCompiler.summary.source_search_index_query_plan_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_retrieval_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_packet_with_retrieval_request_count, workflowRetrievalCompiler.summary.packet_with_retrieval_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_request_with_selected_candidate_count, workflowRetrievalCompiler.summary.request_with_selected_candidate_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_retrieval_candidate_count, workflowRetrievalCompiler.summary.retrieval_candidate_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_selected_candidate_count, workflowRetrievalCompiler.summary.selected_candidate_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_span_bound_candidate_count, workflowRetrievalCompiler.summary.source_span_bound_candidate_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_metadata_only_candidate_count, workflowRetrievalCompiler.summary.metadata_only_candidate_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_span_priority_record_count, workflowRetrievalCompiler.summary.source_span_priority_record_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_retrieval_guard_record_count, workflowRetrievalCompiler.summary.retrieval_guard_record_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_matter_wall_applied_request_count, workflowRetrievalCompiler.summary.matter_wall_applied_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_classification_filter_applied_request_count, workflowRetrievalCompiler.summary.classification_filter_applied_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_relevance_ranking_applied_request_count, workflowRetrievalCompiler.summary.relevance_ranking_applied_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_source_span_priority_applied_request_count, workflowRetrievalCompiler.summary.source_span_priority_applied_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_retrieval_guard_passed_count, workflowRetrievalCompiler.summary.retrieval_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_cross_matter_candidate_count, 0);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_blocked_classification_candidate_count, 0);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_query_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_law_firm_retrieval_request_count, workflowRetrievalCompiler.summary.law_firm_retrieval_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_law_firm_human_review_request_count, workflowRetrievalCompiler.summary.law_firm_human_review_request_count);
+      assert.equal(dashboard.summary.workflow_retrieval_compiler_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8677,6 +8767,14 @@ describe("matter harness", () => {
       assert.equal(workflowContextBuilderContractStage?.metrics.excluded_resource_count, workflowContextBuilderContract.summary.excluded_resource_count);
       assert.equal(workflowContextBuilderContractStage?.metrics.token_budget_enforced_count, workflowContextBuilderContract.summary.token_budget_enforced_count);
       assert.equal(workflowContextBuilderContractStage?.metrics.citation_hint_ready_count, workflowContextBuilderContract.summary.citation_hint_ready_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_retrieval_compiler"));
+      const workflowRetrievalCompilerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_retrieval_compiler");
+      assert.equal(workflowRetrievalCompilerStage?.status, "passed");
+      assert.equal(workflowRetrievalCompilerStage?.metrics.retrieval_request_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowRetrievalCompilerStage?.metrics.retrieval_candidate_count, workflowRetrievalCompiler.summary.retrieval_candidate_count);
+      assert.equal(workflowRetrievalCompilerStage?.metrics.selected_candidate_count, workflowRetrievalCompiler.summary.selected_candidate_count);
+      assert.equal(workflowRetrievalCompilerStage?.metrics.source_span_priority_record_count, workflowRetrievalCompiler.summary.source_span_priority_record_count);
+      assert.equal(workflowRetrievalCompilerStage?.metrics.retrieval_guard_record_count, workflowRetrievalCompiler.summary.retrieval_guard_record_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9039,6 +9137,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-token-budgets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-citation-hints"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-context-builder-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-retrieval-compilers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retrieval-request-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retrieval-candidate-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-priority-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/retrieval-guard-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-retrieval-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -9667,6 +9771,30 @@ describe("matter harness", () => {
       const workflowContextBuilderValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-context-builder-validations?status=passed", apiOptions)).body);
       assert.equal(workflowContextBuilderValidations.collection, "workflow_context_builder_validations");
       assert.equal(workflowContextBuilderValidations.count, workflowContextBuilderContract.summary.validation_item_count);
+
+      const workflowRetrievalCompilers = JSON.parse((await buildReviewApiResponse("/api/workflow-retrieval-compilers?workflow_retrieval_compiler_status=complete", apiOptions)).body);
+      assert.equal(workflowRetrievalCompilers.collection, "workflow_retrieval_compilers");
+      assert.equal(workflowRetrievalCompilers.count, 1);
+
+      const retrievalRequestRecords = JSON.parse((await buildReviewApiResponse("/api/retrieval-request-records?retrieval_request_status=compiled_held_for_query_adapter", apiOptions)).body);
+      assert.equal(retrievalRequestRecords.collection, "retrieval_request_records");
+      assert.equal(retrievalRequestRecords.count, workflowRetrievalCompiler.summary.retrieval_request_count);
+
+      const retrievalCandidateRecords = JSON.parse((await buildReviewApiResponse("/api/retrieval-candidate-records?retrieval_candidate_status=ranked_source_span_candidate", apiOptions)).body);
+      assert.equal(retrievalCandidateRecords.collection, "retrieval_candidate_records");
+      assert.equal(retrievalCandidateRecords.count, workflowRetrievalCompiler.summary.source_span_bound_candidate_count);
+
+      const sourceSpanPriorityRecords = JSON.parse((await buildReviewApiResponse("/api/source-span-priority-records?source_span_priority_status=applied", apiOptions)).body);
+      assert.equal(sourceSpanPriorityRecords.collection, "source_span_priority_records");
+      assert.equal(sourceSpanPriorityRecords.count, workflowRetrievalCompiler.summary.source_span_priority_record_count);
+
+      const retrievalGuardRecords = JSON.parse((await buildReviewApiResponse("/api/retrieval-guard-records?retrieval_guard_status=passed", apiOptions)).body);
+      assert.equal(retrievalGuardRecords.collection, "retrieval_guard_records");
+      assert.equal(retrievalGuardRecords.count, workflowRetrievalCompiler.summary.retrieval_guard_record_count);
+
+      const workflowRetrievalValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-retrieval-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowRetrievalValidations.collection, "workflow_retrieval_validations");
+      assert.equal(workflowRetrievalValidations.count, workflowRetrievalCompiler.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

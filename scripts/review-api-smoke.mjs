@@ -129,6 +129,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/context-token-budgets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-citation-hints"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-context-builder-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-retrieval-compilers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-request-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-candidate-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/source-span-priority-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retrieval-guard-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-retrieval-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -1029,6 +1035,30 @@ try {
   const workflowContextBuilderValidations = await fetchJson(`${url}/api/workflow-context-builder-validations?status=passed&limit=5`);
   assert.equal(workflowContextBuilderValidations.collection, "workflow_context_builder_validations");
   assert.ok(workflowContextBuilderValidations.count <= 5);
+
+  const workflowRetrievalCompilers = await fetchJson(`${url}/api/workflow-retrieval-compilers?workflow_retrieval_compiler_status=complete&limit=1`);
+  assert.equal(workflowRetrievalCompilers.collection, "workflow_retrieval_compilers");
+  assert.ok(workflowRetrievalCompilers.count <= 1);
+
+  const retrievalRequestRecords = await fetchJson(`${url}/api/retrieval-request-records?retrieval_request_status=compiled_held_for_query_adapter&limit=5`);
+  assert.equal(retrievalRequestRecords.collection, "retrieval_request_records");
+  assert.ok(retrievalRequestRecords.count <= 5);
+
+  const retrievalCandidateRecords = await fetchJson(`${url}/api/retrieval-candidate-records?retrieval_candidate_status=ranked_source_span_candidate&limit=5`);
+  assert.equal(retrievalCandidateRecords.collection, "retrieval_candidate_records");
+  assert.ok(retrievalCandidateRecords.count <= 5);
+
+  const sourceSpanPriorityRecords = await fetchJson(`${url}/api/source-span-priority-records?source_span_priority_status=applied&limit=5`);
+  assert.equal(sourceSpanPriorityRecords.collection, "source_span_priority_records");
+  assert.ok(sourceSpanPriorityRecords.count <= 5);
+
+  const retrievalGuardRecords = await fetchJson(`${url}/api/retrieval-guard-records?retrieval_guard_status=passed&limit=5`);
+  assert.equal(retrievalGuardRecords.collection, "retrieval_guard_records");
+  assert.ok(retrievalGuardRecords.count <= 5);
+
+  const workflowRetrievalValidations = await fetchJson(`${url}/api/workflow-retrieval-validations?status=passed&limit=5`);
+  assert.equal(workflowRetrievalValidations.collection, "workflow_retrieval_validations");
+  assert.ok(workflowRetrievalValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

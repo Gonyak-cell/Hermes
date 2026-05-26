@@ -100,6 +100,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowIdempotencyLedgerPath: "artifacts/workflow-idempotency/latest/workflow-idempotency-ledger.json",
   workflowResumeCancelContractPath: "artifacts/workflow-resume-cancel/latest/workflow-resume-cancel-contract.json",
   workflowContextBuilderContractPath: "artifacts/workflow-context-builder/latest/workflow-context-builder-contract.json",
+  workflowRetrievalCompilerPath: "artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -663,6 +664,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowContextBuilderContractPath",
     source_id: "workflow_context_builder_contract",
     label: "Workflow Context Builder Contract",
+  },
+  {
+    option: "workflowRetrievalCompilerPath",
+    source_id: "workflow_retrieval_compiler",
+    label: "Workflow Retrieval Compiler",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1266,6 +1272,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_idempotency_ledger") return data.summary ?? {};
   if (sourceId === "workflow_resume_cancel_contract") return data.summary ?? {};
   if (sourceId === "workflow_context_builder_contract") return data.summary ?? {};
+  if (sourceId === "workflow_retrieval_compiler") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1530,6 +1537,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowIdempotencyLedgerStage(artifacts.workflow_idempotency_ledger, sourceById.get("workflow_idempotency_ledger")),
     buildWorkflowResumeCancelContractStage(artifacts.workflow_resume_cancel_contract, sourceById.get("workflow_resume_cancel_contract")),
     buildWorkflowContextBuilderContractStage(artifacts.workflow_context_builder_contract, sourceById.get("workflow_context_builder_contract")),
+    buildWorkflowRetrievalCompilerStage(artifacts.workflow_retrieval_compiler, sourceById.get("workflow_retrieval_compiler")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6137,6 +6145,64 @@ function buildWorkflowContextBuilderContractStage(contract, source) {
       client_facing_output_allowed_count: summary.client_facing_output_allowed_count ?? 0,
       external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowRetrievalCompilerStage(contract, source) {
+  if (!contract) return missingStage("workflow_retrieval_compiler", "Workflow Retrieval Compiler", source);
+  const summary = contract.summary ?? {};
+  const blockers = (summary.validation_error_count ?? contract.validation?.errors?.length ?? 0)
+    + (summary.cross_matter_candidate_count ?? 0)
+    + (summary.blocked_classification_candidate_count ?? 0)
+    + (summary.query_execution_allowed_count ?? 0)
+    + (summary.external_transfer_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.workflow_retrieval_compiler_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_retrieval_compiler",
+    label: "Workflow Retrieval Compiler",
+    status,
+    message: status === "passed"
+      ? `${summary.retrieval_request_count ?? 0} retrieval request(s), ${summary.retrieval_candidate_count ?? 0} candidate(s), ${summary.selected_candidate_count ?? 0} selected candidate(s).`
+      : `${blockers} workflow retrieval compiler blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_retrieval_compiler_status: summary.workflow_retrieval_compiler_status ?? "unknown",
+      retrieval_compiler_contract_id: summary.retrieval_compiler_contract_id ?? null,
+      source_workflow_context_builder_status: summary.source_workflow_context_builder_status ?? "unknown",
+      source_retrieval_filter_compiler_status: summary.source_retrieval_filter_compiler_status ?? "unknown",
+      source_source_span_store_status: summary.source_source_span_store_status ?? "unknown",
+      source_search_index_contract_status: summary.source_search_index_contract_status ?? "unknown",
+      source_context_packet_v2_count: summary.source_context_packet_v2_count ?? 0,
+      source_accessible_resource_count: summary.source_accessible_resource_count ?? 0,
+      source_excluded_resource_count: summary.source_excluded_resource_count ?? 0,
+      source_compiled_retrieval_filter_count: summary.source_compiled_retrieval_filter_count ?? 0,
+      source_retrieval_query_binding_count: summary.source_retrieval_query_binding_count ?? 0,
+      source_source_span_count: summary.source_source_span_count ?? 0,
+      source_search_index_query_plan_count: summary.source_search_index_query_plan_count ?? 0,
+      retrieval_request_count: summary.retrieval_request_count ?? 0,
+      packet_with_retrieval_request_count: summary.packet_with_retrieval_request_count ?? 0,
+      request_with_selected_candidate_count: summary.request_with_selected_candidate_count ?? 0,
+      retrieval_candidate_count: summary.retrieval_candidate_count ?? 0,
+      selected_candidate_count: summary.selected_candidate_count ?? 0,
+      source_span_bound_candidate_count: summary.source_span_bound_candidate_count ?? 0,
+      metadata_only_candidate_count: summary.metadata_only_candidate_count ?? 0,
+      source_span_priority_record_count: summary.source_span_priority_record_count ?? 0,
+      retrieval_guard_record_count: summary.retrieval_guard_record_count ?? 0,
+      matter_wall_applied_request_count: summary.matter_wall_applied_request_count ?? 0,
+      classification_filter_applied_request_count: summary.classification_filter_applied_request_count ?? 0,
+      relevance_ranking_applied_request_count: summary.relevance_ranking_applied_request_count ?? 0,
+      source_span_priority_applied_request_count: summary.source_span_priority_applied_request_count ?? 0,
+      retrieval_guard_passed_count: summary.retrieval_guard_passed_count ?? 0,
+      cross_matter_candidate_count: summary.cross_matter_candidate_count ?? 0,
+      blocked_classification_candidate_count: summary.blocked_classification_candidate_count ?? 0,
+      query_execution_allowed_count: summary.query_execution_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      law_firm_retrieval_request_count: summary.law_firm_retrieval_request_count ?? 0,
+      law_firm_human_review_request_count: summary.law_firm_human_review_request_count ?? 0,
       validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
     },
   };
@@ -11791,6 +11857,41 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_context_builder_external_transfer_allowed_count: artifacts.workflow_context_builder_contract?.summary?.external_transfer_allowed_count ?? 0,
     workflow_context_builder_protected_action_executed_count: artifacts.workflow_context_builder_contract?.summary?.protected_action_executed_count ?? 0,
     workflow_context_builder_validation_error_count: artifacts.workflow_context_builder_contract?.summary?.validation_error_count ?? artifacts.workflow_context_builder_contract?.validation?.errors?.length ?? 0,
+    workflow_retrieval_compiler_status: artifacts.workflow_retrieval_compiler?.summary?.workflow_retrieval_compiler_status ?? "unknown",
+    workflow_retrieval_compiler_contract_id: artifacts.workflow_retrieval_compiler?.summary?.retrieval_compiler_contract_id ?? null,
+    workflow_retrieval_compiler_source_workflow_context_builder_status: artifacts.workflow_retrieval_compiler?.summary?.source_workflow_context_builder_status ?? "unknown",
+    workflow_retrieval_compiler_source_retrieval_filter_compiler_status: artifacts.workflow_retrieval_compiler?.summary?.source_retrieval_filter_compiler_status ?? "unknown",
+    workflow_retrieval_compiler_source_source_span_store_status: artifacts.workflow_retrieval_compiler?.summary?.source_source_span_store_status ?? "unknown",
+    workflow_retrieval_compiler_source_search_index_contract_status: artifacts.workflow_retrieval_compiler?.summary?.source_search_index_contract_status ?? "unknown",
+    workflow_retrieval_compiler_source_context_packet_v2_count: artifacts.workflow_retrieval_compiler?.summary?.source_context_packet_v2_count ?? 0,
+    workflow_retrieval_compiler_source_accessible_resource_count: artifacts.workflow_retrieval_compiler?.summary?.source_accessible_resource_count ?? 0,
+    workflow_retrieval_compiler_source_excluded_resource_count: artifacts.workflow_retrieval_compiler?.summary?.source_excluded_resource_count ?? 0,
+    workflow_retrieval_compiler_source_compiled_retrieval_filter_count: artifacts.workflow_retrieval_compiler?.summary?.source_compiled_retrieval_filter_count ?? 0,
+    workflow_retrieval_compiler_source_retrieval_query_binding_count: artifacts.workflow_retrieval_compiler?.summary?.source_retrieval_query_binding_count ?? 0,
+    workflow_retrieval_compiler_source_source_span_count: artifacts.workflow_retrieval_compiler?.summary?.source_source_span_count ?? 0,
+    workflow_retrieval_compiler_source_search_index_query_plan_count: artifacts.workflow_retrieval_compiler?.summary?.source_search_index_query_plan_count ?? 0,
+    workflow_retrieval_compiler_retrieval_request_count: artifacts.workflow_retrieval_compiler?.summary?.retrieval_request_count ?? 0,
+    workflow_retrieval_compiler_packet_with_retrieval_request_count: artifacts.workflow_retrieval_compiler?.summary?.packet_with_retrieval_request_count ?? 0,
+    workflow_retrieval_compiler_request_with_selected_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.request_with_selected_candidate_count ?? 0,
+    workflow_retrieval_compiler_retrieval_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.retrieval_candidate_count ?? 0,
+    workflow_retrieval_compiler_selected_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.selected_candidate_count ?? 0,
+    workflow_retrieval_compiler_source_span_bound_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.source_span_bound_candidate_count ?? 0,
+    workflow_retrieval_compiler_metadata_only_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.metadata_only_candidate_count ?? 0,
+    workflow_retrieval_compiler_source_span_priority_record_count: artifacts.workflow_retrieval_compiler?.summary?.source_span_priority_record_count ?? 0,
+    workflow_retrieval_compiler_retrieval_guard_record_count: artifacts.workflow_retrieval_compiler?.summary?.retrieval_guard_record_count ?? 0,
+    workflow_retrieval_compiler_matter_wall_applied_request_count: artifacts.workflow_retrieval_compiler?.summary?.matter_wall_applied_request_count ?? 0,
+    workflow_retrieval_compiler_classification_filter_applied_request_count: artifacts.workflow_retrieval_compiler?.summary?.classification_filter_applied_request_count ?? 0,
+    workflow_retrieval_compiler_relevance_ranking_applied_request_count: artifacts.workflow_retrieval_compiler?.summary?.relevance_ranking_applied_request_count ?? 0,
+    workflow_retrieval_compiler_source_span_priority_applied_request_count: artifacts.workflow_retrieval_compiler?.summary?.source_span_priority_applied_request_count ?? 0,
+    workflow_retrieval_compiler_retrieval_guard_passed_count: artifacts.workflow_retrieval_compiler?.summary?.retrieval_guard_passed_count ?? 0,
+    workflow_retrieval_compiler_cross_matter_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.cross_matter_candidate_count ?? 0,
+    workflow_retrieval_compiler_blocked_classification_candidate_count: artifacts.workflow_retrieval_compiler?.summary?.blocked_classification_candidate_count ?? 0,
+    workflow_retrieval_compiler_query_execution_allowed_count: artifacts.workflow_retrieval_compiler?.summary?.query_execution_allowed_count ?? 0,
+    workflow_retrieval_compiler_external_transfer_allowed_count: artifacts.workflow_retrieval_compiler?.summary?.external_transfer_allowed_count ?? 0,
+    workflow_retrieval_compiler_protected_action_executed_count: artifacts.workflow_retrieval_compiler?.summary?.protected_action_executed_count ?? 0,
+    workflow_retrieval_compiler_law_firm_retrieval_request_count: artifacts.workflow_retrieval_compiler?.summary?.law_firm_retrieval_request_count ?? 0,
+    workflow_retrieval_compiler_law_firm_human_review_request_count: artifacts.workflow_retrieval_compiler?.summary?.law_firm_human_review_request_count ?? 0,
+    workflow_retrieval_compiler_validation_error_count: artifacts.workflow_retrieval_compiler?.summary?.validation_error_count ?? artifacts.workflow_retrieval_compiler?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13591,6 +13692,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-resume-cancel") parsed.workflowResumeCancelContractPath = false;
     else if (arg === "--workflow-context-builder") parsed.workflowContextBuilderContractPath = argv[++index];
     else if (arg === "--no-workflow-context-builder") parsed.workflowContextBuilderContractPath = false;
+    else if (arg === "--workflow-retrieval-compiler") parsed.workflowRetrievalCompilerPath = argv[++index];
+    else if (arg === "--no-workflow-retrieval-compiler") parsed.workflowRetrievalCompilerPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -14014,6 +14117,10 @@ Options:
   --workflow-context-builder <path>
                                   workflow-context-builder-contract.json path.
   --no-workflow-context-builder  Do not include Workflow Context Builder Contract status.
+  --workflow-retrieval-compiler <path>
+                                  workflow-retrieval-compiler.json path.
+  --no-workflow-retrieval-compiler
+                                  Do not include Workflow Retrieval Compiler status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

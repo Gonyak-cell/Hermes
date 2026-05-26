@@ -1,0 +1,228 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/workflow-retrieval-compiler.schema.json",
+  "title": "Workflow Retrieval Compiler",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_retrieval_compiler_id",
+    "inputs",
+    "source_contracts",
+    "retrieval_compiler_contract",
+    "retrieval_request_records",
+    "retrieval_candidate_records",
+    "source_span_priority_records",
+    "retrieval_guard_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-retrieval-compiler.v1" },
+    "generated_at": { "type": "string" },
+    "workflow_retrieval_compiler_id": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "retrieval_compiler_contract": { "type": "object" },
+    "retrieval_request_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/retrieval_request_record" }
+    },
+    "retrieval_candidate_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/retrieval_candidate_record" }
+    },
+    "source_span_priority_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/source_span_priority_record" }
+    },
+    "retrieval_guard_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/retrieval_guard_record" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_retrieval_compiler_status",
+        "retrieval_compiler_contract_id",
+        "retrieval_request_count",
+        "retrieval_candidate_count",
+        "source_span_priority_record_count",
+        "retrieval_guard_record_count",
+        "query_execution_allowed_count",
+        "external_transfer_allowed_count",
+        "protected_action_executed_count",
+        "validation_error_count"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "retrieval_request_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_request_record_id",
+        "retrieval_compiler_contract_id",
+        "context_packet_v2_record_id",
+        "workflow_run_id",
+        "matter_id",
+        "classification_floor",
+        "retrieval_request_status",
+        "matter_wall_applied",
+        "classification_filter_applied",
+        "relevance_ranking_applied",
+        "source_span_priority_applied",
+        "query_execution_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "candidate_count",
+        "selected_candidate_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-retrieval-request.v1" },
+        "retrieval_request_record_id": { "type": "string" },
+        "retrieval_compiler_contract_id": { "type": "string" },
+        "context_packet_v2_record_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification_floor": { "type": "string" },
+        "retrieval_request_status": { "type": "string" },
+        "matter_wall_applied": { "type": "boolean" },
+        "classification_filter_applied": { "type": "boolean" },
+        "relevance_ranking_applied": { "type": "boolean" },
+        "source_span_priority_applied": { "type": "boolean" },
+        "query_execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "candidate_count": { "type": "integer", "minimum": 0 },
+        "selected_candidate_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "retrieval_candidate_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_candidate_record_id",
+        "retrieval_request_record_id",
+        "context_packet_v2_record_id",
+        "resource_id",
+        "source_span_bound",
+        "source_span_priority_rank",
+        "matter_wall_status",
+        "classification_status",
+        "relevance_score",
+        "relevance_rank",
+        "source_span_priority_status",
+        "selected_for_context",
+        "query_execution_allowed",
+        "external_transfer_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-retrieval-candidate.v1" },
+        "retrieval_candidate_record_id": { "type": "string" },
+        "retrieval_request_record_id": { "type": "string" },
+        "context_packet_v2_record_id": { "type": "string" },
+        "resource_id": { "type": "string" },
+        "source_span_id": { "type": ["string", "null"] },
+        "source_span_bound": { "type": "boolean" },
+        "source_span_priority_rank": { "type": "integer", "minimum": 1 },
+        "matter_wall_status": { "type": "string" },
+        "classification_status": { "type": "string" },
+        "relevance_score": { "type": "number" },
+        "relevance_rank": { "type": "integer", "minimum": 1 },
+        "source_span_priority_status": { "type": "string" },
+        "selected_for_context": { "type": "boolean" },
+        "query_execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "source_span_priority_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_span_priority_record_id",
+        "retrieval_candidate_record_id",
+        "retrieval_request_record_id",
+        "source_span_priority_rank",
+        "source_span_priority_status",
+        "relevance_rank",
+        "selected_for_context"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-source-span-priority.v1" },
+        "source_span_priority_record_id": { "type": "string" },
+        "retrieval_candidate_record_id": { "type": "string" },
+        "retrieval_request_record_id": { "type": "string" },
+        "source_span_id": { "type": ["string", "null"] },
+        "source_span_priority_rank": { "type": "integer", "minimum": 1 },
+        "source_span_priority_status": { "type": "string" },
+        "relevance_rank": { "type": "integer", "minimum": 1 },
+        "selected_for_context": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "retrieval_guard_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retrieval_guard_record_id",
+        "retrieval_request_record_id",
+        "context_packet_v2_record_id",
+        "retrieval_guard_status",
+        "matter_wall_guard_status",
+        "classification_guard_status",
+        "source_span_priority_guard_status",
+        "cross_matter_candidate_count",
+        "blocked_classification_candidate_count",
+        "query_execution_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-retrieval-guard.v1" },
+        "retrieval_guard_record_id": { "type": "string" },
+        "retrieval_request_record_id": { "type": "string" },
+        "context_packet_v2_record_id": { "type": "string" },
+        "retrieval_guard_status": { "type": "string" },
+        "matter_wall_guard_status": { "type": "string" },
+        "classification_guard_status": { "type": "string" },
+        "source_span_priority_guard_status": { "type": "string" },
+        "cross_matter_candidate_count": { "type": "integer", "minimum": 0 },
+        "blocked_classification_candidate_count": { "type": "integer", "minimum": 0 },
+        "query_execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string" },
+        "path": { "type": "string" },
+        "status": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -98,6 +98,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:idempotency",
   "workflows:resume-cancel",
   "workflows:context-builder",
+  "workflows:retrieval-compiler",
   "contracts:observability",
 ];
 

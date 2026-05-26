@@ -92,6 +92,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     workflow_idempotency_ledger: "artifacts/workflow-idempotency/latest/workflow-idempotency-ledger.json",
     workflow_resume_cancel_contract: "artifacts/workflow-resume-cancel/latest/workflow-resume-cancel-contract.json",
     workflow_context_builder_contract: "artifacts/workflow-context-builder/latest/workflow-context-builder-contract.json",
+    workflow_retrieval_compiler: "artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -182,6 +183,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("workflow_idempotency_ledger", "Workflow Idempotency Ledger", "workflow", "workflow-idempotency-ledger.schema.json"),
   fixtureDefinition("workflow_resume_cancel_contract", "Workflow Resume/Cancel Contract", "workflow", "workflow-resume-cancel-contract.schema.json"),
   fixtureDefinition("workflow_context_builder_contract", "Workflow Context Builder Contract", "workflow", "workflow-context-builder-contract.schema.json"),
+  fixtureDefinition("workflow_retrieval_compiler", "Workflow Retrieval Compiler", "workflow", "workflow-retrieval-compiler.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

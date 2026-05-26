@@ -499,6 +499,12 @@ npm run api:serve
 - `GET /api/context-token-budgets`: context token budget rows
 - `GET /api/context-citation-hints`: context citation hint rows
 - `GET /api/workflow-context-builder-validations`: workflow context builder validation rows
+- `GET /api/workflow-retrieval-compilers`: workflow retrieval compiler artifact
+- `GET /api/retrieval-request-records`: held retrieval request rows
+- `GET /api/retrieval-candidate-records`: matter/classification-screened retrieval candidate rows
+- `GET /api/source-span-priority-records`: source span priority ranking rows
+- `GET /api/retrieval-guard-records`: retrieval guard rows
+- `GET /api/workflow-retrieval-validations`: workflow retrieval compiler validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

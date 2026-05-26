@@ -106,6 +106,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_idempotency_ledger", "Workflow idempotency ledger", "workflow", "workflow_idempotency_ledger", "control-plane-workflow-idempotency-ledger", { acceptance_profile: "workflow_idempotency_gate" }),
   sourceItem("workflow_resume_cancel_contract", "Workflow resume/cancel contract", "workflow", "workflow_resume_cancel_contract", "control-plane-workflow-resume-cancel", { acceptance_profile: "workflow_resume_cancel_gate" }),
   sourceItem("workflow_context_builder_contract", "Workflow context builder contract", "workflow", "workflow_context_builder_contract", "control-plane-workflow-context-builder", { acceptance_profile: "workflow_context_builder_gate" }),
+  sourceItem("workflow_retrieval_compiler", "Workflow retrieval compiler", "workflow", "workflow_retrieval_compiler", "control-plane-workflow-retrieval-compiler", { acceptance_profile: "workflow_retrieval_compiler_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -473,6 +474,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_idempotency_gate",
     "workflow_resume_cancel_gate",
     "workflow_context_builder_gate",
+    "workflow_retrieval_compiler_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -992,6 +994,44 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow context builder contract turns resume cursors into held context packet v2 records with accessible resources, excluded cross-matter resources, token budgets, and citation hints without retrieval execution or external transfer.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_retrieval_compiler_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.cross_matter_candidate_count ?? 0)
+      + (metrics.blocked_classification_candidate_count ?? 0)
+      + (metrics.query_execution_allowed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const requestCount = metrics.retrieval_request_count ?? 0;
+    const lawFirmRequestCount = metrics.law_firm_retrieval_request_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_retrieval_compiler_status === "complete"
+      && metrics.retrieval_compiler_contract_id === "workflow-retrieval-compiler.v1"
+      && requestCount > 0
+      && requestCount === (metrics.source_context_packet_v2_count ?? 0)
+      && (metrics.packet_with_retrieval_request_count ?? 0) === requestCount
+      && (metrics.request_with_selected_candidate_count ?? 0) === requestCount
+      && (metrics.retrieval_candidate_count ?? 0) >= (metrics.source_accessible_resource_count ?? 0)
+      && (metrics.selected_candidate_count ?? 0) >= requestCount
+      && (metrics.source_span_priority_record_count ?? 0) === (metrics.retrieval_candidate_count ?? -1)
+      && (metrics.retrieval_guard_record_count ?? 0) === requestCount
+      && (metrics.matter_wall_applied_request_count ?? 0) === requestCount
+      && (metrics.classification_filter_applied_request_count ?? 0) === requestCount
+      && (metrics.relevance_ranking_applied_request_count ?? 0) === requestCount
+      && (metrics.source_span_priority_applied_request_count ?? 0) === requestCount
+      && (metrics.retrieval_guard_passed_count ?? 0) === requestCount
+      && (metrics.cross_matter_candidate_count ?? 1) === 0
+      && (metrics.blocked_classification_candidate_count ?? 1) === 0
+      && (metrics.query_execution_allowed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+      && lawFirmRequestCount > 0
+      && (metrics.law_firm_human_review_request_count ?? 0) === lawFirmRequestCount
+    ) {
+      return passedWithOperationalGate(stage, "Workflow retrieval compiler binds every context packet v2 record to held retrieval requests, ranked source-span candidates, matter/classification guards, and law-firm human review without query execution or external transfer.");
     }
   }
 

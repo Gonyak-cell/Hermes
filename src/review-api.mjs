@@ -2824,6 +2824,68 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-retrieval-compilers") {
+    const retrievalCompilerResult = await readDashboardSourceArtifact(dashboard, "workflow_retrieval_compiler");
+    if (!retrievalCompilerResult.available) {
+      return jsonResponse(503, buildError("workflow_retrieval_compiler_unavailable", retrievalCompilerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_retrieval_compilers", [retrievalCompilerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/retrieval-request-records") {
+    const retrievalCompilerResult = await readDashboardSourceArtifact(dashboard, "workflow_retrieval_compiler");
+    if (!retrievalCompilerResult.available) {
+      return jsonResponse(503, buildError("workflow_retrieval_compiler_unavailable", retrievalCompilerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("retrieval_request_records", retrievalCompilerResult.artifact.retrieval_request_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/retrieval-candidate-records") {
+    const retrievalCompilerResult = await readDashboardSourceArtifact(dashboard, "workflow_retrieval_compiler");
+    if (!retrievalCompilerResult.available) {
+      return jsonResponse(503, buildError("workflow_retrieval_compiler_unavailable", retrievalCompilerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("retrieval_candidate_records", retrievalCompilerResult.artifact.retrieval_candidate_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/source-span-priority-records") {
+    const retrievalCompilerResult = await readDashboardSourceArtifact(dashboard, "workflow_retrieval_compiler");
+    if (!retrievalCompilerResult.available) {
+      return jsonResponse(503, buildError("workflow_retrieval_compiler_unavailable", retrievalCompilerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("source_span_priority_records", retrievalCompilerResult.artifact.source_span_priority_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/retrieval-guard-records") {
+    const retrievalCompilerResult = await readDashboardSourceArtifact(dashboard, "workflow_retrieval_compiler");
+    if (!retrievalCompilerResult.available) {
+      return jsonResponse(503, buildError("workflow_retrieval_compiler_unavailable", retrievalCompilerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("retrieval_guard_records", retrievalCompilerResult.artifact.retrieval_guard_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-retrieval-validations") {
+    const retrievalCompilerResult = await readDashboardSourceArtifact(dashboard, "workflow_retrieval_compiler");
+    if (!retrievalCompilerResult.available) {
+      return jsonResponse(503, buildError("workflow_retrieval_compiler_unavailable", retrievalCompilerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_retrieval_validations", retrievalCompilerResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6970,6 +7032,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/context-token-budgets", "Context token budget rows"),
       route("GET", "/api/context-citation-hints", "Context citation hint rows"),
       route("GET", "/api/workflow-context-builder-validations", "Workflow context builder validation rows"),
+      route("GET", "/api/workflow-retrieval-compilers", "Workflow retrieval compiler artifacts"),
+      route("GET", "/api/retrieval-request-records", "Workflow retrieval request rows"),
+      route("GET", "/api/retrieval-candidate-records", "Workflow retrieval candidate rows"),
+      route("GET", "/api/source-span-priority-records", "Source span priority rows"),
+      route("GET", "/api/retrieval-guard-records", "Workflow retrieval guard rows"),
+      route("GET", "/api/workflow-retrieval-validations", "Workflow retrieval compiler validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7598,6 +7666,18 @@ function filterItems(items, searchParams) {
     "workflow_idempotency_status",
     "workflow_resume_cancel_status",
     "workflow_context_builder_status",
+    "workflow_retrieval_compiler_status",
+    "retrieval_request_status",
+    "retrieval_candidate_status",
+    "source_span_priority_status",
+    "retrieval_guard_status",
+    "retrieval_compiler_contract_id",
+    "retrieval_request_record_id",
+    "retrieval_candidate_record_id",
+    "source_span_priority_record_id",
+    "retrieval_guard_record_id",
+    "selected_for_context",
+    "source_span_bound",
     "context_packet_v2_status",
     "selection_decision",
     "token_budget_status",
@@ -8750,6 +8830,18 @@ function readFilterValue(item, key) {
   if (key === "workflow_resume_cancel_status") return item.summary?.workflow_resume_cancel_status ?? item.workflow_resume_cancel_status;
   if (key === "workflow_context_builder_status") return item.summary?.workflow_context_builder_status ?? item.workflow_context_builder_status;
   if (key === "context_builder_contract_id") return item.summary?.context_builder_contract_id ?? item.context_builder_contract_id;
+  if (key === "workflow_retrieval_compiler_status") return item.summary?.workflow_retrieval_compiler_status ?? item.workflow_retrieval_compiler_status;
+  if (key === "retrieval_compiler_contract_id") return item.summary?.retrieval_compiler_contract_id ?? item.retrieval_compiler_contract_id;
+  if (key === "retrieval_request_status") return item.retrieval_request_status;
+  if (key === "retrieval_candidate_status") return item.candidate_status ?? item.retrieval_candidate_status;
+  if (key === "source_span_priority_status") return item.source_span_priority_status;
+  if (key === "retrieval_guard_status") return item.retrieval_guard_status;
+  if (key === "retrieval_request_record_id") return item.retrieval_request_record_id;
+  if (key === "retrieval_candidate_record_id") return item.retrieval_candidate_record_id;
+  if (key === "source_span_priority_record_id") return item.source_span_priority_record_id;
+  if (key === "retrieval_guard_record_id") return item.retrieval_guard_record_id;
+  if (key === "selected_for_context") return String(Boolean(item.selected_for_context));
+  if (key === "source_span_bound") return String(Boolean(item.source_span_bound));
   if (key === "transition_guard_status") return item.transition_guard_status;
   if (key === "guard_decision") return item.guard_decision;
   if (key === "runner_plan_status") return item.runner_plan_status;

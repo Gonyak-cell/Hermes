@@ -5417,6 +5417,33 @@ Phase 184는 Phase 183의 held resume cursor를 사람이 검토할 수 있는 C
 - Golden fixture 수가 86개로 증가하고 workflow context builder contract artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:context-builder -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 185 - Workflow Retrieval Compiler
+
+Phase 185는 Phase 184의 Context Packet v2를 실제 query adapter 실행 전 단계의 held retrieval request와 ranked candidate로 컴파일하는 deterministic retrieval compiler를 추가했다. 목적은 matter wall, classification floor, relevance ranking, source span 우선순위를 한 번 더 명시적으로 적용하고, query execution/external transfer/protected action은 계속 0으로 고정한 채 사람이 검토 가능한 retrieval plan만 만드는 것이다.
+
+구현 내용:
+
+- `src/workflow-retrieval-compiler.mjs`와 `scripts/workflow-retrieval-compiler.mjs`를 추가해 `artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json` 산출물을 생성함
+- `retrieval-request-records.json`, `retrieval-candidate-records.json`, `source-span-priority-records.json`, `retrieval-guard-records.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-retrieval-compiler.schema.json`으로 retrieval request, candidate, source span priority, guard record의 최소 계약을 고정함
+- Review Dashboard에 `workflow_retrieval_compiler` source/stage/summary metric을 추가하고 request, candidate, selected candidate, source span priority, guard, human review count를 노출함
+- Review API에 `/api/workflow-retrieval-compilers`, `/api/retrieval-request-records`, `/api/retrieval-candidate-records`, `/api/source-span-priority-records`, `/api/retrieval-guard-records`, `/api/workflow-retrieval-validations` route를 추가함
+- Control Plane Loop에 `workflow_retrieval_compiler` step을 추가하고 Goal Checkpoint에 `workflow_retrieval_compiler_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow retrieval compiler artifact와 `workflows:retrieval-compiler` script를 포함함
+
+완료 기준:
+
+- Workflow retrieval compiler가 validation error 없이 `complete` 상태가 됨
+- Phase 184 Context Packet v2마다 retrieval request가 정확히 1개 생성됨
+- 각 request가 matter wall, classification filter, relevance ranking, source span priority를 모두 적용함
+- 모든 accessible resource가 retrieval candidate를 하나 이상 만들고, source span이 없는 resource는 metadata-only fallback candidate로 보존됨
+- source span priority record 수가 retrieval candidate 수와 일치하고 retrieval guard가 request마다 1개 생성됨
+- cross-matter candidate, blocked classification candidate, query execution, external transfer, protected action execution count가 모두 0임
+- law-firm retrieval request는 human review required 상태로 유지됨
+- Review API smoke가 retrieval compiler, request, candidate, priority, guard, validation route를 모두 조회함
+- Golden fixture 수가 87개로 증가하고 workflow retrieval compiler artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:retrieval-compiler -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5425,9 +5452,9 @@ Phase 184는 Phase 183의 held resume cursor를 사람이 검토할 수 있는 C
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 184이다.
+- 현재 완료 기준점은 Phase 185이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P185-P312, 총 128개다.
+- 남은 계획 슬롯은 P186-P312, 총 127개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

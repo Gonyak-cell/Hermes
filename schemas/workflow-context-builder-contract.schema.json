@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-context-builder-contract.schema.json",
+  "title": "Hermes Workflow Context Builder Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_context_builder_contract_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_context_builder_contract",
+    "context_packet_v2_records",
+    "context_resource_selection_records",
+    "context_token_budget_records",
+    "context_citation_hint_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-context-builder-contract.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_context_builder_contract_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "workflow_context_builder_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "context_builder_contract_id",
+        "context_packet_version",
+        "deterministic_context_builder",
+        "resource_selection_policy",
+        "token_budget_policy",
+        "citation_policy",
+        "prompt_injection_policy",
+        "law_firm_safety_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-context-builder-contract.v1" },
+        "context_builder_contract_id": { "const": "workflow-context-builder-contract.v1" },
+        "context_packet_version": { "const": "context-packet-v2" },
+        "deterministic_context_builder": { "const": true },
+        "resource_selection_policy": { "type": "object" },
+        "token_budget_policy": { "type": "object" },
+        "citation_policy": { "type": "object" },
+        "prompt_injection_policy": { "type": "object" },
+        "law_firm_safety_rule": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "context_packet_v2_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/context_packet_v2_record" }
+    },
+    "context_resource_selection_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/context_resource_selection_record" }
+    },
+    "context_token_budget_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/context_token_budget_record" }
+    },
+    "context_citation_hint_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/context_citation_hint_record" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_context_builder_status",
+        "context_builder_contract_id",
+        "source_workflow_resume_cancel_status",
+        "source_context_packet_ledger_status",
+        "source_search_index_contract_status",
+        "source_evidence_export_bundle_status",
+        "source_resume_cursor_count",
+        "context_packet_v2_count",
+        "accessible_resource_count",
+        "excluded_resource_count",
+        "token_budget_record_count",
+        "within_budget_record_count",
+        "citation_hint_record_count",
+        "citation_hint_ready_count",
+        "prompt_injection_protected_count",
+        "human_review_required_packet_count",
+        "client_facing_output_allowed_count",
+        "external_transfer_allowed_count",
+        "protected_action_executed_count",
+        "validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_context_builder_status": { "enum": ["complete", "blocked"] },
+        "context_builder_contract_id": { "const": "workflow-context-builder-contract.v1" },
+        "source_resume_cursor_count": { "type": "integer", "minimum": 0 },
+        "context_packet_v2_count": { "type": "integer", "minimum": 0 },
+        "accessible_resource_count": { "type": "integer", "minimum": 0 },
+        "excluded_resource_count": { "type": "integer", "minimum": 0 },
+        "token_budget_record_count": { "type": "integer", "minimum": 0 },
+        "within_budget_record_count": { "type": "integer", "minimum": 0 },
+        "citation_hint_record_count": { "type": "integer", "minimum": 0 },
+        "citation_hint_ready_count": { "type": "integer", "minimum": 0 },
+        "client_facing_output_allowed_count": { "type": "integer", "minimum": 0 },
+        "external_transfer_allowed_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "context_packet_v2_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "context_packet_v2_record_id",
+        "context_builder_contract_id",
+        "workflow_run_id",
+        "canonical_workflow_run_id",
+        "domain_pack",
+        "matter_id",
+        "policy_snapshot_id",
+        "context_packet_v2_status",
+        "source_context_packet_ids",
+        "accessible_resource_count",
+        "excluded_resource_count",
+        "token_budget_record_id",
+        "citation_hint_record_id",
+        "prompt_injection_handling",
+        "retrieval_execution_allowed",
+        "human_review_required",
+        "client_facing_output_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "context_packet_v2_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "context-packet-v2-record.v1" },
+        "context_packet_v2_status": { "enum": ["held_for_human_gate", "ready_for_operator_review"] },
+        "prompt_injection_handling": { "const": "treat_untrusted_content_as_data" },
+        "retrieval_execution_allowed": { "const": false },
+        "human_review_required": { "const": true },
+        "client_facing_output_allowed": { "const": false },
+        "external_transfer_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "context_resource_selection_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "context_resource_selection_record_id",
+        "context_packet_v2_record_id",
+        "workflow_run_id",
+        "resource_id",
+        "packet_matter_id",
+        "matter_id",
+        "selection_decision",
+        "selection_reason",
+        "token_eligible",
+        "citation_eligible",
+        "external_transfer_allowed",
+        "selection_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "context-resource-selection-record.v1" },
+        "selection_decision": { "enum": ["accessible_resource", "excluded_resource"] },
+        "external_transfer_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "context_token_budget_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "context_token_budget_record_id",
+        "context_packet_v2_record_id",
+        "workflow_run_id",
+        "max_context_tokens",
+        "available_resource_token_budget",
+        "estimated_accessible_resource_tokens",
+        "token_budget_status",
+        "token_budget_enforced",
+        "token_budget_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "context-token-budget-record.v1" },
+        "token_budget_status": { "enum": ["within_budget", "over_budget"] },
+        "token_budget_enforced": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "context_citation_hint_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "context_citation_hint_record_id",
+        "context_packet_v2_record_id",
+        "workflow_run_id",
+        "citation_hint_status",
+        "citation_required",
+        "source_span_required",
+        "lineage_required",
+        "human_review_required",
+        "client_facing_output_allowed",
+        "citation_hint_count",
+        "citation_hints",
+        "citation_hint_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "context-citation-hint-record.v1" },
+        "citation_hint_status": { "enum": ["citation_hints_ready", "missing_accessible_resource"] },
+        "citation_required": { "const": true },
+        "source_span_required": { "const": true },
+        "lineage_required": { "const": true },
+        "human_review_required": { "const": true },
+        "client_facing_output_allowed": { "const": false },
+        "citation_hints": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

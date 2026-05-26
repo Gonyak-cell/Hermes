@@ -2762,6 +2762,68 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-context-builder-contracts") {
+    const contextBuilderResult = await readDashboardSourceArtifact(dashboard, "workflow_context_builder_contract");
+    if (!contextBuilderResult.available) {
+      return jsonResponse(503, buildError("workflow_context_builder_contract_unavailable", contextBuilderResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_context_builder_contracts", [contextBuilderResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/context-packet-v2-records") {
+    const contextBuilderResult = await readDashboardSourceArtifact(dashboard, "workflow_context_builder_contract");
+    if (!contextBuilderResult.available) {
+      return jsonResponse(503, buildError("workflow_context_builder_contract_unavailable", contextBuilderResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("context_packet_v2_records", contextBuilderResult.artifact.context_packet_v2_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/context-resource-selections") {
+    const contextBuilderResult = await readDashboardSourceArtifact(dashboard, "workflow_context_builder_contract");
+    if (!contextBuilderResult.available) {
+      return jsonResponse(503, buildError("workflow_context_builder_contract_unavailable", contextBuilderResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("context_resource_selections", contextBuilderResult.artifact.context_resource_selection_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/context-token-budgets") {
+    const contextBuilderResult = await readDashboardSourceArtifact(dashboard, "workflow_context_builder_contract");
+    if (!contextBuilderResult.available) {
+      return jsonResponse(503, buildError("workflow_context_builder_contract_unavailable", contextBuilderResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("context_token_budgets", contextBuilderResult.artifact.context_token_budget_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/context-citation-hints") {
+    const contextBuilderResult = await readDashboardSourceArtifact(dashboard, "workflow_context_builder_contract");
+    if (!contextBuilderResult.available) {
+      return jsonResponse(503, buildError("workflow_context_builder_contract_unavailable", contextBuilderResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("context_citation_hints", contextBuilderResult.artifact.context_citation_hint_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-context-builder-validations") {
+    const contextBuilderResult = await readDashboardSourceArtifact(dashboard, "workflow_context_builder_contract");
+    if (!contextBuilderResult.available) {
+      return jsonResponse(503, buildError("workflow_context_builder_contract_unavailable", contextBuilderResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_context_builder_validations", contextBuilderResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6902,6 +6964,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-cancel-requests", "Workflow cancel request rows"),
       route("GET", "/api/workflow-resume-cancel-decisions", "Workflow resume/cancel decision rows"),
       route("GET", "/api/workflow-resume-cancel-validations", "Workflow resume/cancel validation rows"),
+      route("GET", "/api/workflow-context-builder-contracts", "Workflow context builder contract artifacts"),
+      route("GET", "/api/context-packet-v2-records", "Context packet v2 rows"),
+      route("GET", "/api/context-resource-selections", "Context resource selection rows"),
+      route("GET", "/api/context-token-budgets", "Context token budget rows"),
+      route("GET", "/api/context-citation-hints", "Context citation hint rows"),
+      route("GET", "/api/workflow-context-builder-validations", "Workflow context builder validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7529,6 +7597,11 @@ function filterItems(items, searchParams) {
     "workflow_queue_retry_backoff_status",
     "workflow_idempotency_status",
     "workflow_resume_cancel_status",
+    "workflow_context_builder_status",
+    "context_packet_v2_status",
+    "selection_decision",
+    "token_budget_status",
+    "citation_hint_status",
     "transition_guard_status",
     "guard_decision",
     "runner_plan_status",
@@ -7553,6 +7626,11 @@ function filterItems(items, searchParams) {
     "request_kind",
     "control_decision",
     "decision_status",
+    "context_builder_contract_id",
+    "context_packet_v2_record_id",
+    "context_resource_selection_record_id",
+    "context_token_budget_record_id",
+    "context_citation_hint_record_id",
     "dsl_state",
     "dsl_current_state",
     "state_projection_status",
@@ -8670,6 +8748,8 @@ function readFilterValue(item, key) {
   if (key === "workflow_queue_retry_backoff_status") return item.summary?.workflow_queue_retry_backoff_status ?? item.workflow_queue_retry_backoff_status;
   if (key === "workflow_idempotency_status") return item.summary?.workflow_idempotency_status ?? item.workflow_idempotency_status;
   if (key === "workflow_resume_cancel_status") return item.summary?.workflow_resume_cancel_status ?? item.workflow_resume_cancel_status;
+  if (key === "workflow_context_builder_status") return item.summary?.workflow_context_builder_status ?? item.workflow_context_builder_status;
+  if (key === "context_builder_contract_id") return item.summary?.context_builder_contract_id ?? item.context_builder_contract_id;
   if (key === "transition_guard_status") return item.transition_guard_status;
   if (key === "guard_decision") return item.guard_decision;
   if (key === "runner_plan_status") return item.runner_plan_status;
@@ -8692,6 +8772,14 @@ function readFilterValue(item, key) {
   if (key === "cancel_state") return item.cancel_state;
   if (key === "control_decision") return item.control_decision;
   if (key === "decision_status") return item.decision_status;
+  if (key === "context_packet_v2_status") return item.context_packet_v2_status;
+  if (key === "selection_decision") return item.selection_decision;
+  if (key === "token_budget_status") return item.token_budget_status;
+  if (key === "citation_hint_status") return item.citation_hint_status;
+  if (key === "context_packet_v2_record_id") return item.context_packet_v2_record_id;
+  if (key === "context_resource_selection_record_id") return item.context_resource_selection_record_id;
+  if (key === "context_token_budget_record_id") return item.context_token_budget_record_id;
+  if (key === "context_citation_hint_record_id") return item.context_citation_hint_record_id;
   if (key === "new_run_created") return String(Boolean(item.new_run_created));
   if (key === "audit_status") return item.audit_status;
   if (key === "dsl_state") return item.dsl_state;

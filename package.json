@@ -163,6 +163,7 @@
     "workflows:queue-retry": "node scripts/workflow-queue-retry-backoff-contract.mjs",
     "workflows:idempotency": "node scripts/workflow-idempotency-ledger.mjs",
     "workflows:resume-cancel": "node scripts/workflow-resume-cancel-contract.mjs",
+    "workflows:context-builder": "node scripts/workflow-context-builder-contract.mjs",
     "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "policy:surface": "node scripts/policy-operations-surface.mjs",
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",

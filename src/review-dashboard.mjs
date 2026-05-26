@@ -99,6 +99,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowQueueRetryBackoffPath: "artifacts/workflow-queue-retry-backoff/latest/workflow-queue-retry-backoff-contract.json",
   workflowIdempotencyLedgerPath: "artifacts/workflow-idempotency/latest/workflow-idempotency-ledger.json",
   workflowResumeCancelContractPath: "artifacts/workflow-resume-cancel/latest/workflow-resume-cancel-contract.json",
+  workflowContextBuilderContractPath: "artifacts/workflow-context-builder/latest/workflow-context-builder-contract.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -657,6 +658,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowResumeCancelContractPath",
     source_id: "workflow_resume_cancel_contract",
     label: "Workflow Resume/Cancel Contract",
+  },
+  {
+    option: "workflowContextBuilderContractPath",
+    source_id: "workflow_context_builder_contract",
+    label: "Workflow Context Builder Contract",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1259,6 +1265,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_queue_retry_backoff_contract") return data.summary ?? {};
   if (sourceId === "workflow_idempotency_ledger") return data.summary ?? {};
   if (sourceId === "workflow_resume_cancel_contract") return data.summary ?? {};
+  if (sourceId === "workflow_context_builder_contract") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1522,6 +1529,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowQueueRetryBackoffStage(artifacts.workflow_queue_retry_backoff_contract, sourceById.get("workflow_queue_retry_backoff_contract")),
     buildWorkflowIdempotencyLedgerStage(artifacts.workflow_idempotency_ledger, sourceById.get("workflow_idempotency_ledger")),
     buildWorkflowResumeCancelContractStage(artifacts.workflow_resume_cancel_contract, sourceById.get("workflow_resume_cancel_contract")),
+    buildWorkflowContextBuilderContractStage(artifacts.workflow_context_builder_contract, sourceById.get("workflow_context_builder_contract")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6072,6 +6080,63 @@ function buildWorkflowResumeCancelContractStage(contract, source) {
       destructive_cancel_mutation_count: summary.destructive_cancel_mutation_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       new_run_created_count: summary.new_run_created_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowContextBuilderContractStage(contract, source) {
+  if (!contract) return missingStage("workflow_context_builder_contract", "Workflow Context Builder Contract", source);
+  const summary = contract.summary ?? {};
+  const blockers = (summary.validation_error_count ?? contract.validation?.errors?.length ?? 0)
+    + (summary.over_budget_record_count ?? 0)
+    + (summary.retrieval_execution_allowed_count ?? 0)
+    + (summary.client_facing_output_allowed_count ?? 0)
+    + (summary.external_transfer_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.workflow_context_builder_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_context_builder_contract",
+    label: "Workflow Context Builder Contract",
+    status,
+    message: status === "passed"
+      ? `${summary.context_packet_v2_count ?? 0} context packet v2 record(s), ${summary.accessible_resource_count ?? 0} accessible resource(s), ${summary.excluded_resource_count ?? 0} excluded resource(s).`
+      : `${blockers} workflow context builder blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_context_builder_status: summary.workflow_context_builder_status ?? "unknown",
+      context_builder_contract_id: summary.context_builder_contract_id ?? null,
+      source_workflow_resume_cancel_status: summary.source_workflow_resume_cancel_status ?? "unknown",
+      source_context_packet_ledger_status: summary.source_context_packet_ledger_status ?? "unknown",
+      source_search_index_contract_status: summary.source_search_index_contract_status ?? "unknown",
+      source_evidence_export_bundle_status: summary.source_evidence_export_bundle_status ?? "unknown",
+      source_resume_cursor_count: summary.source_resume_cursor_count ?? 0,
+      source_context_packet_count: summary.source_context_packet_count ?? 0,
+      source_context_item_count: summary.source_context_item_count ?? 0,
+      source_retrieval_filter_count: summary.source_retrieval_filter_count ?? 0,
+      source_indexed_record_count: summary.source_indexed_record_count ?? 0,
+      source_export_bundle_count: summary.source_export_bundle_count ?? 0,
+      context_packet_v2_count: summary.context_packet_v2_count ?? 0,
+      context_resource_selection_count: summary.context_resource_selection_count ?? 0,
+      accessible_resource_count: summary.accessible_resource_count ?? 0,
+      excluded_resource_count: summary.excluded_resource_count ?? 0,
+      packet_with_accessible_resource_count: summary.packet_with_accessible_resource_count ?? 0,
+      packet_with_excluded_resource_count: summary.packet_with_excluded_resource_count ?? 0,
+      token_budget_record_count: summary.token_budget_record_count ?? 0,
+      within_budget_record_count: summary.within_budget_record_count ?? 0,
+      over_budget_record_count: summary.over_budget_record_count ?? 0,
+      token_budget_enforced_count: summary.token_budget_enforced_count ?? 0,
+      citation_hint_record_count: summary.citation_hint_record_count ?? 0,
+      citation_hint_ready_count: summary.citation_hint_ready_count ?? 0,
+      citation_hint_count: summary.citation_hint_count ?? 0,
+      prompt_injection_protected_count: summary.prompt_injection_protected_count ?? 0,
+      human_review_required_packet_count: summary.human_review_required_packet_count ?? 0,
+      law_firm_context_packet_count: summary.law_firm_context_packet_count ?? 0,
+      law_firm_human_review_packet_count: summary.law_firm_human_review_packet_count ?? 0,
+      retrieval_execution_allowed_count: summary.retrieval_execution_allowed_count ?? 0,
+      client_facing_output_allowed_count: summary.client_facing_output_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
     },
   };
@@ -11692,6 +11757,40 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_resume_cancel_protected_action_executed_count: artifacts.workflow_resume_cancel_contract?.summary?.protected_action_executed_count ?? 0,
     workflow_resume_cancel_new_run_created_count: artifacts.workflow_resume_cancel_contract?.summary?.new_run_created_count ?? 0,
     workflow_resume_cancel_validation_error_count: artifacts.workflow_resume_cancel_contract?.summary?.validation_error_count ?? artifacts.workflow_resume_cancel_contract?.validation?.errors?.length ?? 0,
+    workflow_context_builder_status: artifacts.workflow_context_builder_contract?.summary?.workflow_context_builder_status ?? "unknown",
+    workflow_context_builder_contract_id: artifacts.workflow_context_builder_contract?.summary?.context_builder_contract_id ?? null,
+    workflow_context_builder_source_workflow_resume_cancel_status: artifacts.workflow_context_builder_contract?.summary?.source_workflow_resume_cancel_status ?? "unknown",
+    workflow_context_builder_source_context_packet_ledger_status: artifacts.workflow_context_builder_contract?.summary?.source_context_packet_ledger_status ?? "unknown",
+    workflow_context_builder_source_search_index_contract_status: artifacts.workflow_context_builder_contract?.summary?.source_search_index_contract_status ?? "unknown",
+    workflow_context_builder_source_evidence_export_bundle_status: artifacts.workflow_context_builder_contract?.summary?.source_evidence_export_bundle_status ?? "unknown",
+    workflow_context_builder_source_resume_cursor_count: artifacts.workflow_context_builder_contract?.summary?.source_resume_cursor_count ?? 0,
+    workflow_context_builder_source_context_packet_count: artifacts.workflow_context_builder_contract?.summary?.source_context_packet_count ?? 0,
+    workflow_context_builder_source_context_item_count: artifacts.workflow_context_builder_contract?.summary?.source_context_item_count ?? 0,
+    workflow_context_builder_source_retrieval_filter_count: artifacts.workflow_context_builder_contract?.summary?.source_retrieval_filter_count ?? 0,
+    workflow_context_builder_source_indexed_record_count: artifacts.workflow_context_builder_contract?.summary?.source_indexed_record_count ?? 0,
+    workflow_context_builder_source_export_bundle_count: artifacts.workflow_context_builder_contract?.summary?.source_export_bundle_count ?? 0,
+    workflow_context_builder_context_packet_v2_count: artifacts.workflow_context_builder_contract?.summary?.context_packet_v2_count ?? 0,
+    workflow_context_builder_resource_selection_count: artifacts.workflow_context_builder_contract?.summary?.context_resource_selection_count ?? 0,
+    workflow_context_builder_accessible_resource_count: artifacts.workflow_context_builder_contract?.summary?.accessible_resource_count ?? 0,
+    workflow_context_builder_excluded_resource_count: artifacts.workflow_context_builder_contract?.summary?.excluded_resource_count ?? 0,
+    workflow_context_builder_packet_with_accessible_resource_count: artifacts.workflow_context_builder_contract?.summary?.packet_with_accessible_resource_count ?? 0,
+    workflow_context_builder_packet_with_excluded_resource_count: artifacts.workflow_context_builder_contract?.summary?.packet_with_excluded_resource_count ?? 0,
+    workflow_context_builder_token_budget_record_count: artifacts.workflow_context_builder_contract?.summary?.token_budget_record_count ?? 0,
+    workflow_context_builder_within_budget_record_count: artifacts.workflow_context_builder_contract?.summary?.within_budget_record_count ?? 0,
+    workflow_context_builder_over_budget_record_count: artifacts.workflow_context_builder_contract?.summary?.over_budget_record_count ?? 0,
+    workflow_context_builder_token_budget_enforced_count: artifacts.workflow_context_builder_contract?.summary?.token_budget_enforced_count ?? 0,
+    workflow_context_builder_citation_hint_record_count: artifacts.workflow_context_builder_contract?.summary?.citation_hint_record_count ?? 0,
+    workflow_context_builder_citation_hint_ready_count: artifacts.workflow_context_builder_contract?.summary?.citation_hint_ready_count ?? 0,
+    workflow_context_builder_citation_hint_count: artifacts.workflow_context_builder_contract?.summary?.citation_hint_count ?? 0,
+    workflow_context_builder_prompt_injection_protected_count: artifacts.workflow_context_builder_contract?.summary?.prompt_injection_protected_count ?? 0,
+    workflow_context_builder_human_review_required_packet_count: artifacts.workflow_context_builder_contract?.summary?.human_review_required_packet_count ?? 0,
+    workflow_context_builder_law_firm_context_packet_count: artifacts.workflow_context_builder_contract?.summary?.law_firm_context_packet_count ?? 0,
+    workflow_context_builder_law_firm_human_review_packet_count: artifacts.workflow_context_builder_contract?.summary?.law_firm_human_review_packet_count ?? 0,
+    workflow_context_builder_retrieval_execution_allowed_count: artifacts.workflow_context_builder_contract?.summary?.retrieval_execution_allowed_count ?? 0,
+    workflow_context_builder_client_facing_output_allowed_count: artifacts.workflow_context_builder_contract?.summary?.client_facing_output_allowed_count ?? 0,
+    workflow_context_builder_external_transfer_allowed_count: artifacts.workflow_context_builder_contract?.summary?.external_transfer_allowed_count ?? 0,
+    workflow_context_builder_protected_action_executed_count: artifacts.workflow_context_builder_contract?.summary?.protected_action_executed_count ?? 0,
+    workflow_context_builder_validation_error_count: artifacts.workflow_context_builder_contract?.summary?.validation_error_count ?? artifacts.workflow_context_builder_contract?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13490,6 +13589,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-idempotency") parsed.workflowIdempotencyLedgerPath = false;
     else if (arg === "--workflow-resume-cancel") parsed.workflowResumeCancelContractPath = argv[++index];
     else if (arg === "--no-workflow-resume-cancel") parsed.workflowResumeCancelContractPath = false;
+    else if (arg === "--workflow-context-builder") parsed.workflowContextBuilderContractPath = argv[++index];
+    else if (arg === "--no-workflow-context-builder") parsed.workflowContextBuilderContractPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13910,6 +14011,9 @@ Options:
   --workflow-resume-cancel <path>
                                   workflow-resume-cancel-contract.json path.
   --no-workflow-resume-cancel    Do not include Workflow Resume/Cancel Contract status.
+  --workflow-context-builder <path>
+                                  workflow-context-builder-contract.json path.
+  --no-workflow-context-builder  Do not include Workflow Context Builder Contract status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

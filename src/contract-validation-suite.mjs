@@ -97,6 +97,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:queue-retry",
   "workflows:idempotency",
   "workflows:resume-cancel",
+  "workflows:context-builder",
   "contracts:observability",
 ];
 

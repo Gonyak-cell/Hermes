@@ -493,6 +493,12 @@ npm run api:serve
 - `GET /api/workflow-cancel-requests`: safe cancel request rows
 - `GET /api/workflow-resume-cancel-decisions`: resume/cancel control decision rows
 - `GET /api/workflow-resume-cancel-validations`: workflow resume/cancel validation rows
+- `GET /api/workflow-context-builder-contracts`: workflow context builder contract artifact
+- `GET /api/context-packet-v2-records`: context packet v2 rows
+- `GET /api/context-resource-selections`: accessible/excluded resource selection rows
+- `GET /api/context-token-budgets`: context token budget rows
+- `GET /api/context-citation-hints`: context citation hint rows
+- `GET /api/workflow-context-builder-validations`: workflow context builder validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -123,6 +123,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/context-packets"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-items"));
   assert.ok(index.routes.some((route) => route.path === "/api/context-retrieval-filters"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-context-builder-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-packet-v2-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-resource-selections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-token-budgets"));
+  assert.ok(index.routes.some((route) => route.path === "/api/context-citation-hints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-context-builder-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -999,6 +1005,30 @@ try {
   const workflowResumeCancelValidations = await fetchJson(`${url}/api/workflow-resume-cancel-validations?status=passed&limit=5`);
   assert.equal(workflowResumeCancelValidations.collection, "workflow_resume_cancel_validations");
   assert.ok(workflowResumeCancelValidations.count <= 5);
+
+  const workflowContextBuilderContracts = await fetchJson(`${url}/api/workflow-context-builder-contracts?workflow_context_builder_status=complete&limit=1`);
+  assert.equal(workflowContextBuilderContracts.collection, "workflow_context_builder_contracts");
+  assert.ok(workflowContextBuilderContracts.count <= 1);
+
+  const contextPacketV2Records = await fetchJson(`${url}/api/context-packet-v2-records?context_packet_v2_status=held_for_human_gate&limit=5`);
+  assert.equal(contextPacketV2Records.collection, "context_packet_v2_records");
+  assert.ok(contextPacketV2Records.count <= 5);
+
+  const contextResourceSelections = await fetchJson(`${url}/api/context-resource-selections?selection_decision=accessible_resource&limit=5`);
+  assert.equal(contextResourceSelections.collection, "context_resource_selections");
+  assert.ok(contextResourceSelections.count <= 5);
+
+  const contextTokenBudgets = await fetchJson(`${url}/api/context-token-budgets?token_budget_status=within_budget&limit=5`);
+  assert.equal(contextTokenBudgets.collection, "context_token_budgets");
+  assert.ok(contextTokenBudgets.count <= 5);
+
+  const contextCitationHints = await fetchJson(`${url}/api/context-citation-hints?citation_hint_status=citation_hints_ready&limit=5`);
+  assert.equal(contextCitationHints.collection, "context_citation_hints");
+  assert.ok(contextCitationHints.count <= 5);
+
+  const workflowContextBuilderValidations = await fetchJson(`${url}/api/workflow-context-builder-validations?status=passed&limit=5`);
+  assert.equal(workflowContextBuilderValidations.collection, "workflow_context_builder_validations");
+  assert.ok(workflowContextBuilderValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

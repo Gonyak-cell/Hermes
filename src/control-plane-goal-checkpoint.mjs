@@ -105,6 +105,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_queue_retry_backoff_contract", "Workflow queue/retry/backoff contract", "workflow", "workflow_queue_retry_backoff_contract", "control-plane-workflow-queue-retry-backoff", { acceptance_profile: "workflow_queue_retry_backoff_gate" }),
   sourceItem("workflow_idempotency_ledger", "Workflow idempotency ledger", "workflow", "workflow_idempotency_ledger", "control-plane-workflow-idempotency-ledger", { acceptance_profile: "workflow_idempotency_gate" }),
   sourceItem("workflow_resume_cancel_contract", "Workflow resume/cancel contract", "workflow", "workflow_resume_cancel_contract", "control-plane-workflow-resume-cancel", { acceptance_profile: "workflow_resume_cancel_gate" }),
+  sourceItem("workflow_context_builder_contract", "Workflow context builder contract", "workflow", "workflow_context_builder_contract", "control-plane-workflow-context-builder", { acceptance_profile: "workflow_context_builder_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -471,6 +472,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_queue_retry_backoff_gate",
     "workflow_idempotency_gate",
     "workflow_resume_cancel_gate",
+    "workflow_context_builder_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -955,6 +957,41 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow resume/cancel contract materializes deterministic resume cursors and safe cancel requests for every idempotent queued run without auto-running, mutating, or creating runs.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_context_builder_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.over_budget_record_count ?? 0)
+      + (metrics.retrieval_execution_allowed_count ?? 0)
+      + (metrics.client_facing_output_allowed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const packetCount = metrics.context_packet_v2_count ?? 0;
+    const lawFirmPacketCount = metrics.law_firm_context_packet_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_context_builder_status === "complete"
+      && metrics.context_builder_contract_id === "workflow-context-builder-contract.v1"
+      && packetCount > 0
+      && packetCount === (metrics.source_resume_cursor_count ?? 0)
+      && (metrics.packet_with_accessible_resource_count ?? 0) === packetCount
+      && (metrics.packet_with_excluded_resource_count ?? 0) === packetCount
+      && (metrics.token_budget_record_count ?? 0) === packetCount
+      && (metrics.within_budget_record_count ?? 0) === packetCount
+      && (metrics.token_budget_enforced_count ?? 0) === packetCount
+      && (metrics.citation_hint_record_count ?? 0) === packetCount
+      && (metrics.citation_hint_ready_count ?? 0) === packetCount
+      && (metrics.prompt_injection_protected_count ?? 0) === packetCount
+      && (metrics.human_review_required_packet_count ?? 0) === packetCount
+      && lawFirmPacketCount > 0
+      && (metrics.law_firm_human_review_packet_count ?? 0) === lawFirmPacketCount
+      && (metrics.retrieval_execution_allowed_count ?? 1) === 0
+      && (metrics.client_facing_output_allowed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow context builder contract turns resume cursors into held context packet v2 records with accessible resources, excluded cross-matter resources, token budgets, and citation hints without retrieval execution or external transfer.");
     }
   }
 

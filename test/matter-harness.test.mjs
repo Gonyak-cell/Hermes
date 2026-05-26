@@ -179,6 +179,7 @@ import { runWorkflowStateMachineRunner } from "../src/workflow-state-machine-run
 import { runWorkflowQueueRetryBackoffContract } from "../src/workflow-queue-retry-backoff-contract.mjs";
 import { runWorkflowIdempotencyLedger } from "../src/workflow-idempotency-ledger.mjs";
 import { runWorkflowResumeCancelContract } from "../src/workflow-resume-cancel-contract.mjs";
+import { runWorkflowContextBuilderContract } from "../src/workflow-context-builder-contract.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1810,6 +1811,7 @@ describe("matter harness", () => {
         workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
         workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
         workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
+        workflowContextBuilderContractPath: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -5678,6 +5680,58 @@ describe("matter harness", () => {
       assert.ok(searchIndexContract.search_index_catalog.search_index_query_plans.every((plan) => plan.executable === false && plan.query_status === "held_for_retrieval_filter_compiler"));
       assert.match(await readFile(path.join(outDir, "search-index", "summary.md"), "utf8"), /Search Index Contract/);
 
+      const workflowContextBuilderContract = await runWorkflowContextBuilderContract({
+        workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
+        contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
+        searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
+        evidenceExportBundlePath: path.join(outDir, "evidence-export-bundle", "evidence-export-bundle.json"),
+        outDir: path.join(outDir, "workflow-context-builder"),
+        runAt: "2026-05-23T06:35:08.457Z",
+      });
+      const workflowContextBuilderContractSchema = JSON.parse(await readFile("schemas/workflow-context-builder-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowContextBuilderContract, workflowContextBuilderContractSchema, {}, "workflow_context_builder_contract"),
+        [],
+      );
+      assert.equal(workflowContextBuilderContract.summary.workflow_context_builder_status, "complete");
+      assert.equal(workflowContextBuilderContract.summary.context_builder_contract_id, "workflow-context-builder-contract.v1");
+      assert.equal(workflowContextBuilderContract.summary.source_workflow_resume_cancel_status, "complete");
+      assert.equal(workflowContextBuilderContract.summary.source_context_packet_ledger_status, "valid");
+      assert.equal(workflowContextBuilderContract.summary.source_search_index_contract_status, "complete");
+      assert.equal(workflowContextBuilderContract.summary.source_evidence_export_bundle_status, "complete");
+      assert.equal(workflowContextBuilderContract.summary.context_packet_v2_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowContextBuilderContract.summary.source_resume_cursor_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowContextBuilderContract.summary.source_context_packet_count, contextPacketLedger.summary.context_packet_count);
+      assert.equal(workflowContextBuilderContract.summary.source_context_item_count, contextPacketLedger.summary.context_item_count);
+      assert.equal(workflowContextBuilderContract.summary.source_retrieval_filter_count, contextPacketLedger.summary.retrieval_filter_count);
+      assert.equal(workflowContextBuilderContract.summary.source_indexed_record_count, searchIndexContract.summary.indexed_record_count);
+      assert.equal(workflowContextBuilderContract.summary.source_export_bundle_count, evidenceExportBundle.summary.export_bundle_count);
+      assert.equal(workflowContextBuilderContract.summary.packet_with_accessible_resource_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.packet_with_excluded_resource_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.token_budget_record_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.within_budget_record_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.over_budget_record_count, 0);
+      assert.equal(workflowContextBuilderContract.summary.token_budget_enforced_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.citation_hint_record_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.citation_hint_ready_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.ok(workflowContextBuilderContract.summary.citation_hint_count >= workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.prompt_injection_protected_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContract.summary.human_review_required_packet_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.ok(workflowContextBuilderContract.summary.law_firm_context_packet_count > 0);
+      assert.equal(workflowContextBuilderContract.summary.law_firm_human_review_packet_count, workflowContextBuilderContract.summary.law_firm_context_packet_count);
+      assert.equal(workflowContextBuilderContract.summary.retrieval_execution_allowed_count, 0);
+      assert.equal(workflowContextBuilderContract.summary.client_facing_output_allowed_count, 0);
+      assert.equal(workflowContextBuilderContract.summary.external_transfer_allowed_count, 0);
+      assert.equal(workflowContextBuilderContract.summary.protected_action_executed_count, 0);
+      assert.equal(workflowContextBuilderContract.summary.validation_error_count, 0);
+      assert.ok(workflowContextBuilderContract.context_packet_v2_records.every((record) => record.context_packet_v2_status === "held_for_human_gate" && record.accessible_resource_count > 0 && record.excluded_resource_count > 0 && record.human_review_required && !record.retrieval_execution_allowed));
+      assert.ok(workflowContextBuilderContract.context_resource_selection_records.some((record) => record.selection_decision === "accessible_resource" && record.token_eligible && record.citation_eligible));
+      assert.ok(workflowContextBuilderContract.context_resource_selection_records.some((record) => record.selection_decision === "excluded_resource" && !record.token_eligible && record.matter_id !== record.packet_matter_id));
+      assert.ok(workflowContextBuilderContract.context_token_budget_records.every((record) => record.token_budget_status === "within_budget" && record.token_budget_enforced));
+      assert.ok(workflowContextBuilderContract.context_citation_hint_records.every((record) => record.citation_hint_status === "citation_hints_ready" && record.citation_hint_count > 0));
+      assert.ok(workflowContextBuilderContract.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-context-builder", "summary.md"), "utf8"), /Workflow Context Builder Contract/);
+
       const vectorIndexPolicyBoundary = await runVectorIndexPolicyBoundary({
         searchIndexContractPath: path.join(outDir, "search-index", "search-index-contract.json"),
         matterAccessPolicyEvaluatorPath: path.join(outDir, "matter-access-policy", "matter-access-policy-evaluator.json"),
@@ -5911,6 +5965,7 @@ describe("matter harness", () => {
           workflow_queue_retry_backoff_contract: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
           workflow_idempotency_ledger: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
           workflow_resume_cancel_contract: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
+          workflow_context_builder_contract: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5922,8 +5977,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 85);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 85);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 86);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 86);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5996,6 +6051,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_queue_retry_backoff_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_idempotency_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_resume_cancel_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_context_builder_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6057,6 +6113,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:queue-retry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:idempotency"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:resume-cancel"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:context-builder"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6405,6 +6462,10 @@ describe("matter harness", () => {
       assert.equal(workflowResumeCancelCheckpoint?.acceptance_profile, "workflow_resume_cancel_gate");
       assert.equal(workflowResumeCancelCheckpoint?.status, "passed");
       assert.equal(workflowResumeCancelCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowContextBuilderCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-context-builder");
+      assert.equal(workflowContextBuilderCheckpoint?.acceptance_profile, "workflow_context_builder_gate");
+      assert.equal(workflowContextBuilderCheckpoint?.status, "passed");
+      assert.equal(workflowContextBuilderCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -7935,6 +7996,40 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_resume_cancel_protected_action_executed_count, 0);
       assert.equal(dashboard.summary.workflow_resume_cancel_new_run_created_count, 0);
       assert.equal(dashboard.summary.workflow_resume_cancel_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_context_builder_status, "complete");
+      assert.equal(dashboard.summary.workflow_context_builder_contract_id, "workflow-context-builder-contract.v1");
+      assert.equal(dashboard.summary.workflow_context_builder_source_workflow_resume_cancel_status, "complete");
+      assert.equal(dashboard.summary.workflow_context_builder_source_context_packet_ledger_status, "valid");
+      assert.equal(dashboard.summary.workflow_context_builder_source_search_index_contract_status, "complete");
+      assert.equal(dashboard.summary.workflow_context_builder_source_evidence_export_bundle_status, "complete");
+      assert.equal(dashboard.summary.workflow_context_builder_source_resume_cursor_count, workflowContextBuilderContract.summary.source_resume_cursor_count);
+      assert.equal(dashboard.summary.workflow_context_builder_source_context_packet_count, workflowContextBuilderContract.summary.source_context_packet_count);
+      assert.equal(dashboard.summary.workflow_context_builder_source_context_item_count, workflowContextBuilderContract.summary.source_context_item_count);
+      assert.equal(dashboard.summary.workflow_context_builder_source_retrieval_filter_count, workflowContextBuilderContract.summary.source_retrieval_filter_count);
+      assert.equal(dashboard.summary.workflow_context_builder_source_indexed_record_count, workflowContextBuilderContract.summary.source_indexed_record_count);
+      assert.equal(dashboard.summary.workflow_context_builder_source_export_bundle_count, workflowContextBuilderContract.summary.source_export_bundle_count);
+      assert.equal(dashboard.summary.workflow_context_builder_context_packet_v2_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(dashboard.summary.workflow_context_builder_resource_selection_count, workflowContextBuilderContract.summary.context_resource_selection_count);
+      assert.equal(dashboard.summary.workflow_context_builder_accessible_resource_count, workflowContextBuilderContract.summary.accessible_resource_count);
+      assert.equal(dashboard.summary.workflow_context_builder_excluded_resource_count, workflowContextBuilderContract.summary.excluded_resource_count);
+      assert.equal(dashboard.summary.workflow_context_builder_packet_with_accessible_resource_count, workflowContextBuilderContract.summary.packet_with_accessible_resource_count);
+      assert.equal(dashboard.summary.workflow_context_builder_packet_with_excluded_resource_count, workflowContextBuilderContract.summary.packet_with_excluded_resource_count);
+      assert.equal(dashboard.summary.workflow_context_builder_token_budget_record_count, workflowContextBuilderContract.summary.token_budget_record_count);
+      assert.equal(dashboard.summary.workflow_context_builder_within_budget_record_count, workflowContextBuilderContract.summary.within_budget_record_count);
+      assert.equal(dashboard.summary.workflow_context_builder_over_budget_record_count, 0);
+      assert.equal(dashboard.summary.workflow_context_builder_token_budget_enforced_count, workflowContextBuilderContract.summary.token_budget_enforced_count);
+      assert.equal(dashboard.summary.workflow_context_builder_citation_hint_record_count, workflowContextBuilderContract.summary.citation_hint_record_count);
+      assert.equal(dashboard.summary.workflow_context_builder_citation_hint_ready_count, workflowContextBuilderContract.summary.citation_hint_ready_count);
+      assert.equal(dashboard.summary.workflow_context_builder_citation_hint_count, workflowContextBuilderContract.summary.citation_hint_count);
+      assert.equal(dashboard.summary.workflow_context_builder_prompt_injection_protected_count, workflowContextBuilderContract.summary.prompt_injection_protected_count);
+      assert.equal(dashboard.summary.workflow_context_builder_human_review_required_packet_count, workflowContextBuilderContract.summary.human_review_required_packet_count);
+      assert.equal(dashboard.summary.workflow_context_builder_law_firm_context_packet_count, workflowContextBuilderContract.summary.law_firm_context_packet_count);
+      assert.equal(dashboard.summary.workflow_context_builder_law_firm_human_review_packet_count, workflowContextBuilderContract.summary.law_firm_human_review_packet_count);
+      assert.equal(dashboard.summary.workflow_context_builder_retrieval_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_context_builder_client_facing_output_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_context_builder_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_context_builder_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_context_builder_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8574,6 +8669,14 @@ describe("matter harness", () => {
       assert.equal(workflowResumeCancelContractStage?.metrics.resume_cursor_count, workflowResumeCancelContract.summary.resume_cursor_count);
       assert.equal(workflowResumeCancelContractStage?.metrics.cancel_request_count, workflowResumeCancelContract.summary.cancel_request_count);
       assert.equal(workflowResumeCancelContractStage?.metrics.safe_cancel_request_count, workflowResumeCancelContract.summary.safe_cancel_request_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_context_builder_contract"));
+      const workflowContextBuilderContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_context_builder_contract");
+      assert.equal(workflowContextBuilderContractStage?.status, "passed");
+      assert.equal(workflowContextBuilderContractStage?.metrics.context_packet_v2_count, workflowContextBuilderContract.summary.context_packet_v2_count);
+      assert.equal(workflowContextBuilderContractStage?.metrics.accessible_resource_count, workflowContextBuilderContract.summary.accessible_resource_count);
+      assert.equal(workflowContextBuilderContractStage?.metrics.excluded_resource_count, workflowContextBuilderContract.summary.excluded_resource_count);
+      assert.equal(workflowContextBuilderContractStage?.metrics.token_budget_enforced_count, workflowContextBuilderContract.summary.token_budget_enforced_count);
+      assert.equal(workflowContextBuilderContractStage?.metrics.citation_hint_ready_count, workflowContextBuilderContract.summary.citation_hint_ready_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -8930,6 +9033,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packets"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-items"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-retrieval-filters"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-context-builder-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-packet-v2-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-resource-selections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-token-budgets"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/context-citation-hints"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-context-builder-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -9534,6 +9643,30 @@ describe("matter harness", () => {
       const workflowResumeCancelValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-resume-cancel-validations?status=passed", apiOptions)).body);
       assert.equal(workflowResumeCancelValidations.collection, "workflow_resume_cancel_validations");
       assert.equal(workflowResumeCancelValidations.count, workflowResumeCancelContract.summary.validation_item_count);
+
+      const workflowContextBuilderContracts = JSON.parse((await buildReviewApiResponse("/api/workflow-context-builder-contracts?workflow_context_builder_status=complete", apiOptions)).body);
+      assert.equal(workflowContextBuilderContracts.collection, "workflow_context_builder_contracts");
+      assert.equal(workflowContextBuilderContracts.count, 1);
+
+      const contextPacketV2Records = JSON.parse((await buildReviewApiResponse("/api/context-packet-v2-records?context_packet_v2_status=held_for_human_gate", apiOptions)).body);
+      assert.equal(contextPacketV2Records.collection, "context_packet_v2_records");
+      assert.equal(contextPacketV2Records.count, workflowContextBuilderContract.summary.context_packet_v2_count);
+
+      const contextResourceSelections = JSON.parse((await buildReviewApiResponse("/api/context-resource-selections?selection_decision=accessible_resource", apiOptions)).body);
+      assert.equal(contextResourceSelections.collection, "context_resource_selections");
+      assert.equal(contextResourceSelections.count, workflowContextBuilderContract.summary.accessible_resource_count);
+
+      const contextTokenBudgets = JSON.parse((await buildReviewApiResponse("/api/context-token-budgets?token_budget_status=within_budget", apiOptions)).body);
+      assert.equal(contextTokenBudgets.collection, "context_token_budgets");
+      assert.equal(contextTokenBudgets.count, workflowContextBuilderContract.summary.within_budget_record_count);
+
+      const contextCitationHints = JSON.parse((await buildReviewApiResponse("/api/context-citation-hints?citation_hint_status=citation_hints_ready", apiOptions)).body);
+      assert.equal(contextCitationHints.collection, "context_citation_hints");
+      assert.equal(contextCitationHints.count, workflowContextBuilderContract.summary.citation_hint_ready_count);
+
+      const workflowContextBuilderValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-context-builder-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowContextBuilderValidations.collection, "workflow_context_builder_validations");
+      assert.equal(workflowContextBuilderValidations.count, workflowContextBuilderContract.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

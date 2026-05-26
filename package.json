@@ -56,6 +56,7 @@
     "token:usage": "node scripts/token-usage-ledger.mjs",
     "token:projection": "node scripts/token-usage-projection.mjs",
     "observability:traces": "node scripts/observability-trace-projection.mjs",
+    "observability:errors": "node scripts/error-retry-ledger.mjs",
     "model:routing": "node scripts/model-routing-ledger.mjs",
     "control-plane:goal-checkpoint": "node scripts/control-plane-goal-checkpoint.mjs",
     "control-plane:audit-trail": "node scripts/control-plane-audit-trail.mjs",

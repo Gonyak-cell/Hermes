@@ -92,6 +92,7 @@ const GOAL_ITEMS = [
   sourceItem("cost_record_projection", "Cost record projection", "observability", "cost_record_projection", "control-plane-cost-record-projection", { acceptance_profile: "cost_record_projection_gate" }),
   sourceItem("token_usage_projection", "Token usage projection", "observability", "token_usage_projection", "control-plane-token-usage-projection", { acceptance_profile: "token_usage_projection_gate" }),
   sourceItem("observability_trace_projection", "Observability trace projection", "observability", "observability_trace_projection", "control-plane-observability-trace-projection", { acceptance_profile: "observability_trace_projection_gate" }),
+  sourceItem("error_retry_ledger", "Error/retry ledger", "observability", "error_retry_ledger", "control-plane-error-retry-ledger", { acceptance_profile: "error_retry_ledger_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -445,6 +446,7 @@ function evaluateStageAcceptance(item, stage) {
     "cost_record_projection_gate",
     "token_usage_projection_gate",
     "observability_trace_projection_gate",
+    "error_retry_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -572,6 +574,28 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.complete_component_trace_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Observability trace projection connects workflow, agent, gate, and output records to known correlation trace ids while preserving external-control audit traces separately.");
+    }
+  }
+
+  if (item.acceptance_profile === "error_retry_ledger_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.missing_trace_binding_count ?? 0)
+      + (metrics.auto_retry_scheduled_count ?? 0);
+    if (
+      errors === 0
+      && metrics.error_retry_ledger_status === "complete"
+      && (metrics.projected_error_record_count ?? 0) > 0
+      && (metrics.projected_error_record_count ?? 0) === (metrics.source_error_record_count ?? -1)
+      && (metrics.retry_record_count ?? 0) === (metrics.projected_error_record_count ?? -1)
+      && (metrics.timeout_record_count ?? 0) === (metrics.projected_error_record_count ?? -1)
+      && (metrics.resume_state_record_count ?? 0) === (metrics.projected_error_record_count ?? -1)
+      && (metrics.failure_record_count ?? 0) === (metrics.projected_error_record_count ?? -1)
+      && (metrics.retryable_error_count ?? 0) > 0
+      && (metrics.non_retryable_error_count ?? 0) > 0
+      && (metrics.resume_blocked_count ?? 0) > 0
+      && (metrics.trace_bound_error_count ?? 0) === (metrics.projected_error_record_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Error/retry ledger separates every ErrorRecord v2 row into failure, retry, timeout, and resume-state records with no auto retry scheduled and full trace binding.");
     }
   }
 

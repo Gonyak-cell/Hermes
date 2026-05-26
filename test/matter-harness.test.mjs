@@ -116,6 +116,7 @@ import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
 import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
 import { runTokenUsageProjection } from "../src/token-usage-projection.mjs";
 import { runObservabilityTraceProjection } from "../src/observability-trace-projection.mjs";
+import { runErrorRetryLedger } from "../src/error-retry-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1728,6 +1729,7 @@ describe("matter harness", () => {
         costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
         tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
         observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
+        errorRetryLedgerPath: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1825,6 +1827,7 @@ describe("matter harness", () => {
         costRecordProjectionPath: false,
         tokenUsageProjectionPath: false,
         observabilityTraceProjectionPath: false,
+        errorRetryLedgerPath: false,
         errorCostObservabilityContractFreezePath: false,
         evidencePlaneFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -3885,6 +3888,42 @@ describe("matter harness", () => {
       assert.ok(errorCostObservabilityContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "error-cost-observability-contract-freeze", "summary.md"), "utf8"), /Error\/Cost\/Observability Contract Freeze/);
 
+      const errorRetryLedger = await runErrorRetryLedger({
+        errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
+        observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        toolInvocationLedgerPath: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
+        outDir: path.join(outDir, "error-retry-ledger"),
+        runAt: "2026-05-23T06:35:08.100Z",
+      });
+      const errorRetryLedgerSchema = JSON.parse(await readFile("schemas/error-retry-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(errorRetryLedger, errorRetryLedgerSchema, {}, "error_retry_ledger"),
+        [],
+      );
+      assert.equal(errorRetryLedger.summary.error_retry_ledger_status, "complete");
+      assert.equal(errorRetryLedger.summary.error_retry_ledger_contract_id, "error-retry-ledger.v1");
+      assert.equal(errorRetryLedger.summary.projected_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
+      assert.equal(errorRetryLedger.summary.source_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
+      assert.equal(errorRetryLedger.summary.retry_record_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(errorRetryLedger.summary.timeout_record_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(errorRetryLedger.summary.resume_state_record_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(errorRetryLedger.summary.failure_record_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(errorRetryLedger.summary.retryable_error_count, errorCostObservabilityContractFreeze.summary.retryable_error_count);
+      assert.equal(errorRetryLedger.summary.non_retryable_error_count, errorRetryLedger.summary.projected_error_record_count - errorCostObservabilityContractFreeze.summary.retryable_error_count);
+      assert.equal(errorRetryLedger.summary.auto_retry_scheduled_count, 0);
+      assert.equal(errorRetryLedger.summary.timeout_observed_count, 0);
+      assert.equal(errorRetryLedger.summary.resume_blocked_count, errorCostObservabilityContractFreeze.summary.blocking_error_count);
+      assert.equal(errorRetryLedger.summary.trace_bound_error_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(errorRetryLedger.summary.missing_trace_binding_count, 0);
+      assert.equal(errorRetryLedger.summary.validation_error_count, 0);
+      assert.ok(errorRetryLedger.error_retry_ledger_catalog.projected_error_records.every((record) => record.trace_binding_status === "bound" && record.projected_error_record_hash));
+      assert.ok(errorRetryLedger.error_retry_ledger_catalog.retry_records.every((record) => record.auto_retry_scheduled === false && record.retry_record_hash));
+      assert.ok(errorRetryLedger.error_retry_ledger_catalog.timeout_records.every((record) => record.timeout_state === "not_timeout" && record.timeout_record_hash));
+      assert.ok(errorRetryLedger.error_retry_ledger_catalog.resume_state_records.some((record) => record.resume_state === "blocked_waiting_for_human"));
+      assert.ok(errorRetryLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "error-retry-ledger", "summary.md"), "utf8"), /Error\/Retry Ledger/);
+
       const auditEventLedger = await runAuditEventLedger({
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
         accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
@@ -5356,6 +5395,7 @@ describe("matter harness", () => {
           cost_record_projection: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
           token_usage_projection: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
           observability_trace_projection: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
+          error_retry_ledger: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5367,8 +5407,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 72);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 72);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 73);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 73);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5428,6 +5468,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "cost_record_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "token_usage_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "observability_trace_projection"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "error_retry_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5476,6 +5517,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "cost:records"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "token:projection"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:traces"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:errors"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -5772,6 +5814,10 @@ describe("matter harness", () => {
       assert.equal(observabilityTraceProjectionCheckpoint?.acceptance_profile, "observability_trace_projection_gate");
       assert.equal(observabilityTraceProjectionCheckpoint?.status, "passed");
       assert.equal(observabilityTraceProjectionCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const errorRetryLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-retry-ledger");
+      assert.equal(errorRetryLedgerCheckpoint?.acceptance_profile, "error_retry_ledger_gate");
+      assert.equal(errorRetryLedgerCheckpoint?.status, "passed");
+      assert.equal(errorRetryLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6131,6 +6177,20 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.observability_trace_projection_unknown_gate_binding_count, 0);
       assert.equal(dashboard.summary.observability_trace_projection_unknown_output_binding_count, 0);
       assert.equal(dashboard.summary.observability_trace_projection_validation_error_count, 0);
+      assert.equal(dashboard.summary.error_retry_ledger_status, "complete");
+      assert.equal(dashboard.summary.error_retry_ledger_error_count, errorRetryLedger.summary.projected_error_record_count);
+      assert.equal(dashboard.summary.error_retry_ledger_source_error_count, errorRetryLedger.summary.source_error_record_count);
+      assert.equal(dashboard.summary.error_retry_ledger_retry_count, errorRetryLedger.summary.retry_record_count);
+      assert.equal(dashboard.summary.error_retry_ledger_timeout_count, errorRetryLedger.summary.timeout_record_count);
+      assert.equal(dashboard.summary.error_retry_ledger_resume_state_count, errorRetryLedger.summary.resume_state_record_count);
+      assert.equal(dashboard.summary.error_retry_ledger_failure_count, errorRetryLedger.summary.failure_record_count);
+      assert.equal(dashboard.summary.error_retry_ledger_retryable_count, errorRetryLedger.summary.retryable_error_count);
+      assert.equal(dashboard.summary.error_retry_ledger_auto_retry_scheduled_count, 0);
+      assert.equal(dashboard.summary.error_retry_ledger_timeout_observed_count, 0);
+      assert.equal(dashboard.summary.error_retry_ledger_resume_blocked_count, errorRetryLedger.summary.resume_blocked_count);
+      assert.equal(dashboard.summary.error_retry_ledger_trace_bound_count, errorRetryLedger.summary.trace_bound_error_count);
+      assert.equal(dashboard.summary.error_retry_ledger_missing_trace_binding_count, 0);
+      assert.equal(dashboard.summary.error_retry_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -7686,6 +7746,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_record_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_trace_projection"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "error_retry_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9025,6 +9086,30 @@ describe("matter harness", () => {
       const observabilityTraceProjectionValidations = JSON.parse((await buildReviewApiResponse("/api/observability-trace-projection-validations?status=passed", apiOptions)).body);
       assert.equal(observabilityTraceProjectionValidations.collection, "observability_trace_projection_validations");
       assert.equal(observabilityTraceProjectionValidations.count, observabilityTraceProjection.summary.validation_item_count);
+
+      const errorRetryLedgers = JSON.parse((await buildReviewApiResponse("/api/error-retry-ledgers?error_retry_ledger_status=complete", apiOptions)).body);
+      assert.equal(errorRetryLedgers.collection, "error_retry_ledgers");
+      assert.equal(errorRetryLedgers.count, 1);
+
+      const blockingProjectedErrors = JSON.parse((await buildReviewApiResponse("/api/projected-error-records?failure_state=blocking_failure", apiOptions)).body);
+      assert.equal(blockingProjectedErrors.collection, "projected_error_records");
+      assert.equal(blockingProjectedErrors.count, errorRetryLedger.summary.blocking_error_count);
+
+      const nonScheduledRetryRecords = JSON.parse((await buildReviewApiResponse("/api/retry-records?auto_retry_scheduled=false", apiOptions)).body);
+      assert.equal(nonScheduledRetryRecords.collection, "retry_records");
+      assert.equal(nonScheduledRetryRecords.count, errorRetryLedger.summary.retry_record_count);
+
+      const nonTimeoutRecords = JSON.parse((await buildReviewApiResponse("/api/timeout-records?timeout_state=not_timeout", apiOptions)).body);
+      assert.equal(nonTimeoutRecords.collection, "timeout_records");
+      assert.equal(nonTimeoutRecords.count, errorRetryLedger.summary.non_timeout_record_count);
+
+      const blockedResumeRecords = JSON.parse((await buildReviewApiResponse("/api/resume-state-records?resume_blocked=true", apiOptions)).body);
+      assert.equal(blockedResumeRecords.collection, "resume_state_records");
+      assert.equal(blockedResumeRecords.count, errorRetryLedger.summary.resume_blocked_count);
+
+      const errorRetryLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/error-retry-ledger-validations?status=passed", apiOptions)).body);
+      assert.equal(errorRetryLedgerValidations.collection, "error_retry_ledger_validations");
+      assert.equal(errorRetryLedgerValidations.count, errorRetryLedger.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

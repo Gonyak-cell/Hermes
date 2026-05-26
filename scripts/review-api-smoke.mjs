@@ -171,6 +171,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/gate-trace-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/output-trace-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/observability-trace-projection-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/error-retry-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/projected-error-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retry-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/timeout-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/resume-state-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/error-retry-ledger-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1315,6 +1321,30 @@ try {
   const observabilityTraceProjectionValidations = await fetchJson(`${url}/api/observability-trace-projection-validations?status=passed&limit=5`);
   assert.equal(observabilityTraceProjectionValidations.collection, "observability_trace_projection_validations");
   assert.ok(observabilityTraceProjectionValidations.count <= 5);
+
+  const errorRetryLedgers = await fetchJson(`${url}/api/error-retry-ledgers?error_retry_ledger_status=complete&limit=1`);
+  assert.equal(errorRetryLedgers.collection, "error_retry_ledgers");
+  assert.ok(errorRetryLedgers.count <= 1);
+
+  const blockingErrors = await fetchJson(`${url}/api/projected-error-records?failure_state=blocking_failure&limit=5`);
+  assert.equal(blockingErrors.collection, "projected_error_records");
+  assert.ok(blockingErrors.count <= 5);
+
+  const retryRecords = await fetchJson(`${url}/api/retry-records?auto_retry_scheduled=false&limit=5`);
+  assert.equal(retryRecords.collection, "retry_records");
+  assert.ok(retryRecords.count <= 5);
+
+  const timeoutRecords = await fetchJson(`${url}/api/timeout-records?timeout_state=not_timeout&limit=5`);
+  assert.equal(timeoutRecords.collection, "timeout_records");
+  assert.ok(timeoutRecords.count <= 5);
+
+  const resumeStateRecords = await fetchJson(`${url}/api/resume-state-records?resume_blocked=true&limit=5`);
+  assert.equal(resumeStateRecords.collection, "resume_state_records");
+  assert.ok(resumeStateRecords.count <= 5);
+
+  const errorRetryLedgerValidations = await fetchJson(`${url}/api/error-retry-ledger-validations?status=passed&limit=5`);
+  assert.equal(errorRetryLedgerValidations.collection, "error_retry_ledger_validations");
+  assert.ok(errorRetryLedgerValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

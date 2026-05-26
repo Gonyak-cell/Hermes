@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/error-retry-ledger.schema.json",
+  "title": "Hermes Error Retry Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "error_retry_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "error_retry_ledger_contract",
+    "error_retry_ledger_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "error-retry-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "error_retry_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "error_retry_ledger_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "error_retry_ledger_contract_id",
+        "required_error_fields",
+        "separated_state_ledgers"
+      ],
+      "properties": {
+        "schema_version": { "const": "error-retry-ledger-contract.v1" },
+        "error_retry_ledger_contract_id": { "const": "error-retry-ledger.v1" },
+        "required_error_fields": { "type": "array", "items": { "type": "string" } },
+        "separated_state_ledgers": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "error_retry_ledger_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "projected_error_records",
+        "retry_records",
+        "timeout_records",
+        "resume_state_records"
+      ],
+      "properties": {
+        "schema_version": { "const": "error-retry-ledger-catalog.v1" },
+        "projected_error_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/projected_error_record" }
+        },
+        "retry_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/retry_record" }
+        },
+        "timeout_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/timeout_record" }
+        },
+        "resume_state_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/resume_state_record" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "error_retry_ledger_status",
+        "error_retry_ledger_contract_id",
+        "projected_error_record_count",
+        "source_error_record_count",
+        "retry_record_count",
+        "timeout_record_count",
+        "resume_state_record_count",
+        "failure_record_count",
+        "retryable_error_count",
+        "non_retryable_error_count",
+        "auto_retry_scheduled_count",
+        "timeout_observed_count",
+        "resume_blocked_count",
+        "trace_bound_error_count",
+        "missing_trace_binding_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "error_retry_ledger_status": { "enum": ["complete", "blocked"] },
+        "error_retry_ledger_contract_id": { "const": "error-retry-ledger.v1" },
+        "projected_error_record_count": { "type": "integer", "minimum": 0 },
+        "source_error_record_count": { "type": "integer", "minimum": 0 },
+        "retry_record_count": { "type": "integer", "minimum": 0 },
+        "timeout_record_count": { "type": "integer", "minimum": 0 },
+        "resume_state_record_count": { "type": "integer", "minimum": 0 },
+        "failure_record_count": { "type": "integer", "minimum": 0 },
+        "retryable_error_count": { "type": "integer", "minimum": 0 },
+        "non_retryable_error_count": { "type": "integer", "minimum": 0 },
+        "auto_retry_scheduled_count": { "type": "integer", "minimum": 0 },
+        "timeout_observed_count": { "type": "integer", "minimum": 0 },
+        "resume_blocked_count": { "type": "integer", "minimum": 0 },
+        "trace_bound_error_count": { "type": "integer", "minimum": 0 },
+        "missing_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "projected_error_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "projected_error_record_id",
+        "source_error_record_id",
+        "error_kind",
+        "error_type",
+        "severity",
+        "error_status",
+        "failure_state",
+        "retry_state",
+        "timeout_state",
+        "resume_state",
+        "workflow_run_id",
+        "run_ledger_id",
+        "trace_binding_status",
+        "retryable",
+        "retry_count",
+        "blocking",
+        "projected_error_record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "projected-error-record.v1" },
+        "projected_error_record_id": { "type": "string" },
+        "source_error_record_id": { "type": "string" },
+        "error_kind": { "type": "string" },
+        "error_type": { "type": "string" },
+        "severity": { "type": "string" },
+        "error_status": { "type": "string" },
+        "failure_state": { "type": "string" },
+        "retry_state": { "type": "string" },
+        "timeout_state": { "type": "string" },
+        "resume_state": { "type": "string" },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_trace_id": { "type": ["string", "null"] },
+        "observability_trace_id": { "type": ["string", "null"] },
+        "trace_binding_status": { "enum": ["bound", "missing_trace"] },
+        "retryable": { "type": "boolean" },
+        "retry_count": { "type": "integer", "minimum": 0 },
+        "blocking": { "type": "boolean" },
+        "projected_error_record_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "retry_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retry_record_id",
+        "projected_error_record_id",
+        "source_error_record_id",
+        "retryable",
+        "retry_count",
+        "retry_state",
+        "auto_retry_scheduled",
+        "retry_schedule_state",
+        "requires_human_before_retry",
+        "retry_record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "retry-record.v1" },
+        "retry_record_id": { "type": "string" },
+        "projected_error_record_id": { "type": "string" },
+        "source_error_record_id": { "type": "string" },
+        "retryable": { "type": "boolean" },
+        "retry_count": { "type": "integer", "minimum": 0 },
+        "retry_state": { "type": "string" },
+        "auto_retry_scheduled": { "type": "boolean" },
+        "retry_schedule_state": { "type": "string" },
+        "requires_human_before_retry": { "type": "boolean" },
+        "retry_record_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "timeout_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "timeout_record_id",
+        "projected_error_record_id",
+        "source_error_record_id",
+        "timeout_state",
+        "timeout_observed",
+        "timeout_policy_status",
+        "timeout_record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "timeout-record.v1" },
+        "timeout_record_id": { "type": "string" },
+        "projected_error_record_id": { "type": "string" },
+        "source_error_record_id": { "type": "string" },
+        "timeout_state": { "type": "string" },
+        "timeout_observed": { "type": "boolean" },
+        "timeout_policy_status": { "type": "string" },
+        "timeout_record_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "resume_state_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "resume_state_record_id",
+        "projected_error_record_id",
+        "source_error_record_id",
+        "failure_state",
+        "retry_state",
+        "timeout_state",
+        "resume_state",
+        "resume_required",
+        "resume_blocked",
+        "human_approval_required",
+        "resume_owner",
+        "resume_preconditions",
+        "next_resume_action",
+        "resume_state_record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "resume-state-record.v1" },
+        "resume_state_record_id": { "type": "string" },
+        "projected_error_record_id": { "type": "string" },
+        "source_error_record_id": { "type": "string" },
+        "failure_state": { "type": "string" },
+        "retry_state": { "type": "string" },
+        "timeout_state": { "type": "string" },
+        "resume_state": { "type": "string" },
+        "resume_required": { "type": "boolean" },
+        "resume_blocked": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "resume_owner": { "type": "string" },
+        "resume_preconditions": { "type": "array", "items": { "type": "string" } },
+        "next_resume_action": { "type": "string" },
+        "resume_state_record_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

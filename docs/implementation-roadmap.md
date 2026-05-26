@@ -5053,6 +5053,34 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 72개로 증가하고 observability trace projection이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run observability:traces -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 171: Error Retry Ledger
+
+목표: ErrorRecord v2와 observability trace projection을 실행 운영용 error/retry ledger로 승격하고 failure, retry, timeout, resume state를 서로 다른 record family로 분리합니다.
+
+구현 내용:
+
+- `npm run observability:errors -- --check` 명령을 추가해 Error/Cost/Observability Contract Freeze, Observability Trace Projection, Workflow Run Ledger, Tool Invocation Ledger를 읽고 `projected_error_record`, `retry_record`, `timeout_record`, `resume_state_record`를 생성함
+- ErrorRecord v2의 failure 상태를 `projected_error_record`로 정규화하고 `observability_trace_id`, `correlation_trace_id`, `run_ledger_id`, `policy_snapshot_id`, blocked tool count와 함께 hash를 부여함
+- retry state는 `retry_record`로 분리하고, auto retry를 예약하지 않는다는 invariant를 validation gate로 고정함
+- timeout state는 `timeout_record`로 분리해 현재 timeout이 없는 상태도 `not_timeout` classification row로 명시함
+- resume state는 `resume_state_record`로 분리해 blocking error가 사람 승인 또는 operator resolution 없이 진행되지 않도록 owner, precondition, next action을 기록함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Error/Retry Ledger를 통합함
+- `/api/error-retry-ledgers`, `/api/projected-error-records`, `/api/retry-records`, `/api/timeout-records`, `/api/resume-state-records`, `/api/error-retry-ledger-validations` route를 추가함
+
+완료 기준:
+
+- Error/Retry Ledger가 validation error 없이 `complete` 상태가 됨
+- projected error record 수가 source ErrorRecord v2 수와 일치함
+- 모든 projected error가 retry, timeout, resume-state record를 각각 1개씩 가짐
+- 모든 projected error가 observability trace에 binding되고 missing trace binding이 0임
+- auto retry scheduled count가 0으로 유지됨
+- retryable/non-retryable error가 source ErrorRecord v2와 일치하고, blocking error는 blocked resume-state row로 분리됨
+- 모든 projected error, retry, timeout, resume-state record가 hash를 가짐
+- Review Dashboard summary와 stage status에서 error/retry/timeout/resume count, auto retry count, trace binding count가 노출됨
+- Review API smoke가 ledger, projected error, retry, timeout, resume-state, validation route를 모두 조회함
+- Golden fixture 수가 73개로 증가하고 error retry ledger가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run observability:errors -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5061,9 +5089,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 170이다.
+- 현재 완료 기준점은 Phase 171이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P171-P312, 총 142개다.
+- 남은 계획 슬롯은 P172-P312, 총 141개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

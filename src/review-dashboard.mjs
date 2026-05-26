@@ -86,6 +86,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   costRecordProjectionPath: "artifacts/cost-record-projection/latest/cost-record-projection.json",
   tokenUsageProjectionPath: "artifacts/token-usage-projection/latest/token-usage-projection.json",
   observabilityTraceProjectionPath: "artifacts/observability-trace-projection/latest/observability-trace-projection.json",
+  errorRetryLedgerPath: "artifacts/error-retry-ledger/latest/error-retry-ledger.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -579,6 +580,11 @@ const SOURCE_DEFINITIONS = [
     option: "observabilityTraceProjectionPath",
     source_id: "observability_trace_projection",
     label: "Observability Trace Projection",
+  },
+  {
+    option: "errorRetryLedgerPath",
+    source_id: "error_retry_ledger",
+    label: "Error/Retry Ledger",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1168,6 +1174,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "cost_record_projection") return data.summary ?? {};
   if (sourceId === "token_usage_projection") return data.summary ?? {};
   if (sourceId === "observability_trace_projection") return data.summary ?? {};
+  if (sourceId === "error_retry_ledger") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1418,6 +1425,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCostRecordProjectionStage(artifacts.cost_record_projection, sourceById.get("cost_record_projection")),
     buildTokenUsageProjectionStage(artifacts.token_usage_projection, sourceById.get("token_usage_projection")),
     buildObservabilityTraceProjectionStage(artifacts.observability_trace_projection, sourceById.get("observability_trace_projection")),
+    buildErrorRetryLedgerStage(artifacts.error_retry_ledger, sourceById.get("error_retry_ledger")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5352,6 +5360,52 @@ function buildObservabilityTraceProjectionStage(projection, source) {
       output_trace_binding_count: summary.output_trace_binding_count ?? 0,
       known_output_trace_binding_count: summary.known_output_trace_binding_count ?? 0,
       unknown_output_trace_binding_count: summary.unknown_output_trace_binding_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildErrorRetryLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("error_retry_ledger", "Error/Retry Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const stateMismatchCount = Math.abs((summary.retry_record_count ?? 0) - (summary.projected_error_record_count ?? 0))
+    + Math.abs((summary.timeout_record_count ?? 0) - (summary.projected_error_record_count ?? 0))
+    + Math.abs((summary.resume_state_record_count ?? 0) - (summary.projected_error_record_count ?? 0));
+  const blockers = errorCount + (summary.missing_trace_binding_count ?? 0) + (summary.auto_retry_scheduled_count ?? 0) + stateMismatchCount;
+  const status = summary.error_retry_ledger_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "error_retry_ledger",
+    label: "Error/Retry Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.projected_error_record_count ?? 0} error(s) split into retry/timeout/resume state ledgers; auto retries ${summary.auto_retry_scheduled_count ?? 0}.`
+      : `${blockers} error/retry ledger blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      error_retry_ledger_status: summary.error_retry_ledger_status ?? "unknown",
+      projected_error_record_count: summary.projected_error_record_count ?? 0,
+      source_error_record_count: summary.source_error_record_count ?? 0,
+      retry_record_count: summary.retry_record_count ?? 0,
+      timeout_record_count: summary.timeout_record_count ?? 0,
+      resume_state_record_count: summary.resume_state_record_count ?? 0,
+      failure_record_count: summary.failure_record_count ?? 0,
+      blocking_error_count: summary.blocking_error_count ?? 0,
+      nonblocking_error_count: summary.nonblocking_error_count ?? 0,
+      retryable_error_count: summary.retryable_error_count ?? 0,
+      non_retryable_error_count: summary.non_retryable_error_count ?? 0,
+      retry_available_count: summary.retry_available_count ?? 0,
+      retry_not_scheduled_count: summary.retry_not_scheduled_count ?? 0,
+      auto_retry_scheduled_count: summary.auto_retry_scheduled_count ?? 0,
+      timeout_observed_count: summary.timeout_observed_count ?? 0,
+      non_timeout_record_count: summary.non_timeout_record_count ?? 0,
+      resume_required_count: summary.resume_required_count ?? 0,
+      resume_blocked_count: summary.resume_blocked_count ?? 0,
+      resume_ready_count: summary.resume_ready_count ?? 0,
+      resume_not_required_count: summary.resume_not_required_count ?? 0,
+      human_approval_required_resume_count: summary.human_approval_required_resume_count ?? 0,
+      trace_bound_error_count: summary.trace_bound_error_count ?? 0,
+      missing_trace_binding_count: summary.missing_trace_binding_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -11284,6 +11338,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     observability_trace_projection_unknown_gate_binding_count: artifacts.observability_trace_projection?.summary?.unknown_gate_trace_binding_count ?? 0,
     observability_trace_projection_unknown_output_binding_count: artifacts.observability_trace_projection?.summary?.unknown_output_trace_binding_count ?? 0,
     observability_trace_projection_validation_error_count: artifacts.observability_trace_projection?.summary?.validation_error_count ?? artifacts.observability_trace_projection?.validation?.errors?.length ?? 0,
+    error_retry_ledger_status: artifacts.error_retry_ledger?.summary?.error_retry_ledger_status ?? "unknown",
+    error_retry_ledger_error_count: artifacts.error_retry_ledger?.summary?.projected_error_record_count ?? 0,
+    error_retry_ledger_source_error_count: artifacts.error_retry_ledger?.summary?.source_error_record_count ?? 0,
+    error_retry_ledger_retry_count: artifacts.error_retry_ledger?.summary?.retry_record_count ?? 0,
+    error_retry_ledger_timeout_count: artifacts.error_retry_ledger?.summary?.timeout_record_count ?? 0,
+    error_retry_ledger_resume_state_count: artifacts.error_retry_ledger?.summary?.resume_state_record_count ?? 0,
+    error_retry_ledger_failure_count: artifacts.error_retry_ledger?.summary?.failure_record_count ?? 0,
+    error_retry_ledger_retryable_count: artifacts.error_retry_ledger?.summary?.retryable_error_count ?? 0,
+    error_retry_ledger_non_retryable_count: artifacts.error_retry_ledger?.summary?.non_retryable_error_count ?? 0,
+    error_retry_ledger_auto_retry_scheduled_count: artifacts.error_retry_ledger?.summary?.auto_retry_scheduled_count ?? 0,
+    error_retry_ledger_timeout_observed_count: artifacts.error_retry_ledger?.summary?.timeout_observed_count ?? 0,
+    error_retry_ledger_resume_blocked_count: artifacts.error_retry_ledger?.summary?.resume_blocked_count ?? 0,
+    error_retry_ledger_resume_ready_count: artifacts.error_retry_ledger?.summary?.resume_ready_count ?? 0,
+    error_retry_ledger_trace_bound_count: artifacts.error_retry_ledger?.summary?.trace_bound_error_count ?? 0,
+    error_retry_ledger_missing_trace_binding_count: artifacts.error_retry_ledger?.summary?.missing_trace_binding_count ?? 0,
+    error_retry_ledger_validation_error_count: artifacts.error_retry_ledger?.summary?.validation_error_count ?? artifacts.error_retry_ledger?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -11999,6 +12069,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Cost Records", dashboard.summary.cost_record_projection_count)}
       ${stat("Token Projection", dashboard.summary.token_usage_projection_count)}
       ${stat("Trace Projection", dashboard.summary.observability_trace_projection_count)}
+      ${stat("Error Retry", dashboard.summary.error_retry_ledger_error_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12115,6 +12186,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Observability trace projections: ${dashboard.summary.observability_trace_projection_count ?? 0}`);
   lines.push(`- Observability trace linked/external-control/complete: ${dashboard.summary.observability_trace_projection_linked_count ?? 0}/${dashboard.summary.observability_trace_projection_external_control_count ?? 0}/${dashboard.summary.observability_trace_projection_complete_component_count ?? 0}`);
   lines.push(`- Observability trace workflow/agent/gate/output bindings: ${dashboard.summary.observability_trace_projection_workflow_binding_count ?? 0}/${dashboard.summary.observability_trace_projection_agent_binding_count ?? 0}/${dashboard.summary.observability_trace_projection_gate_binding_count ?? 0}/${dashboard.summary.observability_trace_projection_output_binding_count ?? 0}`);
+  lines.push(`- Error/retry ledger records: ${dashboard.summary.error_retry_ledger_error_count ?? 0}`);
+  lines.push(`- Error/retry split retry/timeout/resume: ${dashboard.summary.error_retry_ledger_retry_count ?? 0}/${dashboard.summary.error_retry_ledger_timeout_count ?? 0}/${dashboard.summary.error_retry_ledger_resume_state_count ?? 0}`);
+  lines.push(`- Error/retry auto retries and missing trace bindings: ${dashboard.summary.error_retry_ledger_auto_retry_scheduled_count ?? 0}/${dashboard.summary.error_retry_ledger_missing_trace_binding_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12448,6 +12522,8 @@ function parseArgs(argv) {
     else if (arg === "--no-token-usage-projection") parsed.tokenUsageProjectionPath = false;
     else if (arg === "--observability-trace-projection") parsed.observabilityTraceProjectionPath = argv[++index];
     else if (arg === "--no-observability-trace-projection") parsed.observabilityTraceProjectionPath = false;
+    else if (arg === "--error-retry-ledger") parsed.errorRetryLedgerPath = argv[++index];
+    else if (arg === "--no-error-retry-ledger") parsed.errorRetryLedgerPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -12831,6 +12907,8 @@ Options:
                                   observability-trace-projection.json path.
   --no-observability-trace-projection
                                   Do not include Observability Trace Projection status.
+  --error-retry-ledger <path>     error-retry-ledger.json path.
+  --no-error-retry-ledger         Do not include Error/Retry Ledger status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

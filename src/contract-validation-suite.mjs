@@ -84,6 +84,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "cost:records",
   "token:projection",
   "observability:traces",
+  "observability:errors",
   "contracts:observability",
 ];
 

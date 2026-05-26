@@ -3531,6 +3531,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("observability_trace_projection_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/error-retry-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "error_retry_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("error_retry_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("error_retry_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/projected-error-records") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "error_retry_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("error_retry_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("projected_error_records", ledgerResult.artifact.error_retry_ledger_catalog?.projected_error_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retry-records") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "error_retry_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("error_retry_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retry_records", ledgerResult.artifact.error_retry_ledger_catalog?.retry_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/timeout-records") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "error_retry_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("error_retry_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("timeout_records", ledgerResult.artifact.error_retry_ledger_catalog?.timeout_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/resume-state-records") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "error_retry_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("error_retry_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("resume_state_records", ledgerResult.artifact.error_retry_ledger_catalog?.resume_state_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/error-retry-ledger-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "error_retry_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("error_retry_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("error_retry_ledger_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6364,6 +6406,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/gate-trace-bindings", "Gate result to observability trace bindings"),
       route("GET", "/api/output-trace-bindings", "Output artifact to observability trace bindings"),
       route("GET", "/api/observability-trace-projection-validations", "Observability trace projection validation rows"),
+      route("GET", "/api/error-retry-ledgers", "Error/retry ledger artifacts"),
+      route("GET", "/api/projected-error-records", "Projected failure/error records bound to traces"),
+      route("GET", "/api/retry-records", "Retry state records for every projected error"),
+      route("GET", "/api/timeout-records", "Timeout classification records for every projected error"),
+      route("GET", "/api/resume-state-records", "Resume-state records for every projected error"),
+      route("GET", "/api/error-retry-ledger-validations", "Error/retry ledger validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7472,6 +7520,25 @@ function filterItems(items, searchParams) {
     "correlation_trace_id",
     "trace_binding_id",
     "trace_component_status",
+    "error_retry_ledger_status",
+    "error_retry_ledger_id",
+    "projected_error_record_id",
+    "source_error_record_id",
+    "retry_record_id",
+    "timeout_record_id",
+    "resume_state_record_id",
+    "failure_state",
+    "error_kind",
+    "error_type",
+    "error_status",
+    "retry_state",
+    "timeout_state",
+    "resume_state",
+    "auto_retry_scheduled",
+    "timeout_observed",
+    "resume_required",
+    "resume_blocked",
+    "trace_binding_status",
     "token_rollup_id",
     "rollup_type",
     "rollup_key",
@@ -7804,6 +7871,7 @@ function readFilterValue(item, key) {
   if (key === "cost_record_projection_status") return item.summary?.cost_record_projection_status ?? item.cost_record_projection_status;
   if (key === "token_usage_projection_status") return item.summary?.token_usage_projection_status ?? item.token_usage_projection_status;
   if (key === "observability_trace_projection_status") return item.summary?.observability_trace_projection_status ?? item.observability_trace_projection_status;
+  if (key === "error_retry_ledger_status") return item.summary?.error_retry_ledger_status ?? item.error_retry_ledger_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

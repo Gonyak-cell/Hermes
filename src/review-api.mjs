@@ -2888,6 +2888,79 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/agent-run-ledgers") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_run_ledgers", [agentRunResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-run-records") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_records", agentRunResult.artifact.agent_run_catalog?.agent_run_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-io-references") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_io_references", agentRunResult.artifact.agent_run_catalog?.agent_run_io_references ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-artifact-references") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_artifact_references", agentRunResult.artifact.agent_run_catalog?.agent_run_artifact_references ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-log-references") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_log_references", agentRunResult.artifact.agent_run_catalog?.agent_run_log_references ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-event-bindings") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_event_bindings", agentRunResult.artifact.agent_run_catalog?.agent_run_event_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/agent-run-ledger-validations") {
+    const agentRunResult = await readDashboardSourceArtifact(dashboard, "agent_run_ledger");
+    if (!agentRunResult.available) {
+      return jsonResponse(503, buildError("agent_run_ledger_unavailable", agentRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_run_ledger_validations", agentRunResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -5929,6 +6002,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-state-transitions", "Event-backed workflow state transition rows"),
       route("GET", "/api/workflow-event-bindings", "Workflow run to stored event binding rows"),
       route("GET", "/api/workflow-run-ledger-validations", "Workflow run ledger validation rows"),
+      route("GET", "/api/agent-run-ledgers", "Agent run ledger artifacts"),
+      route("GET", "/api/agent-run-records", "Runtime AgentRun records"),
+      route("GET", "/api/agent-run-io-references", "AgentRun input and output reference rows"),
+      route("GET", "/api/agent-run-artifact-references", "AgentRun artifact reference rows"),
+      route("GET", "/api/agent-run-log-references", "AgentRun log reference rows"),
+      route("GET", "/api/agent-run-event-bindings", "AgentRun event binding rows"),
+      route("GET", "/api/agent-run-ledger-validations", "Agent run ledger validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6330,6 +6410,28 @@ function filterItems(items, searchParams) {
     "workflow_run_record_id",
     "workflow_state_transition_id",
     "workflow_event_binding_id",
+    "agent_run_ledger_status",
+    "agent_run_record_id",
+    "agent_run_id",
+    "agent_run_status",
+    "agent_run_io_reference_id",
+    "agent_run_artifact_reference_id",
+    "agent_run_log_reference_id",
+    "agent_run_event_binding_id",
+    "runtime_output_id",
+    "runtime_log_id",
+    "runtime_artifact_id",
+    "input_reference_status",
+    "output_reference_status",
+    "output_hash_status",
+    "io_reference_status",
+    "log_reference_status",
+    "artifact_reference_status",
+    "event_binding_status",
+    "event_effect",
+    "workflow_run_binding_status",
+    "runtime_contract_binding_status",
+    "verification_status",
     "transition_status",
     "from_state",
     "to_state",
@@ -7322,6 +7424,8 @@ function readFilterValue(item, key) {
   if (key === "event_store_status") return item.summary?.event_store_status ?? item.event_store_status;
   if (key === "event_correlation_status") return item.summary?.event_correlation_status ?? item.event_correlation_status;
   if (key === "workflow_run_ledger_status") return item.summary?.workflow_run_ledger_status ?? item.workflow_run_ledger_status;
+  if (key === "agent_run_ledger_status") return item.summary?.agent_run_ledger_status ?? item.agent_run_ledger_status;
+  if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;
   if (key === "event_type") return item.event_type ?? item.type ?? item.envelope_type;

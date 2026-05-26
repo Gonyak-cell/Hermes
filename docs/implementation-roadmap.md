@@ -4869,6 +4869,32 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 65개로 증가하고 workflow run ledger가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run events:workflow-runs -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 164: Agent Run Ledger
+
+목표: Runtime/AgentRun contract freeze의 AgentRun을 workflow run ledger와 append-only event store에 결합해, runtime input/output/artifact/log 참조를 agent run ledger로 보존한다.
+
+구현 내용:
+
+- `src/agent-run-ledger.mjs`, `scripts/agent-run-ledger.mjs`, `schemas/agent-run-ledger.schema.json`, `docs/agent-run-ledger.md`를 추가함
+- `npm run events:agent-runs -- --check` 명령을 추가해 AgentRun record, IO reference, artifact reference, log reference, event binding을 projection함
+- Runtime/AgentRun contract freeze, Workflow Run Ledger, Append-only Event Store, Event Correlation Ledger를 source contract로 묶고 source status를 validation gate로 검증함
+- AgentRun별 `input_ref`, `output_ref`, `output_hash`, `logs_ref`, runtime output/log/verification id, artifact id, workflow/run ledger binding status를 보존함
+- stored event가 `agent_run_id`를 직접 들고 있지 않은 경우에도 workflow-level `agent_run.started` / `agent_run.completed` event를 runtime contract의 deterministic AgentRun 순서로 pairing해 event binding으로 남김
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Agent Run Ledger를 통합함
+- `/api/agent-run-ledgers`, `/api/agent-run-records`, `/api/agent-run-io-references`, `/api/agent-run-artifact-references`, `/api/agent-run-log-references`, `/api/agent-run-event-bindings`, `/api/agent-run-ledger-validations` route를 추가함
+
+완료 기준:
+
+- Agent Run Ledger가 validation error 없이 `complete` 상태가 됨
+- 모든 runtime AgentRun이 agent run record로 projection되고 workflow run ledger record에 연결됨
+- 모든 AgentRun이 complete IO reference와 captured log reference를 가짐
+- 모든 runtime artifact contract row가 artifact reference로 projection되고 required artifact gap이 없음
+- workflow-level agent state event가 AgentRun event binding으로 연결됨
+- Review Dashboard summary와 stage status에서 AgentRun record, IO/log/artifact/event reference, validation count가 노출됨
+- Review API smoke가 agent run ledger, record, IO, artifact, log, event binding, validation route를 모두 조회함
+- Golden fixture 수가 66개로 증가하고 agent run ledger가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run events:agent-runs -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4877,9 +4903,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 163이다.
+- 현재 완료 기준점은 Phase 164이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P164-P312, 총 149개다.
+- 남은 계획 슬롯은 P165-P312, 총 148개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

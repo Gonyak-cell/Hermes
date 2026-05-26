@@ -60,6 +60,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   appendOnlyEventStorePath: "artifacts/append-only-event-store/latest/append-only-event-store.json",
   eventCorrelationLedgerPath: "artifacts/event-correlation/latest/event-correlation-ledger.json",
   workflowRunLedgerPath: "artifacts/workflow-run-ledger/latest/workflow-run-ledger.json",
+  agentRunLedgerPath: "artifacts/agent-run-ledger/latest/agent-run-ledger.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -442,6 +443,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowRunLedgerPath",
     source_id: "workflow_run_ledger",
     label: "Workflow Run Ledger",
+  },
+  {
+    option: "agentRunLedgerPath",
+    source_id: "agent_run_ledger",
+    label: "Agent Run Ledger",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1100,6 +1106,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "append_only_event_store") return data.summary ?? {};
   if (sourceId === "event_correlation_ledger") return data.summary ?? {};
   if (sourceId === "workflow_run_ledger") return data.summary ?? {};
+  if (sourceId === "agent_run_ledger") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1343,6 +1350,7 @@ function buildStageStatuses(artifacts, sources) {
     buildAppendOnlyEventStoreStage(artifacts.append_only_event_store, sourceById.get("append_only_event_store")),
     buildEventCorrelationLedgerStage(artifacts.event_correlation_ledger, sourceById.get("event_correlation_ledger")),
     buildWorkflowRunLedgerStage(artifacts.workflow_run_ledger, sourceById.get("workflow_run_ledger")),
+    buildAgentRunLedgerStage(artifacts.agent_run_ledger, sourceById.get("agent_run_ledger")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4283,6 +4291,66 @@ function buildWorkflowRunLedgerStage(ledger, source) {
       state_transition_binding_count: summary.state_transition_binding_count ?? 0,
       terminal_state_aligned_count: summary.terminal_state_aligned_count ?? 0,
       terminal_state_mismatch_count: summary.terminal_state_mismatch_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildAgentRunLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("agent_run_ledger", "Agent Run Ledger", source);
+  const summary = ledger.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || ledger.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "agent_run_ledger",
+    label: "Agent Run Ledger",
+    status,
+    message: `${summary.agent_run_record_count ?? 0} agent run(s), ${summary.complete_io_reference_count ?? 0}/${summary.agent_run_io_reference_count ?? 0} IO ref(s), ${summary.linked_event_binding_count ?? 0}/${summary.agent_run_event_binding_count ?? 0} event binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      agent_run_ledger_status: summary.agent_run_ledger_status ?? "unknown",
+      agent_run_ledger_contract_id: summary.agent_run_ledger_contract_id ?? null,
+      source_runtime_agentrun_contract_freeze_status: summary.source_runtime_agentrun_contract_freeze_status ?? "unknown",
+      source_agent_run_count: summary.source_agent_run_count ?? 0,
+      source_runtime_output_count: summary.source_runtime_output_count ?? 0,
+      source_runtime_log_count: summary.source_runtime_log_count ?? 0,
+      source_runtime_artifact_count: summary.source_runtime_artifact_count ?? 0,
+      source_runtime_verification_count: summary.source_runtime_verification_count ?? 0,
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_workflow_run_record_count: summary.source_workflow_run_record_count ?? 0,
+      source_event_store_status: summary.source_event_store_status ?? "unknown",
+      source_stored_event_count: summary.source_stored_event_count ?? 0,
+      source_event_correlation_status: summary.source_event_correlation_status ?? "unknown",
+      source_run_bound_trace_count: summary.source_run_bound_trace_count ?? 0,
+      source_agent_state_event_count: summary.source_agent_state_event_count ?? 0,
+      agent_run_record_count: summary.agent_run_record_count ?? 0,
+      runtime_contract_bound_record_count: summary.runtime_contract_bound_record_count ?? 0,
+      workflow_run_bound_record_count: summary.workflow_run_bound_record_count ?? 0,
+      completed_agent_run_record_count: summary.completed_agent_run_record_count ?? 0,
+      high_risk_agent_run_count: summary.high_risk_agent_run_count ?? 0,
+      untrusted_output_agent_run_count: summary.untrusted_output_agent_run_count ?? 0,
+      verification_required_agent_run_count: summary.verification_required_agent_run_count ?? 0,
+      verification_bound_agent_run_count: summary.verification_bound_agent_run_count ?? 0,
+      agent_run_io_reference_count: summary.agent_run_io_reference_count ?? 0,
+      complete_io_reference_count: summary.complete_io_reference_count ?? 0,
+      input_reference_count: summary.input_reference_count ?? 0,
+      output_reference_count: summary.output_reference_count ?? 0,
+      output_hash_count: summary.output_hash_count ?? 0,
+      agent_run_log_reference_count: summary.agent_run_log_reference_count ?? 0,
+      logs_required_agent_run_count: summary.logs_required_agent_run_count ?? 0,
+      captured_log_reference_count: summary.captured_log_reference_count ?? 0,
+      required_log_missing_count: summary.required_log_missing_count ?? 0,
+      agent_run_artifact_reference_count: summary.agent_run_artifact_reference_count ?? 0,
+      captured_artifact_reference_count: summary.captured_artifact_reference_count ?? 0,
+      artifact_capture_required_agent_run_count: summary.artifact_capture_required_agent_run_count ?? 0,
+      artifact_capture_bound_agent_run_count: summary.artifact_capture_bound_agent_run_count ?? 0,
+      missing_required_artifact_count: summary.missing_required_artifact_count ?? 0,
+      agent_run_event_binding_count: summary.agent_run_event_binding_count ?? 0,
+      agent_state_event_binding_count: summary.agent_state_event_binding_count ?? 0,
+      linked_event_binding_count: summary.linked_event_binding_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
@@ -10554,6 +10622,29 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_run_ledger_terminal_state_mismatch_count: artifacts.workflow_run_ledger?.summary?.terminal_state_mismatch_count ?? 0,
     workflow_run_ledger_failed_validation_item_count: artifacts.workflow_run_ledger?.summary?.failed_validation_item_count ?? 0,
     workflow_run_ledger_validation_error_count: artifacts.workflow_run_ledger?.summary?.validation_error_count ?? artifacts.workflow_run_ledger?.validation?.errors?.length ?? 0,
+    agent_run_ledger_agent_run_record_count: artifacts.agent_run_ledger?.summary?.agent_run_record_count ?? 0,
+    agent_run_ledger_runtime_contract_bound_record_count: artifacts.agent_run_ledger?.summary?.runtime_contract_bound_record_count ?? 0,
+    agent_run_ledger_workflow_run_bound_record_count: artifacts.agent_run_ledger?.summary?.workflow_run_bound_record_count ?? 0,
+    agent_run_ledger_completed_agent_run_record_count: artifacts.agent_run_ledger?.summary?.completed_agent_run_record_count ?? 0,
+    agent_run_ledger_high_risk_agent_run_count: artifacts.agent_run_ledger?.summary?.high_risk_agent_run_count ?? 0,
+    agent_run_ledger_untrusted_output_agent_run_count: artifacts.agent_run_ledger?.summary?.untrusted_output_agent_run_count ?? 0,
+    agent_run_ledger_verification_required_agent_run_count: artifacts.agent_run_ledger?.summary?.verification_required_agent_run_count ?? 0,
+    agent_run_ledger_verification_bound_agent_run_count: artifacts.agent_run_ledger?.summary?.verification_bound_agent_run_count ?? 0,
+    agent_run_ledger_agent_run_io_reference_count: artifacts.agent_run_ledger?.summary?.agent_run_io_reference_count ?? 0,
+    agent_run_ledger_complete_io_reference_count: artifacts.agent_run_ledger?.summary?.complete_io_reference_count ?? 0,
+    agent_run_ledger_input_reference_count: artifacts.agent_run_ledger?.summary?.input_reference_count ?? 0,
+    agent_run_ledger_output_reference_count: artifacts.agent_run_ledger?.summary?.output_reference_count ?? 0,
+    agent_run_ledger_output_hash_count: artifacts.agent_run_ledger?.summary?.output_hash_count ?? 0,
+    agent_run_ledger_agent_run_log_reference_count: artifacts.agent_run_ledger?.summary?.agent_run_log_reference_count ?? 0,
+    agent_run_ledger_captured_log_reference_count: artifacts.agent_run_ledger?.summary?.captured_log_reference_count ?? 0,
+    agent_run_ledger_required_log_missing_count: artifacts.agent_run_ledger?.summary?.required_log_missing_count ?? 0,
+    agent_run_ledger_agent_run_artifact_reference_count: artifacts.agent_run_ledger?.summary?.agent_run_artifact_reference_count ?? 0,
+    agent_run_ledger_captured_artifact_reference_count: artifacts.agent_run_ledger?.summary?.captured_artifact_reference_count ?? 0,
+    agent_run_ledger_missing_required_artifact_count: artifacts.agent_run_ledger?.summary?.missing_required_artifact_count ?? 0,
+    agent_run_ledger_agent_run_event_binding_count: artifacts.agent_run_ledger?.summary?.agent_run_event_binding_count ?? 0,
+    agent_run_ledger_linked_event_binding_count: artifacts.agent_run_ledger?.summary?.linked_event_binding_count ?? 0,
+    agent_run_ledger_failed_validation_item_count: artifacts.agent_run_ledger?.summary?.failed_validation_item_count ?? 0,
+    agent_run_ledger_validation_error_count: artifacts.agent_run_ledger?.summary?.validation_error_count ?? artifacts.agent_run_ledger?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11846,6 +11937,8 @@ function parseArgs(argv) {
     else if (arg === "--no-event-correlation-ledger") parsed.eventCorrelationLedgerPath = false;
     else if (arg === "--workflow-run-ledger") parsed.workflowRunLedgerPath = argv[++index];
     else if (arg === "--no-workflow-run-ledger") parsed.workflowRunLedgerPath = false;
+    else if (arg === "--agent-run-ledger") parsed.agentRunLedgerPath = argv[++index];
+    else if (arg === "--no-agent-run-ledger") parsed.agentRunLedgerPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -12203,6 +12296,8 @@ Options:
   --no-event-correlation-ledger  Do not include Event Correlation Ledger status.
   --workflow-run-ledger <path>   workflow-run-ledger.json path.
   --no-workflow-run-ledger       Do not include Workflow Run Ledger status.
+  --agent-run-ledger <path>      agent-run-ledger.json path.
+  --no-agent-run-ledger          Do not include Agent Run Ledger status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

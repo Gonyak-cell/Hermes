@@ -171,6 +171,7 @@ import { runEventTypeRegistry } from "../src/event-type-registry.mjs";
 import { runAppendOnlyEventStore } from "../src/append-only-event-store.mjs";
 import { runEventCorrelationLedger } from "../src/event-correlation-ledger.mjs";
 import { runWorkflowRunLedger } from "../src/workflow-run-ledger.mjs";
+import { runAgentRunLedger } from "../src/agent-run-ledger.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1704,6 +1705,7 @@ describe("matter harness", () => {
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
         workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3529,6 +3531,59 @@ describe("matter harness", () => {
       assert.ok(workflowRunLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-run-ledger", "summary.md"), "utf8"), /Workflow Run Ledger/);
 
+      const agentRunLedger = await runAgentRunLedger({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        outDir: path.join(outDir, "agent-run-ledger"),
+        runAt: "2026-05-23T06:35:08.453Z",
+      });
+      const agentRunLedgerSchema = JSON.parse(await readFile("schemas/agent-run-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(agentRunLedger, agentRunLedgerSchema, {}, "agent_run_ledger"),
+        [],
+      );
+      const expectedAgentStateEventCount = runtimeAgentRunContractFreeze.runtime_agentrun_contract.agent_runs
+        .reduce((count, agentRun) => {
+          const workflowAgentRunCount = runtimeAgentRunContractFreeze.runtime_agentrun_contract.agent_runs
+            .filter((candidate) => candidate.workflow_run_id === agentRun.workflow_run_id).length;
+          const workflowAgentEventCount = appendOnlyEventStore.event_store_catalog.stored_events
+            .filter((event) => event.workflow_run_id === agentRun.workflow_run_id && (event.event_type === "agent_run.started" || event.event_type === "agent_run.completed")).length;
+          return count + Math.min(2, Math.max(0, workflowAgentEventCount - (workflowAgentRunCount - 1) * 2));
+        }, 0);
+      assert.equal(agentRunLedger.summary.agent_run_ledger_status, "complete");
+      assert.equal(agentRunLedger.summary.agent_run_ledger_contract_id, "agent-run-ledger.v1");
+      assert.equal(agentRunLedger.summary.source_runtime_agentrun_contract_freeze_status, "complete");
+      assert.equal(agentRunLedger.summary.source_workflow_run_ledger_status, "complete");
+      assert.equal(agentRunLedger.summary.source_event_store_status, "complete");
+      assert.equal(agentRunLedger.summary.source_event_correlation_status, "complete");
+      assert.equal(agentRunLedger.summary.agent_run_record_count, runtimeAgentRunContractFreeze.summary.agent_run_count);
+      assert.equal(agentRunLedger.summary.runtime_contract_bound_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(agentRunLedger.summary.workflow_run_bound_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(agentRunLedger.summary.agent_run_io_reference_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(agentRunLedger.summary.complete_io_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(agentRunLedger.summary.input_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(agentRunLedger.summary.output_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(agentRunLedger.summary.output_hash_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(agentRunLedger.summary.agent_run_log_reference_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(agentRunLedger.summary.captured_log_reference_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(agentRunLedger.summary.required_log_missing_count, 0);
+      assert.equal(agentRunLedger.summary.agent_run_artifact_reference_count, runtimeAgentRunContractFreeze.summary.runtime_artifact_count);
+      assert.equal(agentRunLedger.summary.missing_required_artifact_count, 0);
+      assert.equal(agentRunLedger.summary.agent_run_event_binding_count, expectedAgentStateEventCount);
+      assert.equal(agentRunLedger.summary.linked_event_binding_count, agentRunLedger.summary.agent_run_event_binding_count);
+      assert.equal(agentRunLedger.summary.verification_required_agent_run_count, runtimeAgentRunContractFreeze.summary.verification_required_agent_run_count);
+      assert.equal(agentRunLedger.summary.verification_bound_agent_run_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(agentRunLedger.summary.validation_error_count, 0);
+      assert.ok(agentRunLedger.agent_run_catalog.agent_run_records.every((record) => record.runtime_contract_binding_status === "linked" && record.workflow_run_binding_status === "linked"));
+      assert.ok(agentRunLedger.agent_run_catalog.agent_run_io_references.every((reference) => reference.io_reference_status === "complete"));
+      assert.ok(agentRunLedger.agent_run_catalog.agent_run_log_references.every((reference) => reference.log_reference_status === "captured"));
+      assert.ok(agentRunLedger.agent_run_catalog.agent_run_artifact_references.every((reference) => reference.artifact_reference_status === "captured"));
+      assert.ok(agentRunLedger.agent_run_catalog.agent_run_event_bindings.every((binding) => binding.event_binding_status === "linked"));
+      assert.ok(agentRunLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "agent-run-ledger", "summary.md"), "utf8"), /Agent Run Ledger/);
+
       const policySnapshotBindingLedger = await runPolicySnapshotBindingLedger({
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
@@ -5045,6 +5100,7 @@ describe("matter harness", () => {
           append_only_event_store: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
           event_correlation_ledger: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
           workflow_run_ledger: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+          agent_run_ledger: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -5057,8 +5113,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 65);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 65);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 66);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 66);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5119,6 +5175,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_correlation_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "agent_run_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5187,6 +5244,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:store"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:correlation"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:workflow-runs"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:agent-runs"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5488,6 +5546,10 @@ describe("matter harness", () => {
       assert.equal(workflowRunLedgerCheckpoint?.acceptance_profile, "workflow_run_ledger_gate");
       assert.equal(workflowRunLedgerCheckpoint?.status, "passed");
       assert.equal(workflowRunLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const agentRunLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-agent-run-ledger");
+      assert.equal(agentRunLedgerCheckpoint?.acceptance_profile, "agent_run_ledger_gate");
+      assert.equal(agentRunLedgerCheckpoint?.status, "passed");
+      assert.equal(agentRunLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6825,6 +6887,29 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_run_ledger_terminal_state_mismatch_count, 0);
       assert.equal(dashboard.summary.workflow_run_ledger_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.workflow_run_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.agent_run_ledger_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.agent_run_ledger_runtime_contract_bound_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.agent_run_ledger_workflow_run_bound_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.agent_run_ledger_completed_agent_run_record_count, agentRunLedger.summary.completed_agent_run_record_count);
+      assert.equal(dashboard.summary.agent_run_ledger_high_risk_agent_run_count, agentRunLedger.summary.high_risk_agent_run_count);
+      assert.equal(dashboard.summary.agent_run_ledger_untrusted_output_agent_run_count, agentRunLedger.summary.untrusted_output_agent_run_count);
+      assert.equal(dashboard.summary.agent_run_ledger_verification_required_agent_run_count, agentRunLedger.summary.verification_required_agent_run_count);
+      assert.equal(dashboard.summary.agent_run_ledger_verification_bound_agent_run_count, agentRunLedger.summary.verification_bound_agent_run_count);
+      assert.equal(dashboard.summary.agent_run_ledger_agent_run_io_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_complete_io_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_input_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_output_reference_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_output_hash_count, agentRunLedger.summary.agent_run_io_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_agent_run_log_reference_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_captured_log_reference_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_required_log_missing_count, 0);
+      assert.equal(dashboard.summary.agent_run_ledger_agent_run_artifact_reference_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_captured_artifact_reference_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(dashboard.summary.agent_run_ledger_missing_required_artifact_count, 0);
+      assert.equal(dashboard.summary.agent_run_ledger_agent_run_event_binding_count, agentRunLedger.summary.agent_run_event_binding_count);
+      assert.equal(dashboard.summary.agent_run_ledger_linked_event_binding_count, agentRunLedger.summary.agent_run_event_binding_count);
+      assert.equal(dashboard.summary.agent_run_ledger_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.agent_run_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -8198,6 +8283,34 @@ describe("matter harness", () => {
       const workflowRunLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-run-ledger-validations?status=passed", apiOptions)).body);
       assert.equal(workflowRunLedgerValidations.collection, "workflow_run_ledger_validations");
       assert.equal(workflowRunLedgerValidations.count, workflowRunLedger.summary.validation_item_count);
+
+      const agentRunLedgers = JSON.parse((await buildReviewApiResponse("/api/agent-run-ledgers?agent_run_ledger_status=complete", apiOptions)).body);
+      assert.equal(agentRunLedgers.collection, "agent_run_ledgers");
+      assert.equal(agentRunLedgers.count, 1);
+
+      const agentRunRecords = JSON.parse((await buildReviewApiResponse("/api/agent-run-records?runtime_contract_binding_status=linked&workflow_run_binding_status=linked", apiOptions)).body);
+      assert.equal(agentRunRecords.collection, "agent_run_records");
+      assert.equal(agentRunRecords.count, agentRunLedger.summary.agent_run_record_count);
+
+      const agentRunIoReferences = JSON.parse((await buildReviewApiResponse("/api/agent-run-io-references?io_reference_status=complete", apiOptions)).body);
+      assert.equal(agentRunIoReferences.collection, "agent_run_io_references");
+      assert.equal(agentRunIoReferences.count, agentRunLedger.summary.agent_run_io_reference_count);
+
+      const agentRunArtifactReferences = JSON.parse((await buildReviewApiResponse("/api/agent-run-artifact-references?artifact_reference_status=captured", apiOptions)).body);
+      assert.equal(agentRunArtifactReferences.collection, "agent_run_artifact_references");
+      assert.equal(agentRunArtifactReferences.count, agentRunLedger.summary.captured_artifact_reference_count);
+
+      const agentRunLogReferences = JSON.parse((await buildReviewApiResponse("/api/agent-run-log-references?log_reference_status=captured", apiOptions)).body);
+      assert.equal(agentRunLogReferences.collection, "agent_run_log_references");
+      assert.equal(agentRunLogReferences.count, agentRunLedger.summary.agent_run_log_reference_count);
+
+      const agentRunEventBindings = JSON.parse((await buildReviewApiResponse("/api/agent-run-event-bindings?event_binding_status=linked", apiOptions)).body);
+      assert.equal(agentRunEventBindings.collection, "agent_run_event_bindings");
+      assert.equal(agentRunEventBindings.count, agentRunLedger.summary.agent_run_event_binding_count);
+
+      const agentRunLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/agent-run-ledger-validations?status=passed", apiOptions)).body);
+      assert.equal(agentRunLedgerValidations.collection, "agent_run_ledger_validations");
+      assert.equal(agentRunLedgerValidations.count, agentRunLedger.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

@@ -90,6 +90,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-state-transitions"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-event-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-ledger-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-io-references"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-artifact-references"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-log-references"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-event-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-run-ledger-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -929,6 +936,34 @@ try {
   const workflowRunLedgerValidations = await fetchJson(`${url}/api/workflow-run-ledger-validations?status=passed&limit=5`);
   assert.equal(workflowRunLedgerValidations.collection, "workflow_run_ledger_validations");
   assert.ok(workflowRunLedgerValidations.count <= 5);
+
+  const agentRunLedgers = await fetchJson(`${url}/api/agent-run-ledgers?agent_run_ledger_status=complete&limit=1`);
+  assert.equal(agentRunLedgers.collection, "agent_run_ledgers");
+  assert.ok(agentRunLedgers.count <= 1);
+
+  const agentRunRecords = await fetchJson(`${url}/api/agent-run-records?runtime_contract_binding_status=linked&workflow_run_binding_status=linked&limit=5`);
+  assert.equal(agentRunRecords.collection, "agent_run_records");
+  assert.ok(agentRunRecords.count <= 5);
+
+  const agentRunIoReferences = await fetchJson(`${url}/api/agent-run-io-references?io_reference_status=complete&limit=5`);
+  assert.equal(agentRunIoReferences.collection, "agent_run_io_references");
+  assert.ok(agentRunIoReferences.count <= 5);
+
+  const agentRunArtifactReferences = await fetchJson(`${url}/api/agent-run-artifact-references?artifact_reference_status=captured&limit=5`);
+  assert.equal(agentRunArtifactReferences.collection, "agent_run_artifact_references");
+  assert.ok(agentRunArtifactReferences.count <= 5);
+
+  const agentRunLogReferences = await fetchJson(`${url}/api/agent-run-log-references?log_reference_status=captured&limit=5`);
+  assert.equal(agentRunLogReferences.collection, "agent_run_log_references");
+  assert.ok(agentRunLogReferences.count <= 5);
+
+  const agentRunEventBindings = await fetchJson(`${url}/api/agent-run-event-bindings?event_binding_status=linked&limit=5`);
+  assert.equal(agentRunEventBindings.collection, "agent_run_event_bindings");
+  assert.ok(agentRunEventBindings.count <= 5);
+
+  const agentRunLedgerValidations = await fetchJson(`${url}/api/agent-run-ledger-validations?status=passed&limit=5`);
+  assert.equal(agentRunLedgerValidations.collection, "agent_run_ledger_validations");
+  assert.ok(agentRunLedgerValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

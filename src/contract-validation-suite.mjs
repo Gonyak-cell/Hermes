@@ -77,6 +77,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "events:store",
   "events:correlation",
   "events:workflow-runs",
+  "events:agent-runs",
   "contracts:observability",
 ];
 

@@ -920,6 +920,26 @@ try {
   assert.equal(workflowDslStateValidations.collection, "workflow_dsl_state_validations");
   assert.ok(workflowDslStateValidations.count <= 5);
 
+  const workflowStateMachineRunners = await fetchJson(`${url}/api/workflow-state-machine-runners?workflow_state_machine_runner_status=complete&limit=1`);
+  assert.equal(workflowStateMachineRunners.collection, "workflow_state_machine_runners");
+  assert.ok(workflowStateMachineRunners.count <= 1);
+
+  const workflowTransitionGuards = await fetchJson(`${url}/api/workflow-transition-guards?transition_guard_status=waiting&limit=5`);
+  assert.equal(workflowTransitionGuards.collection, "workflow_transition_guards");
+  assert.ok(workflowTransitionGuards.count <= 5);
+
+  const workflowRunnerAuditEvents = await fetchJson(`${url}/api/workflow-runner-audit-events?audit_status=ready&limit=5`);
+  assert.equal(workflowRunnerAuditEvents.collection, "workflow_runner_audit_events");
+  assert.ok(workflowRunnerAuditEvents.count <= 5);
+
+  const workflowRunnerPlans = await fetchJson(`${url}/api/workflow-runner-plans?runner_plan_status=waiting&limit=5`);
+  assert.equal(workflowRunnerPlans.collection, "workflow_runner_plans");
+  assert.ok(workflowRunnerPlans.count <= 5);
+
+  const workflowRunnerValidations = await fetchJson(`${url}/api/workflow-runner-validations?status=passed&limit=5`);
+  assert.equal(workflowRunnerValidations.collection, "workflow_runner_validations");
+  assert.ok(workflowRunnerValidations.count <= 5);
+
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
   assert.ok(runtimeAgentRunContractFreezes.count <= 1);

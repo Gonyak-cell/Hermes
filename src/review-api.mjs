@@ -2558,6 +2558,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-state-machine-runners") {
+    const runnerResult = await readDashboardSourceArtifact(dashboard, "workflow_state_machine_runner");
+    if (!runnerResult.available) {
+      return jsonResponse(503, buildError("workflow_state_machine_runner_unavailable", runnerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_state_machine_runners", [runnerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-transition-guards") {
+    const runnerResult = await readDashboardSourceArtifact(dashboard, "workflow_state_machine_runner");
+    if (!runnerResult.available) {
+      return jsonResponse(503, buildError("workflow_state_machine_runner_unavailable", runnerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_transition_guards", runnerResult.artifact.transition_guard_records ?? runnerResult.artifact.workflow_state_machine_runner?.transition_guard_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-runner-audit-events") {
+    const runnerResult = await readDashboardSourceArtifact(dashboard, "workflow_state_machine_runner");
+    if (!runnerResult.available) {
+      return jsonResponse(503, buildError("workflow_state_machine_runner_unavailable", runnerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_runner_audit_events", runnerResult.artifact.runner_audit_event_candidates ?? runnerResult.artifact.workflow_state_machine_runner?.runner_audit_event_candidates ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-runner-plans") {
+    const runnerResult = await readDashboardSourceArtifact(dashboard, "workflow_state_machine_runner");
+    if (!runnerResult.available) {
+      return jsonResponse(503, buildError("workflow_state_machine_runner_unavailable", runnerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_runner_plans", runnerResult.artifact.workflow_runner_plans ?? runnerResult.artifact.workflow_state_machine_runner?.workflow_runner_plans ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-runner-validations") {
+    const runnerResult = await readDashboardSourceArtifact(dashboard, "workflow_state_machine_runner");
+    if (!runnerResult.available) {
+      return jsonResponse(503, buildError("workflow_state_machine_runner_unavailable", runnerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_runner_validations", runnerResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6678,6 +6729,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-state-blueprints", "Workflow state blueprints"),
       route("GET", "/api/workflow-run-state-projections", "Workflow run state projections"),
       route("GET", "/api/workflow-dsl-state-validations", "Workflow DSL state validation rows"),
+      route("GET", "/api/workflow-state-machine-runners", "Workflow state machine runner artifacts"),
+      route("GET", "/api/workflow-transition-guards", "Workflow transition guard rows"),
+      route("GET", "/api/workflow-runner-audit-events", "Workflow runner audit event candidates"),
+      route("GET", "/api/workflow-runner-plans", "Workflow runner plan rows"),
+      route("GET", "/api/workflow-runner-validations", "Workflow runner validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7301,6 +7357,10 @@ function filterItems(items, searchParams) {
     "core_compatibility_status",
     "dependency_status",
     "workflow_dsl_state_model_status",
+    "workflow_state_machine_runner_status",
+    "transition_guard_status",
+    "guard_decision",
+    "runner_plan_status",
     "dsl_state",
     "dsl_current_state",
     "state_projection_status",
@@ -8414,6 +8474,11 @@ function readFilterValue(item, key) {
   if (key === "core_compatibility_status") return item.core_compatibility_status;
   if (key === "dependency_status") return item.dependency_status;
   if (key === "workflow_dsl_state_model_status") return item.summary?.workflow_dsl_state_model_status ?? item.workflow_dsl_state_model_status;
+  if (key === "workflow_state_machine_runner_status") return item.summary?.workflow_state_machine_runner_status ?? item.workflow_state_machine_runner_status;
+  if (key === "transition_guard_status") return item.transition_guard_status;
+  if (key === "guard_decision") return item.guard_decision;
+  if (key === "runner_plan_status") return item.runner_plan_status;
+  if (key === "audit_status") return item.audit_status;
   if (key === "dsl_state") return item.dsl_state;
   if (key === "dsl_current_state") return item.dsl_current_state;
   if (key === "state_projection_status") return item.state_projection_status;

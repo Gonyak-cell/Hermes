@@ -93,6 +93,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "capabilities:manifest-v2",
   "packs:compatibility",
   "workflows:state-model",
+  "workflows:runner",
   "contracts:observability",
 ];
 

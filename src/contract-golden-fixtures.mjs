@@ -87,6 +87,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     capability_manifest_v2: "artifacts/capability-manifest-v2/latest/capability-manifest-v2.json",
     pack_manifest_compatibility: "artifacts/pack-manifest-compatibility/latest/pack-manifest-compatibility.json",
     workflow_dsl_state_model: "artifacts/workflow-dsl-state-model/latest/workflow-dsl-state-model.json",
+    workflow_state_machine_runner: "artifacts/workflow-state-machine-runner/latest/workflow-state-machine-runner.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -172,6 +173,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("capability_manifest_v2", "Capability Manifest v2", "contracts", "capability-manifest-v2-catalog.schema.json"),
   fixtureDefinition("pack_manifest_compatibility", "Pack Manifest Compatibility", "domain_packs", "pack-manifest-compatibility.schema.json"),
   fixtureDefinition("workflow_dsl_state_model", "Workflow DSL State Model", "workflow", "workflow-dsl-state-model.schema.json"),
+  fixtureDefinition("workflow_state_machine_runner", "Workflow State Machine Runner", "workflow", "workflow-state-machine-runner.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

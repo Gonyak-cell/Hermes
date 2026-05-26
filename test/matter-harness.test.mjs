@@ -175,6 +175,7 @@ import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-
 import { runCapabilityManifestV2 } from "../src/capability-manifest-v2.mjs";
 import { runPackManifestCompatibility } from "../src/pack-manifest-compatibility.mjs";
 import { runWorkflowDslStateModel } from "../src/workflow-dsl-state-model.mjs";
+import { runWorkflowStateMachineRunner } from "../src/workflow-state-machine-runner.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1802,6 +1803,7 @@ describe("matter harness", () => {
         capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
         packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
         workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
+        workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1888,6 +1890,7 @@ describe("matter harness", () => {
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
         workflowDslStateModelPath: false,
+        workflowStateMachineRunnerPath: false,
         policyMatrixCatalogPath: false,
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
@@ -4113,6 +4116,39 @@ describe("matter harness", () => {
       assert.ok(auditEventLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "audit-event-ledger", "summary.md"), "utf8"), /Audit Event Ledger/);
 
+      const workflowStateMachineRunner = await runWorkflowStateMachineRunner({
+        workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        outDir: path.join(outDir, "workflow-state-machine-runner"),
+        runAt: "2026-05-23T06:35:08.453Z",
+      });
+      const workflowStateMachineRunnerSchema = JSON.parse(await readFile("schemas/workflow-state-machine-runner.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowStateMachineRunner, workflowStateMachineRunnerSchema, {}, "workflow_state_machine_runner"),
+        [],
+      );
+      assert.equal(workflowStateMachineRunner.summary.workflow_state_machine_runner_status, "complete");
+      assert.equal(workflowStateMachineRunner.summary.runner_contract_id, "workflow-state-machine-runner.v1");
+      assert.equal(workflowStateMachineRunner.summary.workflow_run_projection_count, workflowDslStateModel.summary.workflow_run_projection_count);
+      assert.equal(workflowStateMachineRunner.summary.transition_guard_count, workflowDslStateModel.summary.workflow_run_projection_count);
+      assert.equal(workflowStateMachineRunner.summary.audit_event_candidate_count, workflowStateMachineRunner.summary.transition_guard_count);
+      assert.equal(workflowStateMachineRunner.summary.runner_plan_count, workflowStateMachineRunner.summary.transition_guard_count);
+      assert.equal(workflowStateMachineRunner.summary.guard_audit_binding_count, workflowStateMachineRunner.summary.transition_guard_count);
+      assert.equal(workflowStateMachineRunner.summary.transition_guard_without_audit_count, 0);
+      assert.equal(workflowStateMachineRunner.summary.transition_guard_without_rule_count, 0);
+      assert.equal(workflowStateMachineRunner.summary.protected_action_executed_count, 0);
+      assert.equal(workflowStateMachineRunner.summary.waiting_guard_count, workflowDslStateModel.summary.waiting_run_count);
+      assert.ok(workflowStateMachineRunner.summary.human_review_guard_count > 0);
+      assert.ok(workflowStateMachineRunner.summary.law_firm_human_review_guard_count > 0);
+      assert.ok(workflowStateMachineRunner.transition_guard_records.every((guard) => guard.audit_event_candidate_id));
+      assert.ok(workflowStateMachineRunner.transition_guard_records
+        .filter((guard) => guard.transition_guard_status === "waiting")
+        .every((guard) => guard.guard_decision === "hold" && guard.auto_transition_allowed === false));
+      assert.ok(workflowStateMachineRunner.runner_audit_event_candidates.every((candidate) => candidate.audit_type === "workflow.transition_guard.evaluated" && candidate.audit_status === "ready"));
+      assert.ok(workflowStateMachineRunner.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-state-machine-runner", "summary.md"), "utf8"), /Workflow State Machine Runner/);
+
       const retentionArchiveLedger = await runRetentionArchiveLedger({
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
@@ -5733,6 +5769,7 @@ describe("matter harness", () => {
           capability_manifest_v2: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
           pack_manifest_compatibility: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
           workflow_dsl_state_model: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
+          workflow_state_machine_runner: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5744,8 +5781,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 81);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 81);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 82);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 82);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5814,6 +5851,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "capability_manifest_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pack_manifest_compatibility"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_dsl_state_model"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_state_machine_runner"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5871,6 +5909,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6203,6 +6242,10 @@ describe("matter harness", () => {
       assert.equal(workflowDslStateModelCheckpoint?.acceptance_profile, "workflow_dsl_state_model_gate");
       assert.equal(workflowDslStateModelCheckpoint?.status, "passed");
       assert.equal(workflowDslStateModelCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowStateMachineRunnerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-state-machine-runner");
+      assert.equal(workflowStateMachineRunnerCheckpoint?.acceptance_profile, "workflow_state_machine_runner_gate");
+      assert.equal(workflowStateMachineRunnerCheckpoint?.status, "passed");
+      assert.equal(workflowStateMachineRunnerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -7653,6 +7696,20 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_dsl_state_model_human_review_waiting_count, workflowDslStateModel.summary.human_review_waiting_count);
       assert.equal(dashboard.summary.workflow_dsl_state_model_law_firm_waiting_count, workflowDslStateModel.summary.law_firm_waiting_count);
       assert.equal(dashboard.summary.workflow_dsl_state_model_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_status, "complete");
+      assert.equal(dashboard.summary.workflow_state_machine_runner_runner_contract_id, "workflow-state-machine-runner.v1");
+      assert.equal(dashboard.summary.workflow_state_machine_runner_workflow_run_projection_count, workflowStateMachineRunner.summary.workflow_run_projection_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_transition_guard_count, workflowStateMachineRunner.summary.transition_guard_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_audit_event_candidate_count, workflowStateMachineRunner.summary.audit_event_candidate_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_runner_plan_count, workflowStateMachineRunner.summary.runner_plan_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_guard_audit_binding_count, workflowStateMachineRunner.summary.guard_audit_binding_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_transition_guard_without_audit_count, 0);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_transition_guard_without_rule_count, 0);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_waiting_guard_count, workflowStateMachineRunner.summary.waiting_guard_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_human_review_guard_count, workflowStateMachineRunner.summary.human_review_guard_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_law_firm_human_review_guard_count, workflowStateMachineRunner.summary.law_firm_human_review_guard_count);
+      assert.equal(dashboard.summary.workflow_state_machine_runner_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8272,6 +8329,10 @@ describe("matter harness", () => {
       assert.equal(workflowDslStateModelStage?.status, "passed");
       assert.equal(workflowDslStateModelStage?.metrics.dsl_state_count, 6);
       assert.equal(workflowDslStateModelStage?.metrics.workflow_run_projection_count, workflowDslStateModel.summary.workflow_run_projection_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_state_machine_runner"));
+      const workflowStateMachineRunnerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_state_machine_runner");
+      assert.equal(workflowStateMachineRunnerStage?.status, "passed");
+      assert.equal(workflowStateMachineRunnerStage?.metrics.transition_guard_count, workflowStateMachineRunner.summary.transition_guard_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9152,6 +9213,26 @@ describe("matter harness", () => {
       const workflowDslStateValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-state-validations?status=passed", apiOptions)).body);
       assert.equal(workflowDslStateValidations.collection, "workflow_dsl_state_validations");
       assert.equal(workflowDslStateValidations.count, workflowDslStateModel.summary.validation_item_count);
+
+      const workflowStateMachineRunners = JSON.parse((await buildReviewApiResponse("/api/workflow-state-machine-runners?workflow_state_machine_runner_status=complete", apiOptions)).body);
+      assert.equal(workflowStateMachineRunners.collection, "workflow_state_machine_runners");
+      assert.equal(workflowStateMachineRunners.count, 1);
+
+      const workflowTransitionGuards = JSON.parse((await buildReviewApiResponse("/api/workflow-transition-guards?transition_guard_status=waiting", apiOptions)).body);
+      assert.equal(workflowTransitionGuards.collection, "workflow_transition_guards");
+      assert.equal(workflowTransitionGuards.count, workflowStateMachineRunner.summary.waiting_guard_count);
+
+      const workflowRunnerAuditEvents = JSON.parse((await buildReviewApiResponse("/api/workflow-runner-audit-events?audit_status=ready", apiOptions)).body);
+      assert.equal(workflowRunnerAuditEvents.collection, "workflow_runner_audit_events");
+      assert.equal(workflowRunnerAuditEvents.count, workflowStateMachineRunner.summary.audit_event_candidate_count);
+
+      const workflowRunnerPlans = JSON.parse((await buildReviewApiResponse("/api/workflow-runner-plans?runner_plan_status=waiting", apiOptions)).body);
+      assert.equal(workflowRunnerPlans.collection, "workflow_runner_plans");
+      assert.equal(workflowRunnerPlans.count, workflowStateMachineRunner.summary.waiting_guard_count);
+
+      const workflowRunnerValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-runner-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowRunnerValidations.collection, "workflow_runner_validations");
+      assert.equal(workflowRunnerValidations.count, workflowStateMachineRunner.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

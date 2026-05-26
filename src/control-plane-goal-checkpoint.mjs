@@ -101,6 +101,7 @@ const GOAL_ITEMS = [
   sourceItem("capability_manifest_v2", "Capability Manifest v2 catalog", "contracts", "capability_manifest_v2", "control-plane-capability-manifest-v2", { acceptance_profile: "capability_manifest_v2_gate" }),
   sourceItem("pack_manifest_compatibility", "Pack manifest compatibility", "domain_packs", "pack_manifest_compatibility", "control-plane-pack-manifest-compatibility", { acceptance_profile: "pack_manifest_compatibility_gate" }),
   sourceItem("workflow_dsl_state_model", "Workflow DSL state model", "workflow", "workflow_dsl_state_model", "control-plane-workflow-dsl-state-model", { acceptance_profile: "workflow_dsl_state_model_gate" }),
+  sourceItem("workflow_state_machine_runner", "Workflow state machine runner", "workflow", "workflow_state_machine_runner", "control-plane-workflow-state-machine-runner", { acceptance_profile: "workflow_state_machine_runner_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -463,6 +464,7 @@ function evaluateStageAcceptance(item, stage) {
     "capability_manifest_v2_gate",
     "pack_manifest_compatibility_gate",
     "workflow_dsl_state_model_gate",
+    "workflow_state_machine_runner_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -816,6 +818,33 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.law_firm_waiting_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Workflow DSL state model fixes the six canonical workflow states and projects blocked law-firm runs into human-review waiting state.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_state_machine_runner_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.transition_guard_without_audit_count ?? 0)
+      + (metrics.transition_guard_without_rule_count ?? 0)
+      + (metrics.blocked_guard_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const projectionCount = metrics.workflow_run_projection_count ?? 0;
+    const guardCount = metrics.transition_guard_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_state_machine_runner_status === "complete"
+      && metrics.runner_contract_id === "workflow-state-machine-runner.v1"
+      && projectionCount > 0
+      && guardCount === projectionCount
+      && (metrics.audit_event_candidate_count ?? 0) === guardCount
+      && (metrics.runner_plan_count ?? 0) === guardCount
+      && (metrics.guard_audit_binding_count ?? 0) === guardCount
+      && (metrics.waiting_guard_count ?? 0) > 0
+      && (metrics.human_review_guard_count ?? 0) > 0
+      && (metrics.law_firm_human_review_guard_count ?? 0) > 0
+      && (metrics.auto_transition_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow state machine runner creates a transition guard, audit event candidate, and runner plan for each run while holding law-firm human-review work.");
     }
   }
 

@@ -4946,6 +4946,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 68개로 증가하고 audit event ledger가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run events:audit-ledger -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 167: Policy Snapshot Event Binding
+
+목표: event, run, gate 실행 시점에 적용된 policy snapshot이 source row에 존재하고, P123 Policy Snapshot Binding Ledger의 resolved snapshot과 append-only event store에 일관되게 남는지 별도 event-policy binding ledger로 고정한다.
+
+구현 내용:
+
+- `npm run events:policy-snapshots -- --check` 명령을 추가해 EventRecord v2, AuditEvent v2, RunLedger v2, EventRunBinding v2, GateResult v2를 `event_run_gate_policy_binding`으로 projection함
+- Policy Snapshot Ledger, Policy Snapshot Binding Ledger, Event/Audit/Run Contract Freeze, Gate/Approval Contract Freeze, Append-only Event Store를 source contract로 묶고 source status를 validation gate로 검증함
+- 각 event/run/gate row가 `source_policy_snapshot_id`, `execution_time`, `resolved_policy_snapshot_id`, `binding_source`, `binding_status`, `policy_snapshot_known`을 갖는지 확인함
+- append-only stored event가 존재하는 event/gate/event-run row는 stored event의 `policy_snapshot_id`가 원 source event snapshot과 일치하는지 검증함
+- unresolved placeholder snapshot은 P123 binding ledger에서 known snapshot으로 fallback-resolved된 경우에만 허용함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Policy Snapshot Event Binding을 통합함
+- `/api/policy-snapshot-event-bindings`, `/api/event-run-gate-policy-bindings`, `/api/event-policy-snapshot-bindings`, `/api/run-policy-snapshot-bindings`, `/api/gate-policy-snapshot-bindings`, `/api/policy-snapshot-event-binding-validations` route를 추가함
+
+완료 기준:
+
+- Policy Snapshot Event Binding이 validation error 없이 `complete` 상태가 됨
+- event/run/gate/event-run-binding source row 수와 projection row 수가 일치함
+- 모든 source row가 `policy_snapshot_id`와 execution time을 보유함
+- 모든 source row가 P123 binding ledger를 통해 known policy snapshot에 bind됨
+- append-only stored event가 있는 row는 stored event snapshot이 source event snapshot과 일치함
+- gate row의 event id가 있는 경우 event record와 연결됨
+- Review Dashboard summary와 stage status에서 event/run/gate binding, source snapshot, resolved snapshot, stored event match count가 노출됨
+- Review API smoke가 policy snapshot event binding, event/run/gate row, validation route를 모두 조회함
+- Golden fixture 수가 69개로 증가하고 policy snapshot event binding이 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run events:policy-snapshots -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4954,9 +4981,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 166이다.
+- 현재 완료 기준점은 Phase 167이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P167-P312, 총 146개다.
+- 남은 계획 슬롯은 P168-P312, 총 145개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

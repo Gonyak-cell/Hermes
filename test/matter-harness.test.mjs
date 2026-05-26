@@ -143,6 +143,7 @@ import { runProtectedDeliveryQueue } from "../src/protected-delivery-queue.mjs";
 import { runPolicyMatrixCatalog } from "../src/policy-matrix-catalog.mjs";
 import { runPolicySnapshotLedger } from "../src/policy-snapshot-ledger.mjs";
 import { runPolicySnapshotBindingLedger } from "../src/policy-snapshot-binding-ledger.mjs";
+import { runPolicySnapshotEventBinding } from "../src/policy-snapshot-event-binding.mjs";
 import { buildReviewApiResponse } from "../src/review-api.mjs";
 import { runReviewDashboard } from "../src/review-dashboard.mjs";
 import {
@@ -1659,6 +1660,7 @@ describe("matter harness", () => {
         policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         policySnapshotBindingLedgerPath: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
+        policySnapshotEventBindingPath: path.join(outDir, "policy-snapshot-event-bindings", "policy-snapshot-event-binding.json"),
         policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
         dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
         matterTaggingDecisionLedgerPath: path.join(outDir, "matter-tagging", "matter-tagging-ledger.json"),
@@ -3688,6 +3690,48 @@ describe("matter harness", () => {
       assert.ok(policySnapshotBindingLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "policy-snapshot-bindings", "summary.md"), "utf8"), /Policy Snapshot Binding Ledger/);
 
+      const policySnapshotEventBinding = await runPolicySnapshotEventBinding({
+        policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
+        policySnapshotBindingLedgerPath: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
+        eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        outDir: path.join(outDir, "policy-snapshot-event-bindings"),
+        runAt: "2026-05-23T06:35:07.785Z",
+      });
+      const policySnapshotEventBindingSchema = JSON.parse(await readFile("schemas/policy-snapshot-event-binding.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(policySnapshotEventBinding, policySnapshotEventBindingSchema, {}, "policy_snapshot_event_binding"),
+        [],
+      );
+      const expectedPolicySnapshotEventBindingCount =
+        eventAuditRunContractFreeze.summary.event_record_count
+        + eventAuditRunContractFreeze.summary.audit_event_count
+        + eventAuditRunContractFreeze.summary.run_ledger_count
+        + eventAuditRunContractFreeze.summary.event_run_binding_count
+        + gateApprovalContractFreeze.summary.gate_result_count;
+      assert.equal(policySnapshotEventBinding.summary.policy_snapshot_event_binding_status, "complete");
+      assert.equal(policySnapshotEventBinding.summary.policy_snapshot_event_binding_contract_id, "policy-snapshot-event-binding.v1");
+      assert.equal(policySnapshotEventBinding.summary.event_run_gate_policy_binding_count, expectedPolicySnapshotEventBindingCount);
+      assert.equal(policySnapshotEventBinding.summary.event_policy_snapshot_binding_count, eventAuditRunContractFreeze.summary.event_record_count + eventAuditRunContractFreeze.summary.audit_event_count);
+      assert.equal(policySnapshotEventBinding.summary.run_policy_snapshot_binding_count, eventAuditRunContractFreeze.summary.run_ledger_count);
+      assert.equal(policySnapshotEventBinding.summary.event_run_policy_snapshot_binding_count, eventAuditRunContractFreeze.summary.event_run_binding_count);
+      assert.equal(policySnapshotEventBinding.summary.gate_policy_snapshot_binding_count, gateApprovalContractFreeze.summary.gate_result_count);
+      assert.equal(policySnapshotEventBinding.summary.source_policy_snapshot_present_count, expectedPolicySnapshotEventBindingCount);
+      assert.equal(policySnapshotEventBinding.summary.resolved_policy_snapshot_known_count, expectedPolicySnapshotEventBindingCount);
+      assert.equal(policySnapshotEventBinding.summary.bound_policy_snapshot_binding_count, expectedPolicySnapshotEventBindingCount);
+      assert.equal(policySnapshotEventBinding.summary.execution_time_recorded_count, expectedPolicySnapshotEventBindingCount);
+      assert.equal(policySnapshotEventBinding.summary.source_snapshot_mismatch_count, 0);
+      assert.equal(policySnapshotEventBinding.summary.stored_event_policy_snapshot_missing_count, 0);
+      assert.equal(policySnapshotEventBinding.summary.stored_event_policy_snapshot_mismatch_count, 0);
+      assert.equal(policySnapshotEventBinding.summary.gate_event_missing_count, 0);
+      assert.equal(policySnapshotEventBinding.summary.validation_error_count, 0);
+      assert.ok(policySnapshotEventBinding.policy_snapshot_event_binding_catalog.event_run_gate_policy_bindings.every((binding) => binding.source_snapshot_presence_status === "present" && binding.policy_snapshot_known && binding.binding_status === "bound"));
+      assert.ok(policySnapshotEventBinding.policy_snapshot_event_binding_catalog.event_run_gate_policy_bindings.every((binding) => ["matched", "source_unresolved_resolved_by_binding"].includes(binding.source_to_resolved_snapshot_status)));
+      assert.ok(policySnapshotEventBinding.policy_snapshot_event_binding_catalog.event_run_gate_policy_bindings.filter((binding) => !binding.append_only_event_binding_status.startsWith("not_applicable")).every((binding) => binding.stored_event_snapshot_status === "stored_event_policy_snapshot_matched"));
+      assert.ok(policySnapshotEventBinding.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "policy-snapshot-event-bindings", "summary.md"), "utf8"), /Policy Snapshot Event Binding/);
+
       const errorCostObservabilityContractFreeze = await runErrorCostObservabilityContractFreeze({
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -5194,6 +5238,7 @@ describe("matter harness", () => {
           tool_invocation_ledger: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
           audit_event_ledger: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
+          policy_snapshot_event_binding: path.join(outDir, "policy-snapshot-event-bindings", "policy-snapshot-event-binding.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5205,8 +5250,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 68);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 68);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 69);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 69);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5262,6 +5307,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "output_destination_policy_enforcement"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_authority_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_binding_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_event_binding"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5340,6 +5386,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:correlation"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:workflow-runs"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:agent-runs"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:policy-snapshots"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:audit-ledger"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
@@ -5586,6 +5633,10 @@ describe("matter harness", () => {
       assert.equal(policySnapshotBindingLedgerCheckpoint?.acceptance_profile, "policy_snapshot_binding_gate");
       assert.equal(policySnapshotBindingLedgerCheckpoint?.status, "passed");
       assert.equal(policySnapshotBindingLedgerCheckpoint?.implementation_status, "passed");
+      const policySnapshotEventBindingCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-policy-snapshot-event-binding");
+      assert.equal(policySnapshotEventBindingCheckpoint?.acceptance_profile, "policy_snapshot_event_binding_gate");
+      assert.equal(policySnapshotEventBindingCheckpoint?.status, "passed");
+      assert.equal(policySnapshotEventBindingCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -5815,6 +5866,18 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.policy_snapshot_binding_missing_count, 0);
       assert.equal(dashboard.summary.policy_snapshot_binding_unresolved_count, 0);
       assert.equal(dashboard.summary.policy_snapshot_binding_validation_error_count, 0);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_status, "complete");
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_count, policySnapshotEventBinding.summary.event_run_gate_policy_binding_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_event_count, policySnapshotEventBinding.summary.event_policy_snapshot_binding_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_run_count, policySnapshotEventBinding.summary.run_policy_snapshot_binding_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_event_run_count, policySnapshotEventBinding.summary.event_run_policy_snapshot_binding_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_gate_count, policySnapshotEventBinding.summary.gate_policy_snapshot_binding_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_source_present_count, policySnapshotEventBinding.summary.source_policy_snapshot_present_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_known_count, policySnapshotEventBinding.summary.resolved_policy_snapshot_known_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_stored_checked_count, policySnapshotEventBinding.summary.stored_event_policy_snapshot_checked_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_stored_matched_count, policySnapshotEventBinding.summary.stored_event_policy_snapshot_matched_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_gate_event_linked_count, policySnapshotEventBinding.summary.gate_event_linked_count);
+      assert.equal(dashboard.summary.policy_snapshot_event_binding_validation_error_count, 0);
       assert.equal(dashboard.summary.context_packet_count, contextPacketLedger.summary.context_packet_count);
       assert.equal(dashboard.summary.context_packet_ready_count, contextPacketLedger.summary.ready_packet_count);
       assert.equal(dashboard.summary.context_packet_redacted_count, contextPacketLedger.summary.redacted_packet_count);
@@ -8111,6 +8174,30 @@ describe("matter harness", () => {
       const policySnapshotBindingValidations = JSON.parse((await buildReviewApiResponse("/api/policy-snapshot-binding-validations?status=passed", apiOptions)).body);
       assert.equal(policySnapshotBindingValidations.collection, "policy_snapshot_binding_validations");
       assert.equal(policySnapshotBindingValidations.count, policySnapshotBindingLedger.summary.validation_item_count);
+
+      const policySnapshotEventBindings = JSON.parse((await buildReviewApiResponse("/api/policy-snapshot-event-bindings?policy_snapshot_event_binding_status=complete", apiOptions)).body);
+      assert.equal(policySnapshotEventBindings.collection, "policy_snapshot_event_bindings");
+      assert.equal(policySnapshotEventBindings.count, 1);
+
+      const eventRunGatePolicyBindings = JSON.parse((await buildReviewApiResponse("/api/event-run-gate-policy-bindings?source_snapshot_presence_status=present", apiOptions)).body);
+      assert.equal(eventRunGatePolicyBindings.collection, "event_run_gate_policy_bindings");
+      assert.equal(eventRunGatePolicyBindings.count, policySnapshotEventBinding.summary.event_run_gate_policy_binding_count);
+
+      const eventPolicySnapshotBindings = JSON.parse((await buildReviewApiResponse("/api/event-policy-snapshot-bindings?stored_event_snapshot_status=stored_event_policy_snapshot_matched", apiOptions)).body);
+      assert.equal(eventPolicySnapshotBindings.collection, "event_policy_snapshot_bindings");
+      assert.equal(eventPolicySnapshotBindings.count, policySnapshotEventBinding.summary.event_policy_snapshot_binding_count);
+
+      const runPolicySnapshotBindings = JSON.parse((await buildReviewApiResponse("/api/run-policy-snapshot-bindings?subject_type=run_ledger", apiOptions)).body);
+      assert.equal(runPolicySnapshotBindings.collection, "run_policy_snapshot_bindings");
+      assert.equal(runPolicySnapshotBindings.count, policySnapshotEventBinding.summary.run_policy_snapshot_binding_count);
+
+      const gatePolicySnapshotBindings = JSON.parse((await buildReviewApiResponse("/api/gate-policy-snapshot-bindings?gate_event_binding_status=linked_to_event_record", apiOptions)).body);
+      assert.equal(gatePolicySnapshotBindings.collection, "gate_policy_snapshot_bindings");
+      assert.equal(gatePolicySnapshotBindings.count, policySnapshotEventBinding.summary.gate_event_linked_count);
+
+      const policySnapshotEventBindingValidations = JSON.parse((await buildReviewApiResponse("/api/policy-snapshot-event-binding-validations?status=passed", apiOptions)).body);
+      assert.equal(policySnapshotEventBindingValidations.collection, "policy_snapshot_event_binding_validations");
+      assert.equal(policySnapshotEventBindingValidations.count, policySnapshotEventBinding.summary.validation_item_count);
 
       const policyContractFreezes = JSON.parse((await buildReviewApiResponse("/api/policy-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(policyContractFreezes.collection, "policy_contract_freezes");

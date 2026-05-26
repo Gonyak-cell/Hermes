@@ -88,6 +88,7 @@ const GOAL_ITEMS = [
   sourceItem("cost_attribution_ledger", "Cost attribution ledger", "observability", "cost_attribution_ledger", "control-plane-cost-attribution"),
   sourceItem("budget_alert_ledger", "Budget alert ledger", "observability", "budget_alert_ledger", "control-plane-budget-alerts"),
   sourceItem("policy_snapshot_binding_ledger", "Policy snapshot binding ledger", "policy", "policy_snapshot_binding_ledger", "control-plane-policy-snapshot-bindings", { acceptance_profile: "policy_snapshot_binding_gate" }),
+  sourceItem("policy_snapshot_event_binding", "Policy snapshot event binding", "policy", "policy_snapshot_event_binding", "control-plane-policy-snapshot-event-binding", { acceptance_profile: "policy_snapshot_event_binding_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -437,6 +438,7 @@ function evaluateStageAcceptance(item, stage) {
     "agent_run_ledger_gate",
     "tool_invocation_ledger_gate",
     "audit_event_ledger_gate",
+    "policy_snapshot_event_binding_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -475,6 +477,32 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.output_policy_binding_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Policy snapshot binding ledger is implemented and every workflow, event, run, gate, approval, and output binding resolves to a known execution-time policy snapshot.");
+    }
+  }
+
+  if (item.acceptance_profile === "policy_snapshot_event_binding_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.source_snapshot_mismatch_count ?? 0)
+      + (metrics.stored_event_policy_snapshot_missing_count ?? 0)
+      + (metrics.stored_event_policy_snapshot_mismatch_count ?? 0)
+      + (metrics.gate_event_missing_count ?? 0);
+    const bindingCount = metrics.event_run_gate_policy_binding_count ?? 0;
+    const storedCheckedCount = metrics.stored_event_policy_snapshot_checked_count ?? 0;
+    if (
+      errors === 0
+      && metrics.policy_snapshot_event_binding_status === "complete"
+      && bindingCount > 0
+      && (metrics.source_policy_snapshot_present_count ?? 0) === bindingCount
+      && (metrics.resolved_policy_snapshot_known_count ?? 0) === bindingCount
+      && (metrics.bound_policy_snapshot_binding_count ?? 0) === bindingCount
+      && (metrics.execution_time_recorded_count ?? 0) === bindingCount
+      && (metrics.stored_event_policy_snapshot_matched_count ?? 0) === storedCheckedCount
+      && (metrics.event_policy_snapshot_binding_count ?? 0) > 0
+      && (metrics.run_policy_snapshot_binding_count ?? 0) > 0
+      && (metrics.event_run_policy_snapshot_binding_count ?? 0) > 0
+      && (metrics.gate_policy_snapshot_binding_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Policy snapshot event binding verifies event, run, event-run, and gate rows all carry execution-time policy snapshots resolved through the P123 binding ledger and preserved in append-only events.");
     }
   }
 

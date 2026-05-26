@@ -1,0 +1,244 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/policy-snapshot-event-binding.schema.json",
+  "title": "Policy Snapshot Event Binding",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "policy_snapshot_event_binding_id",
+    "source_contracts",
+    "policy_snapshot_event_binding_contract",
+    "policy_snapshot_event_binding_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "policy-snapshot-event-binding.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "policy_snapshot_event_binding_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "policy_snapshot_ledger",
+        "policy_snapshot_binding_ledger",
+        "event_audit_run_contract_freeze",
+        "gate_approval_contract_freeze",
+        "append_only_event_store"
+      ]
+    },
+    "policy_snapshot_event_binding_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "policy_snapshot_event_binding_contract_id",
+        "required_subject_kinds",
+        "required_source_fields",
+        "required_binding_fields",
+        "append_only_preservation_rule"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "policy-snapshot-event-binding-contract.v1"
+        },
+        "policy_snapshot_event_binding_contract_id": {
+          "const": "policy-snapshot-event-binding.v1"
+        },
+        "required_subject_kinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "policy_snapshot_event_binding_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "event_run_gate_policy_bindings",
+        "event_policy_snapshot_bindings",
+        "run_policy_snapshot_bindings",
+        "gate_policy_snapshot_bindings"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "policy-snapshot-event-binding-catalog.v1"
+        },
+        "event_run_gate_policy_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_run_gate_policy_binding"
+          }
+        },
+        "event_policy_snapshot_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_run_gate_policy_binding"
+          }
+        },
+        "run_policy_snapshot_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_run_gate_policy_binding"
+          }
+        },
+        "gate_policy_snapshot_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/event_run_gate_policy_binding"
+          }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/validation_item"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "errors"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "policy_snapshot_event_binding_status",
+        "policy_snapshot_event_binding_contract_id",
+        "event_run_gate_policy_binding_count",
+        "source_policy_snapshot_present_count",
+        "resolved_policy_snapshot_known_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "policy_snapshot_event_binding_status": {
+          "enum": [
+            "complete",
+            "blocked"
+          ]
+        },
+        "policy_snapshot_event_binding_contract_id": {
+          "const": "policy-snapshot-event-binding.v1"
+        },
+        "event_run_gate_policy_binding_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "source_policy_snapshot_present_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "resolved_policy_snapshot_known_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "event_run_gate_policy_binding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "event_run_gate_policy_binding_id",
+        "subject_kind",
+        "subject_type",
+        "subject_id",
+        "execution_time_status",
+        "source_policy_snapshot_id",
+        "source_snapshot_presence_status",
+        "resolved_policy_snapshot_id",
+        "policy_snapshot_known",
+        "binding_status",
+        "source_to_resolved_snapshot_status",
+        "append_only_event_binding_status",
+        "stored_event_snapshot_status"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "event-run-gate-policy-binding.v1"
+        },
+        "subject_kind": {
+          "enum": [
+            "event",
+            "run",
+            "event_run_binding",
+            "gate"
+          ]
+        },
+        "subject_type": {
+          "enum": [
+            "event_record",
+            "audit_event",
+            "run_ledger",
+            "event_run_binding",
+            "gate_result"
+          ]
+        },
+        "execution_time_status": {
+          "enum": [
+            "recorded",
+            "missing"
+          ]
+        },
+        "source_snapshot_presence_status": {
+          "enum": [
+            "present",
+            "missing"
+          ]
+        },
+        "source_to_resolved_snapshot_status": {
+          "enum": [
+            "matched",
+            "source_unresolved_resolved_by_binding",
+            "source_snapshot_missing",
+            "resolved_snapshot_missing",
+            "mismatch"
+          ]
+        }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "path",
+        "check_id",
+        "status",
+        "passed",
+        "message"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "passed": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

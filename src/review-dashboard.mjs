@@ -73,6 +73,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   policyMatrixCatalogPath: "artifacts/policy-matrix/latest/policy-matrix-catalog.json",
   policySnapshotLedgerPath: "artifacts/policy-snapshots/latest/policy-snapshot-ledger.json",
   policySnapshotBindingLedgerPath: "artifacts/policy-snapshot-bindings/latest/policy-snapshot-binding-ledger.json",
+  policySnapshotEventBindingPath: "artifacts/policy-snapshot-event-bindings/latest/policy-snapshot-event-binding.json",
   contextPacketLedgerPath: "artifacts/context-packets/latest/context-packet-ledger.json",
   modelRoutingLedgerPath: "artifacts/model-routing/latest/model-routing-ledger.json",
   modelPolicyEnforcementPath: "artifacts/model-policy-enforcement/latest/model-policy-enforcement.json",
@@ -510,6 +511,11 @@ const SOURCE_DEFINITIONS = [
     option: "policySnapshotBindingLedgerPath",
     source_id: "policy_snapshot_binding_ledger",
     label: "Policy Snapshot Binding Ledger",
+  },
+  {
+    option: "policySnapshotEventBindingPath",
+    source_id: "policy_snapshot_event_binding",
+    label: "Policy Snapshot Event Binding",
   },
   {
     option: "contextPacketLedgerPath",
@@ -1131,6 +1137,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "policy_matrix_catalog") return data.summary ?? {};
   if (sourceId === "policy_snapshot_ledger") return data.summary ?? {};
   if (sourceId === "policy_snapshot_binding_ledger") return data.summary ?? {};
+  if (sourceId === "policy_snapshot_event_binding") return data.summary ?? {};
   if (sourceId === "context_packet_ledger") return data.summary ?? {};
   if (sourceId === "model_routing_ledger") return data.summary ?? {};
   if (sourceId === "model_policy_enforcement") return data.summary ?? {};
@@ -1377,6 +1384,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPolicyMatrixCatalogStage(artifacts.policy_matrix_catalog, sourceById.get("policy_matrix_catalog")),
     buildPolicySnapshotLedgerStage(artifacts.policy_snapshot_ledger, sourceById.get("policy_snapshot_ledger")),
     buildPolicySnapshotBindingLedgerStage(artifacts.policy_snapshot_binding_ledger, sourceById.get("policy_snapshot_binding_ledger")),
+    buildPolicySnapshotEventBindingStage(artifacts.policy_snapshot_event_binding, sourceById.get("policy_snapshot_event_binding")),
     buildContextPacketLedgerStage(artifacts.context_packet_ledger, sourceById.get("context_packet_ledger")),
     buildModelRoutingLedgerStage(artifacts.model_routing_ledger, sourceById.get("model_routing_ledger")),
     buildModelPolicyEnforcementStage(artifacts.model_policy_enforcement, sourceById.get("model_policy_enforcement")),
@@ -4778,6 +4786,53 @@ function buildPolicySnapshotBindingLedgerStage(ledger, source) {
       unresolved_declared_reference_count: summary.unresolved_declared_reference_count ?? 0,
       missing_policy_snapshot_count: missingSnapshotCount,
       unresolved_policy_snapshot_count: unresolvedSnapshotCount,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildPolicySnapshotEventBindingStage(ledger, source) {
+  if (!ledger) return missingStage("policy_snapshot_event_binding", "Policy Snapshot Event Binding", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const bindingCount = summary.event_run_gate_policy_binding_count ?? 0;
+  const storedCheckedCount = summary.stored_event_policy_snapshot_checked_count ?? 0;
+  const status = summary.policy_snapshot_event_binding_status === "complete"
+    && errorCount === 0
+    && bindingCount > 0
+    && (summary.source_policy_snapshot_present_count ?? 0) === bindingCount
+    && (summary.resolved_policy_snapshot_known_count ?? 0) === bindingCount
+    && (summary.stored_event_policy_snapshot_matched_count ?? 0) === storedCheckedCount
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "policy_snapshot_event_binding",
+    label: "Policy Snapshot Event Binding",
+    status,
+    message: status === "passed"
+      ? `${bindingCount} event/run/gate binding(s), ${storedCheckedCount} stored event snapshot(s) preserved.`
+      : `${errorCount} validation error(s), ${summary.source_policy_snapshot_present_count ?? 0}/${bindingCount} source snapshot(s), ${summary.resolved_policy_snapshot_known_count ?? 0}/${bindingCount} known resolved snapshot(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      policy_snapshot_event_binding_status: summary.policy_snapshot_event_binding_status ?? "unknown",
+      event_run_gate_policy_binding_count: bindingCount,
+      event_policy_snapshot_binding_count: summary.event_policy_snapshot_binding_count ?? 0,
+      run_policy_snapshot_binding_count: summary.run_policy_snapshot_binding_count ?? 0,
+      event_run_policy_snapshot_binding_count: summary.event_run_policy_snapshot_binding_count ?? 0,
+      gate_policy_snapshot_binding_count: summary.gate_policy_snapshot_binding_count ?? 0,
+      source_policy_snapshot_present_count: summary.source_policy_snapshot_present_count ?? 0,
+      resolved_policy_snapshot_known_count: summary.resolved_policy_snapshot_known_count ?? 0,
+      bound_policy_snapshot_binding_count: summary.bound_policy_snapshot_binding_count ?? 0,
+      source_snapshot_matched_count: summary.source_snapshot_matched_count ?? 0,
+      source_unresolved_resolved_count: summary.source_unresolved_resolved_count ?? 0,
+      source_snapshot_mismatch_count: summary.source_snapshot_mismatch_count ?? 0,
+      execution_time_recorded_count: summary.execution_time_recorded_count ?? 0,
+      stored_event_policy_snapshot_checked_count: storedCheckedCount,
+      stored_event_policy_snapshot_matched_count: summary.stored_event_policy_snapshot_matched_count ?? 0,
+      stored_event_policy_snapshot_missing_count: summary.stored_event_policy_snapshot_missing_count ?? 0,
+      stored_event_policy_snapshot_mismatch_count: summary.stored_event_policy_snapshot_mismatch_count ?? 0,
+      gate_event_linked_count: summary.gate_event_linked_count ?? 0,
+      gate_event_missing_count: summary.gate_event_missing_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -10896,6 +10951,18 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     policy_snapshot_binding_missing_count: artifacts.policy_snapshot_binding_ledger?.summary?.missing_policy_snapshot_count ?? 0,
     policy_snapshot_binding_unresolved_count: artifacts.policy_snapshot_binding_ledger?.summary?.unresolved_policy_snapshot_count ?? 0,
     policy_snapshot_binding_validation_error_count: artifacts.policy_snapshot_binding_ledger?.summary?.validation_error_count ?? artifacts.policy_snapshot_binding_ledger?.validation?.errors?.length ?? 0,
+    policy_snapshot_event_binding_status: artifacts.policy_snapshot_event_binding?.summary?.policy_snapshot_event_binding_status ?? "unknown",
+    policy_snapshot_event_binding_count: artifacts.policy_snapshot_event_binding?.summary?.event_run_gate_policy_binding_count ?? 0,
+    policy_snapshot_event_binding_event_count: artifacts.policy_snapshot_event_binding?.summary?.event_policy_snapshot_binding_count ?? 0,
+    policy_snapshot_event_binding_run_count: artifacts.policy_snapshot_event_binding?.summary?.run_policy_snapshot_binding_count ?? 0,
+    policy_snapshot_event_binding_event_run_count: artifacts.policy_snapshot_event_binding?.summary?.event_run_policy_snapshot_binding_count ?? 0,
+    policy_snapshot_event_binding_gate_count: artifacts.policy_snapshot_event_binding?.summary?.gate_policy_snapshot_binding_count ?? 0,
+    policy_snapshot_event_binding_source_present_count: artifacts.policy_snapshot_event_binding?.summary?.source_policy_snapshot_present_count ?? 0,
+    policy_snapshot_event_binding_known_count: artifacts.policy_snapshot_event_binding?.summary?.resolved_policy_snapshot_known_count ?? 0,
+    policy_snapshot_event_binding_stored_checked_count: artifacts.policy_snapshot_event_binding?.summary?.stored_event_policy_snapshot_checked_count ?? 0,
+    policy_snapshot_event_binding_stored_matched_count: artifacts.policy_snapshot_event_binding?.summary?.stored_event_policy_snapshot_matched_count ?? 0,
+    policy_snapshot_event_binding_gate_event_linked_count: artifacts.policy_snapshot_event_binding?.summary?.gate_event_linked_count ?? 0,
+    policy_snapshot_event_binding_validation_error_count: artifacts.policy_snapshot_event_binding?.summary?.validation_error_count ?? artifacts.policy_snapshot_event_binding?.validation?.errors?.length ?? 0,
     context_packet_count: artifacts.context_packet_ledger?.summary?.context_packet_count ?? 0,
     context_packet_ready_count: artifacts.context_packet_ledger?.summary?.ready_packet_count ?? 0,
     context_packet_blocked_count: artifacts.context_packet_ledger?.summary?.blocked_packet_count ?? 0,
@@ -12129,6 +12196,8 @@ function parseArgs(argv) {
     else if (arg === "--no-policy-snapshot-ledger") parsed.policySnapshotLedgerPath = false;
     else if (arg === "--policy-snapshot-bindings") parsed.policySnapshotBindingLedgerPath = argv[++index];
     else if (arg === "--no-policy-snapshot-bindings") parsed.policySnapshotBindingLedgerPath = false;
+    else if (arg === "--policy-snapshot-event-binding") parsed.policySnapshotEventBindingPath = argv[++index];
+    else if (arg === "--no-policy-snapshot-event-binding") parsed.policySnapshotEventBindingPath = false;
     else if (arg === "--context-packet-ledger") parsed.contextPacketLedgerPath = argv[++index];
     else if (arg === "--no-context-packet-ledger") parsed.contextPacketLedgerPath = false;
     else if (arg === "--model-routing-ledger") parsed.modelRoutingLedgerPath = argv[++index];
@@ -12494,6 +12563,10 @@ Options:
   --policy-snapshot-bindings <path>
                                   policy-snapshot-binding-ledger.json path.
   --no-policy-snapshot-bindings  Do not include Policy Snapshot Binding Ledger status.
+  --policy-snapshot-event-binding <path>
+                                  policy-snapshot-event-binding.json path.
+  --no-policy-snapshot-event-binding
+                                  Do not include Policy Snapshot Event Binding status.
   --context-packet-ledger <path> context-packet-ledger.json path.
   --no-context-packet-ledger     Do not include Context Packet Ledger status.
   --model-routing-ledger <path>  model-routing-ledger.json path.

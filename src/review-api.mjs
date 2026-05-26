@@ -2100,6 +2100,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("policy_snapshot_binding_validations", bindingResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/policy-snapshot-event-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_event_binding");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_event_binding_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshot_event_bindings", [bindingResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-run-gate-policy-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_event_binding");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_event_binding_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_run_gate_policy_bindings", bindingResult.artifact.policy_snapshot_event_binding_catalog?.event_run_gate_policy_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-policy-snapshot-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_event_binding");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_event_binding_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_policy_snapshot_bindings", bindingResult.artifact.policy_snapshot_event_binding_catalog?.event_policy_snapshot_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-policy-snapshot-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_event_binding");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_event_binding_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_policy_snapshot_bindings", bindingResult.artifact.policy_snapshot_event_binding_catalog?.run_policy_snapshot_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/gate-policy-snapshot-bindings") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_event_binding");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_event_binding_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("gate_policy_snapshot_bindings", bindingResult.artifact.policy_snapshot_event_binding_catalog?.gate_policy_snapshot_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/policy-snapshot-event-binding-validations") {
+    const bindingResult = await readDashboardSourceArtifact(dashboard, "policy_snapshot_event_binding");
+    if (!bindingResult.available) {
+      return jsonResponse(503, buildError("policy_snapshot_event_binding_unavailable", bindingResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("policy_snapshot_event_binding_validations", bindingResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/policy-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "policy_contract_freeze");
     if (!freezeResult.available) {
@@ -6039,6 +6081,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/approval-policy-bindings", "ApprovalRequest policy snapshot bindings"),
       route("GET", "/api/output-policy-bindings", "Output and delivery policy snapshot bindings"),
       route("GET", "/api/policy-snapshot-binding-validations", "Policy snapshot binding validation rows"),
+      route("GET", "/api/policy-snapshot-event-bindings", "Policy snapshot event binding artifacts"),
+      route("GET", "/api/event-run-gate-policy-bindings", "Execution-time event/run/gate policy snapshot bindings"),
+      route("GET", "/api/event-policy-snapshot-bindings", "Event and audit event policy snapshot bindings"),
+      route("GET", "/api/run-policy-snapshot-bindings", "RunLedger policy snapshot bindings"),
+      route("GET", "/api/gate-policy-snapshot-bindings", "GateResult policy snapshot bindings with event continuity"),
+      route("GET", "/api/policy-snapshot-event-binding-validations", "Policy snapshot event binding validation rows"),
       route("GET", "/api/policy-contract-freezes", "Policy contract freeze artifacts"),
       route("GET", "/api/data-classification-contracts", "DataClassification v2 contract fixtures"),
       route("GET", "/api/policy-reference-contracts", "PolicyReference v2 contract fixtures"),
@@ -7111,7 +7159,19 @@ function filterItems(items, searchParams) {
     "usage_type",
     "snapshot_declared_in_source",
     "policy_snapshot_binding_status",
+    "policy_snapshot_event_binding_status",
     "policy_snapshot_binding_ledger_id",
+    "policy_snapshot_event_binding_id",
+    "event_run_gate_policy_binding_id",
+    "subject_kind",
+    "source_policy_snapshot_id",
+    "source_snapshot_presence_status",
+    "resolved_policy_snapshot_id",
+    "resolved_policy_snapshot_status",
+    "source_to_resolved_snapshot_status",
+    "append_only_event_binding_status",
+    "stored_event_snapshot_status",
+    "gate_event_binding_status",
     "workflow_policy_binding_id",
     "agent_run_policy_binding_id",
     "event_policy_binding_id",
@@ -7619,6 +7679,7 @@ function readFilterValue(item, key) {
   if (key === "registry_status") return item.summary?.registry_status ?? item.registry_status;
   if (key === "ledger_status") return item.summary?.ledger_status ?? item.ledger_status;
   if (key === "policy_snapshot_binding_status") return item.summary?.policy_snapshot_binding_status ?? item.policy_snapshot_binding_status;
+  if (key === "policy_snapshot_event_binding_status") return item.summary?.policy_snapshot_event_binding_status ?? item.policy_snapshot_event_binding_status;
   if (key === "wall_policy_status") return item.summary?.wall_policy_status ?? item.wall_policy_status;
   if (key === "access_policy_status") return item.summary?.access_policy_status ?? item.access_policy_status;
   if (key === "alias_key") return item.alias_keys ?? item.alias_key;

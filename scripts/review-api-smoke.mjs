@@ -45,6 +45,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/approval-policy-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/output-policy-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-binding-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-event-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-run-gate-policy-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-policy-snapshot-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/run-policy-snapshot-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-policy-snapshot-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/policy-snapshot-event-binding-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/source-span-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-item-contracts"));
@@ -647,6 +653,30 @@ try {
   const policySnapshotBindingValidations = await fetchJson(`${url}/api/policy-snapshot-binding-validations?status=passed&limit=5`);
   assert.equal(policySnapshotBindingValidations.collection, "policy_snapshot_binding_validations");
   assert.ok(policySnapshotBindingValidations.count <= 5);
+
+  const policySnapshotEventBindings = await fetchJson(`${url}/api/policy-snapshot-event-bindings?policy_snapshot_event_binding_status=complete&limit=1`);
+  assert.equal(policySnapshotEventBindings.collection, "policy_snapshot_event_bindings");
+  assert.ok(policySnapshotEventBindings.count <= 1);
+
+  const eventRunGatePolicyBindings = await fetchJson(`${url}/api/event-run-gate-policy-bindings?source_snapshot_presence_status=present&limit=5`);
+  assert.equal(eventRunGatePolicyBindings.collection, "event_run_gate_policy_bindings");
+  assert.ok(eventRunGatePolicyBindings.count <= 5);
+
+  const eventPolicySnapshotBindings = await fetchJson(`${url}/api/event-policy-snapshot-bindings?stored_event_snapshot_status=stored_event_policy_snapshot_matched&limit=5`);
+  assert.equal(eventPolicySnapshotBindings.collection, "event_policy_snapshot_bindings");
+  assert.ok(eventPolicySnapshotBindings.count <= 5);
+
+  const runPolicySnapshotBindings = await fetchJson(`${url}/api/run-policy-snapshot-bindings?subject_type=run_ledger&limit=5`);
+  assert.equal(runPolicySnapshotBindings.collection, "run_policy_snapshot_bindings");
+  assert.ok(runPolicySnapshotBindings.count <= 5);
+
+  const gatePolicySnapshotBindings = await fetchJson(`${url}/api/gate-policy-snapshot-bindings?gate_event_binding_status=linked_to_event_record&limit=5`);
+  assert.equal(gatePolicySnapshotBindings.collection, "gate_policy_snapshot_bindings");
+  assert.ok(gatePolicySnapshotBindings.count <= 5);
+
+  const policySnapshotEventBindingValidations = await fetchJson(`${url}/api/policy-snapshot-event-binding-validations?status=passed&limit=5`);
+  assert.equal(policySnapshotEventBindingValidations.collection, "policy_snapshot_event_binding_validations");
+  assert.ok(policySnapshotEventBindingValidations.count <= 5);
 
   const policyContractFreezes = await fetchJson(`${url}/api/policy-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(policyContractFreezes.collection, "policy_contract_freezes");

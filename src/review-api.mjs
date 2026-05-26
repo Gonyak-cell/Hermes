@@ -3651,6 +3651,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("retention_archive_validations", retentionResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/ledger-api-dashboards") {
+    const ledgerApiDashboardResult = await readDashboardSourceArtifact(dashboard, "ledger_api_dashboard");
+    if (!ledgerApiDashboardResult.available) {
+      return jsonResponse(503, buildError("ledger_api_dashboard_unavailable", ledgerApiDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ledger_api_dashboards", [ledgerApiDashboardResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ledger-dashboard-panels") {
+    const ledgerApiDashboardResult = await readDashboardSourceArtifact(dashboard, "ledger_api_dashboard");
+    if (!ledgerApiDashboardResult.available) {
+      return jsonResponse(503, buildError("ledger_api_dashboard_unavailable", ledgerApiDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ledger_dashboard_panels", ledgerApiDashboardResult.artifact.ledger_api_dashboard_catalog?.ledger_dashboard_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ledger-api-route-records") {
+    const ledgerApiDashboardResult = await readDashboardSourceArtifact(dashboard, "ledger_api_dashboard");
+    if (!ledgerApiDashboardResult.available) {
+      return jsonResponse(503, buildError("ledger_api_dashboard_unavailable", ledgerApiDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ledger_api_route_records", ledgerApiDashboardResult.artifact.ledger_api_dashboard_catalog?.ledger_api_route_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ledger-panel-metrics") {
+    const ledgerApiDashboardResult = await readDashboardSourceArtifact(dashboard, "ledger_api_dashboard");
+    if (!ledgerApiDashboardResult.available) {
+      return jsonResponse(503, buildError("ledger_api_dashboard_unavailable", ledgerApiDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ledger_panel_metrics", ledgerApiDashboardResult.artifact.ledger_api_dashboard_catalog?.ledger_panel_metrics ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ledger-cross-links") {
+    const ledgerApiDashboardResult = await readDashboardSourceArtifact(dashboard, "ledger_api_dashboard");
+    if (!ledgerApiDashboardResult.available) {
+      return jsonResponse(503, buildError("ledger_api_dashboard_unavailable", ledgerApiDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ledger_cross_links", ledgerApiDashboardResult.artifact.ledger_api_dashboard_catalog?.ledger_cross_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ledger-api-dashboard-validations") {
+    const ledgerApiDashboardResult = await readDashboardSourceArtifact(dashboard, "ledger_api_dashboard");
+    if (!ledgerApiDashboardResult.available) {
+      return jsonResponse(503, buildError("ledger_api_dashboard_unavailable", ledgerApiDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ledger_api_dashboard_validations", ledgerApiDashboardResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6501,6 +6543,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/archive-candidate-records", "Archive candidate rows bound to retention policy"),
       route("GET", "/api/legal-hold-bindings", "Active legal hold bindings for retention candidates"),
       route("GET", "/api/retention-archive-validations", "Retention archive validation rows"),
+      route("GET", "/api/ledger-api-dashboards", "Read-only run, audit, cost, error, and event ledger API/dashboard index"),
+      route("GET", "/api/ledger-dashboard-panels", "Ledger dashboard domain panels"),
+      route("GET", "/api/ledger-api-route-records", "Ledger Review API route records"),
+      route("GET", "/api/ledger-panel-metrics", "Ledger dashboard panel metric rows"),
+      route("GET", "/api/ledger-cross-links", "Cross-ledger health link rows"),
+      route("GET", "/api/ledger-api-dashboard-validations", "Ledger API/dashboard validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7653,6 +7701,23 @@ function filterItems(items, searchParams) {
     "legal_hold_binding_id",
     "hold_scope",
     "hold_status",
+    "ledger_api_dashboard_status",
+    "ledger_domain",
+    "panel_id",
+    "panel_status",
+    "route_id",
+    "route_path",
+    "route_method",
+    "route_status",
+    "source_ledger_id",
+    "metric_id",
+    "metric_key",
+    "metric_status",
+    "link_id",
+    "link_type",
+    "link_status",
+    "from_ledger_domain",
+    "to_ledger_domain",
     "token_rollup_id",
     "rollup_type",
     "rollup_key",
@@ -7998,6 +8063,8 @@ function readFilterValue(item, key) {
   if (key === "legal_hold_binding_id") return item.legal_hold_binding_id;
   if (key === "hold_scope") return item.hold_scope;
   if (key === "hold_status") return item.hold_status;
+  if (key === "ledger_api_dashboard_status") return item.summary?.ledger_api_dashboard_status ?? item.ledger_api_dashboard_status;
+  if (key === "source_ledger_id") return item.source_ledger_id ?? item.source_ledger_ids;
   if (key === "dashboard_projection_status") return item.dashboard_projection_status ?? item.projection_status;
   if (key === "projection_status") return item.projection_status ?? item.dashboard_projection_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;

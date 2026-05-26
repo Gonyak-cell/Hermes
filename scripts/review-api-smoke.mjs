@@ -188,6 +188,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/archive-candidate-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/legal-hold-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/retention-archive-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-api-dashboards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-dashboard-panels"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-api-route-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-panel-metrics"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-cross-links"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-api-dashboard-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1400,6 +1406,30 @@ try {
   const retentionArchiveValidations = await fetchJson(`${url}/api/retention-archive-validations?status=passed&limit=5`);
   assert.equal(retentionArchiveValidations.collection, "retention_archive_validations");
   assert.ok(retentionArchiveValidations.count <= 5);
+
+  const ledgerApiDashboards = await fetchJson(`${url}/api/ledger-api-dashboards?ledger_api_dashboard_status=complete&limit=1`);
+  assert.equal(ledgerApiDashboards.collection, "ledger_api_dashboards");
+  assert.ok(ledgerApiDashboards.count <= 1);
+
+  const runLedgerDashboardPanels = await fetchJson(`${url}/api/ledger-dashboard-panels?ledger_domain=run&panel_status=passed&limit=5`);
+  assert.equal(runLedgerDashboardPanels.collection, "ledger_dashboard_panels");
+  assert.ok(runLedgerDashboardPanels.count <= 5);
+
+  const eventLedgerApiRouteRecords = await fetchJson(`${url}/api/ledger-api-route-records?ledger_domain=event&route_status=declared&limit=5`);
+  assert.equal(eventLedgerApiRouteRecords.collection, "ledger_api_route_records");
+  assert.ok(eventLedgerApiRouteRecords.count <= 5);
+
+  const ledgerPanelMetrics = await fetchJson(`${url}/api/ledger-panel-metrics?metric_status=present&limit=5`);
+  assert.equal(ledgerPanelMetrics.collection, "ledger_panel_metrics");
+  assert.ok(ledgerPanelMetrics.count <= 5);
+
+  const ledgerCrossLinks = await fetchJson(`${url}/api/ledger-cross-links?link_status=linked&limit=5`);
+  assert.equal(ledgerCrossLinks.collection, "ledger_cross_links");
+  assert.ok(ledgerCrossLinks.count <= 5);
+
+  const ledgerApiDashboardValidations = await fetchJson(`${url}/api/ledger-api-dashboard-validations?status=passed&limit=5`);
+  assert.equal(ledgerApiDashboardValidations.collection, "ledger_api_dashboard_validations");
+  assert.ok(ledgerApiDashboardValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

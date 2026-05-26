@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/ledger-api-dashboard.schema.json",
+  "title": "Hermes Ledger API Dashboard",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_api_dashboard_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "ledger_api_dashboard_contract",
+    "ledger_api_dashboard_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "ledger-api-dashboard.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_api_dashboard_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "ledger_api_dashboard_contract": {
+      "type": "object",
+      "required": ["schema_version", "ledger_api_dashboard_contract_id", "covered_domains", "api_rule", "dashboard_rule"],
+      "properties": {
+        "schema_version": { "const": "ledger-api-dashboard-contract.v1" },
+        "ledger_api_dashboard_contract_id": { "const": "ledger-api-dashboard.v1" },
+        "covered_domains": {
+          "type": "array",
+          "items": { "enum": ["run", "audit", "cost", "error", "event"] },
+          "minItems": 5
+        },
+        "api_rule": { "type": "string" },
+        "dashboard_rule": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "ledger_api_dashboard_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "ledger_dashboard_panels",
+        "ledger_api_route_records",
+        "ledger_panel_metrics",
+        "ledger_cross_links"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-api-dashboard-catalog.v1" },
+        "ledger_dashboard_panels": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledger_dashboard_panel" },
+          "minItems": 5
+        },
+        "ledger_api_route_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledger_api_route_record" },
+          "minItems": 20
+        },
+        "ledger_panel_metrics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledger_panel_metric" },
+          "minItems": 20
+        },
+        "ledger_cross_links": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/ledger_cross_link" },
+          "minItems": 5
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "ledger_api_dashboard_status",
+        "ledger_api_dashboard_contract_id",
+        "source_workflow_run_ledger_status",
+        "source_audit_event_ledger_status",
+        "source_cost_record_projection_status",
+        "source_token_usage_projection_status",
+        "source_error_retry_ledger_status",
+        "source_append_only_event_store_status",
+        "source_event_replay_harness_status",
+        "ledger_dashboard_panel_count",
+        "passed_panel_count",
+        "blocked_panel_count",
+        "ledger_domain_count",
+        "run_panel_count",
+        "audit_panel_count",
+        "cost_panel_count",
+        "error_panel_count",
+        "event_panel_count",
+        "ledger_api_route_record_count",
+        "declared_route_count",
+        "missing_route_count",
+        "route_query_example_count",
+        "ledger_panel_metric_count",
+        "ledger_cross_link_count",
+        "linked_cross_link_count",
+        "attention_cross_link_count",
+        "source_validation_error_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "ledger_api_dashboard_status": { "enum": ["complete", "blocked"] },
+        "ledger_api_dashboard_contract_id": { "const": "ledger-api-dashboard.v1" },
+        "ledger_dashboard_panel_count": { "type": "integer", "minimum": 0 },
+        "passed_panel_count": { "type": "integer", "minimum": 0 },
+        "blocked_panel_count": { "type": "integer", "minimum": 0 },
+        "ledger_domain_count": { "type": "integer", "minimum": 0 },
+        "run_panel_count": { "type": "integer", "minimum": 0 },
+        "audit_panel_count": { "type": "integer", "minimum": 0 },
+        "cost_panel_count": { "type": "integer", "minimum": 0 },
+        "error_panel_count": { "type": "integer", "minimum": 0 },
+        "event_panel_count": { "type": "integer", "minimum": 0 },
+        "ledger_api_route_record_count": { "type": "integer", "minimum": 0 },
+        "declared_route_count": { "type": "integer", "minimum": 0 },
+        "missing_route_count": { "type": "integer", "minimum": 0 },
+        "route_query_example_count": { "type": "integer", "minimum": 0 },
+        "ledger_panel_metric_count": { "type": "integer", "minimum": 0 },
+        "ledger_cross_link_count": { "type": "integer", "minimum": 0 },
+        "linked_cross_link_count": { "type": "integer", "minimum": 0 },
+        "attention_cross_link_count": { "type": "integer", "minimum": 0 },
+        "source_validation_error_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "ledger_dashboard_panel": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "panel_id",
+        "ledger_domain",
+        "label",
+        "source_ledger_ids",
+        "panel_status",
+        "primary_count",
+        "secondary_count",
+        "attention_count",
+        "blocked_count",
+        "validation_error_count",
+        "api_routes",
+        "query_examples",
+        "metrics",
+        "human_review_note",
+        "panel_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-dashboard-panel.v1" },
+        "panel_id": { "type": "string" },
+        "ledger_domain": { "enum": ["run", "audit", "cost", "error", "event"] },
+        "label": { "type": "string" },
+        "source_ledger_ids": { "type": "array", "items": { "type": "string" } },
+        "panel_status": { "enum": ["passed", "blocked"] },
+        "primary_count": { "type": "number", "minimum": 0 },
+        "secondary_count": { "type": "number", "minimum": 0 },
+        "attention_count": { "type": "number", "minimum": 0 },
+        "blocked_count": { "type": "number", "minimum": 0 },
+        "validation_error_count": { "type": "number", "minimum": 0 },
+        "api_routes": { "type": "array", "items": { "type": "string" } },
+        "query_examples": { "type": "array", "items": { "type": "string" } },
+        "metrics": { "type": "object" },
+        "human_review_note": { "type": "string" },
+        "panel_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "ledger_api_route_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "route_id",
+        "ledger_domain",
+        "panel_id",
+        "source_ledger_id",
+        "route_method",
+        "route_path",
+        "query_example",
+        "route_status",
+        "protected_action",
+        "route_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-api-route-record.v1" },
+        "route_id": { "type": "string" },
+        "ledger_domain": { "enum": ["run", "audit", "cost", "error", "event"] },
+        "panel_id": { "type": "string" },
+        "source_ledger_id": { "type": "string" },
+        "route_method": { "const": "GET" },
+        "route_path": { "type": "string" },
+        "query_example": { "type": "string" },
+        "route_status": { "enum": ["declared", "missing"] },
+        "protected_action": { "const": false },
+        "route_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "ledger_panel_metric": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "metric_id",
+        "panel_id",
+        "ledger_domain",
+        "metric_key",
+        "metric_value",
+        "metric_status",
+        "metric_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-panel-metric.v1" },
+        "metric_id": { "type": "string" },
+        "panel_id": { "type": "string" },
+        "ledger_domain": { "enum": ["run", "audit", "cost", "error", "event"] },
+        "metric_key": { "type": "string" },
+        "metric_value": { "type": "number" },
+        "metric_status": { "enum": ["present", "zero", "passed", "attention"] },
+        "metric_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "ledger_cross_link": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "link_id",
+        "link_type",
+        "from_ledger_domain",
+        "to_ledger_domain",
+        "source_ledger_ids",
+        "source_record_count",
+        "linked_record_count",
+        "link_status",
+        "link_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-cross-link.v1" },
+        "link_id": { "type": "string" },
+        "link_type": { "type": "string" },
+        "from_ledger_domain": { "enum": ["run", "audit", "cost", "error", "event"] },
+        "to_ledger_domain": { "enum": ["run", "audit", "cost", "error", "event"] },
+        "source_ledger_ids": { "type": "array", "items": { "type": "string" } },
+        "source_record_count": { "type": "number", "minimum": 0 },
+        "linked_record_count": { "type": "number", "minimum": 0 },
+        "link_status": { "enum": ["linked", "attention", "missing"] },
+        "link_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

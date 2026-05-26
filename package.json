@@ -131,6 +131,7 @@
     "events:retention": "node scripts/retention-archive-ledger.mjs",
     "events:store": "node scripts/append-only-event-store.mjs",
     "events:types": "node scripts/event-type-registry.mjs",
+    "ledgers:api-dashboard": "node scripts/ledger-api-dashboard.mjs",
     "events:agent-runs": "node scripts/agent-run-ledger.mjs",
     "events:audit-ledger": "node scripts/audit-event-ledger.mjs",
     "events:policy-snapshots": "node scripts/policy-snapshot-event-binding.mjs",

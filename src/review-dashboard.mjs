@@ -89,6 +89,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   errorRetryLedgerPath: "artifacts/error-retry-ledger/latest/error-retry-ledger.json",
   eventReplayHarnessPath: "artifacts/event-replay/latest/event-replay-harness.json",
   retentionArchiveLedgerPath: "artifacts/retention-archive/latest/retention-archive-ledger.json",
+  ledgerApiDashboardPath: "artifacts/ledger-api-dashboard/latest/ledger-api-dashboard.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -597,6 +598,11 @@ const SOURCE_DEFINITIONS = [
     option: "retentionArchiveLedgerPath",
     source_id: "retention_archive_ledger",
     label: "Retention/Archive Ledger",
+  },
+  {
+    option: "ledgerApiDashboardPath",
+    source_id: "ledger_api_dashboard",
+    label: "Ledger API Dashboard",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1189,6 +1195,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "error_retry_ledger") return data.summary ?? {};
   if (sourceId === "event_replay_harness") return data.summary ?? {};
   if (sourceId === "retention_archive_ledger") return data.summary ?? {};
+  if (sourceId === "ledger_api_dashboard") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1442,6 +1449,7 @@ function buildStageStatuses(artifacts, sources) {
     buildErrorRetryLedgerStage(artifacts.error_retry_ledger, sourceById.get("error_retry_ledger")),
     buildEventReplayHarnessStage(artifacts.event_replay_harness, sourceById.get("event_replay_harness")),
     buildRetentionArchiveLedgerStage(artifacts.retention_archive_ledger, sourceById.get("retention_archive_ledger")),
+    buildLedgerApiDashboardStage(artifacts.ledger_api_dashboard, sourceById.get("ledger_api_dashboard")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5511,6 +5519,56 @@ function buildRetentionArchiveLedgerStage(ledger, source) {
       missing_legal_hold_binding_count: summary.missing_legal_hold_binding_count ?? 0,
       policy_record_source_match_count: summary.policy_record_source_match_count ?? 0,
       validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildLedgerApiDashboardStage(dashboard, source) {
+  if (!dashboard) return missingStage("ledger_api_dashboard", "Ledger API Dashboard", source);
+  const summary = dashboard.summary ?? {};
+  const blockers = (summary.validation_error_count ?? dashboard.validation?.errors?.length ?? 0)
+    + (summary.source_validation_error_count ?? 0)
+    + (summary.missing_route_count ?? 0)
+    + (summary.blocked_panel_count ?? 0)
+    + (summary.attention_cross_link_count ?? 0);
+  const status = summary.ledger_api_dashboard_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "ledger_api_dashboard",
+    label: "Ledger API Dashboard",
+    status,
+    message: status === "passed"
+      ? `${summary.ledger_dashboard_panel_count ?? 0} ledger panel(s), ${summary.ledger_api_route_record_count ?? 0} route record(s), ${summary.ledger_panel_metric_count ?? 0} metric(s).`
+      : `${blockers} ledger API/dashboard blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_api_dashboard_status: summary.ledger_api_dashboard_status ?? "unknown",
+      ledger_api_dashboard_contract_id: summary.ledger_api_dashboard_contract_id ?? null,
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_audit_event_ledger_status: summary.source_audit_event_ledger_status ?? "unknown",
+      source_cost_record_projection_status: summary.source_cost_record_projection_status ?? "unknown",
+      source_token_usage_projection_status: summary.source_token_usage_projection_status ?? "unknown",
+      source_error_retry_ledger_status: summary.source_error_retry_ledger_status ?? "unknown",
+      source_append_only_event_store_status: summary.source_append_only_event_store_status ?? "unknown",
+      source_event_replay_harness_status: summary.source_event_replay_harness_status ?? "unknown",
+      ledger_dashboard_panel_count: summary.ledger_dashboard_panel_count ?? 0,
+      passed_panel_count: summary.passed_panel_count ?? 0,
+      blocked_panel_count: summary.blocked_panel_count ?? 0,
+      ledger_domain_count: summary.ledger_domain_count ?? 0,
+      run_panel_count: summary.run_panel_count ?? 0,
+      audit_panel_count: summary.audit_panel_count ?? 0,
+      cost_panel_count: summary.cost_panel_count ?? 0,
+      error_panel_count: summary.error_panel_count ?? 0,
+      event_panel_count: summary.event_panel_count ?? 0,
+      ledger_api_route_record_count: summary.ledger_api_route_record_count ?? 0,
+      declared_route_count: summary.declared_route_count ?? 0,
+      missing_route_count: summary.missing_route_count ?? 0,
+      route_query_example_count: summary.route_query_example_count ?? 0,
+      ledger_panel_metric_count: summary.ledger_panel_metric_count ?? 0,
+      ledger_cross_link_count: summary.ledger_cross_link_count ?? 0,
+      linked_cross_link_count: summary.linked_cross_link_count ?? 0,
+      attention_cross_link_count: summary.attention_cross_link_count ?? 0,
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? dashboard.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11489,6 +11547,26 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     retention_archive_source_audit_trail_record_count: artifacts.retention_archive_ledger?.summary?.source_audit_trail_record_count ?? 0,
     retention_archive_source_output_artifact_count: artifacts.retention_archive_ledger?.summary?.source_output_artifact_count ?? 0,
     retention_archive_validation_error_count: artifacts.retention_archive_ledger?.summary?.validation_error_count ?? artifacts.retention_archive_ledger?.validation?.errors?.length ?? 0,
+    ledger_api_dashboard_status: artifacts.ledger_api_dashboard?.summary?.ledger_api_dashboard_status ?? "unknown",
+    ledger_api_dashboard_panel_count: artifacts.ledger_api_dashboard?.summary?.ledger_dashboard_panel_count ?? 0,
+    ledger_api_dashboard_passed_panel_count: artifacts.ledger_api_dashboard?.summary?.passed_panel_count ?? 0,
+    ledger_api_dashboard_blocked_panel_count: artifacts.ledger_api_dashboard?.summary?.blocked_panel_count ?? 0,
+    ledger_api_dashboard_domain_count: artifacts.ledger_api_dashboard?.summary?.ledger_domain_count ?? 0,
+    ledger_api_dashboard_run_panel_count: artifacts.ledger_api_dashboard?.summary?.run_panel_count ?? 0,
+    ledger_api_dashboard_audit_panel_count: artifacts.ledger_api_dashboard?.summary?.audit_panel_count ?? 0,
+    ledger_api_dashboard_cost_panel_count: artifacts.ledger_api_dashboard?.summary?.cost_panel_count ?? 0,
+    ledger_api_dashboard_error_panel_count: artifacts.ledger_api_dashboard?.summary?.error_panel_count ?? 0,
+    ledger_api_dashboard_event_panel_count: artifacts.ledger_api_dashboard?.summary?.event_panel_count ?? 0,
+    ledger_api_dashboard_route_count: artifacts.ledger_api_dashboard?.summary?.ledger_api_route_record_count ?? 0,
+    ledger_api_dashboard_declared_route_count: artifacts.ledger_api_dashboard?.summary?.declared_route_count ?? 0,
+    ledger_api_dashboard_missing_route_count: artifacts.ledger_api_dashboard?.summary?.missing_route_count ?? 0,
+    ledger_api_dashboard_query_example_count: artifacts.ledger_api_dashboard?.summary?.route_query_example_count ?? 0,
+    ledger_api_dashboard_metric_count: artifacts.ledger_api_dashboard?.summary?.ledger_panel_metric_count ?? 0,
+    ledger_api_dashboard_cross_link_count: artifacts.ledger_api_dashboard?.summary?.ledger_cross_link_count ?? 0,
+    ledger_api_dashboard_linked_cross_link_count: artifacts.ledger_api_dashboard?.summary?.linked_cross_link_count ?? 0,
+    ledger_api_dashboard_attention_cross_link_count: artifacts.ledger_api_dashboard?.summary?.attention_cross_link_count ?? 0,
+    ledger_api_dashboard_source_validation_error_count: artifacts.ledger_api_dashboard?.summary?.source_validation_error_count ?? 0,
+    ledger_api_dashboard_validation_error_count: artifacts.ledger_api_dashboard?.summary?.validation_error_count ?? artifacts.ledger_api_dashboard?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -12207,6 +12285,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Error Retry", dashboard.summary.error_retry_ledger_error_count)}
       ${stat("Event Replay", dashboard.summary.event_replay_replayed_event_count)}
       ${stat("Retention", dashboard.summary.retention_archive_candidate_count)}
+      ${stat("Ledger API", dashboard.summary.ledger_api_dashboard_route_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12332,6 +12411,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Retention/archive policies and candidates: ${dashboard.summary.retention_archive_policy_count ?? 0}/${dashboard.summary.retention_archive_candidate_count ?? 0}`);
   lines.push(`- Retention/archive event/audit/output candidates: ${dashboard.summary.retention_archive_event_candidate_count ?? 0}/${dashboard.summary.retention_archive_audit_candidate_count ?? 0}/${dashboard.summary.retention_archive_output_candidate_count ?? 0}`);
   lines.push(`- Retention/archive holds and deletion allowed: ${dashboard.summary.retention_archive_legal_hold_binding_count ?? 0}/${dashboard.summary.retention_archive_legal_hold_required_count ?? 0}, ${dashboard.summary.retention_archive_deletion_allowed_count ?? 0}`);
+  lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
+  lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
+  lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12671,6 +12753,8 @@ function parseArgs(argv) {
     else if (arg === "--no-event-replay") parsed.eventReplayHarnessPath = false;
     else if (arg === "--retention-archive-ledger") parsed.retentionArchiveLedgerPath = argv[++index];
     else if (arg === "--no-retention-archive-ledger") parsed.retentionArchiveLedgerPath = false;
+    else if (arg === "--ledger-api-dashboard") parsed.ledgerApiDashboardPath = argv[++index];
+    else if (arg === "--no-ledger-api-dashboard") parsed.ledgerApiDashboardPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13061,6 +13145,8 @@ Options:
   --retention-archive-ledger <path>
                                   retention-archive-ledger.json path.
   --no-retention-archive-ledger   Do not include Retention/Archive Ledger status.
+  --ledger-api-dashboard <path>   ledger-api-dashboard.json path.
+  --no-ledger-api-dashboard       Do not include Ledger API Dashboard status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

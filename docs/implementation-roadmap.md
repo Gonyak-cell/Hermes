@@ -5139,6 +5139,31 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 75개로 증가하고 retention archive ledger가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run events:retention -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 174: Ledger API/Dashboard
+
+목표: run, audit, cost, error, event ledger를 하나의 읽기 전용 API/dashboard index로 묶어 운영자가 ledger plane 상태와 Review API route를 빠르게 확인할 수 있게 합니다.
+
+구현 내용:
+
+- `npm run ledgers:api-dashboard -- --check` 명령을 추가해 Workflow Run Ledger, Audit Event Ledger, Cost Record Projection, Token Usage Projection, Error/Retry Ledger, Append-only Event Store, Event Replay Harness를 읽고 Ledger API/Dashboard artifact를 생성함
+- run/audit/cost/error/event domain별 dashboard panel을 만들고 source ledger, 주요 count, blocker, validation error, human review note를 함께 기록함
+- 각 panel이 사용하는 Review API `GET` route를 `ledger_api_route_record`로 고정하고 route 선언 여부와 safe query example을 검증함
+- panel metric row와 cross-ledger health link row를 생성해 run-event, run-cost, run-error, event-audit, event-replay 연결 상태를 확인함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Ledger API/Dashboard를 통합함
+- `/api/ledger-api-dashboards`, `/api/ledger-dashboard-panels`, `/api/ledger-api-route-records`, `/api/ledger-panel-metrics`, `/api/ledger-cross-links`, `/api/ledger-api-dashboard-validations` route를 추가함
+
+완료 기준:
+
+- Ledger API/Dashboard가 validation error 없이 `complete` 상태가 됨
+- run, audit, cost, error, event 5개 domain panel이 모두 `passed` 상태임
+- 모든 panel route가 Review API에 선언되어 있고 누락 route count가 0임
+- panel metric이 20개 이상이고 cross-ledger link가 5개 이상임
+- 모든 cross-ledger link가 `linked` 상태이며 attention link count가 0임
+- Review Dashboard summary와 stage status에서 panel, route, metric, cross-link, validation count가 노출됨
+- Review API smoke가 ledger dashboard, panel, route, metric, cross-link, validation route를 모두 조회함
+- Golden fixture 수가 76개로 증가하고 ledger api dashboard가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run ledgers:api-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5147,9 +5172,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 173이다.
+- 현재 완료 기준점은 Phase 174이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P174-P312, 총 139개다.
+- 남은 계획 슬롯은 P175-P312, 총 138개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

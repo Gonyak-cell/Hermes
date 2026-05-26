@@ -95,6 +95,7 @@ const GOAL_ITEMS = [
   sourceItem("error_retry_ledger", "Error/retry ledger", "observability", "error_retry_ledger", "control-plane-error-retry-ledger", { acceptance_profile: "error_retry_ledger_gate" }),
   sourceItem("event_replay_harness", "Event replay harness", "audit", "event_replay_harness", "control-plane-event-replay-harness", { acceptance_profile: "event_replay_harness_gate" }),
   sourceItem("retention_archive_ledger", "Retention/archive ledger", "audit", "retention_archive_ledger", "control-plane-retention-archive-ledger", { acceptance_profile: "retention_archive_ledger_gate" }),
+  sourceItem("ledger_api_dashboard", "Ledger API/dashboard", "api", "ledger_api_dashboard", "control-plane-ledger-api-dashboard", { acceptance_profile: "ledger_api_dashboard_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -451,6 +452,7 @@ function evaluateStageAcceptance(item, stage) {
     "error_retry_ledger_gate",
     "event_replay_harness_gate",
     "retention_archive_ledger_gate",
+    "ledger_api_dashboard_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -647,6 +649,34 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.source_output_artifact_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Retention/archive ledger records event, audit, and output retention policy with active legal holds and no deletion-authorized candidates.");
+    }
+  }
+
+  if (item.acceptance_profile === "ledger_api_dashboard_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.source_validation_error_count ?? 0)
+      + (metrics.missing_route_count ?? 0)
+      + (metrics.blocked_panel_count ?? 0)
+      + (metrics.attention_cross_link_count ?? 0);
+    if (
+      errors === 0
+      && metrics.ledger_api_dashboard_status === "complete"
+      && (metrics.ledger_dashboard_panel_count ?? 0) === 5
+      && (metrics.passed_panel_count ?? 0) === 5
+      && (metrics.ledger_domain_count ?? 0) === 5
+      && (metrics.run_panel_count ?? 0) === 1
+      && (metrics.audit_panel_count ?? 0) === 1
+      && (metrics.cost_panel_count ?? 0) === 1
+      && (metrics.error_panel_count ?? 0) === 1
+      && (metrics.event_panel_count ?? 0) === 1
+      && (metrics.ledger_api_route_record_count ?? 0) >= 20
+      && (metrics.declared_route_count ?? 0) === (metrics.ledger_api_route_record_count ?? -1)
+      && (metrics.route_query_example_count ?? 0) === (metrics.ledger_api_route_record_count ?? -1)
+      && (metrics.ledger_panel_metric_count ?? 0) >= 20
+      && (metrics.ledger_cross_link_count ?? 0) >= 5
+      && (metrics.linked_cross_link_count ?? 0) === (metrics.ledger_cross_link_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Ledger API/dashboard exposes read-only run, audit, cost, error, and event panels with declared Review API routes and linked cross-ledger health rows.");
     }
   }
 

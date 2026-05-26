@@ -438,6 +438,12 @@ npm run api:serve
 - `GET /api/archive-candidate-records`: legal-hold-required archive candidate rows
 - `GET /api/legal-hold-bindings`: active legal hold binding rows
 - `GET /api/retention-archive-validations`: retention/archive validation rows
+- `GET /api/ledger-api-dashboards`: run/audit/cost/error/event ledger API/dashboard artifact
+- `GET /api/ledger-dashboard-panels`: ledger domain panel rows
+- `GET /api/ledger-api-route-records`: Review API route mapping rows for ledger panels
+- `GET /api/ledger-panel-metrics`: ledger panel metric rows
+- `GET /api/ledger-cross-links`: cross-ledger health link rows
+- `GET /api/ledger-api-dashboard-validations`: ledger API/dashboard validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows
@@ -495,6 +501,8 @@ Event type registry route는 `event_type_registry_status`, `event_family`, `even
 Append-only event store route는 `event_store_status`, `event_stream_id`, `stream_scope`, `stream_status`, `append_status`, `immutable_status`, `mutation_status`, `hash_chain_status`, `correction_status`, `sequence_status`, `correction_policy_status`, `event_type`, `event_family`, `source_kind`, `status`, `limit` query를 지원한다.
 
 Event correlation route는 `event_correlation_status`, `correlation_id`, `correlation_trace_id`, `trace_status`, `causation_status`, `run_binding_status`, `cause_event_envelope_id`, `effect_event_envelope_id`, `matter_id`, `workflow_run_id`, `run_ledger_id`, `event_type`, `status`, `limit` query를 지원한다.
+
+Ledger API/dashboard route는 `ledger_api_dashboard_status`, `ledger_domain`, `panel_id`, `panel_status`, `route_id`, `route_path`, `route_method`, `route_status`, `source_ledger_id`, `metric_id`, `metric_key`, `metric_status`, `link_id`, `link_type`, `link_status`, `from_ledger_domain`, `to_ledger_domain`, `status`, `limit` query를 지원한다.
 
 ## 검증
 

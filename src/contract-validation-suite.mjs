@@ -87,6 +87,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "observability:errors",
   "events:replay",
   "events:retention",
+  "ledgers:api-dashboard",
   "contracts:observability",
 ];
 

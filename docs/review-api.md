@@ -467,6 +467,12 @@ npm run api:serve
 - `GET /api/pack-dependency-edges`: pack dependency edge compatibility rows
 - `GET /api/pack-compatibility-matrix`: pack compatibility matrix rows
 - `GET /api/pack-manifest-compatibility-validations`: pack manifest compatibility validation rows
+- `GET /api/workflow-dsl-state-models`: workflow DSL state model artifact
+- `GET /api/workflow-dsl-states`: started/waiting/gated/approved/failed/completed state definitions
+- `GET /api/workflow-dsl-transition-rules`: workflow DSL transition rule rows
+- `GET /api/workflow-state-blueprints`: workflow contract to DSL state blueprint rows
+- `GET /api/workflow-run-state-projections`: event-backed workflow run state projections
+- `GET /api/workflow-dsl-state-validations`: workflow DSL state model validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

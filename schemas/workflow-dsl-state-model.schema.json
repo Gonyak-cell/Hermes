@@ -1,0 +1,284 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-dsl-state-model.schema.json",
+  "title": "Hermes Workflow DSL State Model",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_dsl_state_model_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_dsl_state_model",
+    "workflow_dsl_states",
+    "workflow_dsl_transition_rules",
+    "workflow_state_blueprints",
+    "workflow_run_state_projections",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-dsl-state-model.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_dsl_state_model_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "workflow_dsl_state_model": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "state_model_version",
+        "required_dsl_states",
+        "workflow_dsl_states",
+        "transition_rules",
+        "source_state_mapping",
+        "workflow_state_blueprints",
+        "workflow_run_state_projections"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-dsl-state-model.v1" },
+        "state_model_version": { "const": "workflow-dsl-state.v1" },
+        "required_dsl_states": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "started" },
+            { "const": "waiting" },
+            { "const": "gated" },
+            { "const": "approved" },
+            { "const": "failed" },
+            { "const": "completed" }
+          ],
+          "minItems": 6,
+          "maxItems": 6
+        },
+        "workflow_dsl_states": { "type": "array", "minItems": 6, "items": { "$ref": "#/$defs/workflow_dsl_state" } },
+        "transition_rules": { "type": "array", "minItems": 8, "items": { "$ref": "#/$defs/workflow_dsl_transition_rule" } },
+        "source_state_mapping": { "type": "object" },
+        "workflow_state_blueprints": { "type": "array", "items": { "$ref": "#/$defs/workflow_state_blueprint" } },
+        "workflow_run_state_projections": { "type": "array", "items": { "$ref": "#/$defs/workflow_run_state_projection" } }
+      },
+      "additionalProperties": true
+    },
+    "workflow_dsl_states": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/workflow_dsl_state" }
+    },
+    "workflow_dsl_transition_rules": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/workflow_dsl_transition_rule" }
+    },
+    "workflow_state_blueprints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/workflow_state_blueprint" }
+    },
+    "workflow_run_state_projections": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/workflow_run_state_projection" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_dsl_state_model_status",
+        "state_model_version",
+        "dsl_state_count",
+        "required_state_count",
+        "transition_rule_count",
+        "workflow_blueprint_count",
+        "workflow_run_projection_count",
+        "clear_projection_count",
+        "unknown_source_state_count",
+        "human_review_waiting_count",
+        "law_firm_waiting_count",
+        "validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_dsl_state_model_status": { "enum": ["complete", "blocked"] },
+        "state_model_version": { "const": "workflow-dsl-state.v1" },
+        "dsl_state_count": { "type": "integer", "minimum": 6 },
+        "required_state_count": { "type": "integer", "minimum": 6 },
+        "terminal_state_count": { "type": "integer", "minimum": 0 },
+        "transition_rule_count": { "type": "integer", "minimum": 0 },
+        "workflow_blueprint_count": { "type": "integer", "minimum": 0 },
+        "workflow_state_blueprint_count": { "type": "integer", "minimum": 0 },
+        "workflow_run_projection_count": { "type": "integer", "minimum": 0 },
+        "workflow_run_state_projection_count": { "type": "integer", "minimum": 0 },
+        "clear_projection_count": { "type": "integer", "minimum": 0 },
+        "blocked_projection_count": { "type": "integer", "minimum": 0 },
+        "waiting_run_count": { "type": "integer", "minimum": 0 },
+        "gated_run_count": { "type": "integer", "minimum": 0 },
+        "approved_run_count": { "type": "integer", "minimum": 0 },
+        "completed_run_count": { "type": "integer", "minimum": 0 },
+        "failed_run_count": { "type": "integer", "minimum": 0 },
+        "unknown_source_state_count": { "type": "integer", "minimum": 0 },
+        "human_review_waiting_count": { "type": "integer", "minimum": 0 },
+        "law_firm_waiting_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_dsl_current_state": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "workflow_dsl_state": {
+      "type": "object",
+      "required": ["schema_version", "dsl_state", "state_category", "terminal", "description"],
+      "properties": {
+        "schema_version": { "const": "workflow-dsl-state.v1" },
+        "dsl_state": { "enum": ["started", "waiting", "gated", "approved", "failed", "completed"] },
+        "state_category": { "type": "string", "minLength": 1 },
+        "terminal": { "type": "boolean" },
+        "description": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "workflow_dsl_transition_rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "transition_rule_id",
+        "from_state",
+        "to_state",
+        "transition_reason",
+        "description",
+        "allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-dsl-transition-rule.v1" },
+        "transition_rule_id": { "type": "string", "minLength": 1 },
+        "from_state": { "enum": ["started", "waiting", "gated", "approved", "failed", "completed"] },
+        "to_state": { "enum": ["started", "waiting", "gated", "approved", "failed", "completed"] },
+        "transition_reason": { "type": "string", "minLength": 1 },
+        "description": { "type": "string", "minLength": 1 },
+        "allowed": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "workflow_state_blueprint": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_id",
+        "capability_id",
+        "domain_pack",
+        "dsl_initial_state",
+        "dsl_terminal_states",
+        "required_dsl_states",
+        "default_dsl_path",
+        "approval_state_required",
+        "gate_state_required",
+        "waiting_state_required",
+        "blueprint_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-state-blueprint.v1" },
+        "workflow_id": { "type": "string", "minLength": 1 },
+        "capability_id": { "type": "string", "minLength": 1 },
+        "domain_pack": { "type": "string", "minLength": 1 },
+        "dsl_initial_state": { "const": "started" },
+        "dsl_terminal_states": {
+          "type": "array",
+          "contains": { "const": "completed" }
+        },
+        "required_dsl_states": { "type": "array", "minItems": 6 },
+        "default_dsl_path": { "type": "array", "items": { "type": "string" } },
+        "approval_state_required": { "type": "boolean" },
+        "gate_state_required": { "type": "boolean" },
+        "waiting_state_required": { "type": "boolean" },
+        "run_count": { "type": "integer", "minimum": 0 },
+        "blueprint_status": { "enum": ["complete", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "workflow_run_state_projection": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_run_id",
+        "workflow_id",
+        "capability_id",
+        "domain_pack",
+        "source_run_status",
+        "source_terminal_state",
+        "dsl_current_state",
+        "dsl_state_path",
+        "unknown_source_state_count",
+        "human_review_required",
+        "law_firm_human_review_required",
+        "state_projection_status",
+        "terminal_classification",
+        "mapped_transitions"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-run-state-projection.v1" },
+        "workflow_run_id": { "type": "string", "minLength": 1 },
+        "workflow_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string", "minLength": 1 },
+        "source_run_status": { "type": "string", "minLength": 1 },
+        "run_status": { "type": "string", "minLength": 1 },
+        "source_terminal_state": { "type": "string", "minLength": 1 },
+        "dsl_current_state": { "enum": ["started", "waiting", "gated", "approved", "failed", "completed", "unknown"] },
+        "dsl_terminal_state": { "type": ["string", "null"] },
+        "dsl_state_path": { "type": "array", "items": { "type": "string" } },
+        "dsl_transition_count": { "type": "integer", "minimum": 0 },
+        "source_transition_count": { "type": "integer", "minimum": 0 },
+        "unknown_source_state_count": { "type": "integer", "minimum": 0 },
+        "unknown_source_states": { "type": "array", "items": { "type": "string" } },
+        "human_review_required": { "type": "boolean" },
+        "law_firm_human_review_required": { "type": "boolean" },
+        "waiting_reason": { "type": ["string", "null"] },
+        "state_projection_status": { "enum": ["clear", "blocked"] },
+        "projection_status": { "enum": ["complete", "blocked"] },
+        "terminal_classification": { "enum": ["active", "non_terminal_waiting", "terminal"] },
+        "mapped_transitions": { "type": "array" },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

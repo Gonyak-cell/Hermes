@@ -100,6 +100,7 @@ const GOAL_ITEMS = [
   sourceItem("observability_freeze", "Observability freeze", "observability", "observability_freeze", "control-plane-observability-freeze", { acceptance_profile: "observability_freeze_gate" }),
   sourceItem("capability_manifest_v2", "Capability Manifest v2 catalog", "contracts", "capability_manifest_v2", "control-plane-capability-manifest-v2", { acceptance_profile: "capability_manifest_v2_gate" }),
   sourceItem("pack_manifest_compatibility", "Pack manifest compatibility", "domain_packs", "pack_manifest_compatibility", "control-plane-pack-manifest-compatibility", { acceptance_profile: "pack_manifest_compatibility_gate" }),
+  sourceItem("workflow_dsl_state_model", "Workflow DSL state model", "workflow", "workflow_dsl_state_model", "control-plane-workflow-dsl-state-model", { acceptance_profile: "workflow_dsl_state_model_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -461,6 +462,7 @@ function evaluateStageAcceptance(item, stage) {
     "observability_freeze_gate",
     "capability_manifest_v2_gate",
     "pack_manifest_compatibility_gate",
+    "workflow_dsl_state_model_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -792,6 +794,28 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.matrix_row_count ?? 0) === packCount
     ) {
       return passedWithOperationalGate(stage, "Pack manifest compatibility verifies every pack declares a core version floor, resolves dependency edges, and keeps the law-firm pack inside human-review defaults.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_dsl_state_model_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.unknown_source_state_count ?? 0)
+      + (metrics.blocked_projection_count ?? 0);
+    const projectionCount = metrics.workflow_run_projection_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_dsl_state_model_status === "complete"
+      && (metrics.dsl_state_count ?? 0) === 6
+      && (metrics.required_state_count ?? 0) === 6
+      && (metrics.transition_rule_count ?? 0) >= 8
+      && (metrics.workflow_blueprint_count ?? 0) > 0
+      && projectionCount > 0
+      && (metrics.clear_projection_count ?? 0) === projectionCount
+      && (metrics.waiting_run_count ?? 0) > 0
+      && (metrics.human_review_waiting_count ?? 0) > 0
+      && (metrics.law_firm_waiting_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow DSL state model fixes the six canonical workflow states and projects blocked law-firm runs into human-review waiting state.");
     }
   }
 

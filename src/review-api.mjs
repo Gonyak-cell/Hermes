@@ -2496,6 +2496,68 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-dsl-state-models") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "workflow_dsl_state_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("workflow_dsl_state_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_dsl_state_models", [modelResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-dsl-states") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "workflow_dsl_state_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("workflow_dsl_state_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_dsl_states", modelResult.artifact.workflow_dsl_states ?? modelResult.artifact.workflow_dsl_state_model?.workflow_dsl_states ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-dsl-transition-rules") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "workflow_dsl_state_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("workflow_dsl_state_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_dsl_transition_rules", modelResult.artifact.workflow_dsl_transition_rules ?? modelResult.artifact.workflow_dsl_state_model?.transition_rules ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-state-blueprints") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "workflow_dsl_state_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("workflow_dsl_state_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_state_blueprints", modelResult.artifact.workflow_state_blueprints ?? modelResult.artifact.workflow_dsl_state_model?.workflow_state_blueprints ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-state-projections") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "workflow_dsl_state_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("workflow_dsl_state_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_state_projections", modelResult.artifact.workflow_run_state_projections ?? modelResult.artifact.workflow_dsl_state_model?.workflow_run_state_projections ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-dsl-state-validations") {
+    const modelResult = await readDashboardSourceArtifact(dashboard, "workflow_dsl_state_model");
+    if (!modelResult.available) {
+      return jsonResponse(503, buildError("workflow_dsl_state_model_unavailable", modelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_dsl_state_validations", modelResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6610,6 +6672,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/pack-dependency-edges", "Pack dependency compatibility edges"),
       route("GET", "/api/pack-compatibility-matrix", "Pack compatibility matrix"),
       route("GET", "/api/pack-manifest-compatibility-validations", "Pack manifest compatibility validation rows"),
+      route("GET", "/api/workflow-dsl-state-models", "Workflow DSL state model artifacts"),
+      route("GET", "/api/workflow-dsl-states", "Workflow DSL state definitions"),
+      route("GET", "/api/workflow-dsl-transition-rules", "Workflow DSL transition rules"),
+      route("GET", "/api/workflow-state-blueprints", "Workflow state blueprints"),
+      route("GET", "/api/workflow-run-state-projections", "Workflow run state projections"),
+      route("GET", "/api/workflow-dsl-state-validations", "Workflow DSL state validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7232,6 +7300,11 @@ function filterItems(items, searchParams) {
     "compatibility_status",
     "core_compatibility_status",
     "dependency_status",
+    "workflow_dsl_state_model_status",
+    "dsl_state",
+    "dsl_current_state",
+    "state_projection_status",
+    "terminal_classification",
     "gate_runtime_status",
     "source_group",
     "trace_kind",
@@ -8340,6 +8413,11 @@ function readFilterValue(item, key) {
   if (key === "compatibility_status") return item.summary?.compatibility_status ?? item.compatibility_status;
   if (key === "core_compatibility_status") return item.core_compatibility_status;
   if (key === "dependency_status") return item.dependency_status;
+  if (key === "workflow_dsl_state_model_status") return item.summary?.workflow_dsl_state_model_status ?? item.workflow_dsl_state_model_status;
+  if (key === "dsl_state") return item.dsl_state;
+  if (key === "dsl_current_state") return item.dsl_current_state;
+  if (key === "state_projection_status") return item.state_projection_status;
+  if (key === "terminal_classification") return item.terminal_classification;
   if (key === "trace_id") return item.trace_id;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;

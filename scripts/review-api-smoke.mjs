@@ -896,6 +896,30 @@ try {
   assert.equal(packManifestCompatibilityValidations.collection, "pack_manifest_compatibility_validations");
   assert.ok(packManifestCompatibilityValidations.count <= 5);
 
+  const workflowDslStateModels = await fetchJson(`${url}/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete&limit=1`);
+  assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");
+  assert.ok(workflowDslStateModels.count <= 1);
+
+  const workflowDslStates = await fetchJson(`${url}/api/workflow-dsl-states?dsl_state=waiting&limit=1`);
+  assert.equal(workflowDslStates.collection, "workflow_dsl_states");
+  assert.ok(workflowDslStates.count <= 1);
+
+  const workflowDslTransitionRules = await fetchJson(`${url}/api/workflow-dsl-transition-rules?from_state=started&limit=5`);
+  assert.equal(workflowDslTransitionRules.collection, "workflow_dsl_transition_rules");
+  assert.ok(workflowDslTransitionRules.count <= 5);
+
+  const workflowStateBlueprints = await fetchJson(`${url}/api/workflow-state-blueprints?domain_pack=law-firm&limit=5`);
+  assert.equal(workflowStateBlueprints.collection, "workflow_state_blueprints");
+  assert.ok(workflowStateBlueprints.count <= 5);
+
+  const workflowRunStateProjections = await fetchJson(`${url}/api/workflow-run-state-projections?dsl_current_state=waiting&limit=5`);
+  assert.equal(workflowRunStateProjections.collection, "workflow_run_state_projections");
+  assert.ok(workflowRunStateProjections.count <= 5);
+
+  const workflowDslStateValidations = await fetchJson(`${url}/api/workflow-dsl-state-validations?status=passed&limit=5`);
+  assert.equal(workflowDslStateValidations.collection, "workflow_dsl_state_validations");
+  assert.ok(workflowDslStateValidations.count <= 5);
+
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
   assert.ok(runtimeAgentRunContractFreezes.count <= 1);

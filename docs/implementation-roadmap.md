@@ -5261,6 +5261,31 @@ Phase 178은 `domain-pack-manifest.v1` pack들이 Hermes core version floor와 p
 - Golden fixture 수가 80개로 증가하고 pack manifest compatibility artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run packs:compatibility -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 179 - Workflow DSL State Model
+
+Phase 179는 workflow contract와 event-backed workflow run ledger 사이에 공통 DSL state model을 추가했다. 목적은 후속 runner/gate/context engine이 workflow 상태를 `started`, `waiting`, `gated`, `approved`, `failed`, `completed` 여섯 상태로 안정적으로 해석하고, law-firm/client-facing output이 승인 전에는 항상 human-review waiting 상태로 남는다는 운영 규칙을 projection으로 검증하는 것이다.
+
+구현 내용:
+
+- `src/workflow-dsl-state-model.mjs`와 `scripts/workflow-dsl-state-model.mjs`를 추가해 `artifacts/workflow-dsl-state-model/latest/workflow-dsl-state-model.json` 산출물을 생성함
+- `workflow-dsl-states.json`, `workflow-dsl-transition-rules.json`, `workflow-state-blueprints.json`, `workflow-run-state-projections.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-dsl-state-model.schema.json`으로 6-state DSL, transition rule, workflow blueprint, run projection의 최소 계약을 고정함
+- Review Dashboard에 `workflow_dsl_state_model` source/stage/summary metric을 추가하고 state count, transition rule, blueprint/run projection, waiting/human-review count를 노출함
+- Review API에 `/api/workflow-dsl-state-models`, `/api/workflow-dsl-states`, `/api/workflow-dsl-transition-rules`, `/api/workflow-state-blueprints`, `/api/workflow-run-state-projections`, `/api/workflow-dsl-state-validations` route를 추가함
+- Control Plane Loop에 `workflow_dsl_state_model` step을 추가하고 Goal Checkpoint에 `workflow_dsl_state_model_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow DSL state model artifact와 `workflows:state-model` script를 포함함
+
+완료 기준:
+
+- Workflow DSL state model이 validation error 없이 `complete` 상태가 됨
+- `started`, `waiting`, `gated`, `approved`, `failed`, `completed` 6개 상태가 고정되고 core transition rule이 선언됨
+- Capability/Workflow Contract Freeze의 workflow 3개가 모두 workflow state blueprint로 projection됨
+- Workflow Run Ledger의 run record 4개가 모두 known DSL state로 projection되고 unknown source state가 0임
+- blocked workflow run은 `waiting` 상태로 projection되고 law-firm workflow run은 human review waiting count에 포함됨
+- Review API smoke가 state model, state definitions, transition rules, blueprints, run projections, validation route를 모두 조회함
+- Golden fixture 수가 81개로 증가하고 workflow DSL state model artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:state-model -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5269,9 +5294,9 @@ Phase 178은 `domain-pack-manifest.v1` pack들이 Hermes core version floor와 p
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 178이다.
+- 현재 완료 기준점은 Phase 179이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P179-P312, 총 134개다.
+- 남은 계획 슬롯은 P180-P312, 총 133개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

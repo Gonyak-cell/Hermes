@@ -94,6 +94,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   observabilityFreezePath: "artifacts/observability-freeze/latest/observability-freeze.json",
   capabilityManifestV2Path: "artifacts/capability-manifest-v2/latest/capability-manifest-v2.json",
   packManifestCompatibilityPath: "artifacts/pack-manifest-compatibility/latest/pack-manifest-compatibility.json",
+  workflowDslStateModelPath: "artifacts/workflow-dsl-state-model/latest/workflow-dsl-state-model.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -627,6 +628,11 @@ const SOURCE_DEFINITIONS = [
     option: "packManifestCompatibilityPath",
     source_id: "pack_manifest_compatibility",
     label: "Pack Manifest Compatibility",
+  },
+  {
+    option: "workflowDslStateModelPath",
+    source_id: "workflow_dsl_state_model",
+    label: "Workflow DSL State Model",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1224,6 +1230,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "observability_freeze") return data.summary ?? {};
   if (sourceId === "capability_manifest_v2") return data.summary ?? {};
   if (sourceId === "pack_manifest_compatibility") return data.summary ?? {};
+  if (sourceId === "workflow_dsl_state_model") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1482,6 +1489,7 @@ function buildStageStatuses(artifacts, sources) {
     buildObservabilityFreezeStage(artifacts.observability_freeze, sourceById.get("observability_freeze")),
     buildCapabilityManifestV2Stage(artifacts.capability_manifest_v2, sourceById.get("capability_manifest_v2")),
     buildPackManifestCompatibilityStage(artifacts.pack_manifest_compatibility, sourceById.get("pack_manifest_compatibility")),
+    buildWorkflowDslStateModelStage(artifacts.workflow_dsl_state_model, sourceById.get("workflow_dsl_state_model")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5794,6 +5802,45 @@ function buildPackManifestCompatibilityStage(compatibility, source) {
       common_dependency_gap_count: summary.common_dependency_gap_count ?? 0,
       matrix_row_count: summary.matrix_row_count ?? 0,
       validation_error_count: summary.validation_error_count ?? compatibility.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowDslStateModelStage(model, source) {
+  if (!model) return missingStage("workflow_dsl_state_model", "Workflow DSL State Model", source);
+  const summary = model.summary ?? {};
+  const blockers = (summary.validation_error_count ?? model.validation?.errors?.length ?? 0)
+    + (summary.unknown_source_state_count ?? 0)
+    + (summary.blocked_projection_count ?? 0);
+  const status = summary.workflow_dsl_state_model_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_dsl_state_model",
+    label: "Workflow DSL State Model",
+    status,
+    message: status === "passed"
+      ? `${summary.dsl_state_count ?? 0} DSL states, ${summary.workflow_run_projection_count ?? 0} run projection(s), ${summary.human_review_waiting_count ?? 0} waiting review run(s).`
+      : `${blockers} workflow DSL state blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_dsl_state_model_status: summary.workflow_dsl_state_model_status ?? "unknown",
+      state_model_version: summary.state_model_version ?? null,
+      dsl_state_count: summary.dsl_state_count ?? 0,
+      required_state_count: summary.required_state_count ?? 0,
+      terminal_state_count: summary.terminal_state_count ?? 0,
+      transition_rule_count: summary.transition_rule_count ?? 0,
+      workflow_blueprint_count: summary.workflow_blueprint_count ?? summary.workflow_state_blueprint_count ?? 0,
+      workflow_run_projection_count: summary.workflow_run_projection_count ?? summary.workflow_run_state_projection_count ?? 0,
+      clear_projection_count: summary.clear_projection_count ?? 0,
+      blocked_projection_count: summary.blocked_projection_count ?? 0,
+      waiting_run_count: summary.waiting_run_count ?? summary.waiting_projection_count ?? 0,
+      gated_run_count: summary.gated_run_count ?? 0,
+      approved_run_count: summary.approved_run_count ?? 0,
+      completed_run_count: summary.completed_run_count ?? 0,
+      failed_run_count: summary.failed_run_count ?? 0,
+      unknown_source_state_count: summary.unknown_source_state_count ?? 0,
+      human_review_waiting_count: summary.human_review_waiting_count ?? 0,
+      law_firm_waiting_count: summary.law_firm_waiting_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? model.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11291,6 +11338,25 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     pack_manifest_compatibility_common_dependency_gap_count: artifacts.pack_manifest_compatibility?.summary?.common_dependency_gap_count ?? 0,
     pack_manifest_compatibility_matrix_row_count: artifacts.pack_manifest_compatibility?.summary?.matrix_row_count ?? 0,
     pack_manifest_compatibility_validation_error_count: artifacts.pack_manifest_compatibility?.summary?.validation_error_count ?? artifacts.pack_manifest_compatibility?.validation?.errors?.length ?? 0,
+    workflow_dsl_state_model_status: artifacts.workflow_dsl_state_model?.summary?.workflow_dsl_state_model_status ?? "unknown",
+    workflow_dsl_state_model_state_model_version: artifacts.workflow_dsl_state_model?.summary?.state_model_version ?? null,
+    workflow_dsl_state_model_dsl_state_count: artifacts.workflow_dsl_state_model?.summary?.dsl_state_count ?? 0,
+    workflow_dsl_state_model_required_state_count: artifacts.workflow_dsl_state_model?.summary?.required_state_count ?? 0,
+    workflow_dsl_state_model_terminal_state_count: artifacts.workflow_dsl_state_model?.summary?.terminal_state_count ?? 0,
+    workflow_dsl_state_model_transition_rule_count: artifacts.workflow_dsl_state_model?.summary?.transition_rule_count ?? 0,
+    workflow_dsl_state_model_workflow_blueprint_count: artifacts.workflow_dsl_state_model?.summary?.workflow_blueprint_count ?? artifacts.workflow_dsl_state_model?.summary?.workflow_state_blueprint_count ?? 0,
+    workflow_dsl_state_model_workflow_run_projection_count: artifacts.workflow_dsl_state_model?.summary?.workflow_run_projection_count ?? artifacts.workflow_dsl_state_model?.summary?.workflow_run_state_projection_count ?? 0,
+    workflow_dsl_state_model_clear_projection_count: artifacts.workflow_dsl_state_model?.summary?.clear_projection_count ?? 0,
+    workflow_dsl_state_model_blocked_projection_count: artifacts.workflow_dsl_state_model?.summary?.blocked_projection_count ?? 0,
+    workflow_dsl_state_model_waiting_run_count: artifacts.workflow_dsl_state_model?.summary?.waiting_run_count ?? artifacts.workflow_dsl_state_model?.summary?.waiting_projection_count ?? 0,
+    workflow_dsl_state_model_gated_run_count: artifacts.workflow_dsl_state_model?.summary?.gated_run_count ?? 0,
+    workflow_dsl_state_model_approved_run_count: artifacts.workflow_dsl_state_model?.summary?.approved_run_count ?? 0,
+    workflow_dsl_state_model_completed_run_count: artifacts.workflow_dsl_state_model?.summary?.completed_run_count ?? 0,
+    workflow_dsl_state_model_failed_run_count: artifacts.workflow_dsl_state_model?.summary?.failed_run_count ?? 0,
+    workflow_dsl_state_model_unknown_source_state_count: artifacts.workflow_dsl_state_model?.summary?.unknown_source_state_count ?? 0,
+    workflow_dsl_state_model_human_review_waiting_count: artifacts.workflow_dsl_state_model?.summary?.human_review_waiting_count ?? 0,
+    workflow_dsl_state_model_law_firm_waiting_count: artifacts.workflow_dsl_state_model?.summary?.law_firm_waiting_count ?? 0,
+    workflow_dsl_state_model_validation_error_count: artifacts.workflow_dsl_state_model?.summary?.validation_error_count ?? artifacts.workflow_dsl_state_model?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13079,6 +13145,8 @@ function parseArgs(argv) {
     else if (arg === "--no-capability-manifest-v2") parsed.capabilityManifestV2Path = false;
     else if (arg === "--pack-manifest-compatibility") parsed.packManifestCompatibilityPath = argv[++index];
     else if (arg === "--no-pack-manifest-compatibility") parsed.packManifestCompatibilityPath = false;
+    else if (arg === "--workflow-dsl-state-model") parsed.workflowDslStateModelPath = argv[++index];
+    else if (arg === "--no-workflow-dsl-state-model") parsed.workflowDslStateModelPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13482,6 +13550,10 @@ Options:
                                   pack-manifest-compatibility.json path.
   --no-pack-manifest-compatibility
                                   Do not include Pack Manifest Compatibility status.
+  --workflow-dsl-state-model <path>
+                                  workflow-dsl-state-model.json path.
+  --no-workflow-dsl-state-model
+                                  Do not include Workflow DSL State Model status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

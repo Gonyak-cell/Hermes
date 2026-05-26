@@ -92,6 +92,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "observability:freeze",
   "capabilities:manifest-v2",
   "packs:compatibility",
+  "workflows:state-model",
   "contracts:observability",
 ];
 

@@ -174,6 +174,7 @@ import { runEvidenceContractFreeze } from "../src/evidence-contract-freeze.mjs";
 import { runCapabilityWorkflowContractFreeze } from "../src/capability-workflow-contract-freeze.mjs";
 import { runCapabilityManifestV2 } from "../src/capability-manifest-v2.mjs";
 import { runPackManifestCompatibility } from "../src/pack-manifest-compatibility.mjs";
+import { runWorkflowDslStateModel } from "../src/workflow-dsl-state-model.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1800,6 +1801,7 @@ describe("matter harness", () => {
         observabilityFreezePath: path.join(outDir, "observability-freeze", "observability-freeze.json"),
         capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
         packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1885,6 +1887,7 @@ describe("matter harness", () => {
         observabilityFreezePath: false,
         capabilityManifestV2Path: false,
         packManifestCompatibilityPath: false,
+        workflowDslStateModelPath: false,
         policyMatrixCatalogPath: false,
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
@@ -3622,6 +3625,43 @@ describe("matter harness", () => {
       assert.ok(workflowRunLedger.workflow_run_catalog.workflow_event_bindings.every((binding) => binding.binding_status === "linked"));
       assert.ok(workflowRunLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-run-ledger", "summary.md"), "utf8"), /Workflow Run Ledger/);
+
+      const workflowDslStateModel = await runWorkflowDslStateModel({
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
+        packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        outDir: path.join(outDir, "workflow-dsl-state-model"),
+        runAt: "2026-05-23T06:35:08.452Z",
+      });
+      const workflowDslStateModelSchema = JSON.parse(await readFile("schemas/workflow-dsl-state-model.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowDslStateModel, workflowDslStateModelSchema, {}, "workflow_dsl_state_model"),
+        [],
+      );
+      assert.equal(workflowDslStateModel.summary.workflow_dsl_state_model_status, "complete");
+      assert.equal(workflowDslStateModel.summary.dsl_state_count, 6);
+      assert.equal(workflowDslStateModel.summary.required_state_count, 6);
+      assert.deepEqual(
+        workflowDslStateModel.workflow_dsl_states.map((state) => state.dsl_state),
+        ["started", "waiting", "gated", "approved", "failed", "completed"],
+      );
+      const workflowDslEdges = new Set(workflowDslStateModel.workflow_dsl_transition_rules.map((rule) => `${rule.from_state}->${rule.to_state}`));
+      assert.ok(workflowDslEdges.has("started->gated"));
+      assert.ok(workflowDslEdges.has("gated->waiting"));
+      assert.ok(workflowDslEdges.has("waiting->approved"));
+      assert.ok(workflowDslEdges.has("approved->completed"));
+      assert.equal(workflowDslStateModel.summary.workflow_blueprint_count, capabilityWorkflowContractFreeze.summary.workflow_count);
+      assert.equal(workflowDslStateModel.summary.workflow_run_projection_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowDslStateModel.summary.clear_projection_count, workflowDslStateModel.summary.workflow_run_projection_count);
+      assert.equal(workflowDslStateModel.summary.unknown_source_state_count, 0);
+      assert.ok(workflowDslStateModel.summary.human_review_waiting_count > 0);
+      assert.ok(workflowDslStateModel.summary.law_firm_waiting_count > 0);
+      assert.ok(workflowDslStateModel.workflow_state_blueprints.every((blueprint) => blueprint.required_dsl_states.length === 6));
+      assert.ok(workflowDslStateModel.workflow_run_state_projections.every((projection) => projection.state_projection_status === "clear"));
+      assert.ok(workflowDslStateModel.workflow_run_state_projections.filter((projection) => projection.run_status === "blocked").every((projection) => projection.dsl_current_state === "waiting"));
+      assert.ok(workflowDslStateModel.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-dsl-state-model", "summary.md"), "utf8"), /Workflow DSL State Model/);
 
       const agentRunLedger = await runAgentRunLedger({
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
@@ -5692,6 +5732,7 @@ describe("matter harness", () => {
           observability_freeze: path.join(outDir, "observability-freeze", "observability-freeze.json"),
           capability_manifest_v2: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
           pack_manifest_compatibility: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+          workflow_dsl_state_model: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5703,8 +5744,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 80);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 80);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 81);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 81);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5772,6 +5813,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "observability_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "capability_manifest_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pack_manifest_compatibility"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_dsl_state_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5828,6 +5870,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6156,6 +6199,10 @@ describe("matter harness", () => {
       assert.equal(packManifestCompatibilityCheckpoint?.acceptance_profile, "pack_manifest_compatibility_gate");
       assert.equal(packManifestCompatibilityCheckpoint?.status, "passed");
       assert.equal(packManifestCompatibilityCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowDslStateModelCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-dsl-state-model");
+      assert.equal(workflowDslStateModelCheckpoint?.acceptance_profile, "workflow_dsl_state_model_gate");
+      assert.equal(workflowDslStateModelCheckpoint?.status, "passed");
+      assert.equal(workflowDslStateModelCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -7595,6 +7642,17 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.pack_manifest_compatibility_dependency_version_mismatch_count, 0);
       assert.equal(dashboard.summary.pack_manifest_compatibility_common_dependency_gap_count, 0);
       assert.equal(dashboard.summary.pack_manifest_compatibility_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_status, "complete");
+      assert.equal(dashboard.summary.workflow_dsl_state_model_dsl_state_count, 6);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_required_state_count, 6);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_transition_rule_count, workflowDslStateModel.summary.transition_rule_count);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_workflow_blueprint_count, workflowDslStateModel.summary.workflow_blueprint_count);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_workflow_run_projection_count, workflowDslStateModel.summary.workflow_run_projection_count);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_clear_projection_count, workflowDslStateModel.summary.clear_projection_count);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_unknown_source_state_count, 0);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_human_review_waiting_count, workflowDslStateModel.summary.human_review_waiting_count);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_law_firm_waiting_count, workflowDslStateModel.summary.law_firm_waiting_count);
+      assert.equal(dashboard.summary.workflow_dsl_state_model_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8209,6 +8267,11 @@ describe("matter harness", () => {
       const packManifestCompatibilityStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "pack_manifest_compatibility");
       assert.equal(packManifestCompatibilityStage?.status, "passed");
       assert.equal(packManifestCompatibilityStage?.metrics.pack_count, packManifestCompatibility.summary.pack_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_dsl_state_model"));
+      const workflowDslStateModelStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_dsl_state_model");
+      assert.equal(workflowDslStateModelStage?.status, "passed");
+      assert.equal(workflowDslStateModelStage?.metrics.dsl_state_count, 6);
+      assert.equal(workflowDslStateModelStage?.metrics.workflow_run_projection_count, workflowDslStateModel.summary.workflow_run_projection_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9065,6 +9128,30 @@ describe("matter harness", () => {
       const packManifestCompatibilityValidations = JSON.parse((await buildReviewApiResponse("/api/pack-manifest-compatibility-validations?status=passed", apiOptions)).body);
       assert.equal(packManifestCompatibilityValidations.collection, "pack_manifest_compatibility_validations");
       assert.equal(packManifestCompatibilityValidations.count, packManifestCompatibility.summary.validation_item_count);
+
+      const workflowDslStateModels = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete", apiOptions)).body);
+      assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");
+      assert.equal(workflowDslStateModels.count, 1);
+
+      const workflowDslStates = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-states?dsl_state=waiting", apiOptions)).body);
+      assert.equal(workflowDslStates.collection, "workflow_dsl_states");
+      assert.equal(workflowDslStates.count, 1);
+
+      const workflowDslTransitionRules = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-transition-rules?from_state=started", apiOptions)).body);
+      assert.equal(workflowDslTransitionRules.collection, "workflow_dsl_transition_rules");
+      assert.ok(workflowDslTransitionRules.count >= 2);
+
+      const workflowStateBlueprints = JSON.parse((await buildReviewApiResponse("/api/workflow-state-blueprints?domain_pack=law-firm", apiOptions)).body);
+      assert.equal(workflowStateBlueprints.collection, "workflow_state_blueprints");
+      assert.equal(workflowStateBlueprints.count, 1);
+
+      const workflowRunStateProjections = JSON.parse((await buildReviewApiResponse("/api/workflow-run-state-projections?dsl_current_state=waiting", apiOptions)).body);
+      assert.equal(workflowRunStateProjections.collection, "workflow_run_state_projections");
+      assert.equal(workflowRunStateProjections.count, workflowDslStateModel.summary.waiting_run_count);
+
+      const workflowDslStateValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-state-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowDslStateValidations.collection, "workflow_dsl_state_validations");
+      assert.equal(workflowDslStateValidations.count, workflowDslStateModel.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

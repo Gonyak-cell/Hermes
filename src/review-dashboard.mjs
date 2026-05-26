@@ -91,6 +91,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   retentionArchiveLedgerPath: "artifacts/retention-archive/latest/retention-archive-ledger.json",
   ledgerApiDashboardPath: "artifacts/ledger-api-dashboard/latest/ledger-api-dashboard.json",
   ledgerGoldenFixturesPath: "artifacts/ledger-golden-fixtures/latest/ledger-golden-fixtures.json",
+  observabilityFreezePath: "artifacts/observability-freeze/latest/observability-freeze.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -609,6 +610,11 @@ const SOURCE_DEFINITIONS = [
     option: "ledgerGoldenFixturesPath",
     source_id: "ledger_golden_fixtures",
     label: "Ledger Golden Fixtures",
+  },
+  {
+    option: "observabilityFreezePath",
+    source_id: "observability_freeze",
+    label: "Observability Freeze",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1203,6 +1209,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "retention_archive_ledger") return data.summary ?? {};
   if (sourceId === "ledger_api_dashboard") return data.summary ?? {};
   if (sourceId === "ledger_golden_fixtures") return data.summary ?? {};
+  if (sourceId === "observability_freeze") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1458,6 +1465,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRetentionArchiveLedgerStage(artifacts.retention_archive_ledger, sourceById.get("retention_archive_ledger")),
     buildLedgerApiDashboardStage(artifacts.ledger_api_dashboard, sourceById.get("ledger_api_dashboard")),
     buildLedgerGoldenFixturesStage(artifacts.ledger_golden_fixtures, sourceById.get("ledger_golden_fixtures")),
+    buildObservabilityFreezeStage(artifacts.observability_freeze, sourceById.get("observability_freeze")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5625,6 +5633,67 @@ function buildLedgerGoldenFixturesStage(fixtures, source) {
       protected_action_case_count: summary.protected_action_case_count ?? 0,
       source_validation_error_count: summary.source_validation_error_count ?? 0,
       validation_error_count: summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildObservabilityFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("observability_freeze", "Observability Freeze", source);
+  const summary = freeze.summary ?? {};
+  const blockers = (summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0)
+    + (summary.source_validation_error_count ?? 0)
+    + (summary.failed_freeze_checkpoint_count ?? 0)
+    + (summary.failed_metric_assertion_count ?? 0)
+    + (summary.missing_control_plane_loop_binding_count ?? 0)
+    + (summary.blocked_representative_trace_count ?? 0)
+    + (summary.client_facing_ready_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.observability_freeze_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "observability_freeze",
+    label: "Observability Freeze",
+    status,
+    message: status === "passed"
+      ? `${summary.complete_representative_trace_count ?? 0} observability trace(s), ${summary.passed_control_plane_loop_binding_count ?? 0} loop binding(s), ${summary.passed_metric_assertion_count ?? 0} assertion(s).`
+      : `${blockers} observability freeze blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      observability_freeze_status: summary.observability_freeze_status ?? "unknown",
+      observability_freeze_contract_id: summary.observability_freeze_contract_id ?? null,
+      freeze_source_count: summary.freeze_source_count ?? 0,
+      passed_freeze_source_count: summary.passed_freeze_source_count ?? 0,
+      failed_freeze_source_count: summary.failed_freeze_source_count ?? 0,
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
+      freeze_checkpoint_count: summary.freeze_checkpoint_count ?? 0,
+      passed_freeze_checkpoint_count: summary.passed_freeze_checkpoint_count ?? 0,
+      failed_freeze_checkpoint_count: summary.failed_freeze_checkpoint_count ?? 0,
+      representative_trace_count: summary.representative_trace_count ?? 0,
+      complete_representative_trace_count: summary.complete_representative_trace_count ?? 0,
+      blocked_representative_trace_count: summary.blocked_representative_trace_count ?? 0,
+      metric_assertion_count: summary.metric_assertion_count ?? 0,
+      passed_metric_assertion_count: summary.passed_metric_assertion_count ?? 0,
+      failed_metric_assertion_count: summary.failed_metric_assertion_count ?? 0,
+      control_plane_loop_binding_count: summary.control_plane_loop_binding_count ?? 0,
+      passed_control_plane_loop_binding_count: summary.passed_control_plane_loop_binding_count ?? 0,
+      missing_control_plane_loop_binding_count: summary.missing_control_plane_loop_binding_count ?? 0,
+      trace_projection_count: summary.trace_projection_count ?? 0,
+      cost_record_count: summary.cost_record_count ?? 0,
+      token_projection_count: summary.token_projection_count ?? 0,
+      audit_trail_record_count: summary.audit_trail_record_count ?? 0,
+      stored_event_count: summary.stored_event_count ?? 0,
+      event_replay_count: summary.event_replay_count ?? 0,
+      workflow_run_record_count: summary.workflow_run_record_count ?? 0,
+      agent_run_record_count: summary.agent_run_record_count ?? 0,
+      tool_invocation_record_count: summary.tool_invocation_record_count ?? 0,
+      ledger_api_route_count: summary.ledger_api_route_count ?? 0,
+      ledger_golden_case_count: summary.ledger_golden_case_count ?? 0,
+      retention_archive_candidate_count: summary.retention_archive_candidate_count ?? 0,
+      human_review_required_trace_count: summary.human_review_required_trace_count ?? 0,
+      delivery_blocked_trace_count: summary.delivery_blocked_trace_count ?? 0,
+      external_transfer_blocked_trace_count: summary.external_transfer_blocked_trace_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11642,6 +11711,28 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     ledger_golden_protected_action_case_count: artifacts.ledger_golden_fixtures?.summary?.protected_action_case_count ?? 0,
     ledger_golden_source_validation_error_count: artifacts.ledger_golden_fixtures?.summary?.source_validation_error_count ?? 0,
     ledger_golden_validation_error_count: artifacts.ledger_golden_fixtures?.summary?.validation_error_count ?? artifacts.ledger_golden_fixtures?.validation?.errors?.length ?? 0,
+    observability_freeze_status: artifacts.observability_freeze?.summary?.observability_freeze_status ?? "unknown",
+    observability_freeze_contract_id: artifacts.observability_freeze?.summary?.observability_freeze_contract_id ?? null,
+    observability_freeze_source_count: artifacts.observability_freeze?.summary?.freeze_source_count ?? 0,
+    observability_freeze_passed_source_count: artifacts.observability_freeze?.summary?.passed_freeze_source_count ?? 0,
+    observability_freeze_failed_source_count: artifacts.observability_freeze?.summary?.failed_freeze_source_count ?? 0,
+    observability_freeze_checkpoint_count: artifacts.observability_freeze?.summary?.freeze_checkpoint_count ?? 0,
+    observability_freeze_passed_checkpoint_count: artifacts.observability_freeze?.summary?.passed_freeze_checkpoint_count ?? 0,
+    observability_freeze_failed_checkpoint_count: artifacts.observability_freeze?.summary?.failed_freeze_checkpoint_count ?? 0,
+    observability_freeze_trace_count: artifacts.observability_freeze?.summary?.representative_trace_count ?? 0,
+    observability_freeze_complete_trace_count: artifacts.observability_freeze?.summary?.complete_representative_trace_count ?? 0,
+    observability_freeze_blocked_trace_count: artifacts.observability_freeze?.summary?.blocked_representative_trace_count ?? 0,
+    observability_freeze_metric_assertion_count: artifacts.observability_freeze?.summary?.metric_assertion_count ?? 0,
+    observability_freeze_passed_metric_assertion_count: artifacts.observability_freeze?.summary?.passed_metric_assertion_count ?? 0,
+    observability_freeze_failed_metric_assertion_count: artifacts.observability_freeze?.summary?.failed_metric_assertion_count ?? 0,
+    observability_freeze_loop_binding_count: artifacts.observability_freeze?.summary?.control_plane_loop_binding_count ?? 0,
+    observability_freeze_passed_loop_binding_count: artifacts.observability_freeze?.summary?.passed_control_plane_loop_binding_count ?? 0,
+    observability_freeze_missing_loop_binding_count: artifacts.observability_freeze?.summary?.missing_control_plane_loop_binding_count ?? 0,
+    observability_freeze_human_review_required_trace_count: artifacts.observability_freeze?.summary?.human_review_required_trace_count ?? 0,
+    observability_freeze_client_facing_ready_count: artifacts.observability_freeze?.summary?.client_facing_ready_count ?? 0,
+    observability_freeze_protected_action_executed_count: artifacts.observability_freeze?.summary?.protected_action_executed_count ?? 0,
+    observability_freeze_source_validation_error_count: artifacts.observability_freeze?.summary?.source_validation_error_count ?? 0,
+    observability_freeze_validation_error_count: artifacts.observability_freeze?.summary?.validation_error_count ?? artifacts.observability_freeze?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -12362,6 +12453,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Retention", dashboard.summary.retention_archive_candidate_count)}
       ${stat("Ledger API", dashboard.summary.ledger_api_dashboard_route_count)}
       ${stat("Ledger Fixtures", dashboard.summary.ledger_golden_case_count)}
+      ${stat("Obs Freeze", dashboard.summary.observability_freeze_trace_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12493,6 +12585,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Ledger golden fixtures cases/assertions: ${dashboard.summary.ledger_golden_locked_case_count ?? 0}/${dashboard.summary.ledger_golden_case_count ?? 0}, ${dashboard.summary.ledger_golden_passed_metric_assertion_count ?? 0}/${dashboard.summary.ledger_golden_metric_assertion_count ?? 0}`);
   lines.push(`- Ledger golden fixtures groups replay/projection/cost/audit: ${dashboard.summary.ledger_golden_replay_case_count ?? 0}/${dashboard.summary.ledger_golden_projection_case_count ?? 0}/${dashboard.summary.ledger_golden_cost_case_count ?? 0}/${dashboard.summary.ledger_golden_audit_case_count ?? 0}`);
   lines.push(`- Ledger golden fixtures hashes/errors: ${dashboard.summary.ledger_golden_locked_regression_hash_count ?? 0}/${dashboard.summary.ledger_golden_regression_hash_count ?? 0}, ${dashboard.summary.ledger_golden_validation_error_count ?? 0}`);
+  lines.push(`- Observability freeze sources/checkpoints: ${dashboard.summary.observability_freeze_passed_source_count ?? 0}/${dashboard.summary.observability_freeze_source_count ?? 0}, ${dashboard.summary.observability_freeze_passed_checkpoint_count ?? 0}/${dashboard.summary.observability_freeze_checkpoint_count ?? 0}`);
+  lines.push(`- Observability freeze traces/loop bindings: ${dashboard.summary.observability_freeze_complete_trace_count ?? 0}/${dashboard.summary.observability_freeze_trace_count ?? 0}, ${dashboard.summary.observability_freeze_passed_loop_binding_count ?? 0}/${dashboard.summary.observability_freeze_loop_binding_count ?? 0}`);
+  lines.push(`- Observability freeze assertions/errors: ${dashboard.summary.observability_freeze_passed_metric_assertion_count ?? 0}/${dashboard.summary.observability_freeze_metric_assertion_count ?? 0}, ${dashboard.summary.observability_freeze_validation_error_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12836,6 +12931,8 @@ function parseArgs(argv) {
     else if (arg === "--no-ledger-api-dashboard") parsed.ledgerApiDashboardPath = false;
     else if (arg === "--ledger-golden-fixtures") parsed.ledgerGoldenFixturesPath = argv[++index];
     else if (arg === "--no-ledger-golden-fixtures") parsed.ledgerGoldenFixturesPath = false;
+    else if (arg === "--observability-freeze") parsed.observabilityFreezePath = argv[++index];
+    else if (arg === "--no-observability-freeze") parsed.observabilityFreezePath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13231,6 +13328,8 @@ Options:
   --ledger-golden-fixtures <path>
                                   ledger-golden-fixtures.json path.
   --no-ledger-golden-fixtures     Do not include Ledger Golden Fixtures status.
+  --observability-freeze <path>   observability-freeze.json path.
+  --no-observability-freeze       Do not include Observability Freeze status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

@@ -449,6 +449,12 @@ npm run api:serve
 - `GET /api/ledger-fixture-matrix`: fixture group별 source/assertion/regression matrix
 - `GET /api/ledger-regression-hashes`: ledger golden fixture regression hash rows
 - `GET /api/ledger-golden-validations`: ledger golden fixture validation rows
+- `GET /api/observability-freezes`: observability freeze artifact
+- `GET /api/observability-freeze-sources`: P159-P175 freeze source status rows
+- `GET /api/observability-freeze-checkpoints`: observability freeze checkpoint rows
+- `GET /api/observability-freeze-traces`: trace/cost/audit/run representative freeze traces
+- `GET /api/observability-freeze-loop-bindings`: control-plane loop binding rows for P159-P175
+- `GET /api/observability-freeze-validations`: observability freeze validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

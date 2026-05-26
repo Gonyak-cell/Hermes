@@ -121,6 +121,7 @@ import { runEventReplayHarness } from "../src/event-replay-harness.mjs";
 import { runRetentionArchiveLedger } from "../src/retention-archive-ledger.mjs";
 import { runLedgerApiDashboard } from "../src/ledger-api-dashboard.mjs";
 import { runLedgerGoldenFixtures } from "../src/ledger-golden-fixtures.mjs";
+import { runObservabilityFreeze } from "../src/observability-freeze.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1738,6 +1739,7 @@ describe("matter harness", () => {
         retentionArchiveLedgerPath: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
         ledgerApiDashboardPath: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
         ledgerGoldenFixturesPath: path.join(outDir, "ledger-golden-fixtures", "ledger-golden-fixtures.json"),
+        observabilityFreezePath: path.join(outDir, "observability-freeze", "observability-freeze.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1820,6 +1822,7 @@ describe("matter harness", () => {
         controlPlaneLoopPath: false,
         controlPlaneGoalCheckpointPath: false,
         controlPlaneAuditTrailPath: false,
+        observabilityFreezePath: false,
         policyMatrixCatalogPath: false,
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
@@ -4150,6 +4153,63 @@ describe("matter harness", () => {
       assert.equal(controlPlaneLoop.loop_status, "passed");
       assert.equal(controlPlaneLoop.summary.passed_step_count, 1);
 
+      const observabilityFreeze = await runObservabilityFreeze({
+        eventEnvelopeLedgerPath: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
+        eventTypeRegistryPath: path.join(outDir, "event-type-registry", "event-type-registry.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        toolInvocationLedgerPath: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        policySnapshotEventBindingPath: path.join(outDir, "policy-snapshot-event-bindings", "policy-snapshot-event-binding.json"),
+        costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
+        tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
+        observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
+        errorRetryLedgerPath: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
+        eventReplayHarnessPath: path.join(outDir, "event-replay", "event-replay-harness.json"),
+        retentionArchiveLedgerPath: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
+        ledgerApiDashboardPath: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
+        ledgerGoldenFixturesPath: path.join(outDir, "ledger-golden-fixtures", "ledger-golden-fixtures.json"),
+        controlPlaneLoopPath: path.join(outDir, "control-plane-loop", "control-plane-loop.json"),
+        controlPlaneLoopSourcePath: "src/control-plane-loop.mjs",
+        outDir: path.join(outDir, "observability-freeze"),
+        runAt: "2026-05-23T06:35:08.800Z",
+      });
+      const observabilityFreezeSchema = JSON.parse(await readFile("schemas/observability-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(observabilityFreeze, observabilityFreezeSchema, {}, "observability_freeze"),
+        [],
+      );
+      assert.deepEqual(observabilityFreeze.validation.errors, []);
+      assert.equal(observabilityFreeze.summary.observability_freeze_status, "complete");
+      assert.equal(observabilityFreeze.summary.observability_freeze_contract_id, "observability-freeze.v1");
+      assert.equal(observabilityFreeze.summary.freeze_source_count, 18);
+      assert.equal(observabilityFreeze.summary.passed_freeze_source_count, observabilityFreeze.summary.freeze_source_count);
+      assert.equal(observabilityFreeze.summary.source_validation_error_count, 0);
+      assert.ok(observabilityFreeze.summary.freeze_checkpoint_count >= 18);
+      assert.equal(observabilityFreeze.summary.passed_freeze_checkpoint_count, observabilityFreeze.summary.freeze_checkpoint_count);
+      assert.equal(observabilityFreeze.summary.failed_freeze_checkpoint_count, 0);
+      assert.equal(observabilityFreeze.summary.representative_trace_count, 7);
+      assert.equal(observabilityFreeze.summary.complete_representative_trace_count, observabilityFreeze.summary.representative_trace_count);
+      assert.equal(observabilityFreeze.summary.control_plane_loop_binding_count, 17);
+      assert.equal(observabilityFreeze.summary.passed_control_plane_loop_binding_count, observabilityFreeze.summary.control_plane_loop_binding_count);
+      assert.ok(observabilityFreeze.summary.metric_assertion_count >= 30);
+      assert.equal(observabilityFreeze.summary.passed_metric_assertion_count, observabilityFreeze.summary.metric_assertion_count);
+      assert.equal(observabilityFreeze.summary.client_facing_ready_count, 0);
+      assert.equal(observabilityFreeze.summary.protected_action_executed_count, 0);
+      assert.equal(observabilityFreeze.summary.human_review_required_trace_count, observabilityFreeze.summary.representative_trace_count);
+      assert.ok(observabilityFreeze.representative_traces.every((trace) => (
+        trace.trace_status === "complete"
+        && trace.human_review_required
+        && trace.client_facing_ready === false
+        && trace.delivery_blocked
+        && trace.external_transfer_blocked
+        && trace.metric_assertions.every((assertion) => assertion.assertion_status === "passed")
+      )));
+      assert.ok(observabilityFreeze.control_plane_loop_bindings.every((binding) => binding.loop_binding_status === "passed"));
+      assert.match(await readFile(path.join(outDir, "observability-freeze", "summary.md"), "utf8"), /Observability Freeze/);
+
       const controlPlaneLoopFinalization = await runControlPlaneLoopFinalization({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.950Z",
@@ -5567,6 +5627,7 @@ describe("matter harness", () => {
           retention_archive_ledger: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
           ledger_api_dashboard: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
           ledger_golden_fixtures: path.join(outDir, "ledger-golden-fixtures", "ledger-golden-fixtures.json"),
+          observability_freeze: path.join(outDir, "observability-freeze", "observability-freeze.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5578,8 +5639,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 77);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 77);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 78);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 78);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5644,6 +5705,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_archive_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ledger_api_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ledger_golden_fixtures"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "observability_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5697,6 +5759,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:retention"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:api-dashboard"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:golden-fixtures"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6013,6 +6076,10 @@ describe("matter harness", () => {
       assert.equal(ledgerGoldenFixturesCheckpoint?.acceptance_profile, "ledger_golden_fixtures_gate");
       assert.equal(ledgerGoldenFixturesCheckpoint?.status, "passed");
       assert.equal(ledgerGoldenFixturesCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const observabilityFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-observability-freeze");
+      assert.equal(observabilityFreezeCheckpoint?.acceptance_profile, "observability_freeze_gate");
+      assert.equal(observabilityFreezeCheckpoint?.status, "passed");
+      assert.equal(observabilityFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6455,6 +6522,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.ledger_golden_protected_action_case_count, 0);
       assert.equal(dashboard.summary.ledger_golden_source_validation_error_count, 0);
       assert.equal(dashboard.summary.ledger_golden_validation_error_count, 0);
+      assert.equal(dashboard.summary.observability_freeze_status, "complete");
+      assert.equal(dashboard.summary.observability_freeze_source_count, observabilityFreeze.summary.freeze_source_count);
+      assert.equal(dashboard.summary.observability_freeze_passed_source_count, observabilityFreeze.summary.passed_freeze_source_count);
+      assert.equal(dashboard.summary.observability_freeze_checkpoint_count, observabilityFreeze.summary.freeze_checkpoint_count);
+      assert.equal(dashboard.summary.observability_freeze_passed_checkpoint_count, observabilityFreeze.summary.passed_freeze_checkpoint_count);
+      assert.equal(dashboard.summary.observability_freeze_trace_count, observabilityFreeze.summary.representative_trace_count);
+      assert.equal(dashboard.summary.observability_freeze_complete_trace_count, observabilityFreeze.summary.complete_representative_trace_count);
+      assert.equal(dashboard.summary.observability_freeze_metric_assertion_count, observabilityFreeze.summary.metric_assertion_count);
+      assert.equal(dashboard.summary.observability_freeze_passed_metric_assertion_count, observabilityFreeze.summary.passed_metric_assertion_count);
+      assert.equal(dashboard.summary.observability_freeze_loop_binding_count, observabilityFreeze.summary.control_plane_loop_binding_count);
+      assert.equal(dashboard.summary.observability_freeze_passed_loop_binding_count, observabilityFreeze.summary.passed_control_plane_loop_binding_count);
+      assert.equal(dashboard.summary.observability_freeze_human_review_required_trace_count, observabilityFreeze.summary.representative_trace_count);
+      assert.equal(dashboard.summary.observability_freeze_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.observability_freeze_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.observability_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -8014,6 +8096,9 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "event_replay_harness"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "retention_archive_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_golden_fixtures"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_freeze"));
+      const observabilityFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "observability_freeze");
+      assert.equal(observabilityFreezeStage?.status, "passed");
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -8421,6 +8506,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-fixture-matrix"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-regression-hashes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-golden-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/observability-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/observability-freeze-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/observability-freeze-checkpoints"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/observability-freeze-traces"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/observability-freeze-loop-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/observability-freeze-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/audit-sources"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-actions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matters"));
@@ -9477,6 +9568,30 @@ describe("matter harness", () => {
       const ledgerGoldenValidations = JSON.parse((await buildReviewApiResponse("/api/ledger-golden-validations?status=passed", apiOptions)).body);
       assert.equal(ledgerGoldenValidations.collection, "ledger_golden_validations");
       assert.equal(ledgerGoldenValidations.count, ledgerGoldenFixtures.summary.validation_item_count);
+
+      const observabilityFreezeRows = JSON.parse((await buildReviewApiResponse("/api/observability-freezes?observability_freeze_status=complete", apiOptions)).body);
+      assert.equal(observabilityFreezeRows.collection, "observability_freezes");
+      assert.equal(observabilityFreezeRows.count, 1);
+
+      const observabilityFreezeSources = JSON.parse((await buildReviewApiResponse("/api/observability-freeze-sources?source_status=passed", apiOptions)).body);
+      assert.equal(observabilityFreezeSources.collection, "observability_freeze_sources");
+      assert.equal(observabilityFreezeSources.count, observabilityFreeze.summary.passed_freeze_source_count);
+
+      const observabilityFreezeCheckpoints = JSON.parse((await buildReviewApiResponse("/api/observability-freeze-checkpoints?checkpoint_status=passed", apiOptions)).body);
+      assert.equal(observabilityFreezeCheckpoints.collection, "observability_freeze_checkpoints");
+      assert.equal(observabilityFreezeCheckpoints.count, observabilityFreeze.summary.passed_freeze_checkpoint_count);
+
+      const observabilityFreezeTraces = JSON.parse((await buildReviewApiResponse("/api/observability-freeze-traces?trace_status=complete", apiOptions)).body);
+      assert.equal(observabilityFreezeTraces.collection, "observability_freeze_traces");
+      assert.equal(observabilityFreezeTraces.count, observabilityFreeze.summary.complete_representative_trace_count);
+
+      const observabilityFreezeLoopBindings = JSON.parse((await buildReviewApiResponse("/api/observability-freeze-loop-bindings?loop_binding_status=passed", apiOptions)).body);
+      assert.equal(observabilityFreezeLoopBindings.collection, "observability_freeze_loop_bindings");
+      assert.equal(observabilityFreezeLoopBindings.count, observabilityFreeze.summary.passed_control_plane_loop_binding_count);
+
+      const observabilityFreezeValidations = JSON.parse((await buildReviewApiResponse("/api/observability-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(observabilityFreezeValidations.collection, "observability_freeze_validations");
+      assert.equal(observabilityFreezeValidations.count, observabilityFreeze.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

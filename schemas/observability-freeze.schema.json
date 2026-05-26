@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/observability-freeze.schema.json",
+  "title": "Hermes Observability Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "observability_freeze_id",
+    "output_dir",
+    "observability_freeze_status",
+    "safe_handling",
+    "inputs",
+    "freeze_scope",
+    "observability_freeze_contract",
+    "freeze_source_statuses",
+    "freeze_checkpoints",
+    "representative_traces",
+    "control_plane_loop_bindings",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "observability-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "observability_freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "observability_freeze_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "freeze_report_only",
+        "source_artifact_mutation_allowed",
+        "protected_actions_executed",
+        "external_delivery_executed",
+        "external_model_call_executed",
+        "auto_approval_allowed",
+        "retention_or_deletion_executed"
+      ],
+      "properties": {
+        "freeze_report_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "protected_actions_executed": { "const": false },
+        "external_delivery_executed": { "const": false },
+        "external_model_call_executed": { "const": false },
+        "auto_approval_allowed": { "const": false },
+        "retention_or_deletion_executed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "inputs": { "type": "object" },
+    "freeze_scope": {
+      "type": "object",
+      "required": ["track", "frozen_slots", "source_phase_range", "loop_binding_range", "next_planned_slot", "next_track"],
+      "properties": {
+        "track": { "const": "Event, Run Ledger, Audit, Observability" },
+        "frozen_slots": { "type": "array", "minItems": 18, "items": { "type": "string" } },
+        "source_phase_range": { "type": "string" },
+        "loop_binding_range": { "type": "string" },
+        "next_planned_slot": { "const": "P177" },
+        "next_track": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "observability_freeze_contract": { "$ref": "#/$defs/contract" },
+    "freeze_source_statuses": {
+      "type": "array",
+      "minItems": 18,
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "freeze_checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "representative_traces": {
+      "type": "array",
+      "minItems": 7,
+      "items": { "$ref": "#/$defs/representative_trace" }
+    },
+    "control_plane_loop_bindings": {
+      "type": "array",
+      "minItems": 17,
+      "items": { "$ref": "#/$defs/loop_binding" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "observability_freeze_contract_id",
+        "generated_at",
+        "source_rule",
+        "loop_rule",
+        "guardrail_rule",
+        "api_routes"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-freeze-contract.v1" },
+        "observability_freeze_contract_id": { "const": "observability-freeze.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_rule": { "type": "string" },
+        "loop_rule": { "type": "string" },
+        "guardrail_rule": { "type": "string" },
+        "api_routes": { "type": "array", "minItems": 6, "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "source_status": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_id",
+        "label",
+        "planned_slot",
+        "source_group",
+        "path",
+        "available",
+        "source_status",
+        "validation_error_count",
+        "content_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-freeze-source-status.v1" },
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "planned_slot": { "type": "string" },
+        "source_group": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version_observed": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "status_key": { "type": ["string", "null"] },
+        "expected_status": { "type": ["string", "null"] },
+        "observed_status": { "type": ["string", "null"] },
+        "source_status": { "enum": ["passed", "failed"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "observability-freeze-checkpoint.v1" },
+        "checkpoint_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "representative_trace": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "trace_id",
+        "trace_kind",
+        "label",
+        "generated_at",
+        "source_artifact_ids",
+        "control_plane_step_ids",
+        "control_plane_loop_statuses",
+        "metric_assertions",
+        "trace_status",
+        "human_review_required",
+        "client_facing_ready",
+        "delivery_blocked",
+        "external_transfer_blocked",
+        "protected_action_executed",
+        "review_note"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-freeze-trace.v1" },
+        "trace_id": { "type": "string" },
+        "trace_kind": { "type": "string" },
+        "label": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_artifact_ids": { "type": "array", "items": { "type": "string" } },
+        "control_plane_step_ids": { "type": "array", "items": { "type": "string" } },
+        "control_plane_loop_statuses": { "type": "array", "items": { "type": "object" } },
+        "metric_assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/metric_assertion" }
+        },
+        "trace_status": { "enum": ["complete", "blocked"] },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "delivery_blocked": { "const": true },
+        "external_transfer_blocked": { "const": true },
+        "protected_action_executed": { "const": false },
+        "review_note": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "loop_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "binding_id",
+        "generated_at",
+        "step_id",
+        "step_declared",
+        "source_loop_status",
+        "observed_step_status",
+        "loop_binding_status",
+        "required_artifact_paths"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-freeze-loop-binding.v1" },
+        "binding_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "step_id": { "type": "string" },
+        "step_declared": { "type": "boolean" },
+        "source_loop_status": { "enum": ["passed", "blocked"] },
+        "observed_step_status": { "type": "string" },
+        "loop_binding_status": { "enum": ["passed", "missing"] },
+        "required_artifact_paths": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "metric_assertion": {
+      "type": "object",
+      "required": ["assertion_id", "metric_key", "expected_operator", "expected_value", "observed_value", "assertion_status"],
+      "properties": {
+        "assertion_id": { "type": "string" },
+        "metric_key": { "type": "string" },
+        "expected_operator": { "enum": ["equals", "gte"] },
+        "expected_value": { "type": ["number", "string", "boolean", "null"] },
+        "observed_value": { "type": ["number", "string", "boolean", "null"] },
+        "assertion_status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "observability_freeze_status",
+        "observability_freeze_contract_id",
+        "freeze_source_count",
+        "passed_freeze_source_count",
+        "failed_freeze_source_count",
+        "source_validation_error_count",
+        "freeze_checkpoint_count",
+        "passed_freeze_checkpoint_count",
+        "failed_freeze_checkpoint_count",
+        "representative_trace_count",
+        "complete_representative_trace_count",
+        "blocked_representative_trace_count",
+        "metric_assertion_count",
+        "passed_metric_assertion_count",
+        "failed_metric_assertion_count",
+        "control_plane_loop_binding_count",
+        "passed_control_plane_loop_binding_count",
+        "missing_control_plane_loop_binding_count",
+        "trace_projection_count",
+        "cost_record_count",
+        "token_projection_count",
+        "audit_trail_record_count",
+        "stored_event_count",
+        "event_replay_count",
+        "workflow_run_record_count",
+        "agent_run_record_count",
+        "tool_invocation_record_count",
+        "ledger_api_route_count",
+        "ledger_golden_case_count",
+        "retention_archive_candidate_count",
+        "human_review_required_trace_count",
+        "delivery_blocked_trace_count",
+        "external_transfer_blocked_trace_count",
+        "client_facing_ready_count",
+        "protected_action_executed_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "observability_freeze_status": { "enum": ["complete", "blocked"] },
+        "observability_freeze_contract_id": { "const": "observability-freeze.v1" },
+        "freeze_source_count": { "type": "integer", "minimum": 18 },
+        "passed_freeze_source_count": { "type": "integer", "minimum": 0 },
+        "failed_freeze_source_count": { "type": "integer", "minimum": 0 },
+        "source_validation_error_count": { "type": "integer", "minimum": 0 },
+        "freeze_checkpoint_count": { "type": "integer", "minimum": 1 },
+        "passed_freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "failed_freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "representative_trace_count": { "type": "integer", "minimum": 7 },
+        "complete_representative_trace_count": { "type": "integer", "minimum": 0 },
+        "blocked_representative_trace_count": { "type": "integer", "minimum": 0 },
+        "metric_assertion_count": { "type": "integer", "minimum": 1 },
+        "passed_metric_assertion_count": { "type": "integer", "minimum": 0 },
+        "failed_metric_assertion_count": { "type": "integer", "minimum": 0 },
+        "control_plane_loop_binding_count": { "type": "integer", "minimum": 17 },
+        "passed_control_plane_loop_binding_count": { "type": "integer", "minimum": 0 },
+        "missing_control_plane_loop_binding_count": { "type": "integer", "minimum": 0 },
+        "trace_projection_count": { "type": "integer", "minimum": 0 },
+        "cost_record_count": { "type": "integer", "minimum": 0 },
+        "token_projection_count": { "type": "integer", "minimum": 0 },
+        "audit_trail_record_count": { "type": "integer", "minimum": 0 },
+        "stored_event_count": { "type": "integer", "minimum": 0 },
+        "event_replay_count": { "type": "integer", "minimum": 0 },
+        "workflow_run_record_count": { "type": "integer", "minimum": 0 },
+        "agent_run_record_count": { "type": "integer", "minimum": 0 },
+        "tool_invocation_record_count": { "type": "integer", "minimum": 0 },
+        "ledger_api_route_count": { "type": "integer", "minimum": 0 },
+        "ledger_golden_case_count": { "type": "integer", "minimum": 0 },
+        "retention_archive_candidate_count": { "type": "integer", "minimum": 0 },
+        "human_review_required_trace_count": { "type": "integer", "minimum": 0 },
+        "delivery_blocked_trace_count": { "type": "integer", "minimum": 0 },
+        "external_transfer_blocked_trace_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

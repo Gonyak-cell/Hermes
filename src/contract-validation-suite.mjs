@@ -89,6 +89,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "events:retention",
   "ledgers:api-dashboard",
   "ledgers:golden-fixtures",
+  "observability:freeze",
   "contracts:observability",
 ];
 

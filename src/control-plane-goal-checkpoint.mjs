@@ -97,6 +97,7 @@ const GOAL_ITEMS = [
   sourceItem("retention_archive_ledger", "Retention/archive ledger", "audit", "retention_archive_ledger", "control-plane-retention-archive-ledger", { acceptance_profile: "retention_archive_ledger_gate" }),
   sourceItem("ledger_api_dashboard", "Ledger API/dashboard", "api", "ledger_api_dashboard", "control-plane-ledger-api-dashboard", { acceptance_profile: "ledger_api_dashboard_gate" }),
   sourceItem("ledger_golden_fixtures", "Ledger golden fixtures", "audit", "ledger_golden_fixtures", "control-plane-ledger-golden-fixtures", { acceptance_profile: "ledger_golden_fixtures_gate" }),
+  sourceItem("observability_freeze", "Observability freeze", "observability", "observability_freeze", "control-plane-observability-freeze", { acceptance_profile: "observability_freeze_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -455,6 +456,7 @@ function evaluateStageAcceptance(item, stage) {
     "retention_archive_ledger_gate",
     "ledger_api_dashboard_gate",
     "ledger_golden_fixtures_gate",
+    "observability_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -706,6 +708,36 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.human_review_required_case_count ?? 0) === (metrics.ledger_golden_case_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Ledger golden fixtures lock replay, projection, cost, and audit cases with passing assertions and regression hashes.");
+    }
+  }
+
+  if (item.acceptance_profile === "observability_freeze_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.source_validation_error_count ?? 0)
+      + (metrics.failed_freeze_checkpoint_count ?? 0)
+      + (metrics.failed_metric_assertion_count ?? 0)
+      + (metrics.blocked_representative_trace_count ?? 0)
+      + (metrics.missing_control_plane_loop_binding_count ?? 0)
+      + (metrics.client_facing_ready_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    if (
+      errors === 0
+      && metrics.observability_freeze_status === "complete"
+      && (metrics.freeze_source_count ?? 0) >= 18
+      && (metrics.passed_freeze_source_count ?? 0) === (metrics.freeze_source_count ?? -1)
+      && (metrics.freeze_checkpoint_count ?? 0) >= 18
+      && (metrics.passed_freeze_checkpoint_count ?? 0) === (metrics.freeze_checkpoint_count ?? -1)
+      && (metrics.representative_trace_count ?? 0) >= 7
+      && (metrics.complete_representative_trace_count ?? 0) === (metrics.representative_trace_count ?? -1)
+      && (metrics.control_plane_loop_binding_count ?? 0) >= 17
+      && (metrics.passed_control_plane_loop_binding_count ?? 0) === (metrics.control_plane_loop_binding_count ?? -1)
+      && (metrics.metric_assertion_count ?? 0) >= 30
+      && (metrics.passed_metric_assertion_count ?? 0) === (metrics.metric_assertion_count ?? -1)
+      && (metrics.human_review_required_trace_count ?? 0) === (metrics.representative_trace_count ?? -1)
+      && (metrics.delivery_blocked_trace_count ?? 0) === (metrics.representative_trace_count ?? -1)
+      && (metrics.external_transfer_blocked_trace_count ?? 0) === (metrics.representative_trace_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Observability freeze verifies trace, cost, audit, run, replay, retention, API, and golden fixture outputs are validation-clean and bound to the control-plane loop while preserving human-review guardrails.");
     }
   }
 

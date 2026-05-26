@@ -3728,6 +3728,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("ledger_golden_validations", fixtureResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/observability-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "observability_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("observability_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "observability_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("observability_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_freeze_sources", freezeResult.artifact.freeze_source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-freeze-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "observability_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("observability_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_freeze_checkpoints", freezeResult.artifact.freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-freeze-traces") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "observability_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("observability_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_freeze_traces", freezeResult.artifact.representative_traces ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-freeze-loop-bindings") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "observability_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("observability_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_freeze_loop_bindings", freezeResult.artifact.control_plane_loop_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "observability_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("observability_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6589,6 +6631,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/ledger-fixture-matrix", "Ledger fixture matrix by replay, projection, cost, and audit"),
       route("GET", "/api/ledger-regression-hashes", "Ledger golden fixture regression hashes"),
       route("GET", "/api/ledger-golden-validations", "Ledger golden fixture validation rows"),
+      route("GET", "/api/observability-freezes", "Observability freeze artifact"),
+      route("GET", "/api/observability-freeze-sources", "Observability freeze source status rows"),
+      route("GET", "/api/observability-freeze-checkpoints", "Observability freeze checkpoint rows"),
+      route("GET", "/api/observability-freeze-traces", "Observability freeze representative traces"),
+      route("GET", "/api/observability-freeze-loop-bindings", "Observability freeze control-plane loop bindings"),
+      route("GET", "/api/observability-freeze-validations", "Observability freeze validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7043,6 +7091,11 @@ function filterItems(items, searchParams) {
     "panel_id",
     "panel_type",
     "panel_status",
+    "observability_freeze_status",
+    "source_group",
+    "trace_kind",
+    "loop_binding_status",
+    "step_id",
     "source_artifact_id",
     "rollup_status",
     "suite_type",

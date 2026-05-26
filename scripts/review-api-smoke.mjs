@@ -199,6 +199,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/ledger-fixture-matrix"));
   assert.ok(index.routes.some((route) => route.path === "/api/ledger-regression-hashes"));
   assert.ok(index.routes.some((route) => route.path === "/api/ledger-golden-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-sources"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-checkpoints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-traces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-loop-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -335,6 +341,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-representative-traces"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-freeze-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-sources"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-checkpoints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-traces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-loop-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -1455,6 +1467,30 @@ try {
   const ledgerGoldenValidations = await fetchJson(`${url}/api/ledger-golden-validations?status=passed&limit=5`);
   assert.equal(ledgerGoldenValidations.collection, "ledger_golden_validations");
   assert.ok(ledgerGoldenValidations.count <= 5);
+
+  const observabilityFreezes = await fetchJson(`${url}/api/observability-freezes?observability_freeze_status=complete&limit=1`);
+  assert.equal(observabilityFreezes.collection, "observability_freezes");
+  assert.ok(observabilityFreezes.count <= 1);
+
+  const observabilityFreezeSources = await fetchJson(`${url}/api/observability-freeze-sources?source_status=passed&limit=5`);
+  assert.equal(observabilityFreezeSources.collection, "observability_freeze_sources");
+  assert.ok(observabilityFreezeSources.count <= 5);
+
+  const observabilityFreezeCheckpoints = await fetchJson(`${url}/api/observability-freeze-checkpoints?checkpoint_status=passed&limit=5`);
+  assert.equal(observabilityFreezeCheckpoints.collection, "observability_freeze_checkpoints");
+  assert.ok(observabilityFreezeCheckpoints.count <= 5);
+
+  const observabilityFreezeTraces = await fetchJson(`${url}/api/observability-freeze-traces?trace_status=complete&limit=5`);
+  assert.equal(observabilityFreezeTraces.collection, "observability_freeze_traces");
+  assert.ok(observabilityFreezeTraces.count <= 5);
+
+  const observabilityFreezeLoopBindings = await fetchJson(`${url}/api/observability-freeze-loop-bindings?loop_binding_status=passed&limit=5`);
+  assert.equal(observabilityFreezeLoopBindings.collection, "observability_freeze_loop_bindings");
+  assert.ok(observabilityFreezeLoopBindings.count <= 5);
+
+  const observabilityFreezeValidations = await fetchJson(`${url}/api/observability-freeze-validations?status=passed&limit=5`);
+  assert.equal(observabilityFreezeValidations.collection, "observability_freeze_validations");
+  assert.ok(observabilityFreezeValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

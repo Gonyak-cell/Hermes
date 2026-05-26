@@ -83,6 +83,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     retention_archive_ledger: "artifacts/retention-archive/latest/retention-archive-ledger.json",
     ledger_api_dashboard: "artifacts/ledger-api-dashboard/latest/ledger-api-dashboard.json",
     ledger_golden_fixtures: "artifacts/ledger-golden-fixtures/latest/ledger-golden-fixtures.json",
+    observability_freeze: "artifacts/observability-freeze/latest/observability-freeze.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -164,6 +165,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("retention_archive_ledger", "Retention/Archive Ledger", "audit", "retention-archive-ledger.schema.json"),
   fixtureDefinition("ledger_api_dashboard", "Ledger API Dashboard", "api", "ledger-api-dashboard.schema.json"),
   fixtureDefinition("ledger_golden_fixtures", "Ledger Golden Fixtures", "audit", "ledger-golden-fixtures.schema.json"),
+  fixtureDefinition("observability_freeze", "Observability Freeze", "observability", "observability-freeze.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

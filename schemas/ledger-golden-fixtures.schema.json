@@ -1,0 +1,283 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/ledger-golden-fixtures.schema.json",
+  "title": "Hermes Ledger Golden Fixtures",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "ledger_golden_fixture_set_id",
+    "output_dir",
+    "inputs",
+    "source_event_replay_harness",
+    "source_cost_record_projection",
+    "source_token_usage_projection",
+    "source_audit_event_ledger",
+    "source_ledger_api_dashboard",
+    "ledger_golden_fixture_contract",
+    "ledger_golden_fixture_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "ledger-golden-fixtures.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "ledger_golden_fixture_set_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_event_replay_harness": { "$ref": "#/$defs/source" },
+    "source_cost_record_projection": { "$ref": "#/$defs/source" },
+    "source_token_usage_projection": { "$ref": "#/$defs/source" },
+    "source_audit_event_ledger": { "$ref": "#/$defs/source" },
+    "source_ledger_api_dashboard": { "$ref": "#/$defs/source" },
+    "ledger_golden_fixture_contract": { "$ref": "#/$defs/contract" },
+    "ledger_golden_fixture_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "ledger_golden_cases",
+        "ledger_fixture_matrix",
+        "ledger_regression_manifest"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-golden-fixture-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "ledger_golden_cases": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "$ref": "#/$defs/ledger_golden_case" }
+        },
+        "ledger_fixture_matrix": { "$ref": "#/$defs/fixture_matrix" },
+        "ledger_regression_manifest": { "$ref": "#/$defs/regression_manifest" }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source": {
+      "type": "object",
+      "required": ["source_id", "schema_version", "status", "validation_error_count", "generated_at", "available"],
+      "properties": {
+        "source_id": { "type": "string" },
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "available": { "type": "boolean" },
+        "path": { "type": "string" },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "ledger_golden_fixture_contract_id",
+        "generated_at",
+        "required_fixture_groups",
+        "source_inputs",
+        "fixture_rule",
+        "review_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-golden-fixture-contract.v1" },
+        "ledger_golden_fixture_contract_id": { "const": "ledger-golden-fixtures.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_fixture_groups": {
+          "type": "array",
+          "minItems": 4,
+          "items": { "enum": ["replay", "projection", "cost", "audit"] }
+        },
+        "source_inputs": { "type": "array", "minItems": 5, "items": { "type": "string" } },
+        "fixture_rule": { "type": "string" },
+        "review_rule": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "ledger_golden_case": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "ledger_golden_case_id",
+        "fixture_group",
+        "source_artifact_id",
+        "source_record_type",
+        "label",
+        "expected_outcome",
+        "observed_status",
+        "expected_metrics",
+        "observed_metrics",
+        "metric_assertions",
+        "case_status",
+        "human_review_required",
+        "protected_action",
+        "regression_hash",
+        "captured_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "ledger-golden-case.v1" },
+        "ledger_golden_case_id": { "type": "string" },
+        "fixture_group": { "enum": ["replay", "projection", "cost", "audit"] },
+        "source_artifact_id": { "type": "string" },
+        "source_record_type": { "type": "string" },
+        "label": { "type": "string" },
+        "expected_outcome": { "type": "string" },
+        "observed_status": { "type": "string" },
+        "expected_metrics": { "type": "object" },
+        "observed_metrics": { "type": "object" },
+        "metric_assertions": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/metric_assertion" }
+        },
+        "case_status": { "enum": ["locked", "mismatch"] },
+        "human_review_required": { "const": true },
+        "protected_action": { "const": false },
+        "regression_hash": { "type": "string", "pattern": "^sha256:" },
+        "captured_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "metric_assertion": {
+      "type": "object",
+      "required": [
+        "assertion_id",
+        "metric_key",
+        "expected_operator",
+        "expected_value",
+        "observed_value",
+        "assertion_status"
+      ],
+      "properties": {
+        "assertion_id": { "type": "string" },
+        "metric_key": { "type": "string" },
+        "expected_operator": { "const": "equals" },
+        "expected_value": { "type": ["number", "string", "boolean", "null"] },
+        "observed_value": { "type": ["number", "string", "boolean", "null"] },
+        "assertion_status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    },
+    "fixture_matrix": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "ledger_golden_case_count", "fixture_group_count", "fixture_groups"],
+      "properties": {
+        "schema_version": { "const": "ledger-fixture-matrix.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "ledger_golden_case_count": { "type": "integer", "minimum": 0 },
+        "fixture_group_count": { "type": "integer", "minimum": 0 },
+        "fixture_groups": { "type": "array", "items": { "type": "object" } }
+      },
+      "additionalProperties": true
+    },
+    "regression_manifest": {
+      "type": "object",
+      "required": ["schema_version", "generated_at", "ledger_regression_hashes"],
+      "properties": {
+        "schema_version": { "const": "ledger-regression-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "ledger_regression_hashes": {
+          "type": "array",
+          "minItems": 4,
+          "items": {
+            "type": "object",
+            "required": [
+              "regression_hash_id",
+              "ledger_golden_case_id",
+              "fixture_group",
+              "source_artifact_id",
+              "regression_hash",
+              "lock_status"
+            ],
+            "properties": {
+              "regression_hash_id": { "type": "string" },
+              "ledger_golden_case_id": { "type": "string" },
+              "fixture_group": { "enum": ["replay", "projection", "cost", "audit"] },
+              "source_artifact_id": { "type": "string" },
+              "regression_hash": { "type": "string", "pattern": "^sha256:" },
+              "lock_status": { "enum": ["locked", "mismatch"] }
+            },
+            "additionalProperties": true
+          }
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "ledger_golden_fixture_status",
+        "ledger_golden_fixture_contract_id",
+        "ledger_golden_case_count",
+        "locked_case_count",
+        "mismatch_case_count",
+        "fixture_group_count",
+        "replay_case_count",
+        "projection_case_count",
+        "cost_case_count",
+        "audit_case_count",
+        "metric_assertion_count",
+        "passed_metric_assertion_count",
+        "failed_metric_assertion_count",
+        "regression_hash_count",
+        "locked_regression_hash_count",
+        "human_review_required_case_count",
+        "protected_action_case_count",
+        "source_validation_error_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "ledger_golden_fixture_status": { "enum": ["complete", "blocked"] },
+        "ledger_golden_fixture_contract_id": { "const": "ledger-golden-fixtures.v1" },
+        "ledger_golden_case_count": { "type": "integer", "minimum": 0 },
+        "locked_case_count": { "type": "integer", "minimum": 0 },
+        "mismatch_case_count": { "type": "integer", "minimum": 0 },
+        "fixture_group_count": { "type": "integer", "minimum": 0 },
+        "replay_case_count": { "type": "integer", "minimum": 0 },
+        "projection_case_count": { "type": "integer", "minimum": 0 },
+        "cost_case_count": { "type": "integer", "minimum": 0 },
+        "audit_case_count": { "type": "integer", "minimum": 0 },
+        "metric_assertion_count": { "type": "integer", "minimum": 0 },
+        "passed_metric_assertion_count": { "type": "integer", "minimum": 0 },
+        "failed_metric_assertion_count": { "type": "integer", "minimum": 0 },
+        "regression_hash_count": { "type": "integer", "minimum": 0 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 0 },
+        "human_review_required_case_count": { "type": "integer", "minimum": 0 },
+        "protected_action_case_count": { "type": "integer", "minimum": 0 },
+        "source_validation_error_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

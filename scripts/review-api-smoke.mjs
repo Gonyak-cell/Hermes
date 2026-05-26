@@ -194,6 +194,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/ledger-panel-metrics"));
   assert.ok(index.routes.some((route) => route.path === "/api/ledger-cross-links"));
   assert.ok(index.routes.some((route) => route.path === "/api/ledger-api-dashboard-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-golden-fixtures"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-golden-cases"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-fixture-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-regression-hashes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/ledger-golden-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1430,6 +1435,26 @@ try {
   const ledgerApiDashboardValidations = await fetchJson(`${url}/api/ledger-api-dashboard-validations?status=passed&limit=5`);
   assert.equal(ledgerApiDashboardValidations.collection, "ledger_api_dashboard_validations");
   assert.ok(ledgerApiDashboardValidations.count <= 5);
+
+  const ledgerGoldenFixtures = await fetchJson(`${url}/api/ledger-golden-fixtures?ledger_golden_fixture_status=complete&limit=1`);
+  assert.equal(ledgerGoldenFixtures.collection, "ledger_golden_fixtures");
+  assert.ok(ledgerGoldenFixtures.count <= 1);
+
+  const ledgerGoldenCases = await fetchJson(`${url}/api/ledger-golden-cases?case_status=locked&limit=5`);
+  assert.equal(ledgerGoldenCases.collection, "ledger_golden_cases");
+  assert.ok(ledgerGoldenCases.count <= 5);
+
+  const ledgerFixtureMatrix = await fetchJson(`${url}/api/ledger-fixture-matrix?limit=1`);
+  assert.equal(ledgerFixtureMatrix.collection, "ledger_fixture_matrix");
+  assert.ok(ledgerFixtureMatrix.count <= 1);
+
+  const ledgerRegressionHashes = await fetchJson(`${url}/api/ledger-regression-hashes?lock_status=locked&limit=5`);
+  assert.equal(ledgerRegressionHashes.collection, "ledger_regression_hashes");
+  assert.ok(ledgerRegressionHashes.count <= 5);
+
+  const ledgerGoldenValidations = await fetchJson(`${url}/api/ledger-golden-validations?status=passed&limit=5`);
+  assert.equal(ledgerGoldenValidations.collection, "ledger_golden_validations");
+  assert.ok(ledgerGoldenValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

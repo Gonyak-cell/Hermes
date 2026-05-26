@@ -5164,6 +5164,31 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 76개로 증가하고 ledger api dashboard가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run ledgers:api-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 175: Ledger Golden Fixtures
+
+목표: Event/Run/Audit/Observability track의 replay, projection, cost, audit 대표 case를 잠긴 golden fixture suite로 묶어 ledger plane 회귀 기준선을 고정합니다.
+
+구현 내용:
+
+- `npm run ledgers:golden-fixtures -- --check` 명령을 추가해 Event Replay Harness, Cost Record Projection, Token Usage Projection, Audit Event Ledger, Ledger API/Dashboard를 읽고 Ledger Golden Fixtures artifact를 생성함
+- replay, projection, cost, audit 4개 group의 대표 fixture case를 만들고 각 case에 source artifact, expected/observed metric assertion, human review note, protected action guard를 기록함
+- case별 deterministic regression hash와 fixture matrix를 생성해 source status, assertion status, lock status를 함께 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Ledger Golden Fixtures를 통합함
+- `/api/ledger-golden-fixtures`, `/api/ledger-golden-cases`, `/api/ledger-fixture-matrix`, `/api/ledger-regression-hashes`, `/api/ledger-golden-validations` route를 추가함
+
+완료 기준:
+
+- Ledger Golden Fixtures가 validation error 없이 `complete` 상태가 됨
+- replay, projection, cost, audit fixture group이 각각 1개 이상 존재하고 총 4개 group이 모두 검증됨
+- 모든 ledger golden case가 `locked` 상태이고 mismatch case count가 0임
+- metric assertion이 16개 이상이고 모든 assertion이 `passed` 상태임
+- case별 regression hash가 모두 `locked` 상태이고 protected action case count가 0임
+- 모든 case가 human review required note를 포함해 법무 운영 산출물의 사람 검토 경계를 보존함
+- Review Dashboard summary와 stage status에서 case, group, assertion, regression hash, validation count가 노출됨
+- Review API smoke가 fixture artifact, case, matrix, hash, validation route를 모두 조회함
+- Golden fixture 수가 77개로 증가하고 ledger golden fixtures가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run ledgers:golden-fixtures -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5172,9 +5197,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 174이다.
+- 현재 완료 기준점은 Phase 175이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P175-P312, 총 138개다.
+- 남은 계획 슬롯은 P176-P312, 총 137개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -90,6 +90,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   eventReplayHarnessPath: "artifacts/event-replay/latest/event-replay-harness.json",
   retentionArchiveLedgerPath: "artifacts/retention-archive/latest/retention-archive-ledger.json",
   ledgerApiDashboardPath: "artifacts/ledger-api-dashboard/latest/ledger-api-dashboard.json",
+  ledgerGoldenFixturesPath: "artifacts/ledger-golden-fixtures/latest/ledger-golden-fixtures.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -603,6 +604,11 @@ const SOURCE_DEFINITIONS = [
     option: "ledgerApiDashboardPath",
     source_id: "ledger_api_dashboard",
     label: "Ledger API Dashboard",
+  },
+  {
+    option: "ledgerGoldenFixturesPath",
+    source_id: "ledger_golden_fixtures",
+    label: "Ledger Golden Fixtures",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1196,6 +1202,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "event_replay_harness") return data.summary ?? {};
   if (sourceId === "retention_archive_ledger") return data.summary ?? {};
   if (sourceId === "ledger_api_dashboard") return data.summary ?? {};
+  if (sourceId === "ledger_golden_fixtures") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1450,6 +1457,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEventReplayHarnessStage(artifacts.event_replay_harness, sourceById.get("event_replay_harness")),
     buildRetentionArchiveLedgerStage(artifacts.retention_archive_ledger, sourceById.get("retention_archive_ledger")),
     buildLedgerApiDashboardStage(artifacts.ledger_api_dashboard, sourceById.get("ledger_api_dashboard")),
+    buildLedgerGoldenFixturesStage(artifacts.ledger_golden_fixtures, sourceById.get("ledger_golden_fixtures")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5569,6 +5577,54 @@ function buildLedgerApiDashboardStage(dashboard, source) {
       attention_cross_link_count: summary.attention_cross_link_count ?? 0,
       source_validation_error_count: summary.source_validation_error_count ?? 0,
       validation_error_count: summary.validation_error_count ?? dashboard.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildLedgerGoldenFixturesStage(fixtures, source) {
+  if (!fixtures) return missingStage("ledger_golden_fixtures", "Ledger Golden Fixtures", source);
+  const summary = fixtures.summary ?? {};
+  const caseCount = summary.ledger_golden_case_count ?? 0;
+  const blockers = (summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0)
+    + (summary.source_validation_error_count ?? 0)
+    + (summary.mismatch_case_count ?? 0)
+    + (summary.failed_metric_assertion_count ?? 0)
+    + ((summary.regression_hash_count ?? 0) - (summary.locked_regression_hash_count ?? 0))
+    + (summary.protected_action_case_count ?? 0);
+  const status = summary.ledger_golden_fixture_status === "complete" && caseCount > 0 && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "ledger_golden_fixtures",
+    label: "Ledger Golden Fixtures",
+    status,
+    message: status === "passed"
+      ? `${caseCount} ledger fixture case(s), ${summary.metric_assertion_count ?? 0} assertion(s), ${summary.locked_regression_hash_count ?? 0} locked hash(es).`
+      : `${blockers} ledger golden fixture blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      ledger_golden_fixture_status: summary.ledger_golden_fixture_status ?? "unknown",
+      ledger_golden_fixture_contract_id: summary.ledger_golden_fixture_contract_id ?? null,
+      source_event_replay_harness_status: summary.source_event_replay_harness_status ?? "unknown",
+      source_cost_record_projection_status: summary.source_cost_record_projection_status ?? "unknown",
+      source_token_usage_projection_status: summary.source_token_usage_projection_status ?? "unknown",
+      source_audit_event_ledger_status: summary.source_audit_event_ledger_status ?? "unknown",
+      source_ledger_api_dashboard_status: summary.source_ledger_api_dashboard_status ?? "unknown",
+      ledger_golden_case_count: caseCount,
+      locked_case_count: summary.locked_case_count ?? 0,
+      mismatch_case_count: summary.mismatch_case_count ?? 0,
+      fixture_group_count: summary.fixture_group_count ?? 0,
+      replay_case_count: summary.replay_case_count ?? 0,
+      projection_case_count: summary.projection_case_count ?? 0,
+      cost_case_count: summary.cost_case_count ?? 0,
+      audit_case_count: summary.audit_case_count ?? 0,
+      metric_assertion_count: summary.metric_assertion_count ?? 0,
+      passed_metric_assertion_count: summary.passed_metric_assertion_count ?? 0,
+      failed_metric_assertion_count: summary.failed_metric_assertion_count ?? 0,
+      regression_hash_count: summary.regression_hash_count ?? 0,
+      locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
+      human_review_required_case_count: summary.human_review_required_case_count ?? 0,
+      protected_action_case_count: summary.protected_action_case_count ?? 0,
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? fixtures.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11567,6 +11623,25 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     ledger_api_dashboard_attention_cross_link_count: artifacts.ledger_api_dashboard?.summary?.attention_cross_link_count ?? 0,
     ledger_api_dashboard_source_validation_error_count: artifacts.ledger_api_dashboard?.summary?.source_validation_error_count ?? 0,
     ledger_api_dashboard_validation_error_count: artifacts.ledger_api_dashboard?.summary?.validation_error_count ?? artifacts.ledger_api_dashboard?.validation?.errors?.length ?? 0,
+    ledger_golden_fixture_status: artifacts.ledger_golden_fixtures?.summary?.ledger_golden_fixture_status ?? "unknown",
+    ledger_golden_fixture_contract_id: artifacts.ledger_golden_fixtures?.summary?.ledger_golden_fixture_contract_id ?? null,
+    ledger_golden_case_count: artifacts.ledger_golden_fixtures?.summary?.ledger_golden_case_count ?? 0,
+    ledger_golden_locked_case_count: artifacts.ledger_golden_fixtures?.summary?.locked_case_count ?? 0,
+    ledger_golden_mismatch_case_count: artifacts.ledger_golden_fixtures?.summary?.mismatch_case_count ?? 0,
+    ledger_golden_fixture_group_count: artifacts.ledger_golden_fixtures?.summary?.fixture_group_count ?? 0,
+    ledger_golden_replay_case_count: artifacts.ledger_golden_fixtures?.summary?.replay_case_count ?? 0,
+    ledger_golden_projection_case_count: artifacts.ledger_golden_fixtures?.summary?.projection_case_count ?? 0,
+    ledger_golden_cost_case_count: artifacts.ledger_golden_fixtures?.summary?.cost_case_count ?? 0,
+    ledger_golden_audit_case_count: artifacts.ledger_golden_fixtures?.summary?.audit_case_count ?? 0,
+    ledger_golden_metric_assertion_count: artifacts.ledger_golden_fixtures?.summary?.metric_assertion_count ?? 0,
+    ledger_golden_passed_metric_assertion_count: artifacts.ledger_golden_fixtures?.summary?.passed_metric_assertion_count ?? 0,
+    ledger_golden_failed_metric_assertion_count: artifacts.ledger_golden_fixtures?.summary?.failed_metric_assertion_count ?? 0,
+    ledger_golden_regression_hash_count: artifacts.ledger_golden_fixtures?.summary?.regression_hash_count ?? 0,
+    ledger_golden_locked_regression_hash_count: artifacts.ledger_golden_fixtures?.summary?.locked_regression_hash_count ?? 0,
+    ledger_golden_human_review_required_count: artifacts.ledger_golden_fixtures?.summary?.human_review_required_case_count ?? 0,
+    ledger_golden_protected_action_case_count: artifacts.ledger_golden_fixtures?.summary?.protected_action_case_count ?? 0,
+    ledger_golden_source_validation_error_count: artifacts.ledger_golden_fixtures?.summary?.source_validation_error_count ?? 0,
+    ledger_golden_validation_error_count: artifacts.ledger_golden_fixtures?.summary?.validation_error_count ?? artifacts.ledger_golden_fixtures?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -12286,6 +12361,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Event Replay", dashboard.summary.event_replay_replayed_event_count)}
       ${stat("Retention", dashboard.summary.retention_archive_candidate_count)}
       ${stat("Ledger API", dashboard.summary.ledger_api_dashboard_route_count)}
+      ${stat("Ledger Fixtures", dashboard.summary.ledger_golden_case_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12414,6 +12490,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Ledger API/dashboard panels and routes: ${dashboard.summary.ledger_api_dashboard_passed_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_panel_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_declared_route_count ?? 0}/${dashboard.summary.ledger_api_dashboard_route_count ?? 0}`);
   lines.push(`- Ledger API/dashboard domains run/audit/cost/error/event: ${dashboard.summary.ledger_api_dashboard_run_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_audit_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cost_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_error_panel_count ?? 0}/${dashboard.summary.ledger_api_dashboard_event_panel_count ?? 0}`);
   lines.push(`- Ledger API/dashboard metrics/cross links/errors: ${dashboard.summary.ledger_api_dashboard_metric_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_linked_cross_link_count ?? 0}/${dashboard.summary.ledger_api_dashboard_cross_link_count ?? 0}, ${dashboard.summary.ledger_api_dashboard_validation_error_count ?? 0}`);
+  lines.push(`- Ledger golden fixtures cases/assertions: ${dashboard.summary.ledger_golden_locked_case_count ?? 0}/${dashboard.summary.ledger_golden_case_count ?? 0}, ${dashboard.summary.ledger_golden_passed_metric_assertion_count ?? 0}/${dashboard.summary.ledger_golden_metric_assertion_count ?? 0}`);
+  lines.push(`- Ledger golden fixtures groups replay/projection/cost/audit: ${dashboard.summary.ledger_golden_replay_case_count ?? 0}/${dashboard.summary.ledger_golden_projection_case_count ?? 0}/${dashboard.summary.ledger_golden_cost_case_count ?? 0}/${dashboard.summary.ledger_golden_audit_case_count ?? 0}`);
+  lines.push(`- Ledger golden fixtures hashes/errors: ${dashboard.summary.ledger_golden_locked_regression_hash_count ?? 0}/${dashboard.summary.ledger_golden_regression_hash_count ?? 0}, ${dashboard.summary.ledger_golden_validation_error_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12755,6 +12834,8 @@ function parseArgs(argv) {
     else if (arg === "--no-retention-archive-ledger") parsed.retentionArchiveLedgerPath = false;
     else if (arg === "--ledger-api-dashboard") parsed.ledgerApiDashboardPath = argv[++index];
     else if (arg === "--no-ledger-api-dashboard") parsed.ledgerApiDashboardPath = false;
+    else if (arg === "--ledger-golden-fixtures") parsed.ledgerGoldenFixturesPath = argv[++index];
+    else if (arg === "--no-ledger-golden-fixtures") parsed.ledgerGoldenFixturesPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13147,6 +13228,9 @@ Options:
   --no-retention-archive-ledger   Do not include Retention/Archive Ledger status.
   --ledger-api-dashboard <path>   ledger-api-dashboard.json path.
   --no-ledger-api-dashboard       Do not include Ledger API Dashboard status.
+  --ledger-golden-fixtures <path>
+                                  ledger-golden-fixtures.json path.
+  --no-ledger-golden-fixtures     Do not include Ledger Golden Fixtures status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

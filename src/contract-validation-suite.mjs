@@ -88,6 +88,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "events:replay",
   "events:retention",
   "ledgers:api-dashboard",
+  "ledgers:golden-fixtures",
   "contracts:observability",
 ];
 

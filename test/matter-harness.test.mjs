@@ -120,6 +120,7 @@ import { runErrorRetryLedger } from "../src/error-retry-ledger.mjs";
 import { runEventReplayHarness } from "../src/event-replay-harness.mjs";
 import { runRetentionArchiveLedger } from "../src/retention-archive-ledger.mjs";
 import { runLedgerApiDashboard } from "../src/ledger-api-dashboard.mjs";
+import { runLedgerGoldenFixtures } from "../src/ledger-golden-fixtures.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1736,6 +1737,7 @@ describe("matter harness", () => {
         eventReplayHarnessPath: path.join(outDir, "event-replay", "event-replay-harness.json"),
         retentionArchiveLedgerPath: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
         ledgerApiDashboardPath: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
+        ledgerGoldenFixturesPath: path.join(outDir, "ledger-golden-fixtures", "ledger-golden-fixtures.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -4089,6 +4091,47 @@ describe("matter harness", () => {
       assert.ok(ledgerApiDashboard.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "ledger-api-dashboard", "summary.md"), "utf8"), /Ledger API\/Dashboard/);
 
+      const ledgerGoldenFixtures = await runLedgerGoldenFixtures({
+        eventReplayHarnessPath: path.join(outDir, "event-replay", "event-replay-harness.json"),
+        costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
+        tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        ledgerApiDashboardPath: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
+        outDir: path.join(outDir, "ledger-golden-fixtures"),
+        runAt: "2026-05-23T06:35:08.700Z",
+      });
+      const ledgerGoldenFixturesSchema = JSON.parse(await readFile("schemas/ledger-golden-fixtures.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(ledgerGoldenFixtures, ledgerGoldenFixturesSchema, {}, "ledger_golden_fixtures"),
+        [],
+      );
+      assert.deepEqual(ledgerGoldenFixtures.validation.errors, []);
+      assert.equal(ledgerGoldenFixtures.summary.ledger_golden_fixture_status, "complete");
+      assert.equal(ledgerGoldenFixtures.summary.ledger_golden_fixture_contract_id, "ledger-golden-fixtures.v1");
+      assert.ok(ledgerGoldenFixtures.summary.ledger_golden_case_count >= 4);
+      assert.equal(ledgerGoldenFixtures.summary.locked_case_count, ledgerGoldenFixtures.summary.ledger_golden_case_count);
+      assert.equal(ledgerGoldenFixtures.summary.mismatch_case_count, 0);
+      assert.equal(ledgerGoldenFixtures.summary.fixture_group_count, 4);
+      assert.equal(ledgerGoldenFixtures.summary.replay_case_count, 1);
+      assert.equal(ledgerGoldenFixtures.summary.projection_case_count, 1);
+      assert.equal(ledgerGoldenFixtures.summary.cost_case_count, 1);
+      assert.equal(ledgerGoldenFixtures.summary.audit_case_count, 1);
+      assert.ok(ledgerGoldenFixtures.summary.metric_assertion_count >= 16);
+      assert.equal(ledgerGoldenFixtures.summary.passed_metric_assertion_count, ledgerGoldenFixtures.summary.metric_assertion_count);
+      assert.equal(ledgerGoldenFixtures.summary.failed_metric_assertion_count, 0);
+      assert.equal(ledgerGoldenFixtures.summary.regression_hash_count, ledgerGoldenFixtures.summary.ledger_golden_case_count);
+      assert.equal(ledgerGoldenFixtures.summary.locked_regression_hash_count, ledgerGoldenFixtures.summary.ledger_golden_case_count);
+      assert.equal(ledgerGoldenFixtures.summary.human_review_required_case_count, ledgerGoldenFixtures.summary.ledger_golden_case_count);
+      assert.equal(ledgerGoldenFixtures.summary.protected_action_case_count, 0);
+      assert.equal(ledgerGoldenFixtures.summary.source_validation_error_count, 0);
+      assert.equal(ledgerGoldenFixtures.summary.validation_error_count, 0);
+      assert.ok(ledgerGoldenFixtures.ledger_golden_fixture_catalog.ledger_golden_cases.every((fixtureCase) => (
+        fixtureCase.case_status === "locked"
+        && fixtureCase.regression_hash?.startsWith("sha256:")
+        && fixtureCase.metric_assertions.every((assertion) => assertion.assertion_status === "passed")
+      )));
+      assert.match(await readFile(path.join(outDir, "ledger-golden-fixtures", "summary.md"), "utf8"), /Ledger Golden Fixtures/);
+
       const controlPlaneLoop = await runControlPlaneLoop({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.900Z",
@@ -5523,6 +5566,7 @@ describe("matter harness", () => {
           event_replay_harness: path.join(outDir, "event-replay", "event-replay-harness.json"),
           retention_archive_ledger: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
           ledger_api_dashboard: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
+          ledger_golden_fixtures: path.join(outDir, "ledger-golden-fixtures", "ledger-golden-fixtures.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5534,8 +5578,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 76);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 76);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 77);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 77);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5599,6 +5643,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_replay_harness"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_archive_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ledger_api_dashboard"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ledger_golden_fixtures"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5651,6 +5696,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:replay"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:retention"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:api-dashboard"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:golden-fixtures"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -5963,6 +6009,10 @@ describe("matter harness", () => {
       assert.equal(ledgerApiDashboardCheckpoint?.acceptance_profile, "ledger_api_dashboard_gate");
       assert.equal(ledgerApiDashboardCheckpoint?.status, "passed");
       assert.equal(ledgerApiDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const ledgerGoldenFixturesCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ledger-golden-fixtures");
+      assert.equal(ledgerGoldenFixturesCheckpoint?.acceptance_profile, "ledger_golden_fixtures_gate");
+      assert.equal(ledgerGoldenFixturesCheckpoint?.status, "passed");
+      assert.equal(ledgerGoldenFixturesCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6387,6 +6437,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.ledger_api_dashboard_attention_cross_link_count, 0);
       assert.equal(dashboard.summary.ledger_api_dashboard_source_validation_error_count, 0);
       assert.equal(dashboard.summary.ledger_api_dashboard_validation_error_count, 0);
+      assert.equal(dashboard.summary.ledger_golden_fixture_status, "complete");
+      assert.equal(dashboard.summary.ledger_golden_case_count, ledgerGoldenFixtures.summary.ledger_golden_case_count);
+      assert.equal(dashboard.summary.ledger_golden_locked_case_count, ledgerGoldenFixtures.summary.locked_case_count);
+      assert.equal(dashboard.summary.ledger_golden_mismatch_case_count, 0);
+      assert.equal(dashboard.summary.ledger_golden_fixture_group_count, 4);
+      assert.equal(dashboard.summary.ledger_golden_replay_case_count, 1);
+      assert.equal(dashboard.summary.ledger_golden_projection_case_count, 1);
+      assert.equal(dashboard.summary.ledger_golden_cost_case_count, 1);
+      assert.equal(dashboard.summary.ledger_golden_audit_case_count, 1);
+      assert.equal(dashboard.summary.ledger_golden_metric_assertion_count, ledgerGoldenFixtures.summary.metric_assertion_count);
+      assert.equal(dashboard.summary.ledger_golden_passed_metric_assertion_count, ledgerGoldenFixtures.summary.metric_assertion_count);
+      assert.equal(dashboard.summary.ledger_golden_failed_metric_assertion_count, 0);
+      assert.equal(dashboard.summary.ledger_golden_regression_hash_count, ledgerGoldenFixtures.summary.regression_hash_count);
+      assert.equal(dashboard.summary.ledger_golden_locked_regression_hash_count, ledgerGoldenFixtures.summary.regression_hash_count);
+      assert.equal(dashboard.summary.ledger_golden_human_review_required_count, ledgerGoldenFixtures.summary.ledger_golden_case_count);
+      assert.equal(dashboard.summary.ledger_golden_protected_action_case_count, 0);
+      assert.equal(dashboard.summary.ledger_golden_source_validation_error_count, 0);
+      assert.equal(dashboard.summary.ledger_golden_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -7945,6 +8013,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "error_retry_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "event_replay_harness"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "retention_archive_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_golden_fixtures"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -8347,6 +8416,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-panel-metrics"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-cross-links"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-api-dashboard-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-golden-fixtures"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-golden-cases"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-fixture-matrix"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-regression-hashes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/ledger-golden-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/audit-sources"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/delivery-actions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/matters"));
@@ -9383,6 +9457,26 @@ describe("matter harness", () => {
       const ledgerApiDashboardValidations = JSON.parse((await buildReviewApiResponse("/api/ledger-api-dashboard-validations?status=passed", apiOptions)).body);
       assert.equal(ledgerApiDashboardValidations.collection, "ledger_api_dashboard_validations");
       assert.equal(ledgerApiDashboardValidations.count, ledgerApiDashboard.summary.validation_item_count);
+
+      const ledgerGoldenFixtureRows = JSON.parse((await buildReviewApiResponse("/api/ledger-golden-fixtures?ledger_golden_fixture_status=complete", apiOptions)).body);
+      assert.equal(ledgerGoldenFixtureRows.collection, "ledger_golden_fixtures");
+      assert.equal(ledgerGoldenFixtureRows.count, 1);
+
+      const lockedLedgerGoldenCases = JSON.parse((await buildReviewApiResponse("/api/ledger-golden-cases?case_status=locked", apiOptions)).body);
+      assert.equal(lockedLedgerGoldenCases.collection, "ledger_golden_cases");
+      assert.equal(lockedLedgerGoldenCases.count, ledgerGoldenFixtures.summary.locked_case_count);
+
+      const ledgerFixtureMatrixRows = JSON.parse((await buildReviewApiResponse("/api/ledger-fixture-matrix?limit=1", apiOptions)).body);
+      assert.equal(ledgerFixtureMatrixRows.collection, "ledger_fixture_matrix");
+      assert.equal(ledgerFixtureMatrixRows.count, 1);
+
+      const lockedLedgerRegressionHashes = JSON.parse((await buildReviewApiResponse("/api/ledger-regression-hashes?lock_status=locked", apiOptions)).body);
+      assert.equal(lockedLedgerRegressionHashes.collection, "ledger_regression_hashes");
+      assert.equal(lockedLedgerRegressionHashes.count, ledgerGoldenFixtures.summary.locked_regression_hash_count);
+
+      const ledgerGoldenValidations = JSON.parse((await buildReviewApiResponse("/api/ledger-golden-validations?status=passed", apiOptions)).body);
+      assert.equal(ledgerGoldenValidations.collection, "ledger_golden_validations");
+      assert.equal(ledgerGoldenValidations.count, ledgerGoldenFixtures.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

@@ -444,6 +444,11 @@ npm run api:serve
 - `GET /api/ledger-panel-metrics`: ledger panel metric rows
 - `GET /api/ledger-cross-links`: cross-ledger health link rows
 - `GET /api/ledger-api-dashboard-validations`: ledger API/dashboard validation rows
+- `GET /api/ledger-golden-fixtures`: ledger golden fixture artifact
+- `GET /api/ledger-golden-cases`: replay/projection/cost/audit 대표 fixture case rows
+- `GET /api/ledger-fixture-matrix`: fixture group별 source/assertion/regression matrix
+- `GET /api/ledger-regression-hashes`: ledger golden fixture regression hash rows
+- `GET /api/ledger-golden-validations`: ledger golden fixture validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows
@@ -503,6 +508,8 @@ Append-only event store route는 `event_store_status`, `event_stream_id`, `strea
 Event correlation route는 `event_correlation_status`, `correlation_id`, `correlation_trace_id`, `trace_status`, `causation_status`, `run_binding_status`, `cause_event_envelope_id`, `effect_event_envelope_id`, `matter_id`, `workflow_run_id`, `run_ledger_id`, `event_type`, `status`, `limit` query를 지원한다.
 
 Ledger API/dashboard route는 `ledger_api_dashboard_status`, `ledger_domain`, `panel_id`, `panel_status`, `route_id`, `route_path`, `route_method`, `route_status`, `source_ledger_id`, `metric_id`, `metric_key`, `metric_status`, `link_id`, `link_type`, `link_status`, `from_ledger_domain`, `to_ledger_domain`, `status`, `limit` query를 지원한다.
+
+Ledger golden fixture route는 `ledger_golden_fixture_status`, `ledger_golden_case_id`, `fixture_group`, `case_status`, `source_artifact_id`, `lock_status`, `assertion_status`, `expected_outcome`, `status`, `limit` query를 지원한다.
 
 ## 검증
 

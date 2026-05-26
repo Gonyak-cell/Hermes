@@ -96,6 +96,7 @@ const GOAL_ITEMS = [
   sourceItem("event_replay_harness", "Event replay harness", "audit", "event_replay_harness", "control-plane-event-replay-harness", { acceptance_profile: "event_replay_harness_gate" }),
   sourceItem("retention_archive_ledger", "Retention/archive ledger", "audit", "retention_archive_ledger", "control-plane-retention-archive-ledger", { acceptance_profile: "retention_archive_ledger_gate" }),
   sourceItem("ledger_api_dashboard", "Ledger API/dashboard", "api", "ledger_api_dashboard", "control-plane-ledger-api-dashboard", { acceptance_profile: "ledger_api_dashboard_gate" }),
+  sourceItem("ledger_golden_fixtures", "Ledger golden fixtures", "audit", "ledger_golden_fixtures", "control-plane-ledger-golden-fixtures", { acceptance_profile: "ledger_golden_fixtures_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -453,6 +454,7 @@ function evaluateStageAcceptance(item, stage) {
     "event_replay_harness_gate",
     "retention_archive_ledger_gate",
     "ledger_api_dashboard_gate",
+    "ledger_golden_fixtures_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -677,6 +679,33 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.linked_cross_link_count ?? 0) === (metrics.ledger_cross_link_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Ledger API/dashboard exposes read-only run, audit, cost, error, and event panels with declared Review API routes and linked cross-ledger health rows.");
+    }
+  }
+
+  if (item.acceptance_profile === "ledger_golden_fixtures_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.source_validation_error_count ?? 0)
+      + (metrics.mismatch_case_count ?? 0)
+      + (metrics.failed_metric_assertion_count ?? 0)
+      + (metrics.protected_action_case_count ?? 0)
+      + ((metrics.regression_hash_count ?? 0) - (metrics.locked_regression_hash_count ?? 0));
+    if (
+      errors === 0
+      && metrics.ledger_golden_fixture_status === "complete"
+      && (metrics.ledger_golden_case_count ?? 0) >= 4
+      && (metrics.locked_case_count ?? 0) === (metrics.ledger_golden_case_count ?? -1)
+      && (metrics.fixture_group_count ?? 0) === 4
+      && (metrics.replay_case_count ?? 0) >= 1
+      && (metrics.projection_case_count ?? 0) >= 1
+      && (metrics.cost_case_count ?? 0) >= 1
+      && (metrics.audit_case_count ?? 0) >= 1
+      && (metrics.metric_assertion_count ?? 0) >= 16
+      && (metrics.passed_metric_assertion_count ?? 0) === (metrics.metric_assertion_count ?? -1)
+      && (metrics.regression_hash_count ?? 0) === (metrics.ledger_golden_case_count ?? -1)
+      && (metrics.locked_regression_hash_count ?? 0) === (metrics.ledger_golden_case_count ?? -1)
+      && (metrics.human_review_required_case_count ?? 0) === (metrics.ledger_golden_case_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Ledger golden fixtures lock replay, projection, cost, and audit cases with passing assertions and regression hashes.");
     }
   }
 

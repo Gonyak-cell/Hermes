@@ -91,6 +91,7 @@ const GOAL_ITEMS = [
   sourceItem("policy_snapshot_event_binding", "Policy snapshot event binding", "policy", "policy_snapshot_event_binding", "control-plane-policy-snapshot-event-binding", { acceptance_profile: "policy_snapshot_event_binding_gate" }),
   sourceItem("cost_record_projection", "Cost record projection", "observability", "cost_record_projection", "control-plane-cost-record-projection", { acceptance_profile: "cost_record_projection_gate" }),
   sourceItem("token_usage_projection", "Token usage projection", "observability", "token_usage_projection", "control-plane-token-usage-projection", { acceptance_profile: "token_usage_projection_gate" }),
+  sourceItem("observability_trace_projection", "Observability trace projection", "observability", "observability_trace_projection", "control-plane-observability-trace-projection", { acceptance_profile: "observability_trace_projection_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -443,6 +444,7 @@ function evaluateStageAcceptance(item, stage) {
     "policy_snapshot_event_binding_gate",
     "cost_record_projection_gate",
     "token_usage_projection_gate",
+    "observability_trace_projection_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -549,6 +551,27 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.total_token_count ?? 0) === ((metrics.total_input_token_count ?? 0) + (metrics.total_output_token_count ?? 0) + (metrics.total_cache_token_count ?? 0))
     ) {
       return passedWithOperationalGate(stage, "Token usage projection normalizes input, output, and cache tokens into capability/runtime rollups and binds every projected token record to the provider cost record.");
+    }
+  }
+
+  if (item.acceptance_profile === "observability_trace_projection_gate") {
+    const unknownBindings = (metrics.unknown_workflow_trace_binding_count ?? 0)
+      + (metrics.unknown_agent_trace_binding_count ?? 0)
+      + (metrics.unknown_gate_trace_binding_count ?? 0)
+      + (metrics.unknown_output_trace_binding_count ?? 0);
+    const errors = (metrics.validation_error_count ?? 0) + unknownBindings;
+    if (
+      errors === 0
+      && metrics.observability_trace_projection_status === "complete"
+      && (metrics.observability_trace_record_count ?? 0) === (metrics.source_correlation_trace_count ?? -1)
+      && (metrics.linked_trace_count ?? 0) === (metrics.trace_with_workflow_count ?? -1)
+      && (metrics.workflow_trace_binding_count ?? 0) > 0
+      && (metrics.agent_trace_binding_count ?? 0) > 0
+      && (metrics.gate_trace_binding_count ?? 0) > 0
+      && (metrics.output_trace_binding_count ?? 0) > 0
+      && (metrics.complete_component_trace_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Observability trace projection connects workflow, agent, gate, and output records to known correlation trace ids while preserving external-control audit traces separately.");
     }
   }
 

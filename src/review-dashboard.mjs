@@ -85,6 +85,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
   costRecordProjectionPath: "artifacts/cost-record-projection/latest/cost-record-projection.json",
   tokenUsageProjectionPath: "artifacts/token-usage-projection/latest/token-usage-projection.json",
+  observabilityTraceProjectionPath: "artifacts/observability-trace-projection/latest/observability-trace-projection.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -573,6 +574,11 @@ const SOURCE_DEFINITIONS = [
     option: "tokenUsageProjectionPath",
     source_id: "token_usage_projection",
     label: "Token Usage Projection",
+  },
+  {
+    option: "observabilityTraceProjectionPath",
+    source_id: "observability_trace_projection",
+    label: "Observability Trace Projection",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1161,6 +1167,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
   if (sourceId === "cost_record_projection") return data.summary ?? {};
   if (sourceId === "token_usage_projection") return data.summary ?? {};
+  if (sourceId === "observability_trace_projection") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1410,6 +1417,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
     buildCostRecordProjectionStage(artifacts.cost_record_projection, sourceById.get("cost_record_projection")),
     buildTokenUsageProjectionStage(artifacts.token_usage_projection, sourceById.get("token_usage_projection")),
+    buildObservabilityTraceProjectionStage(artifacts.observability_trace_projection, sourceById.get("observability_trace_projection")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5298,6 +5306,52 @@ function buildTokenUsageProjectionStage(projection, source) {
       total_cache_token_count: summary.total_cache_token_count ?? 0,
       total_token_count: summary.total_token_count ?? 0,
       total_provider_cost_projected_usd: summary.total_provider_cost_projected_usd ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildObservabilityTraceProjectionStage(projection, source) {
+  if (!projection) return missingStage("observability_trace_projection", "Observability Trace Projection", source);
+  const summary = projection.summary ?? {};
+  const errorCount = summary.validation_error_count ?? projection.validation?.errors?.length ?? 0;
+  const unknownBindings = (summary.unknown_workflow_trace_binding_count ?? 0)
+    + (summary.unknown_agent_trace_binding_count ?? 0)
+    + (summary.unknown_gate_trace_binding_count ?? 0)
+    + (summary.unknown_output_trace_binding_count ?? 0);
+  const status = summary.observability_trace_projection_status === "complete" && errorCount === 0 && unknownBindings === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "observability_trace_projection",
+    label: "Observability Trace Projection",
+    status,
+    message: status === "passed"
+      ? `${summary.observability_trace_record_count ?? 0} trace record(s), workflow/agent/gate/output bindings ${summary.workflow_trace_binding_count ?? 0}/${summary.agent_trace_binding_count ?? 0}/${summary.gate_trace_binding_count ?? 0}/${summary.output_trace_binding_count ?? 0}.`
+      : `${unknownBindings} unknown trace binding(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      observability_trace_projection_status: summary.observability_trace_projection_status ?? "unknown",
+      observability_trace_record_count: summary.observability_trace_record_count ?? 0,
+      source_correlation_trace_count: summary.source_correlation_trace_count ?? 0,
+      linked_trace_count: summary.linked_trace_count ?? 0,
+      external_control_trace_count: summary.external_control_trace_count ?? 0,
+      complete_component_trace_count: summary.complete_component_trace_count ?? 0,
+      partial_component_trace_count: summary.partial_component_trace_count ?? 0,
+      trace_with_workflow_count: summary.trace_with_workflow_count ?? 0,
+      trace_with_agent_count: summary.trace_with_agent_count ?? 0,
+      trace_with_gate_count: summary.trace_with_gate_count ?? 0,
+      trace_with_output_count: summary.trace_with_output_count ?? 0,
+      workflow_trace_binding_count: summary.workflow_trace_binding_count ?? 0,
+      known_workflow_trace_binding_count: summary.known_workflow_trace_binding_count ?? 0,
+      unknown_workflow_trace_binding_count: summary.unknown_workflow_trace_binding_count ?? 0,
+      agent_trace_binding_count: summary.agent_trace_binding_count ?? 0,
+      known_agent_trace_binding_count: summary.known_agent_trace_binding_count ?? 0,
+      unknown_agent_trace_binding_count: summary.unknown_agent_trace_binding_count ?? 0,
+      gate_trace_binding_count: summary.gate_trace_binding_count ?? 0,
+      known_gate_trace_binding_count: summary.known_gate_trace_binding_count ?? 0,
+      unknown_gate_trace_binding_count: summary.unknown_gate_trace_binding_count ?? 0,
+      output_trace_binding_count: summary.output_trace_binding_count ?? 0,
+      known_output_trace_binding_count: summary.known_output_trace_binding_count ?? 0,
+      unknown_output_trace_binding_count: summary.unknown_output_trace_binding_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -11214,6 +11268,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     token_usage_projection_total_tokens: artifacts.token_usage_projection?.summary?.total_token_count ?? 0,
     token_usage_projection_total_provider_cost_usd: artifacts.token_usage_projection?.summary?.total_provider_cost_projected_usd ?? 0,
     token_usage_projection_validation_error_count: artifacts.token_usage_projection?.summary?.validation_error_count ?? artifacts.token_usage_projection?.validation?.errors?.length ?? 0,
+    observability_trace_projection_status: artifacts.observability_trace_projection?.summary?.observability_trace_projection_status ?? "unknown",
+    observability_trace_projection_count: artifacts.observability_trace_projection?.summary?.observability_trace_record_count ?? 0,
+    observability_trace_projection_source_count: artifacts.observability_trace_projection?.summary?.source_correlation_trace_count ?? 0,
+    observability_trace_projection_linked_count: artifacts.observability_trace_projection?.summary?.linked_trace_count ?? 0,
+    observability_trace_projection_external_control_count: artifacts.observability_trace_projection?.summary?.external_control_trace_count ?? 0,
+    observability_trace_projection_complete_component_count: artifacts.observability_trace_projection?.summary?.complete_component_trace_count ?? 0,
+    observability_trace_projection_partial_component_count: artifacts.observability_trace_projection?.summary?.partial_component_trace_count ?? 0,
+    observability_trace_projection_workflow_binding_count: artifacts.observability_trace_projection?.summary?.workflow_trace_binding_count ?? 0,
+    observability_trace_projection_agent_binding_count: artifacts.observability_trace_projection?.summary?.agent_trace_binding_count ?? 0,
+    observability_trace_projection_gate_binding_count: artifacts.observability_trace_projection?.summary?.gate_trace_binding_count ?? 0,
+    observability_trace_projection_output_binding_count: artifacts.observability_trace_projection?.summary?.output_trace_binding_count ?? 0,
+    observability_trace_projection_unknown_workflow_binding_count: artifacts.observability_trace_projection?.summary?.unknown_workflow_trace_binding_count ?? 0,
+    observability_trace_projection_unknown_agent_binding_count: artifacts.observability_trace_projection?.summary?.unknown_agent_trace_binding_count ?? 0,
+    observability_trace_projection_unknown_gate_binding_count: artifacts.observability_trace_projection?.summary?.unknown_gate_trace_binding_count ?? 0,
+    observability_trace_projection_unknown_output_binding_count: artifacts.observability_trace_projection?.summary?.unknown_output_trace_binding_count ?? 0,
+    observability_trace_projection_validation_error_count: artifacts.observability_trace_projection?.summary?.validation_error_count ?? artifacts.observability_trace_projection?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -11928,6 +11998,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Cost Attribution", dashboard.summary.cost_attribution_record_count)}
       ${stat("Cost Records", dashboard.summary.cost_record_projection_count)}
       ${stat("Token Projection", dashboard.summary.token_usage_projection_count)}
+      ${stat("Trace Projection", dashboard.summary.observability_trace_projection_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12041,6 +12112,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Token projection capability/runtime/capability-runtime rollups: ${dashboard.summary.token_usage_projection_capability_rollup_count ?? 0}/${dashboard.summary.token_usage_projection_runtime_rollup_count ?? 0}/${dashboard.summary.token_usage_projection_capability_runtime_rollup_count ?? 0}`);
   lines.push(`- Token projection input/output/cache/total: ${dashboard.summary.token_usage_projection_total_input_tokens ?? 0}/${dashboard.summary.token_usage_projection_total_output_tokens ?? 0}/${dashboard.summary.token_usage_projection_total_cache_tokens ?? 0}/${dashboard.summary.token_usage_projection_total_tokens ?? 0}`);
   lines.push(`- Token projection provider bindings: ${dashboard.summary.token_usage_projection_provider_bound_count ?? 0}/${dashboard.summary.token_usage_projection_count ?? 0}`);
+  lines.push(`- Observability trace projections: ${dashboard.summary.observability_trace_projection_count ?? 0}`);
+  lines.push(`- Observability trace linked/external-control/complete: ${dashboard.summary.observability_trace_projection_linked_count ?? 0}/${dashboard.summary.observability_trace_projection_external_control_count ?? 0}/${dashboard.summary.observability_trace_projection_complete_component_count ?? 0}`);
+  lines.push(`- Observability trace workflow/agent/gate/output bindings: ${dashboard.summary.observability_trace_projection_workflow_binding_count ?? 0}/${dashboard.summary.observability_trace_projection_agent_binding_count ?? 0}/${dashboard.summary.observability_trace_projection_gate_binding_count ?? 0}/${dashboard.summary.observability_trace_projection_output_binding_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12372,6 +12446,8 @@ function parseArgs(argv) {
     else if (arg === "--no-cost-record-projection") parsed.costRecordProjectionPath = false;
     else if (arg === "--token-usage-projection") parsed.tokenUsageProjectionPath = argv[++index];
     else if (arg === "--no-token-usage-projection") parsed.tokenUsageProjectionPath = false;
+    else if (arg === "--observability-trace-projection") parsed.observabilityTraceProjectionPath = argv[++index];
+    else if (arg === "--no-observability-trace-projection") parsed.observabilityTraceProjectionPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -12751,6 +12827,10 @@ Options:
   --token-usage-projection <path>
                                   token-usage-projection.json path.
   --no-token-usage-projection    Do not include Token Usage Projection status.
+  --observability-trace-projection <path>
+                                  observability-trace-projection.json path.
+  --no-observability-trace-projection
+                                  Do not include Observability Trace Projection status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

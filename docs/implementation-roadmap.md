@@ -5027,6 +5027,32 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 71개로 증가하고 token usage projection이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run token:projection -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 170: Observability Trace Projection
+
+목표: P162 correlation trace를 관측성 trace projection으로 승격하고 workflow, agent, gate, output component가 같은 trace id 아래에서 조회되도록 고정합니다.
+
+구현 내용:
+
+- `npm run observability:traces -- --check` 명령을 추가해 Event Correlation Ledger, Workflow Run Ledger, Agent Run Ledger, Gate/Approval Contract Freeze, Output Catalog를 읽고 `observability_trace_record`와 component별 trace binding을 생성함
+- 각 trace record가 `observability_trace_id`, `correlation_trace_id`, `trace_status`, `trace_component_status`, workflow/agent/gate/output binding count, hash를 갖도록 고정함
+- workflow run, agent run, gate result, output artifact 각각을 `observability_trace_binding`으로 정규화하고 `correlation_trace_id`와 `observability_trace_id`에 binding함
+- external-control audit trace는 workflow에 강제 귀속하지 않고 별도 `external_control` trace로 보존함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Observability Trace Projection을 통합함
+- `/api/observability-trace-projections`, `/api/observability-trace-records`, `/api/workflow-trace-bindings`, `/api/agent-trace-bindings`, `/api/gate-trace-bindings`, `/api/output-trace-bindings`, `/api/observability-trace-projection-validations` route를 추가함
+
+완료 기준:
+
+- Observability Trace Projection이 validation error 없이 `complete` 상태가 됨
+- projected trace record 수가 Event Correlation Ledger의 correlation trace 수와 일치함
+- 모든 workflow run, agent run, gate result, output artifact가 trace binding row를 갖고 unknown binding이 0임
+- 모든 linked run trace가 workflow binding을 갖고, external-control trace는 별도 trace status로 보존됨
+- 최소 1개 이상의 trace가 workflow, agent, gate, output component를 모두 연결한 `complete` component trace가 됨
+- 모든 trace record와 trace binding row가 hash를 가짐
+- Review Dashboard summary와 stage status에서 trace count, linked/external-control/complete count, component binding count, unknown binding count가 노출됨
+- Review API smoke가 projection, trace record, workflow/agent/gate/output binding, validation route를 모두 조회함
+- Golden fixture 수가 72개로 증가하고 observability trace projection이 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run observability:traces -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5035,9 +5061,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 169이다.
+- 현재 완료 기준점은 Phase 170이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P170-P312, 총 143개다.
+- 남은 계획 슬롯은 P171-P312, 총 142개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

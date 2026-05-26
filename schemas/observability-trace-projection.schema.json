@@ -1,0 +1,226 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/observability-trace-projection.schema.json",
+  "title": "Hermes Observability Trace Projection",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "observability_trace_projection_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "observability_trace_projection_contract",
+    "observability_trace_projection_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "observability-trace-projection.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "observability_trace_projection_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "observability_trace_projection_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "observability_trace_projection_contract_id",
+        "required_trace_fields",
+        "required_binding_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-trace-projection-contract.v1" },
+        "observability_trace_projection_contract_id": { "const": "observability-trace-projection.v1" },
+        "required_trace_fields": { "type": "array", "items": { "type": "string" } },
+        "required_binding_fields": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": true
+    },
+    "observability_trace_projection_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "observability_trace_records",
+        "workflow_trace_bindings",
+        "agent_trace_bindings",
+        "gate_trace_bindings",
+        "output_trace_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-trace-projection-catalog.v1" },
+        "observability_trace_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/observability_trace_record" }
+        },
+        "workflow_trace_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/observability_trace_binding" }
+        },
+        "agent_trace_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/observability_trace_binding" }
+        },
+        "gate_trace_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/observability_trace_binding" }
+        },
+        "output_trace_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/observability_trace_binding" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "observability_trace_projection_status",
+        "observability_trace_projection_contract_id",
+        "observability_trace_record_count",
+        "source_correlation_trace_count",
+        "linked_trace_count",
+        "external_control_trace_count",
+        "complete_component_trace_count",
+        "workflow_trace_binding_count",
+        "agent_trace_binding_count",
+        "gate_trace_binding_count",
+        "output_trace_binding_count",
+        "known_workflow_trace_binding_count",
+        "known_agent_trace_binding_count",
+        "known_gate_trace_binding_count",
+        "known_output_trace_binding_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "observability_trace_projection_status": { "enum": ["complete", "blocked"] },
+        "observability_trace_projection_contract_id": { "const": "observability-trace-projection.v1" },
+        "observability_trace_record_count": { "type": "integer", "minimum": 0 },
+        "source_correlation_trace_count": { "type": "integer", "minimum": 0 },
+        "linked_trace_count": { "type": "integer", "minimum": 0 },
+        "external_control_trace_count": { "type": "integer", "minimum": 0 },
+        "complete_component_trace_count": { "type": "integer", "minimum": 0 },
+        "workflow_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "agent_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "gate_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "output_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "known_workflow_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "known_agent_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "known_gate_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "known_output_trace_binding_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "observability_trace_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "observability_trace_id",
+        "correlation_trace_id",
+        "correlation_id",
+        "trace_status",
+        "trace_component_status",
+        "external_control_trace",
+        "event_count",
+        "workflow_binding_count",
+        "agent_binding_count",
+        "gate_binding_count",
+        "output_binding_count",
+        "known_binding_count",
+        "missing_binding_count",
+        "observability_trace_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-trace-record.v1" },
+        "observability_trace_id": { "type": "string" },
+        "correlation_trace_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "trace_status": { "type": "string" },
+        "trace_component_status": { "enum": ["complete", "partial", "external_control"] },
+        "external_control_trace": { "type": "boolean" },
+        "event_count": { "type": "integer", "minimum": 0 },
+        "workflow_binding_count": { "type": "integer", "minimum": 0 },
+        "agent_binding_count": { "type": "integer", "minimum": 0 },
+        "gate_binding_count": { "type": "integer", "minimum": 0 },
+        "output_binding_count": { "type": "integer", "minimum": 0 },
+        "known_binding_count": { "type": "integer", "minimum": 0 },
+        "missing_binding_count": { "type": "integer", "minimum": 0 },
+        "observability_trace_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "observability_trace_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "trace_binding_id",
+        "binding_type",
+        "source_id",
+        "workflow_run_id",
+        "correlation_trace_id",
+        "observability_trace_id",
+        "correlation_id",
+        "binding_status",
+        "event_binding_status",
+        "trace_binding_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "observability-trace-binding.v1" },
+        "trace_binding_id": { "type": "string" },
+        "binding_type": { "enum": ["workflow", "agent", "gate", "output"] },
+        "source_id": { "type": "string" },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "agent_run_id": { "type": ["string", "null"] },
+        "gate_result_id": { "type": ["string", "null"] },
+        "output_artifact_id": { "type": ["string", "null"] },
+        "event_envelope_id": { "type": ["string", "null"] },
+        "correlation_trace_id": { "type": ["string", "null"] },
+        "observability_trace_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "source_status": { "type": "string" },
+        "binding_status": { "enum": ["known", "missing_trace"] },
+        "event_binding_status": { "type": "string" },
+        "trace_binding_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

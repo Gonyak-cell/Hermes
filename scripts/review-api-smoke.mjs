@@ -164,6 +164,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-token-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/capability-runtime-token-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-projection-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-trace-projections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-trace-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-trace-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-trace-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-trace-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-trace-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/observability-trace-projection-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1280,6 +1287,34 @@ try {
   const tokenUsageProjectionValidations = await fetchJson(`${url}/api/token-usage-projection-validations?status=passed&limit=5`);
   assert.equal(tokenUsageProjectionValidations.collection, "token_usage_projection_validations");
   assert.ok(tokenUsageProjectionValidations.count <= 5);
+
+  const observabilityTraceProjections = await fetchJson(`${url}/api/observability-trace-projections?observability_trace_projection_status=complete&limit=1`);
+  assert.equal(observabilityTraceProjections.collection, "observability_trace_projections");
+  assert.ok(observabilityTraceProjections.count <= 1);
+
+  const completeTraceRecords = await fetchJson(`${url}/api/observability-trace-records?trace_component_status=complete&limit=5`);
+  assert.equal(completeTraceRecords.collection, "observability_trace_records");
+  assert.ok(completeTraceRecords.count <= 5);
+
+  const knownWorkflowTraceBindings = await fetchJson(`${url}/api/workflow-trace-bindings?binding_status=known&limit=5`);
+  assert.equal(knownWorkflowTraceBindings.collection, "workflow_trace_bindings");
+  assert.ok(knownWorkflowTraceBindings.count <= 5);
+
+  const knownAgentTraceBindings = await fetchJson(`${url}/api/agent-trace-bindings?binding_status=known&limit=5`);
+  assert.equal(knownAgentTraceBindings.collection, "agent_trace_bindings");
+  assert.ok(knownAgentTraceBindings.count <= 5);
+
+  const knownGateTraceBindings = await fetchJson(`${url}/api/gate-trace-bindings?binding_status=known&limit=5`);
+  assert.equal(knownGateTraceBindings.collection, "gate_trace_bindings");
+  assert.ok(knownGateTraceBindings.count <= 5);
+
+  const knownOutputTraceBindings = await fetchJson(`${url}/api/output-trace-bindings?binding_status=known&limit=5`);
+  assert.equal(knownOutputTraceBindings.collection, "output_trace_bindings");
+  assert.ok(knownOutputTraceBindings.count <= 5);
+
+  const observabilityTraceProjectionValidations = await fetchJson(`${url}/api/observability-trace-projection-validations?status=passed&limit=5`);
+  assert.equal(observabilityTraceProjectionValidations.collection, "observability_trace_projection_validations");
+  assert.ok(observabilityTraceProjectionValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

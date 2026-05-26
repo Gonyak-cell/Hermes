@@ -3482,6 +3482,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("token_usage_projection_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/observability-trace-projections") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_trace_projections", [projectionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-trace-records") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_trace_records", projectionResult.artifact.observability_trace_projection_catalog?.observability_trace_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-trace-bindings") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_trace_bindings", projectionResult.artifact.observability_trace_projection_catalog?.workflow_trace_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-trace-bindings") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_trace_bindings", projectionResult.artifact.observability_trace_projection_catalog?.agent_trace_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/gate-trace-bindings") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("gate_trace_bindings", projectionResult.artifact.observability_trace_projection_catalog?.gate_trace_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-trace-bindings") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_trace_bindings", projectionResult.artifact.observability_trace_projection_catalog?.output_trace_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/observability-trace-projection-validations") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "observability_trace_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("observability_trace_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("observability_trace_projection_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6308,6 +6357,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-token-rollups", "Runtime token rollups"),
       route("GET", "/api/capability-runtime-token-rollups", "Capability/runtime token rollups"),
       route("GET", "/api/token-usage-projection-validations", "Token usage projection validation rows"),
+      route("GET", "/api/observability-trace-projections", "Observability trace projection artifacts"),
+      route("GET", "/api/observability-trace-records", "Correlation trace records with workflow, agent, gate, and output component counts"),
+      route("GET", "/api/workflow-trace-bindings", "Workflow run to observability trace bindings"),
+      route("GET", "/api/agent-trace-bindings", "Agent run to observability trace bindings"),
+      route("GET", "/api/gate-trace-bindings", "Gate result to observability trace bindings"),
+      route("GET", "/api/output-trace-bindings", "Output artifact to observability trace bindings"),
+      route("GET", "/api/observability-trace-projection-validations", "Observability trace projection validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7410,6 +7466,12 @@ function filterItems(items, searchParams) {
     "token_usage_projection_status",
     "token_usage_projection_id",
     "projected_token_usage_record_id",
+    "observability_trace_projection_status",
+    "observability_trace_projection_id",
+    "observability_trace_id",
+    "correlation_trace_id",
+    "trace_binding_id",
+    "trace_component_status",
     "token_rollup_id",
     "rollup_type",
     "rollup_key",
@@ -7741,6 +7803,7 @@ function readFilterValue(item, key) {
   if (key === "audit_event_ledger_status") return item.summary?.audit_event_ledger_status ?? item.audit_event_ledger_status;
   if (key === "cost_record_projection_status") return item.summary?.cost_record_projection_status ?? item.cost_record_projection_status;
   if (key === "token_usage_projection_status") return item.summary?.token_usage_projection_status ?? item.token_usage_projection_status;
+  if (key === "observability_trace_projection_status") return item.summary?.observability_trace_projection_status ?? item.observability_trace_projection_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

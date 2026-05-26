@@ -449,6 +449,8 @@ Cost attribution route는 `attribution_id`, `budget_decision_id`, `token_usage_i
 
 Token usage projection route는 `token_usage_projection_status`, `token_usage_projection_id`, `projected_token_usage_record_id`, `token_usage_id`, `workflow_run_id`, `agent_run_id`, `runtime_id`, `capability_id`, `domain_pack`, `matter_id`, `classification`, `tracking_status`, `provider_cost_binding_status`, `token_rollup_id`, `rollup_type`, `rollup_key`, `status`, `limit` query를 지원한다.
 
+Observability trace projection route는 `observability_trace_projection_status`, `observability_trace_projection_id`, `observability_trace_id`, `correlation_trace_id`, `trace_binding_id`, `trace_component_status`, `binding_type`, `binding_status`, `workflow_run_id`, `agent_run_id`, `gate_result_id`, `output_artifact_id`, `correlation_id`, `trace_status`, `status`, `limit` query를 지원한다.
+
 Budget alert route는 `alert_record_id`, `attribution_id`, `budget_decision_id`, `token_usage_id`, `routing_decision_id`, `runtime_id`, `workflow_run_id`, `capability_id`, `classification`, `alert_status`, `requires_human`, `matter_id`, `tenant_id`, `ledger_status`, `limit` query를 지원한다.
 
 Lineage graph route는 `lineage_graph_status`, `lineage_node_id`, `lineage_edge_id`, `lineage_path_id`, `node_type`, `edge_type`, `path_status`, `from_subject_id`, `to_subject_id`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `limit` query를 지원한다.

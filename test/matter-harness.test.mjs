@@ -115,6 +115,7 @@ import { runBudgetAlertLedger } from "../src/budget-alert-ledger.mjs";
 import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
 import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
 import { runTokenUsageProjection } from "../src/token-usage-projection.mjs";
+import { runObservabilityTraceProjection } from "../src/observability-trace-projection.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1726,6 +1727,7 @@ describe("matter harness", () => {
         costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
         costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
         tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
+        observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1822,6 +1824,7 @@ describe("matter harness", () => {
         eventEnvelopeLedgerPath: false,
         costRecordProjectionPath: false,
         tokenUsageProjectionPath: false,
+        observabilityTraceProjectionPath: false,
         errorCostObservabilityContractFreezePath: false,
         evidencePlaneFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -3804,6 +3807,45 @@ describe("matter harness", () => {
       assert.ok(tokenUsageProjection.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "token-usage-projection", "summary.md"), "utf8"), /Token Usage Projection/);
 
+      const observabilityTraceProjection = await runObservabilityTraceProjection({
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        outDir: path.join(outDir, "observability-trace-projection"),
+        runAt: "2026-05-23T06:35:07.798Z",
+      });
+      const observabilityTraceProjectionSchema = JSON.parse(await readFile("schemas/observability-trace-projection.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(observabilityTraceProjection, observabilityTraceProjectionSchema, {}, "observability_trace_projection"),
+        [],
+      );
+      assert.equal(observabilityTraceProjection.summary.observability_trace_projection_status, "complete");
+      assert.equal(observabilityTraceProjection.summary.observability_trace_projection_contract_id, "observability-trace-projection.v1");
+      assert.equal(observabilityTraceProjection.summary.observability_trace_record_count, eventCorrelationLedger.summary.correlation_trace_count);
+      assert.equal(observabilityTraceProjection.summary.source_correlation_trace_count, eventCorrelationLedger.summary.correlation_trace_count);
+      assert.equal(observabilityTraceProjection.summary.workflow_trace_binding_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(observabilityTraceProjection.summary.agent_trace_binding_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(observabilityTraceProjection.summary.gate_trace_binding_count, gateApprovalContractFreeze.summary.gate_result_count);
+      assert.equal(observabilityTraceProjection.summary.output_trace_binding_count, outputCatalog.summary.artifact_count);
+      assert.equal(observabilityTraceProjection.summary.unknown_workflow_trace_binding_count, 0);
+      assert.equal(observabilityTraceProjection.summary.unknown_agent_trace_binding_count, 0);
+      assert.equal(observabilityTraceProjection.summary.unknown_gate_trace_binding_count, 0);
+      assert.equal(observabilityTraceProjection.summary.unknown_output_trace_binding_count, 0);
+      assert.equal(observabilityTraceProjection.summary.linked_trace_count, eventCorrelationLedger.summary.linked_trace_count);
+      assert.equal(observabilityTraceProjection.summary.external_control_trace_count, eventCorrelationLedger.summary.external_control_trace_count);
+      assert.ok(observabilityTraceProjection.summary.complete_component_trace_count > 0);
+      assert.equal(observabilityTraceProjection.summary.trace_with_workflow_count, observabilityTraceProjection.summary.linked_trace_count);
+      assert.equal(observabilityTraceProjection.summary.validation_error_count, 0);
+      assert.ok(observabilityTraceProjection.observability_trace_projection_catalog.observability_trace_records.every((record) => record.observability_trace_hash));
+      assert.ok(observabilityTraceProjection.observability_trace_projection_catalog.workflow_trace_bindings.every((binding) => binding.binding_status === "known" && binding.trace_binding_hash));
+      assert.ok(observabilityTraceProjection.observability_trace_projection_catalog.agent_trace_bindings.every((binding) => binding.binding_status === "known" && binding.trace_binding_hash));
+      assert.ok(observabilityTraceProjection.observability_trace_projection_catalog.gate_trace_bindings.every((binding) => binding.binding_status === "known" && binding.trace_binding_hash));
+      assert.ok(observabilityTraceProjection.observability_trace_projection_catalog.output_trace_bindings.every((binding) => binding.binding_status === "known" && binding.trace_binding_hash));
+      assert.ok(observabilityTraceProjection.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "observability-trace-projection", "summary.md"), "utf8"), /Observability Trace Projection/);
+
       const errorCostObservabilityContractFreeze = await runErrorCostObservabilityContractFreeze({
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -5313,6 +5355,7 @@ describe("matter harness", () => {
           policy_snapshot_event_binding: path.join(outDir, "policy-snapshot-event-bindings", "policy-snapshot-event-binding.json"),
           cost_record_projection: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
           token_usage_projection: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
+          observability_trace_projection: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5324,8 +5367,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 71);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 71);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 72);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 72);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5384,6 +5427,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_event_binding"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "cost_record_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "token_usage_projection"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "observability_trace_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5431,6 +5475,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "cost:records"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "token:projection"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:traces"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -5723,6 +5768,10 @@ describe("matter harness", () => {
       assert.equal(tokenUsageProjectionCheckpoint?.acceptance_profile, "token_usage_projection_gate");
       assert.equal(tokenUsageProjectionCheckpoint?.status, "passed");
       assert.equal(tokenUsageProjectionCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const observabilityTraceProjectionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-observability-trace-projection");
+      assert.equal(observabilityTraceProjectionCheckpoint?.acceptance_profile, "observability_trace_projection_gate");
+      assert.equal(observabilityTraceProjectionCheckpoint?.status, "passed");
+      assert.equal(observabilityTraceProjectionCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6067,6 +6116,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.token_usage_projection_total_tokens, tokenUsageProjection.summary.total_token_count);
       assert.equal(dashboard.summary.token_usage_projection_total_provider_cost_usd, tokenUsageProjection.summary.total_provider_cost_projected_usd);
       assert.equal(dashboard.summary.token_usage_projection_validation_error_count, 0);
+      assert.equal(dashboard.summary.observability_trace_projection_status, "complete");
+      assert.equal(dashboard.summary.observability_trace_projection_count, observabilityTraceProjection.summary.observability_trace_record_count);
+      assert.equal(dashboard.summary.observability_trace_projection_source_count, observabilityTraceProjection.summary.source_correlation_trace_count);
+      assert.equal(dashboard.summary.observability_trace_projection_linked_count, observabilityTraceProjection.summary.linked_trace_count);
+      assert.equal(dashboard.summary.observability_trace_projection_external_control_count, observabilityTraceProjection.summary.external_control_trace_count);
+      assert.equal(dashboard.summary.observability_trace_projection_complete_component_count, observabilityTraceProjection.summary.complete_component_trace_count);
+      assert.equal(dashboard.summary.observability_trace_projection_workflow_binding_count, observabilityTraceProjection.summary.workflow_trace_binding_count);
+      assert.equal(dashboard.summary.observability_trace_projection_agent_binding_count, observabilityTraceProjection.summary.agent_trace_binding_count);
+      assert.equal(dashboard.summary.observability_trace_projection_gate_binding_count, observabilityTraceProjection.summary.gate_trace_binding_count);
+      assert.equal(dashboard.summary.observability_trace_projection_output_binding_count, observabilityTraceProjection.summary.output_trace_binding_count);
+      assert.equal(dashboard.summary.observability_trace_projection_unknown_workflow_binding_count, 0);
+      assert.equal(dashboard.summary.observability_trace_projection_unknown_agent_binding_count, 0);
+      assert.equal(dashboard.summary.observability_trace_projection_unknown_gate_binding_count, 0);
+      assert.equal(dashboard.summary.observability_trace_projection_unknown_output_binding_count, 0);
+      assert.equal(dashboard.summary.observability_trace_projection_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -7621,6 +7685,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_record_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_projection"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_trace_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -8932,6 +8997,34 @@ describe("matter harness", () => {
       const tokenUsageProjectionValidations = JSON.parse((await buildReviewApiResponse("/api/token-usage-projection-validations?status=passed", apiOptions)).body);
       assert.equal(tokenUsageProjectionValidations.collection, "token_usage_projection_validations");
       assert.equal(tokenUsageProjectionValidations.count, tokenUsageProjection.summary.validation_item_count);
+
+      const observabilityTraceProjections = JSON.parse((await buildReviewApiResponse("/api/observability-trace-projections?observability_trace_projection_status=complete", apiOptions)).body);
+      assert.equal(observabilityTraceProjections.collection, "observability_trace_projections");
+      assert.equal(observabilityTraceProjections.count, 1);
+
+      const completeObservabilityTraceRecords = JSON.parse((await buildReviewApiResponse("/api/observability-trace-records?trace_component_status=complete", apiOptions)).body);
+      assert.equal(completeObservabilityTraceRecords.collection, "observability_trace_records");
+      assert.equal(completeObservabilityTraceRecords.count, observabilityTraceProjection.summary.complete_component_trace_count);
+
+      const workflowTraceBindings = JSON.parse((await buildReviewApiResponse("/api/workflow-trace-bindings?binding_status=known", apiOptions)).body);
+      assert.equal(workflowTraceBindings.collection, "workflow_trace_bindings");
+      assert.equal(workflowTraceBindings.count, observabilityTraceProjection.summary.workflow_trace_binding_count);
+
+      const agentTraceBindings = JSON.parse((await buildReviewApiResponse("/api/agent-trace-bindings?binding_status=known", apiOptions)).body);
+      assert.equal(agentTraceBindings.collection, "agent_trace_bindings");
+      assert.equal(agentTraceBindings.count, observabilityTraceProjection.summary.agent_trace_binding_count);
+
+      const gateTraceBindings = JSON.parse((await buildReviewApiResponse("/api/gate-trace-bindings?binding_status=known", apiOptions)).body);
+      assert.equal(gateTraceBindings.collection, "gate_trace_bindings");
+      assert.equal(gateTraceBindings.count, observabilityTraceProjection.summary.gate_trace_binding_count);
+
+      const outputTraceBindings = JSON.parse((await buildReviewApiResponse("/api/output-trace-bindings?binding_status=known", apiOptions)).body);
+      assert.equal(outputTraceBindings.collection, "output_trace_bindings");
+      assert.equal(outputTraceBindings.count, observabilityTraceProjection.summary.output_trace_binding_count);
+
+      const observabilityTraceProjectionValidations = JSON.parse((await buildReviewApiResponse("/api/observability-trace-projection-validations?status=passed", apiOptions)).body);
+      assert.equal(observabilityTraceProjectionValidations.collection, "observability_trace_projection_validations");
+      assert.equal(observabilityTraceProjectionValidations.count, observabilityTraceProjection.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

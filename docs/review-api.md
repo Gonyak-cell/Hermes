@@ -478,6 +478,11 @@ npm run api:serve
 - `GET /api/workflow-runner-audit-events`: transition guard audit event candidate rows
 - `GET /api/workflow-runner-plans`: protected action 실행 전 runner plan rows
 - `GET /api/workflow-runner-validations`: workflow state machine runner validation rows
+- `GET /api/workflow-queue-retry-backoff-contracts`: queue/retry/backoff contract artifact
+- `GET /api/workflow-queue-records`: workflow run queue rows, held/manual dequeue status 포함
+- `GET /api/workflow-retry-classifications`: retry 가능/불가 오류 classification rows
+- `GET /api/workflow-backoff-policies`: retryable 오류에만 붙는 unscheduled backoff policy rows
+- `GET /api/workflow-queue-validations`: workflow queue/retry/backoff validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

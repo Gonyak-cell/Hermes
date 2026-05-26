@@ -94,6 +94,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "packs:compatibility",
   "workflows:state-model",
   "workflows:runner",
+  "workflows:queue-retry",
   "contracts:observability",
 ];
 

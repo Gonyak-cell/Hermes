@@ -96,6 +96,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   packManifestCompatibilityPath: "artifacts/pack-manifest-compatibility/latest/pack-manifest-compatibility.json",
   workflowDslStateModelPath: "artifacts/workflow-dsl-state-model/latest/workflow-dsl-state-model.json",
   workflowStateMachineRunnerPath: "artifacts/workflow-state-machine-runner/latest/workflow-state-machine-runner.json",
+  workflowQueueRetryBackoffPath: "artifacts/workflow-queue-retry-backoff/latest/workflow-queue-retry-backoff-contract.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -639,6 +640,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowStateMachineRunnerPath",
     source_id: "workflow_state_machine_runner",
     label: "Workflow State Machine Runner",
+  },
+  {
+    option: "workflowQueueRetryBackoffPath",
+    source_id: "workflow_queue_retry_backoff_contract",
+    label: "Workflow Queue/Retry/Backoff Contract",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1238,6 +1244,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "pack_manifest_compatibility") return data.summary ?? {};
   if (sourceId === "workflow_dsl_state_model") return data.summary ?? {};
   if (sourceId === "workflow_state_machine_runner") return data.summary ?? {};
+  if (sourceId === "workflow_queue_retry_backoff_contract") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1498,6 +1505,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPackManifestCompatibilityStage(artifacts.pack_manifest_compatibility, sourceById.get("pack_manifest_compatibility")),
     buildWorkflowDslStateModelStage(artifacts.workflow_dsl_state_model, sourceById.get("workflow_dsl_state_model")),
     buildWorkflowStateMachineRunnerStage(artifacts.workflow_state_machine_runner, sourceById.get("workflow_state_machine_runner")),
+    buildWorkflowQueueRetryBackoffStage(artifacts.workflow_queue_retry_backoff_contract, sourceById.get("workflow_queue_retry_backoff_contract")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5891,6 +5899,60 @@ function buildWorkflowStateMachineRunnerStage(runner, source) {
       auto_transition_count: summary.auto_transition_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? runner.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowQueueRetryBackoffStage(contract, source) {
+  if (!contract) return missingStage("workflow_queue_retry_backoff_contract", "Workflow Queue/Retry/Backoff Contract", source);
+  const summary = contract.summary ?? {};
+  const blockers = (summary.validation_error_count ?? contract.validation?.errors?.length ?? 0)
+    + (summary.queue_record_without_retry_classification_count ?? 0)
+    + (summary.non_retryable_backoff_policy_count ?? 0)
+    + (summary.scheduled_backoff_policy_count ?? 0)
+    + (summary.auto_retry_scheduled_count ?? 0)
+    + (summary.auto_dequeue_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.workflow_queue_retry_backoff_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_queue_retry_backoff_contract",
+    label: "Workflow Queue/Retry/Backoff Contract",
+    status,
+    message: status === "passed"
+      ? `${summary.workflow_queue_record_count ?? 0} queue record(s), ${summary.retry_classification_count ?? 0} retry classification(s), ${summary.backoff_policy_count ?? 0} backoff policy row(s).`
+      : `${blockers} workflow queue/retry/backoff blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_queue_retry_backoff_status: summary.workflow_queue_retry_backoff_status ?? "unknown",
+      queue_contract_id: summary.queue_contract_id ?? null,
+      source_workflow_state_machine_runner_status: summary.source_workflow_state_machine_runner_status ?? "unknown",
+      source_error_retry_ledger_status: summary.source_error_retry_ledger_status ?? "unknown",
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_runner_plan_count: summary.source_runner_plan_count ?? 0,
+      source_retry_record_count: summary.source_retry_record_count ?? 0,
+      workflow_runner_plan_count: summary.workflow_runner_plan_count ?? 0,
+      workflow_queue_record_count: summary.workflow_queue_record_count ?? 0,
+      held_queue_record_count: summary.held_queue_record_count ?? 0,
+      ready_queue_record_count: summary.ready_queue_record_count ?? 0,
+      blocked_queue_record_count: summary.blocked_queue_record_count ?? 0,
+      terminal_queue_record_count: summary.terminal_queue_record_count ?? 0,
+      human_review_queue_record_count: summary.human_review_queue_record_count ?? 0,
+      law_firm_held_queue_record_count: summary.law_firm_held_queue_record_count ?? 0,
+      queue_record_with_retry_classification_count: summary.queue_record_with_retry_classification_count ?? 0,
+      queue_record_without_retry_classification_count: summary.queue_record_without_retry_classification_count ?? 0,
+      retry_classification_count: summary.retry_classification_count ?? 0,
+      retryable_classification_count: summary.retryable_classification_count ?? 0,
+      non_retryable_classification_count: summary.non_retryable_classification_count ?? 0,
+      human_gate_required_retry_count: summary.human_gate_required_retry_count ?? 0,
+      backoff_policy_count: summary.backoff_policy_count ?? 0,
+      retryable_backoff_policy_count: summary.retryable_backoff_policy_count ?? 0,
+      non_retryable_backoff_policy_count: summary.non_retryable_backoff_policy_count ?? 0,
+      human_gate_required_backoff_count: summary.human_gate_required_backoff_count ?? 0,
+      scheduled_backoff_policy_count: summary.scheduled_backoff_policy_count ?? 0,
+      auto_retry_scheduled_count: summary.auto_retry_scheduled_count ?? 0,
+      auto_dequeue_allowed_count: summary.auto_dequeue_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11427,6 +11489,33 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_state_machine_runner_auto_transition_count: artifacts.workflow_state_machine_runner?.summary?.auto_transition_count ?? 0,
     workflow_state_machine_runner_protected_action_executed_count: artifacts.workflow_state_machine_runner?.summary?.protected_action_executed_count ?? 0,
     workflow_state_machine_runner_validation_error_count: artifacts.workflow_state_machine_runner?.summary?.validation_error_count ?? artifacts.workflow_state_machine_runner?.validation?.errors?.length ?? 0,
+    workflow_queue_retry_backoff_status: artifacts.workflow_queue_retry_backoff_contract?.summary?.workflow_queue_retry_backoff_status ?? "unknown",
+    workflow_queue_retry_backoff_queue_contract_id: artifacts.workflow_queue_retry_backoff_contract?.summary?.queue_contract_id ?? null,
+    workflow_queue_retry_backoff_source_workflow_state_machine_runner_status: artifacts.workflow_queue_retry_backoff_contract?.summary?.source_workflow_state_machine_runner_status ?? "unknown",
+    workflow_queue_retry_backoff_source_error_retry_ledger_status: artifacts.workflow_queue_retry_backoff_contract?.summary?.source_error_retry_ledger_status ?? "unknown",
+    workflow_queue_retry_backoff_source_workflow_run_ledger_status: artifacts.workflow_queue_retry_backoff_contract?.summary?.source_workflow_run_ledger_status ?? "unknown",
+    workflow_queue_retry_backoff_workflow_runner_plan_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.workflow_runner_plan_count ?? 0,
+    workflow_queue_retry_backoff_workflow_queue_record_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.workflow_queue_record_count ?? 0,
+    workflow_queue_retry_backoff_held_queue_record_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.held_queue_record_count ?? 0,
+    workflow_queue_retry_backoff_ready_queue_record_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.ready_queue_record_count ?? 0,
+    workflow_queue_retry_backoff_blocked_queue_record_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.blocked_queue_record_count ?? 0,
+    workflow_queue_retry_backoff_terminal_queue_record_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.terminal_queue_record_count ?? 0,
+    workflow_queue_retry_backoff_law_firm_held_queue_record_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.law_firm_held_queue_record_count ?? 0,
+    workflow_queue_retry_backoff_queue_record_with_retry_classification_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.queue_record_with_retry_classification_count ?? 0,
+    workflow_queue_retry_backoff_queue_record_without_retry_classification_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.queue_record_without_retry_classification_count ?? 0,
+    workflow_queue_retry_backoff_retry_classification_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.retry_classification_count ?? 0,
+    workflow_queue_retry_backoff_retryable_classification_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.retryable_classification_count ?? 0,
+    workflow_queue_retry_backoff_non_retryable_classification_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.non_retryable_classification_count ?? 0,
+    workflow_queue_retry_backoff_human_gate_required_retry_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.human_gate_required_retry_count ?? 0,
+    workflow_queue_retry_backoff_backoff_policy_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.backoff_policy_count ?? 0,
+    workflow_queue_retry_backoff_retryable_backoff_policy_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.retryable_backoff_policy_count ?? 0,
+    workflow_queue_retry_backoff_non_retryable_backoff_policy_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.non_retryable_backoff_policy_count ?? 0,
+    workflow_queue_retry_backoff_human_gate_required_backoff_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.human_gate_required_backoff_count ?? 0,
+    workflow_queue_retry_backoff_scheduled_backoff_policy_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.scheduled_backoff_policy_count ?? 0,
+    workflow_queue_retry_backoff_auto_retry_scheduled_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.auto_retry_scheduled_count ?? 0,
+    workflow_queue_retry_backoff_auto_dequeue_allowed_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.auto_dequeue_allowed_count ?? 0,
+    workflow_queue_retry_backoff_protected_action_executed_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.protected_action_executed_count ?? 0,
+    workflow_queue_retry_backoff_validation_error_count: artifacts.workflow_queue_retry_backoff_contract?.summary?.validation_error_count ?? artifacts.workflow_queue_retry_backoff_contract?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13219,6 +13308,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-dsl-state-model") parsed.workflowDslStateModelPath = false;
     else if (arg === "--workflow-state-machine-runner") parsed.workflowStateMachineRunnerPath = argv[++index];
     else if (arg === "--no-workflow-state-machine-runner") parsed.workflowStateMachineRunnerPath = false;
+    else if (arg === "--workflow-queue-retry-backoff") parsed.workflowQueueRetryBackoffPath = argv[++index];
+    else if (arg === "--no-workflow-queue-retry-backoff") parsed.workflowQueueRetryBackoffPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13630,6 +13721,10 @@ Options:
                                   workflow-state-machine-runner.json path.
   --no-workflow-state-machine-runner
                                   Do not include Workflow State Machine Runner status.
+  --workflow-queue-retry-backoff <path>
+                                  workflow-queue-retry-backoff-contract.json path.
+  --no-workflow-queue-retry-backoff
+                                  Do not include Workflow Queue/Retry/Backoff Contract status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

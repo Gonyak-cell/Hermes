@@ -940,6 +940,26 @@ try {
   assert.equal(workflowRunnerValidations.collection, "workflow_runner_validations");
   assert.ok(workflowRunnerValidations.count <= 5);
 
+  const workflowQueueRetryBackoffContracts = await fetchJson(`${url}/api/workflow-queue-retry-backoff-contracts?workflow_queue_retry_backoff_status=complete&limit=1`);
+  assert.equal(workflowQueueRetryBackoffContracts.collection, "workflow_queue_retry_backoff_contracts");
+  assert.ok(workflowQueueRetryBackoffContracts.count <= 1);
+
+  const workflowQueueRecords = await fetchJson(`${url}/api/workflow-queue-records?queue_status=held_for_human_review&limit=5`);
+  assert.equal(workflowQueueRecords.collection, "workflow_queue_records");
+  assert.ok(workflowQueueRecords.count <= 5);
+
+  const workflowRetryClassifications = await fetchJson(`${url}/api/workflow-retry-classifications?retry_class=retryable_requires_human_gate&limit=5`);
+  assert.equal(workflowRetryClassifications.collection, "workflow_retry_classifications");
+  assert.ok(workflowRetryClassifications.count <= 5);
+
+  const workflowBackoffPolicies = await fetchJson(`${url}/api/workflow-backoff-policies?schedule_status=not_scheduled&limit=5`);
+  assert.equal(workflowBackoffPolicies.collection, "workflow_backoff_policies");
+  assert.ok(workflowBackoffPolicies.count <= 5);
+
+  const workflowQueueValidations = await fetchJson(`${url}/api/workflow-queue-validations?status=passed&limit=5`);
+  assert.equal(workflowQueueValidations.collection, "workflow_queue_validations");
+  assert.ok(workflowQueueValidations.count <= 5);
+
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
   assert.ok(runtimeAgentRunContractFreezes.count <= 1);

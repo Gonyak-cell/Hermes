@@ -1,0 +1,352 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-queue-retry-backoff-contract.schema.json",
+  "title": "Hermes Workflow Queue Retry Backoff Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_queue_retry_backoff_contract_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_queue_retry_backoff_contract",
+    "workflow_queue_records",
+    "retry_classification_records",
+    "backoff_policy_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-queue-retry-backoff-contract.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_queue_retry_backoff_contract_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "workflow_queue_retry_backoff_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "queue_contract_id",
+        "deterministic_queue",
+        "protected_action_execution_allowed",
+        "automatic_dequeue_allowed",
+        "automatic_retry_allowed",
+        "queue_states",
+        "retry_classes",
+        "backoff_policy_rule",
+        "non_retryable_rule",
+        "law_firm_safety_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-queue-retry-backoff-contract.v1" },
+        "queue_contract_id": { "const": "workflow-queue-retry-backoff.v1" },
+        "deterministic_queue": { "const": true },
+        "protected_action_execution_allowed": { "const": false },
+        "automatic_dequeue_allowed": { "const": false },
+        "automatic_retry_allowed": { "const": false },
+        "queue_states": {
+          "type": "array",
+          "items": { "enum": ["held_for_human_review", "ready_for_manual_dequeue", "blocked", "terminal_noop"] }
+        },
+        "retry_classes": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "retryable_requires_human_gate",
+              "retryable_manual_gate",
+              "not_retryable_human_hold",
+              "not_retryable_closed_or_terminal"
+            ]
+          }
+        },
+        "backoff_policy_rule": { "type": "string", "minLength": 1 },
+        "non_retryable_rule": { "type": "string", "minLength": 1 },
+        "law_firm_safety_rule": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "workflow_queue_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/workflow_queue_record" }
+    },
+    "retry_classification_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/retry_classification_record" }
+    },
+    "backoff_policy_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/backoff_policy_record" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_queue_retry_backoff_status",
+        "queue_contract_id",
+        "source_workflow_state_machine_runner_status",
+        "source_error_retry_ledger_status",
+        "source_workflow_run_ledger_status",
+        "workflow_runner_plan_count",
+        "workflow_queue_record_count",
+        "held_queue_record_count",
+        "retry_classification_count",
+        "retryable_classification_count",
+        "non_retryable_classification_count",
+        "backoff_policy_count",
+        "retryable_backoff_policy_count",
+        "non_retryable_backoff_policy_count",
+        "human_gate_required_backoff_count",
+        "queue_record_without_retry_classification_count",
+        "auto_retry_scheduled_count",
+        "auto_dequeue_allowed_count",
+        "protected_action_executed_count",
+        "validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_queue_retry_backoff_status": { "enum": ["complete", "blocked"] },
+        "queue_contract_id": { "const": "workflow-queue-retry-backoff.v1" },
+        "source_workflow_state_machine_runner_status": { "type": "string" },
+        "source_error_retry_ledger_status": { "type": "string" },
+        "source_workflow_run_ledger_status": { "type": "string" },
+        "source_runner_plan_count": { "type": "integer", "minimum": 0 },
+        "source_retry_record_count": { "type": "integer", "minimum": 0 },
+        "workflow_runner_plan_count": { "type": "integer", "minimum": 0 },
+        "workflow_queue_record_count": { "type": "integer", "minimum": 0 },
+        "held_queue_record_count": { "type": "integer", "minimum": 0 },
+        "ready_queue_record_count": { "type": "integer", "minimum": 0 },
+        "blocked_queue_record_count": { "type": "integer", "minimum": 0 },
+        "terminal_queue_record_count": { "type": "integer", "minimum": 0 },
+        "human_review_queue_record_count": { "type": "integer", "minimum": 0 },
+        "law_firm_held_queue_record_count": { "type": "integer", "minimum": 0 },
+        "queue_record_with_retry_classification_count": { "type": "integer", "minimum": 0 },
+        "queue_record_without_retry_classification_count": { "type": "integer", "minimum": 0 },
+        "retry_classification_count": { "type": "integer", "minimum": 0 },
+        "retryable_classification_count": { "type": "integer", "minimum": 0 },
+        "non_retryable_classification_count": { "type": "integer", "minimum": 0 },
+        "human_gate_required_retry_count": { "type": "integer", "minimum": 0 },
+        "backoff_policy_count": { "type": "integer", "minimum": 0 },
+        "retryable_backoff_policy_count": { "type": "integer", "minimum": 0 },
+        "non_retryable_backoff_policy_count": { "type": "integer", "minimum": 0 },
+        "human_gate_required_backoff_count": { "type": "integer", "minimum": 0 },
+        "scheduled_backoff_policy_count": { "type": "integer", "minimum": 0 },
+        "auto_retry_scheduled_count": { "type": "integer", "minimum": 0 },
+        "auto_dequeue_allowed_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_queue_status": { "type": "object" },
+        "by_retry_class": { "type": "object" },
+        "by_queue_retry_status": { "type": "object" },
+        "by_backoff_policy_status": { "type": "object" },
+        "by_domain_pack": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "workflow_queue_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_queue_record_id",
+        "workflow_run_id",
+        "workflow_runner_plan_id",
+        "transition_guard_id",
+        "queue_status",
+        "dequeue_policy",
+        "human_review_required",
+        "law_firm_human_review_required",
+        "auto_dequeue_allowed",
+        "protected_action_execution_allowed",
+        "retry_classification_ids",
+        "backoff_policy_ids",
+        "auto_retry_scheduled",
+        "workflow_queue_record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-queue-record.v1" },
+        "workflow_queue_record_id": { "type": "string", "minLength": 1 },
+        "workflow_run_id": { "type": "string", "minLength": 1 },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "workflow_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string", "minLength": 1 },
+        "current_dsl_state": { "type": "string" },
+        "next_dsl_state": { "type": ["string", "null"] },
+        "workflow_runner_plan_id": { "type": "string", "minLength": 1 },
+        "transition_guard_id": { "type": "string", "minLength": 1 },
+        "queue_status": { "enum": ["held_for_human_review", "ready_for_manual_dequeue", "blocked", "terminal_noop"] },
+        "queue_reason": { "type": "string" },
+        "dequeue_policy": { "enum": ["human_review_required", "manual_dequeue_required", "no_op_terminal", "inspect_blocker"] },
+        "human_review_required": { "type": "boolean" },
+        "law_firm_human_review_required": { "type": "boolean" },
+        "auto_dequeue_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "retry_classification_ids": { "type": "array", "items": { "type": "string" } },
+        "retryable_classification_count": { "type": "integer", "minimum": 0 },
+        "non_retryable_classification_count": { "type": "integer", "minimum": 0 },
+        "blocking_retry_classification_count": { "type": "integer", "minimum": 0 },
+        "backoff_policy_ids": { "type": "array", "items": { "type": "string" } },
+        "backoff_policy_count": { "type": "integer", "minimum": 0 },
+        "auto_retry_scheduled": { "const": false },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "workflow_queue_record_hash": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "retry_classification_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retry_classification_id",
+        "source_retry_record_id",
+        "source_error_record_id",
+        "workflow_run_id",
+        "retryable",
+        "retry_class",
+        "queue_retry_status",
+        "requires_human_before_retry",
+        "backoff_applicable",
+        "auto_retry_scheduled",
+        "protected_action_execution_allowed",
+        "retry_classification_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-retry-classification.v1" },
+        "retry_classification_id": { "type": "string", "minLength": 1 },
+        "source_retry_record_id": { "type": "string", "minLength": 1 },
+        "source_projected_error_record_id": { "type": ["string", "null"] },
+        "source_error_record_id": { "type": "string", "minLength": 1 },
+        "workflow_run_id": { "type": "string", "minLength": 1 },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_trace_id": { "type": ["string", "null"] },
+        "observability_trace_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "error_kind": { "type": "string" },
+        "error_type": { "type": "string" },
+        "error_status": { "type": ["string", "null"] },
+        "failure_state": { "type": ["string", "null"] },
+        "resume_state": { "type": ["string", "null"] },
+        "retryable": { "type": "boolean" },
+        "retry_class": {
+          "enum": [
+            "retryable_requires_human_gate",
+            "retryable_manual_gate",
+            "not_retryable_human_hold",
+            "not_retryable_closed_or_terminal"
+          ]
+        },
+        "retry_state": { "type": "string" },
+        "retry_status": { "type": "string" },
+        "retry_policy_status": { "type": "string" },
+        "queue_retry_status": {
+          "enum": [
+            "eligible_after_human_gate",
+            "eligible_after_manual_gate",
+            "eligible_after_gate",
+            "not_retryable"
+          ]
+        },
+        "requires_human_before_retry": { "type": "boolean" },
+        "backoff_policy_id": { "type": ["string", "null"] },
+        "backoff_applicable": { "type": "boolean" },
+        "non_retryable_reason": { "type": ["string", "null"] },
+        "auto_retry_scheduled": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "retry_classification_hash": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "backoff_policy_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "backoff_policy_id",
+        "retry_classification_id",
+        "workflow_run_id",
+        "backoff_policy_status",
+        "schedule_status",
+        "backoff_strategy",
+        "requires_human_before_schedule",
+        "next_retry_not_before",
+        "auto_retry_scheduled",
+        "protected_action_execution_allowed",
+        "backoff_policy_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-backoff-policy.v1" },
+        "backoff_policy_id": { "type": "string", "minLength": 1 },
+        "retry_classification_id": { "type": "string", "minLength": 1 },
+        "source_retry_record_id": { "type": "string", "minLength": 1 },
+        "source_error_record_id": { "type": "string", "minLength": 1 },
+        "workflow_run_id": { "type": "string", "minLength": 1 },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "backoff_policy_status": { "enum": ["pending_human_gate", "ready_for_manual_schedule"] },
+        "schedule_status": { "const": "not_scheduled" },
+        "backoff_strategy": { "const": "exponential" },
+        "initial_delay_seconds": { "type": "integer", "minimum": 0 },
+        "max_delay_seconds": { "type": "integer", "minimum": 0 },
+        "multiplier": { "type": "number", "minimum": 1 },
+        "max_attempts": { "type": "integer", "minimum": 1 },
+        "jitter_strategy": { "type": "string" },
+        "requires_human_before_schedule": { "const": true },
+        "next_retry_not_before": { "type": "null" },
+        "auto_retry_scheduled": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "retry_gate_reason": { "type": "string" },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "backoff_policy_hash": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

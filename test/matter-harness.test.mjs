@@ -176,6 +176,7 @@ import { runCapabilityManifestV2 } from "../src/capability-manifest-v2.mjs";
 import { runPackManifestCompatibility } from "../src/pack-manifest-compatibility.mjs";
 import { runWorkflowDslStateModel } from "../src/workflow-dsl-state-model.mjs";
 import { runWorkflowStateMachineRunner } from "../src/workflow-state-machine-runner.mjs";
+import { runWorkflowQueueRetryBackoffContract } from "../src/workflow-queue-retry-backoff-contract.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1804,6 +1805,7 @@ describe("matter harness", () => {
         packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
         workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
         workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+        workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1891,6 +1893,7 @@ describe("matter harness", () => {
         packManifestCompatibilityPath: false,
         workflowDslStateModelPath: false,
         workflowStateMachineRunnerPath: false,
+        workflowQueueRetryBackoffPath: false,
         policyMatrixCatalogPath: false,
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
@@ -4149,6 +4152,42 @@ describe("matter harness", () => {
       assert.ok(workflowStateMachineRunner.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-state-machine-runner", "summary.md"), "utf8"), /Workflow State Machine Runner/);
 
+      const workflowQueueRetryBackoff = await runWorkflowQueueRetryBackoffContract({
+        workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+        errorRetryLedgerPath: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        outDir: path.join(outDir, "workflow-queue-retry-backoff"),
+        runAt: "2026-05-23T06:35:08.454Z",
+      });
+      const workflowQueueRetryBackoffSchema = JSON.parse(await readFile("schemas/workflow-queue-retry-backoff-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowQueueRetryBackoff, workflowQueueRetryBackoffSchema, {}, "workflow_queue_retry_backoff_contract"),
+        [],
+      );
+      assert.equal(workflowQueueRetryBackoff.summary.workflow_queue_retry_backoff_status, "complete");
+      assert.equal(workflowQueueRetryBackoff.summary.queue_contract_id, "workflow-queue-retry-backoff.v1");
+      assert.equal(workflowQueueRetryBackoff.summary.workflow_queue_record_count, workflowStateMachineRunner.summary.runner_plan_count);
+      assert.equal(workflowQueueRetryBackoff.summary.workflow_runner_plan_count, workflowStateMachineRunner.summary.runner_plan_count);
+      assert.equal(workflowQueueRetryBackoff.summary.retry_classification_count, errorRetryLedger.summary.retry_record_count);
+      assert.equal(workflowQueueRetryBackoff.summary.retryable_classification_count, errorRetryLedger.summary.retryable_error_count);
+      assert.equal(workflowQueueRetryBackoff.summary.non_retryable_classification_count, errorRetryLedger.summary.non_retryable_error_count);
+      assert.equal(workflowQueueRetryBackoff.summary.backoff_policy_count, workflowQueueRetryBackoff.summary.retryable_classification_count);
+      assert.equal(workflowQueueRetryBackoff.summary.retryable_backoff_policy_count, workflowQueueRetryBackoff.summary.retryable_classification_count);
+      assert.equal(workflowQueueRetryBackoff.summary.non_retryable_backoff_policy_count, 0);
+      assert.equal(workflowQueueRetryBackoff.summary.human_gate_required_backoff_count, workflowQueueRetryBackoff.summary.backoff_policy_count);
+      assert.equal(workflowQueueRetryBackoff.summary.queue_record_without_retry_classification_count, 0);
+      assert.equal(workflowQueueRetryBackoff.summary.held_queue_record_count, workflowStateMachineRunner.summary.waiting_guard_count);
+      assert.equal(workflowQueueRetryBackoff.summary.law_firm_held_queue_record_count, workflowStateMachineRunner.summary.law_firm_human_review_guard_count);
+      assert.equal(workflowQueueRetryBackoff.summary.auto_retry_scheduled_count, 0);
+      assert.equal(workflowQueueRetryBackoff.summary.auto_dequeue_allowed_count, 0);
+      assert.equal(workflowQueueRetryBackoff.summary.protected_action_executed_count, 0);
+      assert.ok(workflowQueueRetryBackoff.retry_classification_records.filter((record) => record.retryable).every((record) => record.backoff_policy_id));
+      assert.ok(workflowQueueRetryBackoff.retry_classification_records.filter((record) => !record.retryable).every((record) => record.backoff_policy_id === null));
+      assert.ok(workflowQueueRetryBackoff.backoff_policy_records.every((record) => record.schedule_status === "not_scheduled" && record.requires_human_before_schedule));
+      assert.ok(workflowQueueRetryBackoff.workflow_queue_records.every((record) => record.queue_status === "held_for_human_review" && !record.auto_dequeue_allowed));
+      assert.ok(workflowQueueRetryBackoff.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-queue-retry-backoff", "summary.md"), "utf8"), /Workflow Queue\/Retry\/Backoff Contract/);
+
       const retentionArchiveLedger = await runRetentionArchiveLedger({
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
@@ -5770,6 +5809,7 @@ describe("matter harness", () => {
           pack_manifest_compatibility: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
           workflow_dsl_state_model: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
           workflow_state_machine_runner: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+          workflow_queue_retry_backoff_contract: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5781,8 +5821,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 82);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 82);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 83);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 83);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5852,6 +5892,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pack_manifest_compatibility"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_dsl_state_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_state_machine_runner"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_queue_retry_backoff_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5910,6 +5951,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:queue-retry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6246,6 +6288,10 @@ describe("matter harness", () => {
       assert.equal(workflowStateMachineRunnerCheckpoint?.acceptance_profile, "workflow_state_machine_runner_gate");
       assert.equal(workflowStateMachineRunnerCheckpoint?.status, "passed");
       assert.equal(workflowStateMachineRunnerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowQueueRetryBackoffCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-queue-retry-backoff");
+      assert.equal(workflowQueueRetryBackoffCheckpoint?.acceptance_profile, "workflow_queue_retry_backoff_gate");
+      assert.equal(workflowQueueRetryBackoffCheckpoint?.status, "passed");
+      assert.equal(workflowQueueRetryBackoffCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -7710,6 +7756,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_state_machine_runner_human_review_guard_count, workflowStateMachineRunner.summary.human_review_guard_count);
       assert.equal(dashboard.summary.workflow_state_machine_runner_law_firm_human_review_guard_count, workflowStateMachineRunner.summary.law_firm_human_review_guard_count);
       assert.equal(dashboard.summary.workflow_state_machine_runner_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_status, "complete");
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_queue_contract_id, "workflow-queue-retry-backoff.v1");
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_source_workflow_state_machine_runner_status, "complete");
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_source_error_retry_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_source_workflow_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_workflow_runner_plan_count, workflowQueueRetryBackoff.summary.workflow_runner_plan_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_workflow_queue_record_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_held_queue_record_count, workflowQueueRetryBackoff.summary.held_queue_record_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_law_firm_held_queue_record_count, workflowQueueRetryBackoff.summary.law_firm_held_queue_record_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_retry_classification_count, workflowQueueRetryBackoff.summary.retry_classification_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_retryable_classification_count, workflowQueueRetryBackoff.summary.retryable_classification_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_non_retryable_classification_count, workflowQueueRetryBackoff.summary.non_retryable_classification_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_backoff_policy_count, workflowQueueRetryBackoff.summary.backoff_policy_count);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_non_retryable_backoff_policy_count, 0);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_auto_retry_scheduled_count, 0);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_auto_dequeue_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_queue_retry_backoff_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8333,6 +8397,11 @@ describe("matter harness", () => {
       const workflowStateMachineRunnerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_state_machine_runner");
       assert.equal(workflowStateMachineRunnerStage?.status, "passed");
       assert.equal(workflowStateMachineRunnerStage?.metrics.transition_guard_count, workflowStateMachineRunner.summary.transition_guard_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_queue_retry_backoff_contract"));
+      const workflowQueueRetryBackoffStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_queue_retry_backoff_contract");
+      assert.equal(workflowQueueRetryBackoffStage?.status, "passed");
+      assert.equal(workflowQueueRetryBackoffStage?.metrics.workflow_queue_record_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
+      assert.equal(workflowQueueRetryBackoffStage?.metrics.backoff_policy_count, workflowQueueRetryBackoff.summary.backoff_policy_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9233,6 +9302,26 @@ describe("matter harness", () => {
       const workflowRunnerValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-runner-validations?status=passed", apiOptions)).body);
       assert.equal(workflowRunnerValidations.collection, "workflow_runner_validations");
       assert.equal(workflowRunnerValidations.count, workflowStateMachineRunner.summary.validation_item_count);
+
+      const workflowQueueRetryBackoffContracts = JSON.parse((await buildReviewApiResponse("/api/workflow-queue-retry-backoff-contracts?workflow_queue_retry_backoff_status=complete", apiOptions)).body);
+      assert.equal(workflowQueueRetryBackoffContracts.collection, "workflow_queue_retry_backoff_contracts");
+      assert.equal(workflowQueueRetryBackoffContracts.count, 1);
+
+      const workflowQueueRecords = JSON.parse((await buildReviewApiResponse("/api/workflow-queue-records?queue_status=held_for_human_review", apiOptions)).body);
+      assert.equal(workflowQueueRecords.collection, "workflow_queue_records");
+      assert.equal(workflowQueueRecords.count, workflowQueueRetryBackoff.summary.held_queue_record_count);
+
+      const workflowRetryClassifications = JSON.parse((await buildReviewApiResponse("/api/workflow-retry-classifications?retry_class=retryable_requires_human_gate", apiOptions)).body);
+      assert.equal(workflowRetryClassifications.collection, "workflow_retry_classifications");
+      assert.equal(workflowRetryClassifications.count, workflowQueueRetryBackoff.summary.retryable_classification_count);
+
+      const workflowBackoffPolicies = JSON.parse((await buildReviewApiResponse("/api/workflow-backoff-policies?schedule_status=not_scheduled", apiOptions)).body);
+      assert.equal(workflowBackoffPolicies.collection, "workflow_backoff_policies");
+      assert.equal(workflowBackoffPolicies.count, workflowQueueRetryBackoff.summary.backoff_policy_count);
+
+      const workflowQueueValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-queue-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowQueueValidations.collection, "workflow_queue_validations");
+      assert.equal(workflowQueueValidations.count, workflowQueueRetryBackoff.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

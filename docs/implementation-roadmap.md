@@ -5311,6 +5311,32 @@ Phase 180은 Phase 179의 DSL state projection 위에 deterministic workflow sta
 - Golden fixture 수가 82개로 증가하고 workflow state machine runner artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:runner -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 181 - Workflow Queue Retry Backoff Contract
+
+Phase 181은 Phase 180의 workflow runner plan과 Phase 171의 Error/Retry Ledger를 결합해 workflow queue, retry classification, backoff policy를 분리된 계약으로 고정했다. 목적은 retry 가능한 오류와 retry 불가 오류를 명확히 나누고, retryable 오류에만 backoff policy row를 만들되 자동 retry scheduling이나 auto dequeue는 실행하지 않는 것이다.
+
+구현 내용:
+
+- `src/workflow-queue-retry-backoff-contract.mjs`와 `scripts/workflow-queue-retry-backoff-contract.mjs`를 추가해 `artifacts/workflow-queue-retry-backoff/latest/workflow-queue-retry-backoff-contract.json` 산출물을 생성함
+- `workflow-queue-records.json`, `retry-classification-records.json`, `backoff-policy-records.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-queue-retry-backoff-contract.schema.json`으로 queue record, retry classification, backoff policy의 최소 계약을 고정함
+- Review Dashboard에 `workflow_queue_retry_backoff_contract` source/stage/summary metric을 추가하고 held queue, retryable/non-retryable split, unscheduled backoff, auto 실행 0건을 노출함
+- Review API에 `/api/workflow-queue-retry-backoff-contracts`, `/api/workflow-queue-records`, `/api/workflow-retry-classifications`, `/api/workflow-backoff-policies`, `/api/workflow-queue-validations` route를 추가함
+- Control Plane Loop에 `workflow_queue_retry_backoff_contract` step을 추가하고 Goal Checkpoint에 `workflow_queue_retry_backoff_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow queue/retry/backoff artifact와 `workflows:queue-retry` script를 포함함
+
+완료 기준:
+
+- Workflow queue/retry/backoff contract가 validation error 없이 `complete` 상태가 됨
+- Workflow state machine runner plan마다 queue record가 정확히 1개 생성됨
+- Error/Retry Ledger의 retry record마다 retry classification row가 정확히 1개 생성됨
+- retryable classification에만 backoff policy가 생성되고 non-retryable classification의 backoff policy count는 0으로 유지됨
+- 모든 backoff policy는 `not_scheduled` 상태이고 human gate 전에는 retry schedule이 생성되지 않음
+- law-firm human-review workflow queue record는 held 상태로 남고 auto dequeue, auto retry, protected action execution count가 모두 0임
+- Review API smoke가 queue contract, queue record, retry classification, backoff policy, validation route를 모두 조회함
+- Golden fixture 수가 83개로 증가하고 workflow queue/retry/backoff artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:queue-retry -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5319,9 +5345,9 @@ Phase 180은 Phase 179의 DSL state projection 위에 deterministic workflow sta
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 180이다.
+- 현재 완료 기준점은 Phase 181이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P181-P312, 총 132개다.
+- 남은 계획 슬롯은 P182-P312, 총 131개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

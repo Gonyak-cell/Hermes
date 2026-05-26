@@ -102,6 +102,7 @@ const GOAL_ITEMS = [
   sourceItem("pack_manifest_compatibility", "Pack manifest compatibility", "domain_packs", "pack_manifest_compatibility", "control-plane-pack-manifest-compatibility", { acceptance_profile: "pack_manifest_compatibility_gate" }),
   sourceItem("workflow_dsl_state_model", "Workflow DSL state model", "workflow", "workflow_dsl_state_model", "control-plane-workflow-dsl-state-model", { acceptance_profile: "workflow_dsl_state_model_gate" }),
   sourceItem("workflow_state_machine_runner", "Workflow state machine runner", "workflow", "workflow_state_machine_runner", "control-plane-workflow-state-machine-runner", { acceptance_profile: "workflow_state_machine_runner_gate" }),
+  sourceItem("workflow_queue_retry_backoff_contract", "Workflow queue/retry/backoff contract", "workflow", "workflow_queue_retry_backoff_contract", "control-plane-workflow-queue-retry-backoff", { acceptance_profile: "workflow_queue_retry_backoff_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -465,6 +466,7 @@ function evaluateStageAcceptance(item, stage) {
     "pack_manifest_compatibility_gate",
     "workflow_dsl_state_model_gate",
     "workflow_state_machine_runner_gate",
+    "workflow_queue_retry_backoff_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -845,6 +847,39 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow state machine runner creates a transition guard, audit event candidate, and runner plan for each run while holding law-firm human-review work.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_queue_retry_backoff_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.queue_record_without_retry_classification_count ?? 0)
+      + (metrics.non_retryable_backoff_policy_count ?? 0)
+      + (metrics.scheduled_backoff_policy_count ?? 0)
+      + (metrics.auto_retry_scheduled_count ?? 0)
+      + (metrics.auto_dequeue_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const queueRecordCount = metrics.workflow_queue_record_count ?? 0;
+    const retryClassificationCount = metrics.retry_classification_count ?? 0;
+    const retryableCount = metrics.retryable_classification_count ?? 0;
+    const nonRetryableCount = metrics.non_retryable_classification_count ?? 0;
+    const backoffPolicyCount = metrics.backoff_policy_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_queue_retry_backoff_status === "complete"
+      && metrics.queue_contract_id === "workflow-queue-retry-backoff.v1"
+      && queueRecordCount > 0
+      && queueRecordCount === (metrics.workflow_runner_plan_count ?? 0)
+      && retryClassificationCount > 0
+      && retryClassificationCount === retryableCount + nonRetryableCount
+      && backoffPolicyCount === retryableCount
+      && (metrics.human_gate_required_backoff_count ?? 0) === backoffPolicyCount
+      && (metrics.held_queue_record_count ?? 0) > 0
+      && (metrics.law_firm_held_queue_record_count ?? 0) > 0
+      && (metrics.auto_retry_scheduled_count ?? 1) === 0
+      && (metrics.auto_dequeue_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow queue/retry/backoff contract separates retryable errors from non-retryable human holds and keeps all backoff unscheduled behind review gates.");
     }
   }
 

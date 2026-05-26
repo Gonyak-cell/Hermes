@@ -2609,6 +2609,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-queue-retry-backoff-contracts") {
+    const queueResult = await readDashboardSourceArtifact(dashboard, "workflow_queue_retry_backoff_contract");
+    if (!queueResult.available) {
+      return jsonResponse(503, buildError("workflow_queue_retry_backoff_contract_unavailable", queueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_queue_retry_backoff_contracts", [queueResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-queue-records") {
+    const queueResult = await readDashboardSourceArtifact(dashboard, "workflow_queue_retry_backoff_contract");
+    if (!queueResult.available) {
+      return jsonResponse(503, buildError("workflow_queue_retry_backoff_contract_unavailable", queueResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_queue_records", queueResult.artifact.workflow_queue_records ?? queueResult.artifact.workflow_queue_retry_backoff_contract?.workflow_queue_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-retry-classifications") {
+    const queueResult = await readDashboardSourceArtifact(dashboard, "workflow_queue_retry_backoff_contract");
+    if (!queueResult.available) {
+      return jsonResponse(503, buildError("workflow_queue_retry_backoff_contract_unavailable", queueResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_retry_classifications", queueResult.artifact.retry_classification_records ?? queueResult.artifact.workflow_queue_retry_backoff_contract?.retry_classification_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-backoff-policies") {
+    const queueResult = await readDashboardSourceArtifact(dashboard, "workflow_queue_retry_backoff_contract");
+    if (!queueResult.available) {
+      return jsonResponse(503, buildError("workflow_queue_retry_backoff_contract_unavailable", queueResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_backoff_policies", queueResult.artifact.backoff_policy_records ?? queueResult.artifact.workflow_queue_retry_backoff_contract?.backoff_policy_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-queue-validations") {
+    const queueResult = await readDashboardSourceArtifact(dashboard, "workflow_queue_retry_backoff_contract");
+    if (!queueResult.available) {
+      return jsonResponse(503, buildError("workflow_queue_retry_backoff_contract_unavailable", queueResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_queue_validations", queueResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6734,6 +6785,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-runner-audit-events", "Workflow runner audit event candidates"),
       route("GET", "/api/workflow-runner-plans", "Workflow runner plan rows"),
       route("GET", "/api/workflow-runner-validations", "Workflow runner validation rows"),
+      route("GET", "/api/workflow-queue-retry-backoff-contracts", "Workflow queue/retry/backoff contract artifacts"),
+      route("GET", "/api/workflow-queue-records", "Workflow queue records"),
+      route("GET", "/api/workflow-retry-classifications", "Workflow retry classification rows"),
+      route("GET", "/api/workflow-backoff-policies", "Workflow retry backoff policy rows"),
+      route("GET", "/api/workflow-queue-validations", "Workflow queue/retry/backoff validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7358,9 +7414,16 @@ function filterItems(items, searchParams) {
     "dependency_status",
     "workflow_dsl_state_model_status",
     "workflow_state_machine_runner_status",
+    "workflow_queue_retry_backoff_status",
     "transition_guard_status",
     "guard_decision",
     "runner_plan_status",
+    "queue_status",
+    "retry_class",
+    "queue_retry_status",
+    "backoff_policy_status",
+    "schedule_status",
+    "retryable",
     "dsl_state",
     "dsl_current_state",
     "state_projection_status",
@@ -8475,9 +8538,16 @@ function readFilterValue(item, key) {
   if (key === "dependency_status") return item.dependency_status;
   if (key === "workflow_dsl_state_model_status") return item.summary?.workflow_dsl_state_model_status ?? item.workflow_dsl_state_model_status;
   if (key === "workflow_state_machine_runner_status") return item.summary?.workflow_state_machine_runner_status ?? item.workflow_state_machine_runner_status;
+  if (key === "workflow_queue_retry_backoff_status") return item.summary?.workflow_queue_retry_backoff_status ?? item.workflow_queue_retry_backoff_status;
   if (key === "transition_guard_status") return item.transition_guard_status;
   if (key === "guard_decision") return item.guard_decision;
   if (key === "runner_plan_status") return item.runner_plan_status;
+  if (key === "queue_status") return item.queue_status;
+  if (key === "retry_class") return item.retry_class;
+  if (key === "queue_retry_status") return item.queue_retry_status;
+  if (key === "backoff_policy_status") return item.backoff_policy_status;
+  if (key === "schedule_status") return item.schedule_status;
+  if (key === "retryable") return String(Boolean(item.retryable));
   if (key === "audit_status") return item.audit_status;
   if (key === "dsl_state") return item.dsl_state;
   if (key === "dsl_current_state") return item.dsl_current_state;

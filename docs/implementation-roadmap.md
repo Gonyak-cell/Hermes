@@ -4895,6 +4895,31 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 66개로 증가하고 agent run ledger가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run events:agent-runs -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 165: Tool Invocation Ledger
+
+목표: Agent Run Ledger와 Tool/Runtime Policy Enforcement를 결합해, 각 runtime 내부 tool 사용 가능성, permission decision, protected action blocker, AgentRun event context를 tool invocation ledger로 추적한다.
+
+구현 내용:
+
+- `npm run events:tool-invocations -- --check` 명령을 추가해 AgentRun별 runtime tool policy를 `tool_invocation_record`, `tool_invocation_permission_decision`, `tool_invocation_agent_binding`, `tool_invocation_event_binding`으로 projection함
+- Agent Run Ledger, Tool/Runtime Policy Enforcement, Append-only Event Store, Event Correlation Ledger, Runtime/AgentRun Contract Freeze를 source contract로 묶고 source status를 validation gate로 검증함
+- 각 invocation row가 `agent_run_id`, `workflow_run_id`, `runtime_id`, `tool_id`, `tool_permission_gate_id`, `agent_run_tool_gate_id`, `permission_decision`, `permission_status`, `invocation_state`, `execution_allowed`를 보존함
+- forbidden runtime tool은 숨기지 않고 `blocked` invocation으로 남겨 protected action audit가 가능하게 함
+- 현재 event model에는 direct `tool_invocation.*` event가 없으므로 각 invocation을 AgentRun completed/started event context에 `context_bound`로 연결함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Tool Invocation Ledger를 통합함
+- `/api/tool-invocation-ledgers`, `/api/tool-invocation-records`, `/api/tool-invocation-permission-decisions`, `/api/tool-invocation-agent-bindings`, `/api/tool-invocation-event-bindings`, `/api/tool-invocation-ledger-validations` route를 추가함
+
+완료 기준:
+
+- Tool Invocation Ledger가 validation error 없이 `complete` 상태가 됨
+- 모든 AgentRun이 runtime별 tool permission gate와 결합되어 tool invocation record를 생성함
+- 모든 tool invocation이 permission decision, AgentRun tool gate, AgentRun event context에 연결됨
+- forbidden tool invocation은 모두 blocked 상태이며 protected action audit에 남음
+- Review Dashboard summary와 stage status에서 invocation, permission decision, agent binding, event binding, blocked/protected count가 노출됨
+- Review API smoke가 tool invocation ledger, record, permission decision, agent binding, event binding, validation route를 모두 조회함
+- Golden fixture 수가 67개로 증가하고 tool invocation ledger가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run events:tool-invocations -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4903,9 +4928,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 164이다.
+- 현재 완료 기준점은 Phase 165이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P165-P312, 총 148개다.
+- 남은 계획 슬롯은 P166-P312, 총 147개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

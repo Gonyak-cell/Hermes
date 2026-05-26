@@ -126,6 +126,7 @@
     "events:store": "node scripts/append-only-event-store.mjs",
     "events:types": "node scripts/event-type-registry.mjs",
     "events:agent-runs": "node scripts/agent-run-ledger.mjs",
+    "events:tool-invocations": "node scripts/tool-invocation-ledger.mjs",
     "events:workflow-runs": "node scripts/workflow-run-ledger.mjs",
     "evidence:viewer": "node scripts/evidence-viewer.mjs",
     "evidence:review:draft": "node scripts/evidence-review-draft.mjs",

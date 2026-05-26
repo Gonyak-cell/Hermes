@@ -61,6 +61,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   eventCorrelationLedgerPath: "artifacts/event-correlation/latest/event-correlation-ledger.json",
   workflowRunLedgerPath: "artifacts/workflow-run-ledger/latest/workflow-run-ledger.json",
   agentRunLedgerPath: "artifacts/agent-run-ledger/latest/agent-run-ledger.json",
+  toolInvocationLedgerPath: "artifacts/tool-invocation-ledger/latest/tool-invocation-ledger.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -448,6 +449,11 @@ const SOURCE_DEFINITIONS = [
     option: "agentRunLedgerPath",
     source_id: "agent_run_ledger",
     label: "Agent Run Ledger",
+  },
+  {
+    option: "toolInvocationLedgerPath",
+    source_id: "tool_invocation_ledger",
+    label: "Tool Invocation Ledger",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1107,6 +1113,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "event_correlation_ledger") return data.summary ?? {};
   if (sourceId === "workflow_run_ledger") return data.summary ?? {};
   if (sourceId === "agent_run_ledger") return data.summary ?? {};
+  if (sourceId === "tool_invocation_ledger") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1351,6 +1358,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEventCorrelationLedgerStage(artifacts.event_correlation_ledger, sourceById.get("event_correlation_ledger")),
     buildWorkflowRunLedgerStage(artifacts.workflow_run_ledger, sourceById.get("workflow_run_ledger")),
     buildAgentRunLedgerStage(artifacts.agent_run_ledger, sourceById.get("agent_run_ledger")),
+    buildToolInvocationLedgerStage(artifacts.tool_invocation_ledger, sourceById.get("tool_invocation_ledger")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4354,6 +4362,69 @@ function buildAgentRunLedgerStage(ledger, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildToolInvocationLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("tool_invocation_ledger", "Tool Invocation Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const missingDecisionCount = summary.missing_permission_decision_count ?? 0;
+  const missingAgentGateCount = summary.missing_agent_run_tool_gate_count ?? 0;
+  const missingEventBindingCount = summary.missing_event_binding_count ?? 0;
+  const unknownToolCount = summary.unknown_tool_count ?? 0;
+  const status = summary.tool_invocation_ledger_status !== "complete"
+    || errorCount > 0
+    || missingDecisionCount > 0
+    || missingAgentGateCount > 0
+    || missingEventBindingCount > 0
+    || unknownToolCount > 0
+    ? "attention"
+    : (summary.blocked_tool_invocation_count ?? 0) > 0 || (summary.review_tool_invocation_count ?? 0) > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "tool_invocation_ledger",
+    label: "Tool Invocation Ledger",
+    status,
+    message: `${summary.tool_invocation_record_count ?? 0} tool invocation(s), ${summary.permission_decision_count ?? 0} permission decision(s), ${summary.context_bound_event_binding_count ?? 0}/${summary.event_binding_count ?? 0} event context binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      tool_invocation_ledger_status: summary.tool_invocation_ledger_status ?? "unknown",
+      tool_invocation_ledger_contract_id: summary.tool_invocation_ledger_contract_id ?? null,
+      source_agent_run_ledger_status: summary.source_agent_run_ledger_status ?? "unknown",
+      source_agent_run_count: summary.source_agent_run_count ?? 0,
+      source_tool_runtime_policy_status: summary.source_tool_runtime_policy_status ?? "unknown",
+      source_tool_permission_gate_count: summary.source_tool_permission_gate_count ?? 0,
+      source_agent_run_tool_gate_count: summary.source_agent_run_tool_gate_count ?? 0,
+      source_event_store_status: summary.source_event_store_status ?? "unknown",
+      source_stored_event_count: summary.source_stored_event_count ?? 0,
+      source_event_correlation_status: summary.source_event_correlation_status ?? "unknown",
+      source_run_bound_trace_count: summary.source_run_bound_trace_count ?? 0,
+      source_runtime_agentrun_contract_freeze_status: summary.source_runtime_agentrun_contract_freeze_status ?? "unknown",
+      tool_invocation_record_count: summary.tool_invocation_record_count ?? 0,
+      permission_decision_count: summary.permission_decision_count ?? 0,
+      agent_run_binding_count: summary.agent_run_binding_count ?? 0,
+      complete_agent_binding_count: summary.complete_agent_binding_count ?? 0,
+      event_binding_count: summary.event_binding_count ?? 0,
+      context_bound_event_binding_count: summary.context_bound_event_binding_count ?? 0,
+      permitted_tool_invocation_count: summary.permitted_tool_invocation_count ?? 0,
+      review_tool_invocation_count: summary.review_tool_invocation_count ?? 0,
+      blocked_tool_invocation_count: summary.blocked_tool_invocation_count ?? 0,
+      allowed_tool_invocation_count: summary.allowed_tool_invocation_count ?? 0,
+      forbidden_tool_invocation_count: summary.forbidden_tool_invocation_count ?? 0,
+      denied_tool_invocation_count: summary.denied_tool_invocation_count ?? 0,
+      approval_required_tool_invocation_count: summary.approval_required_tool_invocation_count ?? 0,
+      protected_action_tool_invocation_count: summary.protected_action_tool_invocation_count ?? 0,
+      execution_allowed_invocation_count: summary.execution_allowed_invocation_count ?? 0,
+      missing_permission_decision_count: missingDecisionCount,
+      missing_agent_run_tool_gate_count: missingAgentGateCount,
+      missing_event_binding_count: missingEventBindingCount,
+      unknown_tool_count: unknownToolCount,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
     },
   };
 }
@@ -10645,6 +10716,23 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     agent_run_ledger_linked_event_binding_count: artifacts.agent_run_ledger?.summary?.linked_event_binding_count ?? 0,
     agent_run_ledger_failed_validation_item_count: artifacts.agent_run_ledger?.summary?.failed_validation_item_count ?? 0,
     agent_run_ledger_validation_error_count: artifacts.agent_run_ledger?.summary?.validation_error_count ?? artifacts.agent_run_ledger?.validation?.errors?.length ?? 0,
+    tool_invocation_ledger_status: artifacts.tool_invocation_ledger?.summary?.tool_invocation_ledger_status ?? "unknown",
+    tool_invocation_ledger_tool_invocation_record_count: artifacts.tool_invocation_ledger?.summary?.tool_invocation_record_count ?? 0,
+    tool_invocation_ledger_permission_decision_count: artifacts.tool_invocation_ledger?.summary?.permission_decision_count ?? 0,
+    tool_invocation_ledger_agent_run_binding_count: artifacts.tool_invocation_ledger?.summary?.agent_run_binding_count ?? 0,
+    tool_invocation_ledger_complete_agent_binding_count: artifacts.tool_invocation_ledger?.summary?.complete_agent_binding_count ?? 0,
+    tool_invocation_ledger_event_binding_count: artifacts.tool_invocation_ledger?.summary?.event_binding_count ?? 0,
+    tool_invocation_ledger_context_bound_event_binding_count: artifacts.tool_invocation_ledger?.summary?.context_bound_event_binding_count ?? 0,
+    tool_invocation_ledger_permitted_tool_invocation_count: artifacts.tool_invocation_ledger?.summary?.permitted_tool_invocation_count ?? 0,
+    tool_invocation_ledger_review_tool_invocation_count: artifacts.tool_invocation_ledger?.summary?.review_tool_invocation_count ?? 0,
+    tool_invocation_ledger_blocked_tool_invocation_count: artifacts.tool_invocation_ledger?.summary?.blocked_tool_invocation_count ?? 0,
+    tool_invocation_ledger_forbidden_tool_invocation_count: artifacts.tool_invocation_ledger?.summary?.forbidden_tool_invocation_count ?? 0,
+    tool_invocation_ledger_denied_tool_invocation_count: artifacts.tool_invocation_ledger?.summary?.denied_tool_invocation_count ?? 0,
+    tool_invocation_ledger_protected_action_tool_invocation_count: artifacts.tool_invocation_ledger?.summary?.protected_action_tool_invocation_count ?? 0,
+    tool_invocation_ledger_missing_permission_decision_count: artifacts.tool_invocation_ledger?.summary?.missing_permission_decision_count ?? 0,
+    tool_invocation_ledger_missing_agent_run_tool_gate_count: artifacts.tool_invocation_ledger?.summary?.missing_agent_run_tool_gate_count ?? 0,
+    tool_invocation_ledger_unknown_tool_count: artifacts.tool_invocation_ledger?.summary?.unknown_tool_count ?? 0,
+    tool_invocation_ledger_validation_error_count: artifacts.tool_invocation_ledger?.summary?.validation_error_count ?? artifacts.tool_invocation_ledger?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11939,6 +12027,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-run-ledger") parsed.workflowRunLedgerPath = false;
     else if (arg === "--agent-run-ledger") parsed.agentRunLedgerPath = argv[++index];
     else if (arg === "--no-agent-run-ledger") parsed.agentRunLedgerPath = false;
+    else if (arg === "--tool-invocation-ledger") parsed.toolInvocationLedgerPath = argv[++index];
+    else if (arg === "--no-tool-invocation-ledger") parsed.toolInvocationLedgerPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -12298,6 +12388,9 @@ Options:
   --no-workflow-run-ledger       Do not include Workflow Run Ledger status.
   --agent-run-ledger <path>      agent-run-ledger.json path.
   --no-agent-run-ledger          Do not include Agent Run Ledger status.
+  --tool-invocation-ledger <path>
+                                  tool-invocation-ledger.json path.
+  --no-tool-invocation-ledger     Do not include Tool Invocation Ledger status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

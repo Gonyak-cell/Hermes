@@ -76,6 +76,7 @@ const GOAL_ITEMS = [
   sourceItem("event_correlation_ledger", "Event correlation ledger", "audit", "event_correlation_ledger", "control-plane-event-correlation-ledger", { acceptance_profile: "event_correlation_ledger_gate" }),
   sourceItem("workflow_run_ledger", "Workflow run ledger", "audit", "workflow_run_ledger", "control-plane-workflow-run-ledger", { acceptance_profile: "workflow_run_ledger_gate" }),
   sourceItem("agent_run_ledger", "Agent run ledger", "audit", "agent_run_ledger", "control-plane-agent-run-ledger", { acceptance_profile: "agent_run_ledger_gate" }),
+  sourceItem("tool_invocation_ledger", "Tool invocation ledger", "audit", "tool_invocation_ledger", "control-plane-tool-invocation-ledger", { acceptance_profile: "tool_invocation_ledger_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -433,6 +434,7 @@ function evaluateStageAcceptance(item, stage) {
     "event_correlation_ledger_gate",
     "workflow_run_ledger_gate",
     "agent_run_ledger_gate",
+    "tool_invocation_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -632,6 +634,36 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.linked_event_binding_count ?? 0) === eventBindingCount
     ) {
       return passedWithOperationalGate(stage, "Agent run ledger projects runtime AgentRun records, binds workflow/run ledger context, and stores IO, log, artifact, and event references for each runtime execution.");
+    }
+  }
+
+  if (item.acceptance_profile === "tool_invocation_ledger_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.missing_permission_decision_count ?? 0)
+      + (metrics.missing_agent_run_tool_gate_count ?? 0)
+      + (metrics.missing_event_binding_count ?? 0)
+      + (metrics.unknown_tool_count ?? 0);
+    const recordCount = metrics.tool_invocation_record_count ?? 0;
+    const agentBindingCount = metrics.agent_run_binding_count ?? 0;
+    const eventBindingCount = metrics.event_binding_count ?? 0;
+    if (
+      errors === 0
+      && metrics.tool_invocation_ledger_status === "complete"
+      && metrics.source_agent_run_ledger_status === "complete"
+      && metrics.source_tool_runtime_policy_status === "complete"
+      && metrics.source_event_store_status === "complete"
+      && metrics.source_event_correlation_status === "complete"
+      && metrics.source_runtime_agentrun_contract_freeze_status === "complete"
+      && recordCount > 0
+      && (metrics.permission_decision_count ?? 0) === recordCount
+      && agentBindingCount === (metrics.source_agent_run_count ?? -1)
+      && (metrics.complete_agent_binding_count ?? 0) === agentBindingCount
+      && eventBindingCount === recordCount
+      && (metrics.context_bound_event_binding_count ?? 0) === eventBindingCount
+      && (metrics.forbidden_tool_invocation_count ?? 0) === (metrics.blocked_tool_invocation_count ?? -1)
+      && (metrics.denied_tool_invocation_count ?? 0) === (metrics.blocked_tool_invocation_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Tool invocation ledger projects each AgentRun runtime tool policy into auditable permission decisions and AgentRun event-context bindings.");
     }
   }
 

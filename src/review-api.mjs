@@ -2961,6 +2961,68 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/tool-invocation-ledgers") {
+    const toolInvocationResult = await readDashboardSourceArtifact(dashboard, "tool_invocation_ledger");
+    if (!toolInvocationResult.available) {
+      return jsonResponse(503, buildError("tool_invocation_ledger_unavailable", toolInvocationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("tool_invocation_ledgers", [toolInvocationResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/tool-invocation-records") {
+    const toolInvocationResult = await readDashboardSourceArtifact(dashboard, "tool_invocation_ledger");
+    if (!toolInvocationResult.available) {
+      return jsonResponse(503, buildError("tool_invocation_ledger_unavailable", toolInvocationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("tool_invocation_records", toolInvocationResult.artifact.tool_invocation_catalog?.tool_invocation_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/tool-invocation-permission-decisions") {
+    const toolInvocationResult = await readDashboardSourceArtifact(dashboard, "tool_invocation_ledger");
+    if (!toolInvocationResult.available) {
+      return jsonResponse(503, buildError("tool_invocation_ledger_unavailable", toolInvocationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("tool_invocation_permission_decisions", toolInvocationResult.artifact.tool_invocation_catalog?.tool_invocation_permission_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/tool-invocation-agent-bindings") {
+    const toolInvocationResult = await readDashboardSourceArtifact(dashboard, "tool_invocation_ledger");
+    if (!toolInvocationResult.available) {
+      return jsonResponse(503, buildError("tool_invocation_ledger_unavailable", toolInvocationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("tool_invocation_agent_bindings", toolInvocationResult.artifact.tool_invocation_catalog?.tool_invocation_agent_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/tool-invocation-event-bindings") {
+    const toolInvocationResult = await readDashboardSourceArtifact(dashboard, "tool_invocation_ledger");
+    if (!toolInvocationResult.available) {
+      return jsonResponse(503, buildError("tool_invocation_ledger_unavailable", toolInvocationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("tool_invocation_event_bindings", toolInvocationResult.artifact.tool_invocation_catalog?.tool_invocation_event_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/tool-invocation-ledger-validations") {
+    const toolInvocationResult = await readDashboardSourceArtifact(dashboard, "tool_invocation_ledger");
+    if (!toolInvocationResult.available) {
+      return jsonResponse(503, buildError("tool_invocation_ledger_unavailable", toolInvocationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("tool_invocation_ledger_validations", toolInvocationResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -6009,6 +6071,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/agent-run-log-references", "AgentRun log reference rows"),
       route("GET", "/api/agent-run-event-bindings", "AgentRun event binding rows"),
       route("GET", "/api/agent-run-ledger-validations", "Agent run ledger validation rows"),
+      route("GET", "/api/tool-invocation-ledgers", "Tool invocation ledger artifacts"),
+      route("GET", "/api/tool-invocation-records", "Runtime tool invocation records"),
+      route("GET", "/api/tool-invocation-permission-decisions", "Tool invocation permission decision rows"),
+      route("GET", "/api/tool-invocation-agent-bindings", "AgentRun to tool invocation binding rows"),
+      route("GET", "/api/tool-invocation-event-bindings", "Tool invocation to AgentRun event context binding rows"),
+      route("GET", "/api/tool-invocation-ledger-validations", "Tool invocation ledger validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6418,6 +6486,19 @@ function filterItems(items, searchParams) {
     "agent_run_artifact_reference_id",
     "agent_run_log_reference_id",
     "agent_run_event_binding_id",
+    "tool_invocation_ledger_status",
+    "tool_invocation_id",
+    "tool_invocation_permission_decision_id",
+    "tool_invocation_agent_binding_id",
+    "tool_invocation_event_binding_id",
+    "permission_decision",
+    "permission_status",
+    "invocation_state",
+    "execution_allowed",
+    "approval_required",
+    "event_context",
+    "direct_tool_event",
+    "binding_status",
     "runtime_output_id",
     "runtime_log_id",
     "runtime_artifact_id",
@@ -7425,6 +7506,7 @@ function readFilterValue(item, key) {
   if (key === "event_correlation_status") return item.summary?.event_correlation_status ?? item.event_correlation_status;
   if (key === "workflow_run_ledger_status") return item.summary?.workflow_run_ledger_status ?? item.workflow_run_ledger_status;
   if (key === "agent_run_ledger_status") return item.summary?.agent_run_ledger_status ?? item.agent_run_ledger_status;
+  if (key === "tool_invocation_ledger_status") return item.summary?.tool_invocation_ledger_status ?? item.tool_invocation_ledger_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

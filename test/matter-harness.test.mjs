@@ -172,6 +172,7 @@ import { runAppendOnlyEventStore } from "../src/append-only-event-store.mjs";
 import { runEventCorrelationLedger } from "../src/event-correlation-ledger.mjs";
 import { runWorkflowRunLedger } from "../src/workflow-run-ledger.mjs";
 import { runAgentRunLedger } from "../src/agent-run-ledger.mjs";
+import { runToolInvocationLedger } from "../src/tool-invocation-ledger.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1706,6 +1707,7 @@ describe("matter harness", () => {
         eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
         workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
         agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        toolInvocationLedgerPath: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3584,6 +3586,51 @@ describe("matter harness", () => {
       assert.ok(agentRunLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "agent-run-ledger", "summary.md"), "utf8"), /Agent Run Ledger/);
 
+      const toolInvocationLedger = await runToolInvocationLedger({
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        outDir: path.join(outDir, "tool-invocation-ledger"),
+        runAt: "2026-05-23T06:35:08.454Z",
+      });
+      const toolInvocationLedgerSchema = JSON.parse(await readFile("schemas/tool-invocation-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(toolInvocationLedger, toolInvocationLedgerSchema, {}, "tool_invocation_ledger"),
+        [],
+      );
+      const expectedToolInvocationCount = agentRunLedger.agent_run_catalog.agent_run_records
+        .reduce((count, record) => count + toolRuntimePolicyEnforcement.tool_runtime_policy_catalog.tool_permission_gates
+          .filter((gate) => gate.runtime_id === record.runtime_id).length, 0);
+      assert.equal(toolInvocationLedger.summary.tool_invocation_ledger_status, "complete");
+      assert.equal(toolInvocationLedger.summary.tool_invocation_ledger_contract_id, "tool-invocation-ledger.v1");
+      assert.equal(toolInvocationLedger.summary.source_agent_run_ledger_status, "complete");
+      assert.equal(toolInvocationLedger.summary.source_tool_runtime_policy_status, "complete");
+      assert.equal(toolInvocationLedger.summary.source_event_store_status, "complete");
+      assert.equal(toolInvocationLedger.summary.source_event_correlation_status, "complete");
+      assert.equal(toolInvocationLedger.summary.source_runtime_agentrun_contract_freeze_status, "complete");
+      assert.equal(toolInvocationLedger.summary.tool_invocation_record_count, expectedToolInvocationCount);
+      assert.equal(toolInvocationLedger.summary.permission_decision_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(toolInvocationLedger.summary.agent_run_binding_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(toolInvocationLedger.summary.complete_agent_binding_count, toolInvocationLedger.summary.agent_run_binding_count);
+      assert.equal(toolInvocationLedger.summary.event_binding_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(toolInvocationLedger.summary.context_bound_event_binding_count, toolInvocationLedger.summary.event_binding_count);
+      assert.equal(toolInvocationLedger.summary.forbidden_tool_invocation_count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+      assert.equal(toolInvocationLedger.summary.denied_tool_invocation_count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+      assert.equal(toolInvocationLedger.summary.missing_permission_decision_count, 0);
+      assert.equal(toolInvocationLedger.summary.missing_agent_run_tool_gate_count, 0);
+      assert.equal(toolInvocationLedger.summary.missing_event_binding_count, 0);
+      assert.equal(toolInvocationLedger.summary.unknown_tool_count, 0);
+      assert.equal(toolInvocationLedger.summary.validation_error_count, 0);
+      assert.ok(toolInvocationLedger.tool_invocation_catalog.tool_invocation_records.every((record) => record.tool_permission_gate_id && record.agent_run_tool_gate_id));
+      assert.ok(toolInvocationLedger.tool_invocation_catalog.tool_invocation_records.filter((record) => record.forbidden_by_runtime).every((record) => record.invocation_state === "blocked"));
+      assert.ok(toolInvocationLedger.tool_invocation_catalog.tool_invocation_permission_decisions.every((decision) => decision.tool_permission_gate_id && decision.permission_status));
+      assert.ok(toolInvocationLedger.tool_invocation_catalog.tool_invocation_agent_bindings.every((binding) => binding.binding_status === "complete"));
+      assert.ok(toolInvocationLedger.tool_invocation_catalog.tool_invocation_event_bindings.every((binding) => binding.event_binding_status === "context_bound" && binding.direct_tool_event === false));
+      assert.ok(toolInvocationLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "tool-invocation-ledger", "summary.md"), "utf8"), /Tool Invocation Ledger/);
+
       const policySnapshotBindingLedger = await runPolicySnapshotBindingLedger({
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
@@ -5101,6 +5148,7 @@ describe("matter harness", () => {
           event_correlation_ledger: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
           workflow_run_ledger: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
           agent_run_ledger: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+          tool_invocation_ledger: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -5113,8 +5161,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 66);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 66);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 67);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 67);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5176,6 +5224,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_correlation_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "agent_run_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_invocation_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5210,6 +5259,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
@@ -5550,6 +5600,10 @@ describe("matter harness", () => {
       assert.equal(agentRunLedgerCheckpoint?.acceptance_profile, "agent_run_ledger_gate");
       assert.equal(agentRunLedgerCheckpoint?.status, "passed");
       assert.equal(agentRunLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const toolInvocationLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-tool-invocation-ledger");
+      assert.equal(toolInvocationLedgerCheckpoint?.acceptance_profile, "tool_invocation_ledger_gate");
+      assert.equal(toolInvocationLedgerCheckpoint?.status, "passed");
+      assert.equal(toolInvocationLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6910,6 +6964,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.agent_run_ledger_linked_event_binding_count, agentRunLedger.summary.agent_run_event_binding_count);
       assert.equal(dashboard.summary.agent_run_ledger_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.agent_run_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.tool_invocation_ledger_status, "complete");
+      assert.equal(dashboard.summary.tool_invocation_ledger_tool_invocation_record_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_permission_decision_count, toolInvocationLedger.summary.permission_decision_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_agent_run_binding_count, toolInvocationLedger.summary.agent_run_binding_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_complete_agent_binding_count, toolInvocationLedger.summary.agent_run_binding_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_event_binding_count, toolInvocationLedger.summary.event_binding_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_context_bound_event_binding_count, toolInvocationLedger.summary.event_binding_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_permitted_tool_invocation_count, toolInvocationLedger.summary.permitted_tool_invocation_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_blocked_tool_invocation_count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_forbidden_tool_invocation_count, toolInvocationLedger.summary.forbidden_tool_invocation_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_denied_tool_invocation_count, toolInvocationLedger.summary.denied_tool_invocation_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_protected_action_tool_invocation_count, toolInvocationLedger.summary.protected_action_tool_invocation_count);
+      assert.equal(dashboard.summary.tool_invocation_ledger_missing_permission_decision_count, 0);
+      assert.equal(dashboard.summary.tool_invocation_ledger_missing_agent_run_tool_gate_count, 0);
+      assert.equal(dashboard.summary.tool_invocation_ledger_unknown_tool_count, 0);
+      assert.equal(dashboard.summary.tool_invocation_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -8311,6 +8381,30 @@ describe("matter harness", () => {
       const agentRunLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/agent-run-ledger-validations?status=passed", apiOptions)).body);
       assert.equal(agentRunLedgerValidations.collection, "agent_run_ledger_validations");
       assert.equal(agentRunLedgerValidations.count, agentRunLedger.summary.validation_item_count);
+
+      const toolInvocationLedgers = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-ledgers?tool_invocation_ledger_status=complete", apiOptions)).body);
+      assert.equal(toolInvocationLedgers.collection, "tool_invocation_ledgers");
+      assert.equal(toolInvocationLedgers.count, 1);
+
+      const toolInvocationRecords = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-records?invocation_state=blocked", apiOptions)).body);
+      assert.equal(toolInvocationRecords.collection, "tool_invocation_records");
+      assert.equal(toolInvocationRecords.count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+
+      const toolInvocationPermissionDecisions = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-permission-decisions?permission_decision=deny", apiOptions)).body);
+      assert.equal(toolInvocationPermissionDecisions.collection, "tool_invocation_permission_decisions");
+      assert.equal(toolInvocationPermissionDecisions.count, toolInvocationLedger.summary.denied_tool_invocation_count);
+
+      const toolInvocationAgentBindings = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-agent-bindings?binding_status=complete", apiOptions)).body);
+      assert.equal(toolInvocationAgentBindings.collection, "tool_invocation_agent_bindings");
+      assert.equal(toolInvocationAgentBindings.count, toolInvocationLedger.summary.agent_run_binding_count);
+
+      const toolInvocationEventBindings = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-event-bindings?event_binding_status=context_bound", apiOptions)).body);
+      assert.equal(toolInvocationEventBindings.collection, "tool_invocation_event_bindings");
+      assert.equal(toolInvocationEventBindings.count, toolInvocationLedger.summary.event_binding_count);
+
+      const toolInvocationLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-ledger-validations?status=passed", apiOptions)).body);
+      assert.equal(toolInvocationLedgerValidations.collection, "tool_invocation_ledger_validations");
+      assert.equal(toolInvocationLedgerValidations.count, toolInvocationLedger.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

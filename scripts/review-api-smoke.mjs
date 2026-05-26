@@ -97,6 +97,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/agent-run-log-references"));
   assert.ok(index.routes.some((route) => route.path === "/api/agent-run-event-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/agent-run-ledger-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-permission-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-agent-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-event-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-ledger-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -964,6 +970,30 @@ try {
   const agentRunLedgerValidations = await fetchJson(`${url}/api/agent-run-ledger-validations?status=passed&limit=5`);
   assert.equal(agentRunLedgerValidations.collection, "agent_run_ledger_validations");
   assert.ok(agentRunLedgerValidations.count <= 5);
+
+  const toolInvocationLedgers = await fetchJson(`${url}/api/tool-invocation-ledgers?tool_invocation_ledger_status=complete&limit=1`);
+  assert.equal(toolInvocationLedgers.collection, "tool_invocation_ledgers");
+  assert.ok(toolInvocationLedgers.count <= 1);
+
+  const toolInvocationRecords = await fetchJson(`${url}/api/tool-invocation-records?invocation_state=blocked&limit=5`);
+  assert.equal(toolInvocationRecords.collection, "tool_invocation_records");
+  assert.ok(toolInvocationRecords.count <= 5);
+
+  const toolInvocationPermissionDecisions = await fetchJson(`${url}/api/tool-invocation-permission-decisions?permission_decision=deny&limit=5`);
+  assert.equal(toolInvocationPermissionDecisions.collection, "tool_invocation_permission_decisions");
+  assert.ok(toolInvocationPermissionDecisions.count <= 5);
+
+  const toolInvocationAgentBindings = await fetchJson(`${url}/api/tool-invocation-agent-bindings?binding_status=complete&limit=5`);
+  assert.equal(toolInvocationAgentBindings.collection, "tool_invocation_agent_bindings");
+  assert.ok(toolInvocationAgentBindings.count <= 5);
+
+  const toolInvocationEventBindings = await fetchJson(`${url}/api/tool-invocation-event-bindings?event_binding_status=context_bound&limit=5`);
+  assert.equal(toolInvocationEventBindings.collection, "tool_invocation_event_bindings");
+  assert.ok(toolInvocationEventBindings.count <= 5);
+
+  const toolInvocationLedgerValidations = await fetchJson(`${url}/api/tool-invocation-ledger-validations?status=passed&limit=5`);
+  assert.equal(toolInvocationLedgerValidations.collection, "tool_invocation_ledger_validations");
+  assert.ok(toolInvocationLedgerValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

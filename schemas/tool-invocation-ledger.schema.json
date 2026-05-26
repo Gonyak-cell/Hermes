@@ -1,0 +1,388 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/tool-invocation-ledger.schema.json",
+  "title": "Hermes Tool Invocation Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "tool_invocation_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "tool_invocation_ledger_contract",
+    "tool_invocation_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "tool-invocation-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "tool_invocation_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "tool_invocation_ledger_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool_invocation_ledger_contract_id",
+        "reference_model",
+        "required_invocation_fields",
+        "required_permission_decision_fields",
+        "required_agent_binding_fields",
+        "required_event_binding_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "tool-invocation-ledger-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "tool_invocation_ledger_contract_id": { "const": "tool-invocation-ledger.v1" },
+        "reference_model": { "const": "agent_run_tool_permission_projection.v1" },
+        "required_invocation_fields": {
+          "type": "array",
+          "contains": { "const": "tool_invocation_id" }
+        },
+        "required_permission_decision_fields": {
+          "type": "array",
+          "contains": { "const": "permission_decision" }
+        },
+        "required_agent_binding_fields": {
+          "type": "array",
+          "contains": { "const": "agent_run_id" }
+        },
+        "required_event_binding_fields": {
+          "type": "array",
+          "contains": { "const": "stored_event_id" }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "tool_invocation_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool_invocation_records",
+        "tool_invocation_permission_decisions",
+        "tool_invocation_agent_bindings",
+        "tool_invocation_event_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "tool-invocation-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "tool_invocation_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tool_invocation_record" }
+        },
+        "tool_invocation_permission_decisions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tool_invocation_permission_decision" }
+        },
+        "tool_invocation_agent_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tool_invocation_agent_binding" }
+        },
+        "tool_invocation_event_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/tool_invocation_event_binding" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "tool_invocation_ledger_status",
+        "tool_invocation_ledger_contract_id",
+        "source_agent_run_ledger_status",
+        "source_agent_run_count",
+        "source_tool_runtime_policy_status",
+        "source_tool_permission_gate_count",
+        "source_agent_run_tool_gate_count",
+        "source_event_store_status",
+        "source_event_correlation_status",
+        "source_runtime_agentrun_contract_freeze_status",
+        "tool_invocation_record_count",
+        "permission_decision_count",
+        "agent_run_binding_count",
+        "complete_agent_binding_count",
+        "event_binding_count",
+        "context_bound_event_binding_count",
+        "permitted_tool_invocation_count",
+        "review_tool_invocation_count",
+        "blocked_tool_invocation_count",
+        "allowed_tool_invocation_count",
+        "forbidden_tool_invocation_count",
+        "denied_tool_invocation_count",
+        "approval_required_tool_invocation_count",
+        "protected_action_tool_invocation_count",
+        "missing_permission_decision_count",
+        "missing_agent_run_tool_gate_count",
+        "missing_event_binding_count",
+        "unknown_tool_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "tool_invocation_ledger_status": { "enum": ["complete", "blocked"] },
+        "tool_invocation_ledger_contract_id": { "const": "tool-invocation-ledger.v1" },
+        "source_agent_run_ledger_status": { "type": "string" },
+        "source_agent_run_count": { "type": "integer", "minimum": 0 },
+        "source_tool_runtime_policy_status": { "type": "string" },
+        "source_tool_permission_gate_count": { "type": "integer", "minimum": 0 },
+        "source_agent_run_tool_gate_count": { "type": "integer", "minimum": 0 },
+        "source_event_store_status": { "type": "string" },
+        "source_event_correlation_status": { "type": "string" },
+        "source_runtime_agentrun_contract_freeze_status": { "type": "string" },
+        "tool_invocation_record_count": { "type": "integer", "minimum": 0 },
+        "permission_decision_count": { "type": "integer", "minimum": 0 },
+        "agent_run_binding_count": { "type": "integer", "minimum": 0 },
+        "complete_agent_binding_count": { "type": "integer", "minimum": 0 },
+        "event_binding_count": { "type": "integer", "minimum": 0 },
+        "context_bound_event_binding_count": { "type": "integer", "minimum": 0 },
+        "permitted_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "review_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "blocked_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "allowed_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "forbidden_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "denied_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "approval_required_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "protected_action_tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "execution_allowed_invocation_count": { "type": "integer", "minimum": 0 },
+        "missing_permission_decision_count": { "type": "integer", "minimum": 0 },
+        "missing_agent_run_tool_gate_count": { "type": "integer", "minimum": 0 },
+        "missing_event_binding_count": { "type": "integer", "minimum": 0 },
+        "unknown_tool_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "tool_invocation_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool_invocation_id",
+        "agent_run_id",
+        "workflow_run_id",
+        "runtime_id",
+        "adapter_id",
+        "tool_permission_gate_id",
+        "tool_id",
+        "requested_state",
+        "permission_decision",
+        "permission_status",
+        "invocation_state",
+        "execution_allowed",
+        "audit_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "tool-invocation-record.v1" },
+        "tool_invocation_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_run_record_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": ["string", "null"] },
+        "correlation_trace_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string" },
+        "capability_id": { "type": ["string", "null"] },
+        "workflow_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": ["string", "null"] },
+        "command_binding_id": { "type": ["string", "null"] },
+        "agent_run_tool_gate_id": { "type": ["string", "null"] },
+        "tool_permission_gate_id": { "type": "string" },
+        "tool_id": { "type": "string" },
+        "requested_state": { "enum": ["allowed", "forbidden"] },
+        "permission_decision": { "enum": ["allow", "review", "deny"] },
+        "permission_status": { "enum": ["passed", "requires_approval", "blocked"] },
+        "invocation_state": { "enum": ["permitted", "requires_approval", "blocked"] },
+        "execution_allowed": { "type": "boolean" },
+        "protected_action": { "type": "boolean" },
+        "approval_required": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "audit_required": { "type": "boolean" },
+        "tool_policy_known": { "type": "boolean" },
+        "allowed_by_runtime": { "type": "boolean" },
+        "forbidden_by_runtime": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "runtime_invocation_scope": { "const": "runtime_internal" },
+        "decision_source": { "type": "string" },
+        "ledger_source": { "type": "string" },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "tool_invocation_permission_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool_invocation_permission_decision_id",
+        "tool_invocation_id",
+        "agent_run_id",
+        "runtime_id",
+        "tool_id",
+        "tool_permission_gate_id",
+        "permission_decision",
+        "permission_status",
+        "invocation_state",
+        "execution_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "tool-invocation-permission-decision.v1" },
+        "tool_invocation_permission_decision_id": { "type": "string" },
+        "tool_invocation_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": ["string", "null"] },
+        "tool_id": { "type": "string" },
+        "tool_permission_gate_id": { "type": "string" },
+        "agent_run_tool_gate_id": { "type": ["string", "null"] },
+        "requested_state": { "enum": ["allowed", "forbidden"] },
+        "permission_decision": { "enum": ["allow", "review", "deny"] },
+        "permission_status": { "enum": ["passed", "requires_approval", "blocked"] },
+        "invocation_state": { "enum": ["permitted", "requires_approval", "blocked"] },
+        "execution_allowed": { "type": "boolean" },
+        "protected_action": { "type": "boolean" },
+        "approval_required": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "required_gates": { "type": "array", "items": { "type": "string" } },
+        "reason_codes": { "type": "array", "items": { "type": "string" } },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "tool_invocation_agent_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool_invocation_agent_binding_id",
+        "agent_run_id",
+        "workflow_run_id",
+        "runtime_id",
+        "agent_gate_decision",
+        "agent_gate_status",
+        "invocation_record_count",
+        "binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "tool-invocation-agent-binding.v1" },
+        "tool_invocation_agent_binding_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_run_record_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": ["string", "null"] },
+        "command_binding_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string" },
+        "agent_run_tool_gate_id": { "type": ["string", "null"] },
+        "agent_gate_decision": { "type": "string" },
+        "agent_gate_status": { "type": "string" },
+        "runtime_allowed_by_capability": { "type": "boolean" },
+        "requested_tool_count": { "type": "integer", "minimum": 0 },
+        "allowed_tool_count": { "type": "integer", "minimum": 0 },
+        "forbidden_tool_count": { "type": "integer", "minimum": 0 },
+        "invocation_record_count": { "type": "integer", "minimum": 0 },
+        "permitted_invocation_count": { "type": "integer", "minimum": 0 },
+        "blocked_invocation_count": { "type": "integer", "minimum": 0 },
+        "approval_required_invocation_count": { "type": "integer", "minimum": 0 },
+        "protected_action_invocation_count": { "type": "integer", "minimum": 0 },
+        "audit_required": { "type": "boolean" },
+        "human_approval_required": { "type": "boolean" },
+        "event_context_binding_id": { "type": ["string", "null"] },
+        "event_binding_status": { "type": "string" },
+        "binding_status": { "enum": ["complete", "partial"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "tool_invocation_event_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "tool_invocation_event_binding_id",
+        "tool_invocation_id",
+        "agent_run_id",
+        "workflow_run_id",
+        "tool_permission_gate_id",
+        "tool_id",
+        "permission_decision",
+        "invocation_state",
+        "event_context",
+        "direct_tool_event",
+        "event_binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "tool-invocation-event-binding.v1" },
+        "tool_invocation_event_binding_id": { "type": "string" },
+        "tool_invocation_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_run_record_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": ["string", "null"] },
+        "correlation_trace_id": { "type": ["string", "null"] },
+        "agent_run_tool_gate_id": { "type": ["string", "null"] },
+        "tool_permission_gate_id": { "type": "string" },
+        "tool_id": { "type": "string" },
+        "permission_decision": { "enum": ["allow", "review", "deny"] },
+        "invocation_state": { "enum": ["permitted", "requires_approval", "blocked"] },
+        "event_envelope_id": { "type": ["string", "null"] },
+        "stored_event_id": { "type": ["string", "null"] },
+        "event_type": { "type": ["string", "null"] },
+        "event_family": { "type": ["string", "null"] },
+        "event_time": { "type": ["string", "null"], "format": "date-time" },
+        "global_sequence": { "type": ["integer", "null"] },
+        "stream_sequence": { "type": ["integer", "null"] },
+        "actor_type": { "type": ["string", "null"] },
+        "actor_id": { "type": ["string", "null"] },
+        "event_context": { "enum": ["agent_run_started", "agent_run_completed", "missing_agent_run_event"] },
+        "direct_tool_event": { "type": "boolean" },
+        "event_binding_status": { "enum": ["context_bound", "missing_agent_run_event"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

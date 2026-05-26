@@ -74,6 +74,7 @@ const GOAL_ITEMS = [
   sourceItem("event_type_registry", "Event type registry", "audit", "event_type_registry", "control-plane-event-type-registry", { acceptance_profile: "event_type_registry_gate" }),
   sourceItem("append_only_event_store", "Append-only event store", "audit", "append_only_event_store", "control-plane-append-only-event-store", { acceptance_profile: "append_only_event_store_gate" }),
   sourceItem("event_correlation_ledger", "Event correlation ledger", "audit", "event_correlation_ledger", "control-plane-event-correlation-ledger", { acceptance_profile: "event_correlation_ledger_gate" }),
+  sourceItem("workflow_run_ledger", "Workflow run ledger", "audit", "workflow_run_ledger", "control-plane-workflow-run-ledger", { acceptance_profile: "workflow_run_ledger_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -429,6 +430,7 @@ function evaluateStageAcceptance(item, stage) {
     "event_type_registry_gate",
     "append_only_event_store_gate",
     "event_correlation_ledger_gate",
+    "workflow_run_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -569,6 +571,34 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.known_trace_run_binding_count ?? 0) === (metrics.trace_run_binding_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Event correlation ledger links run-bound events into matter/workflow/run traces, keeps external control audit events explicit, and resolves causation edges plus RunLedger bindings.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_run_ledger_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const recordCount = metrics.workflow_run_record_count ?? 0;
+    const transitionCount = metrics.state_transition_count ?? 0;
+    const eventBindingCount = metrics.event_binding_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_run_ledger_status === "complete"
+      && metrics.source_event_correlation_status === "complete"
+      && metrics.source_event_audit_run_freeze_status === "complete"
+      && metrics.source_capability_workflow_freeze_status === "complete"
+      && metrics.source_event_store_status === "complete"
+      && recordCount > 0
+      && recordCount === (metrics.source_run_bound_trace_count ?? -1)
+      && (metrics.event_backed_workflow_run_record_count ?? 0) === recordCount
+      && (metrics.run_ledger_bound_record_count ?? 0) === recordCount
+      && transitionCount > 0
+      && (metrics.event_backed_state_transition_count ?? 0) === transitionCount
+      && (metrics.terminal_transition_count ?? 0) === recordCount
+      && eventBindingCount > 0
+      && (metrics.linked_event_binding_count ?? 0) === eventBindingCount
+      && (metrics.terminal_state_aligned_count ?? 0) === recordCount
+      && (metrics.terminal_state_mismatch_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow run ledger projects each run-bound trace into an event-backed workflow record, binds every stored event, and records terminal state transitions aligned with RunLedger status.");
     }
   }
 

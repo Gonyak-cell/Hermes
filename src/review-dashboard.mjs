@@ -59,6 +59,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   eventTypeRegistryPath: "artifacts/event-type-registry/latest/event-type-registry.json",
   appendOnlyEventStorePath: "artifacts/append-only-event-store/latest/append-only-event-store.json",
   eventCorrelationLedgerPath: "artifacts/event-correlation/latest/event-correlation-ledger.json",
+  workflowRunLedgerPath: "artifacts/workflow-run-ledger/latest/workflow-run-ledger.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -436,6 +437,11 @@ const SOURCE_DEFINITIONS = [
     option: "eventCorrelationLedgerPath",
     source_id: "event_correlation_ledger",
     label: "Event Correlation Ledger",
+  },
+  {
+    option: "workflowRunLedgerPath",
+    source_id: "workflow_run_ledger",
+    label: "Workflow Run Ledger",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1093,6 +1099,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "event_type_registry") return data.summary ?? {};
   if (sourceId === "append_only_event_store") return data.summary ?? {};
   if (sourceId === "event_correlation_ledger") return data.summary ?? {};
+  if (sourceId === "workflow_run_ledger") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1335,6 +1342,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEventTypeRegistryStage(artifacts.event_type_registry, sourceById.get("event_type_registry")),
     buildAppendOnlyEventStoreStage(artifacts.append_only_event_store, sourceById.get("append_only_event_store")),
     buildEventCorrelationLedgerStage(artifacts.event_correlation_ledger, sourceById.get("event_correlation_ledger")),
+    buildWorkflowRunLedgerStage(artifacts.workflow_run_ledger, sourceById.get("workflow_run_ledger")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4230,6 +4238,51 @@ function buildEventCorrelationLedgerStage(ledger, source) {
       missing_matter_id_count: summary.missing_matter_id_count ?? 0,
       missing_workflow_run_id_count: summary.missing_workflow_run_id_count ?? 0,
       missing_run_ledger_id_count: summary.missing_run_ledger_id_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowRunLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("workflow_run_ledger", "Workflow Run Ledger", source);
+  const summary = ledger.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || ledger.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "workflow_run_ledger",
+    label: "Workflow Run Ledger",
+    status,
+    message: `${summary.workflow_run_record_count ?? 0} workflow run(s), ${summary.state_transition_count ?? 0} transition(s), ${summary.linked_event_binding_count ?? 0}/${summary.event_binding_count ?? 0} event binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_run_ledger_status: summary.workflow_run_ledger_status ?? "unknown",
+      workflow_run_ledger_contract_id: summary.workflow_run_ledger_contract_id ?? null,
+      source_event_correlation_status: summary.source_event_correlation_status ?? "unknown",
+      source_run_bound_trace_count: summary.source_run_bound_trace_count ?? 0,
+      source_external_control_trace_count: summary.source_external_control_trace_count ?? 0,
+      source_event_audit_run_freeze_status: summary.source_event_audit_run_freeze_status ?? "unknown",
+      source_run_ledger_count: summary.source_run_ledger_count ?? 0,
+      source_capability_workflow_freeze_status: summary.source_capability_workflow_freeze_status ?? "unknown",
+      source_capability_workflow_run_count: summary.source_capability_workflow_run_count ?? 0,
+      source_event_store_status: summary.source_event_store_status ?? "unknown",
+      workflow_run_record_count: summary.workflow_run_record_count ?? 0,
+      event_backed_workflow_run_record_count: summary.event_backed_workflow_run_record_count ?? 0,
+      workflow_contract_bound_record_count: summary.workflow_contract_bound_record_count ?? 0,
+      workflow_contract_missing_record_count: summary.workflow_contract_missing_record_count ?? 0,
+      run_ledger_bound_record_count: summary.run_ledger_bound_record_count ?? 0,
+      blocked_workflow_run_record_count: summary.blocked_workflow_run_record_count ?? 0,
+      state_transition_count: summary.state_transition_count ?? 0,
+      event_backed_state_transition_count: summary.event_backed_state_transition_count ?? 0,
+      terminal_transition_count: summary.terminal_transition_count ?? 0,
+      event_binding_count: summary.event_binding_count ?? 0,
+      linked_event_binding_count: summary.linked_event_binding_count ?? 0,
+      event_only_binding_count: summary.event_only_binding_count ?? 0,
+      state_transition_binding_count: summary.state_transition_binding_count ?? 0,
+      terminal_state_aligned_count: summary.terminal_state_aligned_count ?? 0,
+      terminal_state_mismatch_count: summary.terminal_state_mismatch_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
@@ -10485,6 +10538,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     event_correlation_ledger_missing_correlation_id_count: artifacts.event_correlation_ledger?.summary?.missing_correlation_id_count ?? 0,
     event_correlation_ledger_failed_validation_item_count: artifacts.event_correlation_ledger?.summary?.failed_validation_item_count ?? 0,
     event_correlation_ledger_validation_error_count: artifacts.event_correlation_ledger?.summary?.validation_error_count ?? artifacts.event_correlation_ledger?.validation?.errors?.length ?? 0,
+    workflow_run_ledger_workflow_run_record_count: artifacts.workflow_run_ledger?.summary?.workflow_run_record_count ?? 0,
+    workflow_run_ledger_event_backed_workflow_run_record_count: artifacts.workflow_run_ledger?.summary?.event_backed_workflow_run_record_count ?? 0,
+    workflow_run_ledger_workflow_contract_bound_record_count: artifacts.workflow_run_ledger?.summary?.workflow_contract_bound_record_count ?? 0,
+    workflow_run_ledger_workflow_contract_missing_record_count: artifacts.workflow_run_ledger?.summary?.workflow_contract_missing_record_count ?? 0,
+    workflow_run_ledger_run_ledger_bound_record_count: artifacts.workflow_run_ledger?.summary?.run_ledger_bound_record_count ?? 0,
+    workflow_run_ledger_state_transition_count: artifacts.workflow_run_ledger?.summary?.state_transition_count ?? 0,
+    workflow_run_ledger_event_backed_state_transition_count: artifacts.workflow_run_ledger?.summary?.event_backed_state_transition_count ?? 0,
+    workflow_run_ledger_terminal_transition_count: artifacts.workflow_run_ledger?.summary?.terminal_transition_count ?? 0,
+    workflow_run_ledger_event_binding_count: artifacts.workflow_run_ledger?.summary?.event_binding_count ?? 0,
+    workflow_run_ledger_linked_event_binding_count: artifacts.workflow_run_ledger?.summary?.linked_event_binding_count ?? 0,
+    workflow_run_ledger_state_transition_binding_count: artifacts.workflow_run_ledger?.summary?.state_transition_binding_count ?? 0,
+    workflow_run_ledger_event_only_binding_count: artifacts.workflow_run_ledger?.summary?.event_only_binding_count ?? 0,
+    workflow_run_ledger_terminal_state_aligned_count: artifacts.workflow_run_ledger?.summary?.terminal_state_aligned_count ?? 0,
+    workflow_run_ledger_terminal_state_mismatch_count: artifacts.workflow_run_ledger?.summary?.terminal_state_mismatch_count ?? 0,
+    workflow_run_ledger_failed_validation_item_count: artifacts.workflow_run_ledger?.summary?.failed_validation_item_count ?? 0,
+    workflow_run_ledger_validation_error_count: artifacts.workflow_run_ledger?.summary?.validation_error_count ?? artifacts.workflow_run_ledger?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11775,6 +11844,8 @@ function parseArgs(argv) {
     else if (arg === "--no-append-only-event-store") parsed.appendOnlyEventStorePath = false;
     else if (arg === "--event-correlation-ledger") parsed.eventCorrelationLedgerPath = argv[++index];
     else if (arg === "--no-event-correlation-ledger") parsed.eventCorrelationLedgerPath = false;
+    else if (arg === "--workflow-run-ledger") parsed.workflowRunLedgerPath = argv[++index];
+    else if (arg === "--no-workflow-run-ledger") parsed.workflowRunLedgerPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -12130,6 +12201,8 @@ Options:
   --event-correlation-ledger <path>
                                   event-correlation-ledger.json path.
   --no-event-correlation-ledger  Do not include Event Correlation Ledger status.
+  --workflow-run-ledger <path>   workflow-run-ledger.json path.
+  --no-workflow-run-ledger       Do not include Workflow Run Ledger status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

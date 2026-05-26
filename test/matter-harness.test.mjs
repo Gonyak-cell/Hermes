@@ -170,6 +170,7 @@ import { runEventEnvelopeLedger } from "../src/event-envelope-ledger.mjs";
 import { runEventTypeRegistry } from "../src/event-type-registry.mjs";
 import { runAppendOnlyEventStore } from "../src/append-only-event-store.mjs";
 import { runEventCorrelationLedger } from "../src/event-correlation-ledger.mjs";
+import { runWorkflowRunLedger } from "../src/workflow-run-ledger.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1702,6 +1703,7 @@ describe("matter harness", () => {
         eventTypeRegistryPath: path.join(outDir, "event-type-registry", "event-type-registry.json"),
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3485,6 +3487,48 @@ describe("matter harness", () => {
       assert.ok(eventCorrelationLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "event-correlation", "summary.md"), "utf8"), /Event Correlation Ledger/);
 
+      const workflowRunLedger = await runWorkflowRunLedger({
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+        capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        outDir: path.join(outDir, "workflow-run-ledger"),
+        runAt: "2026-05-23T06:35:08.452Z",
+      });
+      const workflowRunLedgerSchema = JSON.parse(await readFile("schemas/workflow-run-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowRunLedger, workflowRunLedgerSchema, {}, "workflow_run_ledger"),
+        [],
+      );
+      const runBoundEventCount = eventCorrelationLedger.event_correlation_catalog.correlation_traces
+        .filter((trace) => trace.run_ledger_ids?.length > 0)
+        .reduce((count, trace) => count + trace.event_count, 0);
+      assert.equal(workflowRunLedger.summary.workflow_run_ledger_status, "complete");
+      assert.equal(workflowRunLedger.summary.workflow_run_ledger_contract_id, "workflow-run-ledger.v1");
+      assert.equal(workflowRunLedger.summary.source_event_correlation_status, "complete");
+      assert.equal(workflowRunLedger.summary.source_event_audit_run_freeze_status, "complete");
+      assert.equal(workflowRunLedger.summary.source_capability_workflow_freeze_status, "complete");
+      assert.equal(workflowRunLedger.summary.source_event_store_status, "complete");
+      assert.equal(workflowRunLedger.summary.workflow_run_record_count, eventCorrelationLedger.summary.run_bound_trace_count);
+      assert.equal(workflowRunLedger.summary.event_backed_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunLedger.summary.run_ledger_bound_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunLedger.summary.workflow_contract_bound_record_count, capabilityWorkflowContractFreeze.summary.workflow_run_count);
+      assert.equal(workflowRunLedger.summary.workflow_contract_missing_record_count, workflowRunLedger.summary.workflow_run_record_count - capabilityWorkflowContractFreeze.summary.workflow_run_count);
+      assert.ok(workflowRunLedger.summary.workflow_contract_missing_record_count >= 0);
+      assert.ok(workflowRunLedger.summary.state_transition_count > 0);
+      assert.equal(workflowRunLedger.summary.event_backed_state_transition_count, workflowRunLedger.summary.state_transition_count);
+      assert.equal(workflowRunLedger.summary.terminal_transition_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunLedger.summary.event_binding_count, runBoundEventCount);
+      assert.equal(workflowRunLedger.summary.linked_event_binding_count, workflowRunLedger.summary.event_binding_count);
+      assert.equal(workflowRunLedger.summary.terminal_state_aligned_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunLedger.summary.terminal_state_mismatch_count, 0);
+      assert.equal(workflowRunLedger.summary.validation_error_count, 0);
+      assert.ok(workflowRunLedger.workflow_run_catalog.workflow_run_records.every((record) => record.workflow_run_record_status === "event_backed" && record.run_ledger_binding_status === "known"));
+      assert.ok(workflowRunLedger.workflow_run_catalog.workflow_state_transitions.every((transition) => transition.transition_status === "event_backed"));
+      assert.ok(workflowRunLedger.workflow_run_catalog.workflow_event_bindings.every((binding) => binding.binding_status === "linked"));
+      assert.ok(workflowRunLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-run-ledger", "summary.md"), "utf8"), /Workflow Run Ledger/);
+
       const policySnapshotBindingLedger = await runPolicySnapshotBindingLedger({
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
@@ -5000,6 +5044,7 @@ describe("matter harness", () => {
           event_type_registry: path.join(outDir, "event-type-registry", "event-type-registry.json"),
           append_only_event_store: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
           event_correlation_ledger: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+          workflow_run_ledger: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -5012,8 +5057,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 64);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 64);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 65);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 65);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5073,6 +5118,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_correlation_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5140,6 +5186,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:types"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:store"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:correlation"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:workflow-runs"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5437,6 +5484,10 @@ describe("matter harness", () => {
       assert.equal(eventCorrelationLedgerCheckpoint?.acceptance_profile, "event_correlation_ledger_gate");
       assert.equal(eventCorrelationLedgerCheckpoint?.status, "passed");
       assert.equal(eventCorrelationLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowRunLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-run-ledger");
+      assert.equal(workflowRunLedgerCheckpoint?.acceptance_profile, "workflow_run_ledger_gate");
+      assert.equal(workflowRunLedgerCheckpoint?.status, "passed");
+      assert.equal(workflowRunLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6758,6 +6809,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.event_correlation_ledger_missing_correlation_id_count, 0);
       assert.equal(dashboard.summary.event_correlation_ledger_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.event_correlation_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_run_ledger_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_event_backed_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_workflow_contract_bound_record_count, workflowRunLedger.summary.workflow_contract_bound_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_workflow_contract_missing_record_count, workflowRunLedger.summary.workflow_contract_missing_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_run_ledger_bound_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_state_transition_count, workflowRunLedger.summary.state_transition_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_event_backed_state_transition_count, workflowRunLedger.summary.state_transition_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_terminal_transition_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_event_binding_count, workflowRunLedger.summary.event_binding_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_linked_event_binding_count, workflowRunLedger.summary.event_binding_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_state_transition_binding_count, workflowRunLedger.summary.state_transition_binding_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_event_only_binding_count, workflowRunLedger.summary.event_only_binding_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_terminal_state_aligned_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_run_ledger_terminal_state_mismatch_count, 0);
+      assert.equal(dashboard.summary.workflow_run_ledger_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.workflow_run_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -8111,6 +8178,26 @@ describe("matter harness", () => {
       const eventCorrelationValidations = JSON.parse((await buildReviewApiResponse("/api/event-correlation-validations?status=passed", apiOptions)).body);
       assert.equal(eventCorrelationValidations.collection, "event_correlation_validations");
       assert.equal(eventCorrelationValidations.count, eventCorrelationLedger.summary.validation_item_count);
+
+      const workflowRunLedgers = JSON.parse((await buildReviewApiResponse("/api/workflow-run-ledgers?workflow_run_ledger_status=complete", apiOptions)).body);
+      assert.equal(workflowRunLedgers.collection, "workflow_run_ledgers");
+      assert.equal(workflowRunLedgers.count, 1);
+
+      const workflowRunRecords = JSON.parse((await buildReviewApiResponse("/api/workflow-run-records?workflow_run_record_status=event_backed&terminal_state=blocked", apiOptions)).body);
+      assert.equal(workflowRunRecords.collection, "workflow_run_records");
+      assert.equal(workflowRunRecords.count, workflowRunLedger.summary.blocked_workflow_run_record_count);
+
+      const workflowStateTransitions = JSON.parse((await buildReviewApiResponse("/api/workflow-state-transitions?transition_status=event_backed&to_state=blocked", apiOptions)).body);
+      assert.equal(workflowStateTransitions.collection, "workflow_state_transitions");
+      assert.ok(workflowStateTransitions.count > 0);
+
+      const workflowEventBindings = JSON.parse((await buildReviewApiResponse("/api/workflow-event-bindings?binding_status=linked&state_effect=state_transition", apiOptions)).body);
+      assert.equal(workflowEventBindings.collection, "workflow_event_bindings");
+      assert.equal(workflowEventBindings.count, workflowRunLedger.summary.state_transition_binding_count);
+
+      const workflowRunLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-run-ledger-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowRunLedgerValidations.collection, "workflow_run_ledger_validations");
+      assert.equal(workflowRunLedgerValidations.count, workflowRunLedger.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

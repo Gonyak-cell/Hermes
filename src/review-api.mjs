@@ -2837,6 +2837,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-run-ledgers") {
+    const workflowRunResult = await readDashboardSourceArtifact(dashboard, "workflow_run_ledger");
+    if (!workflowRunResult.available) {
+      return jsonResponse(503, buildError("workflow_run_ledger_unavailable", workflowRunResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_run_ledgers", [workflowRunResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-run-records") {
+    const workflowRunResult = await readDashboardSourceArtifact(dashboard, "workflow_run_ledger");
+    if (!workflowRunResult.available) {
+      return jsonResponse(503, buildError("workflow_run_ledger_unavailable", workflowRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_records", workflowRunResult.artifact.workflow_run_catalog?.workflow_run_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-state-transitions") {
+    const workflowRunResult = await readDashboardSourceArtifact(dashboard, "workflow_run_ledger");
+    if (!workflowRunResult.available) {
+      return jsonResponse(503, buildError("workflow_run_ledger_unavailable", workflowRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_state_transitions", workflowRunResult.artifact.workflow_run_catalog?.workflow_state_transitions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-event-bindings") {
+    const workflowRunResult = await readDashboardSourceArtifact(dashboard, "workflow_run_ledger");
+    if (!workflowRunResult.available) {
+      return jsonResponse(503, buildError("workflow_run_ledger_unavailable", workflowRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_event_bindings", workflowRunResult.artifact.workflow_run_catalog?.workflow_event_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-ledger-validations") {
+    const workflowRunResult = await readDashboardSourceArtifact(dashboard, "workflow_run_ledger");
+    if (!workflowRunResult.available) {
+      return jsonResponse(503, buildError("workflow_run_ledger_unavailable", workflowRunResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_ledger_validations", workflowRunResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -5873,6 +5924,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/causation-edges", "Causation edge rows"),
       route("GET", "/api/trace-run-bindings", "Trace to RunLedger binding rows"),
       route("GET", "/api/event-correlation-validations", "Event correlation validation rows"),
+      route("GET", "/api/workflow-run-ledgers", "Workflow run ledger artifacts"),
+      route("GET", "/api/workflow-run-records", "Event-backed workflow run records"),
+      route("GET", "/api/workflow-state-transitions", "Event-backed workflow state transition rows"),
+      route("GET", "/api/workflow-event-bindings", "Workflow run to stored event binding rows"),
+      route("GET", "/api/workflow-run-ledger-validations", "Workflow run ledger validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6269,6 +6325,19 @@ function filterItems(items, searchParams) {
     "event_type_registry_status",
     "event_store_status",
     "event_correlation_status",
+    "workflow_run_ledger_status",
+    "workflow_run_record_status",
+    "workflow_run_record_id",
+    "workflow_state_transition_id",
+    "workflow_event_binding_id",
+    "transition_status",
+    "from_state",
+    "to_state",
+    "terminal_state",
+    "terminal_state_alignment_status",
+    "state_effect",
+    "capability_contract_status",
+    "run_ledger_binding_status",
     "correlation_id",
     "correlation_trace_id",
     "causation_id",
@@ -7252,6 +7321,7 @@ function readFilterValue(item, key) {
   if (key === "event_type_registry_status") return item.summary?.event_type_registry_status ?? item.event_type_registry_status;
   if (key === "event_store_status") return item.summary?.event_store_status ?? item.event_store_status;
   if (key === "event_correlation_status") return item.summary?.event_correlation_status ?? item.event_correlation_status;
+  if (key === "workflow_run_ledger_status") return item.summary?.workflow_run_ledger_status ?? item.workflow_run_ledger_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;
   if (key === "event_type") return item.event_type ?? item.type ?? item.envelope_type;

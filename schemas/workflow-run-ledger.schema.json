@@ -1,0 +1,306 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-run-ledger.schema.json",
+  "title": "Hermes Workflow Run Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_run_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_run_ledger_contract",
+    "workflow_run_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-run-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_run_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "workflow_run_ledger_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_run_ledger_contract_id",
+        "state_model",
+        "required_record_fields",
+        "required_transition_fields",
+        "required_binding_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-run-ledger-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "workflow_run_ledger_contract_id": { "const": "workflow-run-ledger.v1" },
+        "state_model": { "const": "event_backed_workflow_state.v1" },
+        "required_record_fields": {
+          "type": "array",
+          "contains": { "const": "workflow_run_id" }
+        },
+        "required_transition_fields": {
+          "type": "array",
+          "contains": { "const": "event_envelope_id" }
+        },
+        "required_binding_fields": {
+          "type": "array",
+          "contains": { "const": "stored_event_id" }
+        },
+        "terminal_status_mapping": { "type": "object" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "workflow_run_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_run_records",
+        "workflow_state_transitions",
+        "workflow_event_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-run-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "workflow_run_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workflow_run_record" }
+        },
+        "workflow_state_transitions": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workflow_state_transition" }
+        },
+        "workflow_event_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/workflow_event_binding" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_run_ledger_status",
+        "workflow_run_ledger_contract_id",
+        "source_event_correlation_status",
+        "source_run_bound_trace_count",
+        "source_external_control_trace_count",
+        "source_event_audit_run_freeze_status",
+        "source_run_ledger_count",
+        "source_capability_workflow_freeze_status",
+        "source_capability_workflow_run_count",
+        "source_event_store_status",
+        "workflow_run_record_count",
+        "event_backed_workflow_run_record_count",
+        "workflow_contract_bound_record_count",
+        "workflow_contract_missing_record_count",
+        "run_ledger_bound_record_count",
+        "state_transition_count",
+        "event_backed_state_transition_count",
+        "terminal_transition_count",
+        "event_binding_count",
+        "linked_event_binding_count",
+        "event_only_binding_count",
+        "state_transition_binding_count",
+        "terminal_state_aligned_count",
+        "terminal_state_mismatch_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_run_ledger_status": { "enum": ["complete", "blocked"] },
+        "workflow_run_ledger_contract_id": { "const": "workflow-run-ledger.v1" },
+        "source_event_correlation_status": { "type": "string" },
+        "source_run_bound_trace_count": { "type": "integer", "minimum": 0 },
+        "source_external_control_trace_count": { "type": "integer", "minimum": 0 },
+        "source_event_audit_run_freeze_status": { "type": "string" },
+        "source_run_ledger_count": { "type": "integer", "minimum": 0 },
+        "source_capability_workflow_freeze_status": { "type": "string" },
+        "source_capability_workflow_run_count": { "type": "integer", "minimum": 0 },
+        "source_event_store_status": { "type": "string" },
+        "workflow_run_record_count": { "type": "integer", "minimum": 0 },
+        "event_backed_workflow_run_record_count": { "type": "integer", "minimum": 0 },
+        "workflow_contract_bound_record_count": { "type": "integer", "minimum": 0 },
+        "workflow_contract_missing_record_count": { "type": "integer", "minimum": 0 },
+        "run_ledger_bound_record_count": { "type": "integer", "minimum": 0 },
+        "blocked_workflow_run_record_count": { "type": "integer", "minimum": 0 },
+        "state_transition_count": { "type": "integer", "minimum": 0 },
+        "event_backed_state_transition_count": { "type": "integer", "minimum": 0 },
+        "terminal_transition_count": { "type": "integer", "minimum": 0 },
+        "event_binding_count": { "type": "integer", "minimum": 0 },
+        "linked_event_binding_count": { "type": "integer", "minimum": 0 },
+        "event_only_binding_count": { "type": "integer", "minimum": 0 },
+        "state_transition_binding_count": { "type": "integer", "minimum": 0 },
+        "terminal_state_aligned_count": { "type": "integer", "minimum": 0 },
+        "terminal_state_mismatch_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "workflow_run_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_run_record_id",
+        "workflow_run_id",
+        "run_ledger_id",
+        "correlation_id",
+        "correlation_trace_id",
+        "run_status",
+        "terminal_state",
+        "terminal_state_alignment_status",
+        "workflow_run_record_status",
+        "run_ledger_binding_status",
+        "state_transition_count",
+        "event_binding_count",
+        "event_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-run-record.v1" },
+        "workflow_run_record_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "correlation_trace_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string" },
+        "run_status": { "type": "string" },
+        "terminal_state": { "type": "string" },
+        "expected_terminal_state": { "type": "string" },
+        "terminal_state_alignment_status": { "enum": ["aligned", "mismatch"] },
+        "workflow_run_record_status": { "enum": ["event_backed", "incomplete"] },
+        "capability_contract_status": { "enum": ["linked", "missing_workflow_contract"] },
+        "run_ledger_binding_status": { "enum": ["known", "unknown_run"] },
+        "state_transition_count": { "type": "integer", "minimum": 0 },
+        "event_binding_count": { "type": "integer", "minimum": 0 },
+        "event_count": { "type": "integer", "minimum": 1 },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "stored_event_ids": { "type": "array", "items": { "type": "string" } },
+        "state_path": { "type": "array", "items": { "type": "string" } },
+        "first_event_time": { "type": ["string", "null"], "format": "date-time" },
+        "last_event_time": { "type": ["string", "null"], "format": "date-time" },
+        "started_at": { "type": ["string", "null"], "format": "date-time" },
+        "updated_at": { "type": ["string", "null"], "format": "date-time" },
+        "blocked_reason": { "type": ["string", "null"] },
+        "human_review_required": { "type": "boolean" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "workflow_state_transition": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_state_transition_id",
+        "workflow_run_id",
+        "run_ledger_id",
+        "transition_sequence",
+        "from_state",
+        "to_state",
+        "event_envelope_id",
+        "stored_event_id",
+        "transition_event_type",
+        "transition_status",
+        "terminal_transition"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-state-transition.v1" },
+        "workflow_state_transition_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": "string" },
+        "correlation_trace_id": { "type": "string" },
+        "transition_sequence": { "type": "integer", "minimum": 1 },
+        "from_state": { "type": "string" },
+        "to_state": { "type": "string" },
+        "event_envelope_id": { "type": "string" },
+        "stored_event_id": { "type": "string" },
+        "transition_event_type": { "type": "string" },
+        "transition_event_family": { "type": "string" },
+        "event_time": { "type": "string", "format": "date-time" },
+        "actor_type": { "type": ["string", "null"] },
+        "actor_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "transition_status": { "enum": ["event_backed"] },
+        "terminal_transition": { "type": "boolean" },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "workflow_event_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_event_binding_id",
+        "workflow_run_id",
+        "run_ledger_id",
+        "event_envelope_id",
+        "stored_event_id",
+        "event_type",
+        "state_effect",
+        "binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-event-binding.v1" },
+        "workflow_event_binding_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": "string" },
+        "correlation_trace_id": { "type": "string" },
+        "event_envelope_id": { "type": "string" },
+        "stored_event_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_family": { "type": "string" },
+        "event_time": { "type": "string", "format": "date-time" },
+        "global_sequence": { "type": "integer", "minimum": 1 },
+        "workflow_state_transition_id": { "type": ["string", "null"] },
+        "state_effect": { "enum": ["state_transition", "event_only"] },
+        "binding_status": { "enum": ["linked"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

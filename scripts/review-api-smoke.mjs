@@ -85,6 +85,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/causation-edges"));
   assert.ok(index.routes.some((route) => route.path === "/api/trace-run-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-correlation-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-state-transitions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-event-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-ledger-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -904,6 +909,26 @@ try {
   const eventCorrelationValidations = await fetchJson(`${url}/api/event-correlation-validations?status=passed&limit=5`);
   assert.equal(eventCorrelationValidations.collection, "event_correlation_validations");
   assert.ok(eventCorrelationValidations.count <= 5);
+
+  const workflowRunLedgers = await fetchJson(`${url}/api/workflow-run-ledgers?workflow_run_ledger_status=complete&limit=1`);
+  assert.equal(workflowRunLedgers.collection, "workflow_run_ledgers");
+  assert.ok(workflowRunLedgers.count <= 1);
+
+  const workflowRunRecords = await fetchJson(`${url}/api/workflow-run-records?workflow_run_record_status=event_backed&terminal_state=blocked&limit=5`);
+  assert.equal(workflowRunRecords.collection, "workflow_run_records");
+  assert.ok(workflowRunRecords.count <= 5);
+
+  const workflowStateTransitions = await fetchJson(`${url}/api/workflow-state-transitions?transition_status=event_backed&to_state=blocked&limit=5`);
+  assert.equal(workflowStateTransitions.collection, "workflow_state_transitions");
+  assert.ok(workflowStateTransitions.count <= 5);
+
+  const workflowEventBindings = await fetchJson(`${url}/api/workflow-event-bindings?binding_status=linked&state_effect=state_transition&limit=5`);
+  assert.equal(workflowEventBindings.collection, "workflow_event_bindings");
+  assert.ok(workflowEventBindings.count <= 5);
+
+  const workflowRunLedgerValidations = await fetchJson(`${url}/api/workflow-run-ledger-validations?status=passed&limit=5`);
+  assert.equal(workflowRunLedgerValidations.collection, "workflow_run_ledger_validations");
+  assert.ok(workflowRunLedgerValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

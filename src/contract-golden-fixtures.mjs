@@ -75,6 +75,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     tool_invocation_ledger: "artifacts/tool-invocation-ledger/latest/tool-invocation-ledger.json",
     audit_event_ledger: "artifacts/audit-event-ledger/latest/audit-event-ledger.json",
     policy_snapshot_event_binding: "artifacts/policy-snapshot-event-bindings/latest/policy-snapshot-event-binding.json",
+    cost_record_projection: "artifacts/cost-record-projection/latest/cost-record-projection.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -148,6 +149,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("tool_invocation_ledger", "Tool Invocation Ledger", "audit", "tool-invocation-ledger.schema.json"),
   fixtureDefinition("audit_event_ledger", "Audit Event Ledger", "audit", "audit-event-ledger.schema.json"),
   fixtureDefinition("policy_snapshot_event_binding", "Policy Snapshot Event Binding", "audit", "policy-snapshot-event-binding.schema.json"),
+  fixtureDefinition("cost_record_projection", "Cost Record Projection", "observability", "cost-record-projection.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

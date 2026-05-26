@@ -81,6 +81,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "events:audit-ledger",
   "events:policy-snapshots",
   "events:tool-invocations",
+  "cost:records",
   "contracts:observability",
 ];
 

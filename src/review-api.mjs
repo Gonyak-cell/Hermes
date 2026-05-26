@@ -3405,6 +3405,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("cost_attribution_records", ledgerResult.artifact.attribution_records ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/cost-record-projections") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "cost_record_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("cost_record_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_record_projections", [projectionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/projected-cost-records") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "cost_record_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("cost_record_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("projected_cost_records", projectionResult.artifact.cost_record_projection_catalog?.projected_cost_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-cost-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "cost_record_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("cost_record_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_cost_rollups", projectionResult.artifact.cost_record_projection_catalog?.run_cost_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-category-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "cost_record_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("cost_record_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_category_rollups", projectionResult.artifact.cost_record_projection_catalog?.cost_category_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/cost-record-projection-validations") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "cost_record_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("cost_record_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("cost_record_projection_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6220,6 +6255,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/token-usage-records", "Recorded or estimated token usage by route"),
       route("GET", "/api/cost-attribution-ledgers", "Cost attribution ledger artifacts"),
       route("GET", "/api/cost-attribution-records", "Matter, runtime, and capability cost attribution records"),
+      route("GET", "/api/cost-record-projections", "Cost record projection artifacts"),
+      route("GET", "/api/projected-cost-records", "Provider, runtime, storage, and API projected cost records"),
+      route("GET", "/api/run-cost-rollups", "Run-level cost rollups"),
+      route("GET", "/api/cost-category-rollups", "Cost category rollups"),
+      route("GET", "/api/cost-record-projection-validations", "Cost record projection validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7311,6 +7351,14 @@ function filterItems(items, searchParams) {
     "estimated",
     "attribution_id",
     "attribution_status",
+    "cost_record_projection_status",
+    "projected_cost_record_id",
+    "run_cost_rollup_id",
+    "cost_category_rollup_id",
+    "source_ledger",
+    "cost_category",
+    "cost_driver",
+    "pricing_status",
     "over_budget",
     "untracked_cost",
     "alert_record_id",
@@ -7636,6 +7684,7 @@ function readFilterValue(item, key) {
   if (key === "agent_run_ledger_status") return item.summary?.agent_run_ledger_status ?? item.agent_run_ledger_status;
   if (key === "tool_invocation_ledger_status") return item.summary?.tool_invocation_ledger_status ?? item.tool_invocation_ledger_status;
   if (key === "audit_event_ledger_status") return item.summary?.audit_event_ledger_status ?? item.audit_event_ledger_status;
+  if (key === "cost_record_projection_status") return item.summary?.cost_record_projection_status ?? item.cost_record_projection_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

@@ -50,6 +50,7 @@
     "contracts:events": "node scripts/event-audit-run-contract-freeze.mjs",
     "contracts:observability": "node scripts/error-cost-observability-contract-freeze.mjs",
     "cost:attribution": "node scripts/cost-attribution-ledger.mjs",
+    "cost:records": "node scripts/cost-record-projection.mjs",
     "budget:alerts": "node scripts/budget-alert-ledger.mjs",
     "cost:budgets": "node scripts/cost-budget-ledger.mjs",
     "token:usage": "node scripts/token-usage-ledger.mjs",

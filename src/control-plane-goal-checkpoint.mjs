@@ -89,6 +89,7 @@ const GOAL_ITEMS = [
   sourceItem("budget_alert_ledger", "Budget alert ledger", "observability", "budget_alert_ledger", "control-plane-budget-alerts"),
   sourceItem("policy_snapshot_binding_ledger", "Policy snapshot binding ledger", "policy", "policy_snapshot_binding_ledger", "control-plane-policy-snapshot-bindings", { acceptance_profile: "policy_snapshot_binding_gate" }),
   sourceItem("policy_snapshot_event_binding", "Policy snapshot event binding", "policy", "policy_snapshot_event_binding", "control-plane-policy-snapshot-event-binding", { acceptance_profile: "policy_snapshot_event_binding_gate" }),
+  sourceItem("cost_record_projection", "Cost record projection", "observability", "cost_record_projection", "control-plane-cost-record-projection", { acceptance_profile: "cost_record_projection_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -439,6 +440,7 @@ function evaluateStageAcceptance(item, stage) {
     "tool_invocation_ledger_gate",
     "audit_event_ledger_gate",
     "policy_snapshot_event_binding_gate",
+    "cost_record_projection_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -503,6 +505,29 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.gate_policy_snapshot_binding_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Policy snapshot event binding verifies event, run, event-run, and gate rows all carry execution-time policy snapshots resolved through the P123 binding ledger and preserved in append-only events.");
+    }
+  }
+
+  if (item.acceptance_profile === "cost_record_projection_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.missing_run_cost_rollup_count ?? 0)
+      + (metrics.run_missing_record_count ?? 0);
+    if (
+      errors === 0
+      && metrics.cost_record_projection_status === "complete"
+      && (metrics.projected_cost_record_count ?? 0) > 0
+      && (metrics.provider_cost_record_count ?? 0) > 0
+      && (metrics.runtime_cost_record_count ?? 0) > 0
+      && (metrics.storage_cost_record_count ?? 0) > 0
+      && (metrics.api_cost_record_count ?? 0) > 0
+      && (metrics.run_cost_rollup_count ?? 0) > 0
+      && (metrics.attributed_run_cost_rollup_count ?? 0) === (metrics.run_cost_rollup_count ?? -1)
+      && (metrics.total_token_count ?? 0) > 0
+      && (metrics.total_runtime_seconds ?? 0) > 0
+      && (metrics.api_invocation_count ?? 0) > 0
+      && (metrics.storage_artifact_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Cost record projection attributes provider tokens, runtime seconds, storage artifacts, and API/tool invocations to run-level cost rollups with no missing run coverage.");
     }
   }
 

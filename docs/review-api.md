@@ -175,6 +175,11 @@ npm run api:serve
 - `GET /api/token-usage-records`: routing decision별 recorded/estimated token usage
 - `GET /api/cost-attribution-ledgers`: cost attribution ledger artifact
 - `GET /api/cost-attribution-records`: matter/runtime/capability별 projected cost attribution
+- `GET /api/cost-record-projections`: provider/runtime/storage/API 비용 projection artifact
+- `GET /api/projected-cost-records`: run에 귀속된 projected cost record
+- `GET /api/run-cost-rollups`: workflow/run별 비용 rollup
+- `GET /api/cost-category-rollups`: provider/runtime/storage/API category rollup
+- `GET /api/cost-record-projection-validations`: cost record projection validation row
 - `GET /api/budget-alert-ledgers`: budget alert ledger artifact
 - `GET /api/budget-alert-records`: matter/runtime/capability별 budget alert record
 - `GET /api/packs`: domain pack registry의 pack 목록

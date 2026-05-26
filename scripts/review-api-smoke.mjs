@@ -153,6 +153,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/token-usage-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-attribution-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-attribution-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-record-projections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/projected-cost-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/run-cost-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-category-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/cost-record-projection-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1225,6 +1230,26 @@ try {
   const codexCostAttribution = await fetchJson(`${url}/api/cost-attribution-records?runtime_id=codex&limit=5`);
   assert.equal(codexCostAttribution.collection, "cost_attribution_records");
   assert.ok(codexCostAttribution.count <= 5);
+
+  const costRecordProjections = await fetchJson(`${url}/api/cost-record-projections?cost_record_projection_status=complete&limit=1`);
+  assert.equal(costRecordProjections.collection, "cost_record_projections");
+  assert.ok(costRecordProjections.count <= 1);
+
+  const providerProjectedCostRecords = await fetchJson(`${url}/api/projected-cost-records?cost_category=provider&limit=5`);
+  assert.equal(providerProjectedCostRecords.collection, "projected_cost_records");
+  assert.ok(providerProjectedCostRecords.count <= 5);
+
+  const attributedRunCostRollups = await fetchJson(`${url}/api/run-cost-rollups?attribution_status=run_attributed&limit=5`);
+  assert.equal(attributedRunCostRollups.collection, "run_cost_rollups");
+  assert.ok(attributedRunCostRollups.count <= 5);
+
+  const apiCostCategoryRollups = await fetchJson(`${url}/api/cost-category-rollups?cost_category=api&limit=1`);
+  assert.equal(apiCostCategoryRollups.collection, "cost_category_rollups");
+  assert.ok(apiCostCategoryRollups.count <= 1);
+
+  const costRecordProjectionValidations = await fetchJson(`${url}/api/cost-record-projection-validations?status=passed&limit=5`);
+  assert.equal(costRecordProjectionValidations.collection, "cost_record_projection_validations");
+  assert.ok(costRecordProjectionValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

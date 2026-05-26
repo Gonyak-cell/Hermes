@@ -83,6 +83,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   costBudgetLedgerPath: "artifacts/cost-budget/latest/cost-budget-ledger.json",
   tokenUsageLedgerPath: "artifacts/token-usage/latest/token-usage-ledger.json",
   costAttributionLedgerPath: "artifacts/cost-attribution/latest/cost-attribution-ledger.json",
+  costRecordProjectionPath: "artifacts/cost-record-projection/latest/cost-record-projection.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -561,6 +562,11 @@ const SOURCE_DEFINITIONS = [
     option: "costAttributionLedgerPath",
     source_id: "cost_attribution_ledger",
     label: "Cost Attribution Ledger",
+  },
+  {
+    option: "costRecordProjectionPath",
+    source_id: "cost_record_projection",
+    label: "Cost Record Projection",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1147,6 +1153,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "cost_budget_ledger") return data.summary ?? {};
   if (sourceId === "token_usage_ledger") return data.summary ?? {};
   if (sourceId === "cost_attribution_ledger") return data.summary ?? {};
+  if (sourceId === "cost_record_projection") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1394,6 +1401,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCostBudgetLedgerStage(artifacts.cost_budget_ledger, sourceById.get("cost_budget_ledger")),
     buildTokenUsageLedgerStage(artifacts.token_usage_ledger, sourceById.get("token_usage_ledger")),
     buildCostAttributionLedgerStage(artifacts.cost_attribution_ledger, sourceById.get("cost_attribution_ledger")),
+    buildCostRecordProjectionStage(artifacts.cost_record_projection, sourceById.get("cost_record_projection")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5199,6 +5207,48 @@ function buildCostAttributionLedgerStage(ledger, source) {
       total_projected_usd: summary.total_projected_usd ?? 0,
       total_budget_remaining_usd: summary.total_budget_remaining_usd ?? 0,
       total_token_count: summary.total_token_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildCostRecordProjectionStage(ledger, source) {
+  if (!ledger) return missingStage("cost_record_projection", "Cost Record Projection", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const missingRuns = summary.missing_run_cost_rollup_count ?? 0;
+  const missingRecords = summary.run_missing_record_count ?? 0;
+  const status = summary.cost_record_projection_status === "complete" && errorCount === 0 && missingRuns === 0 && missingRecords === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "cost_record_projection",
+    label: "Cost Record Projection",
+    status,
+    message: status === "passed"
+      ? `${summary.projected_cost_record_count ?? 0} projected cost record(s), ${summary.run_cost_rollup_count ?? 0} run rollup(s), provider/runtime/storage/API ${summary.provider_cost_record_count ?? 0}/${summary.runtime_cost_record_count ?? 0}/${summary.storage_cost_record_count ?? 0}/${summary.api_cost_record_count ?? 0}.`
+      : `${missingRuns} missing run rollup(s), ${missingRecords} unattributed record(s), ${errorCount} validation error(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      cost_record_projection_status: summary.cost_record_projection_status ?? "unknown",
+      projected_cost_record_count: summary.projected_cost_record_count ?? 0,
+      raw_cost_record_count: summary.raw_cost_record_count ?? 0,
+      provider_cost_record_count: summary.provider_cost_record_count ?? 0,
+      runtime_cost_record_count: summary.runtime_cost_record_count ?? 0,
+      storage_cost_record_count: summary.storage_cost_record_count ?? 0,
+      api_cost_record_count: summary.api_cost_record_count ?? 0,
+      run_cost_rollup_count: summary.run_cost_rollup_count ?? 0,
+      attributed_run_cost_rollup_count: summary.attributed_run_cost_rollup_count ?? 0,
+      missing_run_cost_rollup_count: missingRuns,
+      run_missing_record_count: missingRecords,
+      priced_record_count: summary.priced_record_count ?? 0,
+      estimated_record_count: summary.estimated_record_count ?? 0,
+      unpriced_record_count: summary.unpriced_record_count ?? 0,
+      total_observed_usd: summary.total_observed_usd ?? 0,
+      total_estimated_usd: summary.total_estimated_usd ?? 0,
+      total_projected_usd: summary.total_projected_usd ?? 0,
+      total_token_count: summary.total_token_count ?? 0,
+      total_runtime_seconds: summary.total_runtime_seconds ?? 0,
+      api_invocation_count: summary.api_invocation_count ?? 0,
+      storage_artifact_count: summary.storage_artifact_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -11072,6 +11122,27 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     cost_attribution_total_projected_usd: artifacts.cost_attribution_ledger?.summary?.total_projected_usd ?? 0,
     cost_attribution_total_remaining_usd: artifacts.cost_attribution_ledger?.summary?.total_budget_remaining_usd ?? 0,
     cost_attribution_validation_error_count: artifacts.cost_attribution_ledger?.summary?.validation_error_count ?? artifacts.cost_attribution_ledger?.validation?.errors?.length ?? 0,
+    cost_record_projection_status: artifacts.cost_record_projection?.summary?.cost_record_projection_status ?? "unknown",
+    cost_record_projection_count: artifacts.cost_record_projection?.summary?.projected_cost_record_count ?? 0,
+    cost_record_projection_raw_count: artifacts.cost_record_projection?.summary?.raw_cost_record_count ?? 0,
+    cost_record_projection_provider_count: artifacts.cost_record_projection?.summary?.provider_cost_record_count ?? 0,
+    cost_record_projection_runtime_count: artifacts.cost_record_projection?.summary?.runtime_cost_record_count ?? 0,
+    cost_record_projection_storage_count: artifacts.cost_record_projection?.summary?.storage_cost_record_count ?? 0,
+    cost_record_projection_api_count: artifacts.cost_record_projection?.summary?.api_cost_record_count ?? 0,
+    cost_record_projection_run_rollup_count: artifacts.cost_record_projection?.summary?.run_cost_rollup_count ?? 0,
+    cost_record_projection_attributed_run_count: artifacts.cost_record_projection?.summary?.attributed_run_cost_rollup_count ?? 0,
+    cost_record_projection_missing_run_count: artifacts.cost_record_projection?.summary?.missing_run_cost_rollup_count ?? 0,
+    cost_record_projection_run_missing_record_count: artifacts.cost_record_projection?.summary?.run_missing_record_count ?? 0,
+    cost_record_projection_priced_count: artifacts.cost_record_projection?.summary?.priced_record_count ?? 0,
+    cost_record_projection_estimated_count: artifacts.cost_record_projection?.summary?.estimated_record_count ?? 0,
+    cost_record_projection_unpriced_count: artifacts.cost_record_projection?.summary?.unpriced_record_count ?? 0,
+    cost_record_projection_total_estimated_usd: artifacts.cost_record_projection?.summary?.total_estimated_usd ?? 0,
+    cost_record_projection_total_projected_usd: artifacts.cost_record_projection?.summary?.total_projected_usd ?? 0,
+    cost_record_projection_total_tokens: artifacts.cost_record_projection?.summary?.total_token_count ?? 0,
+    cost_record_projection_total_runtime_seconds: artifacts.cost_record_projection?.summary?.total_runtime_seconds ?? 0,
+    cost_record_projection_api_invocation_count: artifacts.cost_record_projection?.summary?.api_invocation_count ?? 0,
+    cost_record_projection_storage_artifact_count: artifacts.cost_record_projection?.summary?.storage_artifact_count ?? 0,
+    cost_record_projection_validation_error_count: artifacts.cost_record_projection?.summary?.validation_error_count ?? artifacts.cost_record_projection?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -11784,6 +11855,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Cost Budgets", dashboard.summary.cost_budget_decision_count)}
       ${stat("Token Usage", dashboard.summary.token_usage_record_count)}
       ${stat("Cost Attribution", dashboard.summary.cost_attribution_record_count)}
+      ${stat("Cost Records", dashboard.summary.cost_record_projection_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -11889,6 +11961,10 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Cost attribution records: ${dashboard.summary.cost_attribution_record_count ?? 0}`);
   lines.push(`- Cost attribution projected USD: ${dashboard.summary.cost_attribution_total_projected_usd ?? 0}`);
   lines.push(`- Cost attribution remaining USD: ${dashboard.summary.cost_attribution_total_remaining_usd ?? 0}`);
+  lines.push(`- Cost record projections: ${dashboard.summary.cost_record_projection_count ?? 0}`);
+  lines.push(`- Cost record run rollups: ${dashboard.summary.cost_record_projection_run_rollup_count ?? 0}`);
+  lines.push(`- Cost record provider/runtime/storage/API: ${dashboard.summary.cost_record_projection_provider_count ?? 0}/${dashboard.summary.cost_record_projection_runtime_count ?? 0}/${dashboard.summary.cost_record_projection_storage_count ?? 0}/${dashboard.summary.cost_record_projection_api_count ?? 0}`);
+  lines.push(`- Cost record API invocations: ${dashboard.summary.cost_record_projection_api_invocation_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12216,6 +12292,8 @@ function parseArgs(argv) {
     else if (arg === "--no-token-usage-ledger") parsed.tokenUsageLedgerPath = false;
     else if (arg === "--cost-attribution-ledger") parsed.costAttributionLedgerPath = argv[++index];
     else if (arg === "--no-cost-attribution-ledger") parsed.costAttributionLedgerPath = false;
+    else if (arg === "--cost-record-projection") parsed.costRecordProjectionPath = argv[++index];
+    else if (arg === "--no-cost-record-projection") parsed.costRecordProjectionPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -12589,6 +12667,9 @@ Options:
   --cost-attribution-ledger <path>
                                   cost-attribution-ledger.json path.
   --no-cost-attribution-ledger   Do not include Cost Attribution Ledger status.
+  --cost-record-projection <path>
+                                  cost-record-projection.json path.
+  --no-cost-record-projection    Do not include Cost Record Projection status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

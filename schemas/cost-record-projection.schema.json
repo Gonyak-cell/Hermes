@@ -1,0 +1,307 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/cost-record-projection.schema.json",
+  "title": "Cost Record Projection",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "cost_record_projection_id",
+    "source_contracts",
+    "cost_record_projection_contract",
+    "cost_record_projection_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "cost-record-projection.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "cost_record_projection_id": {
+      "type": "string"
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "observability_catalog",
+        "cost_attribution_ledger",
+        "token_usage_ledger",
+        "workflow_run_ledger",
+        "agent_run_ledger",
+        "tool_invocation_ledger",
+        "output_catalog"
+      ]
+    },
+    "cost_record_projection_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "cost_record_projection_contract_id",
+        "required_cost_categories",
+        "required_record_fields",
+        "run_attribution_rule",
+        "pricing_rule"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "cost-record-projection-contract.v1"
+        },
+        "cost_record_projection_contract_id": {
+          "const": "cost-record-projection.v1"
+        },
+        "required_cost_categories": {
+          "type": "array",
+          "contains": {
+            "const": "provider"
+          }
+        }
+      }
+    },
+    "cost_record_projection_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "projected_cost_records",
+        "run_cost_rollups",
+        "cost_category_rollups"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "cost-record-projection-catalog.v1"
+        },
+        "projected_cost_records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/projected_cost_record"
+          }
+        },
+        "run_cost_rollups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/run_cost_rollup"
+          }
+        },
+        "cost_category_rollups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/cost_category_rollup"
+          }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/validation_item"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "errors"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "cost_record_projection_status",
+        "cost_record_projection_contract_id",
+        "projected_cost_record_count",
+        "provider_cost_record_count",
+        "runtime_cost_record_count",
+        "storage_cost_record_count",
+        "api_cost_record_count",
+        "run_cost_rollup_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "cost_record_projection_status": {
+          "enum": [
+            "complete",
+            "blocked"
+          ]
+        },
+        "cost_record_projection_contract_id": {
+          "const": "cost-record-projection.v1"
+        },
+        "projected_cost_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "provider_cost_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_cost_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "storage_cost_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "api_cost_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "run_cost_rollup_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "projected_cost_record": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "projected_cost_record_id",
+        "source_ledger",
+        "workflow_run_id",
+        "run_ledger_id",
+        "cost_category",
+        "cost_driver",
+        "metered_quantity",
+        "metered_unit",
+        "observed_usd",
+        "estimated_usd",
+        "projected_usd",
+        "pricing_status",
+        "attribution_status",
+        "audit_required",
+        "recorded_at",
+        "projected_at",
+        "cost_hash"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "projected-cost-record.v1"
+        },
+        "cost_category": {
+          "enum": [
+            "provider",
+            "runtime",
+            "storage",
+            "api"
+          ]
+        },
+        "metered_quantity": {
+          "type": "number",
+          "minimum": 0
+        },
+        "observed_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "estimated_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "projected_usd": {
+          "type": "number",
+          "minimum": 0
+        },
+        "total_token_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runtime_seconds": {
+          "type": "number",
+          "minimum": 0
+        },
+        "audit_required": {
+          "const": true
+        }
+      }
+    },
+    "run_cost_rollup": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "run_cost_rollup_id",
+        "workflow_run_id",
+        "run_ledger_id",
+        "projected_cost_record_count",
+        "provider_cost_record_count",
+        "runtime_cost_record_count",
+        "storage_cost_record_count",
+        "api_cost_record_count",
+        "total_projected_usd",
+        "attribution_status"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "run-cost-rollup.v1"
+        },
+        "projected_cost_record_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "cost_category_rollup": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "cost_category_rollup_id",
+        "cost_category",
+        "projected_cost_record_count",
+        "total_projected_usd"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "cost-category-rollup.v1"
+        },
+        "cost_category": {
+          "enum": [
+            "provider",
+            "runtime",
+            "storage",
+            "api"
+          ]
+        }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": [
+        "path",
+        "check_id",
+        "status",
+        "message"
+      ],
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "check_id": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "message": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

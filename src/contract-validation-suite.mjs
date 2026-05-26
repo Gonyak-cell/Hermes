@@ -74,6 +74,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:events",
   "events:envelopes",
   "events:types",
+  "events:store",
   "contracts:observability",
 ];
 

@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/append-only-event-store.schema.json",
+  "title": "Hermes Append-only Event Store",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "append_only_event_store_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "event_store_contract",
+    "event_store_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "append-only-event-store.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "append_only_event_store_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "event_store_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_store_contract_id",
+        "storage_mode",
+        "correction_event_type",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-store-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_store_contract_id": { "const": "append-only-event-store.v1" },
+        "storage_mode": { "const": "append_only" },
+        "immutable_source_fields": {
+          "type": "array",
+          "contains": { "const": "event_hash" }
+        },
+        "correction_event_type": { "const": "event.correction.recorded" },
+        "mutation_policy": { "const": "in_place_mutation_forbidden" },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "event_store_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "stored_events",
+        "event_streams",
+        "correction_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-store-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "stored_events": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/stored_event" }
+        },
+        "event_streams": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_stream" }
+        },
+        "correction_policy": { "$ref": "#/$defs/correction_policy" }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "event_store_status",
+        "event_store_contract_id",
+        "source_event_envelope_status",
+        "source_event_envelope_count",
+        "source_event_type_registry_status",
+        "stored_event_count",
+        "appended_event_count",
+        "immutable_event_count",
+        "hash_chained_event_count",
+        "type_registry_bound_event_count",
+        "event_stream_count",
+        "contiguous_stream_count",
+        "sequence_gap_count",
+        "duplicate_event_id_count",
+        "correction_event_count",
+        "in_place_mutation_count",
+        "correction_policy_status",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "event_store_status": { "enum": ["complete", "blocked"] },
+        "event_store_contract_id": { "const": "append-only-event-store.v1" },
+        "source_event_envelope_status": { "type": "string" },
+        "source_event_envelope_count": { "type": "integer", "minimum": 0 },
+        "source_event_type_registry_status": { "type": "string" },
+        "stored_event_count": { "type": "integer", "minimum": 0 },
+        "appended_event_count": { "type": "integer", "minimum": 0 },
+        "immutable_event_count": { "type": "integer", "minimum": 0 },
+        "hash_chained_event_count": { "type": "integer", "minimum": 0 },
+        "type_registry_bound_event_count": { "type": "integer", "minimum": 0 },
+        "event_stream_count": { "type": "integer", "minimum": 0 },
+        "contiguous_stream_count": { "type": "integer", "minimum": 0 },
+        "sequence_gap_count": { "type": "integer", "minimum": 0 },
+        "duplicate_event_id_count": { "type": "integer", "minimum": 0 },
+        "correction_event_count": { "type": "integer", "minimum": 0 },
+        "in_place_mutation_count": { "type": "integer", "minimum": 0 },
+        "correction_policy_status": { "enum": ["enforced", "unknown"] },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "stored_event": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "stored_event_id",
+        "event_envelope_id",
+        "event_type",
+        "event_family",
+        "event_stream_id",
+        "global_sequence",
+        "stream_sequence",
+        "event_time",
+        "event_hash",
+        "chain_hash",
+        "append_status",
+        "immutable_status",
+        "mutation_status",
+        "correction_status",
+        "type_binding_status",
+        "hash_chain_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "stored-event.v1" },
+        "stored_event_id": { "type": "string" },
+        "event_envelope_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_family": { "type": "string" },
+        "event_category": { "type": "string" },
+        "event_stream_id": { "type": "string" },
+        "global_sequence": { "type": "integer", "minimum": 1 },
+        "stream_sequence": { "type": "integer", "minimum": 0 },
+        "event_time": { "type": "string", "format": "date-time" },
+        "source_kind": { "type": "string" },
+        "source_event_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": ["string", "null"] },
+        "causation_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "actor_type": { "type": ["string", "null"] },
+        "actor_id": { "type": ["string", "null"] },
+        "source_schema_version": { "type": ["string", "null"] },
+        "dataschema": { "type": ["string", "null"] },
+        "event_hash": { "type": "string", "pattern": "^sha256:" },
+        "previous_chain_hash": { "type": ["string", "null"], "pattern": "^sha256:" },
+        "chain_hash": { "type": "string", "pattern": "^sha256:" },
+        "append_status": { "enum": ["appended"] },
+        "immutable_status": { "enum": ["locked"] },
+        "mutation_status": { "enum": ["not_mutated"] },
+        "correction_status": { "enum": ["original_event", "correction_event"] },
+        "type_binding_status": { "enum": ["bound", "missing_type_binding"] },
+        "hash_chain_status": { "enum": ["chained", "missing_hash"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "event_stream": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_stream_id",
+        "stream_scope",
+        "event_count",
+        "stored_event_ids",
+        "event_envelope_ids",
+        "sequence_status",
+        "stream_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-stream.v1" },
+        "event_stream_id": { "type": "string" },
+        "stream_scope": { "enum": ["tenant", "matter"] },
+        "event_count": { "type": "integer", "minimum": 0 },
+        "stored_event_ids": { "type": "array", "items": { "type": "string" } },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "event_types": { "type": "array", "items": { "type": "string" } },
+        "event_families": { "type": "array", "items": { "type": "string" } },
+        "first_event_time": { "type": ["string", "null"], "format": "date-time" },
+        "last_event_time": { "type": ["string", "null"], "format": "date-time" },
+        "last_chain_hash": { "type": ["string", "null"] },
+        "sequence_status": { "enum": ["contiguous", "gap_detected"] },
+        "stream_status": { "enum": ["active", "empty"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "correction_policy": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "correction_policy_id",
+        "correction_event_type",
+        "mutation_policy",
+        "correction_status",
+        "in_place_mutation_allowed",
+        "correction_event_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-correction-policy.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "correction_policy_id": { "type": "string" },
+        "correction_event_type": { "const": "event.correction.recorded" },
+        "mutation_policy": { "const": "in_place_mutation_forbidden" },
+        "correction_status": { "const": "enforced" },
+        "in_place_mutation_allowed": { "const": false },
+        "correction_event_count": { "type": "integer", "minimum": 0 },
+        "target_required_for_correction": { "type": "boolean" },
+        "protected_fields": { "type": "array", "items": { "type": "string" } },
+        "required_correction_fields": { "type": "array", "items": { "type": "string" } },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

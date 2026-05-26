@@ -75,6 +75,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/event-families"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-type-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-type-registry-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/append-only-event-stores"));
+  assert.ok(index.routes.some((route) => route.path === "/api/stored-events"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-streams"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-correction-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-store-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -854,6 +859,26 @@ try {
   const eventTypeRegistryValidations = await fetchJson(`${url}/api/event-type-registry-validations?status=passed&limit=5`);
   assert.equal(eventTypeRegistryValidations.collection, "event_type_registry_validations");
   assert.ok(eventTypeRegistryValidations.count <= 5);
+
+  const appendOnlyEventStores = await fetchJson(`${url}/api/append-only-event-stores?event_store_status=complete&limit=1`);
+  assert.equal(appendOnlyEventStores.collection, "append_only_event_stores");
+  assert.ok(appendOnlyEventStores.count <= 1);
+
+  const storedEvents = await fetchJson(`${url}/api/stored-events?append_status=appended&immutable_status=locked&limit=5`);
+  assert.equal(storedEvents.collection, "stored_events");
+  assert.ok(storedEvents.count <= 5);
+
+  const eventStreams = await fetchJson(`${url}/api/event-streams?sequence_status=contiguous&stream_status=active&limit=5`);
+  assert.equal(eventStreams.collection, "event_streams");
+  assert.ok(eventStreams.count <= 5);
+
+  const eventCorrectionPolicies = await fetchJson(`${url}/api/event-correction-policies?correction_policy_status=enforced&limit=1`);
+  assert.equal(eventCorrectionPolicies.collection, "event_correction_policies");
+  assert.ok(eventCorrectionPolicies.count <= 1);
+
+  const eventStoreValidations = await fetchJson(`${url}/api/event-store-validations?status=passed&limit=5`);
+  assert.equal(eventStoreValidations.collection, "event_store_validations");
+  assert.ok(eventStoreValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

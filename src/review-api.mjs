@@ -2735,6 +2735,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/append-only-event-stores") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "append_only_event_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("append_only_event_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("append_only_event_stores", [storeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/stored-events") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "append_only_event_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("append_only_event_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("stored_events", storeResult.artifact.event_store_catalog?.stored_events ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-streams") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "append_only_event_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("append_only_event_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_streams", storeResult.artifact.event_store_catalog?.event_streams ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-correction-policies") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "append_only_event_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("append_only_event_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_correction_policies", [storeResult.artifact.event_store_catalog?.correction_policy].filter(Boolean), url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-store-validations") {
+    const storeResult = await readDashboardSourceArtifact(dashboard, "append_only_event_store");
+    if (!storeResult.available) {
+      return jsonResponse(503, buildError("append_only_event_store_unavailable", storeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_store_validations", storeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -5761,6 +5812,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/event-families", "Event family coverage rows"),
       route("GET", "/api/event-type-bindings", "Event envelope to event type binding rows"),
       route("GET", "/api/event-type-registry-validations", "Event type registry validation rows"),
+      route("GET", "/api/append-only-event-stores", "Append-only event store artifacts"),
+      route("GET", "/api/stored-events", "Hash-chained stored event rows"),
+      route("GET", "/api/event-streams", "Append-only event stream rows"),
+      route("GET", "/api/event-correction-policies", "Append-only correction policy rows"),
+      route("GET", "/api/event-store-validations", "Append-only event store validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6155,6 +6211,7 @@ function filterItems(items, searchParams) {
     "evidence_plane_freeze_status",
     "event_envelope_status",
     "event_type_registry_status",
+    "event_store_status",
     "envelope_kind",
     "specversion",
     "event_type",
@@ -6164,6 +6221,16 @@ function filterItems(items, searchParams) {
     "classification_status",
     "coverage_status",
     "required_family",
+    "event_stream_id",
+    "stream_scope",
+    "stream_status",
+    "append_status",
+    "immutable_status",
+    "mutation_status",
+    "hash_chain_status",
+    "correction_status",
+    "sequence_status",
+    "correction_policy_status",
     "source_kind",
     "binding_status",
     "round_trip_status",
@@ -7119,6 +7186,7 @@ function readFilterValue(item, key) {
   if (key === "evidence_plane_freeze_status") return item.summary?.evidence_plane_freeze_status ?? item.evidence_plane_freeze_status;
   if (key === "event_envelope_status") return item.summary?.event_envelope_status ?? item.event_envelope_status;
   if (key === "event_type_registry_status") return item.summary?.event_type_registry_status ?? item.event_type_registry_status;
+  if (key === "event_store_status") return item.summary?.event_store_status ?? item.event_store_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;
   if (key === "event_type") return item.event_type ?? item.type ?? item.envelope_type;
@@ -7127,6 +7195,16 @@ function readFilterValue(item, key) {
   if (key === "classification_status") return item.classification_status;
   if (key === "coverage_status") return item.coverage_status;
   if (key === "required_family") return item.required_family;
+  if (key === "event_stream_id") return item.event_stream_id;
+  if (key === "stream_scope") return item.stream_scope;
+  if (key === "stream_status") return item.stream_status;
+  if (key === "append_status") return item.append_status;
+  if (key === "immutable_status") return item.immutable_status;
+  if (key === "mutation_status") return item.mutation_status ?? item.mutation_policy;
+  if (key === "hash_chain_status") return item.hash_chain_status;
+  if (key === "correction_status") return item.correction_status;
+  if (key === "sequence_status") return item.sequence_status;
+  if (key === "correction_policy_status") return item.summary?.correction_policy_status ?? item.correction_status;
   if (key === "source_kind") return item.source_kind ?? item.sourcekind;
   if (key === "binding_status") return item.binding_status;
   if (key === "round_trip_status") return item.round_trip_status;

@@ -168,6 +168,7 @@ import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
 import { runEventEnvelopeLedger } from "../src/event-envelope-ledger.mjs";
 import { runEventTypeRegistry } from "../src/event-type-registry.mjs";
+import { runAppendOnlyEventStore } from "../src/append-only-event-store.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1698,6 +1699,7 @@ describe("matter harness", () => {
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
         eventEnvelopeLedgerPath: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
         eventTypeRegistryPath: path.join(outDir, "event-type-registry", "event-type-registry.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3412,6 +3414,41 @@ describe("matter harness", () => {
       assert.ok(eventTypeRegistry.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "event-type-registry", "summary.md"), "utf8"), /Event Type Registry/);
 
+      const appendOnlyEventStore = await runAppendOnlyEventStore({
+        eventEnvelopeLedgerPath: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
+        eventTypeRegistryPath: path.join(outDir, "event-type-registry", "event-type-registry.json"),
+        outDir: path.join(outDir, "append-only-event-store"),
+        runAt: "2026-05-23T06:35:08.450Z",
+      });
+      const appendOnlyEventStoreSchema = JSON.parse(await readFile("schemas/append-only-event-store.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(appendOnlyEventStore, appendOnlyEventStoreSchema, {}, "append_only_event_store"),
+        [],
+      );
+      assert.equal(appendOnlyEventStore.summary.event_store_status, "complete");
+      assert.equal(appendOnlyEventStore.summary.event_store_contract_id, "append-only-event-store.v1");
+      assert.equal(appendOnlyEventStore.summary.source_event_envelope_status, "complete");
+      assert.equal(appendOnlyEventStore.summary.source_event_type_registry_status, "complete");
+      assert.equal(appendOnlyEventStore.summary.stored_event_count, expectedEnvelopeCount);
+      assert.equal(appendOnlyEventStore.summary.appended_event_count, expectedEnvelopeCount);
+      assert.equal(appendOnlyEventStore.summary.immutable_event_count, expectedEnvelopeCount);
+      assert.equal(appendOnlyEventStore.summary.hash_chained_event_count, expectedEnvelopeCount);
+      assert.equal(appendOnlyEventStore.summary.type_registry_bound_event_count, expectedEnvelopeCount);
+      assert.ok(appendOnlyEventStore.summary.event_stream_count > 0);
+      assert.equal(appendOnlyEventStore.summary.contiguous_stream_count, appendOnlyEventStore.summary.event_stream_count);
+      assert.equal(appendOnlyEventStore.summary.sequence_gap_count, 0);
+      assert.equal(appendOnlyEventStore.summary.duplicate_event_id_count, 0);
+      assert.equal(appendOnlyEventStore.summary.correction_event_count, 0);
+      assert.equal(appendOnlyEventStore.summary.in_place_mutation_count, 0);
+      assert.equal(appendOnlyEventStore.summary.correction_policy_status, "enforced");
+      assert.equal(appendOnlyEventStore.summary.validation_error_count, 0);
+      assert.ok(appendOnlyEventStore.event_store_catalog.stored_events.every((event, index) => event.global_sequence === index + 1 && event.append_status === "appended" && event.immutable_status === "locked" && event.mutation_status === "not_mutated"));
+      assert.ok(appendOnlyEventStore.event_store_catalog.stored_events.every((event) => event.event_hash?.startsWith("sha256:") && event.chain_hash?.startsWith("sha256:") && event.type_binding_status === "bound"));
+      assert.ok(appendOnlyEventStore.event_store_catalog.event_streams.every((stream) => stream.sequence_status === "contiguous" && stream.stream_status === "active"));
+      assert.equal(appendOnlyEventStore.event_store_catalog.correction_policy.in_place_mutation_allowed, false);
+      assert.ok(appendOnlyEventStore.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "append-only-event-store", "summary.md"), "utf8"), /Append-only Event Store/);
+
       const policySnapshotBindingLedger = await runPolicySnapshotBindingLedger({
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
@@ -4925,6 +4962,7 @@ describe("matter harness", () => {
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
           event_envelope_ledger: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
           event_type_registry: path.join(outDir, "event-type-registry", "event-type-registry.json"),
+          append_only_event_store: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -4937,8 +4975,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 62);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 62);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 63);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 63);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4996,6 +5034,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_binding_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5061,6 +5100,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-plane-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:envelopes"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:types"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:store"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5350,6 +5390,10 @@ describe("matter harness", () => {
       assert.equal(eventTypeRegistryCheckpoint?.acceptance_profile, "event_type_registry_gate");
       assert.equal(eventTypeRegistryCheckpoint?.status, "passed");
       assert.equal(eventTypeRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const appendOnlyEventStoreCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-append-only-event-store");
+      assert.equal(appendOnlyEventStoreCheckpoint?.acceptance_profile, "append_only_event_store_gate");
+      assert.equal(appendOnlyEventStoreCheckpoint?.status, "passed");
+      assert.equal(appendOnlyEventStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6641,6 +6685,20 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.event_type_registry_dataschema_bound_event_type_count, eventTypeRegistry.summary.dataschema_bound_event_type_count);
       assert.equal(dashboard.summary.event_type_registry_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.event_type_registry_validation_error_count, 0);
+      assert.equal(dashboard.summary.append_only_event_store_stored_event_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.append_only_event_store_appended_event_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.append_only_event_store_immutable_event_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.append_only_event_store_hash_chained_event_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.append_only_event_store_type_registry_bound_event_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.append_only_event_store_event_stream_count, appendOnlyEventStore.summary.event_stream_count);
+      assert.equal(dashboard.summary.append_only_event_store_contiguous_stream_count, appendOnlyEventStore.summary.event_stream_count);
+      assert.equal(dashboard.summary.append_only_event_store_sequence_gap_count, 0);
+      assert.equal(dashboard.summary.append_only_event_store_duplicate_event_id_count, 0);
+      assert.equal(dashboard.summary.append_only_event_store_correction_event_count, 0);
+      assert.equal(dashboard.summary.append_only_event_store_in_place_mutation_count, 0);
+      assert.equal(dashboard.summary.append_only_event_store_append_only_policy_count, 1);
+      assert.equal(dashboard.summary.append_only_event_store_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.append_only_event_store_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -7954,6 +8012,26 @@ describe("matter harness", () => {
       const eventTypeRegistryValidations = JSON.parse((await buildReviewApiResponse("/api/event-type-registry-validations?status=passed", apiOptions)).body);
       assert.equal(eventTypeRegistryValidations.collection, "event_type_registry_validations");
       assert.equal(eventTypeRegistryValidations.count, eventTypeRegistry.summary.validation_item_count);
+
+      const appendOnlyEventStores = JSON.parse((await buildReviewApiResponse("/api/append-only-event-stores?event_store_status=complete", apiOptions)).body);
+      assert.equal(appendOnlyEventStores.collection, "append_only_event_stores");
+      assert.equal(appendOnlyEventStores.count, 1);
+
+      const storedEvents = JSON.parse((await buildReviewApiResponse("/api/stored-events?append_status=appended&immutable_status=locked", apiOptions)).body);
+      assert.equal(storedEvents.collection, "stored_events");
+      assert.equal(storedEvents.count, appendOnlyEventStore.summary.stored_event_count);
+
+      const eventStreams = JSON.parse((await buildReviewApiResponse("/api/event-streams?sequence_status=contiguous&stream_status=active", apiOptions)).body);
+      assert.equal(eventStreams.collection, "event_streams");
+      assert.equal(eventStreams.count, appendOnlyEventStore.summary.event_stream_count);
+
+      const eventCorrectionPolicies = JSON.parse((await buildReviewApiResponse("/api/event-correction-policies?correction_policy_status=enforced", apiOptions)).body);
+      assert.equal(eventCorrectionPolicies.collection, "event_correction_policies");
+      assert.equal(eventCorrectionPolicies.count, 1);
+
+      const eventStoreValidations = JSON.parse((await buildReviewApiResponse("/api/event-store-validations?status=passed", apiOptions)).body);
+      assert.equal(eventStoreValidations.collection, "event_store_validations");
+      assert.equal(eventStoreValidations.count, appendOnlyEventStore.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

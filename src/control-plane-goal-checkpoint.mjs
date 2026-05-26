@@ -72,6 +72,7 @@ const GOAL_ITEMS = [
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
   sourceItem("event_envelope_ledger", "CloudEvents-style event envelope ledger", "audit", "event_envelope_ledger", "control-plane-event-envelope-ledger", { acceptance_profile: "event_envelope_ledger_gate" }),
   sourceItem("event_type_registry", "Event type registry", "audit", "event_type_registry", "control-plane-event-type-registry", { acceptance_profile: "event_type_registry_gate" }),
+  sourceItem("append_only_event_store", "Append-only event store", "audit", "append_only_event_store", "control-plane-append-only-event-store", { acceptance_profile: "append_only_event_store_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -425,6 +426,7 @@ function evaluateStageAcceptance(item, stage) {
     "retrieval_filter_compiler_gate",
     "event_envelope_ledger_gate",
     "event_type_registry_gate",
+    "append_only_event_store_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -515,6 +517,30 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.output_event_type_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Event type registry catalogs every envelope into a registered type, binds each envelope once, and covers resource, workflow, agent, gate, approval, and output families.");
+    }
+  }
+
+  if (item.acceptance_profile === "append_only_event_store_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const storedEventCount = metrics.stored_event_count ?? 0;
+    if (
+      errors === 0
+      && metrics.event_store_status === "complete"
+      && metrics.source_event_envelope_status === "complete"
+      && metrics.source_event_type_registry_status === "complete"
+      && storedEventCount > 0
+      && storedEventCount === (metrics.source_event_envelope_count ?? 0)
+      && (metrics.appended_event_count ?? 0) === storedEventCount
+      && (metrics.immutable_event_count ?? 0) === storedEventCount
+      && (metrics.hash_chained_event_count ?? 0) === storedEventCount
+      && (metrics.type_registry_bound_event_count ?? 0) === storedEventCount
+      && (metrics.sequence_gap_count ?? 1) === 0
+      && (metrics.duplicate_event_id_count ?? 1) === 0
+      && (metrics.in_place_mutation_count ?? 1) === 0
+      && metrics.correction_policy_status === "enforced"
+      && (metrics.append_only_policy_count ?? 0) === 1
+    ) {
+      return passedWithOperationalGate(stage, "Append-only event store projects every envelope to an immutable, hash-chained stored event and requires corrections to be appended as new events.");
     }
   }
 

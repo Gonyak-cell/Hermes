@@ -57,6 +57,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
   eventEnvelopeLedgerPath: "artifacts/event-envelope-ledger/latest/event-envelope-ledger.json",
   eventTypeRegistryPath: "artifacts/event-type-registry/latest/event-type-registry.json",
+  appendOnlyEventStorePath: "artifacts/append-only-event-store/latest/append-only-event-store.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -424,6 +425,11 @@ const SOURCE_DEFINITIONS = [
     option: "eventTypeRegistryPath",
     source_id: "event_type_registry",
     label: "Event Type Registry",
+  },
+  {
+    option: "appendOnlyEventStorePath",
+    source_id: "append_only_event_store",
+    label: "Append-only Event Store",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1079,6 +1085,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_envelope_ledger") return data.summary ?? {};
   if (sourceId === "event_type_registry") return data.summary ?? {};
+  if (sourceId === "append_only_event_store") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1319,6 +1326,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
     buildEventEnvelopeLedgerStage(artifacts.event_envelope_ledger, sourceById.get("event_envelope_ledger")),
     buildEventTypeRegistryStage(artifacts.event_type_registry, sourceById.get("event_type_registry")),
+    buildAppendOnlyEventStoreStage(artifacts.append_only_event_store, sourceById.get("append_only_event_store")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4134,6 +4142,45 @@ function buildEventTypeRegistryStage(registry, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? registry.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildAppendOnlyEventStoreStage(store, source) {
+  if (!store) return missingStage("append_only_event_store", "Append-only Event Store", source);
+  const summary = store.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || store.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "append_only_event_store",
+    label: "Append-only Event Store",
+    status,
+    message: `${summary.stored_event_count ?? 0} stored event(s), ${summary.event_stream_count ?? 0} stream(s), ${summary.hash_chained_event_count ?? 0}/${summary.stored_event_count ?? 0} hash chained.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      event_store_status: summary.event_store_status ?? "unknown",
+      event_store_contract_id: summary.event_store_contract_id ?? null,
+      source_event_envelope_status: summary.source_event_envelope_status ?? "unknown",
+      source_event_envelope_count: summary.source_event_envelope_count ?? 0,
+      source_event_type_registry_status: summary.source_event_type_registry_status ?? "unknown",
+      source_event_type_count: summary.source_event_type_count ?? 0,
+      stored_event_count: summary.stored_event_count ?? 0,
+      appended_event_count: summary.appended_event_count ?? 0,
+      immutable_event_count: summary.immutable_event_count ?? 0,
+      hash_chained_event_count: summary.hash_chained_event_count ?? 0,
+      type_registry_bound_event_count: summary.type_registry_bound_event_count ?? 0,
+      event_stream_count: summary.event_stream_count ?? 0,
+      contiguous_stream_count: summary.contiguous_stream_count ?? 0,
+      sequence_gap_count: summary.sequence_gap_count ?? 0,
+      duplicate_event_id_count: summary.duplicate_event_id_count ?? 0,
+      correction_event_count: summary.correction_event_count ?? 0,
+      in_place_mutation_count: summary.in_place_mutation_count ?? 0,
+      append_only_policy_count: summary.append_only_policy_count ?? 0,
+      correction_policy_status: summary.correction_policy_status ?? "unknown",
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? store.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -10356,6 +10403,20 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     event_type_registry_dataschema_bound_event_type_count: artifacts.event_type_registry?.summary?.dataschema_bound_event_type_count ?? 0,
     event_type_registry_failed_validation_item_count: artifacts.event_type_registry?.summary?.failed_validation_item_count ?? 0,
     event_type_registry_validation_error_count: artifacts.event_type_registry?.summary?.validation_error_count ?? artifacts.event_type_registry?.validation?.errors?.length ?? 0,
+    append_only_event_store_stored_event_count: artifacts.append_only_event_store?.summary?.stored_event_count ?? 0,
+    append_only_event_store_appended_event_count: artifacts.append_only_event_store?.summary?.appended_event_count ?? 0,
+    append_only_event_store_immutable_event_count: artifacts.append_only_event_store?.summary?.immutable_event_count ?? 0,
+    append_only_event_store_hash_chained_event_count: artifacts.append_only_event_store?.summary?.hash_chained_event_count ?? 0,
+    append_only_event_store_type_registry_bound_event_count: artifacts.append_only_event_store?.summary?.type_registry_bound_event_count ?? 0,
+    append_only_event_store_event_stream_count: artifacts.append_only_event_store?.summary?.event_stream_count ?? 0,
+    append_only_event_store_contiguous_stream_count: artifacts.append_only_event_store?.summary?.contiguous_stream_count ?? 0,
+    append_only_event_store_sequence_gap_count: artifacts.append_only_event_store?.summary?.sequence_gap_count ?? 0,
+    append_only_event_store_duplicate_event_id_count: artifacts.append_only_event_store?.summary?.duplicate_event_id_count ?? 0,
+    append_only_event_store_correction_event_count: artifacts.append_only_event_store?.summary?.correction_event_count ?? 0,
+    append_only_event_store_in_place_mutation_count: artifacts.append_only_event_store?.summary?.in_place_mutation_count ?? 0,
+    append_only_event_store_append_only_policy_count: artifacts.append_only_event_store?.summary?.append_only_policy_count ?? 0,
+    append_only_event_store_failed_validation_item_count: artifacts.append_only_event_store?.summary?.failed_validation_item_count ?? 0,
+    append_only_event_store_validation_error_count: artifacts.append_only_event_store?.summary?.validation_error_count ?? artifacts.append_only_event_store?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11642,6 +11703,8 @@ function parseArgs(argv) {
     else if (arg === "--no-event-envelope-ledger") parsed.eventEnvelopeLedgerPath = false;
     else if (arg === "--event-type-registry") parsed.eventTypeRegistryPath = argv[++index];
     else if (arg === "--no-event-type-registry") parsed.eventTypeRegistryPath = false;
+    else if (arg === "--append-only-event-store") parsed.appendOnlyEventStorePath = argv[++index];
+    else if (arg === "--no-append-only-event-store") parsed.appendOnlyEventStorePath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -11991,6 +12054,9 @@ Options:
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.
   --no-event-type-registry       Do not include Event Type Registry status.
+  --append-only-event-store <path>
+                                  append-only-event-store.json path.
+  --no-append-only-event-store   Do not include Append-only Event Store status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

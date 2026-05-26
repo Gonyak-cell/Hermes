@@ -50,6 +50,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "evidence:export-bundle",
   "evidence:regression-tests",
   "resource:evidence-dashboard",
+  "resource:evidence-plane-freeze",
   "resource:evidence-coverage",
   "resource:evidence-flags",
   "resource:exhibit-map",

@@ -1,0 +1,243 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/evidence-plane-freeze.schema.json",
+  "title": "Hermes Evidence Plane Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "freeze_id",
+    "output_dir",
+    "evidence_plane_freeze_status",
+    "safe_handling",
+    "inputs",
+    "freeze_scope",
+    "evidence_plane_freeze_contract",
+    "freeze_source_statuses",
+    "freeze_checkpoints",
+    "representative_traces",
+    "freeze_note",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "evidence-plane-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "evidence_plane_freeze_status": {
+      "enum": ["frozen_with_pending_human_actions", "frozen_clear", "blocked"]
+    },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "freeze_report_only",
+        "source_artifact_mutation_allowed",
+        "protected_actions_executed",
+        "external_delivery_executed",
+        "external_model_call_executed",
+        "auto_approval_allowed"
+      ],
+      "properties": {
+        "freeze_report_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "protected_actions_executed": { "const": false },
+        "external_delivery_executed": { "const": false },
+        "external_model_call_executed": { "const": false },
+        "auto_approval_allowed": { "const": false }
+      }
+    },
+    "inputs": { "type": "object" },
+    "freeze_scope": {
+      "type": "object",
+      "required": ["track", "frozen_slots", "source_phase_range", "representative_slice", "next_planned_slot", "next_track"],
+      "properties": {
+        "track": { "const": "Resource, Data, Evidence, Lineage Plane" },
+        "frozen_slots": { "type": "array", "minItems": 26, "items": { "type": "string" } },
+        "source_phase_range": { "type": "string" },
+        "representative_slice": { "type": "string" },
+        "next_planned_slot": { "const": "P159" },
+        "next_track": { "type": "string" }
+      }
+    },
+    "evidence_plane_freeze_contract": {
+      "type": "object",
+      "required": ["schema_version", "evidence_plane_freeze_contract_id", "generated_at", "source_rule", "representative_trace_rule", "guardrail_rule", "api_routes"],
+      "properties": {
+        "schema_version": { "const": "evidence-plane-freeze-contract.v1" },
+        "evidence_plane_freeze_contract_id": { "const": "evidence-plane-freeze.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "source_rule": { "type": "string" },
+        "representative_trace_rule": { "type": "string" },
+        "guardrail_rule": { "type": "string" },
+        "api_routes": { "type": "array", "minItems": 5, "items": { "type": "string" } }
+      }
+    },
+    "freeze_source_statuses": {
+      "type": "array",
+      "minItems": 28,
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "freeze_checkpoints": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "representative_traces": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/representative_trace" }
+    },
+    "freeze_note": { "type": "object" },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_status": {
+      "type": "object",
+      "required": ["schema_version", "source_id", "label", "planned_slot", "path", "available", "source_status", "validation_error_count", "content_hash"],
+      "properties": {
+        "schema_version": { "const": "evidence-plane-freeze-source-status.v1" },
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "planned_slot": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "schema_version_observed": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "status_key": { "type": ["string", "null"] },
+        "expected_status": { "type": ["string", "null"] },
+        "observed_status": { "type": ["string", "null"] },
+        "source_status": { "enum": ["passed", "failed"] },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "content_hash": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "evidence-plane-freeze-checkpoint.v1" },
+        "checkpoint_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    },
+    "representative_trace": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "trace_id",
+        "generated_at",
+        "trace_status",
+        "tenant_id",
+        "matter_id",
+        "classification",
+        "policy_snapshot_id",
+        "resource_ref",
+        "evidence_ref",
+        "citation_ref",
+        "output_ref",
+        "audit_refs",
+        "guardrails",
+        "preservation"
+      ],
+      "properties": {
+        "schema_version": { "const": "evidence-plane-representative-trace.v1" },
+        "trace_id": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "trace_status": { "enum": ["complete", "attention"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "classification": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "resource_ref": { "type": "object" },
+        "evidence_ref": { "type": "object" },
+        "citation_ref": { "type": "object" },
+        "output_ref": { "type": "object" },
+        "audit_refs": { "type": "object" },
+        "guardrails": { "type": "object" },
+        "preservation": { "type": "object" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["path", "message", "check_id"],
+            "properties": {
+              "path": { "type": "string" },
+              "message": { "type": "string" },
+              "check_id": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "evidence_plane_freeze_status",
+        "evidence_plane_freeze_contract_id",
+        "freeze_source_count",
+        "passed_freeze_source_count",
+        "failed_freeze_source_count",
+        "frozen_slot_count",
+        "freeze_checkpoint_count",
+        "passed_freeze_checkpoint_count",
+        "failed_freeze_checkpoint_count",
+        "representative_trace_count",
+        "complete_representative_trace_count",
+        "representative_evidence_bound_count",
+        "representative_output_bound_count",
+        "representative_audit_event_bound_count",
+        "representative_custody_bound_count",
+        "representative_event_ledger_bound_count",
+        "representative_run_ledger_bound_count",
+        "source_span_to_output_path_count",
+        "output_delivery_blocked_count",
+        "attorney_review_required_count",
+        "external_transfer_blocked_count",
+        "client_facing_ready_count",
+        "source_validation_error_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "evidence_plane_freeze_status": {
+          "enum": ["frozen_with_pending_human_actions", "frozen_clear", "blocked"]
+        },
+        "evidence_plane_freeze_contract_id": { "const": "evidence-plane-freeze.v1" },
+        "freeze_source_count": { "type": "integer", "minimum": 28 },
+        "passed_freeze_source_count": { "type": "integer", "minimum": 0 },
+        "failed_freeze_source_count": { "type": "integer", "minimum": 0 },
+        "frozen_slot_count": { "type": "integer", "minimum": 26 },
+        "freeze_checkpoint_count": { "type": "integer", "minimum": 1 },
+        "passed_freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "failed_freeze_checkpoint_count": { "type": "integer", "minimum": 0 },
+        "representative_trace_count": { "type": "integer", "minimum": 1 },
+        "complete_representative_trace_count": { "type": "integer", "minimum": 0 },
+        "representative_resource_count": { "type": "integer", "minimum": 0 },
+        "representative_evidence_bound_count": { "type": "integer", "minimum": 0 },
+        "representative_output_bound_count": { "type": "integer", "minimum": 0 },
+        "representative_audit_event_bound_count": { "type": "integer", "minimum": 0 },
+        "representative_custody_bound_count": { "type": "integer", "minimum": 0 },
+        "representative_event_ledger_bound_count": { "type": "integer", "minimum": 0 },
+        "representative_run_ledger_bound_count": { "type": "integer", "minimum": 0 },
+        "source_span_to_output_path_count": { "type": "integer", "minimum": 0 },
+        "output_delivery_blocked_count": { "type": "integer", "minimum": 0 },
+        "attorney_review_required_count": { "type": "integer", "minimum": 0 },
+        "external_transfer_blocked_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_count": { "const": 0 },
+        "source_validation_error_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

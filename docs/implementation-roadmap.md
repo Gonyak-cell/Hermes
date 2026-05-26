@@ -4713,6 +4713,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 59개로 증가하고 resource evidence dashboard summary가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run resource:evidence-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 158: Evidence Plane Freeze
+
+목표: P133-P157 Resource/Data/Evidence/Lineage Plane 산출물을 freeze report로 고정하고, 대표 law-firm resource가 resource -> source span -> evidence -> citation -> output -> event/run ledger -> custody path를 끝까지 통과하는지 증명한다.
+
+구현 내용:
+
+- `src/evidence-plane-freeze.mjs`, `scripts/evidence-plane-freeze.mjs`, `schemas/evidence-plane-freeze.schema.json`, `docs/evidence-plane-freeze.md`를 추가함
+- `npm run resource:evidence-plane-freeze -- --check` 명령을 추가해 freeze report, source status, checkpoint, representative trace, freeze note, validation report, summary markdown을 생성함
+- P133-P157 artifact와 Law Firm LDD Slice, Output/Delivery Contract Freeze, Event/Audit/Run Ledger Contract Freeze를 입력으로 삼아 freeze source status를 검증함
+- 대표 confidential resource `resource.expansion.2d75da5656c0`가 source span, evidence item, LDD citation, evidence export bundle, output artifact, event record, run ledger, chain-of-custody event에 연결되는 representative trace를 생성함
+- representative trace는 matter/classification/policy snapshot preservation, attorney review requirement, output delivery block, external transfer block, client-facing ready 0을 함께 검증함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Evidence Plane Freeze를 통합함
+- `/api/evidence-plane-freezes`, `/api/evidence-plane-freeze-sources`, `/api/evidence-plane-freeze-checkpoints`, `/api/evidence-plane-representative-traces`, `/api/evidence-plane-freeze-validations` route를 추가함
+
+완료 기준:
+
+- Evidence Plane Freeze가 validation error 없이 `frozen_with_pending_human_actions` 상태가 됨
+- 모든 freeze source가 readable, expected status, validation clean, content hash locked 상태를 만족함
+- representative trace가 하나 이상 있고 모든 trace가 `complete` 상태임
+- 각 representative trace가 evidence, output artifact, event ledger, run ledger, custody event에 bound됨
+- law-firm output은 attorney review required, blocked pending approval, external transfer blocked, client-facing ready 0으로 유지됨
+- matter, classification, policy snapshot이 resource/evidence/output/export path에서 보존됨
+- Review Dashboard summary와 stage status에서 freeze source, checkpoint, representative trace, output/audit/custody guard count가 노출됨
+- Review API smoke가 evidence plane freeze, source, checkpoint, representative trace, validation route를 모두 조회함
+- Golden fixture 수가 60개로 증가하고 evidence plane freeze가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run resource:evidence-plane-freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4721,9 +4748,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 157이다.
+- 현재 완료 기준점은 Phase 158이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P158-P312, 총 155개다.
+- 남은 계획 슬롯은 P159-P312, 총 154개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

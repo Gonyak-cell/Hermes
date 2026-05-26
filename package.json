@@ -151,6 +151,7 @@
     "evidence:export-bundle": "node scripts/evidence-export-bundle.mjs",
     "evidence:regression-tests": "node scripts/evidence-regression-tests.mjs",
     "resource:evidence-dashboard": "node scripts/resource-evidence-dashboard-summary.mjs",
+    "resource:evidence-plane-freeze": "node scripts/evidence-plane-freeze.mjs",
     "resource:fact-claims": "node scripts/fact-claim-store.mjs",
     "resource:issue-graph": "node scripts/issue-graph-store.mjs",
     "resource:citations": "node scripts/citation-object-store.mjs",

@@ -668,6 +668,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("resource_evidence_dashboard_validations", summaryResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/evidence-plane-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_plane_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_plane_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_plane_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-plane-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_plane_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_plane_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_plane_freeze_sources", freezeResult.artifact.freeze_source_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-plane-freeze-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_plane_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_plane_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_plane_freeze_checkpoints", freezeResult.artifact.freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-plane-representative-traces") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_plane_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_plane_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_plane_representative_traces", freezeResult.artifact.representative_traces ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/evidence-plane-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "evidence_plane_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("evidence_plane_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("evidence_plane_freeze_validations", freezeResult.artifact.freeze_checkpoints ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/evidence-golden-validations") {
     const fixtureResult = await readDashboardSourceArtifact(dashboard, "evidence_golden_fixtures");
     if (!fixtureResult.available) {
@@ -5457,6 +5492,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/resource-evidence-matter-rollups", "Resource/evidence dashboard matter rollups"),
       route("GET", "/api/resource-evidence-classification-rollups", "Resource/evidence dashboard classification rollups"),
       route("GET", "/api/resource-evidence-dashboard-validations", "Resource/evidence dashboard validation rows"),
+      route("GET", "/api/evidence-plane-freezes", "Evidence Plane freeze artifacts"),
+      route("GET", "/api/evidence-plane-freeze-sources", "Evidence Plane freeze source status rows"),
+      route("GET", "/api/evidence-plane-freeze-checkpoints", "Evidence Plane freeze checkpoint rows"),
+      route("GET", "/api/evidence-plane-representative-traces", "Evidence Plane representative trace rows"),
+      route("GET", "/api/evidence-plane-freeze-validations", "Evidence Plane freeze validation rows"),
       route("GET", "/api/evidence-golden-validations", "Evidence golden fixture validation rows"),
       route("GET", "/api/fact-claim-stores", "Fact claim store artifacts"),
       route("GET", "/api/fact-claims", "Fact claim rows"),
@@ -6012,6 +6052,11 @@ function filterItems(items, searchParams) {
     "match_status",
     "evidence_regression_status",
     "resource_evidence_dashboard_status",
+    "evidence_plane_freeze_status",
+    "checkpoint_status",
+    "trace_status",
+    "source_status",
+    "trace_id",
     "panel_id",
     "panel_type",
     "panel_status",
@@ -6956,6 +7001,11 @@ function readFilterValue(item, key) {
   if (key === "evidence_golden_fixture_status") return item.summary?.evidence_golden_fixture_status ?? item.evidence_golden_fixture_status;
   if (key === "evidence_regression_status") return item.summary?.evidence_regression_status ?? item.evidence_regression_status;
   if (key === "resource_evidence_dashboard_status") return item.summary?.resource_evidence_dashboard_status ?? item.resource_evidence_dashboard_status;
+  if (key === "evidence_plane_freeze_status") return item.summary?.evidence_plane_freeze_status ?? item.evidence_plane_freeze_status;
+  if (key === "checkpoint_status") return item.status ?? item.checkpoint_status;
+  if (key === "trace_status") return item.trace_status;
+  if (key === "source_status") return item.source_status;
+  if (key === "trace_id") return item.trace_id;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;
   if (key === "citation_object_store_status") return item.summary?.citation_object_store_status ?? item.citation_object_store_status;

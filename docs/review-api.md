@@ -130,6 +130,11 @@ npm run api:serve
 - `GET /api/resource-evidence-matter-rollups`: matter별 resource/evidence/quarantine/coverage/export rollup rows
 - `GET /api/resource-evidence-classification-rollups`: classification별 resource/evidence/quarantine/coverage/export rollup rows
 - `GET /api/resource-evidence-dashboard-validations`: resource/evidence dashboard validation rows
+- `GET /api/evidence-plane-freezes`: Evidence Plane freeze artifact
+- `GET /api/evidence-plane-freeze-sources`: freeze source status rows for P133-P157 and representative support artifacts
+- `GET /api/evidence-plane-freeze-checkpoints`: Evidence Plane freeze checkpoint rows
+- `GET /api/evidence-plane-representative-traces`: representative resource-to-evidence-to-output-to-audit trace rows
+- `GET /api/evidence-plane-freeze-validations`: Evidence Plane freeze validation rows
 - `GET /api/evidence-golden-validations`: evidence golden fixture validation rows
 - `GET /api/fact-claim-stores`: fact claim store artifact
 - `GET /api/fact-claims`: evidence-derived fact claim rows
@@ -406,6 +411,8 @@ Vector policy route는 `vector_index_policy_boundary_status`, `vector_policy_gat
 Evidence regression route는 `evidence_regression_status`, `suite_type`, `suite_status`, `status`, `regression_suite_id`, `regression_test_case_id`, `subject_id`, `matter_id`, `classification`, `external_service_used`, `locked`, `limit` query를 지원한다.
 
 Resource/evidence dashboard route는 `resource_evidence_dashboard_status`, `panel_id`, `panel_type`, `panel_status`, `source_artifact_id`, `matter_id`, `classification`, `rollup_status`, `status`, `limit` query를 지원한다.
+
+Evidence Plane freeze route는 `evidence_plane_freeze_status`, `source_status`, `checkpoint_status`, `trace_status`, `trace_id`, `matter_id`, `classification`, `policy_snapshot_id`, `status`, `limit` query를 지원한다.
 
 ## 검증
 

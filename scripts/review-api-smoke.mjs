@@ -235,6 +235,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-matter-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-classification-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/resource-evidence-dashboard-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-freeze-sources"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-freeze-checkpoints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-representative-traces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/evidence-plane-freeze-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-golden-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
@@ -2005,6 +2010,26 @@ try {
   const resourceEvidenceDashboardValidations = await fetchJson(`${url}/api/resource-evidence-dashboard-validations?status=passed&limit=5`);
   assert.equal(resourceEvidenceDashboardValidations.collection, "resource_evidence_dashboard_validations");
   assert.ok(resourceEvidenceDashboardValidations.count <= 5);
+
+  const evidencePlaneFreezes = await fetchJson(`${url}/api/evidence-plane-freezes?evidence_plane_freeze_status=frozen_with_pending_human_actions&limit=1`);
+  assert.equal(evidencePlaneFreezes.collection, "evidence_plane_freezes");
+  assert.ok(evidencePlaneFreezes.count <= 1);
+
+  const evidencePlaneFreezeSources = await fetchJson(`${url}/api/evidence-plane-freeze-sources?source_status=passed&limit=5`);
+  assert.equal(evidencePlaneFreezeSources.collection, "evidence_plane_freeze_sources");
+  assert.ok(evidencePlaneFreezeSources.count <= 5);
+
+  const evidencePlaneFreezeCheckpoints = await fetchJson(`${url}/api/evidence-plane-freeze-checkpoints?checkpoint_status=passed&limit=5`);
+  assert.equal(evidencePlaneFreezeCheckpoints.collection, "evidence_plane_freeze_checkpoints");
+  assert.ok(evidencePlaneFreezeCheckpoints.count <= 5);
+
+  const evidencePlaneRepresentativeTraces = await fetchJson(`${url}/api/evidence-plane-representative-traces?trace_status=complete&limit=5`);
+  assert.equal(evidencePlaneRepresentativeTraces.collection, "evidence_plane_representative_traces");
+  assert.ok(evidencePlaneRepresentativeTraces.count <= 5);
+
+  const evidencePlaneFreezeValidations = await fetchJson(`${url}/api/evidence-plane-freeze-validations?checkpoint_status=passed&limit=5`);
+  assert.equal(evidencePlaneFreezeValidations.collection, "evidence_plane_freeze_validations");
+  assert.ok(evidencePlaneFreezeValidations.count <= 5);
 
   const evidenceGoldenValidations = await fetchJson(`${url}/api/evidence-golden-validations?status=passed&limit=5`);
   assert.equal(evidenceGoldenValidations.collection, "evidence_golden_validations");

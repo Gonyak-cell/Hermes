@@ -52,6 +52,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_export_bundle", "Evidence export bundle", "resource_evidence", "evidence_export_bundle", "control-plane-evidence-export-bundle", { acceptance_profile: "evidence_export_bundle_gate" }),
   sourceItem("evidence_regression_tests", "Evidence regression tests", "resource_evidence", "evidence_regression_tests", "control-plane-evidence-regression-tests", { acceptance_profile: "evidence_regression_tests_gate" }),
   sourceItem("resource_evidence_dashboard_summary", "Resource/evidence dashboard summary", "resource_evidence", "resource_evidence_dashboard_summary", "control-plane-resource-evidence-dashboard-summary", { acceptance_profile: "resource_evidence_dashboard_summary_gate" }),
+  sourceItem("evidence_plane_freeze", "Evidence Plane freeze", "resource_evidence", "evidence_plane_freeze", "control-plane-evidence-plane-freeze", { acceptance_profile: "evidence_plane_freeze_gate" }),
   sourceItem("chain_of_custody_events", "Chain of custody events", "resource_evidence", "chain_of_custody_events", "control-plane-chain-of-custody-events", { acceptance_profile: "chain_of_custody_events_gate" }),
   sourceItem("search_index_contract", "Search index contract", "resource_evidence", "search_index_contract", "control-plane-search-index-contract", { acceptance_profile: "search_index_contract_gate" }),
   sourceItem("vector_index_policy_boundary", "Vector index policy boundary", "resource_evidence", "vector_index_policy_boundary", "control-plane-vector-index-policy-boundary", { acceptance_profile: "vector_index_policy_boundary_gate" }),
@@ -415,6 +416,7 @@ function evaluateStageAcceptance(item, stage) {
     "evidence_export_bundle_gate",
     "evidence_regression_tests_gate",
     "resource_evidence_dashboard_summary_gate",
+    "evidence_plane_freeze_gate",
     "chain_of_custody_events_gate",
     "search_index_contract_gate",
     "vector_index_policy_boundary_gate",
@@ -1134,6 +1136,32 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.regression_external_service_used_case_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Resource/evidence dashboard summary exposes ingest, quarantine, evidence, coverage, export, and regression status as read-only panels and rollups while blocking client-facing readiness.");
+    }
+  }
+
+  if (item.acceptance_profile === "evidence_plane_freeze_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const traceCount = metrics.representative_trace_count ?? 0;
+    if (
+      errors === 0
+      && ["frozen_with_pending_human_actions", "frozen_clear"].includes(metrics.evidence_plane_freeze_status)
+      && (metrics.failed_freeze_source_count ?? 1) === 0
+      && (metrics.failed_freeze_checkpoint_count ?? 1) === 0
+      && traceCount > 0
+      && (metrics.complete_representative_trace_count ?? 0) === traceCount
+      && (metrics.representative_evidence_bound_count ?? 0) === traceCount
+      && (metrics.representative_output_bound_count ?? 0) === traceCount
+      && (metrics.representative_audit_event_bound_count ?? 0) === traceCount
+      && (metrics.representative_custody_bound_count ?? 0) === traceCount
+      && (metrics.representative_run_ledger_bound_count ?? 0) === traceCount
+      && (metrics.source_span_to_output_path_count ?? 0) === traceCount
+      && (metrics.output_delivery_blocked_count ?? 0) === traceCount
+      && (metrics.attorney_review_required_count ?? 0) === traceCount
+      && (metrics.external_transfer_blocked_count ?? 0) === traceCount
+      && (metrics.client_facing_ready_count ?? 1) === 0
+      && (metrics.source_validation_error_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Evidence Plane freeze proves a representative resource-to-evidence-to-output-to-audit path while keeping legal output blocked for attorney review.");
     }
   }
 

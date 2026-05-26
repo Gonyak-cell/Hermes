@@ -41,6 +41,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceExportBundlePath: "artifacts/evidence-export-bundle/latest/evidence-export-bundle.json",
   evidenceRegressionTestsPath: "artifacts/evidence-regression-tests/latest/evidence-regression-tests.json",
   resourceEvidenceDashboardSummaryPath: "artifacts/resource-evidence-dashboard/latest/resource-evidence-dashboard-summary.json",
+  evidencePlaneFreezePath: "artifacts/evidence-plane-freeze/latest/evidence-plane-freeze.json",
   evidenceCoverageScorePath: "artifacts/evidence-coverage/latest/evidence-coverage-score.json",
   evidenceFlagsPath: "artifacts/evidence-flags/latest/evidence-flags.json",
   exhibitMapPath: "artifacts/exhibit-map/latest/exhibit-map.json",
@@ -341,6 +342,11 @@ const SOURCE_DEFINITIONS = [
     option: "resourceEvidenceDashboardSummaryPath",
     source_id: "resource_evidence_dashboard_summary",
     label: "Resource/Evidence Dashboard Summary",
+  },
+  {
+    option: "evidencePlaneFreezePath",
+    source_id: "evidence_plane_freeze",
+    label: "Evidence Plane Freeze",
   },
   {
     option: "evidenceCoverageScorePath",
@@ -1045,6 +1051,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "issue_graph_store") return data.summary ?? {};
   if (sourceId === "citation_object_store") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
+  if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
   if (sourceId === "evidence_flags") return data.summary ?? {};
   if (sourceId === "exhibit_map") return data.summary ?? {};
@@ -1282,6 +1289,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceExportBundleStage(artifacts.evidence_export_bundle, sourceById.get("evidence_export_bundle")),
     buildEvidenceRegressionTestsStage(artifacts.evidence_regression_tests, sourceById.get("evidence_regression_tests")),
     buildResourceEvidenceDashboardSummaryStage(artifacts.resource_evidence_dashboard_summary, sourceById.get("resource_evidence_dashboard_summary")),
+    buildEvidencePlaneFreezeStage(artifacts.evidence_plane_freeze, sourceById.get("evidence_plane_freeze")),
     buildEvidenceCoverageScoreStage(artifacts.evidence_coverage_score, sourceById.get("evidence_coverage_score")),
     buildEvidenceFlagsStage(artifacts.evidence_flags, sourceById.get("evidence_flags")),
     buildExhibitMapStage(artifacts.exhibit_map, sourceById.get("exhibit_map")),
@@ -3179,6 +3187,60 @@ function buildResourceEvidenceDashboardSummaryStage(dashboardSummary, source) {
       source_validation_error_count: summary.source_validation_error_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEvidencePlaneFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("evidence_plane_freeze", "Evidence Plane Freeze", source);
+  const summary = freeze.summary ?? {};
+  const errorCount = summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0;
+  const traceCount = summary.representative_trace_count ?? 0;
+  const status = ["frozen_with_pending_human_actions", "frozen_clear"].includes(summary.evidence_plane_freeze_status)
+    && errorCount === 0
+    && (summary.failed_freeze_source_count ?? 1) === 0
+    && (summary.failed_freeze_checkpoint_count ?? 1) === 0
+    && traceCount > 0
+    && (summary.complete_representative_trace_count ?? 0) === traceCount
+    && (summary.representative_evidence_bound_count ?? 0) === traceCount
+    && (summary.representative_output_bound_count ?? 0) === traceCount
+    && (summary.representative_audit_event_bound_count ?? 0) === traceCount
+    && (summary.representative_custody_bound_count ?? 0) === traceCount
+    && (summary.client_facing_ready_count ?? 1) === 0
+    ? "passed"
+    : "attention";
+  return {
+    stage_id: "evidence_plane_freeze",
+    label: "Evidence Plane Freeze",
+    status,
+    message: `${traceCount} representative trace(s), ${summary.freeze_checkpoint_count ?? 0} freeze checkpoint(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      evidence_plane_freeze_status: summary.evidence_plane_freeze_status ?? "unknown",
+      evidence_plane_freeze_contract_id: summary.evidence_plane_freeze_contract_id ?? null,
+      freeze_source_count: summary.freeze_source_count ?? 0,
+      passed_freeze_source_count: summary.passed_freeze_source_count ?? 0,
+      failed_freeze_source_count: summary.failed_freeze_source_count ?? 0,
+      frozen_slot_count: summary.frozen_slot_count ?? 0,
+      freeze_checkpoint_count: summary.freeze_checkpoint_count ?? 0,
+      passed_freeze_checkpoint_count: summary.passed_freeze_checkpoint_count ?? 0,
+      failed_freeze_checkpoint_count: summary.failed_freeze_checkpoint_count ?? 0,
+      representative_trace_count: traceCount,
+      complete_representative_trace_count: summary.complete_representative_trace_count ?? 0,
+      representative_resource_count: summary.representative_resource_count ?? 0,
+      representative_evidence_bound_count: summary.representative_evidence_bound_count ?? 0,
+      representative_output_bound_count: summary.representative_output_bound_count ?? 0,
+      representative_audit_event_bound_count: summary.representative_audit_event_bound_count ?? 0,
+      representative_custody_bound_count: summary.representative_custody_bound_count ?? 0,
+      representative_event_ledger_bound_count: summary.representative_event_ledger_bound_count ?? 0,
+      representative_run_ledger_bound_count: summary.representative_run_ledger_bound_count ?? 0,
+      source_span_to_output_path_count: summary.source_span_to_output_path_count ?? 0,
+      output_delivery_blocked_count: summary.output_delivery_blocked_count ?? 0,
+      attorney_review_required_count: summary.attorney_review_required_count ?? 0,
+      external_transfer_blocked_count: summary.external_transfer_blocked_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -9829,6 +9891,26 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     resource_evidence_dashboard_client_facing_ready_count: artifacts.resource_evidence_dashboard_summary?.summary?.client_facing_ready_count ?? 0,
     resource_evidence_dashboard_source_validation_error_count: artifacts.resource_evidence_dashboard_summary?.summary?.source_validation_error_count ?? 0,
     resource_evidence_dashboard_validation_error_count: artifacts.resource_evidence_dashboard_summary?.summary?.validation_error_count ?? artifacts.resource_evidence_dashboard_summary?.validation?.errors?.length ?? 0,
+    evidence_plane_freeze_status: artifacts.evidence_plane_freeze?.summary?.evidence_plane_freeze_status ?? "unknown",
+    evidence_plane_freeze_contract_id: artifacts.evidence_plane_freeze?.summary?.evidence_plane_freeze_contract_id ?? null,
+    evidence_plane_freeze_source_count: artifacts.evidence_plane_freeze?.summary?.freeze_source_count ?? 0,
+    evidence_plane_freeze_passed_source_count: artifacts.evidence_plane_freeze?.summary?.passed_freeze_source_count ?? 0,
+    evidence_plane_freeze_failed_source_count: artifacts.evidence_plane_freeze?.summary?.failed_freeze_source_count ?? 0,
+    evidence_plane_freeze_checkpoint_count: artifacts.evidence_plane_freeze?.summary?.freeze_checkpoint_count ?? 0,
+    evidence_plane_freeze_passed_checkpoint_count: artifacts.evidence_plane_freeze?.summary?.passed_freeze_checkpoint_count ?? 0,
+    evidence_plane_freeze_failed_checkpoint_count: artifacts.evidence_plane_freeze?.summary?.failed_freeze_checkpoint_count ?? 0,
+    evidence_plane_freeze_representative_trace_count: artifacts.evidence_plane_freeze?.summary?.representative_trace_count ?? 0,
+    evidence_plane_freeze_complete_representative_trace_count: artifacts.evidence_plane_freeze?.summary?.complete_representative_trace_count ?? 0,
+    evidence_plane_freeze_representative_evidence_bound_count: artifacts.evidence_plane_freeze?.summary?.representative_evidence_bound_count ?? 0,
+    evidence_plane_freeze_representative_output_bound_count: artifacts.evidence_plane_freeze?.summary?.representative_output_bound_count ?? 0,
+    evidence_plane_freeze_representative_audit_event_bound_count: artifacts.evidence_plane_freeze?.summary?.representative_audit_event_bound_count ?? 0,
+    evidence_plane_freeze_representative_custody_bound_count: artifacts.evidence_plane_freeze?.summary?.representative_custody_bound_count ?? 0,
+    evidence_plane_freeze_representative_run_ledger_bound_count: artifacts.evidence_plane_freeze?.summary?.representative_run_ledger_bound_count ?? 0,
+    evidence_plane_freeze_output_delivery_blocked_count: artifacts.evidence_plane_freeze?.summary?.output_delivery_blocked_count ?? 0,
+    evidence_plane_freeze_attorney_review_required_count: artifacts.evidence_plane_freeze?.summary?.attorney_review_required_count ?? 0,
+    evidence_plane_freeze_external_transfer_blocked_count: artifacts.evidence_plane_freeze?.summary?.external_transfer_blocked_count ?? 0,
+    evidence_plane_freeze_client_facing_ready_count: artifacts.evidence_plane_freeze?.summary?.client_facing_ready_count ?? 0,
+    evidence_plane_freeze_validation_error_count: artifacts.evidence_plane_freeze?.summary?.validation_error_count ?? artifacts.evidence_plane_freeze?.validation?.errors?.length ?? 0,
     evidence_coverage_status: artifacts.evidence_coverage_score?.summary?.evidence_coverage_status ?? "unknown",
     evidence_coverage_contract_id: artifacts.evidence_coverage_score?.summary?.evidence_coverage_contract_id ?? null,
     evidence_coverage_score_schema_version: artifacts.evidence_coverage_score?.summary?.coverage_score_schema_version ?? null,
@@ -11503,6 +11585,8 @@ function parseArgs(argv) {
     else if (arg === "--no-evidence-regression-tests") parsed.evidenceRegressionTestsPath = false;
     else if (arg === "--resource-evidence-dashboard") parsed.resourceEvidenceDashboardSummaryPath = argv[++index];
     else if (arg === "--no-resource-evidence-dashboard") parsed.resourceEvidenceDashboardSummaryPath = false;
+    else if (arg === "--evidence-plane-freeze") parsed.evidencePlaneFreezePath = argv[++index];
+    else if (arg === "--no-evidence-plane-freeze") parsed.evidencePlaneFreezePath = false;
     else if (arg === "--evidence-coverage") parsed.evidenceCoverageScorePath = argv[++index];
     else if (arg === "--no-evidence-coverage") parsed.evidenceCoverageScorePath = false;
     else if (arg === "--evidence-flags") parsed.evidenceFlagsPath = argv[++index];
@@ -11739,6 +11823,8 @@ Options:
                                   resource-evidence-dashboard-summary.json path.
   --no-resource-evidence-dashboard
                                   Do not include Resource/Evidence Dashboard Summary status.
+  --evidence-plane-freeze <path> evidence-plane-freeze.json path.
+  --no-evidence-plane-freeze     Do not include Evidence Plane Freeze status.
   --evidence-coverage <path>      evidence-coverage-score.json path.
   --no-evidence-coverage          Do not include Evidence Coverage Score status.
   --evidence-flags <path>         evidence-flags.json path.

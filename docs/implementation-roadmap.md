@@ -5000,6 +5000,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 70개로 증가하고 cost record projection이 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run cost:records -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 169: Token Usage Projection
+
+목표: token usage ledger의 input/output/cache token을 동일한 projection 계약으로 정규화하고 capability, runtime, capability/runtime 조합별로 집계해 비용 projection과 조회 표면에 연결한다.
+
+구현 내용:
+
+- `npm run token:projection -- --check` 명령을 추가해 Token Usage Ledger와 Cost Record Projection의 provider cost record를 읽고 `projected_token_usage_record`로 정규화함
+- source에 cache token이 없더라도 모든 projected record에 `cache_token_count=0`을 명시해 input/output/cache/total token 집계 계약을 고정함
+- 각 projected token usage record가 `token_usage_id`, `workflow_run_id`, `agent_run_id`, `runtime_id`, `capability_id`, `domain_pack`, `tenant_id`, `matter_id`, classification, tracking status, provider cost binding, `token_usage_hash`를 갖도록 고정함
+- P168 Cost Record Projection의 provider cost record와 `source_record_id -> token_usage_id` 기준으로 binding해 token 집계와 provider 비용 projection이 같은 record lineage를 공유하도록 함
+- capability, runtime, capability/runtime, domain pack, matter, tracking status별 token rollup을 생성해 input/output/cache/total token과 provider projected USD를 조회 가능하게 함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Token Usage Projection을 통합함
+- `/api/token-usage-projections`, `/api/projected-token-usage-records`, `/api/capability-token-rollups`, `/api/runtime-token-rollups`, `/api/capability-runtime-token-rollups`, `/api/token-usage-projection-validations` route를 추가함
+
+완료 기준:
+
+- Token Usage Projection이 validation error 없이 `complete` 상태가 됨
+- projected token usage record 수가 source token usage record 수와 일치함
+- provider cost record 수와 provider-bound projected token usage record 수가 token usage record 수와 일치하고 missing provider binding이 0임
+- 모든 projected record가 explicit `cache_token_count`와 `token_usage_hash`를 가짐
+- input/output/total token 합계가 Token Usage Ledger summary와 일치하고 cache token은 별도 필드로 보존됨
+- capability, runtime, capability/runtime rollup이 모두 생성되고 capability/runtime rollup 합계가 total token과 일치함
+- Review Dashboard summary와 stage status에서 projected count, provider binding, capability/runtime rollup, input/output/cache/total token, provider projected USD가 노출됨
+- Review API smoke가 projection, projected record, capability rollup, runtime rollup, capability/runtime rollup, validation route를 모두 조회함
+- Golden fixture 수가 71개로 증가하고 token usage projection이 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run token:projection -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5008,9 +5035,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 168이다.
+- 현재 완료 기준점은 Phase 169이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P169-P312, 총 144개다.
+- 남은 계획 슬롯은 P170-P312, 총 143개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

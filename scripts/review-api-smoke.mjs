@@ -158,6 +158,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/run-cost-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-category-rollups"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-record-projection-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/token-usage-projections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/projected-token-usage-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-token-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-token-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-runtime-token-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/token-usage-projection-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1250,6 +1256,30 @@ try {
   const costRecordProjectionValidations = await fetchJson(`${url}/api/cost-record-projection-validations?status=passed&limit=5`);
   assert.equal(costRecordProjectionValidations.collection, "cost_record_projection_validations");
   assert.ok(costRecordProjectionValidations.count <= 5);
+
+  const tokenUsageProjections = await fetchJson(`${url}/api/token-usage-projections?token_usage_projection_status=complete&limit=1`);
+  assert.equal(tokenUsageProjections.collection, "token_usage_projections");
+  assert.ok(tokenUsageProjections.count <= 1);
+
+  const providerBoundTokenUsageRecords = await fetchJson(`${url}/api/projected-token-usage-records?provider_cost_binding_status=bound&limit=5`);
+  assert.equal(providerBoundTokenUsageRecords.collection, "projected_token_usage_records");
+  assert.ok(providerBoundTokenUsageRecords.count <= 5);
+
+  const personalDevCapabilityTokenRollups = await fetchJson(`${url}/api/capability-token-rollups?capability_id=personal_dev.codex.worktree_patch&limit=5`);
+  assert.equal(personalDevCapabilityTokenRollups.collection, "capability_token_rollups");
+  assert.ok(personalDevCapabilityTokenRollups.count <= 5);
+
+  const codexRuntimeTokenRollups = await fetchJson(`${url}/api/runtime-token-rollups?runtime_id=codex&limit=5`);
+  assert.equal(codexRuntimeTokenRollups.collection, "runtime_token_rollups");
+  assert.ok(codexRuntimeTokenRollups.count <= 5);
+
+  const capabilityRuntimeTokenRollups = await fetchJson(`${url}/api/capability-runtime-token-rollups?rollup_type=capability_runtime&limit=5`);
+  assert.equal(capabilityRuntimeTokenRollups.collection, "capability_runtime_token_rollups");
+  assert.ok(capabilityRuntimeTokenRollups.count <= 5);
+
+  const tokenUsageProjectionValidations = await fetchJson(`${url}/api/token-usage-projection-validations?status=passed&limit=5`);
+  assert.equal(tokenUsageProjectionValidations.collection, "token_usage_projection_validations");
+  assert.ok(tokenUsageProjectionValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

@@ -3440,6 +3440,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("cost_record_projection_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/token-usage-projections") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "token_usage_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("token_usage_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("token_usage_projections", [projectionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/projected-token-usage-records") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "token_usage_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("token_usage_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("projected_token_usage_records", projectionResult.artifact.token_usage_projection_catalog?.projected_token_usage_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/capability-token-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "token_usage_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("token_usage_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("capability_token_rollups", projectionResult.artifact.token_usage_projection_catalog?.capability_token_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-token-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "token_usage_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("token_usage_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_token_rollups", projectionResult.artifact.token_usage_projection_catalog?.runtime_token_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/capability-runtime-token-rollups") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "token_usage_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("token_usage_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("capability_runtime_token_rollups", projectionResult.artifact.token_usage_projection_catalog?.capability_runtime_token_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/token-usage-projection-validations") {
+    const projectionResult = await readDashboardSourceArtifact(dashboard, "token_usage_projection");
+    if (!projectionResult.available) {
+      return jsonResponse(503, buildError("token_usage_projection_unavailable", projectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("token_usage_projection_validations", projectionResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -5903,7 +5945,7 @@ export async function runReviewApiCli(argv = process.argv.slice(2)) {
   const serverInfo = await startReviewApiServer(args);
   console.log(`Hermes Review API listening at ${serverInfo.url}`);
   console.log(`Dashboard: ${resolveDashboardPath(args)}`);
-  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
+  console.log("Routes: /, /health, /api, /api/dashboard, /api/stages, /api/actions, /api/sources, /api/resource-contract-freezes, /api/resource-v2-contracts, /api/resource-version-v2-contracts, /api/resource-contract-validations, /api/evidence-review-drafts, /api/evidence-review-items, /api/policy-matrices, /api/policy-classifications, /api/runtime-policies, /api/model-policies, /api/tool-policies, /api/output-policies, /api/gate-policies, /api/policy-snapshot-ledgers, /api/policy-snapshots, /api/policy-snapshot-instances, /api/policy-decisions, /api/policy-usages, /api/context-packet-ledgers, /api/context-packets, /api/context-items, /api/context-retrieval-filters, /api/model-routing-ledgers, /api/model-routing-decisions, /api/cost-budget-ledgers, /api/cost-budget-decisions, /api/token-usage-ledgers, /api/token-usage-records, /api/cost-attribution-ledgers, /api/cost-attribution-records, /api/cost-record-projections, /api/projected-cost-records, /api/run-cost-rollups, /api/cost-category-rollups, /api/cost-record-projection-validations, /api/token-usage-projections, /api/projected-token-usage-records, /api/capability-token-rollups, /api/runtime-token-rollups, /api/capability-runtime-token-rollups, /api/token-usage-projection-validations, /api/budget-alert-ledgers, /api/budget-alert-records, /api/packs, /api/capabilities, /api/artifacts, /api/runs, /api/events, /api/costs, /api/audit-trails, /api/audit-events, /api/audit-sources, /api/delivery-actions, /api/matters, /api/approvals, /api/approval-inbox-decisions, /api/delivery-execution-candidates, /api/delivery-execution-packets, /api/delivery-receipts, /api/delivery-receipt-events, /api/post-delivery-matters, /api/delivered-artifacts, /api/outstanding-receipts, /api/delivery-closeout-items, /api/receipt-input-drafts, /api/closeout-receipt-validations, /api/closeout-receipt-errors, /api/validated-receipts-to-apply, /api/closeout-receipt-applications, /api/closeout-applied-receipts, /api/pipeline-runs, /api/pipeline-steps, /api/control-plane-loops, /api/control-plane-loop-steps, /api/goal-checkpoints, /api/goal-checkpoint-items, /api/contract-inventories, /api/contract-inventory-items, /api/contract-schemas, /api/contract-artifacts, /api/contract-owner-map, /api/contract-dependency-maps, /api/contract-dependency-nodes, /api/contract-dependency-edges, /api/contract-breaking-change-risks, /api/contract-owner-dependencies, /api/control-plane-health, /api/health-checks, /api/action-plans, /api/action-plan-items, /api/human-gates, /api/human-gate-items, /api/human-gate-receipts, /api/human-gate-receipt-requirements, /api/human-gate-receipt-drafts, /api/human-review-packet-ledgers, /api/human-review-packets, /api/human-review-items, /api/human-gate-receipt-validations, /api/human-gate-receipt-errors, /api/validated-human-gate-receipts, /api/human-gate-receipt-applications, /api/applied-human-gate-receipts, /api/patched-human-gate-items, /api/action-work-packets, /api/action-work-items, /api/work-packet-receipt-requirements, /api/work-packet-receipt-drafts, /api/work-packet-receipt-validations, /api/work-packet-receipt-errors, /api/validated-work-packet-receipts, /api/work-packet-receipt-applications, /api/applied-work-packet-receipts");
 }
 
 function buildRouteIndex(options, generatedAt) {
@@ -6260,6 +6302,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/run-cost-rollups", "Run-level cost rollups"),
       route("GET", "/api/cost-category-rollups", "Cost category rollups"),
       route("GET", "/api/cost-record-projection-validations", "Cost record projection validation rows"),
+      route("GET", "/api/token-usage-projections", "Token usage projection artifacts"),
+      route("GET", "/api/projected-token-usage-records", "Projected token usage records"),
+      route("GET", "/api/capability-token-rollups", "Capability token rollups"),
+      route("GET", "/api/runtime-token-rollups", "Runtime token rollups"),
+      route("GET", "/api/capability-runtime-token-rollups", "Capability/runtime token rollups"),
+      route("GET", "/api/token-usage-projection-validations", "Token usage projection validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7359,6 +7407,13 @@ function filterItems(items, searchParams) {
     "cost_category",
     "cost_driver",
     "pricing_status",
+    "token_usage_projection_status",
+    "token_usage_projection_id",
+    "projected_token_usage_record_id",
+    "token_rollup_id",
+    "rollup_type",
+    "rollup_key",
+    "provider_cost_binding_status",
     "over_budget",
     "untracked_cost",
     "alert_record_id",
@@ -7685,6 +7740,7 @@ function readFilterValue(item, key) {
   if (key === "tool_invocation_ledger_status") return item.summary?.tool_invocation_ledger_status ?? item.tool_invocation_ledger_status;
   if (key === "audit_event_ledger_status") return item.summary?.audit_event_ledger_status ?? item.audit_event_ledger_status;
   if (key === "cost_record_projection_status") return item.summary?.cost_record_projection_status ?? item.cost_record_projection_status;
+  if (key === "token_usage_projection_status") return item.summary?.token_usage_projection_status ?? item.token_usage_projection_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

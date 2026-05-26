@@ -114,6 +114,7 @@ import { runCostRecordProjection } from "../src/cost-record-projection.mjs";
 import { runBudgetAlertLedger } from "../src/budget-alert-ledger.mjs";
 import { runCostBudgetLedger } from "../src/cost-budget-ledger.mjs";
 import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
+import { runTokenUsageProjection } from "../src/token-usage-projection.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1724,6 +1725,7 @@ describe("matter harness", () => {
         tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
         costAttributionLedgerPath: path.join(outDir, "cost-attribution", "cost-attribution-ledger.json"),
         costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
+        tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1819,6 +1821,7 @@ describe("matter harness", () => {
         eventAuditRunContractFreezePath: false,
         eventEnvelopeLedgerPath: false,
         costRecordProjectionPath: false,
+        tokenUsageProjectionPath: false,
         errorCostObservabilityContractFreezePath: false,
         evidencePlaneFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -3770,6 +3773,37 @@ describe("matter harness", () => {
       assert.ok(costRecordProjection.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "cost-record-projection", "summary.md"), "utf8"), /Cost Record Projection/);
 
+      const tokenUsageProjection = await runTokenUsageProjection({
+        tokenUsageLedgerPath: path.join(outDir, "token-usage", "token-usage-ledger.json"),
+        costRecordProjectionPath: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
+        outDir: path.join(outDir, "token-usage-projection"),
+        runAt: "2026-05-23T06:35:07.795Z",
+      });
+      const tokenUsageProjectionSchema = JSON.parse(await readFile("schemas/token-usage-projection.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(tokenUsageProjection, tokenUsageProjectionSchema, {}, "token_usage_projection"),
+        [],
+      );
+      assert.equal(tokenUsageProjection.summary.token_usage_projection_status, "complete");
+      assert.equal(tokenUsageProjection.summary.token_usage_projection_contract_id, "token-usage-projection.v1");
+      assert.equal(tokenUsageProjection.summary.projected_token_usage_record_count, tokenUsageLedger.summary.token_usage_record_count);
+      assert.equal(tokenUsageProjection.summary.source_token_usage_record_count, tokenUsageLedger.summary.token_usage_record_count);
+      assert.equal(tokenUsageProjection.summary.provider_cost_record_count, costRecordProjection.summary.provider_cost_record_count);
+      assert.equal(tokenUsageProjection.summary.provider_cost_bound_record_count, tokenUsageProjection.summary.projected_token_usage_record_count);
+      assert.equal(tokenUsageProjection.summary.missing_provider_cost_record_count, 0);
+      assert.ok(tokenUsageProjection.summary.capability_token_rollup_count > 0);
+      assert.ok(tokenUsageProjection.summary.runtime_token_rollup_count > 0);
+      assert.ok(tokenUsageProjection.summary.capability_runtime_token_rollup_count > 0);
+      assert.equal(tokenUsageProjection.summary.total_input_token_count, tokenUsageLedger.summary.total_input_token_count);
+      assert.equal(tokenUsageProjection.summary.total_output_token_count, tokenUsageLedger.summary.total_output_token_count);
+      assert.equal(tokenUsageProjection.summary.total_cache_token_count, 0);
+      assert.equal(tokenUsageProjection.summary.total_token_count, tokenUsageLedger.summary.total_token_count);
+      assert.equal(tokenUsageProjection.summary.validation_error_count, 0);
+      assert.ok(tokenUsageProjection.token_usage_projection_catalog.projected_token_usage_records.every((record) => record.cache_token_count >= 0 && record.provider_cost_binding_status === "bound" && record.token_usage_hash));
+      assert.ok(tokenUsageProjection.token_usage_projection_catalog.capability_runtime_token_rollups.some((rollup) => rollup.runtime_id === "codex" && rollup.capability_id === "personal_dev.codex.worktree_patch"));
+      assert.ok(tokenUsageProjection.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "token-usage-projection", "summary.md"), "utf8"), /Token Usage Projection/);
+
       const errorCostObservabilityContractFreeze = await runErrorCostObservabilityContractFreeze({
         observabilityCatalogPath: path.join(outDir, "observability", "observability-catalog.json"),
         costBudgetLedgerPath: path.join(outDir, "cost-budget", "cost-budget-ledger.json"),
@@ -5278,6 +5312,7 @@ describe("matter harness", () => {
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           policy_snapshot_event_binding: path.join(outDir, "policy-snapshot-event-bindings", "policy-snapshot-event-binding.json"),
           cost_record_projection: path.join(outDir, "cost-record-projection", "cost-record-projection.json"),
+          token_usage_projection: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5289,8 +5324,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 70);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 70);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 71);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 71);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5348,6 +5383,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_binding_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_event_binding"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "cost_record_projection"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "token_usage_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5394,6 +5430,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "cost:records"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "token:projection"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -5682,6 +5719,10 @@ describe("matter harness", () => {
       assert.equal(costRecordProjectionCheckpoint?.acceptance_profile, "cost_record_projection_gate");
       assert.equal(costRecordProjectionCheckpoint?.status, "passed");
       assert.equal(costRecordProjectionCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const tokenUsageProjectionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-token-usage-projection");
+      assert.equal(tokenUsageProjectionCheckpoint?.acceptance_profile, "token_usage_projection_gate");
+      assert.equal(tokenUsageProjectionCheckpoint?.status, "passed");
+      assert.equal(tokenUsageProjectionCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6011,6 +6052,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.cost_record_projection_api_invocation_count, costRecordProjection.summary.api_invocation_count);
       assert.equal(dashboard.summary.cost_record_projection_storage_artifact_count, costRecordProjection.summary.storage_artifact_count);
       assert.equal(dashboard.summary.cost_record_projection_validation_error_count, 0);
+      assert.equal(dashboard.summary.token_usage_projection_status, "complete");
+      assert.equal(dashboard.summary.token_usage_projection_count, tokenUsageProjection.summary.projected_token_usage_record_count);
+      assert.equal(dashboard.summary.token_usage_projection_source_count, tokenUsageProjection.summary.source_token_usage_record_count);
+      assert.equal(dashboard.summary.token_usage_projection_provider_cost_record_count, tokenUsageProjection.summary.provider_cost_record_count);
+      assert.equal(dashboard.summary.token_usage_projection_provider_bound_count, tokenUsageProjection.summary.provider_cost_bound_record_count);
+      assert.equal(dashboard.summary.token_usage_projection_missing_provider_count, 0);
+      assert.equal(dashboard.summary.token_usage_projection_capability_rollup_count, tokenUsageProjection.summary.capability_token_rollup_count);
+      assert.equal(dashboard.summary.token_usage_projection_runtime_rollup_count, tokenUsageProjection.summary.runtime_token_rollup_count);
+      assert.equal(dashboard.summary.token_usage_projection_capability_runtime_rollup_count, tokenUsageProjection.summary.capability_runtime_token_rollup_count);
+      assert.equal(dashboard.summary.token_usage_projection_total_input_tokens, tokenUsageProjection.summary.total_input_token_count);
+      assert.equal(dashboard.summary.token_usage_projection_total_output_tokens, tokenUsageProjection.summary.total_output_token_count);
+      assert.equal(dashboard.summary.token_usage_projection_total_cache_tokens, tokenUsageProjection.summary.total_cache_token_count);
+      assert.equal(dashboard.summary.token_usage_projection_total_tokens, tokenUsageProjection.summary.total_token_count);
+      assert.equal(dashboard.summary.token_usage_projection_total_provider_cost_usd, tokenUsageProjection.summary.total_provider_cost_projected_usd);
+      assert.equal(dashboard.summary.token_usage_projection_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -7564,6 +7620,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_attribution_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "cost_record_projection"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -8851,6 +8908,30 @@ describe("matter harness", () => {
       const costRecordProjectionValidations = JSON.parse((await buildReviewApiResponse("/api/cost-record-projection-validations?status=passed", apiOptions)).body);
       assert.equal(costRecordProjectionValidations.collection, "cost_record_projection_validations");
       assert.equal(costRecordProjectionValidations.count, costRecordProjection.summary.validation_item_count);
+
+      const tokenUsageProjections = JSON.parse((await buildReviewApiResponse("/api/token-usage-projections?token_usage_projection_status=complete", apiOptions)).body);
+      assert.equal(tokenUsageProjections.collection, "token_usage_projections");
+      assert.equal(tokenUsageProjections.count, 1);
+
+      const projectedTokenUsageRecords = JSON.parse((await buildReviewApiResponse("/api/projected-token-usage-records?provider_cost_binding_status=bound", apiOptions)).body);
+      assert.equal(projectedTokenUsageRecords.collection, "projected_token_usage_records");
+      assert.equal(projectedTokenUsageRecords.count, tokenUsageProjection.summary.projected_token_usage_record_count);
+
+      const personalDevCapabilityTokenRollups = JSON.parse((await buildReviewApiResponse("/api/capability-token-rollups?capability_id=personal_dev.codex.worktree_patch", apiOptions)).body);
+      assert.equal(personalDevCapabilityTokenRollups.collection, "capability_token_rollups");
+      assert.equal(personalDevCapabilityTokenRollups.count, 1);
+
+      const codexRuntimeTokenRollups = JSON.parse((await buildReviewApiResponse("/api/runtime-token-rollups?runtime_id=codex", apiOptions)).body);
+      assert.equal(codexRuntimeTokenRollups.collection, "runtime_token_rollups");
+      assert.equal(codexRuntimeTokenRollups.count, 1);
+
+      const capabilityRuntimeTokenRollups = JSON.parse((await buildReviewApiResponse("/api/capability-runtime-token-rollups?rollup_type=capability_runtime", apiOptions)).body);
+      assert.equal(capabilityRuntimeTokenRollups.collection, "capability_runtime_token_rollups");
+      assert.equal(capabilityRuntimeTokenRollups.count, tokenUsageProjection.summary.capability_runtime_token_rollup_count);
+
+      const tokenUsageProjectionValidations = JSON.parse((await buildReviewApiResponse("/api/token-usage-projection-validations?status=passed", apiOptions)).body);
+      assert.equal(tokenUsageProjectionValidations.collection, "token_usage_projection_validations");
+      assert.equal(tokenUsageProjectionValidations.count, tokenUsageProjection.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

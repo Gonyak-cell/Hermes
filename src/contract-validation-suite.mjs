@@ -82,6 +82,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "events:policy-snapshots",
   "events:tool-invocations",
   "cost:records",
+  "token:projection",
   "contracts:observability",
 ];
 

@@ -73,6 +73,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     workflow_run_ledger: "artifacts/workflow-run-ledger/latest/workflow-run-ledger.json",
     agent_run_ledger: "artifacts/agent-run-ledger/latest/agent-run-ledger.json",
     tool_invocation_ledger: "artifacts/tool-invocation-ledger/latest/tool-invocation-ledger.json",
+    audit_event_ledger: "artifacts/audit-event-ledger/latest/audit-event-ledger.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -144,6 +145,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("workflow_run_ledger", "Workflow Run Ledger", "audit", "workflow-run-ledger.schema.json"),
   fixtureDefinition("agent_run_ledger", "Agent Run Ledger", "audit", "agent-run-ledger.schema.json"),
   fixtureDefinition("tool_invocation_ledger", "Tool Invocation Ledger", "audit", "tool-invocation-ledger.schema.json"),
+  fixtureDefinition("audit_event_ledger", "Audit Event Ledger", "audit", "audit-event-ledger.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

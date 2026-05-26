@@ -77,6 +77,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_run_ledger", "Workflow run ledger", "audit", "workflow_run_ledger", "control-plane-workflow-run-ledger", { acceptance_profile: "workflow_run_ledger_gate" }),
   sourceItem("agent_run_ledger", "Agent run ledger", "audit", "agent_run_ledger", "control-plane-agent-run-ledger", { acceptance_profile: "agent_run_ledger_gate" }),
   sourceItem("tool_invocation_ledger", "Tool invocation ledger", "audit", "tool_invocation_ledger", "control-plane-tool-invocation-ledger", { acceptance_profile: "tool_invocation_ledger_gate" }),
+  sourceItem("audit_event_ledger", "Audit event ledger", "audit", "audit_event_ledger", "control-plane-audit-event-ledger", { acceptance_profile: "audit_event_ledger_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -435,6 +436,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_run_ledger_gate",
     "agent_run_ledger_gate",
     "tool_invocation_ledger_gate",
+    "audit_event_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -664,6 +666,36 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.denied_tool_invocation_count ?? 0) === (metrics.blocked_tool_invocation_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Tool invocation ledger projects each AgentRun runtime tool policy into auditable permission decisions and AgentRun event-context bindings.");
+    }
+  }
+
+  if (item.acceptance_profile === "audit_event_ledger_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.mixed_observability_record_count ?? 0);
+    const recordCount = metrics.audit_trail_record_count ?? 0;
+    const bindingCount = metrics.audit_separation_binding_count ?? 0;
+    if (
+      errors === 0
+      && metrics.audit_event_ledger_status === "complete"
+      && metrics.source_event_audit_run_freeze_status === "complete"
+      && metrics.source_access_audit_projection_status === "complete"
+      && metrics.source_append_only_event_store_status === "complete"
+      && metrics.source_observability_freeze_status === "complete"
+      && metrics.source_control_plane_audit_status === "complete"
+      && recordCount > 0
+      && recordCount === (metrics.source_event_audit_run_audit_event_count ?? 0) + (metrics.source_access_audit_record_count ?? 0)
+      && (metrics.separated_audit_record_count ?? 0) === recordCount
+      && (metrics.observability_log_excluded_record_count ?? 0) === recordCount
+      && bindingCount === recordCount
+      && (metrics.separated_binding_count ?? 0) === bindingCount
+      && (metrics.audit_event_v2_record_count ?? 0) === (metrics.source_event_audit_run_audit_event_count ?? -1)
+      && (metrics.access_audit_record_count ?? 0) === (metrics.source_access_audit_record_count ?? -1)
+      && (metrics.event_store_bound_record_count ?? 0) === (metrics.audit_event_v2_record_count ?? -1)
+      && (metrics.source_projection_only_record_count ?? 0) === (metrics.access_audit_record_count ?? -1)
+      && (metrics.approval_audit_record_count ?? 0) > 0
+      && (metrics.access_audit_domain_record_count ?? 0) > 0
+      && (metrics.security_audit_record_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Audit event ledger separates security, access, and approval audit rows from observability logs while preserving append-only bindings for AuditEvent v2 rows.");
     }
   }
 

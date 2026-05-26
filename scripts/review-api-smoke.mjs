@@ -103,6 +103,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-agent-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-event-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/tool-invocation-ledger-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/audit-event-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/audit-trail-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/audit-separation-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/audit-source-rollups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/audit-event-ledger-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -994,6 +999,26 @@ try {
   const toolInvocationLedgerValidations = await fetchJson(`${url}/api/tool-invocation-ledger-validations?status=passed&limit=5`);
   assert.equal(toolInvocationLedgerValidations.collection, "tool_invocation_ledger_validations");
   assert.ok(toolInvocationLedgerValidations.count <= 5);
+
+  const auditEventLedgers = await fetchJson(`${url}/api/audit-event-ledgers?audit_event_ledger_status=complete&limit=1`);
+  assert.equal(auditEventLedgers.collection, "audit_event_ledgers");
+  assert.ok(auditEventLedgers.count <= 1);
+
+  const auditTrailRecords = await fetchJson(`${url}/api/audit-trail-records?separation_status=separate_from_observability&limit=5`);
+  assert.equal(auditTrailRecords.collection, "audit_trail_records");
+  assert.ok(auditTrailRecords.count <= 5);
+
+  const auditSeparationBindings = await fetchJson(`${url}/api/audit-separation-bindings?observability_log_status=excluded_from_observability_log&limit=5`);
+  assert.equal(auditSeparationBindings.collection, "audit_separation_bindings");
+  assert.ok(auditSeparationBindings.count <= 5);
+
+  const auditSourceRollups = await fetchJson(`${url}/api/audit-source-rollups?audit_domain=security&limit=5`);
+  assert.equal(auditSourceRollups.collection, "audit_source_rollups");
+  assert.ok(auditSourceRollups.count <= 5);
+
+  const auditEventLedgerValidations = await fetchJson(`${url}/api/audit-event-ledger-validations?status=passed&limit=5`);
+  assert.equal(auditEventLedgerValidations.collection, "audit_event_ledger_validations");
+  assert.ok(auditEventLedgerValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

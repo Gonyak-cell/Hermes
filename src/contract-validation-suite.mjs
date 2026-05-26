@@ -78,6 +78,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "events:correlation",
   "events:workflow-runs",
   "events:agent-runs",
+  "events:audit-ledger",
   "events:tool-invocations",
   "contracts:observability",
 ];

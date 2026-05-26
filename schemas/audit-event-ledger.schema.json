@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/audit-event-ledger.schema.json",
+  "title": "Audit Event Ledger",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "audit_event_ledger_id",
+    "source_contracts",
+    "audit_event_ledger_contract",
+    "audit_event_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": "audit-event-ledger.v1"
+    },
+    "generated_at": {
+      "type": "string"
+    },
+    "audit_event_ledger_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "event_audit_run_contract_freeze",
+        "access_audit_projection",
+        "append_only_event_store",
+        "error_cost_observability_contract_freeze",
+        "control_plane_audit_trail"
+      ]
+    },
+    "audit_event_ledger_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "audit_event_ledger_contract_id",
+        "separation_model",
+        "required_audit_record_fields",
+        "required_separation_binding_fields",
+        "separated_from_observability_fields"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "audit-event-ledger-contract.v1"
+        },
+        "audit_event_ledger_contract_id": {
+          "const": "audit-event-ledger.v1"
+        },
+        "required_audit_record_fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_separation_binding_fields": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "audit_event_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "audit_trail_records",
+        "audit_separation_bindings",
+        "audit_source_rollups"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "audit-event-catalog.v1"
+        },
+        "audit_trail_records": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audit_trail_record"
+          }
+        },
+        "audit_separation_bindings": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audit_separation_binding"
+          }
+        },
+        "audit_source_rollups": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/audit_source_rollup"
+          }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/validation_item"
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": [
+        "valid",
+        "errors"
+      ]
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "audit_event_ledger_status",
+        "audit_event_ledger_contract_id",
+        "audit_trail_record_count",
+        "audit_separation_binding_count",
+        "separated_audit_record_count",
+        "mixed_observability_record_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "audit_event_ledger_status": {
+          "enum": [
+            "complete",
+            "blocked"
+          ]
+        },
+        "audit_event_ledger_contract_id": {
+          "const": "audit-event-ledger.v1"
+        },
+        "audit_trail_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "audit_separation_binding_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "separated_audit_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "mixed_observability_record_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "validation_error_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "audit_trail_record": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "audit_trail_record_id",
+        "source_kind",
+        "source_record_id",
+        "source_system",
+        "audit_domain",
+        "audit_type",
+        "audit_plane_status",
+        "actor_id",
+        "subject_id",
+        "policy_snapshot_id",
+        "event_store_binding_status",
+        "observability_event_record_id",
+        "separation_status"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "audit-trail-record.v1"
+        },
+        "source_kind": {
+          "enum": [
+            "audit_event_v2",
+            "access_audit_record"
+          ]
+        },
+        "audit_domain": {
+          "enum": [
+            "access",
+            "approval",
+            "security",
+            "audit"
+          ]
+        },
+        "separation_status": {
+          "enum": [
+            "separate_from_observability",
+            "mixed_with_observability"
+          ]
+        }
+      }
+    },
+    "audit_separation_binding": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "audit_separation_binding_id",
+        "audit_trail_record_id",
+        "source_kind",
+        "audit_plane_status",
+        "observability_log_status",
+        "separation_status"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "audit-separation-binding.v1"
+        },
+        "separation_status": {
+          "enum": [
+            "separated",
+            "mixed"
+          ]
+        }
+      }
+    },
+    "audit_source_rollup": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "schema_version",
+        "audit_source_rollup_id",
+        "source_kind",
+        "audit_domain",
+        "audit_record_count",
+        "separated_record_count"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "audit-source-rollup.v1"
+        }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "additionalProperties": true,
+      "required": [
+        "path",
+        "check_id",
+        "status",
+        "passed",
+        "message"
+      ],
+      "properties": {
+        "status": {
+          "enum": [
+            "passed",
+            "failed"
+          ]
+        },
+        "passed": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}

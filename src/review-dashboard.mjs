@@ -62,6 +62,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowRunLedgerPath: "artifacts/workflow-run-ledger/latest/workflow-run-ledger.json",
   agentRunLedgerPath: "artifacts/agent-run-ledger/latest/agent-run-ledger.json",
   toolInvocationLedgerPath: "artifacts/tool-invocation-ledger/latest/tool-invocation-ledger.json",
+  auditEventLedgerPath: "artifacts/audit-event-ledger/latest/audit-event-ledger.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -454,6 +455,11 @@ const SOURCE_DEFINITIONS = [
     option: "toolInvocationLedgerPath",
     source_id: "tool_invocation_ledger",
     label: "Tool Invocation Ledger",
+  },
+  {
+    option: "auditEventLedgerPath",
+    source_id: "audit_event_ledger",
+    label: "Audit Event Ledger",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1114,6 +1120,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_run_ledger") return data.summary ?? {};
   if (sourceId === "agent_run_ledger") return data.summary ?? {};
   if (sourceId === "tool_invocation_ledger") return data.summary ?? {};
+  if (sourceId === "audit_event_ledger") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1359,6 +1366,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowRunLedgerStage(artifacts.workflow_run_ledger, sourceById.get("workflow_run_ledger")),
     buildAgentRunLedgerStage(artifacts.agent_run_ledger, sourceById.get("agent_run_ledger")),
     buildToolInvocationLedgerStage(artifacts.tool_invocation_ledger, sourceById.get("tool_invocation_ledger")),
+    buildAuditEventLedgerStage(artifacts.audit_event_ledger, sourceById.get("audit_event_ledger")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4422,6 +4430,63 @@ function buildToolInvocationLedgerStage(ledger, source) {
       missing_agent_run_tool_gate_count: missingAgentGateCount,
       missing_event_binding_count: missingEventBindingCount,
       unknown_tool_count: unknownToolCount,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildAuditEventLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("audit_event_ledger", "Audit Event Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const mixedCount = summary.mixed_observability_record_count ?? 0;
+  const missingSeparationCount = Math.max(0, (summary.audit_trail_record_count ?? 0) - (summary.separated_audit_record_count ?? 0));
+  const status = summary.audit_event_ledger_status !== "complete"
+    || errorCount > 0
+    || mixedCount > 0
+    || missingSeparationCount > 0
+    ? "attention"
+    : (summary.security_audit_record_count ?? 0) > 0 || (summary.human_review_required_audit_record_count ?? 0) > 0
+      ? "pending"
+      : "passed";
+  return {
+    stage_id: "audit_event_ledger",
+    label: "Audit Event Ledger",
+    status,
+    message: `${summary.audit_trail_record_count ?? 0} audit record(s), ${summary.separated_audit_record_count ?? 0}/${summary.audit_trail_record_count ?? 0} separated from observability, ${summary.security_audit_record_count ?? 0} security audit record(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      audit_event_ledger_status: summary.audit_event_ledger_status ?? "unknown",
+      audit_event_ledger_contract_id: summary.audit_event_ledger_contract_id ?? null,
+      source_event_audit_run_freeze_status: summary.source_event_audit_run_freeze_status ?? "unknown",
+      source_event_audit_run_audit_event_count: summary.source_event_audit_run_audit_event_count ?? 0,
+      source_access_audit_projection_status: summary.source_access_audit_projection_status ?? "unknown",
+      source_access_audit_record_count: summary.source_access_audit_record_count ?? 0,
+      source_append_only_event_store_status: summary.source_append_only_event_store_status ?? "unknown",
+      source_stored_event_count: summary.source_stored_event_count ?? 0,
+      source_observability_freeze_status: summary.source_observability_freeze_status ?? "unknown",
+      source_trace_projection_count: summary.source_trace_projection_count ?? 0,
+      source_control_plane_audit_status: summary.source_control_plane_audit_status ?? "unknown",
+      audit_trail_record_count: summary.audit_trail_record_count ?? 0,
+      audit_event_v2_record_count: summary.audit_event_v2_record_count ?? 0,
+      access_audit_record_count: summary.access_audit_record_count ?? 0,
+      audit_separation_binding_count: summary.audit_separation_binding_count ?? 0,
+      separated_binding_count: summary.separated_binding_count ?? 0,
+      audit_source_rollup_count: summary.audit_source_rollup_count ?? 0,
+      separated_audit_record_count: summary.separated_audit_record_count ?? 0,
+      mixed_observability_record_count: mixedCount,
+      observability_log_excluded_record_count: summary.observability_log_excluded_record_count ?? 0,
+      event_store_bound_record_count: summary.event_store_bound_record_count ?? 0,
+      source_projection_only_record_count: summary.source_projection_only_record_count ?? 0,
+      approval_audit_record_count: summary.approval_audit_record_count ?? 0,
+      access_audit_domain_record_count: summary.access_audit_domain_record_count ?? 0,
+      security_audit_record_count: summary.security_audit_record_count ?? 0,
+      protected_action_audit_record_count: summary.protected_action_audit_record_count ?? 0,
+      protected_action_executed_audit_record_count: summary.protected_action_executed_audit_record_count ?? 0,
+      human_review_required_audit_record_count: summary.human_review_required_audit_record_count ?? 0,
+      denied_access_audit_record_count: summary.denied_access_audit_record_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: errorCount,
@@ -10733,6 +10798,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     tool_invocation_ledger_missing_agent_run_tool_gate_count: artifacts.tool_invocation_ledger?.summary?.missing_agent_run_tool_gate_count ?? 0,
     tool_invocation_ledger_unknown_tool_count: artifacts.tool_invocation_ledger?.summary?.unknown_tool_count ?? 0,
     tool_invocation_ledger_validation_error_count: artifacts.tool_invocation_ledger?.summary?.validation_error_count ?? artifacts.tool_invocation_ledger?.validation?.errors?.length ?? 0,
+    audit_event_ledger_status: artifacts.audit_event_ledger?.summary?.audit_event_ledger_status ?? "unknown",
+    audit_event_ledger_audit_trail_record_count: artifacts.audit_event_ledger?.summary?.audit_trail_record_count ?? 0,
+    audit_event_ledger_audit_event_v2_record_count: artifacts.audit_event_ledger?.summary?.audit_event_v2_record_count ?? 0,
+    audit_event_ledger_access_audit_record_count: artifacts.audit_event_ledger?.summary?.access_audit_record_count ?? 0,
+    audit_event_ledger_audit_separation_binding_count: artifacts.audit_event_ledger?.summary?.audit_separation_binding_count ?? 0,
+    audit_event_ledger_separated_audit_record_count: artifacts.audit_event_ledger?.summary?.separated_audit_record_count ?? 0,
+    audit_event_ledger_mixed_observability_record_count: artifacts.audit_event_ledger?.summary?.mixed_observability_record_count ?? 0,
+    audit_event_ledger_event_store_bound_record_count: artifacts.audit_event_ledger?.summary?.event_store_bound_record_count ?? 0,
+    audit_event_ledger_source_projection_only_record_count: artifacts.audit_event_ledger?.summary?.source_projection_only_record_count ?? 0,
+    audit_event_ledger_approval_audit_record_count: artifacts.audit_event_ledger?.summary?.approval_audit_record_count ?? 0,
+    audit_event_ledger_access_audit_domain_record_count: artifacts.audit_event_ledger?.summary?.access_audit_domain_record_count ?? 0,
+    audit_event_ledger_security_audit_record_count: artifacts.audit_event_ledger?.summary?.security_audit_record_count ?? 0,
+    audit_event_ledger_protected_action_audit_record_count: artifacts.audit_event_ledger?.summary?.protected_action_audit_record_count ?? 0,
+    audit_event_ledger_human_review_required_audit_record_count: artifacts.audit_event_ledger?.summary?.human_review_required_audit_record_count ?? 0,
+    audit_event_ledger_denied_access_audit_record_count: artifacts.audit_event_ledger?.summary?.denied_access_audit_record_count ?? 0,
+    audit_event_ledger_validation_error_count: artifacts.audit_event_ledger?.summary?.validation_error_count ?? artifacts.audit_event_ledger?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -12029,6 +12110,8 @@ function parseArgs(argv) {
     else if (arg === "--no-agent-run-ledger") parsed.agentRunLedgerPath = false;
     else if (arg === "--tool-invocation-ledger") parsed.toolInvocationLedgerPath = argv[++index];
     else if (arg === "--no-tool-invocation-ledger") parsed.toolInvocationLedgerPath = false;
+    else if (arg === "--audit-event-ledger") parsed.auditEventLedgerPath = argv[++index];
+    else if (arg === "--no-audit-event-ledger") parsed.auditEventLedgerPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -12391,6 +12474,8 @@ Options:
   --tool-invocation-ledger <path>
                                   tool-invocation-ledger.json path.
   --no-tool-invocation-ledger     Do not include Tool Invocation Ledger status.
+  --audit-event-ledger <path>     audit-event-ledger.json path.
+  --no-audit-event-ledger         Do not include Audit Event Ledger status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

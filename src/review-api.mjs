@@ -3023,6 +3023,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/audit-event-ledgers") {
+    const auditEventResult = await readDashboardSourceArtifact(dashboard, "audit_event_ledger");
+    if (!auditEventResult.available) {
+      return jsonResponse(503, buildError("audit_event_ledger_unavailable", auditEventResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("audit_event_ledgers", [auditEventResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/audit-trail-records") {
+    const auditEventResult = await readDashboardSourceArtifact(dashboard, "audit_event_ledger");
+    if (!auditEventResult.available) {
+      return jsonResponse(503, buildError("audit_event_ledger_unavailable", auditEventResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_trail_records", auditEventResult.artifact.audit_event_catalog?.audit_trail_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/audit-separation-bindings") {
+    const auditEventResult = await readDashboardSourceArtifact(dashboard, "audit_event_ledger");
+    if (!auditEventResult.available) {
+      return jsonResponse(503, buildError("audit_event_ledger_unavailable", auditEventResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_separation_bindings", auditEventResult.artifact.audit_event_catalog?.audit_separation_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/audit-source-rollups") {
+    const auditEventResult = await readDashboardSourceArtifact(dashboard, "audit_event_ledger");
+    if (!auditEventResult.available) {
+      return jsonResponse(503, buildError("audit_event_ledger_unavailable", auditEventResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_source_rollups", auditEventResult.artifact.audit_event_catalog?.audit_source_rollups ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/audit-event-ledger-validations") {
+    const auditEventResult = await readDashboardSourceArtifact(dashboard, "audit_event_ledger");
+    if (!auditEventResult.available) {
+      return jsonResponse(503, buildError("audit_event_ledger_unavailable", auditEventResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("audit_event_ledger_validations", auditEventResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -6077,6 +6128,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/tool-invocation-agent-bindings", "AgentRun to tool invocation binding rows"),
       route("GET", "/api/tool-invocation-event-bindings", "Tool invocation to AgentRun event context binding rows"),
       route("GET", "/api/tool-invocation-ledger-validations", "Tool invocation ledger validation rows"),
+      route("GET", "/api/audit-event-ledgers", "Audit event ledger artifacts"),
+      route("GET", "/api/audit-trail-records", "Separated audit trail records"),
+      route("GET", "/api/audit-separation-bindings", "Audit to observability separation bindings"),
+      route("GET", "/api/audit-source-rollups", "Audit source rollup rows"),
+      route("GET", "/api/audit-event-ledger-validations", "Audit event ledger validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6491,6 +6547,18 @@ function filterItems(items, searchParams) {
     "tool_invocation_permission_decision_id",
     "tool_invocation_agent_binding_id",
     "tool_invocation_event_binding_id",
+    "audit_event_ledger_status",
+    "audit_trail_record_id",
+    "audit_separation_binding_id",
+    "audit_source_rollup_id",
+    "audit_domain",
+    "audit_type",
+    "audit_severity",
+    "audit_plane_status",
+    "observability_log_status",
+    "trace_projection_status",
+    "separation_status",
+    "event_store_binding_status",
     "permission_decision",
     "permission_status",
     "invocation_state",
@@ -7507,6 +7575,7 @@ function readFilterValue(item, key) {
   if (key === "workflow_run_ledger_status") return item.summary?.workflow_run_ledger_status ?? item.workflow_run_ledger_status;
   if (key === "agent_run_ledger_status") return item.summary?.agent_run_ledger_status ?? item.agent_run_ledger_status;
   if (key === "tool_invocation_ledger_status") return item.summary?.tool_invocation_ledger_status ?? item.tool_invocation_ledger_status;
+  if (key === "audit_event_ledger_status") return item.summary?.audit_event_ledger_status ?? item.audit_event_ledger_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

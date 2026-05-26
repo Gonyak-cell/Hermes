@@ -173,6 +173,7 @@ import { runEventCorrelationLedger } from "../src/event-correlation-ledger.mjs";
 import { runWorkflowRunLedger } from "../src/workflow-run-ledger.mjs";
 import { runAgentRunLedger } from "../src/agent-run-ledger.mjs";
 import { runToolInvocationLedger } from "../src/tool-invocation-ledger.mjs";
+import { runAuditEventLedger } from "../src/audit-event-ledger.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1708,6 +1709,7 @@ describe("matter harness", () => {
         workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
         agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
         toolInvocationLedgerPath: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3725,6 +3727,47 @@ describe("matter harness", () => {
       assert.ok(errorCostObservabilityContractFreeze.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "error-cost-observability-contract-freeze", "summary.md"), "utf8"), /Error\/Cost\/Observability Contract Freeze/);
 
+      const auditEventLedger = await runAuditEventLedger({
+        eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+        accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
+        controlPlaneAuditTrailPath: path.join(outDir, "control-plane-audit-trail", "control-plane-audit-trail.json"),
+        outDir: path.join(outDir, "audit-event-ledger"),
+        runAt: "2026-05-23T06:35:08.470Z",
+      });
+      const auditEventLedgerSchema = JSON.parse(await readFile("schemas/audit-event-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(auditEventLedger, auditEventLedgerSchema, {}, "audit_event_ledger"),
+        [],
+      );
+      assert.equal(auditEventLedger.summary.audit_event_ledger_status, "complete");
+      assert.equal(auditEventLedger.summary.audit_event_ledger_contract_id, "audit-event-ledger.v1");
+      assert.equal(auditEventLedger.summary.source_event_audit_run_freeze_status, "complete");
+      assert.equal(auditEventLedger.summary.source_access_audit_projection_status, "complete");
+      assert.equal(auditEventLedger.summary.source_append_only_event_store_status, "complete");
+      assert.equal(auditEventLedger.summary.source_observability_freeze_status, "complete");
+      assert.equal(auditEventLedger.summary.source_control_plane_audit_status, "complete");
+      assert.equal(auditEventLedger.summary.audit_trail_record_count, eventAuditRunContractFreeze.summary.audit_event_count + accessAuditProjection.summary.access_audit_record_count);
+      assert.equal(auditEventLedger.summary.audit_event_v2_record_count, eventAuditRunContractFreeze.summary.audit_event_count);
+      assert.equal(auditEventLedger.summary.access_audit_record_count, accessAuditProjection.summary.access_audit_record_count);
+      assert.equal(auditEventLedger.summary.audit_separation_binding_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(auditEventLedger.summary.separated_audit_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(auditEventLedger.summary.observability_log_excluded_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(auditEventLedger.summary.mixed_observability_record_count, 0);
+      assert.equal(auditEventLedger.summary.event_store_bound_record_count, auditEventLedger.summary.audit_event_v2_record_count);
+      assert.equal(auditEventLedger.summary.source_projection_only_record_count, auditEventLedger.summary.access_audit_record_count);
+      assert.ok(auditEventLedger.summary.approval_audit_record_count > 0);
+      assert.ok(auditEventLedger.summary.access_audit_domain_record_count > 0);
+      assert.ok(auditEventLedger.summary.security_audit_record_count > 0);
+      assert.equal(auditEventLedger.summary.validation_error_count, 0);
+      assert.ok(auditEventLedger.audit_event_catalog.audit_trail_records.every((record) => record.separation_status === "separate_from_observability" && record.observability_event_record_id === null));
+      assert.ok(auditEventLedger.audit_event_catalog.audit_trail_records.filter((record) => record.source_kind === "audit_event_v2").every((record) => record.event_store_binding_status === "bound_to_append_only_event_store"));
+      assert.ok(auditEventLedger.audit_event_catalog.audit_trail_records.filter((record) => record.source_kind === "access_audit_record").every((record) => record.event_store_binding_status === "source_projection_only"));
+      assert.ok(auditEventLedger.audit_event_catalog.audit_separation_bindings.every((binding) => binding.observability_log_status === "excluded_from_observability_log" && binding.separation_status === "separated"));
+      assert.ok(auditEventLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "audit-event-ledger", "summary.md"), "utf8"), /Audit Event Ledger/);
+
       const controlPlaneLoop = await runControlPlaneLoop({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.900Z",
@@ -5149,6 +5192,7 @@ describe("matter harness", () => {
           workflow_run_ledger: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
           agent_run_ledger: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
           tool_invocation_ledger: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
+          audit_event_ledger: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -5161,8 +5205,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 67);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 67);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 68);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 68);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5225,6 +5269,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "agent_run_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "tool_invocation_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "audit_event_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5295,6 +5340,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:correlation"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:workflow-runs"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:agent-runs"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:audit-ledger"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5604,6 +5650,10 @@ describe("matter harness", () => {
       assert.equal(toolInvocationLedgerCheckpoint?.acceptance_profile, "tool_invocation_ledger_gate");
       assert.equal(toolInvocationLedgerCheckpoint?.status, "passed");
       assert.equal(toolInvocationLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const auditEventLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-audit-event-ledger");
+      assert.equal(auditEventLedgerCheckpoint?.acceptance_profile, "audit_event_ledger_gate");
+      assert.equal(auditEventLedgerCheckpoint?.status, "passed");
+      assert.equal(auditEventLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6980,6 +7030,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.tool_invocation_ledger_missing_agent_run_tool_gate_count, 0);
       assert.equal(dashboard.summary.tool_invocation_ledger_unknown_tool_count, 0);
       assert.equal(dashboard.summary.tool_invocation_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.audit_event_ledger_status, "complete");
+      assert.equal(dashboard.summary.audit_event_ledger_audit_trail_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_audit_event_v2_record_count, auditEventLedger.summary.audit_event_v2_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_access_audit_record_count, auditEventLedger.summary.access_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_audit_separation_binding_count, auditEventLedger.summary.audit_separation_binding_count);
+      assert.equal(dashboard.summary.audit_event_ledger_separated_audit_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_mixed_observability_record_count, 0);
+      assert.equal(dashboard.summary.audit_event_ledger_event_store_bound_record_count, auditEventLedger.summary.audit_event_v2_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_source_projection_only_record_count, auditEventLedger.summary.access_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_approval_audit_record_count, auditEventLedger.summary.approval_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_access_audit_domain_record_count, auditEventLedger.summary.access_audit_domain_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_security_audit_record_count, auditEventLedger.summary.security_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_protected_action_audit_record_count, auditEventLedger.summary.protected_action_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_human_review_required_audit_record_count, auditEventLedger.summary.human_review_required_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_denied_access_audit_record_count, auditEventLedger.summary.denied_access_audit_record_count);
+      assert.equal(dashboard.summary.audit_event_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -8405,6 +8471,29 @@ describe("matter harness", () => {
       const toolInvocationLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/tool-invocation-ledger-validations?status=passed", apiOptions)).body);
       assert.equal(toolInvocationLedgerValidations.collection, "tool_invocation_ledger_validations");
       assert.equal(toolInvocationLedgerValidations.count, toolInvocationLedger.summary.validation_item_count);
+
+      const auditEventLedgers = JSON.parse((await buildReviewApiResponse("/api/audit-event-ledgers?audit_event_ledger_status=complete", apiOptions)).body);
+      assert.equal(auditEventLedgers.collection, "audit_event_ledgers");
+      assert.equal(auditEventLedgers.count, 1);
+
+      const auditTrailRecords = JSON.parse((await buildReviewApiResponse("/api/audit-trail-records?separation_status=separate_from_observability", apiOptions)).body);
+      assert.equal(auditTrailRecords.collection, "audit_trail_records");
+      assert.equal(auditTrailRecords.count, auditEventLedger.summary.audit_trail_record_count);
+
+      const auditSeparationBindings = JSON.parse((await buildReviewApiResponse("/api/audit-separation-bindings?observability_log_status=excluded_from_observability_log", apiOptions)).body);
+      assert.equal(auditSeparationBindings.collection, "audit_separation_bindings");
+      assert.equal(auditSeparationBindings.count, auditEventLedger.summary.audit_separation_binding_count);
+
+      const auditSourceRollups = JSON.parse((await buildReviewApiResponse("/api/audit-source-rollups?audit_domain=security", apiOptions)).body);
+      assert.equal(auditSourceRollups.collection, "audit_source_rollups");
+      assert.equal(
+        auditSourceRollups.count,
+        auditEventLedger.audit_event_catalog.audit_source_rollups.filter((rollup) => rollup.audit_domain === "security").length,
+      );
+
+      const auditEventLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/audit-event-ledger-validations?status=passed", apiOptions)).body);
+      assert.equal(auditEventLedgerValidations.collection, "audit_event_ledger_validations");
+      assert.equal(auditEventLedgerValidations.count, auditEventLedger.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

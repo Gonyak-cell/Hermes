@@ -88,6 +88,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   observabilityTraceProjectionPath: "artifacts/observability-trace-projection/latest/observability-trace-projection.json",
   errorRetryLedgerPath: "artifacts/error-retry-ledger/latest/error-retry-ledger.json",
   eventReplayHarnessPath: "artifacts/event-replay/latest/event-replay-harness.json",
+  retentionArchiveLedgerPath: "artifacts/retention-archive/latest/retention-archive-ledger.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -591,6 +592,11 @@ const SOURCE_DEFINITIONS = [
     option: "eventReplayHarnessPath",
     source_id: "event_replay_harness",
     label: "Event Replay Harness",
+  },
+  {
+    option: "retentionArchiveLedgerPath",
+    source_id: "retention_archive_ledger",
+    label: "Retention/Archive Ledger",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1182,6 +1188,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "observability_trace_projection") return data.summary ?? {};
   if (sourceId === "error_retry_ledger") return data.summary ?? {};
   if (sourceId === "event_replay_harness") return data.summary ?? {};
+  if (sourceId === "retention_archive_ledger") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1434,6 +1441,7 @@ function buildStageStatuses(artifacts, sources) {
     buildObservabilityTraceProjectionStage(artifacts.observability_trace_projection, sourceById.get("observability_trace_projection")),
     buildErrorRetryLedgerStage(artifacts.error_retry_ledger, sourceById.get("error_retry_ledger")),
     buildEventReplayHarnessStage(artifacts.event_replay_harness, sourceById.get("event_replay_harness")),
+    buildRetentionArchiveLedgerStage(artifacts.retention_archive_ledger, sourceById.get("retention_archive_ledger")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5457,6 +5465,51 @@ function buildEventReplayHarnessStage(harness, source) {
       dashboard_projection_metric_count: summary.dashboard_projection_metric_count ?? summary.dashboard_replay_metric_count ?? 0,
       dashboard_metric_match_count: summary.dashboard_metric_match_count ?? 0,
       dashboard_metric_mismatch_count: summary.dashboard_metric_mismatch_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildRetentionArchiveLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("retention_archive_ledger", "Retention/Archive Ledger", source);
+  const summary = ledger.summary ?? {};
+  const errorCount = summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0;
+  const blockers = errorCount
+    + (summary.missing_policy_binding_count ?? 0)
+    + (summary.missing_legal_hold_binding_count ?? 0)
+    + (summary.deletion_allowed_candidate_count ?? 0);
+  const status = summary.retention_archive_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "retention_archive_ledger",
+    label: "Retention/Archive Ledger",
+    status,
+    message: status === "passed"
+      ? `${summary.retention_policy_count ?? 0} retention policy row(s), ${summary.archive_candidate_count ?? 0} archive candidate(s), deletion allowed 0.`
+      : `${blockers} retention/archive blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      retention_archive_status: summary.retention_archive_status ?? "unknown",
+      retention_archive_contract_id: summary.retention_archive_contract_id ?? null,
+      source_append_only_event_store_status: summary.source_append_only_event_store_status ?? "unknown",
+      source_audit_event_ledger_status: summary.source_audit_event_ledger_status ?? "unknown",
+      source_output_artifact_catalog_status: summary.source_output_artifact_catalog_status ?? "unknown",
+      source_stored_event_count: summary.source_stored_event_count ?? 0,
+      source_event_stream_count: summary.source_event_stream_count ?? 0,
+      source_audit_trail_record_count: summary.source_audit_trail_record_count ?? 0,
+      source_audit_source_rollup_count: summary.source_audit_source_rollup_count ?? 0,
+      source_output_artifact_count: summary.source_output_artifact_count ?? 0,
+      retention_policy_count: summary.retention_policy_count ?? 0,
+      archive_candidate_count: summary.archive_candidate_count ?? 0,
+      event_archive_candidate_count: summary.event_archive_candidate_count ?? 0,
+      audit_archive_candidate_count: summary.audit_archive_candidate_count ?? 0,
+      output_archive_candidate_count: summary.output_archive_candidate_count ?? 0,
+      legal_hold_binding_count: summary.legal_hold_binding_count ?? 0,
+      legal_hold_required_candidate_count: summary.legal_hold_required_candidate_count ?? 0,
+      human_review_required_candidate_count: summary.human_review_required_candidate_count ?? 0,
+      deletion_allowed_candidate_count: summary.deletion_allowed_candidate_count ?? 0,
+      missing_policy_binding_count: summary.missing_policy_binding_count ?? 0,
+      missing_legal_hold_binding_count: summary.missing_legal_hold_binding_count ?? 0,
+      policy_record_source_match_count: summary.policy_record_source_match_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -11420,6 +11473,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     event_replay_dashboard_metric_count: artifacts.event_replay_harness?.summary?.dashboard_projection_metric_count ?? artifacts.event_replay_harness?.summary?.dashboard_replay_metric_count ?? 0,
     event_replay_dashboard_metric_mismatch_count: artifacts.event_replay_harness?.summary?.dashboard_metric_mismatch_count ?? 0,
     event_replay_validation_error_count: artifacts.event_replay_harness?.summary?.validation_error_count ?? artifacts.event_replay_harness?.validation?.errors?.length ?? 0,
+    retention_archive_status: artifacts.retention_archive_ledger?.summary?.retention_archive_status ?? "unknown",
+    retention_archive_policy_count: artifacts.retention_archive_ledger?.summary?.retention_policy_count ?? 0,
+    retention_archive_candidate_count: artifacts.retention_archive_ledger?.summary?.archive_candidate_count ?? 0,
+    retention_archive_event_candidate_count: artifacts.retention_archive_ledger?.summary?.event_archive_candidate_count ?? 0,
+    retention_archive_audit_candidate_count: artifacts.retention_archive_ledger?.summary?.audit_archive_candidate_count ?? 0,
+    retention_archive_output_candidate_count: artifacts.retention_archive_ledger?.summary?.output_archive_candidate_count ?? 0,
+    retention_archive_legal_hold_binding_count: artifacts.retention_archive_ledger?.summary?.legal_hold_binding_count ?? 0,
+    retention_archive_legal_hold_required_count: artifacts.retention_archive_ledger?.summary?.legal_hold_required_candidate_count ?? 0,
+    retention_archive_deletion_allowed_count: artifacts.retention_archive_ledger?.summary?.deletion_allowed_candidate_count ?? 0,
+    retention_archive_missing_policy_binding_count: artifacts.retention_archive_ledger?.summary?.missing_policy_binding_count ?? 0,
+    retention_archive_missing_legal_hold_binding_count: artifacts.retention_archive_ledger?.summary?.missing_legal_hold_binding_count ?? 0,
+    retention_archive_policy_source_match_count: artifacts.retention_archive_ledger?.summary?.policy_record_source_match_count ?? 0,
+    retention_archive_source_stored_event_count: artifacts.retention_archive_ledger?.summary?.source_stored_event_count ?? 0,
+    retention_archive_source_audit_trail_record_count: artifacts.retention_archive_ledger?.summary?.source_audit_trail_record_count ?? 0,
+    retention_archive_source_output_artifact_count: artifacts.retention_archive_ledger?.summary?.source_output_artifact_count ?? 0,
+    retention_archive_validation_error_count: artifacts.retention_archive_ledger?.summary?.validation_error_count ?? artifacts.retention_archive_ledger?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -12137,6 +12206,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Trace Projection", dashboard.summary.observability_trace_projection_count)}
       ${stat("Error Retry", dashboard.summary.error_retry_ledger_error_count)}
       ${stat("Event Replay", dashboard.summary.event_replay_replayed_event_count)}
+      ${stat("Retention", dashboard.summary.retention_archive_candidate_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12259,6 +12329,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Event replay events/run summaries: ${dashboard.summary.event_replay_replayed_event_count ?? 0}/${dashboard.summary.event_replay_source_event_count ?? 0} and ${dashboard.summary.event_replay_run_summary_count ?? 0}/${dashboard.summary.event_replay_source_workflow_run_count ?? 0}`);
   lines.push(`- Event replay streams verified and hash mismatches: ${dashboard.summary.event_replay_verified_stream_count ?? 0}/${dashboard.summary.event_replay_stream_count ?? 0}, ${dashboard.summary.event_replay_hash_chain_mismatch_count ?? 0}`);
   lines.push(`- Event replay dashboard mismatches: ${dashboard.summary.event_replay_dashboard_metric_mismatch_count ?? 0}/${dashboard.summary.event_replay_dashboard_metric_count ?? 0}`);
+  lines.push(`- Retention/archive policies and candidates: ${dashboard.summary.retention_archive_policy_count ?? 0}/${dashboard.summary.retention_archive_candidate_count ?? 0}`);
+  lines.push(`- Retention/archive event/audit/output candidates: ${dashboard.summary.retention_archive_event_candidate_count ?? 0}/${dashboard.summary.retention_archive_audit_candidate_count ?? 0}/${dashboard.summary.retention_archive_output_candidate_count ?? 0}`);
+  lines.push(`- Retention/archive holds and deletion allowed: ${dashboard.summary.retention_archive_legal_hold_binding_count ?? 0}/${dashboard.summary.retention_archive_legal_hold_required_count ?? 0}, ${dashboard.summary.retention_archive_deletion_allowed_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12596,6 +12669,8 @@ function parseArgs(argv) {
     else if (arg === "--no-error-retry-ledger") parsed.errorRetryLedgerPath = false;
     else if (arg === "--event-replay") parsed.eventReplayHarnessPath = argv[++index];
     else if (arg === "--no-event-replay") parsed.eventReplayHarnessPath = false;
+    else if (arg === "--retention-archive-ledger") parsed.retentionArchiveLedgerPath = argv[++index];
+    else if (arg === "--no-retention-archive-ledger") parsed.retentionArchiveLedgerPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -12983,6 +13058,9 @@ Options:
   --no-error-retry-ledger         Do not include Error/Retry Ledger status.
   --event-replay <path>           event-replay-harness.json path.
   --no-event-replay               Do not include Event Replay Harness status.
+  --retention-archive-ledger <path>
+                                  retention-archive-ledger.json path.
+  --no-retention-archive-ledger   Do not include Retention/Archive Ledger status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

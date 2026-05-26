@@ -118,6 +118,7 @@ import { runTokenUsageProjection } from "../src/token-usage-projection.mjs";
 import { runObservabilityTraceProjection } from "../src/observability-trace-projection.mjs";
 import { runErrorRetryLedger } from "../src/error-retry-ledger.mjs";
 import { runEventReplayHarness } from "../src/event-replay-harness.mjs";
+import { runRetentionArchiveLedger } from "../src/retention-archive-ledger.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1732,6 +1733,7 @@ describe("matter harness", () => {
         observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
         errorRetryLedgerPath: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
         eventReplayHarnessPath: path.join(outDir, "event-replay", "event-replay-harness.json"),
+        retentionArchiveLedgerPath: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -4002,6 +4004,45 @@ describe("matter harness", () => {
       assert.ok(auditEventLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "audit-event-ledger", "summary.md"), "utf8"), /Audit Event Ledger/);
 
+      const retentionArchiveLedger = await runRetentionArchiveLedger({
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        outDir: path.join(outDir, "retention-archive"),
+        runAt: "2026-05-23T06:35:08.500Z",
+      });
+      const retentionArchiveLedgerSchema = JSON.parse(await readFile("schemas/retention-archive-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(retentionArchiveLedger, retentionArchiveLedgerSchema, {}, "retention_archive_ledger"),
+        [],
+      );
+      assert.equal(retentionArchiveLedger.summary.retention_archive_status, "complete");
+      assert.equal(retentionArchiveLedger.summary.retention_archive_contract_id, "retention-archive-ledger.v1");
+      assert.equal(retentionArchiveLedger.summary.retention_policy_count, 3);
+      assert.equal(retentionArchiveLedger.summary.source_stored_event_count, appendOnlyEventStore.summary.stored_event_count);
+      assert.equal(retentionArchiveLedger.summary.source_audit_trail_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(retentionArchiveLedger.summary.source_output_artifact_count, outputCatalog.summary.artifact_count);
+      assert.equal(retentionArchiveLedger.summary.policy_record_source_match_count, 3);
+      assert.equal(retentionArchiveLedger.summary.event_archive_candidate_count, appendOnlyEventStore.summary.event_stream_count);
+      assert.equal(retentionArchiveLedger.summary.audit_archive_candidate_count, auditEventLedger.summary.audit_source_rollup_count);
+      assert.equal(retentionArchiveLedger.summary.output_archive_candidate_count, outputCatalog.summary.artifact_count);
+      assert.equal(
+        retentionArchiveLedger.summary.archive_candidate_count,
+        retentionArchiveLedger.summary.event_archive_candidate_count
+          + retentionArchiveLedger.summary.audit_archive_candidate_count
+          + retentionArchiveLedger.summary.output_archive_candidate_count,
+      );
+      assert.equal(retentionArchiveLedger.summary.legal_hold_binding_count, retentionArchiveLedger.summary.legal_hold_required_candidate_count);
+      assert.equal(retentionArchiveLedger.summary.deletion_allowed_candidate_count, 0);
+      assert.equal(retentionArchiveLedger.summary.missing_policy_binding_count, 0);
+      assert.equal(retentionArchiveLedger.summary.missing_legal_hold_binding_count, 0);
+      assert.equal(retentionArchiveLedger.summary.validation_error_count, 0);
+      assert.ok(retentionArchiveLedger.retention_archive_catalog.retention_policy_records.every((policy) => policy.deletion_allowed === false && policy.retention_policy_hash?.startsWith("sha256:")));
+      assert.ok(retentionArchiveLedger.retention_archive_catalog.archive_candidate_records.every((candidate) => candidate.deletion_status === "not_allowed" && candidate.archive_candidate_hash?.startsWith("sha256:")));
+      assert.ok(retentionArchiveLedger.retention_archive_catalog.legal_hold_bindings.every((binding) => binding.hold_status === "active" && binding.legal_hold_binding_hash?.startsWith("sha256:")));
+      assert.ok(retentionArchiveLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "retention-archive", "summary.md"), "utf8"), /Retention\/Archive Ledger/);
+
       const controlPlaneLoop = await runControlPlaneLoop({
         outDir: path.join(outDir, "control-plane-loop"),
         runAt: "2026-05-23T06:35:07.900Z",
@@ -5434,6 +5475,7 @@ describe("matter harness", () => {
           observability_trace_projection: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
           error_retry_ledger: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
           event_replay_harness: path.join(outDir, "event-replay", "event-replay-harness.json"),
+          retention_archive_ledger: path.join(outDir, "retention-archive", "retention-archive-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5445,8 +5487,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 74);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 74);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 75);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 75);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5508,6 +5550,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "observability_trace_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "error_retry_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_replay_harness"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "retention_archive_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5558,6 +5601,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:traces"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:errors"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:replay"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:retention"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -5862,6 +5906,10 @@ describe("matter harness", () => {
       assert.equal(eventReplayHarnessCheckpoint?.acceptance_profile, "event_replay_harness_gate");
       assert.equal(eventReplayHarnessCheckpoint?.status, "passed");
       assert.equal(eventReplayHarnessCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const retentionArchiveLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-retention-archive-ledger");
+      assert.equal(retentionArchiveLedgerCheckpoint?.acceptance_profile, "retention_archive_ledger_gate");
+      assert.equal(retentionArchiveLedgerCheckpoint?.status, "passed");
+      assert.equal(retentionArchiveLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6250,6 +6298,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.event_replay_dashboard_metric_count, eventReplayHarness.summary.dashboard_projection_metric_count);
       assert.equal(dashboard.summary.event_replay_dashboard_metric_mismatch_count, 0);
       assert.equal(dashboard.summary.event_replay_validation_error_count, 0);
+      assert.equal(dashboard.summary.retention_archive_status, "complete");
+      assert.equal(dashboard.summary.retention_archive_policy_count, retentionArchiveLedger.summary.retention_policy_count);
+      assert.equal(dashboard.summary.retention_archive_candidate_count, retentionArchiveLedger.summary.archive_candidate_count);
+      assert.equal(dashboard.summary.retention_archive_event_candidate_count, retentionArchiveLedger.summary.event_archive_candidate_count);
+      assert.equal(dashboard.summary.retention_archive_audit_candidate_count, retentionArchiveLedger.summary.audit_archive_candidate_count);
+      assert.equal(dashboard.summary.retention_archive_output_candidate_count, retentionArchiveLedger.summary.output_archive_candidate_count);
+      assert.equal(dashboard.summary.retention_archive_legal_hold_binding_count, retentionArchiveLedger.summary.legal_hold_binding_count);
+      assert.equal(dashboard.summary.retention_archive_legal_hold_required_count, retentionArchiveLedger.summary.legal_hold_required_candidate_count);
+      assert.equal(dashboard.summary.retention_archive_deletion_allowed_count, 0);
+      assert.equal(dashboard.summary.retention_archive_missing_policy_binding_count, 0);
+      assert.equal(dashboard.summary.retention_archive_missing_legal_hold_binding_count, 0);
+      assert.equal(dashboard.summary.retention_archive_policy_source_match_count, 3);
+      assert.equal(dashboard.summary.retention_archive_source_stored_event_count, retentionArchiveLedger.summary.source_stored_event_count);
+      assert.equal(dashboard.summary.retention_archive_source_audit_trail_record_count, retentionArchiveLedger.summary.source_audit_trail_record_count);
+      assert.equal(dashboard.summary.retention_archive_source_output_artifact_count, retentionArchiveLedger.summary.source_output_artifact_count);
+      assert.equal(dashboard.summary.retention_archive_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -7807,6 +7871,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_trace_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "error_retry_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "event_replay_harness"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "retention_archive_ledger"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9194,6 +9259,26 @@ describe("matter harness", () => {
       const eventReplayValidations = JSON.parse((await buildReviewApiResponse("/api/event-replay-validations?status=passed", apiOptions)).body);
       assert.equal(eventReplayValidations.collection, "event_replay_validations");
       assert.equal(eventReplayValidations.count, eventReplayHarness.summary.validation_item_count);
+
+      const retentionArchiveLedgers = JSON.parse((await buildReviewApiResponse("/api/retention-archive-ledgers?retention_archive_status=complete", apiOptions)).body);
+      assert.equal(retentionArchiveLedgers.collection, "retention_archive_ledgers");
+      assert.equal(retentionArchiveLedgers.count, 1);
+
+      const retentionPolicyRecords = JSON.parse((await buildReviewApiResponse("/api/retention-policy-records?retention_plane=event", apiOptions)).body);
+      assert.equal(retentionPolicyRecords.collection, "retention_policy_records");
+      assert.equal(retentionPolicyRecords.count, retentionArchiveLedger.retention_archive_catalog.retention_policy_records.filter((policy) => policy.retention_plane === "event").length);
+
+      const archiveCandidateRecords = JSON.parse((await buildReviewApiResponse("/api/archive-candidate-records?deletion_status=not_allowed", apiOptions)).body);
+      assert.equal(archiveCandidateRecords.collection, "archive_candidate_records");
+      assert.equal(archiveCandidateRecords.count, retentionArchiveLedger.summary.archive_candidate_count);
+
+      const legalHoldBindings = JSON.parse((await buildReviewApiResponse("/api/legal-hold-bindings?hold_status=active", apiOptions)).body);
+      assert.equal(legalHoldBindings.collection, "legal_hold_bindings");
+      assert.equal(legalHoldBindings.count, retentionArchiveLedger.summary.legal_hold_binding_count);
+
+      const retentionArchiveValidations = JSON.parse((await buildReviewApiResponse("/api/retention-archive-validations?status=passed", apiOptions)).body);
+      assert.equal(retentionArchiveValidations.collection, "retention_archive_validations");
+      assert.equal(retentionArchiveValidations.count, retentionArchiveLedger.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

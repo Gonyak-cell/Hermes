@@ -433,6 +433,11 @@ npm run api:serve
 - `GET /api/audit-separation-bindings`: audit plane과 observability plane separation bindings
 - `GET /api/audit-source-rollups`: audit source/domain rollup rows
 - `GET /api/audit-event-ledger-validations`: audit event ledger validation rows
+- `GET /api/retention-archive-ledgers`: retention/archive ledger artifact
+- `GET /api/retention-policy-records`: event/audit/output retention policy rows
+- `GET /api/archive-candidate-records`: legal-hold-required archive candidate rows
+- `GET /api/legal-hold-bindings`: active legal hold binding rows
+- `GET /api/retention-archive-validations`: retention/archive validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows
@@ -454,6 +459,8 @@ Observability trace projection route는 `observability_trace_projection_status`,
 Error/retry ledger route는 `error_retry_ledger_status`, `error_retry_ledger_id`, `projected_error_record_id`, `source_error_record_id`, `retry_record_id`, `timeout_record_id`, `resume_state_record_id`, `failure_state`, `error_kind`, `error_type`, `error_status`, `retry_state`, `timeout_state`, `resume_state`, `auto_retry_scheduled`, `timeout_observed`, `resume_required`, `resume_blocked`, `trace_binding_status`, `observability_trace_id`, `correlation_trace_id`, `workflow_run_id`, `run_ledger_id`, `status`, `limit` query를 지원한다.
 
 Event replay route는 `event_replay_status`, `event_replay_harness_id`, `replayed_event_stream_id`, `event_stream_replay_status`, `replayed_run_summary_id`, `run_replay_status`, `event_count_match_status`, `terminal_state_match_status`, `dashboard_projection_status`, `projection_status`, `metric_key`, `metric_status`, `source_match_status`, `dashboard_match_status`, `event_stream_id`, `run_ledger_id`, `workflow_run_id`, `correlation_id`, `status`, `limit` query를 지원한다.
+
+Retention/archive route는 `retention_archive_status`, `retention_policy_id`, `retention_plane`, `archive_candidate_id`, `archive_state`, `archive_action`, `deletion_status`, `legal_hold_status`, `legal_hold_binding_id`, `hold_scope`, `hold_status`, `status`, `limit` query를 지원한다.
 
 Budget alert route는 `alert_record_id`, `attribution_id`, `budget_decision_id`, `token_usage_id`, `routing_decision_id`, `runtime_id`, `workflow_run_id`, `capability_id`, `classification`, `alert_status`, `requires_human`, `matter_id`, `tenant_id`, `ledger_status`, `limit` query를 지원한다.
 

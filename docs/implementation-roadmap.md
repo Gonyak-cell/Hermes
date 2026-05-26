@@ -5110,6 +5110,35 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 74개로 증가하고 event replay harness가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run events:replay -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 173: Retention/Archive Ledger
+
+목표: audit/event/output plane의 보존 정책, archive candidate, legal hold binding을 deterministic ledger로 고정하고 삭제는 명시적 records review 전까지 허용하지 않습니다.
+
+구현 내용:
+
+- `npm run events:retention -- --check` 명령을 추가해 Append-only Event Store, Audit Event Ledger, Output Artifact Catalog를 읽고 Retention/Archive Ledger를 생성함
+- event plane은 append-only event stream 단위 candidate로 보존하며 stream count, event count, chain hash를 archive candidate에 연결함
+- audit plane은 separated audit source rollup 단위 candidate로 보존하며 audit trail record hash와 source rollup을 연결함
+- output plane은 output artifact 단위 candidate로 보존하며 approval/delivery 상태와 artifact content hash를 함께 기록함
+- `retention_policy_record`, `archive_candidate_record`, `legal_hold_binding`을 schema와 hash로 고정하고 모든 candidate가 known retention policy와 active legal hold binding에 연결되도록 검증함
+- deletion allowed candidate count를 0으로 고정하고, 추후 삭제/폐기 정책은 별도 records review 및 audit이 필요한 작업으로 남김
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Retention/Archive Ledger를 통합함
+- `/api/retention-archive-ledgers`, `/api/retention-policy-records`, `/api/archive-candidate-records`, `/api/legal-hold-bindings`, `/api/retention-archive-validations` route를 추가함
+
+완료 기준:
+
+- Retention/Archive Ledger가 validation error 없이 `complete` 상태가 됨
+- event/audit/output retention policy가 각각 1개 이상 존재하고 source count가 append-only stored event, audit trail record, output artifact count와 일치함
+- event stream, audit rollup, output artifact archive candidate가 모두 생성됨
+- 모든 archive candidate가 known retention policy에 binding됨
+- deletion allowed candidate count가 0이고 모든 deletion status가 `not_allowed`임
+- legal hold required candidate마다 active legal hold binding이 존재함
+- 모든 retention policy, archive candidate, legal hold binding이 sha256 hash를 가짐
+- Review Dashboard summary와 stage status에서 retention policy, archive candidate, legal hold, deletion blocker, validation count가 노출됨
+- Review API smoke가 ledger, policy, candidate, legal hold, validation route를 모두 조회함
+- Golden fixture 수가 75개로 증가하고 retention archive ledger가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run events:retention -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5118,9 +5147,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 172이다.
+- 현재 완료 기준점은 Phase 173이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P173-P312, 총 140개다.
+- 남은 계획 슬롯은 P174-P312, 총 139개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

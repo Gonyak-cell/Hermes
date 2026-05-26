@@ -183,6 +183,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/dashboard-replay-projections"));
   assert.ok(index.routes.some((route) => route.path === "/api/dashboard-replay-metrics"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-replay-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retention-archive-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retention-policy-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/archive-candidate-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/legal-hold-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/retention-archive-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1375,6 +1380,26 @@ try {
   const eventReplayValidations = await fetchJson(`${url}/api/event-replay-validations?status=passed&limit=5`);
   assert.equal(eventReplayValidations.collection, "event_replay_validations");
   assert.ok(eventReplayValidations.count <= 5);
+
+  const retentionArchiveLedgers = await fetchJson(`${url}/api/retention-archive-ledgers?retention_archive_status=complete&limit=1`);
+  assert.equal(retentionArchiveLedgers.collection, "retention_archive_ledgers");
+  assert.ok(retentionArchiveLedgers.count <= 1);
+
+  const retentionPolicyRecords = await fetchJson(`${url}/api/retention-policy-records?retention_plane=event&limit=5`);
+  assert.equal(retentionPolicyRecords.collection, "retention_policy_records");
+  assert.ok(retentionPolicyRecords.count <= 5);
+
+  const archiveCandidateRecords = await fetchJson(`${url}/api/archive-candidate-records?deletion_status=not_allowed&limit=5`);
+  assert.equal(archiveCandidateRecords.collection, "archive_candidate_records");
+  assert.ok(archiveCandidateRecords.count <= 5);
+
+  const legalHoldBindings = await fetchJson(`${url}/api/legal-hold-bindings?hold_status=active&limit=5`);
+  assert.equal(legalHoldBindings.collection, "legal_hold_bindings");
+  assert.ok(legalHoldBindings.count <= 5);
+
+  const retentionArchiveValidations = await fetchJson(`${url}/api/retention-archive-validations?status=passed&limit=5`);
+  assert.equal(retentionArchiveValidations.collection, "retention_archive_validations");
+  assert.ok(retentionArchiveValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

@@ -94,6 +94,7 @@ const GOAL_ITEMS = [
   sourceItem("observability_trace_projection", "Observability trace projection", "observability", "observability_trace_projection", "control-plane-observability-trace-projection", { acceptance_profile: "observability_trace_projection_gate" }),
   sourceItem("error_retry_ledger", "Error/retry ledger", "observability", "error_retry_ledger", "control-plane-error-retry-ledger", { acceptance_profile: "error_retry_ledger_gate" }),
   sourceItem("event_replay_harness", "Event replay harness", "audit", "event_replay_harness", "control-plane-event-replay-harness", { acceptance_profile: "event_replay_harness_gate" }),
+  sourceItem("retention_archive_ledger", "Retention/archive ledger", "audit", "retention_archive_ledger", "control-plane-retention-archive-ledger", { acceptance_profile: "retention_archive_ledger_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -449,6 +450,7 @@ function evaluateStageAcceptance(item, stage) {
     "observability_trace_projection_gate",
     "error_retry_ledger_gate",
     "event_replay_harness_gate",
+    "retention_archive_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -619,6 +621,32 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.dashboard_projection_metric_count ?? 0) >= 10
     ) {
       return passedWithOperationalGate(stage, "Event replay harness reconstructs event streams, run summaries, and dashboard projection metrics from append-only events without drift.");
+    }
+  }
+
+  if (item.acceptance_profile === "retention_archive_ledger_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.missing_policy_binding_count ?? 0)
+      + (metrics.missing_legal_hold_binding_count ?? 0)
+      + (metrics.deletion_allowed_candidate_count ?? 0);
+    if (
+      errors === 0
+      && metrics.retention_archive_status === "complete"
+      && metrics.source_append_only_event_store_status === "complete"
+      && metrics.source_audit_event_ledger_status === "complete"
+      && metrics.source_output_artifact_catalog_status === "complete"
+      && (metrics.retention_policy_count ?? 0) === 3
+      && (metrics.policy_record_source_match_count ?? 0) === 3
+      && (metrics.archive_candidate_count ?? 0) > 0
+      && (metrics.event_archive_candidate_count ?? 0) > 0
+      && (metrics.audit_archive_candidate_count ?? 0) > 0
+      && (metrics.output_archive_candidate_count ?? 0) > 0
+      && (metrics.legal_hold_binding_count ?? 0) === (metrics.legal_hold_required_candidate_count ?? -1)
+      && (metrics.source_stored_event_count ?? 0) > 0
+      && (metrics.source_audit_trail_record_count ?? 0) > 0
+      && (metrics.source_output_artifact_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Retention/archive ledger records event, audit, and output retention policy with active legal holds and no deletion-authorized candidates.");
     }
   }
 

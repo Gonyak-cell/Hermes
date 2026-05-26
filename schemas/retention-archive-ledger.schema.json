@@ -1,0 +1,265 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/retention-archive-ledger.schema.json",
+  "title": "Hermes Retention Archive Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "retention_archive_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "retention_archive_contract",
+    "retention_archive_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "retention-archive-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "retention_archive_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "retention_archive_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retention_archive_contract_id",
+        "covered_planes",
+        "deletion_policy",
+        "legal_hold_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "retention-archive-contract.v1" },
+        "retention_archive_contract_id": { "const": "retention-archive-ledger.v1" },
+        "covered_planes": {
+          "type": "array",
+          "items": { "enum": ["audit", "event", "output"] },
+          "minItems": 3
+        },
+        "deletion_policy": { "const": "delete_never_without_explicit_records_review" },
+        "legal_hold_policy": { "const": "matter_or_tenant_hold_required" }
+      },
+      "additionalProperties": true
+    },
+    "retention_archive_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retention_policy_records",
+        "archive_candidate_records",
+        "legal_hold_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "retention-archive-catalog.v1" },
+        "retention_policy_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/retention_policy_record" },
+          "minItems": 3
+        },
+        "archive_candidate_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/archive_candidate_record" }
+        },
+        "legal_hold_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/legal_hold_binding" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "retention_archive_status",
+        "retention_archive_contract_id",
+        "source_append_only_event_store_status",
+        "source_audit_event_ledger_status",
+        "source_output_artifact_catalog_status",
+        "source_stored_event_count",
+        "source_audit_trail_record_count",
+        "source_output_artifact_count",
+        "retention_policy_count",
+        "archive_candidate_count",
+        "event_archive_candidate_count",
+        "audit_archive_candidate_count",
+        "output_archive_candidate_count",
+        "legal_hold_binding_count",
+        "legal_hold_required_candidate_count",
+        "deletion_allowed_candidate_count",
+        "missing_policy_binding_count",
+        "missing_legal_hold_binding_count",
+        "policy_record_source_match_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "retention_archive_status": { "enum": ["complete", "blocked"] },
+        "retention_archive_contract_id": { "const": "retention-archive-ledger.v1" },
+        "source_append_only_event_store_status": { "type": "string" },
+        "source_audit_event_ledger_status": { "type": "string" },
+        "source_output_artifact_catalog_status": { "type": "string" },
+        "source_stored_event_count": { "type": "integer", "minimum": 0 },
+        "source_audit_trail_record_count": { "type": "integer", "minimum": 0 },
+        "source_output_artifact_count": { "type": "integer", "minimum": 0 },
+        "retention_policy_count": { "type": "integer", "minimum": 0 },
+        "archive_candidate_count": { "type": "integer", "minimum": 0 },
+        "event_archive_candidate_count": { "type": "integer", "minimum": 0 },
+        "audit_archive_candidate_count": { "type": "integer", "minimum": 0 },
+        "output_archive_candidate_count": { "type": "integer", "minimum": 0 },
+        "legal_hold_binding_count": { "type": "integer", "minimum": 0 },
+        "legal_hold_required_candidate_count": { "type": "integer", "minimum": 0 },
+        "deletion_allowed_candidate_count": { "type": "integer", "minimum": 0 },
+        "missing_policy_binding_count": { "type": "integer", "minimum": 0 },
+        "missing_legal_hold_binding_count": { "type": "integer", "minimum": 0 },
+        "policy_record_source_match_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "retention_policy_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "retention_policy_id",
+        "retention_plane",
+        "source_kind",
+        "source_record_count",
+        "retention_basis",
+        "retention_period_days",
+        "archive_after_days",
+        "deletion_allowed",
+        "legal_hold_required",
+        "human_review_required",
+        "policy_status",
+        "retention_policy_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "retention-policy-record.v1" },
+        "retention_policy_id": { "type": "string" },
+        "retention_plane": { "enum": ["audit", "event", "output"] },
+        "source_kind": { "type": "string" },
+        "source_record_count": { "type": "integer", "minimum": 0 },
+        "retention_basis": { "type": "string" },
+        "retention_period_days": { "type": "integer", "minimum": 1 },
+        "archive_after_days": { "type": "integer", "minimum": 0 },
+        "deletion_allowed": { "const": false },
+        "delete_after_days": { "type": ["integer", "null"], "minimum": 0 },
+        "legal_hold_required": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" },
+        "policy_status": { "type": "string" },
+        "retention_policy_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "archive_candidate_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "archive_candidate_id",
+        "retention_plane",
+        "retention_policy_id",
+        "source_kind",
+        "source_record_id",
+        "source_record_count",
+        "archive_state",
+        "archive_action",
+        "deletion_allowed",
+        "deletion_status",
+        "legal_hold_required",
+        "legal_hold_status",
+        "human_review_required",
+        "human_review_status",
+        "archive_candidate_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "archive-candidate-record.v1" },
+        "archive_candidate_id": { "type": "string" },
+        "retention_plane": { "enum": ["audit", "event", "output"] },
+        "retention_policy_id": { "type": ["string", "null"] },
+        "source_kind": { "type": "string" },
+        "source_record_id": { "type": "string" },
+        "source_record_count": { "type": "integer", "minimum": 0 },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "workflow_run_ids": { "type": "array", "items": { "type": "string" } },
+        "archive_state": { "type": "string" },
+        "archive_action": { "type": "string" },
+        "deletion_allowed": { "const": false },
+        "deletion_status": { "const": "not_allowed" },
+        "legal_hold_required": { "type": "boolean" },
+        "legal_hold_status": { "type": "string" },
+        "human_review_required": { "type": "boolean" },
+        "human_review_status": { "type": "string" },
+        "content_hash": { "type": ["string", "null"] },
+        "archive_candidate_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "legal_hold_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "legal_hold_binding_id",
+        "archive_candidate_id",
+        "retention_policy_id",
+        "retention_plane",
+        "source_kind",
+        "source_record_id",
+        "hold_scope",
+        "hold_reason",
+        "hold_status",
+        "review_owner",
+        "legal_hold_binding_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "legal-hold-binding.v1" },
+        "legal_hold_binding_id": { "type": "string" },
+        "archive_candidate_id": { "type": "string" },
+        "retention_policy_id": { "type": ["string", "null"] },
+        "retention_plane": { "enum": ["audit", "event", "output"] },
+        "source_kind": { "type": "string" },
+        "source_record_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "hold_scope": { "enum": ["matter", "tenant", "system"] },
+        "hold_reason": { "type": "string" },
+        "hold_status": { "const": "active" },
+        "released_at": { "type": ["string", "null"] },
+        "review_owner": { "type": "string" },
+        "legal_hold_binding_hash": { "type": "string", "pattern": "^sha256:" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

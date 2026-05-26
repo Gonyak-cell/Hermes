@@ -3616,6 +3616,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("event_replay_validations", replayResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/retention-archive-ledgers") {
+    const retentionResult = await readDashboardSourceArtifact(dashboard, "retention_archive_ledger");
+    if (!retentionResult.available) {
+      return jsonResponse(503, buildError("retention_archive_ledger_unavailable", retentionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_archive_ledgers", [retentionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-policy-records") {
+    const retentionResult = await readDashboardSourceArtifact(dashboard, "retention_archive_ledger");
+    if (!retentionResult.available) {
+      return jsonResponse(503, buildError("retention_archive_ledger_unavailable", retentionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_policy_records", retentionResult.artifact.retention_archive_catalog?.retention_policy_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/archive-candidate-records") {
+    const retentionResult = await readDashboardSourceArtifact(dashboard, "retention_archive_ledger");
+    if (!retentionResult.available) {
+      return jsonResponse(503, buildError("retention_archive_ledger_unavailable", retentionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("archive_candidate_records", retentionResult.artifact.retention_archive_catalog?.archive_candidate_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-hold-bindings") {
+    const retentionResult = await readDashboardSourceArtifact(dashboard, "retention_archive_ledger");
+    if (!retentionResult.available) {
+      return jsonResponse(503, buildError("retention_archive_ledger_unavailable", retentionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_hold_bindings", retentionResult.artifact.retention_archive_catalog?.legal_hold_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/retention-archive-validations") {
+    const retentionResult = await readDashboardSourceArtifact(dashboard, "retention_archive_ledger");
+    if (!retentionResult.available) {
+      return jsonResponse(503, buildError("retention_archive_ledger_unavailable", retentionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("retention_archive_validations", retentionResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6461,6 +6496,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/dashboard-replay-projections", "Dashboard projection drift checks rebuilt by replay"),
       route("GET", "/api/dashboard-replay-metrics", "Dashboard replay projection metric rows"),
       route("GET", "/api/event-replay-validations", "Event replay harness validation rows"),
+      route("GET", "/api/retention-archive-ledgers", "Retention and archive ledger artifacts"),
+      route("GET", "/api/retention-policy-records", "Audit, event, and output retention policy rows"),
+      route("GET", "/api/archive-candidate-records", "Archive candidate rows bound to retention policy"),
+      route("GET", "/api/legal-hold-bindings", "Active legal hold bindings for retention candidates"),
+      route("GET", "/api/retention-archive-validations", "Retention archive validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7602,6 +7642,17 @@ function filterItems(items, searchParams) {
     "metric_status",
     "source_match_status",
     "dashboard_match_status",
+    "retention_archive_status",
+    "retention_policy_id",
+    "retention_plane",
+    "archive_candidate_id",
+    "archive_state",
+    "archive_action",
+    "deletion_status",
+    "legal_hold_status",
+    "legal_hold_binding_id",
+    "hold_scope",
+    "hold_status",
     "token_rollup_id",
     "rollup_type",
     "rollup_key",
@@ -7936,6 +7987,17 @@ function readFilterValue(item, key) {
   if (key === "observability_trace_projection_status") return item.summary?.observability_trace_projection_status ?? item.observability_trace_projection_status;
   if (key === "error_retry_ledger_status") return item.summary?.error_retry_ledger_status ?? item.error_retry_ledger_status;
   if (key === "event_replay_status") return item.summary?.event_replay_status ?? item.event_replay_status;
+  if (key === "retention_archive_status") return item.summary?.retention_archive_status ?? item.retention_archive_status;
+  if (key === "retention_policy_id") return item.retention_policy_id;
+  if (key === "retention_plane") return item.retention_plane;
+  if (key === "archive_candidate_id") return item.archive_candidate_id;
+  if (key === "archive_state") return item.archive_state;
+  if (key === "archive_action") return item.archive_action;
+  if (key === "deletion_status") return item.deletion_status;
+  if (key === "legal_hold_status") return item.legal_hold_status;
+  if (key === "legal_hold_binding_id") return item.legal_hold_binding_id;
+  if (key === "hold_scope") return item.hold_scope;
+  if (key === "hold_status") return item.hold_status;
   if (key === "dashboard_projection_status") return item.dashboard_projection_status ?? item.projection_status;
   if (key === "projection_status") return item.projection_status ?? item.dashboard_projection_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;

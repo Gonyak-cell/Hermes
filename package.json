@@ -128,6 +128,7 @@
     "events:correlation": "node scripts/event-correlation-ledger.mjs",
     "events:envelopes": "node scripts/event-envelope-ledger.mjs",
     "events:replay": "node scripts/event-replay-harness.mjs",
+    "events:retention": "node scripts/retention-archive-ledger.mjs",
     "events:store": "node scripts/append-only-event-store.mjs",
     "events:types": "node scripts/event-type-registry.mjs",
     "events:agent-runs": "node scripts/agent-run-ledger.mjs",

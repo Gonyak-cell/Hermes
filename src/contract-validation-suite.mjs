@@ -86,6 +86,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "observability:traces",
   "observability:errors",
   "events:replay",
+  "events:retention",
   "contracts:observability",
 ];
 

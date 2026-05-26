@@ -80,6 +80,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/event-streams"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-correction-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-store-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-correlation-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/correlation-traces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/causation-edges"));
+  assert.ok(index.routes.some((route) => route.path === "/api/trace-run-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-correlation-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -879,6 +884,26 @@ try {
   const eventStoreValidations = await fetchJson(`${url}/api/event-store-validations?status=passed&limit=5`);
   assert.equal(eventStoreValidations.collection, "event_store_validations");
   assert.ok(eventStoreValidations.count <= 5);
+
+  const eventCorrelationLedgers = await fetchJson(`${url}/api/event-correlation-ledgers?event_correlation_status=complete&limit=1`);
+  assert.equal(eventCorrelationLedgers.collection, "event_correlation_ledgers");
+  assert.ok(eventCorrelationLedgers.count <= 1);
+
+  const correlationTraces = await fetchJson(`${url}/api/correlation-traces?trace_status=linked&causation_status=linked&limit=5`);
+  assert.equal(correlationTraces.collection, "correlation_traces");
+  assert.ok(correlationTraces.count <= 5);
+
+  const causationEdges = await fetchJson(`${url}/api/causation-edges?causation_status=linked&limit=5`);
+  assert.equal(causationEdges.collection, "causation_edges");
+  assert.ok(causationEdges.count <= 5);
+
+  const traceRunBindings = await fetchJson(`${url}/api/trace-run-bindings?run_binding_status=known&limit=5`);
+  assert.equal(traceRunBindings.collection, "trace_run_bindings");
+  assert.ok(traceRunBindings.count <= 5);
+
+  const eventCorrelationValidations = await fetchJson(`${url}/api/event-correlation-validations?status=passed&limit=5`);
+  assert.equal(eventCorrelationValidations.collection, "event_correlation_validations");
+  assert.ok(eventCorrelationValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

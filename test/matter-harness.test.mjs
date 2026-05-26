@@ -169,6 +169,7 @@ import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-
 import { runEventEnvelopeLedger } from "../src/event-envelope-ledger.mjs";
 import { runEventTypeRegistry } from "../src/event-type-registry.mjs";
 import { runAppendOnlyEventStore } from "../src/append-only-event-store.mjs";
+import { runEventCorrelationLedger } from "../src/event-correlation-ledger.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1700,6 +1701,7 @@ describe("matter harness", () => {
         eventEnvelopeLedgerPath: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
         eventTypeRegistryPath: path.join(outDir, "event-type-registry", "event-type-registry.json"),
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3449,6 +3451,40 @@ describe("matter harness", () => {
       assert.ok(appendOnlyEventStore.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "append-only-event-store", "summary.md"), "utf8"), /Append-only Event Store/);
 
+      const eventCorrelationLedger = await runEventCorrelationLedger({
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
+        outDir: path.join(outDir, "event-correlation"),
+        runAt: "2026-05-23T06:35:08.451Z",
+      });
+      const eventCorrelationLedgerSchema = JSON.parse(await readFile("schemas/event-correlation-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(eventCorrelationLedger, eventCorrelationLedgerSchema, {}, "event_correlation_ledger"),
+        [],
+      );
+      assert.equal(eventCorrelationLedger.summary.event_correlation_status, "complete");
+      assert.equal(eventCorrelationLedger.summary.event_correlation_contract_id, "event-correlation.v1");
+      assert.equal(eventCorrelationLedger.summary.source_event_store_status, "complete");
+      assert.equal(eventCorrelationLedger.summary.source_event_audit_run_freeze_status, "complete");
+      assert.equal(eventCorrelationLedger.summary.source_stored_event_count, expectedEnvelopeCount);
+      assert.ok(eventCorrelationLedger.summary.correlation_trace_count > 0);
+      assert.equal(eventCorrelationLedger.summary.linked_trace_count + eventCorrelationLedger.summary.external_control_trace_count, eventCorrelationLedger.summary.correlation_trace_count);
+      assert.equal(eventCorrelationLedger.summary.incomplete_trace_count, 0);
+      assert.equal(eventCorrelationLedger.summary.event_bound_trace_count, eventCorrelationLedger.summary.correlation_trace_count);
+      assert.equal(eventCorrelationLedger.summary.run_bound_trace_count + eventCorrelationLedger.summary.external_control_trace_count, eventCorrelationLedger.summary.correlation_trace_count);
+      assert.equal(eventCorrelationLedger.summary.missing_correlation_id_count, 0);
+      assert.equal(eventCorrelationLedger.summary.linked_causation_edge_count, eventCorrelationLedger.summary.causation_edge_count);
+      assert.equal(eventCorrelationLedger.summary.missing_causation_edge_count, 0);
+      assert.ok(eventCorrelationLedger.summary.trace_run_binding_count > 0);
+      assert.equal(eventCorrelationLedger.summary.known_trace_run_binding_count, eventCorrelationLedger.summary.trace_run_binding_count);
+      assert.equal(eventCorrelationLedger.summary.unknown_trace_run_binding_count, 0);
+      assert.equal(eventCorrelationLedger.summary.validation_error_count, 0);
+      assert.ok(eventCorrelationLedger.event_correlation_catalog.correlation_traces.every((trace) => trace.trace_status === "linked" || trace.trace_status === "external_control"));
+      assert.ok(eventCorrelationLedger.event_correlation_catalog.causation_edges.every((edge) => edge.causation_status === "linked"));
+      assert.ok(eventCorrelationLedger.event_correlation_catalog.trace_run_bindings.every((binding) => binding.run_binding_status === "known"));
+      assert.ok(eventCorrelationLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "event-correlation", "summary.md"), "utf8"), /Event Correlation Ledger/);
+
       const policySnapshotBindingLedger = await runPolicySnapshotBindingLedger({
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
@@ -4963,6 +4999,7 @@ describe("matter harness", () => {
           event_envelope_ledger: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
           event_type_registry: path.join(outDir, "event-type-registry", "event-type-registry.json"),
           append_only_event_store: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+          event_correlation_ledger: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -4975,8 +5012,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 63);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 63);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 64);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 64);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5035,6 +5072,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_correlation_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5101,6 +5139,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:envelopes"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:types"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:store"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:correlation"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5394,6 +5433,10 @@ describe("matter harness", () => {
       assert.equal(appendOnlyEventStoreCheckpoint?.acceptance_profile, "append_only_event_store_gate");
       assert.equal(appendOnlyEventStoreCheckpoint?.status, "passed");
       assert.equal(appendOnlyEventStoreCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const eventCorrelationLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-event-correlation-ledger");
+      assert.equal(eventCorrelationLedgerCheckpoint?.acceptance_profile, "event_correlation_ledger_gate");
+      assert.equal(eventCorrelationLedgerCheckpoint?.status, "passed");
+      assert.equal(eventCorrelationLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6699,6 +6742,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.append_only_event_store_append_only_policy_count, 1);
       assert.equal(dashboard.summary.append_only_event_store_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.append_only_event_store_validation_error_count, 0);
+      assert.equal(dashboard.summary.event_correlation_ledger_correlation_trace_count, eventCorrelationLedger.summary.correlation_trace_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_linked_trace_count, eventCorrelationLedger.summary.linked_trace_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_external_control_trace_count, eventCorrelationLedger.summary.external_control_trace_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_incomplete_trace_count, 0);
+      assert.equal(dashboard.summary.event_correlation_ledger_causation_edge_count, eventCorrelationLedger.summary.causation_edge_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_linked_causation_edge_count, eventCorrelationLedger.summary.causation_edge_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_missing_causation_edge_count, 0);
+      assert.equal(dashboard.summary.event_correlation_ledger_trace_run_binding_count, eventCorrelationLedger.summary.trace_run_binding_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_known_trace_run_binding_count, eventCorrelationLedger.summary.trace_run_binding_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_unknown_trace_run_binding_count, 0);
+      assert.equal(dashboard.summary.event_correlation_ledger_matter_bound_trace_count, eventCorrelationLedger.summary.matter_bound_trace_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_workflow_bound_trace_count, eventCorrelationLedger.summary.workflow_bound_trace_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_run_bound_trace_count, eventCorrelationLedger.summary.run_bound_trace_count);
+      assert.equal(dashboard.summary.event_correlation_ledger_missing_correlation_id_count, 0);
+      assert.equal(dashboard.summary.event_correlation_ledger_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.event_correlation_ledger_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -8032,6 +8091,26 @@ describe("matter harness", () => {
       const eventStoreValidations = JSON.parse((await buildReviewApiResponse("/api/event-store-validations?status=passed", apiOptions)).body);
       assert.equal(eventStoreValidations.collection, "event_store_validations");
       assert.equal(eventStoreValidations.count, appendOnlyEventStore.summary.validation_item_count);
+
+      const eventCorrelationLedgers = JSON.parse((await buildReviewApiResponse("/api/event-correlation-ledgers?event_correlation_status=complete", apiOptions)).body);
+      assert.equal(eventCorrelationLedgers.collection, "event_correlation_ledgers");
+      assert.equal(eventCorrelationLedgers.count, 1);
+
+      const correlationTraces = JSON.parse((await buildReviewApiResponse("/api/correlation-traces?trace_status=linked&causation_status=linked", apiOptions)).body);
+      assert.equal(correlationTraces.collection, "correlation_traces");
+      assert.equal(correlationTraces.count, eventCorrelationLedger.summary.linked_trace_count);
+
+      const causationEdges = JSON.parse((await buildReviewApiResponse("/api/causation-edges?causation_status=linked", apiOptions)).body);
+      assert.equal(causationEdges.collection, "causation_edges");
+      assert.equal(causationEdges.count, eventCorrelationLedger.summary.causation_edge_count);
+
+      const traceRunBindings = JSON.parse((await buildReviewApiResponse("/api/trace-run-bindings?run_binding_status=known", apiOptions)).body);
+      assert.equal(traceRunBindings.collection, "trace_run_bindings");
+      assert.equal(traceRunBindings.count, eventCorrelationLedger.summary.trace_run_binding_count);
+
+      const eventCorrelationValidations = JSON.parse((await buildReviewApiResponse("/api/event-correlation-validations?status=passed", apiOptions)).body);
+      assert.equal(eventCorrelationValidations.collection, "event_correlation_validations");
+      assert.equal(eventCorrelationValidations.count, eventCorrelationLedger.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

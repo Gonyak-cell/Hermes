@@ -73,6 +73,7 @@ const GOAL_ITEMS = [
   sourceItem("event_envelope_ledger", "CloudEvents-style event envelope ledger", "audit", "event_envelope_ledger", "control-plane-event-envelope-ledger", { acceptance_profile: "event_envelope_ledger_gate" }),
   sourceItem("event_type_registry", "Event type registry", "audit", "event_type_registry", "control-plane-event-type-registry", { acceptance_profile: "event_type_registry_gate" }),
   sourceItem("append_only_event_store", "Append-only event store", "audit", "append_only_event_store", "control-plane-append-only-event-store", { acceptance_profile: "append_only_event_store_gate" }),
+  sourceItem("event_correlation_ledger", "Event correlation ledger", "audit", "event_correlation_ledger", "control-plane-event-correlation-ledger", { acceptance_profile: "event_correlation_ledger_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -427,6 +428,7 @@ function evaluateStageAcceptance(item, stage) {
     "event_envelope_ledger_gate",
     "event_type_registry_gate",
     "append_only_event_store_gate",
+    "event_correlation_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -541,6 +543,32 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.append_only_policy_count ?? 0) === 1
     ) {
       return passedWithOperationalGate(stage, "Append-only event store projects every envelope to an immutable, hash-chained stored event and requires corrections to be appended as new events.");
+    }
+  }
+
+  if (item.acceptance_profile === "event_correlation_ledger_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const traceCount = metrics.correlation_trace_count ?? 0;
+    const externalControlTraceCount = metrics.external_control_trace_count ?? 0;
+    const runBoundTraceCount = metrics.run_bound_trace_count ?? 0;
+    if (
+      errors === 0
+      && metrics.event_correlation_status === "complete"
+      && metrics.source_event_store_status === "complete"
+      && metrics.source_event_audit_run_freeze_status === "complete"
+      && traceCount > 0
+      && (metrics.source_stored_event_count ?? 0) > 0
+      && (metrics.missing_correlation_id_count ?? 1) === 0
+      && (metrics.incomplete_trace_count ?? 1) === 0
+      && (metrics.linked_trace_count ?? 0) + externalControlTraceCount === traceCount
+      && runBoundTraceCount + externalControlTraceCount === traceCount
+      && (metrics.event_bound_trace_count ?? 0) === traceCount
+      && (metrics.missing_causation_edge_count ?? 1) === 0
+      && (metrics.linked_causation_edge_count ?? 0) === (metrics.causation_edge_count ?? -1)
+      && (metrics.unknown_trace_run_binding_count ?? 1) === 0
+      && (metrics.known_trace_run_binding_count ?? 0) === (metrics.trace_run_binding_count ?? -1)
+    ) {
+      return passedWithOperationalGate(stage, "Event correlation ledger links run-bound events into matter/workflow/run traces, keeps external control audit events explicit, and resolves causation edges plus RunLedger bindings.");
     }
   }
 

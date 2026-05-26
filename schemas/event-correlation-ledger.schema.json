@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/event-correlation-ledger.schema.json",
+  "title": "Hermes Event Correlation Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "event_correlation_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "event_correlation_contract",
+    "event_correlation_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "event-correlation-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "event_correlation_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "event_correlation_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_correlation_contract_id",
+        "correlation_scope",
+        "external_control_event_policy",
+        "required_trace_fields",
+        "required_edge_fields",
+        "required_binding_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-correlation-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_correlation_contract_id": { "const": "event-correlation.v1" },
+        "correlation_scope": { "const": "tenant_matter_workflow_run_event" },
+        "external_control_event_policy": { "const": "explicit_external_control_trace" },
+        "required_trace_fields": {
+          "type": "array",
+          "contains": { "const": "correlation_id" }
+        },
+        "required_edge_fields": {
+          "type": "array",
+          "contains": { "const": "causation_id" }
+        },
+        "required_binding_fields": {
+          "type": "array",
+          "contains": { "const": "run_ledger_id" }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "event_correlation_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "correlation_traces",
+        "causation_edges",
+        "trace_run_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-correlation-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "correlation_traces": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/correlation_trace" }
+        },
+        "causation_edges": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/causation_edge" }
+        },
+        "trace_run_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/trace_run_binding" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "event_correlation_status",
+        "event_correlation_contract_id",
+        "source_event_store_status",
+        "source_stored_event_count",
+        "source_event_audit_run_freeze_status",
+        "source_run_ledger_count",
+        "correlation_trace_count",
+        "linked_trace_count",
+        "external_control_trace_count",
+        "incomplete_trace_count",
+        "causation_edge_count",
+        "linked_causation_edge_count",
+        "missing_causation_edge_count",
+        "trace_run_binding_count",
+        "known_trace_run_binding_count",
+        "unknown_trace_run_binding_count",
+        "matter_bound_trace_count",
+        "workflow_bound_trace_count",
+        "run_bound_trace_count",
+        "event_bound_trace_count",
+        "missing_correlation_id_count",
+        "missing_matter_id_count",
+        "missing_workflow_run_id_count",
+        "missing_run_ledger_id_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "event_correlation_status": { "enum": ["complete", "blocked"] },
+        "event_correlation_contract_id": { "const": "event-correlation.v1" },
+        "source_event_store_status": { "type": "string" },
+        "source_stored_event_count": { "type": "integer", "minimum": 0 },
+        "source_event_audit_run_freeze_status": { "type": "string" },
+        "source_run_ledger_count": { "type": "integer", "minimum": 0 },
+        "correlation_trace_count": { "type": "integer", "minimum": 0 },
+        "linked_trace_count": { "type": "integer", "minimum": 0 },
+        "external_control_trace_count": { "type": "integer", "minimum": 0 },
+        "incomplete_trace_count": { "type": "integer", "minimum": 0 },
+        "causation_edge_count": { "type": "integer", "minimum": 0 },
+        "linked_causation_edge_count": { "type": "integer", "minimum": 0 },
+        "missing_causation_edge_count": { "type": "integer", "minimum": 0 },
+        "trace_run_binding_count": { "type": "integer", "minimum": 0 },
+        "known_trace_run_binding_count": { "type": "integer", "minimum": 0 },
+        "unknown_trace_run_binding_count": { "type": "integer", "minimum": 0 },
+        "matter_bound_trace_count": { "type": "integer", "minimum": 0 },
+        "workflow_bound_trace_count": { "type": "integer", "minimum": 0 },
+        "run_bound_trace_count": { "type": "integer", "minimum": 0 },
+        "event_bound_trace_count": { "type": "integer", "minimum": 0 },
+        "missing_correlation_id_count": { "type": "integer", "minimum": 0 },
+        "missing_matter_id_count": { "type": "integer", "minimum": 0 },
+        "missing_workflow_run_id_count": { "type": "integer", "minimum": 0 },
+        "missing_run_ledger_id_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "correlation_trace": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "correlation_trace_id",
+        "correlation_id",
+        "stored_event_ids",
+        "event_envelope_ids",
+        "event_count",
+        "trace_status",
+        "causation_status",
+        "run_binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "correlation-trace.v1" },
+        "correlation_trace_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "tenant_ids": { "type": "array", "items": { "type": "string" } },
+        "matter_id": { "type": ["string", "null"] },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "workflow_run_ids": { "type": "array", "items": { "type": "string" } },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "run_ledger_ids": { "type": "array", "items": { "type": "string" } },
+        "stored_event_ids": { "type": "array", "items": { "type": "string" } },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "event_types": { "type": "array", "items": { "type": "string" } },
+        "event_families": { "type": "array", "items": { "type": "string" } },
+        "source_kinds": { "type": "array", "items": { "type": "string" } },
+        "event_count": { "type": "integer", "minimum": 1 },
+        "root_event_count": { "type": "integer", "minimum": 0 },
+        "caused_event_count": { "type": "integer", "minimum": 0 },
+        "missing_cause_count": { "type": "integer", "minimum": 0 },
+        "first_event_time": { "type": ["string", "null"], "format": "date-time" },
+        "last_event_time": { "type": ["string", "null"], "format": "date-time" },
+        "trace_status": { "enum": ["linked", "external_control", "incomplete"] },
+        "causation_status": { "enum": ["linked", "missing_cause"] },
+        "run_binding_status": { "enum": ["known", "external_control", "unknown_run"] },
+        "external_control_trace": { "type": "boolean" },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "causation_edge": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "causation_edge_id",
+        "correlation_id",
+        "causation_id",
+        "cause_event_envelope_id",
+        "effect_event_envelope_id",
+        "effect_stored_event_id",
+        "causation_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "causation-edge.v1" },
+        "causation_edge_id": { "type": "string" },
+        "correlation_id": { "type": ["string", "null"] },
+        "correlation_trace_id": { "type": ["string", "null"] },
+        "causation_id": { "type": "string" },
+        "cause_event_envelope_id": { "type": "string" },
+        "effect_event_envelope_id": { "type": "string" },
+        "cause_stored_event_id": { "type": ["string", "null"] },
+        "effect_stored_event_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_family": { "type": "string" },
+        "event_time": { "type": "string", "format": "date-time" },
+        "causation_status": { "enum": ["linked", "missing_cause"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "trace_run_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "trace_run_binding_id",
+        "correlation_id",
+        "correlation_trace_id",
+        "run_ledger_id",
+        "stored_event_count",
+        "run_binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "trace-run-binding.v1" },
+        "trace_run_binding_id": { "type": "string" },
+        "correlation_id": { "type": "string" },
+        "correlation_trace_id": { "type": "string" },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": "string" },
+        "stored_event_count": { "type": "integer", "minimum": 1 },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "run_binding_status": { "enum": ["known", "unknown_run"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

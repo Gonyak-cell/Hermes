@@ -58,6 +58,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   eventEnvelopeLedgerPath: "artifacts/event-envelope-ledger/latest/event-envelope-ledger.json",
   eventTypeRegistryPath: "artifacts/event-type-registry/latest/event-type-registry.json",
   appendOnlyEventStorePath: "artifacts/append-only-event-store/latest/append-only-event-store.json",
+  eventCorrelationLedgerPath: "artifacts/event-correlation/latest/event-correlation-ledger.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -430,6 +431,11 @@ const SOURCE_DEFINITIONS = [
     option: "appendOnlyEventStorePath",
     source_id: "append_only_event_store",
     label: "Append-only Event Store",
+  },
+  {
+    option: "eventCorrelationLedgerPath",
+    source_id: "event_correlation_ledger",
+    label: "Event Correlation Ledger",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1086,6 +1092,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "event_envelope_ledger") return data.summary ?? {};
   if (sourceId === "event_type_registry") return data.summary ?? {};
   if (sourceId === "append_only_event_store") return data.summary ?? {};
+  if (sourceId === "event_correlation_ledger") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1327,6 +1334,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEventEnvelopeLedgerStage(artifacts.event_envelope_ledger, sourceById.get("event_envelope_ledger")),
     buildEventTypeRegistryStage(artifacts.event_type_registry, sourceById.get("event_type_registry")),
     buildAppendOnlyEventStoreStage(artifacts.append_only_event_store, sourceById.get("append_only_event_store")),
+    buildEventCorrelationLedgerStage(artifacts.event_correlation_ledger, sourceById.get("event_correlation_ledger")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4181,6 +4189,50 @@ function buildAppendOnlyEventStoreStage(store, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? store.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildEventCorrelationLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("event_correlation_ledger", "Event Correlation Ledger", source);
+  const summary = ledger.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || ledger.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "event_correlation_ledger",
+    label: "Event Correlation Ledger",
+    status,
+    message: `${summary.correlation_trace_count ?? 0} trace(s), ${summary.causation_edge_count ?? 0} causation edge(s), ${summary.known_trace_run_binding_count ?? 0}/${summary.trace_run_binding_count ?? 0} run binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      event_correlation_status: summary.event_correlation_status ?? "unknown",
+      event_correlation_contract_id: summary.event_correlation_contract_id ?? null,
+      source_event_store_status: summary.source_event_store_status ?? "unknown",
+      source_stored_event_count: summary.source_stored_event_count ?? 0,
+      source_event_audit_run_freeze_status: summary.source_event_audit_run_freeze_status ?? "unknown",
+      source_run_ledger_count: summary.source_run_ledger_count ?? 0,
+      correlation_trace_count: summary.correlation_trace_count ?? 0,
+      linked_trace_count: summary.linked_trace_count ?? 0,
+      external_control_trace_count: summary.external_control_trace_count ?? 0,
+      incomplete_trace_count: summary.incomplete_trace_count ?? 0,
+      causation_edge_count: summary.causation_edge_count ?? 0,
+      linked_causation_edge_count: summary.linked_causation_edge_count ?? 0,
+      missing_causation_edge_count: summary.missing_causation_edge_count ?? 0,
+      trace_run_binding_count: summary.trace_run_binding_count ?? 0,
+      known_trace_run_binding_count: summary.known_trace_run_binding_count ?? 0,
+      unknown_trace_run_binding_count: summary.unknown_trace_run_binding_count ?? 0,
+      matter_bound_trace_count: summary.matter_bound_trace_count ?? 0,
+      workflow_bound_trace_count: summary.workflow_bound_trace_count ?? 0,
+      run_bound_trace_count: summary.run_bound_trace_count ?? 0,
+      event_bound_trace_count: summary.event_bound_trace_count ?? 0,
+      missing_correlation_id_count: summary.missing_correlation_id_count ?? 0,
+      missing_matter_id_count: summary.missing_matter_id_count ?? 0,
+      missing_workflow_run_id_count: summary.missing_workflow_run_id_count ?? 0,
+      missing_run_ledger_id_count: summary.missing_run_ledger_id_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -10417,6 +10469,22 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     append_only_event_store_append_only_policy_count: artifacts.append_only_event_store?.summary?.append_only_policy_count ?? 0,
     append_only_event_store_failed_validation_item_count: artifacts.append_only_event_store?.summary?.failed_validation_item_count ?? 0,
     append_only_event_store_validation_error_count: artifacts.append_only_event_store?.summary?.validation_error_count ?? artifacts.append_only_event_store?.validation?.errors?.length ?? 0,
+    event_correlation_ledger_correlation_trace_count: artifacts.event_correlation_ledger?.summary?.correlation_trace_count ?? 0,
+    event_correlation_ledger_linked_trace_count: artifacts.event_correlation_ledger?.summary?.linked_trace_count ?? 0,
+    event_correlation_ledger_external_control_trace_count: artifacts.event_correlation_ledger?.summary?.external_control_trace_count ?? 0,
+    event_correlation_ledger_incomplete_trace_count: artifacts.event_correlation_ledger?.summary?.incomplete_trace_count ?? 0,
+    event_correlation_ledger_causation_edge_count: artifacts.event_correlation_ledger?.summary?.causation_edge_count ?? 0,
+    event_correlation_ledger_linked_causation_edge_count: artifacts.event_correlation_ledger?.summary?.linked_causation_edge_count ?? 0,
+    event_correlation_ledger_missing_causation_edge_count: artifacts.event_correlation_ledger?.summary?.missing_causation_edge_count ?? 0,
+    event_correlation_ledger_trace_run_binding_count: artifacts.event_correlation_ledger?.summary?.trace_run_binding_count ?? 0,
+    event_correlation_ledger_known_trace_run_binding_count: artifacts.event_correlation_ledger?.summary?.known_trace_run_binding_count ?? 0,
+    event_correlation_ledger_unknown_trace_run_binding_count: artifacts.event_correlation_ledger?.summary?.unknown_trace_run_binding_count ?? 0,
+    event_correlation_ledger_matter_bound_trace_count: artifacts.event_correlation_ledger?.summary?.matter_bound_trace_count ?? 0,
+    event_correlation_ledger_workflow_bound_trace_count: artifacts.event_correlation_ledger?.summary?.workflow_bound_trace_count ?? 0,
+    event_correlation_ledger_run_bound_trace_count: artifacts.event_correlation_ledger?.summary?.run_bound_trace_count ?? 0,
+    event_correlation_ledger_missing_correlation_id_count: artifacts.event_correlation_ledger?.summary?.missing_correlation_id_count ?? 0,
+    event_correlation_ledger_failed_validation_item_count: artifacts.event_correlation_ledger?.summary?.failed_validation_item_count ?? 0,
+    event_correlation_ledger_validation_error_count: artifacts.event_correlation_ledger?.summary?.validation_error_count ?? artifacts.event_correlation_ledger?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11705,6 +11773,8 @@ function parseArgs(argv) {
     else if (arg === "--no-event-type-registry") parsed.eventTypeRegistryPath = false;
     else if (arg === "--append-only-event-store") parsed.appendOnlyEventStorePath = argv[++index];
     else if (arg === "--no-append-only-event-store") parsed.appendOnlyEventStorePath = false;
+    else if (arg === "--event-correlation-ledger") parsed.eventCorrelationLedgerPath = argv[++index];
+    else if (arg === "--no-event-correlation-ledger") parsed.eventCorrelationLedgerPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -12057,6 +12127,9 @@ Options:
   --append-only-event-store <path>
                                   append-only-event-store.json path.
   --no-append-only-event-store   Do not include Append-only Event Store status.
+  --event-correlation-ledger <path>
+                                  event-correlation-ledger.json path.
+  --no-event-correlation-ledger  Do not include Event Correlation Ledger status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

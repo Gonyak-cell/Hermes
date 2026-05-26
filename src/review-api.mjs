@@ -2786,6 +2786,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/event-correlation-ledgers") {
+    const correlationResult = await readDashboardSourceArtifact(dashboard, "event_correlation_ledger");
+    if (!correlationResult.available) {
+      return jsonResponse(503, buildError("event_correlation_ledger_unavailable", correlationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_correlation_ledgers", [correlationResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/correlation-traces") {
+    const correlationResult = await readDashboardSourceArtifact(dashboard, "event_correlation_ledger");
+    if (!correlationResult.available) {
+      return jsonResponse(503, buildError("event_correlation_ledger_unavailable", correlationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("correlation_traces", correlationResult.artifact.event_correlation_catalog?.correlation_traces ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/causation-edges") {
+    const correlationResult = await readDashboardSourceArtifact(dashboard, "event_correlation_ledger");
+    if (!correlationResult.available) {
+      return jsonResponse(503, buildError("event_correlation_ledger_unavailable", correlationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("causation_edges", correlationResult.artifact.event_correlation_catalog?.causation_edges ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/trace-run-bindings") {
+    const correlationResult = await readDashboardSourceArtifact(dashboard, "event_correlation_ledger");
+    if (!correlationResult.available) {
+      return jsonResponse(503, buildError("event_correlation_ledger_unavailable", correlationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("trace_run_bindings", correlationResult.artifact.event_correlation_catalog?.trace_run_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-correlation-validations") {
+    const correlationResult = await readDashboardSourceArtifact(dashboard, "event_correlation_ledger");
+    if (!correlationResult.available) {
+      return jsonResponse(503, buildError("event_correlation_ledger_unavailable", correlationResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_correlation_validations", correlationResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -5817,6 +5868,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/event-streams", "Append-only event stream rows"),
       route("GET", "/api/event-correction-policies", "Append-only correction policy rows"),
       route("GET", "/api/event-store-validations", "Append-only event store validation rows"),
+      route("GET", "/api/event-correlation-ledgers", "Event correlation ledger artifacts"),
+      route("GET", "/api/correlation-traces", "Correlation trace rows"),
+      route("GET", "/api/causation-edges", "Causation edge rows"),
+      route("GET", "/api/trace-run-bindings", "Trace to RunLedger binding rows"),
+      route("GET", "/api/event-correlation-validations", "Event correlation validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6212,6 +6268,14 @@ function filterItems(items, searchParams) {
     "event_envelope_status",
     "event_type_registry_status",
     "event_store_status",
+    "event_correlation_status",
+    "correlation_id",
+    "correlation_trace_id",
+    "causation_id",
+    "cause_event_envelope_id",
+    "effect_event_envelope_id",
+    "causation_status",
+    "run_binding_status",
     "envelope_kind",
     "specversion",
     "event_type",
@@ -7187,6 +7251,7 @@ function readFilterValue(item, key) {
   if (key === "event_envelope_status") return item.summary?.event_envelope_status ?? item.event_envelope_status;
   if (key === "event_type_registry_status") return item.summary?.event_type_registry_status ?? item.event_type_registry_status;
   if (key === "event_store_status") return item.summary?.event_store_status ?? item.event_store_status;
+  if (key === "event_correlation_status") return item.summary?.event_correlation_status ?? item.event_correlation_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;
   if (key === "event_type") return item.event_type ?? item.type ?? item.envelope_type;

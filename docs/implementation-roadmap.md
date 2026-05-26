@@ -4815,6 +4815,33 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 63개로 증가하고 append-only event store가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run events:store -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 162: Event Correlation Ledger
+
+목표: Phase 161 append-only event store 위에 correlation/causation projection을 올려, run-bound event가 matter/workflow/run/event trace로 재현되고 audit-only 외부 control event가 별도 trace로 드러나도록 한다.
+
+구현 내용:
+
+- `src/event-correlation-ledger.mjs`, `scripts/event-correlation-ledger.mjs`, `schemas/event-correlation-ledger.schema.json`, `docs/event-correlation-ledger.md`를 추가함
+- `npm run events:correlation -- --check` 명령을 추가해 stored event를 correlation trace, causation edge, trace/run binding으로 projection함
+- correlation trace마다 tenant, matter, workflow run, run ledger, event envelope, event type/family, first/last event time을 기록함
+- causation edge는 `causation_id`를 기존 stored event envelope에 연결하고 missing cause를 validation failure로 처리함
+- trace/run binding은 correlation trace를 `RunLedger v2`에 다시 연결하고 unknown run을 validation failure로 처리함
+- run ledger가 없는 audit-only control event는 누락으로 숨기지 않고 `external_control` trace로 분류함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Event Correlation Ledger를 통합함
+- `/api/event-correlation-ledgers`, `/api/correlation-traces`, `/api/causation-edges`, `/api/trace-run-bindings`, `/api/event-correlation-validations` route를 추가함
+
+완료 기준:
+
+- Event Correlation Ledger가 validation error 없이 `complete` 상태가 됨
+- 모든 stored event가 정확히 하나의 correlation trace에 포함됨
+- 모든 run-bound trace가 matter/workflow/run/event id를 가지며, run ledger 없는 audit-only trace는 `external_control`로 명시됨
+- 모든 causation edge가 existing stored event cause에 연결됨
+- 모든 trace/run binding이 known RunLedger v2에 연결됨
+- Review Dashboard summary와 stage status에서 trace, external control trace, causation edge, trace/run binding, missing id, validation count가 노출됨
+- Review API smoke가 event correlation ledger, trace, causation edge, trace/run binding, validation route를 모두 조회함
+- Golden fixture 수가 64개로 증가하고 event correlation ledger가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run events:correlation -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -4823,9 +4850,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 161이다.
+- 현재 완료 기준점은 Phase 162이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P162-P312, 총 151개다.
+- 남은 계획 슬롯은 P163-P312, 총 150개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

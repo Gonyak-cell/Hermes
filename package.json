@@ -121,6 +121,7 @@
     "deal": "node scripts/deal-control.mjs examples/project-alpha-matter.json",
     "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",
     "dev:validate": "node scripts/validate-dev-projects.mjs examples/dev-projects.json",
+    "events:correlation": "node scripts/event-correlation-ledger.mjs",
     "events:envelopes": "node scripts/event-envelope-ledger.mjs",
     "events:store": "node scripts/append-only-event-store.mjs",
     "events:types": "node scripts/event-type-registry.mjs",

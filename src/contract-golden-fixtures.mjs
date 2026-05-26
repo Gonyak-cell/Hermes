@@ -84,6 +84,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     ledger_api_dashboard: "artifacts/ledger-api-dashboard/latest/ledger-api-dashboard.json",
     ledger_golden_fixtures: "artifacts/ledger-golden-fixtures/latest/ledger-golden-fixtures.json",
     observability_freeze: "artifacts/observability-freeze/latest/observability-freeze.json",
+    capability_manifest_v2: "artifacts/capability-manifest-v2/latest/capability-manifest-v2.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -166,6 +167,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("ledger_api_dashboard", "Ledger API Dashboard", "api", "ledger-api-dashboard.schema.json"),
   fixtureDefinition("ledger_golden_fixtures", "Ledger Golden Fixtures", "audit", "ledger-golden-fixtures.schema.json"),
   fixtureDefinition("observability_freeze", "Observability Freeze", "observability", "observability-freeze.schema.json"),
+  fixtureDefinition("capability_manifest_v2", "Capability Manifest v2", "contracts", "capability-manifest-v2-catalog.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

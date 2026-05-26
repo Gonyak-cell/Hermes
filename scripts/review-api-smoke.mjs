@@ -205,6 +205,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-traces"));
   assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-loop-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-catalogs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-field-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-gate-runtime-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-policy-index"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-version-policy-index"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -347,6 +354,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-traces"));
   assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-loop-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/observability-freeze-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-catalogs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-field-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-gate-runtime-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-policy-index"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-version-policy-index"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -823,6 +837,34 @@ try {
   const capabilityWorkflowContractValidations = await fetchJson(`${url}/api/capability-workflow-contract-validations?status=passed&limit=5`);
   assert.equal(capabilityWorkflowContractValidations.collection, "capability_workflow_contract_validations");
   assert.ok(capabilityWorkflowContractValidations.count <= 5);
+
+  const capabilityManifestV2Catalogs = await fetchJson(`${url}/api/capability-manifest-v2-catalogs?capability_manifest_v2_status=complete&limit=1`);
+  assert.equal(capabilityManifestV2Catalogs.collection, "capability_manifest_v2_catalogs");
+  assert.ok(capabilityManifestV2Catalogs.count <= 1);
+
+  const capabilityManifestV2Records = await fetchJson(`${url}/api/capability-manifest-v2-records?domain_pack=law-firm&limit=5`);
+  assert.equal(capabilityManifestV2Records.collection, "capability_manifest_v2_records");
+  assert.ok(capabilityManifestV2Records.count <= 5);
+
+  const capabilityManifestFieldMatrix = await fetchJson(`${url}/api/capability-manifest-field-matrix?field_status=complete&limit=5`);
+  assert.equal(capabilityManifestFieldMatrix.collection, "capability_manifest_field_matrix");
+  assert.ok(capabilityManifestFieldMatrix.count <= 5);
+
+  const capabilityManifestGateRuntimeMatrix = await fetchJson(`${url}/api/capability-manifest-gate-runtime-matrix?gate_runtime_status=complete&limit=5`);
+  assert.equal(capabilityManifestGateRuntimeMatrix.collection, "capability_manifest_gate_runtime_matrix");
+  assert.ok(capabilityManifestGateRuntimeMatrix.count <= 5);
+
+  const capabilityManifestPolicyIndex = await fetchJson(`${url}/api/capability-manifest-policy-index?policy_status=complete&limit=5`);
+  assert.equal(capabilityManifestPolicyIndex.collection, "capability_manifest_policy_index");
+  assert.ok(capabilityManifestPolicyIndex.count <= 5);
+
+  const capabilityManifestVersionPolicyIndex = await fetchJson(`${url}/api/capability-manifest-version-policy-index?version_status=complete&limit=5`);
+  assert.equal(capabilityManifestVersionPolicyIndex.collection, "capability_manifest_version_policy_index");
+  assert.ok(capabilityManifestVersionPolicyIndex.count <= 5);
+
+  const capabilityManifestV2Validations = await fetchJson(`${url}/api/capability-manifest-v2-validations?status=passed&limit=5`);
+  assert.equal(capabilityManifestV2Validations.collection, "capability_manifest_v2_validations");
+  assert.ok(capabilityManifestV2Validations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

@@ -90,6 +90,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "ledgers:api-dashboard",
   "ledgers:golden-fixtures",
   "observability:freeze",
+  "capabilities:manifest-v2",
   "contracts:observability",
 ];
 

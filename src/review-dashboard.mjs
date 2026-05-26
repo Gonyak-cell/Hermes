@@ -92,6 +92,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   ledgerApiDashboardPath: "artifacts/ledger-api-dashboard/latest/ledger-api-dashboard.json",
   ledgerGoldenFixturesPath: "artifacts/ledger-golden-fixtures/latest/ledger-golden-fixtures.json",
   observabilityFreezePath: "artifacts/observability-freeze/latest/observability-freeze.json",
+  capabilityManifestV2Path: "artifacts/capability-manifest-v2/latest/capability-manifest-v2.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -615,6 +616,11 @@ const SOURCE_DEFINITIONS = [
     option: "observabilityFreezePath",
     source_id: "observability_freeze",
     label: "Observability Freeze",
+  },
+  {
+    option: "capabilityManifestV2Path",
+    source_id: "capability_manifest_v2",
+    label: "Capability Manifest v2",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1210,6 +1216,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ledger_api_dashboard") return data.summary ?? {};
   if (sourceId === "ledger_golden_fixtures") return data.summary ?? {};
   if (sourceId === "observability_freeze") return data.summary ?? {};
+  if (sourceId === "capability_manifest_v2") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1466,6 +1473,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLedgerApiDashboardStage(artifacts.ledger_api_dashboard, sourceById.get("ledger_api_dashboard")),
     buildLedgerGoldenFixturesStage(artifacts.ledger_golden_fixtures, sourceById.get("ledger_golden_fixtures")),
     buildObservabilityFreezeStage(artifacts.observability_freeze, sourceById.get("observability_freeze")),
+    buildCapabilityManifestV2Stage(artifacts.capability_manifest_v2, sourceById.get("capability_manifest_v2")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5694,6 +5702,55 @@ function buildObservabilityFreezeStage(freeze, source) {
       client_facing_ready_count: summary.client_facing_ready_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildCapabilityManifestV2Stage(catalog, source) {
+  if (!catalog) return missingStage("capability_manifest_v2", "Capability Manifest v2", source);
+  const summary = catalog.summary ?? {};
+  const blockers = (summary.validation_error_count ?? catalog.validation?.errors?.length ?? 0)
+    + (summary.missing_required_field_count ?? 0)
+    + (summary.unknown_runtime_requirement_count ?? 0)
+    + (summary.runtime_blocked_count ?? 0)
+    + (summary.client_facing_ready_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.capability_manifest_v2_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "capability_manifest_v2",
+    label: "Capability Manifest v2",
+    status,
+    message: status === "passed"
+      ? `${summary.capability_manifest_count ?? 0} manifest(s), ${summary.gate_requirement_count ?? 0} gate(s), ${summary.runtime_requirement_count ?? 0} runtime requirement(s).`
+      : `${blockers} capability manifest v2 blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      capability_manifest_v2_status: summary.capability_manifest_v2_status ?? "unknown",
+      capability_manifest_v2_contract_id: summary.capability_manifest_v2_contract_id ?? null,
+      capability_manifest_schema_version: summary.capability_manifest_schema_version ?? null,
+      capability_manifest_count: summary.capability_manifest_count ?? 0,
+      registry_capability_count: summary.registry_capability_count ?? 0,
+      registry_linked_capability_count: summary.registry_linked_capability_count ?? 0,
+      capability_with_input_output_count: summary.capability_with_input_output_count ?? 0,
+      field_matrix_count: summary.field_matrix_count ?? 0,
+      missing_required_field_count: summary.missing_required_field_count ?? 0,
+      gate_runtime_matrix_count: summary.gate_runtime_matrix_count ?? 0,
+      gate_requirement_count: summary.gate_requirement_count ?? 0,
+      runtime_requirement_count: summary.runtime_requirement_count ?? 0,
+      known_runtime_requirement_count: summary.known_runtime_requirement_count ?? 0,
+      unknown_runtime_requirement_count: summary.unknown_runtime_requirement_count ?? 0,
+      runtime_blocked_count: summary.runtime_blocked_count ?? 0,
+      policy_index_count: summary.policy_index_count ?? 0,
+      policy_bound_capability_count: summary.policy_bound_capability_count ?? 0,
+      approval_required_capability_count: summary.approval_required_capability_count ?? 0,
+      attorney_review_capability_count: summary.attorney_review_capability_count ?? 0,
+      human_review_capability_count: summary.human_review_capability_count ?? 0,
+      idempotency_key_count: summary.idempotency_key_count ?? 0,
+      observability_policy_count: summary.observability_policy_count ?? 0,
+      version_declared_count: summary.version_declared_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? catalog.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11149,6 +11206,34 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     capability_workflow_contract_freeze_version_required_count: artifacts.capability_workflow_contract_freeze?.summary?.version_required_count ?? 0,
     capability_workflow_contract_freeze_failed_validation_item_count: artifacts.capability_workflow_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     capability_workflow_contract_freeze_validation_error_count: artifacts.capability_workflow_contract_freeze?.summary?.validation_error_count ?? artifacts.capability_workflow_contract_freeze?.validation?.errors?.length ?? 0,
+    capability_manifest_v2_status: artifacts.capability_manifest_v2?.summary?.capability_manifest_v2_status ?? "unknown",
+    capability_manifest_v2_contract_id: artifacts.capability_manifest_v2?.summary?.capability_manifest_v2_contract_id ?? null,
+    capability_manifest_v2_schema_version: artifacts.capability_manifest_v2?.summary?.capability_manifest_schema_version ?? null,
+    capability_manifest_v2_count: artifacts.capability_manifest_v2?.summary?.capability_manifest_count ?? 0,
+    capability_manifest_v2_registry_capability_count: artifacts.capability_manifest_v2?.summary?.registry_capability_count ?? 0,
+    capability_manifest_v2_registry_linked_capability_count: artifacts.capability_manifest_v2?.summary?.registry_linked_capability_count ?? 0,
+    capability_manifest_v2_input_contract_count: artifacts.capability_manifest_v2?.summary?.input_contract_count ?? 0,
+    capability_manifest_v2_output_contract_count: artifacts.capability_manifest_v2?.summary?.output_contract_count ?? 0,
+    capability_manifest_v2_input_output_count: artifacts.capability_manifest_v2?.summary?.capability_with_input_output_count ?? 0,
+    capability_manifest_v2_required_field_declared_count: artifacts.capability_manifest_v2?.summary?.required_field_declared_count ?? 0,
+    capability_manifest_v2_missing_required_field_count: artifacts.capability_manifest_v2?.summary?.missing_required_field_count ?? 0,
+    capability_manifest_v2_field_matrix_count: artifacts.capability_manifest_v2?.summary?.field_matrix_count ?? 0,
+    capability_manifest_v2_gate_runtime_matrix_count: artifacts.capability_manifest_v2?.summary?.gate_runtime_matrix_count ?? 0,
+    capability_manifest_v2_gate_requirement_count: artifacts.capability_manifest_v2?.summary?.gate_requirement_count ?? 0,
+    capability_manifest_v2_runtime_requirement_count: artifacts.capability_manifest_v2?.summary?.runtime_requirement_count ?? 0,
+    capability_manifest_v2_unknown_runtime_requirement_count: artifacts.capability_manifest_v2?.summary?.unknown_runtime_requirement_count ?? 0,
+    capability_manifest_v2_runtime_blocked_count: artifacts.capability_manifest_v2?.summary?.runtime_blocked_count ?? 0,
+    capability_manifest_v2_policy_index_count: artifacts.capability_manifest_v2?.summary?.policy_index_count ?? 0,
+    capability_manifest_v2_policy_bound_capability_count: artifacts.capability_manifest_v2?.summary?.policy_bound_capability_count ?? 0,
+    capability_manifest_v2_approval_required_capability_count: artifacts.capability_manifest_v2?.summary?.approval_required_capability_count ?? 0,
+    capability_manifest_v2_attorney_review_capability_count: artifacts.capability_manifest_v2?.summary?.attorney_review_capability_count ?? 0,
+    capability_manifest_v2_human_review_capability_count: artifacts.capability_manifest_v2?.summary?.human_review_capability_count ?? 0,
+    capability_manifest_v2_idempotency_key_count: artifacts.capability_manifest_v2?.summary?.idempotency_key_count ?? 0,
+    capability_manifest_v2_observability_policy_count: artifacts.capability_manifest_v2?.summary?.observability_policy_count ?? 0,
+    capability_manifest_v2_version_declared_count: artifacts.capability_manifest_v2?.summary?.version_declared_count ?? 0,
+    capability_manifest_v2_client_facing_ready_count: artifacts.capability_manifest_v2?.summary?.client_facing_ready_count ?? 0,
+    capability_manifest_v2_protected_action_executed_count: artifacts.capability_manifest_v2?.summary?.protected_action_executed_count ?? 0,
+    capability_manifest_v2_validation_error_count: artifacts.capability_manifest_v2?.summary?.validation_error_count ?? artifacts.capability_manifest_v2?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -12933,6 +13018,8 @@ function parseArgs(argv) {
     else if (arg === "--no-ledger-golden-fixtures") parsed.ledgerGoldenFixturesPath = false;
     else if (arg === "--observability-freeze") parsed.observabilityFreezePath = argv[++index];
     else if (arg === "--no-observability-freeze") parsed.observabilityFreezePath = false;
+    else if (arg === "--capability-manifest-v2") parsed.capabilityManifestV2Path = argv[++index];
+    else if (arg === "--no-capability-manifest-v2") parsed.capabilityManifestV2Path = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13330,6 +13417,8 @@ Options:
   --no-ledger-golden-fixtures     Do not include Ledger Golden Fixtures status.
   --observability-freeze <path>   observability-freeze.json path.
   --no-observability-freeze       Do not include Observability Freeze status.
+  --capability-manifest-v2 <path> capability-manifest-v2.json path.
+  --no-capability-manifest-v2     Do not include Capability Manifest v2 status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

@@ -1,0 +1,184 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/capability-manifest-v2-catalog.schema.json",
+  "title": "Capability Manifest v2 Catalog",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_manifest_v2_id",
+    "inputs",
+    "source_contracts",
+    "capability_manifest_v2_catalog",
+    "capability_manifests",
+    "capability_field_matrix",
+    "capability_gate_runtime_matrix",
+    "capability_policy_index",
+    "capability_version_policy_index",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "capability-manifest-v2-catalog.v1" },
+    "generated_at": { "type": "string" },
+    "capability_manifest_v2_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "capability_manifest_v2_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "capability_manifest_schema_version",
+        "capability_manifests",
+        "field_matrix",
+        "gate_runtime_matrix",
+        "policy_index",
+        "version_policy_index"
+      ],
+      "properties": {
+        "schema_version": { "const": "capability-manifest-v2-catalog.v1" },
+        "capability_manifest_schema_version": { "const": "capability-manifest.v2" },
+        "capability_manifests": { "type": "array" },
+        "field_matrix": { "type": "array" },
+        "gate_runtime_matrix": { "type": "array" },
+        "policy_index": { "type": "array" },
+        "version_policy_index": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "capability_manifests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "capability_id", "version", "input_contract", "output_contract", "gate_requirements", "runtime_requirements", "data_policy", "approval_policy"],
+        "properties": {
+          "schema_version": { "const": "capability-manifest.v2" },
+          "capability_id": { "type": "string", "minLength": 1 },
+          "version": { "type": "string", "minLength": 1 },
+          "input_contract": { "type": "object" },
+          "output_contract": { "type": "object" },
+          "gate_requirements": { "type": "array" },
+          "runtime_requirements": { "type": "array" },
+          "data_policy": { "type": "object" },
+          "approval_policy": { "type": "object" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "capability_field_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "capability_id", "manifest_status", "field_status", "missing_required_field_count", "input_contract_declared", "output_contract_declared", "version_declared"],
+        "properties": {
+          "schema_version": { "const": "capability-manifest-field-matrix.v1" },
+          "capability_id": { "type": "string", "minLength": 1 },
+          "manifest_status": { "enum": ["complete", "blocked"] },
+          "field_status": { "enum": ["complete", "blocked"] },
+          "missing_required_field_count": { "type": "integer", "minimum": 0 },
+          "input_contract_declared": { "type": "boolean" },
+          "output_contract_declared": { "type": "boolean" },
+          "version_declared": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "capability_gate_runtime_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "capability_id", "gate_runtime_status", "required_gate_count", "runtime_requirement_count", "runtime_unknown_count", "blocked_runtime_binding_count"],
+        "properties": {
+          "schema_version": { "const": "capability-manifest-gate-runtime-matrix.v1" },
+          "capability_id": { "type": "string", "minLength": 1 },
+          "gate_runtime_status": { "enum": ["complete", "blocked"] },
+          "required_gate_count": { "type": "integer", "minimum": 0 },
+          "runtime_requirement_count": { "type": "integer", "minimum": 0 },
+          "runtime_unknown_count": { "type": "integer", "minimum": 0 },
+          "blocked_runtime_binding_count": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "capability_policy_index": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "capability_id", "policy_status", "approval_required", "human_review_required", "idempotency_required", "trace_required", "client_facing_ready_output_count", "protected_action_executed_count"],
+        "properties": {
+          "schema_version": { "const": "capability-manifest-policy-index.v1" },
+          "capability_id": { "type": "string", "minLength": 1 },
+          "policy_status": { "enum": ["complete", "blocked"] },
+          "approval_required": { "type": "boolean" },
+          "human_review_required": { "type": "boolean" },
+          "idempotency_required": { "type": "boolean" },
+          "trace_required": { "type": "boolean" },
+          "client_facing_ready_output_count": { "type": "integer", "minimum": 0 },
+          "protected_action_executed_count": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "capability_version_policy_index": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "capability_id", "version_status", "manifest_schema_version"],
+        "properties": {
+          "schema_version": { "const": "capability-manifest-version-policy.v1" },
+          "capability_id": { "type": "string", "minLength": 1 },
+          "version_status": { "enum": ["complete", "blocked"] },
+          "manifest_schema_version": { "type": "string" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "capability_manifest_v2_status",
+        "capability_manifest_schema_version",
+        "capability_manifest_count",
+        "capability_with_input_output_count",
+        "missing_required_field_count",
+        "gate_requirement_count",
+        "runtime_requirement_count",
+        "unknown_runtime_requirement_count",
+        "policy_bound_capability_count",
+        "version_declared_count",
+        "client_facing_ready_count",
+        "protected_action_executed_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "capability_manifest_v2_status": { "enum": ["complete", "blocked"] },
+        "capability_manifest_schema_version": { "const": "capability-manifest.v2" },
+        "capability_manifest_count": { "type": "integer", "minimum": 0 },
+        "capability_with_input_output_count": { "type": "integer", "minimum": 0 },
+        "missing_required_field_count": { "type": "integer", "minimum": 0 },
+        "gate_requirement_count": { "type": "integer", "minimum": 0 },
+        "runtime_requirement_count": { "type": "integer", "minimum": 0 },
+        "unknown_runtime_requirement_count": { "type": "integer", "minimum": 0 },
+        "policy_bound_capability_count": { "type": "integer", "minimum": 0 },
+        "version_declared_count": { "type": "integer", "minimum": 0 },
+        "client_facing_ready_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

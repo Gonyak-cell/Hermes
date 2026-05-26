@@ -5213,6 +5213,29 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 78개로 증가하고 observability freeze가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run observability:freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 177 - Capability Manifest v2 Catalog
+
+Phase 177은 Phase 103의 Capability/Workflow Contract Freeze에서 생성한 `capability-manifest.v2` record를 후속 workflow runner, context builder, gate engine이 직접 소비할 수 있는 운영 catalog로 승격했다. 목적은 capability별 input/output, required fields, gate/runtime, policy, version 선언을 한곳에서 검증하고, 법률/클라이언트-facing 출력은 여전히 human/attorney review 아래에 두는 것이다.
+
+구현 내용:
+
+- `src/capability-manifest-v2.mjs`와 `scripts/capability-manifest-v2.mjs`를 추가해 `artifacts/capability-manifest-v2/latest/capability-manifest-v2.json` 산출물을 생성함
+- `capability-manifests.json`, `capability-field-matrix.json`, `capability-gate-runtime-matrix.json`, `capability-policy-index.json`, `capability-version-policy-index.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/capability-manifest-v2-catalog.schema.json`으로 catalog, field matrix, gate/runtime matrix, policy/version index의 최소 계약을 고정함
+- Review Dashboard에 `capability_manifest_v2` source/stage/summary metric을 추가하고 input/output, missing field, gate/runtime, policy, version, guardrail count를 노출함
+- Review API에 `/api/capability-manifest-v2-catalogs`, `/api/capability-manifest-v2-records`, `/api/capability-manifest-field-matrix`, `/api/capability-manifest-gate-runtime-matrix`, `/api/capability-manifest-policy-index`, `/api/capability-manifest-version-policy-index`, `/api/capability-manifest-v2-validations` route를 추가함
+- Control Plane Loop에 `capability_manifest_v2` step을 추가하고 Goal Checkpoint에 `capability_manifest_v2_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 capability manifest v2 catalog를 포함함
+
+완료 기준:
+
+- Capability Manifest v2 catalog가 validation error 없이 `complete` 상태가 됨
+- 등록된 capability 4개가 모두 registry link, input/output contract, required field, gate/runtime, policy, version 검증을 통과함
+- unknown runtime, blocked runtime binding, missing required field, client-facing ready output, protected action execution이 모두 0임
+- Review API smoke가 catalog, manifest record, field matrix, gate/runtime matrix, policy index, version index, validation route를 모두 조회함
+- Golden fixture 수가 79개로 증가하고 capability manifest v2 catalog가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run capabilities:manifest-v2 -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5221,9 +5244,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 176이다.
+- 현재 완료 기준점은 Phase 177이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P177-P312, 총 136개다.
+- 남은 계획 슬롯은 P178-P312, 총 135개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

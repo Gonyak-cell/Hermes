@@ -2372,6 +2372,79 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/capability-manifest-v2-catalogs") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("capability_manifest_v2_catalogs", [catalogResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/capability-manifest-v2-records") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_v2_records", catalogResult.artifact.capability_manifests ?? catalogResult.artifact.capability_manifest_v2_catalog?.capability_manifests ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-manifest-field-matrix") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_field_matrix", catalogResult.artifact.capability_field_matrix ?? catalogResult.artifact.capability_manifest_v2_catalog?.field_matrix ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-manifest-gate-runtime-matrix") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_gate_runtime_matrix", catalogResult.artifact.capability_gate_runtime_matrix ?? catalogResult.artifact.capability_manifest_v2_catalog?.gate_runtime_matrix ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-manifest-policy-index") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_policy_index", catalogResult.artifact.capability_policy_index ?? catalogResult.artifact.capability_manifest_v2_catalog?.policy_index ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-manifest-version-policy-index") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_version_policy_index", catalogResult.artifact.capability_version_policy_index ?? catalogResult.artifact.capability_manifest_v2_catalog?.version_policy_index ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-manifest-v2-validations") {
+    const catalogResult = await readDashboardSourceArtifact(dashboard, "capability_manifest_v2");
+    if (!catalogResult.available) {
+      return jsonResponse(503, buildError("capability_manifest_v2_unavailable", catalogResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_manifest_v2_validations", catalogResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6474,6 +6547,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/capability-gate-runtime-contracts", "Capability gate/runtime contract fixtures"),
       route("GET", "/api/workflow-execution-bindings", "Workflow execution bindings"),
       route("GET", "/api/capability-workflow-contract-validations", "Capability/workflow contract validation rows"),
+      route("GET", "/api/capability-manifest-v2-catalogs", "Capability Manifest v2 catalog artifacts"),
+      route("GET", "/api/capability-manifest-v2-records", "Capability Manifest v2 records"),
+      route("GET", "/api/capability-manifest-field-matrix", "Capability Manifest v2 required field matrix"),
+      route("GET", "/api/capability-manifest-gate-runtime-matrix", "Capability Manifest v2 gate/runtime matrix"),
+      route("GET", "/api/capability-manifest-policy-index", "Capability Manifest v2 policy index"),
+      route("GET", "/api/capability-manifest-version-policy-index", "Capability Manifest v2 version policy index"),
+      route("GET", "/api/capability-manifest-v2-validations", "Capability Manifest v2 validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7092,6 +7172,8 @@ function filterItems(items, searchParams) {
     "panel_type",
     "panel_status",
     "observability_freeze_status",
+    "capability_manifest_v2_status",
+    "gate_runtime_status",
     "source_group",
     "trace_kind",
     "loop_binding_status",
@@ -8195,6 +8277,7 @@ function readFilterValue(item, key) {
   if (key === "checkpoint_status") return item.status ?? item.checkpoint_status;
   if (key === "trace_status") return item.trace_status;
   if (key === "source_status") return item.source_status;
+  if (key === "capability_manifest_v2_status") return item.summary?.capability_manifest_v2_status ?? item.capability_manifest_v2_status;
   if (key === "trace_id") return item.trace_id;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;

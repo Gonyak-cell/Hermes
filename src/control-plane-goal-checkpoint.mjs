@@ -98,6 +98,7 @@ const GOAL_ITEMS = [
   sourceItem("ledger_api_dashboard", "Ledger API/dashboard", "api", "ledger_api_dashboard", "control-plane-ledger-api-dashboard", { acceptance_profile: "ledger_api_dashboard_gate" }),
   sourceItem("ledger_golden_fixtures", "Ledger golden fixtures", "audit", "ledger_golden_fixtures", "control-plane-ledger-golden-fixtures", { acceptance_profile: "ledger_golden_fixtures_gate" }),
   sourceItem("observability_freeze", "Observability freeze", "observability", "observability_freeze", "control-plane-observability-freeze", { acceptance_profile: "observability_freeze_gate" }),
+  sourceItem("capability_manifest_v2", "Capability Manifest v2 catalog", "contracts", "capability_manifest_v2", "control-plane-capability-manifest-v2", { acceptance_profile: "capability_manifest_v2_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -457,6 +458,7 @@ function evaluateStageAcceptance(item, stage) {
     "ledger_api_dashboard_gate",
     "ledger_golden_fixtures_gate",
     "observability_freeze_gate",
+    "capability_manifest_v2_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -738,6 +740,34 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.external_transfer_blocked_trace_count ?? 0) === (metrics.representative_trace_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Observability freeze verifies trace, cost, audit, run, replay, retention, API, and golden fixture outputs are validation-clean and bound to the control-plane loop while preserving human-review guardrails.");
+    }
+  }
+
+  if (item.acceptance_profile === "capability_manifest_v2_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.missing_required_field_count ?? 0)
+      + (metrics.unknown_runtime_requirement_count ?? 0)
+      + (metrics.runtime_blocked_count ?? 0)
+      + (metrics.client_facing_ready_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const manifestCount = metrics.capability_manifest_count ?? 0;
+    if (
+      errors === 0
+      && metrics.capability_manifest_v2_status === "complete"
+      && manifestCount > 0
+      && (metrics.registry_linked_capability_count ?? 0) === manifestCount
+      && (metrics.capability_with_input_output_count ?? 0) === manifestCount
+      && (metrics.field_matrix_count ?? 0) === manifestCount
+      && (metrics.gate_runtime_matrix_count ?? 0) === manifestCount
+      && (metrics.policy_index_count ?? 0) === manifestCount
+      && (metrics.policy_bound_capability_count ?? 0) === manifestCount
+      && (metrics.version_declared_count ?? 0) === manifestCount
+      && (metrics.gate_requirement_count ?? 0) > 0
+      && (metrics.runtime_requirement_count ?? 0) > 0
+      && (metrics.approval_required_capability_count ?? 0) === manifestCount
+      && (metrics.human_review_capability_count ?? 0) === manifestCount
+    ) {
+      return passedWithOperationalGate(stage, "Capability Manifest v2 catalog verifies input/output, required fields, gate/runtime, policy, and version coverage for every registered capability while leaving all legal/client-facing outputs under human review.");
     }
   }
 

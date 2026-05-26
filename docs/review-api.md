@@ -455,6 +455,13 @@ npm run api:serve
 - `GET /api/observability-freeze-traces`: trace/cost/audit/run representative freeze traces
 - `GET /api/observability-freeze-loop-bindings`: control-plane loop binding rows for P159-P175
 - `GET /api/observability-freeze-validations`: observability freeze validation rows
+- `GET /api/capability-manifest-v2-catalogs`: capability manifest v2 catalog artifact
+- `GET /api/capability-manifest-v2-records`: registered capability manifest v2 records
+- `GET /api/capability-manifest-field-matrix`: required-field and input/output matrix rows
+- `GET /api/capability-manifest-gate-runtime-matrix`: gate/runtime requirement matrix rows
+- `GET /api/capability-manifest-policy-index`: data, approval, idempotency, cost, and observability policy rows
+- `GET /api/capability-manifest-version-policy-index`: schema/version/source workflow policy rows
+- `GET /api/capability-manifest-v2-validations`: capability manifest v2 validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -488,6 +488,11 @@ npm run api:serve
 - `GET /api/workflow-idempotency-decisions`: same-run 또는 skipped duplicate decision rows
 - `GET /api/workflow-duplicate-probes`: duplicate request probe rows
 - `GET /api/workflow-idempotency-validations`: workflow idempotency validation rows
+- `GET /api/workflow-resume-cancel-contracts`: workflow resume/cancel contract artifact
+- `GET /api/workflow-resume-cursors`: idempotent workflow run resume cursor rows
+- `GET /api/workflow-cancel-requests`: safe cancel request rows
+- `GET /api/workflow-resume-cancel-decisions`: resume/cancel control decision rows
+- `GET /api/workflow-resume-cancel-validations`: workflow resume/cancel validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

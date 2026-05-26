@@ -5363,6 +5363,33 @@ Phase 182는 Phase 181의 held workflow queue record마다 deterministic idempot
 - Golden fixture 수가 84개로 증가하고 workflow idempotency ledger artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:idempotency -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 183 - Workflow Resume/Cancel Semantics
+
+Phase 183은 Phase 182의 deterministic idempotency key 위에 장기 작업을 안전하게 중단/재개하기 위한 resume/cancel control contract를 추가했다. 목적은 held workflow queue가 중복 run이나 자동 실행으로 새지 않도록 유지하면서, 재개는 deterministic cursor와 human/operator gate 뒤에 두고 취소는 append-only safe request로만 기록하는 것이다.
+
+구현 내용:
+
+- `src/workflow-resume-cancel-contract.mjs`와 `scripts/workflow-resume-cancel-contract.mjs`를 추가해 `artifacts/workflow-resume-cancel/latest/workflow-resume-cancel-contract.json` 산출물을 생성함
+- `resume-cursor-records.json`, `cancel-request-records.json`, `resume-cancel-decision-records.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-resume-cancel-contract.schema.json`으로 resume cursor, cancel request, resume/cancel decision record의 최소 계약을 고정함
+- Review Dashboard에 `workflow_resume_cancel_contract` source/stage/summary metric을 추가하고 resume cursor, cancel request, held resume, safe cancel, 자동 resume/cancel 0건을 노출함
+- Review API에 `/api/workflow-resume-cancel-contracts`, `/api/workflow-resume-cursors`, `/api/workflow-cancel-requests`, `/api/workflow-resume-cancel-decisions`, `/api/workflow-resume-cancel-validations` route를 추가함
+- Control Plane Loop에 `workflow_resume_cancel_contract` step을 추가하고 Goal Checkpoint에 `workflow_resume_cancel_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow resume/cancel contract artifact와 `workflows:resume-cancel` script를 포함함
+
+완료 기준:
+
+- Workflow resume/cancel contract가 validation error 없이 `complete` 상태가 됨
+- Phase 182 idempotency key마다 resume cursor와 safe cancel request가 각각 1개씩 생성됨
+- resume cursor count가 idempotency key count, Phase 181 queue record count, Phase 180 runner plan count, Workflow Run Ledger run record count와 모두 일치함
+- 모든 resume은 canonical workflow run을 재사용하고 새 run 생성 없이 held workflow를 human/operator gate 뒤에 둠
+- 모든 cancel은 destructive mutation 없이 append-only cancel request로 기록되고 cancel event append requirement를 보존함
+- law-firm resume cursor는 attorney/designated reviewer gate 뒤에 held로 남고 law-firm cancel request도 safe request 상태로만 노출됨
+- auto resume, auto cancel, destructive cancel mutation, protected action execution, new run creation count가 모두 0임
+- Review API smoke가 resume/cancel contract, resume cursor, cancel request, decision, validation route를 모두 조회함
+- Golden fixture 수가 85개로 증가하고 workflow resume/cancel contract artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:resume-cancel -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5371,9 +5398,9 @@ Phase 182는 Phase 181의 held workflow queue record마다 deterministic idempot
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 182이다.
+- 현재 완료 기준점은 Phase 183이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P183-P312, 총 130개다.
+- 남은 계획 슬롯은 P184-P312, 총 129개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

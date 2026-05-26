@@ -104,6 +104,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_state_machine_runner", "Workflow state machine runner", "workflow", "workflow_state_machine_runner", "control-plane-workflow-state-machine-runner", { acceptance_profile: "workflow_state_machine_runner_gate" }),
   sourceItem("workflow_queue_retry_backoff_contract", "Workflow queue/retry/backoff contract", "workflow", "workflow_queue_retry_backoff_contract", "control-plane-workflow-queue-retry-backoff", { acceptance_profile: "workflow_queue_retry_backoff_gate" }),
   sourceItem("workflow_idempotency_ledger", "Workflow idempotency ledger", "workflow", "workflow_idempotency_ledger", "control-plane-workflow-idempotency-ledger", { acceptance_profile: "workflow_idempotency_gate" }),
+  sourceItem("workflow_resume_cancel_contract", "Workflow resume/cancel contract", "workflow", "workflow_resume_cancel_contract", "control-plane-workflow-resume-cancel", { acceptance_profile: "workflow_resume_cancel_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -469,6 +470,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_state_machine_runner_gate",
     "workflow_queue_retry_backoff_gate",
     "workflow_idempotency_gate",
+    "workflow_resume_cancel_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -915,6 +917,44 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow idempotency ledger assigns one deterministic key per queued run and resolves duplicate requests to same-run or skipped-duplicate outcomes without creating new runs.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_resume_cancel_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.auto_resume_allowed_count ?? 0)
+      + (metrics.auto_cancel_allowed_count ?? 0)
+      + (metrics.destructive_cancel_mutation_count ?? 0)
+      + (metrics.new_run_created_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const resumeCount = metrics.resume_cursor_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_resume_cancel_status === "complete"
+      && metrics.resume_cancel_contract_id === "workflow-resume-cancel-contract.v1"
+      && resumeCount > 0
+      && resumeCount === (metrics.source_idempotency_key_count ?? 0)
+      && resumeCount === (metrics.source_workflow_queue_record_count ?? 0)
+      && resumeCount === (metrics.source_runner_plan_count ?? 0)
+      && resumeCount === (metrics.source_workflow_run_record_count ?? 0)
+      && (metrics.cancel_request_count ?? 0) === resumeCount
+      && (metrics.resume_decision_count ?? 0) === resumeCount
+      && (metrics.cancel_decision_count ?? 0) === resumeCount
+      && (metrics.resume_cancel_decision_count ?? 0) === resumeCount * 2
+      && (metrics.long_running_workflow_count ?? 0) === resumeCount
+      && (metrics.held_resume_count ?? 0) === resumeCount
+      && (metrics.safe_cancel_request_count ?? 0) === resumeCount
+      && (metrics.cancel_event_append_required_count ?? 0) === resumeCount
+      && (metrics.law_firm_resume_cursor_count ?? 0) > 0
+      && (metrics.law_firm_resume_held_count ?? 0) === (metrics.law_firm_resume_cursor_count ?? -1)
+      && (metrics.law_firm_cancel_request_count ?? 0) === (metrics.law_firm_resume_cursor_count ?? -1)
+      && (metrics.auto_resume_allowed_count ?? 1) === 0
+      && (metrics.auto_cancel_allowed_count ?? 1) === 0
+      && (metrics.destructive_cancel_mutation_count ?? 1) === 0
+      && (metrics.new_run_created_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow resume/cancel contract materializes deterministic resume cursors and safe cancel requests for every idempotent queued run without auto-running, mutating, or creating runs.");
     }
   }
 

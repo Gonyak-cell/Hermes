@@ -178,6 +178,7 @@ import { runWorkflowDslStateModel } from "../src/workflow-dsl-state-model.mjs";
 import { runWorkflowStateMachineRunner } from "../src/workflow-state-machine-runner.mjs";
 import { runWorkflowQueueRetryBackoffContract } from "../src/workflow-queue-retry-backoff-contract.mjs";
 import { runWorkflowIdempotencyLedger } from "../src/workflow-idempotency-ledger.mjs";
+import { runWorkflowResumeCancelContract } from "../src/workflow-resume-cancel-contract.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1808,6 +1809,7 @@ describe("matter harness", () => {
         workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
         workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
         workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
+        workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -4239,6 +4241,52 @@ describe("matter harness", () => {
       assert.ok(workflowIdempotencyLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-idempotency", "summary.md"), "utf8"), /Workflow Idempotency Ledger/);
 
+      const workflowResumeCancelContract = await runWorkflowResumeCancelContract({
+        workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
+        workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
+        workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        outDir: path.join(outDir, "workflow-resume-cancel"),
+        runAt: "2026-05-23T06:35:08.456Z",
+      });
+      const workflowResumeCancelContractSchema = JSON.parse(await readFile("schemas/workflow-resume-cancel-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowResumeCancelContract, workflowResumeCancelContractSchema, {}, "workflow_resume_cancel_contract"),
+        [],
+      );
+      assert.equal(workflowResumeCancelContract.summary.workflow_resume_cancel_status, "complete");
+      assert.equal(workflowResumeCancelContract.summary.resume_cancel_contract_id, "workflow-resume-cancel-contract.v1");
+      assert.equal(workflowResumeCancelContract.summary.source_workflow_idempotency_status, "complete");
+      assert.equal(workflowResumeCancelContract.summary.source_workflow_queue_retry_backoff_status, "complete");
+      assert.equal(workflowResumeCancelContract.summary.source_workflow_state_machine_runner_status, "complete");
+      assert.equal(workflowResumeCancelContract.summary.source_workflow_run_ledger_status, "complete");
+      assert.equal(workflowResumeCancelContract.summary.resume_cursor_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowResumeCancelContract.summary.cancel_request_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowResumeCancelContract.summary.source_idempotency_key_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowResumeCancelContract.summary.source_workflow_queue_record_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
+      assert.equal(workflowResumeCancelContract.summary.source_runner_plan_count, workflowStateMachineRunner.summary.runner_plan_count);
+      assert.equal(workflowResumeCancelContract.summary.source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowResumeCancelContract.summary.resume_cancel_decision_count, workflowResumeCancelContract.summary.resume_cursor_count * 2);
+      assert.equal(workflowResumeCancelContract.summary.resume_decision_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowResumeCancelContract.summary.cancel_decision_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowResumeCancelContract.summary.long_running_workflow_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowResumeCancelContract.summary.held_resume_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowResumeCancelContract.summary.safe_cancel_request_count, workflowResumeCancelContract.summary.cancel_request_count);
+      assert.equal(workflowResumeCancelContract.summary.cancel_event_append_required_count, workflowResumeCancelContract.summary.cancel_request_count);
+      assert.ok(workflowResumeCancelContract.summary.law_firm_resume_cursor_count > 0);
+      assert.equal(workflowResumeCancelContract.summary.law_firm_resume_held_count, workflowResumeCancelContract.summary.law_firm_resume_cursor_count);
+      assert.equal(workflowResumeCancelContract.summary.law_firm_cancel_request_count, workflowResumeCancelContract.summary.law_firm_resume_cursor_count);
+      assert.equal(workflowResumeCancelContract.summary.auto_resume_allowed_count, 0);
+      assert.equal(workflowResumeCancelContract.summary.auto_cancel_allowed_count, 0);
+      assert.equal(workflowResumeCancelContract.summary.destructive_cancel_mutation_count, 0);
+      assert.equal(workflowResumeCancelContract.summary.new_run_created_count, 0);
+      assert.equal(workflowResumeCancelContract.summary.protected_action_executed_count, 0);
+      assert.ok(workflowResumeCancelContract.resume_cursor_records.every((record) => record.workflow_run_id === record.canonical_workflow_run_id && record.resume_state === "held_waiting_for_human_gate" && record.resume_blocked && !record.auto_resume_allowed));
+      assert.ok(workflowResumeCancelContract.cancel_request_records.every((record) => record.workflow_run_id === record.canonical_workflow_run_id && record.cancel_state === "cancel_requested_safe_hold" && record.safe_cancel_request && !record.auto_cancel_allowed && !record.destructive_mutation_allowed));
+      assert.ok(workflowResumeCancelContract.resume_cancel_decision_records.every((record) => record.idempotency_decision === "same_run" && !record.new_run_created && !record.protected_action_executed));
+      assert.ok(workflowResumeCancelContract.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-resume-cancel", "summary.md"), "utf8"), /Workflow Resume\/Cancel Contract/);
+
       const retentionArchiveLedger = await runRetentionArchiveLedger({
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
@@ -5862,6 +5910,7 @@ describe("matter harness", () => {
           workflow_state_machine_runner: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
           workflow_queue_retry_backoff_contract: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
           workflow_idempotency_ledger: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
+          workflow_resume_cancel_contract: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5873,8 +5922,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 84);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 84);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 85);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 85);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5946,6 +5995,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_state_machine_runner"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_queue_retry_backoff_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_idempotency_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_resume_cancel_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6006,6 +6056,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:queue-retry"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:idempotency"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:resume-cancel"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6350,6 +6401,10 @@ describe("matter harness", () => {
       assert.equal(workflowIdempotencyCheckpoint?.acceptance_profile, "workflow_idempotency_gate");
       assert.equal(workflowIdempotencyCheckpoint?.status, "passed");
       assert.equal(workflowIdempotencyCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowResumeCancelCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-resume-cancel");
+      assert.equal(workflowResumeCancelCheckpoint?.acceptance_profile, "workflow_resume_cancel_gate");
+      assert.equal(workflowResumeCancelCheckpoint?.status, "passed");
+      assert.equal(workflowResumeCancelCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -7856,6 +7911,30 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_idempotency_auto_enqueue_allowed_count, 0);
       assert.equal(dashboard.summary.workflow_idempotency_protected_action_executed_count, 0);
       assert.equal(dashboard.summary.workflow_idempotency_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_resume_cancel_status, "complete");
+      assert.equal(dashboard.summary.workflow_resume_cancel_contract_id, "workflow-resume-cancel-contract.v1");
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_workflow_idempotency_status, "complete");
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_workflow_queue_retry_backoff_status, "complete");
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_workflow_state_machine_runner_status, "complete");
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_workflow_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_idempotency_key_count, workflowResumeCancelContract.summary.source_idempotency_key_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_workflow_queue_record_count, workflowResumeCancelContract.summary.source_workflow_queue_record_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_runner_plan_count, workflowResumeCancelContract.summary.source_runner_plan_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_source_workflow_run_record_count, workflowResumeCancelContract.summary.source_workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_resume_cursor_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_cancel_request_count, workflowResumeCancelContract.summary.cancel_request_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_decision_count, workflowResumeCancelContract.summary.resume_cancel_decision_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_long_running_workflow_count, workflowResumeCancelContract.summary.long_running_workflow_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_held_resume_count, workflowResumeCancelContract.summary.held_resume_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_safe_cancel_request_count, workflowResumeCancelContract.summary.safe_cancel_request_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_law_firm_resume_held_count, workflowResumeCancelContract.summary.law_firm_resume_held_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_law_firm_cancel_request_count, workflowResumeCancelContract.summary.law_firm_cancel_request_count);
+      assert.equal(dashboard.summary.workflow_resume_cancel_auto_resume_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_resume_cancel_auto_cancel_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_resume_cancel_destructive_cancel_mutation_count, 0);
+      assert.equal(dashboard.summary.workflow_resume_cancel_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_resume_cancel_new_run_created_count, 0);
+      assert.equal(dashboard.summary.workflow_resume_cancel_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8489,6 +8568,12 @@ describe("matter harness", () => {
       assert.equal(workflowIdempotencyLedgerStage?.status, "passed");
       assert.equal(workflowIdempotencyLedgerStage?.metrics.idempotency_key_count, workflowIdempotencyLedger.summary.idempotency_key_count);
       assert.equal(workflowIdempotencyLedgerStage?.metrics.skipped_duplicate_count, workflowIdempotencyLedger.summary.skipped_duplicate_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_resume_cancel_contract"));
+      const workflowResumeCancelContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_resume_cancel_contract");
+      assert.equal(workflowResumeCancelContractStage?.status, "passed");
+      assert.equal(workflowResumeCancelContractStage?.metrics.resume_cursor_count, workflowResumeCancelContract.summary.resume_cursor_count);
+      assert.equal(workflowResumeCancelContractStage?.metrics.cancel_request_count, workflowResumeCancelContract.summary.cancel_request_count);
+      assert.equal(workflowResumeCancelContractStage?.metrics.safe_cancel_request_count, workflowResumeCancelContract.summary.safe_cancel_request_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9429,6 +9514,26 @@ describe("matter harness", () => {
       const workflowIdempotencyValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-idempotency-validations?status=passed", apiOptions)).body);
       assert.equal(workflowIdempotencyValidations.collection, "workflow_idempotency_validations");
       assert.equal(workflowIdempotencyValidations.count, workflowIdempotencyLedger.summary.validation_item_count);
+
+      const workflowResumeCancelContracts = JSON.parse((await buildReviewApiResponse("/api/workflow-resume-cancel-contracts?workflow_resume_cancel_status=complete", apiOptions)).body);
+      assert.equal(workflowResumeCancelContracts.collection, "workflow_resume_cancel_contracts");
+      assert.equal(workflowResumeCancelContracts.count, 1);
+
+      const workflowResumeCursors = JSON.parse((await buildReviewApiResponse("/api/workflow-resume-cursors?resume_state=held_waiting_for_human_gate", apiOptions)).body);
+      assert.equal(workflowResumeCursors.collection, "workflow_resume_cursors");
+      assert.equal(workflowResumeCursors.count, workflowResumeCancelContract.summary.held_resume_count);
+
+      const workflowCancelRequests = JSON.parse((await buildReviewApiResponse("/api/workflow-cancel-requests?cancel_state=cancel_requested_safe_hold", apiOptions)).body);
+      assert.equal(workflowCancelRequests.collection, "workflow_cancel_requests");
+      assert.equal(workflowCancelRequests.count, workflowResumeCancelContract.summary.cancel_request_count);
+
+      const workflowResumeCancelDecisions = JSON.parse((await buildReviewApiResponse("/api/workflow-resume-cancel-decisions?control_decision=cancel_request_recorded_safe_hold", apiOptions)).body);
+      assert.equal(workflowResumeCancelDecisions.collection, "workflow_resume_cancel_decisions");
+      assert.equal(workflowResumeCancelDecisions.count, workflowResumeCancelContract.summary.cancel_decision_count);
+
+      const workflowResumeCancelValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-resume-cancel-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowResumeCancelValidations.collection, "workflow_resume_cancel_validations");
+      assert.equal(workflowResumeCancelValidations.count, workflowResumeCancelContract.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

@@ -2711,6 +2711,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-resume-cancel-contracts") {
+    const resumeCancelResult = await readDashboardSourceArtifact(dashboard, "workflow_resume_cancel_contract");
+    if (!resumeCancelResult.available) {
+      return jsonResponse(503, buildError("workflow_resume_cancel_contract_unavailable", resumeCancelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_resume_cancel_contracts", [resumeCancelResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-resume-cursors") {
+    const resumeCancelResult = await readDashboardSourceArtifact(dashboard, "workflow_resume_cancel_contract");
+    if (!resumeCancelResult.available) {
+      return jsonResponse(503, buildError("workflow_resume_cancel_contract_unavailable", resumeCancelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_resume_cursors", resumeCancelResult.artifact.resume_cursor_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-cancel-requests") {
+    const resumeCancelResult = await readDashboardSourceArtifact(dashboard, "workflow_resume_cancel_contract");
+    if (!resumeCancelResult.available) {
+      return jsonResponse(503, buildError("workflow_resume_cancel_contract_unavailable", resumeCancelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_cancel_requests", resumeCancelResult.artifact.cancel_request_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-resume-cancel-decisions") {
+    const resumeCancelResult = await readDashboardSourceArtifact(dashboard, "workflow_resume_cancel_contract");
+    if (!resumeCancelResult.available) {
+      return jsonResponse(503, buildError("workflow_resume_cancel_contract_unavailable", resumeCancelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_resume_cancel_decisions", resumeCancelResult.artifact.resume_cancel_decision_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-resume-cancel-validations") {
+    const resumeCancelResult = await readDashboardSourceArtifact(dashboard, "workflow_resume_cancel_contract");
+    if (!resumeCancelResult.available) {
+      return jsonResponse(503, buildError("workflow_resume_cancel_contract_unavailable", resumeCancelResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_resume_cancel_validations", resumeCancelResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6846,6 +6897,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-idempotency-decisions", "Workflow idempotency decision rows"),
       route("GET", "/api/workflow-duplicate-probes", "Workflow duplicate probe rows"),
       route("GET", "/api/workflow-idempotency-validations", "Workflow idempotency validation rows"),
+      route("GET", "/api/workflow-resume-cancel-contracts", "Workflow resume/cancel contract artifacts"),
+      route("GET", "/api/workflow-resume-cursors", "Workflow resume cursor rows"),
+      route("GET", "/api/workflow-cancel-requests", "Workflow cancel request rows"),
+      route("GET", "/api/workflow-resume-cancel-decisions", "Workflow resume/cancel decision rows"),
+      route("GET", "/api/workflow-resume-cancel-validations", "Workflow resume/cancel validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7472,6 +7528,7 @@ function filterItems(items, searchParams) {
     "workflow_state_machine_runner_status",
     "workflow_queue_retry_backoff_status",
     "workflow_idempotency_status",
+    "workflow_resume_cancel_status",
     "transition_guard_status",
     "guard_decision",
     "runner_plan_status",
@@ -7489,6 +7546,13 @@ function filterItems(items, searchParams) {
     "duplicate_probe_status",
     "duplicate_detected",
     "new_run_created",
+    "resume_state",
+    "resume_blocked",
+    "cancel_request_status",
+    "cancel_state",
+    "request_kind",
+    "control_decision",
+    "decision_status",
     "dsl_state",
     "dsl_current_state",
     "state_projection_status",
@@ -8605,6 +8669,7 @@ function readFilterValue(item, key) {
   if (key === "workflow_state_machine_runner_status") return item.summary?.workflow_state_machine_runner_status ?? item.workflow_state_machine_runner_status;
   if (key === "workflow_queue_retry_backoff_status") return item.summary?.workflow_queue_retry_backoff_status ?? item.workflow_queue_retry_backoff_status;
   if (key === "workflow_idempotency_status") return item.summary?.workflow_idempotency_status ?? item.workflow_idempotency_status;
+  if (key === "workflow_resume_cancel_status") return item.summary?.workflow_resume_cancel_status ?? item.workflow_resume_cancel_status;
   if (key === "transition_guard_status") return item.transition_guard_status;
   if (key === "guard_decision") return item.guard_decision;
   if (key === "runner_plan_status") return item.runner_plan_status;
@@ -8621,6 +8686,12 @@ function readFilterValue(item, key) {
   if (key === "request_status") return item.request_status;
   if (key === "duplicate_probe_status") return item.duplicate_probe_status;
   if (key === "duplicate_detected") return String(Boolean(item.duplicate_detected));
+  if (key === "resume_state") return item.resume_state;
+  if (key === "resume_blocked") return String(Boolean(item.resume_blocked));
+  if (key === "cancel_request_status") return item.cancel_request_status;
+  if (key === "cancel_state") return item.cancel_state;
+  if (key === "control_decision") return item.control_decision;
+  if (key === "decision_status") return item.decision_status;
   if (key === "new_run_created") return String(Boolean(item.new_run_created));
   if (key === "audit_status") return item.audit_status;
   if (key === "dsl_state") return item.dsl_state;

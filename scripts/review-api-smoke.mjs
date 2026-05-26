@@ -980,6 +980,26 @@ try {
   assert.equal(workflowIdempotencyValidations.collection, "workflow_idempotency_validations");
   assert.ok(workflowIdempotencyValidations.count <= 5);
 
+  const workflowResumeCancelContracts = await fetchJson(`${url}/api/workflow-resume-cancel-contracts?workflow_resume_cancel_status=complete&limit=1`);
+  assert.equal(workflowResumeCancelContracts.collection, "workflow_resume_cancel_contracts");
+  assert.ok(workflowResumeCancelContracts.count <= 1);
+
+  const workflowResumeCursors = await fetchJson(`${url}/api/workflow-resume-cursors?resume_state=held_waiting_for_human_gate&limit=5`);
+  assert.equal(workflowResumeCursors.collection, "workflow_resume_cursors");
+  assert.ok(workflowResumeCursors.count <= 5);
+
+  const workflowCancelRequests = await fetchJson(`${url}/api/workflow-cancel-requests?cancel_state=cancel_requested_safe_hold&limit=5`);
+  assert.equal(workflowCancelRequests.collection, "workflow_cancel_requests");
+  assert.ok(workflowCancelRequests.count <= 5);
+
+  const workflowResumeCancelDecisions = await fetchJson(`${url}/api/workflow-resume-cancel-decisions?control_decision=cancel_request_recorded_safe_hold&limit=5`);
+  assert.equal(workflowResumeCancelDecisions.collection, "workflow_resume_cancel_decisions");
+  assert.ok(workflowResumeCancelDecisions.count <= 5);
+
+  const workflowResumeCancelValidations = await fetchJson(`${url}/api/workflow-resume-cancel-validations?status=passed&limit=5`);
+  assert.equal(workflowResumeCancelValidations.collection, "workflow_resume_cancel_validations");
+  assert.ok(workflowResumeCancelValidations.count <= 5);
+
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
   assert.ok(runtimeAgentRunContractFreezes.count <= 1);

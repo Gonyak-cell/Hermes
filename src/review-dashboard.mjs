@@ -98,6 +98,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowStateMachineRunnerPath: "artifacts/workflow-state-machine-runner/latest/workflow-state-machine-runner.json",
   workflowQueueRetryBackoffPath: "artifacts/workflow-queue-retry-backoff/latest/workflow-queue-retry-backoff-contract.json",
   workflowIdempotencyLedgerPath: "artifacts/workflow-idempotency/latest/workflow-idempotency-ledger.json",
+  workflowResumeCancelContractPath: "artifacts/workflow-resume-cancel/latest/workflow-resume-cancel-contract.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -651,6 +652,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowIdempotencyLedgerPath",
     source_id: "workflow_idempotency_ledger",
     label: "Workflow Idempotency Ledger",
+  },
+  {
+    option: "workflowResumeCancelContractPath",
+    source_id: "workflow_resume_cancel_contract",
+    label: "Workflow Resume/Cancel Contract",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1252,6 +1258,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_state_machine_runner") return data.summary ?? {};
   if (sourceId === "workflow_queue_retry_backoff_contract") return data.summary ?? {};
   if (sourceId === "workflow_idempotency_ledger") return data.summary ?? {};
+  if (sourceId === "workflow_resume_cancel_contract") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1514,6 +1521,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowStateMachineRunnerStage(artifacts.workflow_state_machine_runner, sourceById.get("workflow_state_machine_runner")),
     buildWorkflowQueueRetryBackoffStage(artifacts.workflow_queue_retry_backoff_contract, sourceById.get("workflow_queue_retry_backoff_contract")),
     buildWorkflowIdempotencyLedgerStage(artifacts.workflow_idempotency_ledger, sourceById.get("workflow_idempotency_ledger")),
+    buildWorkflowResumeCancelContractStage(artifacts.workflow_resume_cancel_contract, sourceById.get("workflow_resume_cancel_contract")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6010,6 +6018,61 @@ function buildWorkflowIdempotencyLedgerStage(ledger, source) {
       auto_enqueue_allowed_count: summary.auto_enqueue_allowed_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowResumeCancelContractStage(contract, source) {
+  if (!contract) return missingStage("workflow_resume_cancel_contract", "Workflow Resume/Cancel Contract", source);
+  const summary = contract.summary ?? {};
+  const blockers = (summary.validation_error_count ?? contract.validation?.errors?.length ?? 0)
+    + (summary.auto_resume_allowed_count ?? 0)
+    + (summary.auto_cancel_allowed_count ?? 0)
+    + (summary.destructive_cancel_mutation_count ?? 0)
+    + (summary.new_run_created_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.workflow_resume_cancel_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_resume_cancel_contract",
+    label: "Workflow Resume/Cancel Contract",
+    status,
+    message: status === "passed"
+      ? `${summary.resume_cursor_count ?? 0} resume cursor(s), ${summary.cancel_request_count ?? 0} cancel request(s), ${summary.held_resume_count ?? 0} held resume(s).`
+      : `${blockers} workflow resume/cancel blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_resume_cancel_status: summary.workflow_resume_cancel_status ?? "unknown",
+      resume_cancel_contract_id: summary.resume_cancel_contract_id ?? null,
+      source_workflow_idempotency_status: summary.source_workflow_idempotency_status ?? "unknown",
+      source_workflow_queue_retry_backoff_status: summary.source_workflow_queue_retry_backoff_status ?? "unknown",
+      source_workflow_state_machine_runner_status: summary.source_workflow_state_machine_runner_status ?? "unknown",
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_idempotency_key_count: summary.source_idempotency_key_count ?? 0,
+      source_workflow_queue_record_count: summary.source_workflow_queue_record_count ?? 0,
+      source_runner_plan_count: summary.source_runner_plan_count ?? 0,
+      source_workflow_run_record_count: summary.source_workflow_run_record_count ?? 0,
+      resume_cursor_count: summary.resume_cursor_count ?? 0,
+      cancel_request_count: summary.cancel_request_count ?? 0,
+      resume_cancel_decision_count: summary.resume_cancel_decision_count ?? 0,
+      resume_decision_count: summary.resume_decision_count ?? 0,
+      cancel_decision_count: summary.cancel_decision_count ?? 0,
+      long_running_workflow_count: summary.long_running_workflow_count ?? 0,
+      resume_required_count: summary.resume_required_count ?? 0,
+      resume_blocked_count: summary.resume_blocked_count ?? 0,
+      held_resume_count: summary.held_resume_count ?? 0,
+      human_gate_resume_count: summary.human_gate_resume_count ?? 0,
+      law_firm_resume_cursor_count: summary.law_firm_resume_cursor_count ?? 0,
+      law_firm_resume_held_count: summary.law_firm_resume_held_count ?? 0,
+      safe_cancel_request_count: summary.safe_cancel_request_count ?? 0,
+      cancel_request_pending_human_count: summary.cancel_request_pending_human_count ?? 0,
+      cancel_event_append_required_count: summary.cancel_event_append_required_count ?? 0,
+      law_firm_cancel_request_count: summary.law_firm_cancel_request_count ?? 0,
+      auto_resume_allowed_count: summary.auto_resume_allowed_count ?? 0,
+      auto_cancel_allowed_count: summary.auto_cancel_allowed_count ?? 0,
+      destructive_cancel_mutation_count: summary.destructive_cancel_mutation_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      new_run_created_count: summary.new_run_created_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11597,6 +11660,38 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_idempotency_auto_enqueue_allowed_count: artifacts.workflow_idempotency_ledger?.summary?.auto_enqueue_allowed_count ?? 0,
     workflow_idempotency_protected_action_executed_count: artifacts.workflow_idempotency_ledger?.summary?.protected_action_executed_count ?? 0,
     workflow_idempotency_validation_error_count: artifacts.workflow_idempotency_ledger?.summary?.validation_error_count ?? artifacts.workflow_idempotency_ledger?.validation?.errors?.length ?? 0,
+    workflow_resume_cancel_status: artifacts.workflow_resume_cancel_contract?.summary?.workflow_resume_cancel_status ?? "unknown",
+    workflow_resume_cancel_contract_id: artifacts.workflow_resume_cancel_contract?.summary?.resume_cancel_contract_id ?? null,
+    workflow_resume_cancel_source_workflow_idempotency_status: artifacts.workflow_resume_cancel_contract?.summary?.source_workflow_idempotency_status ?? "unknown",
+    workflow_resume_cancel_source_workflow_queue_retry_backoff_status: artifacts.workflow_resume_cancel_contract?.summary?.source_workflow_queue_retry_backoff_status ?? "unknown",
+    workflow_resume_cancel_source_workflow_state_machine_runner_status: artifacts.workflow_resume_cancel_contract?.summary?.source_workflow_state_machine_runner_status ?? "unknown",
+    workflow_resume_cancel_source_workflow_run_ledger_status: artifacts.workflow_resume_cancel_contract?.summary?.source_workflow_run_ledger_status ?? "unknown",
+    workflow_resume_cancel_source_idempotency_key_count: artifacts.workflow_resume_cancel_contract?.summary?.source_idempotency_key_count ?? 0,
+    workflow_resume_cancel_source_workflow_queue_record_count: artifacts.workflow_resume_cancel_contract?.summary?.source_workflow_queue_record_count ?? 0,
+    workflow_resume_cancel_source_runner_plan_count: artifacts.workflow_resume_cancel_contract?.summary?.source_runner_plan_count ?? 0,
+    workflow_resume_cancel_source_workflow_run_record_count: artifacts.workflow_resume_cancel_contract?.summary?.source_workflow_run_record_count ?? 0,
+    workflow_resume_cancel_resume_cursor_count: artifacts.workflow_resume_cancel_contract?.summary?.resume_cursor_count ?? 0,
+    workflow_resume_cancel_cancel_request_count: artifacts.workflow_resume_cancel_contract?.summary?.cancel_request_count ?? 0,
+    workflow_resume_cancel_decision_count: artifacts.workflow_resume_cancel_contract?.summary?.resume_cancel_decision_count ?? 0,
+    workflow_resume_cancel_resume_decision_count: artifacts.workflow_resume_cancel_contract?.summary?.resume_decision_count ?? 0,
+    workflow_resume_cancel_cancel_decision_count: artifacts.workflow_resume_cancel_contract?.summary?.cancel_decision_count ?? 0,
+    workflow_resume_cancel_long_running_workflow_count: artifacts.workflow_resume_cancel_contract?.summary?.long_running_workflow_count ?? 0,
+    workflow_resume_cancel_resume_required_count: artifacts.workflow_resume_cancel_contract?.summary?.resume_required_count ?? 0,
+    workflow_resume_cancel_resume_blocked_count: artifacts.workflow_resume_cancel_contract?.summary?.resume_blocked_count ?? 0,
+    workflow_resume_cancel_held_resume_count: artifacts.workflow_resume_cancel_contract?.summary?.held_resume_count ?? 0,
+    workflow_resume_cancel_human_gate_resume_count: artifacts.workflow_resume_cancel_contract?.summary?.human_gate_resume_count ?? 0,
+    workflow_resume_cancel_law_firm_resume_cursor_count: artifacts.workflow_resume_cancel_contract?.summary?.law_firm_resume_cursor_count ?? 0,
+    workflow_resume_cancel_law_firm_resume_held_count: artifacts.workflow_resume_cancel_contract?.summary?.law_firm_resume_held_count ?? 0,
+    workflow_resume_cancel_safe_cancel_request_count: artifacts.workflow_resume_cancel_contract?.summary?.safe_cancel_request_count ?? 0,
+    workflow_resume_cancel_cancel_request_pending_human_count: artifacts.workflow_resume_cancel_contract?.summary?.cancel_request_pending_human_count ?? 0,
+    workflow_resume_cancel_cancel_event_append_required_count: artifacts.workflow_resume_cancel_contract?.summary?.cancel_event_append_required_count ?? 0,
+    workflow_resume_cancel_law_firm_cancel_request_count: artifacts.workflow_resume_cancel_contract?.summary?.law_firm_cancel_request_count ?? 0,
+    workflow_resume_cancel_auto_resume_allowed_count: artifacts.workflow_resume_cancel_contract?.summary?.auto_resume_allowed_count ?? 0,
+    workflow_resume_cancel_auto_cancel_allowed_count: artifacts.workflow_resume_cancel_contract?.summary?.auto_cancel_allowed_count ?? 0,
+    workflow_resume_cancel_destructive_cancel_mutation_count: artifacts.workflow_resume_cancel_contract?.summary?.destructive_cancel_mutation_count ?? 0,
+    workflow_resume_cancel_protected_action_executed_count: artifacts.workflow_resume_cancel_contract?.summary?.protected_action_executed_count ?? 0,
+    workflow_resume_cancel_new_run_created_count: artifacts.workflow_resume_cancel_contract?.summary?.new_run_created_count ?? 0,
+    workflow_resume_cancel_validation_error_count: artifacts.workflow_resume_cancel_contract?.summary?.validation_error_count ?? artifacts.workflow_resume_cancel_contract?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13393,6 +13488,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-queue-retry-backoff") parsed.workflowQueueRetryBackoffPath = false;
     else if (arg === "--workflow-idempotency") parsed.workflowIdempotencyLedgerPath = argv[++index];
     else if (arg === "--no-workflow-idempotency") parsed.workflowIdempotencyLedgerPath = false;
+    else if (arg === "--workflow-resume-cancel") parsed.workflowResumeCancelContractPath = argv[++index];
+    else if (arg === "--no-workflow-resume-cancel") parsed.workflowResumeCancelContractPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13810,6 +13907,9 @@ Options:
                                   Do not include Workflow Queue/Retry/Backoff Contract status.
   --workflow-idempotency <path>  workflow-idempotency-ledger.json path.
   --no-workflow-idempotency      Do not include Workflow Idempotency Ledger status.
+  --workflow-resume-cancel <path>
+                                  workflow-resume-cancel-contract.json path.
+  --no-workflow-resume-cancel    Do not include Workflow Resume/Cancel Contract status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

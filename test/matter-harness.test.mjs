@@ -117,6 +117,7 @@ import { runTokenUsageLedger } from "../src/token-usage-ledger.mjs";
 import { runTokenUsageProjection } from "../src/token-usage-projection.mjs";
 import { runObservabilityTraceProjection } from "../src/observability-trace-projection.mjs";
 import { runErrorRetryLedger } from "../src/error-retry-ledger.mjs";
+import { runEventReplayHarness } from "../src/event-replay-harness.mjs";
 import { buildDealControlBrief, renderDealControlBrief } from "../src/deal-control.mjs";
 import { buildDevProjectBrief, readDevProjectsFile, renderDevProjectBrief, validateDevProjects } from "../src/dev-projects.mjs";
 import { extractIntakeCandidates, mergeCandidatesIntoMatter } from "../src/intake-adapter.mjs";
@@ -1730,6 +1731,7 @@ describe("matter harness", () => {
         tokenUsageProjectionPath: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
         observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
         errorRetryLedgerPath: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
+        eventReplayHarnessPath: path.join(outDir, "event-replay", "event-replay-harness.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1828,6 +1830,7 @@ describe("matter harness", () => {
         tokenUsageProjectionPath: false,
         observabilityTraceProjectionPath: false,
         errorRetryLedgerPath: false,
+        eventReplayHarnessPath: false,
         errorCostObservabilityContractFreezePath: false,
         evidencePlaneFreezePath: false,
         controlPlaneHumanGateReceiptsPath: false,
@@ -3924,6 +3927,40 @@ describe("matter harness", () => {
       assert.ok(errorRetryLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "error-retry-ledger", "summary.md"), "utf8"), /Error\/Retry Ledger/);
 
+      const eventReplayHarness = await runEventReplayHarness({
+        appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
+        eventCorrelationLedgerPath: path.join(outDir, "event-correlation", "event-correlation-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        reviewDashboardPath: false,
+        outDir: path.join(outDir, "event-replay"),
+        runAt: "2026-05-23T06:35:08.101Z",
+      });
+      const eventReplayHarnessSchema = JSON.parse(await readFile("schemas/event-replay-harness.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(eventReplayHarness, eventReplayHarnessSchema, {}, "event_replay_harness"),
+        [],
+      );
+      assert.equal(eventReplayHarness.summary.event_replay_status, "complete");
+      assert.equal(eventReplayHarness.summary.event_replay_contract_id, "event-replay-harness.v1");
+      assert.equal(eventReplayHarness.summary.replayed_event_count, appendOnlyEventStore.summary.stored_event_count);
+      assert.equal(eventReplayHarness.summary.source_stored_event_count, appendOnlyEventStore.summary.stored_event_count);
+      assert.equal(eventReplayHarness.summary.replayed_event_stream_count, appendOnlyEventStore.summary.event_stream_count);
+      assert.equal(eventReplayHarness.summary.verified_event_stream_count, appendOnlyEventStore.summary.event_stream_count);
+      assert.equal(eventReplayHarness.summary.sequence_gap_count, 0);
+      assert.equal(eventReplayHarness.summary.hash_chain_mismatch_count, 0);
+      assert.equal(eventReplayHarness.summary.replayed_run_summary_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(eventReplayHarness.summary.source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(eventReplayHarness.summary.run_summary_mismatch_count, 0);
+      assert.equal(eventReplayHarness.summary.terminal_state_mismatch_count, 0);
+      assert.ok(eventReplayHarness.summary.dashboard_projection_metric_count >= 10);
+      assert.equal(eventReplayHarness.summary.dashboard_metric_mismatch_count, 0);
+      assert.equal(eventReplayHarness.summary.validation_error_count, 0);
+      assert.ok(eventReplayHarness.event_replay_catalog.replayed_event_streams.every((stream) => stream.event_stream_replay_status === "replayed" && stream.replay_hash));
+      assert.ok(eventReplayHarness.event_replay_catalog.replayed_run_summaries.every((run) => run.run_replay_status === "replayed" && run.replay_hash));
+      assert.ok(eventReplayHarness.event_replay_catalog.dashboard_replay_projection.projection_metrics.every((metric) => metric.metric_status === "matched" || metric.metric_status === "dashboard_not_available"));
+      assert.ok(eventReplayHarness.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "event-replay", "summary.md"), "utf8"), /Event Replay Harness/);
+
       const auditEventLedger = await runAuditEventLedger({
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
         accessAuditProjectionPath: path.join(outDir, "access-audit", "access-audit-projection.json"),
@@ -5396,6 +5433,7 @@ describe("matter harness", () => {
           token_usage_projection: path.join(outDir, "token-usage-projection", "token-usage-projection.json"),
           observability_trace_projection: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
           error_retry_ledger: path.join(outDir, "error-retry-ledger", "error-retry-ledger.json"),
+          event_replay_harness: path.join(outDir, "event-replay", "event-replay-harness.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5407,8 +5445,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 73);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 73);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 74);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 74);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5469,6 +5507,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "token_usage_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "observability_trace_projection"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "error_retry_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_replay_harness"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5518,6 +5557,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "token:projection"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:traces"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:errors"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:replay"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -5818,6 +5858,10 @@ describe("matter harness", () => {
       assert.equal(errorRetryLedgerCheckpoint?.acceptance_profile, "error_retry_ledger_gate");
       assert.equal(errorRetryLedgerCheckpoint?.status, "passed");
       assert.equal(errorRetryLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const eventReplayHarnessCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-event-replay-harness");
+      assert.equal(eventReplayHarnessCheckpoint?.acceptance_profile, "event_replay_harness_gate");
+      assert.equal(eventReplayHarnessCheckpoint?.status, "passed");
+      assert.equal(eventReplayHarnessCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -6191,6 +6235,21 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.error_retry_ledger_trace_bound_count, errorRetryLedger.summary.trace_bound_error_count);
       assert.equal(dashboard.summary.error_retry_ledger_missing_trace_binding_count, 0);
       assert.equal(dashboard.summary.error_retry_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.event_replay_status, "complete");
+      assert.equal(dashboard.summary.event_replay_replayed_event_count, eventReplayHarness.summary.replayed_event_count);
+      assert.equal(dashboard.summary.event_replay_source_event_count, eventReplayHarness.summary.source_stored_event_count);
+      assert.equal(dashboard.summary.event_replay_stream_count, eventReplayHarness.summary.replayed_event_stream_count);
+      assert.equal(dashboard.summary.event_replay_source_stream_count, eventReplayHarness.summary.source_event_stream_count);
+      assert.equal(dashboard.summary.event_replay_verified_stream_count, eventReplayHarness.summary.verified_event_stream_count);
+      assert.equal(dashboard.summary.event_replay_sequence_gap_count, 0);
+      assert.equal(dashboard.summary.event_replay_hash_chain_mismatch_count, 0);
+      assert.equal(dashboard.summary.event_replay_run_summary_count, eventReplayHarness.summary.replayed_run_summary_count);
+      assert.equal(dashboard.summary.event_replay_source_workflow_run_count, eventReplayHarness.summary.source_workflow_run_record_count);
+      assert.equal(dashboard.summary.event_replay_run_summary_mismatch_count, 0);
+      assert.equal(dashboard.summary.event_replay_terminal_state_mismatch_count, 0);
+      assert.equal(dashboard.summary.event_replay_dashboard_metric_count, eventReplayHarness.summary.dashboard_projection_metric_count);
+      assert.equal(dashboard.summary.event_replay_dashboard_metric_mismatch_count, 0);
+      assert.equal(dashboard.summary.event_replay_validation_error_count, 0);
       assert.equal(dashboard.summary.budget_alert_record_count, budgetAlertLedger.summary.alert_record_count);
       assert.equal(dashboard.summary.budget_alert_clear_count, budgetAlertLedger.summary.clear_count);
       assert.equal(dashboard.summary.budget_alert_active_count, 0);
@@ -7747,6 +7806,7 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "token_usage_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "observability_trace_projection"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "error_retry_ledger"));
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "event_replay_harness"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9110,6 +9170,30 @@ describe("matter harness", () => {
       const errorRetryLedgerValidations = JSON.parse((await buildReviewApiResponse("/api/error-retry-ledger-validations?status=passed", apiOptions)).body);
       assert.equal(errorRetryLedgerValidations.collection, "error_retry_ledger_validations");
       assert.equal(errorRetryLedgerValidations.count, errorRetryLedger.summary.validation_item_count);
+
+      const eventReplayHarnesses = JSON.parse((await buildReviewApiResponse("/api/event-replay-harnesses?event_replay_status=complete", apiOptions)).body);
+      assert.equal(eventReplayHarnesses.collection, "event_replay_harnesses");
+      assert.equal(eventReplayHarnesses.count, 1);
+
+      const replayedEventStreams = JSON.parse((await buildReviewApiResponse("/api/replayed-event-streams?event_stream_replay_status=replayed", apiOptions)).body);
+      assert.equal(replayedEventStreams.collection, "replayed_event_streams");
+      assert.equal(replayedEventStreams.count, eventReplayHarness.summary.replayed_event_stream_count);
+
+      const replayedRunSummaries = JSON.parse((await buildReviewApiResponse("/api/replayed-run-summaries?run_replay_status=replayed", apiOptions)).body);
+      assert.equal(replayedRunSummaries.collection, "replayed_run_summaries");
+      assert.equal(replayedRunSummaries.count, eventReplayHarness.summary.replayed_run_summary_count);
+
+      const dashboardReplayProjections = JSON.parse((await buildReviewApiResponse("/api/dashboard-replay-projections?dashboard_projection_status=replayed", apiOptions)).body);
+      assert.equal(dashboardReplayProjections.collection, "dashboard_replay_projections");
+      assert.equal(dashboardReplayProjections.count, 1);
+
+      const dashboardReplayMetrics = JSON.parse((await buildReviewApiResponse("/api/dashboard-replay-metrics?source_match_status=matched", apiOptions)).body);
+      assert.equal(dashboardReplayMetrics.collection, "dashboard_replay_metrics");
+      assert.equal(dashboardReplayMetrics.count, eventReplayHarness.summary.dashboard_metric_source_match_count);
+
+      const eventReplayValidations = JSON.parse((await buildReviewApiResponse("/api/event-replay-validations?status=passed", apiOptions)).body);
+      assert.equal(eventReplayValidations.collection, "event_replay_validations");
+      assert.equal(eventReplayValidations.count, eventReplayHarness.summary.validation_item_count);
 
       const budgetAlertLedgers = JSON.parse((await buildReviewApiResponse("/api/budget-alert-ledgers?ledger_status=valid", apiOptions)).body);
       assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

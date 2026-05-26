@@ -453,6 +453,8 @@ Observability trace projection route는 `observability_trace_projection_status`,
 
 Error/retry ledger route는 `error_retry_ledger_status`, `error_retry_ledger_id`, `projected_error_record_id`, `source_error_record_id`, `retry_record_id`, `timeout_record_id`, `resume_state_record_id`, `failure_state`, `error_kind`, `error_type`, `error_status`, `retry_state`, `timeout_state`, `resume_state`, `auto_retry_scheduled`, `timeout_observed`, `resume_required`, `resume_blocked`, `trace_binding_status`, `observability_trace_id`, `correlation_trace_id`, `workflow_run_id`, `run_ledger_id`, `status`, `limit` query를 지원한다.
 
+Event replay route는 `event_replay_status`, `event_replay_harness_id`, `replayed_event_stream_id`, `event_stream_replay_status`, `replayed_run_summary_id`, `run_replay_status`, `event_count_match_status`, `terminal_state_match_status`, `dashboard_projection_status`, `projection_status`, `metric_key`, `metric_status`, `source_match_status`, `dashboard_match_status`, `event_stream_id`, `run_ledger_id`, `workflow_run_id`, `correlation_id`, `status`, `limit` query를 지원한다.
+
 Budget alert route는 `alert_record_id`, `attribution_id`, `budget_decision_id`, `token_usage_id`, `routing_decision_id`, `runtime_id`, `workflow_run_id`, `capability_id`, `classification`, `alert_status`, `requires_human`, `matter_id`, `tenant_id`, `ledger_status`, `limit` query를 지원한다.
 
 Lineage graph route는 `lineage_graph_status`, `lineage_node_id`, `lineage_edge_id`, `lineage_path_id`, `node_type`, `edge_type`, `path_status`, `from_subject_id`, `to_subject_id`, `schema_version`, `status`, `matter_id`, `classification`, `policy_snapshot_id`, `review_status`, `limit` query를 지원한다.

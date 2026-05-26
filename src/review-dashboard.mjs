@@ -87,6 +87,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   tokenUsageProjectionPath: "artifacts/token-usage-projection/latest/token-usage-projection.json",
   observabilityTraceProjectionPath: "artifacts/observability-trace-projection/latest/observability-trace-projection.json",
   errorRetryLedgerPath: "artifacts/error-retry-ledger/latest/error-retry-ledger.json",
+  eventReplayHarnessPath: "artifacts/event-replay/latest/event-replay-harness.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -585,6 +586,11 @@ const SOURCE_DEFINITIONS = [
     option: "errorRetryLedgerPath",
     source_id: "error_retry_ledger",
     label: "Error/Retry Ledger",
+  },
+  {
+    option: "eventReplayHarnessPath",
+    source_id: "event_replay_harness",
+    label: "Event Replay Harness",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1175,6 +1181,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "token_usage_projection") return data.summary ?? {};
   if (sourceId === "observability_trace_projection") return data.summary ?? {};
   if (sourceId === "error_retry_ledger") return data.summary ?? {};
+  if (sourceId === "event_replay_harness") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1426,6 +1433,7 @@ function buildStageStatuses(artifacts, sources) {
     buildTokenUsageProjectionStage(artifacts.token_usage_projection, sourceById.get("token_usage_projection")),
     buildObservabilityTraceProjectionStage(artifacts.observability_trace_projection, sourceById.get("observability_trace_projection")),
     buildErrorRetryLedgerStage(artifacts.error_retry_ledger, sourceById.get("error_retry_ledger")),
+    buildEventReplayHarnessStage(artifacts.event_replay_harness, sourceById.get("event_replay_harness")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5406,6 +5414,49 @@ function buildErrorRetryLedgerStage(ledger, source) {
       human_approval_required_resume_count: summary.human_approval_required_resume_count ?? 0,
       trace_bound_error_count: summary.trace_bound_error_count ?? 0,
       missing_trace_binding_count: summary.missing_trace_binding_count ?? 0,
+      validation_error_count: errorCount,
+    },
+  };
+}
+
+function buildEventReplayHarnessStage(harness, source) {
+  if (!harness) return missingStage("event_replay_harness", "Event Replay Harness", source);
+  const summary = harness.summary ?? {};
+  const errorCount = summary.validation_error_count ?? harness.validation?.errors?.length ?? 0;
+  const blockers = errorCount
+    + (summary.sequence_gap_count ?? 0)
+    + (summary.hash_chain_mismatch_count ?? 0)
+    + (summary.run_summary_mismatch_count ?? 0)
+    + (summary.terminal_state_mismatch_count ?? 0)
+    + (summary.dashboard_metric_mismatch_count ?? 0);
+  const status = summary.event_replay_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "event_replay_harness",
+    label: "Event Replay Harness",
+    status,
+    message: status === "passed"
+      ? `${summary.replayed_event_count ?? 0}/${summary.source_stored_event_count ?? 0} event(s), ${summary.replayed_run_summary_count ?? 0}/${summary.source_workflow_run_record_count ?? 0} run summary row(s) replayed without drift.`
+      : `${blockers} event replay blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      event_replay_status: summary.event_replay_status ?? "unknown",
+      event_replay_contract_id: summary.event_replay_contract_id ?? null,
+      source_stored_event_count: summary.source_stored_event_count ?? 0,
+      replayed_event_count: summary.replayed_event_count ?? 0,
+      source_event_stream_count: summary.source_event_stream_count ?? 0,
+      replayed_event_stream_count: summary.replayed_event_stream_count ?? 0,
+      verified_event_stream_count: summary.verified_event_stream_count ?? 0,
+      sequence_gap_count: summary.sequence_gap_count ?? 0,
+      hash_chain_mismatch_count: summary.hash_chain_mismatch_count ?? 0,
+      source_workflow_run_record_count: summary.source_workflow_run_record_count ?? 0,
+      replayed_run_summary_count: summary.replayed_run_summary_count ?? 0,
+      run_summary_event_count_match_count: summary.run_summary_event_count_match_count ?? 0,
+      run_summary_mismatch_count: summary.run_summary_mismatch_count ?? 0,
+      terminal_state_match_count: summary.terminal_state_match_count ?? 0,
+      terminal_state_mismatch_count: summary.terminal_state_mismatch_count ?? 0,
+      dashboard_projection_metric_count: summary.dashboard_projection_metric_count ?? summary.dashboard_replay_metric_count ?? 0,
+      dashboard_metric_match_count: summary.dashboard_metric_match_count ?? 0,
+      dashboard_metric_mismatch_count: summary.dashboard_metric_mismatch_count ?? 0,
       validation_error_count: errorCount,
     },
   };
@@ -11354,6 +11405,21 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     error_retry_ledger_trace_bound_count: artifacts.error_retry_ledger?.summary?.trace_bound_error_count ?? 0,
     error_retry_ledger_missing_trace_binding_count: artifacts.error_retry_ledger?.summary?.missing_trace_binding_count ?? 0,
     error_retry_ledger_validation_error_count: artifacts.error_retry_ledger?.summary?.validation_error_count ?? artifacts.error_retry_ledger?.validation?.errors?.length ?? 0,
+    event_replay_status: artifacts.event_replay_harness?.summary?.event_replay_status ?? "unknown",
+    event_replay_replayed_event_count: artifacts.event_replay_harness?.summary?.replayed_event_count ?? 0,
+    event_replay_source_event_count: artifacts.event_replay_harness?.summary?.source_stored_event_count ?? 0,
+    event_replay_stream_count: artifacts.event_replay_harness?.summary?.replayed_event_stream_count ?? 0,
+    event_replay_source_stream_count: artifacts.event_replay_harness?.summary?.source_event_stream_count ?? 0,
+    event_replay_verified_stream_count: artifacts.event_replay_harness?.summary?.verified_event_stream_count ?? 0,
+    event_replay_sequence_gap_count: artifacts.event_replay_harness?.summary?.sequence_gap_count ?? 0,
+    event_replay_hash_chain_mismatch_count: artifacts.event_replay_harness?.summary?.hash_chain_mismatch_count ?? 0,
+    event_replay_run_summary_count: artifacts.event_replay_harness?.summary?.replayed_run_summary_count ?? 0,
+    event_replay_source_workflow_run_count: artifacts.event_replay_harness?.summary?.source_workflow_run_record_count ?? 0,
+    event_replay_run_summary_mismatch_count: artifacts.event_replay_harness?.summary?.run_summary_mismatch_count ?? 0,
+    event_replay_terminal_state_mismatch_count: artifacts.event_replay_harness?.summary?.terminal_state_mismatch_count ?? 0,
+    event_replay_dashboard_metric_count: artifacts.event_replay_harness?.summary?.dashboard_projection_metric_count ?? artifacts.event_replay_harness?.summary?.dashboard_replay_metric_count ?? 0,
+    event_replay_dashboard_metric_mismatch_count: artifacts.event_replay_harness?.summary?.dashboard_metric_mismatch_count ?? 0,
+    event_replay_validation_error_count: artifacts.event_replay_harness?.summary?.validation_error_count ?? artifacts.event_replay_harness?.validation?.errors?.length ?? 0,
     budget_alert_record_count: artifacts.budget_alert_ledger?.summary?.alert_record_count ?? 0,
     budget_alert_clear_count: artifacts.budget_alert_ledger?.summary?.clear_count ?? 0,
     budget_alert_warning_count: artifacts.budget_alert_ledger?.summary?.warning_count ?? 0,
@@ -12070,6 +12136,7 @@ export function renderReviewDashboardHtml(dashboard) {
       ${stat("Token Projection", dashboard.summary.token_usage_projection_count)}
       ${stat("Trace Projection", dashboard.summary.observability_trace_projection_count)}
       ${stat("Error Retry", dashboard.summary.error_retry_ledger_error_count)}
+      ${stat("Event Replay", dashboard.summary.event_replay_replayed_event_count)}
       ${stat("Budget Alerts", dashboard.summary.budget_alert_active_count)}
       ${stat("Domain Packs", dashboard.summary.domain_pack_count)}
       ${stat("Outputs", dashboard.summary.output_artifact_count)}
@@ -12189,6 +12256,9 @@ export function renderReviewDashboardMarkdown(dashboard) {
   lines.push(`- Error/retry ledger records: ${dashboard.summary.error_retry_ledger_error_count ?? 0}`);
   lines.push(`- Error/retry split retry/timeout/resume: ${dashboard.summary.error_retry_ledger_retry_count ?? 0}/${dashboard.summary.error_retry_ledger_timeout_count ?? 0}/${dashboard.summary.error_retry_ledger_resume_state_count ?? 0}`);
   lines.push(`- Error/retry auto retries and missing trace bindings: ${dashboard.summary.error_retry_ledger_auto_retry_scheduled_count ?? 0}/${dashboard.summary.error_retry_ledger_missing_trace_binding_count ?? 0}`);
+  lines.push(`- Event replay events/run summaries: ${dashboard.summary.event_replay_replayed_event_count ?? 0}/${dashboard.summary.event_replay_source_event_count ?? 0} and ${dashboard.summary.event_replay_run_summary_count ?? 0}/${dashboard.summary.event_replay_source_workflow_run_count ?? 0}`);
+  lines.push(`- Event replay streams verified and hash mismatches: ${dashboard.summary.event_replay_verified_stream_count ?? 0}/${dashboard.summary.event_replay_stream_count ?? 0}, ${dashboard.summary.event_replay_hash_chain_mismatch_count ?? 0}`);
+  lines.push(`- Event replay dashboard mismatches: ${dashboard.summary.event_replay_dashboard_metric_mismatch_count ?? 0}/${dashboard.summary.event_replay_dashboard_metric_count ?? 0}`);
   lines.push(`- Budget alert records: ${dashboard.summary.budget_alert_record_count ?? 0}`);
   lines.push(`- Budget alert active: ${dashboard.summary.budget_alert_active_count ?? 0}`);
   lines.push(`- Budget alert critical: ${dashboard.summary.budget_alert_critical_count ?? 0}`);
@@ -12524,6 +12594,8 @@ function parseArgs(argv) {
     else if (arg === "--no-observability-trace-projection") parsed.observabilityTraceProjectionPath = false;
     else if (arg === "--error-retry-ledger") parsed.errorRetryLedgerPath = argv[++index];
     else if (arg === "--no-error-retry-ledger") parsed.errorRetryLedgerPath = false;
+    else if (arg === "--event-replay") parsed.eventReplayHarnessPath = argv[++index];
+    else if (arg === "--no-event-replay") parsed.eventReplayHarnessPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -12909,6 +12981,8 @@ Options:
                                   Do not include Observability Trace Projection status.
   --error-retry-ledger <path>     error-retry-ledger.json path.
   --no-error-retry-ledger         Do not include Error/Retry Ledger status.
+  --event-replay <path>           event-replay-harness.json path.
+  --no-event-replay               Do not include Event Replay Harness status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

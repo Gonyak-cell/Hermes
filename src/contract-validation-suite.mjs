@@ -85,6 +85,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "token:projection",
   "observability:traces",
   "observability:errors",
+  "events:replay",
   "contracts:observability",
 ];
 

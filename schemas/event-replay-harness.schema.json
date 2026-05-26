@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/event-replay-harness.schema.json",
+  "title": "Hermes Event Replay Harness",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "event_replay_harness_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "event_replay_contract",
+    "event_replay_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "event-replay-harness.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "event_replay_harness_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "event_replay_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_replay_contract_id",
+        "replay_sources",
+        "replay_outputs",
+        "deterministic_replay",
+        "side_effect_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-replay-contract.v1" },
+        "event_replay_contract_id": { "const": "event-replay-harness.v1" },
+        "replay_sources": { "type": "array", "items": { "type": "string" } },
+        "replay_outputs": { "type": "array", "items": { "type": "string" } },
+        "deterministic_replay": { "const": true },
+        "side_effect_policy": { "const": "read_only_no_execution" }
+      },
+      "additionalProperties": true
+    },
+    "event_replay_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "replayed_event_streams",
+        "replayed_run_summaries",
+        "dashboard_replay_projection"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-replay-catalog.v1" },
+        "replayed_event_streams": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/replayed_event_stream" }
+        },
+        "replayed_run_summaries": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/replayed_run_summary" }
+        },
+        "dashboard_replay_projection": { "$ref": "#/$defs/dashboard_replay_projection" }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "event_replay_status",
+        "event_replay_contract_id",
+        "source_stored_event_count",
+        "replayed_event_count",
+        "source_event_stream_count",
+        "replayed_event_stream_count",
+        "verified_event_stream_count",
+        "sequence_gap_count",
+        "hash_chain_mismatch_count",
+        "source_workflow_run_record_count",
+        "replayed_run_summary_count",
+        "run_summary_mismatch_count",
+        "terminal_state_mismatch_count",
+        "dashboard_projection_metric_count",
+        "dashboard_metric_mismatch_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "event_replay_status": { "enum": ["complete", "blocked"] },
+        "event_replay_contract_id": { "const": "event-replay-harness.v1" },
+        "source_stored_event_count": { "type": "integer", "minimum": 0 },
+        "replayed_event_count": { "type": "integer", "minimum": 0 },
+        "source_event_stream_count": { "type": "integer", "minimum": 0 },
+        "replayed_event_stream_count": { "type": "integer", "minimum": 0 },
+        "verified_event_stream_count": { "type": "integer", "minimum": 0 },
+        "sequence_gap_count": { "type": "integer", "minimum": 0 },
+        "hash_chain_mismatch_count": { "type": "integer", "minimum": 0 },
+        "source_workflow_run_record_count": { "type": "integer", "minimum": 0 },
+        "replayed_run_summary_count": { "type": "integer", "minimum": 0 },
+        "run_summary_mismatch_count": { "type": "integer", "minimum": 0 },
+        "terminal_state_mismatch_count": { "type": "integer", "minimum": 0 },
+        "dashboard_projection_metric_count": { "type": "integer", "minimum": 0 },
+        "dashboard_metric_mismatch_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "replayed_event_stream": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_stream_replay_id",
+        "replayed_event_stream_id",
+        "event_stream_id",
+        "replayed_event_count",
+        "source_event_count",
+        "event_count_match_status",
+        "sequence_gap_count",
+        "sequence_status",
+        "hash_chain_status",
+        "event_stream_replay_status",
+        "event_stream_replay_hash",
+        "replay_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "replayed-event-stream.v1" },
+        "event_stream_replay_id": { "type": "string" },
+        "replayed_event_stream_id": { "type": "string" },
+        "event_stream_id": { "type": "string" },
+        "replayed_event_count": { "type": "integer", "minimum": 0 },
+        "source_event_count": { "type": "integer", "minimum": 0 },
+        "event_count_match_status": { "type": "string" },
+        "sequence_gap_count": { "type": "integer", "minimum": 0 },
+        "sequence_status": { "type": "string" },
+        "hash_chain_status": { "type": "string" },
+        "event_stream_replay_status": { "type": "string" },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "stored_event_ids": { "type": "array", "items": { "type": "string" } },
+        "event_stream_replay_hash": { "type": "string" },
+        "replay_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "replayed_run_summary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "run_summary_replay_id",
+        "replayed_run_summary_id",
+        "run_ledger_id",
+        "replayed_event_count",
+        "source_event_count",
+        "event_count_match_status",
+        "replayed_terminal_state",
+        "source_terminal_state",
+        "terminal_state_match_status",
+        "run_replay_status",
+        "run_summary_replay_hash",
+        "replay_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "replayed-run-summary.v1" },
+        "run_summary_replay_id": { "type": "string" },
+        "replayed_run_summary_id": { "type": "string" },
+        "run_ledger_id": { "type": "string" },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "correlation_id": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "replayed_event_count": { "type": "integer", "minimum": 0 },
+        "source_event_count": { "type": "integer", "minimum": 0 },
+        "event_count_match_status": { "type": "string" },
+        "replayed_terminal_state": { "type": "string" },
+        "source_terminal_state": { "type": "string" },
+        "terminal_state_match_status": { "type": "string" },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "stored_event_ids": { "type": "array", "items": { "type": "string" } },
+        "run_replay_status": { "type": "string" },
+        "run_summary_replay_hash": { "type": "string" },
+        "replay_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "dashboard_replay_projection": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "dashboard_replay_projection_id",
+        "projection_id",
+        "dashboard_projection_status",
+        "projection_status",
+        "projection_metrics",
+        "dashboard_replay_projection_hash",
+        "projection_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "dashboard-replay-projection.v1" },
+        "dashboard_replay_projection_id": { "type": "string" },
+        "projection_id": { "type": "string" },
+        "source_dashboard_available": { "type": "boolean" },
+        "dashboard_projection_status": { "type": "string" },
+        "projection_status": { "type": "string" },
+        "projection_metrics": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/dashboard_replay_metric" }
+        },
+        "dashboard_replay_projection_hash": { "type": "string" },
+        "projection_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "dashboard_replay_metric": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "dashboard_replay_metric_id",
+        "metric_key",
+        "replayed_value",
+        "source_match_status",
+        "dashboard_match_status",
+        "metric_status",
+        "dashboard_replay_metric_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "dashboard-replay-metric.v1" },
+        "dashboard_replay_metric_id": { "type": "string" },
+        "metric_key": { "type": "string" },
+        "replayed_value": { "type": "integer", "minimum": 0 },
+        "source_value": { "type": "integer", "minimum": 0 },
+        "dashboard_value": { "type": ["integer", "null"], "minimum": 0 },
+        "source_match_status": { "type": "string" },
+        "dashboard_match_status": { "type": "string" },
+        "metric_status": { "type": "string" },
+        "dashboard_replay_metric_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

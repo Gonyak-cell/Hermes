@@ -177,6 +177,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/timeout-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/resume-state-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-retry-ledger-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-replay-harnesses"));
+  assert.ok(index.routes.some((route) => route.path === "/api/replayed-event-streams"));
+  assert.ok(index.routes.some((route) => route.path === "/api/replayed-run-summaries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/dashboard-replay-projections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/dashboard-replay-metrics"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-replay-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1345,6 +1351,30 @@ try {
   const errorRetryLedgerValidations = await fetchJson(`${url}/api/error-retry-ledger-validations?status=passed&limit=5`);
   assert.equal(errorRetryLedgerValidations.collection, "error_retry_ledger_validations");
   assert.ok(errorRetryLedgerValidations.count <= 5);
+
+  const eventReplayHarnesses = await fetchJson(`${url}/api/event-replay-harnesses?event_replay_status=complete&limit=1`);
+  assert.equal(eventReplayHarnesses.collection, "event_replay_harnesses");
+  assert.ok(eventReplayHarnesses.count <= 1);
+
+  const replayedEventStreams = await fetchJson(`${url}/api/replayed-event-streams?event_stream_replay_status=replayed&limit=5`);
+  assert.equal(replayedEventStreams.collection, "replayed_event_streams");
+  assert.ok(replayedEventStreams.count <= 5);
+
+  const replayedRunSummaries = await fetchJson(`${url}/api/replayed-run-summaries?run_replay_status=replayed&limit=5`);
+  assert.equal(replayedRunSummaries.collection, "replayed_run_summaries");
+  assert.ok(replayedRunSummaries.count <= 5);
+
+  const dashboardReplayProjections = await fetchJson(`${url}/api/dashboard-replay-projections?dashboard_projection_status=replayed&limit=1`);
+  assert.equal(dashboardReplayProjections.collection, "dashboard_replay_projections");
+  assert.ok(dashboardReplayProjections.count <= 1);
+
+  const dashboardReplayMetrics = await fetchJson(`${url}/api/dashboard-replay-metrics?metric_status=matched&limit=5`);
+  assert.equal(dashboardReplayMetrics.collection, "dashboard_replay_metrics");
+  assert.ok(dashboardReplayMetrics.count <= 5);
+
+  const eventReplayValidations = await fetchJson(`${url}/api/event-replay-validations?status=passed&limit=5`);
+  assert.equal(eventReplayValidations.collection, "event_replay_validations");
+  assert.ok(eventReplayValidations.count <= 5);
 
   const budgetAlertLedgers = await fetchJson(`${url}/api/budget-alert-ledgers?ledger_status=valid&limit=1`);
   assert.equal(budgetAlertLedgers.collection, "budget_alert_ledgers");

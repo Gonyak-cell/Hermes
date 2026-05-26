@@ -3573,6 +3573,49 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("error_retry_ledger_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/event-replay-harnesses") {
+    const replayResult = await readDashboardSourceArtifact(dashboard, "event_replay_harness");
+    if (!replayResult.available) {
+      return jsonResponse(503, buildError("event_replay_harness_unavailable", replayResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_replay_harnesses", [replayResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/replayed-event-streams") {
+    const replayResult = await readDashboardSourceArtifact(dashboard, "event_replay_harness");
+    if (!replayResult.available) {
+      return jsonResponse(503, buildError("event_replay_harness_unavailable", replayResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("replayed_event_streams", replayResult.artifact.event_replay_catalog?.replayed_event_streams ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/replayed-run-summaries") {
+    const replayResult = await readDashboardSourceArtifact(dashboard, "event_replay_harness");
+    if (!replayResult.available) {
+      return jsonResponse(503, buildError("event_replay_harness_unavailable", replayResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("replayed_run_summaries", replayResult.artifact.event_replay_catalog?.replayed_run_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-replay-projections") {
+    const replayResult = await readDashboardSourceArtifact(dashboard, "event_replay_harness");
+    if (!replayResult.available) {
+      return jsonResponse(503, buildError("event_replay_harness_unavailable", replayResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dashboard_replay_projections", [replayResult.artifact.event_replay_catalog?.dashboard_replay_projection].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/dashboard-replay-metrics") {
+    const replayResult = await readDashboardSourceArtifact(dashboard, "event_replay_harness");
+    if (!replayResult.available) {
+      return jsonResponse(503, buildError("event_replay_harness_unavailable", replayResult.error), method);
+    }
+    const projection = replayResult.artifact.event_replay_catalog?.dashboard_replay_projection ?? {};
+    return jsonResponse(200, buildCollectionResponse("dashboard_replay_metrics", projection.projection_metrics ?? projection.replayed_metrics ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-replay-validations") {
+    const replayResult = await readDashboardSourceArtifact(dashboard, "event_replay_harness");
+    if (!replayResult.available) {
+      return jsonResponse(503, buildError("event_replay_harness_unavailable", replayResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_replay_validations", replayResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/budget-alert-ledgers") {
     const ledgerResult = await readDashboardSourceArtifact(dashboard, "budget_alert_ledger");
     if (!ledgerResult.available) {
@@ -6412,6 +6455,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/timeout-records", "Timeout classification records for every projected error"),
       route("GET", "/api/resume-state-records", "Resume-state records for every projected error"),
       route("GET", "/api/error-retry-ledger-validations", "Error/retry ledger validation rows"),
+      route("GET", "/api/event-replay-harnesses", "Event replay harness artifacts"),
+      route("GET", "/api/replayed-event-streams", "Append-only event streams reconstructed by replay"),
+      route("GET", "/api/replayed-run-summaries", "Workflow run summaries reconstructed by replay"),
+      route("GET", "/api/dashboard-replay-projections", "Dashboard projection drift checks rebuilt by replay"),
+      route("GET", "/api/dashboard-replay-metrics", "Dashboard replay projection metric rows"),
+      route("GET", "/api/event-replay-validations", "Event replay harness validation rows"),
       route("GET", "/api/budget-alert-ledgers", "Budget alert ledger artifacts"),
       route("GET", "/api/budget-alert-records", "Budget usage alert records"),
       route("GET", "/api/packs", "Domain pack registry packs"),
@@ -7539,6 +7588,20 @@ function filterItems(items, searchParams) {
     "resume_required",
     "resume_blocked",
     "trace_binding_status",
+    "event_replay_status",
+    "event_replay_harness_id",
+    "replayed_event_stream_id",
+    "event_stream_replay_status",
+    "replayed_run_summary_id",
+    "run_replay_status",
+    "event_count_match_status",
+    "terminal_state_match_status",
+    "dashboard_projection_status",
+    "projection_status",
+    "metric_key",
+    "metric_status",
+    "source_match_status",
+    "dashboard_match_status",
     "token_rollup_id",
     "rollup_type",
     "rollup_key",
@@ -7872,6 +7935,9 @@ function readFilterValue(item, key) {
   if (key === "token_usage_projection_status") return item.summary?.token_usage_projection_status ?? item.token_usage_projection_status;
   if (key === "observability_trace_projection_status") return item.summary?.observability_trace_projection_status ?? item.observability_trace_projection_status;
   if (key === "error_retry_ledger_status") return item.summary?.error_retry_ledger_status ?? item.error_retry_ledger_status;
+  if (key === "event_replay_status") return item.summary?.event_replay_status ?? item.event_replay_status;
+  if (key === "dashboard_projection_status") return item.dashboard_projection_status ?? item.projection_status;
+  if (key === "projection_status") return item.projection_status ?? item.dashboard_projection_status;
   if (key === "agent_run_status") return item.status ?? item.agent_run_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;

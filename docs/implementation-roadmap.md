@@ -5081,6 +5081,35 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 - Golden fixture 수가 73개로 증가하고 error retry ledger가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run observability:errors -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 172: Event Replay Harness
+
+목표: append-only event store를 실행 없이 재생해 event stream, workflow run summary, dashboard projection 핵심 지표가 같은 값으로 재구성되는지 검증합니다.
+
+구현 내용:
+
+- `npm run events:replay -- --check` 명령을 추가해 Append-only Event Store, Event Correlation Ledger, Workflow Run Ledger, Review Dashboard를 읽고 deterministic replay artifact를 생성함
+- `replayed_event_stream`을 생성해 stream sequence, event count, hash presence, event envelope/stored event id를 재구성하고 source stream과 비교함
+- `replayed_run_summary`를 생성해 run ledger별 event count와 terminal state를 Workflow Run Ledger record와 비교함
+- `dashboard_replay_projection`을 생성해 append-only event store, event correlation ledger, workflow run ledger의 dashboard-facing metric을 다시 계산하고 source/dashboard 값과 비교함
+- global append-only hash chain의 sequence, previous chain hash, event hash, chain hash invariant를 validation gate로 고정함
+- Review Dashboard, Review API, API smoke, Control Plane Loop, Goal Checkpoint, Contract Golden Fixtures, Contract Validation Suite, test suite에 Event Replay Harness를 통합함
+- `/api/event-replay-harnesses`, `/api/replayed-event-streams`, `/api/replayed-run-summaries`, `/api/dashboard-replay-projections`, `/api/dashboard-replay-metrics`, `/api/event-replay-validations` route를 추가함
+
+완료 기준:
+
+- Event Replay Harness가 validation error 없이 `complete` 상태가 됨
+- replayed event count가 append-only stored event count와 일치함
+- replayed event stream count와 source event stream count가 일치하고 모든 stream sequence gap이 0임
+- global hash-chain mismatch count가 0임
+- replayed run summary count가 Workflow Run Ledger record count와 일치함
+- 모든 replayed run summary의 event count와 terminal state가 source Workflow Run Ledger와 일치함
+- dashboard replay projection metric이 10개 이상이며 source/dashboard mismatch가 0임
+- 모든 replayed stream, replayed run summary, dashboard replay projection이 hash를 가짐
+- Review Dashboard summary와 stage status에서 replayed event, stream, run summary, dashboard metric drift, validation count가 노출됨
+- Review API smoke가 harness, stream, run summary, dashboard projection, metric, validation route를 모두 조회함
+- Golden fixture 수가 74개로 증가하고 event replay harness가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run events:replay -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5089,9 +5118,9 @@ P126에서는 Access Audit Projection의 access audit row를 실제 store query 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 171이다.
+- 현재 완료 기준점은 Phase 172이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P172-P312, 총 141개다.
+- 남은 계획 슬롯은 P173-P312, 총 140개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

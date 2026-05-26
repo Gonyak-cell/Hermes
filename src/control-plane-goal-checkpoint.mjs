@@ -93,6 +93,7 @@ const GOAL_ITEMS = [
   sourceItem("token_usage_projection", "Token usage projection", "observability", "token_usage_projection", "control-plane-token-usage-projection", { acceptance_profile: "token_usage_projection_gate" }),
   sourceItem("observability_trace_projection", "Observability trace projection", "observability", "observability_trace_projection", "control-plane-observability-trace-projection", { acceptance_profile: "observability_trace_projection_gate" }),
   sourceItem("error_retry_ledger", "Error/retry ledger", "observability", "error_retry_ledger", "control-plane-error-retry-ledger", { acceptance_profile: "error_retry_ledger_gate" }),
+  sourceItem("event_replay_harness", "Event replay harness", "audit", "event_replay_harness", "control-plane-event-replay-harness", { acceptance_profile: "event_replay_harness_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -447,6 +448,7 @@ function evaluateStageAcceptance(item, stage) {
     "token_usage_projection_gate",
     "observability_trace_projection_gate",
     "error_retry_ledger_gate",
+    "event_replay_harness_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -596,6 +598,27 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.trace_bound_error_count ?? 0) === (metrics.projected_error_record_count ?? -1)
     ) {
       return passedWithOperationalGate(stage, "Error/retry ledger separates every ErrorRecord v2 row into failure, retry, timeout, and resume-state records with no auto retry scheduled and full trace binding.");
+    }
+  }
+
+  if (item.acceptance_profile === "event_replay_harness_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.sequence_gap_count ?? 0)
+      + (metrics.hash_chain_mismatch_count ?? 0)
+      + (metrics.run_summary_mismatch_count ?? 0)
+      + (metrics.terminal_state_mismatch_count ?? 0)
+      + (metrics.dashboard_metric_mismatch_count ?? 0);
+    if (
+      errors === 0
+      && metrics.event_replay_status === "complete"
+      && (metrics.replayed_event_count ?? 0) > 0
+      && (metrics.replayed_event_count ?? 0) === (metrics.source_stored_event_count ?? -1)
+      && (metrics.replayed_event_stream_count ?? 0) === (metrics.source_event_stream_count ?? -1)
+      && (metrics.verified_event_stream_count ?? 0) === (metrics.replayed_event_stream_count ?? -1)
+      && (metrics.replayed_run_summary_count ?? 0) === (metrics.source_workflow_run_record_count ?? -1)
+      && (metrics.dashboard_projection_metric_count ?? 0) >= 10
+    ) {
+      return passedWithOperationalGate(stage, "Event replay harness reconstructs event streams, run summaries, and dashboard projection metrics from append-only events without drift.");
     }
   }
 

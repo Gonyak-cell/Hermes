@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/event-type-registry.schema.json",
+  "title": "Hermes Event Type Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "event_type_registry_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "event_type_registry_contract",
+    "event_type_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "event-type-registry.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "event_type_registry_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "event_type_registry_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_type_registry_contract_id",
+        "required_event_families",
+        "required_binding_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-type-registry-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_type_registry_contract_id": { "const": "event-type-registry.v1" },
+        "required_event_families": {
+          "type": "array",
+          "contains": { "const": "resource" }
+        },
+        "required_binding_fields": {
+          "type": "array",
+          "contains": { "const": "event_type" }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "event_type_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_type_records",
+        "event_family_records",
+        "event_type_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-type-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_type_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_type_record" }
+        },
+        "event_family_records": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_family_record" }
+        },
+        "event_type_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_type_binding" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "event_type_registry_status",
+        "event_type_registry_contract_id",
+        "source_event_envelope_status",
+        "source_event_envelope_count",
+        "event_type_count",
+        "event_family_count",
+        "event_type_binding_count",
+        "bound_event_type_binding_count",
+        "required_family_count",
+        "covered_required_family_count",
+        "missing_required_family_count",
+        "unclassified_event_type_count",
+        "registered_event_type_count",
+        "resource_event_type_count",
+        "workflow_event_type_count",
+        "agent_event_type_count",
+        "gate_event_type_count",
+        "approval_event_type_count",
+        "output_event_type_count",
+        "schema_version_bound_event_type_count",
+        "dataschema_bound_event_type_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "event_type_registry_status": { "enum": ["complete", "blocked"] },
+        "event_type_registry_contract_id": { "const": "event-type-registry.v1" },
+        "source_event_envelope_status": { "type": "string" },
+        "source_event_envelope_count": { "type": "integer", "minimum": 0 },
+        "event_type_count": { "type": "integer", "minimum": 0 },
+        "event_family_count": { "type": "integer", "minimum": 0 },
+        "event_type_binding_count": { "type": "integer", "minimum": 0 },
+        "bound_event_type_binding_count": { "type": "integer", "minimum": 0 },
+        "required_family_count": { "type": "integer", "minimum": 0 },
+        "covered_required_family_count": { "type": "integer", "minimum": 0 },
+        "missing_required_family_count": { "type": "integer", "minimum": 0 },
+        "unclassified_event_type_count": { "type": "integer", "minimum": 0 },
+        "registered_event_type_count": { "type": "integer", "minimum": 0 },
+        "resource_event_type_count": { "type": "integer", "minimum": 0 },
+        "workflow_event_type_count": { "type": "integer", "minimum": 0 },
+        "agent_event_type_count": { "type": "integer", "minimum": 0 },
+        "gate_event_type_count": { "type": "integer", "minimum": 0 },
+        "approval_event_type_count": { "type": "integer", "minimum": 0 },
+        "output_event_type_count": { "type": "integer", "minimum": 0 },
+        "schema_version_bound_event_type_count": { "type": "integer", "minimum": 0 },
+        "dataschema_bound_event_type_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "event_type_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_type_id",
+        "event_type",
+        "event_family",
+        "event_category",
+        "event_count",
+        "event_envelope_ids",
+        "registry_status",
+        "classification_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-type-record.v1" },
+        "event_type_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_family": { "type": "string" },
+        "event_category": { "type": "string" },
+        "required_family": { "type": "boolean" },
+        "event_count": { "type": "integer", "minimum": 0 },
+        "event_envelope_ids": { "type": "array", "items": { "type": "string" } },
+        "source_kinds": { "type": "array", "items": { "type": "string" } },
+        "actor_types": { "type": "array", "items": { "type": "string" } },
+        "tenant_ids": { "type": "array", "items": { "type": "string" } },
+        "matter_ids": { "type": "array", "items": { "type": "string" } },
+        "policy_snapshot_ids": { "type": "array", "items": { "type": "string" } },
+        "data_schema_refs": { "type": "array", "items": { "type": "string" } },
+        "schema_versions": { "type": "array", "items": { "type": "string" } },
+        "first_seen_at": { "type": "string", "format": "date-time" },
+        "last_seen_at": { "type": "string", "format": "date-time" },
+        "registry_status": { "enum": ["registered"] },
+        "classification_status": { "enum": ["classified", "unclassified"] },
+        "schema_version_binding_status": { "enum": ["bound", "missing_schema_version"] },
+        "dataschema_binding_status": { "enum": ["bound", "missing_dataschema"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "event_family_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_family_id",
+        "event_family",
+        "required_family",
+        "event_type_count",
+        "event_count",
+        "coverage_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-family-record.v1" },
+        "event_family_id": { "type": "string" },
+        "event_family": { "type": "string" },
+        "required_family": { "type": "boolean" },
+        "event_type_count": { "type": "integer", "minimum": 0 },
+        "event_count": { "type": "integer", "minimum": 0 },
+        "event_types": { "type": "array", "items": { "type": "string" } },
+        "event_type_ids": { "type": "array", "items": { "type": "string" } },
+        "coverage_status": { "enum": ["covered", "missing_required_family", "extra_cataloged"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "event_type_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_type_binding_id",
+        "event_type_id",
+        "event_type",
+        "event_envelope_id",
+        "event_family",
+        "event_category",
+        "source_kind",
+        "binding_status",
+        "classification_status",
+        "schema_version_binding_status",
+        "dataschema_binding_status",
+        "recorded_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-type-binding.v1" },
+        "event_type_binding_id": { "type": "string" },
+        "event_type_id": { "type": "string" },
+        "event_type": { "type": "string" },
+        "event_envelope_id": { "type": "string" },
+        "event_family": { "type": "string" },
+        "event_category": { "type": "string" },
+        "source_kind": { "type": "string" },
+        "source_event_id": { "type": ["string", "null"] },
+        "actor_type": { "type": ["string", "null"] },
+        "tenant_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "source_schema_version": { "type": ["string", "null"] },
+        "dataschema": { "type": ["string", "null"] },
+        "event_time": { "type": "string", "format": "date-time" },
+        "binding_status": { "enum": ["bound", "unbound"] },
+        "classification_status": { "enum": ["classified", "unclassified"] },
+        "schema_version_binding_status": { "enum": ["bound", "missing_schema_version"] },
+        "dataschema_binding_status": { "enum": ["bound", "missing_dataschema"] },
+        "required_family": { "type": "boolean" },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

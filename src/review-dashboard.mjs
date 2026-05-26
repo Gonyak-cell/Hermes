@@ -56,6 +56,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
   eventEnvelopeLedgerPath: "artifacts/event-envelope-ledger/latest/event-envelope-ledger.json",
+  eventTypeRegistryPath: "artifacts/event-type-registry/latest/event-type-registry.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -418,6 +419,11 @@ const SOURCE_DEFINITIONS = [
     option: "eventEnvelopeLedgerPath",
     source_id: "event_envelope_ledger",
     label: "Event Envelope Ledger",
+  },
+  {
+    option: "eventTypeRegistryPath",
+    source_id: "event_type_registry",
+    label: "Event Type Registry",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1072,6 +1078,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_envelope_ledger") return data.summary ?? {};
+  if (sourceId === "event_type_registry") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1311,6 +1318,7 @@ function buildStageStatuses(artifacts, sources) {
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
     buildEventEnvelopeLedgerStage(artifacts.event_envelope_ledger, sourceById.get("event_envelope_ledger")),
+    buildEventTypeRegistryStage(artifacts.event_type_registry, sourceById.get("event_type_registry")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4079,6 +4087,53 @@ function buildEventEnvelopeLedgerStage(ledger, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildEventTypeRegistryStage(registry, source) {
+  if (!registry) return missingStage("event_type_registry", "Event Type Registry", source);
+  const summary = registry.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || registry.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "event_type_registry",
+    label: "Event Type Registry",
+    status,
+    message: `${summary.event_type_count ?? 0} event type(s), ${summary.event_family_count ?? 0} family/families, ${summary.covered_required_family_count ?? 0}/${summary.required_family_count ?? 0} required family/families covered.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      event_type_registry_status: summary.event_type_registry_status ?? "unknown",
+      event_type_registry_contract_id: summary.event_type_registry_contract_id ?? null,
+      source_event_envelope_status: summary.source_event_envelope_status ?? "unknown",
+      source_event_envelope_count: summary.source_event_envelope_count ?? 0,
+      event_type_count: summary.event_type_count ?? 0,
+      event_family_count: summary.event_family_count ?? 0,
+      event_type_binding_count: summary.event_type_binding_count ?? 0,
+      bound_event_type_binding_count: summary.bound_event_type_binding_count ?? 0,
+      unbound_event_type_binding_count: summary.unbound_event_type_binding_count ?? 0,
+      required_family_count: summary.required_family_count ?? 0,
+      covered_required_family_count: summary.covered_required_family_count ?? 0,
+      missing_required_family_count: summary.missing_required_family_count ?? 0,
+      extra_event_family_count: summary.extra_event_family_count ?? 0,
+      unclassified_event_type_count: summary.unclassified_event_type_count ?? 0,
+      unclassified_event_type_binding_count: summary.unclassified_event_type_binding_count ?? 0,
+      registered_event_type_count: summary.registered_event_type_count ?? 0,
+      required_event_type_count: summary.required_event_type_count ?? 0,
+      resource_event_type_count: summary.resource_event_type_count ?? 0,
+      workflow_event_type_count: summary.workflow_event_type_count ?? 0,
+      agent_event_type_count: summary.agent_event_type_count ?? 0,
+      gate_event_type_count: summary.gate_event_type_count ?? 0,
+      approval_event_type_count: summary.approval_event_type_count ?? 0,
+      output_event_type_count: summary.output_event_type_count ?? 0,
+      schema_version_bound_event_type_count: summary.schema_version_bound_event_type_count ?? 0,
+      dataschema_bound_event_type_count: summary.dataschema_bound_event_type_count ?? 0,
+      schema_version_bound_binding_count: summary.schema_version_bound_binding_count ?? 0,
+      dataschema_bound_binding_count: summary.dataschema_bound_binding_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? registry.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -10282,6 +10337,25 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     event_envelope_ledger_protected_action_executed_count: artifacts.event_envelope_ledger?.summary?.protected_action_executed_count ?? 0,
     event_envelope_ledger_failed_validation_item_count: artifacts.event_envelope_ledger?.summary?.failed_validation_item_count ?? 0,
     event_envelope_ledger_validation_error_count: artifacts.event_envelope_ledger?.summary?.validation_error_count ?? artifacts.event_envelope_ledger?.validation?.errors?.length ?? 0,
+    event_type_registry_event_type_count: artifacts.event_type_registry?.summary?.event_type_count ?? 0,
+    event_type_registry_event_family_count: artifacts.event_type_registry?.summary?.event_family_count ?? 0,
+    event_type_registry_event_type_binding_count: artifacts.event_type_registry?.summary?.event_type_binding_count ?? 0,
+    event_type_registry_bound_event_type_binding_count: artifacts.event_type_registry?.summary?.bound_event_type_binding_count ?? 0,
+    event_type_registry_required_family_count: artifacts.event_type_registry?.summary?.required_family_count ?? 0,
+    event_type_registry_covered_required_family_count: artifacts.event_type_registry?.summary?.covered_required_family_count ?? 0,
+    event_type_registry_missing_required_family_count: artifacts.event_type_registry?.summary?.missing_required_family_count ?? 0,
+    event_type_registry_unclassified_event_type_count: artifacts.event_type_registry?.summary?.unclassified_event_type_count ?? 0,
+    event_type_registry_registered_event_type_count: artifacts.event_type_registry?.summary?.registered_event_type_count ?? 0,
+    event_type_registry_resource_event_type_count: artifacts.event_type_registry?.summary?.resource_event_type_count ?? 0,
+    event_type_registry_workflow_event_type_count: artifacts.event_type_registry?.summary?.workflow_event_type_count ?? 0,
+    event_type_registry_agent_event_type_count: artifacts.event_type_registry?.summary?.agent_event_type_count ?? 0,
+    event_type_registry_gate_event_type_count: artifacts.event_type_registry?.summary?.gate_event_type_count ?? 0,
+    event_type_registry_approval_event_type_count: artifacts.event_type_registry?.summary?.approval_event_type_count ?? 0,
+    event_type_registry_output_event_type_count: artifacts.event_type_registry?.summary?.output_event_type_count ?? 0,
+    event_type_registry_schema_version_bound_event_type_count: artifacts.event_type_registry?.summary?.schema_version_bound_event_type_count ?? 0,
+    event_type_registry_dataschema_bound_event_type_count: artifacts.event_type_registry?.summary?.dataschema_bound_event_type_count ?? 0,
+    event_type_registry_failed_validation_item_count: artifacts.event_type_registry?.summary?.failed_validation_item_count ?? 0,
+    event_type_registry_validation_error_count: artifacts.event_type_registry?.summary?.validation_error_count ?? artifacts.event_type_registry?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11566,6 +11640,8 @@ function parseArgs(argv) {
     else if (arg === "--no-event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = false;
     else if (arg === "--event-envelope-ledger") parsed.eventEnvelopeLedgerPath = argv[++index];
     else if (arg === "--no-event-envelope-ledger") parsed.eventEnvelopeLedgerPath = false;
+    else if (arg === "--event-type-registry") parsed.eventTypeRegistryPath = argv[++index];
+    else if (arg === "--no-event-type-registry") parsed.eventTypeRegistryPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -11913,6 +11989,8 @@ Options:
                                   Do not include Capability Workflow Contract Freeze status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
+  --event-type-registry <path>   event-type-registry.json path.
+  --no-event-type-registry       Do not include Event Type Registry status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

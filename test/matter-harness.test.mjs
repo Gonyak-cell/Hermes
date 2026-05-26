@@ -167,6 +167,7 @@ import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-fre
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
 import { runEventEnvelopeLedger } from "../src/event-envelope-ledger.mjs";
+import { runEventTypeRegistry } from "../src/event-type-registry.mjs";
 import { runErrorCostObservabilityContractFreeze } from "../src/error-cost-observability-contract-freeze.mjs";
 import { runResourceIngest } from "../src/resource-ingest.mjs";
 import { extractResourceFile, extractTextFromOfficeXml, inferResourceSignals } from "../src/resource-extract.mjs";
@@ -1696,6 +1697,7 @@ describe("matter harness", () => {
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
         eventEnvelopeLedgerPath: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
+        eventTypeRegistryPath: path.join(outDir, "event-type-registry", "event-type-registry.json"),
         errorCostObservabilityContractFreezePath: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         contextPacketLedgerPath: path.join(outDir, "context-packets", "context-packet-ledger.json"),
         modelRoutingLedgerPath: path.join(outDir, "model-routing", "model-routing-ledger.json"),
@@ -3374,6 +3376,42 @@ describe("matter harness", () => {
       assert.ok(eventEnvelopeLedger.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "event-envelope-ledger", "summary.md"), "utf8"), /Event Envelope Ledger/);
 
+      const eventTypeRegistry = await runEventTypeRegistry({
+        eventEnvelopeLedgerPath: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
+        outDir: path.join(outDir, "event-type-registry"),
+        runAt: "2026-05-23T06:35:08.449Z",
+      });
+      const eventTypeRegistrySchema = JSON.parse(await readFile("schemas/event-type-registry.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(eventTypeRegistry, eventTypeRegistrySchema, {}, "event_type_registry"),
+        [],
+      );
+      assert.equal(eventTypeRegistry.summary.event_type_registry_status, "complete");
+      assert.equal(eventTypeRegistry.summary.event_type_registry_contract_id, "event-type-registry.v1");
+      assert.equal(eventTypeRegistry.summary.source_event_envelope_status, "complete");
+      assert.equal(eventTypeRegistry.summary.source_event_envelope_count, expectedEnvelopeCount);
+      assert.equal(eventTypeRegistry.summary.event_type_binding_count, expectedEnvelopeCount);
+      assert.equal(eventTypeRegistry.summary.bound_event_type_binding_count, expectedEnvelopeCount);
+      assert.equal(eventTypeRegistry.summary.required_family_count, 6);
+      assert.equal(eventTypeRegistry.summary.covered_required_family_count, 6);
+      assert.equal(eventTypeRegistry.summary.missing_required_family_count, 0);
+      assert.equal(eventTypeRegistry.summary.unclassified_event_type_count, 0);
+      assert.equal(eventTypeRegistry.summary.registered_event_type_count, eventTypeRegistry.summary.event_type_count);
+      assert.ok(eventTypeRegistry.summary.resource_event_type_count > 0);
+      assert.ok(eventTypeRegistry.summary.workflow_event_type_count > 0);
+      assert.ok(eventTypeRegistry.summary.agent_event_type_count > 0);
+      assert.ok(eventTypeRegistry.summary.gate_event_type_count > 0);
+      assert.ok(eventTypeRegistry.summary.approval_event_type_count > 0);
+      assert.ok(eventTypeRegistry.summary.output_event_type_count > 0);
+      assert.equal(eventTypeRegistry.summary.schema_version_bound_binding_count, expectedEnvelopeCount);
+      assert.equal(eventTypeRegistry.summary.dataschema_bound_binding_count, expectedEnvelopeCount);
+      assert.equal(eventTypeRegistry.summary.validation_error_count, 0);
+      assert.ok(eventTypeRegistry.event_type_catalog.event_type_records.every((record) => record.registry_status === "registered" && record.classification_status === "classified"));
+      assert.ok(eventTypeRegistry.event_type_catalog.event_family_records.filter((record) => record.required_family).every((record) => record.coverage_status === "covered"));
+      assert.ok(eventTypeRegistry.event_type_catalog.event_type_bindings.every((binding) => binding.binding_status === "bound" && binding.classification_status === "classified"));
+      assert.ok(eventTypeRegistry.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "event-type-registry", "summary.md"), "utf8"), /Event Type Registry/);
+
       const policySnapshotBindingLedger = await runPolicySnapshotBindingLedger({
         policySnapshotLedgerPath: path.join(outDir, "policy-snapshots", "policy-snapshot-ledger.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
@@ -4886,6 +4924,7 @@ describe("matter harness", () => {
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
           event_envelope_ledger: path.join(outDir, "event-envelope-ledger", "event-envelope-ledger.json"),
+          event_type_registry: path.join(outDir, "event-type-registry", "event-type-registry.json"),
           policy_snapshot_binding_ledger: path.join(outDir, "policy-snapshot-bindings", "policy-snapshot-binding-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
@@ -4898,8 +4937,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 61);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 61);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 62);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 62);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -4956,6 +4995,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_authority_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "policy_snapshot_binding_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "schema_migration_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.every((fixture) => fixture.content_hash?.startsWith("sha256:")));
       assert.ok(contractGoldenFixtures.validation_items.every((item) => item.status === "passed"));
@@ -5020,6 +5060,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:regression-tests"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-plane-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:envelopes"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:types"));
       assert.ok(contractValidationSuite.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "contract-validation-suite", "summary.md"), "utf8"), /Contract Validation Suite/);
 
@@ -5305,6 +5346,10 @@ describe("matter harness", () => {
       assert.equal(eventEnvelopeLedgerCheckpoint?.acceptance_profile, "event_envelope_ledger_gate");
       assert.equal(eventEnvelopeLedgerCheckpoint?.status, "passed");
       assert.equal(eventEnvelopeLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const eventTypeRegistryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-event-type-registry");
+      assert.equal(eventTypeRegistryCheckpoint?.acceptance_profile, "event_type_registry_gate");
+      assert.equal(eventTypeRegistryCheckpoint?.status, "passed");
+      assert.equal(eventTypeRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const errorCostObservabilityContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-error-cost-observability-contract-freeze");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.acceptance_profile, "error_cost_observability_contract_freeze_gate");
       assert.equal(errorCostObservabilityContractFreezeCheckpoint?.status, "passed");
@@ -6577,6 +6622,25 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.event_envelope_ledger_protected_action_executed_count, eventEnvelopeLedger.summary.protected_action_executed_count);
       assert.equal(dashboard.summary.event_envelope_ledger_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.event_envelope_ledger_validation_error_count, 0);
+      assert.equal(dashboard.summary.event_type_registry_event_type_count, eventTypeRegistry.summary.event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_event_family_count, eventTypeRegistry.summary.event_family_count);
+      assert.equal(dashboard.summary.event_type_registry_event_type_binding_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.event_type_registry_bound_event_type_binding_count, expectedEnvelopeCount);
+      assert.equal(dashboard.summary.event_type_registry_required_family_count, 6);
+      assert.equal(dashboard.summary.event_type_registry_covered_required_family_count, 6);
+      assert.equal(dashboard.summary.event_type_registry_missing_required_family_count, 0);
+      assert.equal(dashboard.summary.event_type_registry_unclassified_event_type_count, 0);
+      assert.equal(dashboard.summary.event_type_registry_registered_event_type_count, eventTypeRegistry.summary.event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_resource_event_type_count, eventTypeRegistry.summary.resource_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_workflow_event_type_count, eventTypeRegistry.summary.workflow_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_agent_event_type_count, eventTypeRegistry.summary.agent_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_gate_event_type_count, eventTypeRegistry.summary.gate_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_approval_event_type_count, eventTypeRegistry.summary.approval_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_output_event_type_count, eventTypeRegistry.summary.output_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_schema_version_bound_event_type_count, eventTypeRegistry.summary.schema_version_bound_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_dataschema_bound_event_type_count, eventTypeRegistry.summary.dataschema_bound_event_type_count);
+      assert.equal(dashboard.summary.event_type_registry_failed_validation_item_count, 0);
+      assert.equal(dashboard.summary.event_type_registry_validation_error_count, 0);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_error_record_count, errorCostObservabilityContractFreeze.summary.error_record_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_run_blocked_error_count, errorCostObservabilityContractFreeze.summary.run_blocked_error_count);
       assert.equal(dashboard.summary.error_cost_observability_contract_freeze_gate_failed_error_count, errorCostObservabilityContractFreeze.summary.gate_failed_error_count);
@@ -7870,6 +7934,26 @@ describe("matter harness", () => {
       const eventEnvelopeValidations = JSON.parse((await buildReviewApiResponse("/api/event-envelope-validations?status=passed", apiOptions)).body);
       assert.equal(eventEnvelopeValidations.collection, "event_envelope_validations");
       assert.equal(eventEnvelopeValidations.count, eventEnvelopeLedger.summary.validation_item_count);
+
+      const eventTypeRegistries = JSON.parse((await buildReviewApiResponse("/api/event-type-registries?event_type_registry_status=complete", apiOptions)).body);
+      assert.equal(eventTypeRegistries.collection, "event_type_registries");
+      assert.equal(eventTypeRegistries.count, 1);
+
+      const eventTypes = JSON.parse((await buildReviewApiResponse("/api/event-types?event_family=resource&registry_status=registered", apiOptions)).body);
+      assert.equal(eventTypes.collection, "event_types");
+      assert.equal(eventTypes.count, eventTypeRegistry.summary.resource_event_type_count);
+
+      const eventFamilies = JSON.parse((await buildReviewApiResponse("/api/event-families?required_family=true&coverage_status=covered", apiOptions)).body);
+      assert.equal(eventFamilies.collection, "event_families");
+      assert.equal(eventFamilies.count, eventTypeRegistry.summary.covered_required_family_count);
+
+      const eventTypeBindings = JSON.parse((await buildReviewApiResponse("/api/event-type-bindings?event_family=workflow&binding_status=bound", apiOptions)).body);
+      assert.equal(eventTypeBindings.collection, "event_type_bindings");
+      assert.equal(eventTypeBindings.count, eventTypeRegistry.event_type_catalog.event_type_bindings.filter((binding) => binding.event_family === "workflow" && binding.binding_status === "bound").length);
+
+      const eventTypeRegistryValidations = JSON.parse((await buildReviewApiResponse("/api/event-type-registry-validations?status=passed", apiOptions)).body);
+      assert.equal(eventTypeRegistryValidations.collection, "event_type_registry_validations");
+      assert.equal(eventTypeRegistryValidations.count, eventTypeRegistry.summary.validation_item_count);
 
       const errorCostObservabilityContractFreezes = JSON.parse((await buildReviewApiResponse("/api/error-cost-observability-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

@@ -70,6 +70,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/event-envelopes"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-envelope-source-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-envelope-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-type-registries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-types"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-families"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-type-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-type-registry-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -829,6 +834,26 @@ try {
   const eventEnvelopeValidations = await fetchJson(`${url}/api/event-envelope-validations?status=passed&limit=5`);
   assert.equal(eventEnvelopeValidations.collection, "event_envelope_validations");
   assert.ok(eventEnvelopeValidations.count <= 5);
+
+  const eventTypeRegistries = await fetchJson(`${url}/api/event-type-registries?event_type_registry_status=complete&limit=1`);
+  assert.equal(eventTypeRegistries.collection, "event_type_registries");
+  assert.ok(eventTypeRegistries.count <= 1);
+
+  const eventTypes = await fetchJson(`${url}/api/event-types?event_family=resource&registry_status=registered&limit=5`);
+  assert.equal(eventTypes.collection, "event_types");
+  assert.ok(eventTypes.count <= 5);
+
+  const eventFamilies = await fetchJson(`${url}/api/event-families?required_family=true&coverage_status=covered&limit=5`);
+  assert.equal(eventFamilies.collection, "event_families");
+  assert.ok(eventFamilies.count <= 5);
+
+  const eventTypeBindings = await fetchJson(`${url}/api/event-type-bindings?event_family=workflow&binding_status=bound&limit=5`);
+  assert.equal(eventTypeBindings.collection, "event_type_bindings");
+  assert.ok(eventTypeBindings.count <= 5);
+
+  const eventTypeRegistryValidations = await fetchJson(`${url}/api/event-type-registry-validations?status=passed&limit=5`);
+  assert.equal(eventTypeRegistryValidations.collection, "event_type_registry_validations");
+  assert.ok(eventTypeRegistryValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

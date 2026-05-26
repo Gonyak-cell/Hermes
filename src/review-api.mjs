@@ -2684,6 +2684,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/event-type-registries") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "event_type_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("event_type_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_type_registries", [registryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-types") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "event_type_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("event_type_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_types", registryResult.artifact.event_type_catalog?.event_type_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-families") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "event_type_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("event_type_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_families", registryResult.artifact.event_type_catalog?.event_family_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-type-bindings") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "event_type_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("event_type_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_type_bindings", registryResult.artifact.event_type_catalog?.event_type_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-type-registry-validations") {
+    const registryResult = await readDashboardSourceArtifact(dashboard, "event_type_registry");
+    if (!registryResult.available) {
+      return jsonResponse(503, buildError("event_type_registry_unavailable", registryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_type_registry_validations", registryResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -5705,6 +5756,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/event-envelopes", "CloudEvents-style event envelopes"),
       route("GET", "/api/event-envelope-source-bindings", "Event envelope source binding rows"),
       route("GET", "/api/event-envelope-validations", "Event envelope ledger validation rows"),
+      route("GET", "/api/event-type-registries", "Event type registry artifacts"),
+      route("GET", "/api/event-types", "Event type registry rows"),
+      route("GET", "/api/event-families", "Event family coverage rows"),
+      route("GET", "/api/event-type-bindings", "Event envelope to event type binding rows"),
+      route("GET", "/api/event-type-registry-validations", "Event type registry validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6098,10 +6154,18 @@ function filterItems(items, searchParams) {
     "resource_evidence_dashboard_status",
     "evidence_plane_freeze_status",
     "event_envelope_status",
+    "event_type_registry_status",
     "envelope_kind",
     "specversion",
     "event_type",
+    "event_family",
+    "event_category",
+    "registry_status",
+    "classification_status",
+    "coverage_status",
+    "required_family",
     "source_kind",
+    "binding_status",
     "round_trip_status",
     "required_field_status",
     "checkpoint_status",
@@ -7054,10 +7118,17 @@ function readFilterValue(item, key) {
   if (key === "resource_evidence_dashboard_status") return item.summary?.resource_evidence_dashboard_status ?? item.resource_evidence_dashboard_status;
   if (key === "evidence_plane_freeze_status") return item.summary?.evidence_plane_freeze_status ?? item.evidence_plane_freeze_status;
   if (key === "event_envelope_status") return item.summary?.event_envelope_status ?? item.event_envelope_status;
+  if (key === "event_type_registry_status") return item.summary?.event_type_registry_status ?? item.event_type_registry_status;
   if (key === "envelope_kind") return item.envelope_kind;
   if (key === "specversion") return item.specversion;
   if (key === "event_type") return item.event_type ?? item.type ?? item.envelope_type;
+  if (key === "event_family") return item.event_family;
+  if (key === "event_category") return item.event_category;
+  if (key === "classification_status") return item.classification_status;
+  if (key === "coverage_status") return item.coverage_status;
+  if (key === "required_family") return item.required_family;
   if (key === "source_kind") return item.source_kind ?? item.sourcekind;
+  if (key === "binding_status") return item.binding_status;
   if (key === "round_trip_status") return item.round_trip_status;
   if (key === "required_field_status") return item.required_field_status;
   if (key === "checkpoint_status") return item.status ?? item.checkpoint_status;

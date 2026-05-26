@@ -71,6 +71,7 @@ const GOAL_ITEMS = [
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
   sourceItem("event_envelope_ledger", "CloudEvents-style event envelope ledger", "audit", "event_envelope_ledger", "control-plane-event-envelope-ledger", { acceptance_profile: "event_envelope_ledger_gate" }),
+  sourceItem("event_type_registry", "Event type registry", "audit", "event_type_registry", "control-plane-event-type-registry", { acceptance_profile: "event_type_registry_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -423,6 +424,7 @@ function evaluateStageAcceptance(item, stage) {
     "vector_index_policy_boundary_gate",
     "retrieval_filter_compiler_gate",
     "event_envelope_ledger_gate",
+    "event_type_registry_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -484,6 +486,35 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.data_object_count ?? 0) === envelopeCount
     ) {
       return passedWithOperationalGate(stage, "Event envelope ledger projects every EventRecord and AuditEvent into a CloudEvents-style envelope with schema, source binding, JSON data, and protected action flags preserved as audit data.");
+    }
+  }
+
+  if (item.acceptance_profile === "event_type_registry_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const eventTypeCount = metrics.event_type_count ?? 0;
+    const envelopeCount = metrics.source_event_envelope_count ?? 0;
+    const requiredFamilyCount = metrics.required_family_count ?? 0;
+    if (
+      errors === 0
+      && metrics.event_type_registry_status === "complete"
+      && metrics.source_event_envelope_status === "complete"
+      && eventTypeCount > 0
+      && envelopeCount > 0
+      && (metrics.event_type_binding_count ?? 0) === envelopeCount
+      && (metrics.bound_event_type_binding_count ?? 0) === envelopeCount
+      && requiredFamilyCount === 6
+      && (metrics.covered_required_family_count ?? 0) === requiredFamilyCount
+      && (metrics.missing_required_family_count ?? 1) === 0
+      && (metrics.unclassified_event_type_count ?? 1) === 0
+      && (metrics.registered_event_type_count ?? 0) === eventTypeCount
+      && (metrics.resource_event_type_count ?? 0) > 0
+      && (metrics.workflow_event_type_count ?? 0) > 0
+      && (metrics.agent_event_type_count ?? 0) > 0
+      && (metrics.gate_event_type_count ?? 0) > 0
+      && (metrics.approval_event_type_count ?? 0) > 0
+      && (metrics.output_event_type_count ?? 0) > 0
+    ) {
+      return passedWithOperationalGate(stage, "Event type registry catalogs every envelope into a registered type, binds each envelope once, and covers resource, workflow, agent, gate, approval, and output families.");
     }
   }
 

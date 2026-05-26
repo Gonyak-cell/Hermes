@@ -67,6 +67,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     output_delivery_contract_freeze: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
     event_audit_run_contract_freeze: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
     event_envelope_ledger: "artifacts/event-envelope-ledger/latest/event-envelope-ledger.json",
+    event_type_registry: "artifacts/event-type-registry/latest/event-type-registry.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -132,6 +133,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("output_delivery_contract_freeze", "Output Delivery Contract Freeze", "delivery", "output-delivery-contract-freeze.schema.json"),
   fixtureDefinition("event_audit_run_contract_freeze", "Event Audit Run Contract Freeze", "audit", "event-audit-run-contract-freeze.schema.json"),
   fixtureDefinition("event_envelope_ledger", "Event Envelope Ledger", "audit", "event-envelope-ledger.schema.json"),
+  fixtureDefinition("event_type_registry", "Event Type Registry", "audit", "event-type-registry.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

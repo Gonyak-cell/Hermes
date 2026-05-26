@@ -122,6 +122,7 @@
     "dev:brief": "node scripts/dev-project-brief.mjs examples/dev-projects.json",
     "dev:validate": "node scripts/validate-dev-projects.mjs examples/dev-projects.json",
     "events:envelopes": "node scripts/event-envelope-ledger.mjs",
+    "events:types": "node scripts/event-type-registry.mjs",
     "evidence:viewer": "node scripts/evidence-viewer.mjs",
     "evidence:review:draft": "node scripts/evidence-review-draft.mjs",
     "intake": "node scripts/intake-messages.mjs examples/project-alpha-matter.json examples/raw-intake-messages.json",

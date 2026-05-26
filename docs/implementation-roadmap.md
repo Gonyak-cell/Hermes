@@ -5236,6 +5236,31 @@ Phase 177은 Phase 103의 Capability/Workflow Contract Freeze에서 생성한 `c
 - Golden fixture 수가 79개로 증가하고 capability manifest v2 catalog가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run capabilities:manifest-v2 -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 178 - Pack Manifest Compatibility
+
+Phase 178은 `domain-pack-manifest.v1` pack들이 Hermes core version floor와 pack dependency를 명시적으로 선언하고, 후속 workflow/gate engine이 pack 조합을 안전하게 소비할 수 있도록 compatibility checker를 독립 산출물로 승격했다. 목적은 `common`, `law-firm`, `personal-dev`, `creative-document` pack이 현재 core version과 dependency graph에 맞는지 검증하고, law-firm pack은 client/legal-facing output을 계속 human review 기본값 아래에 두는 것이다.
+
+구현 내용:
+
+- `src/pack-manifest-compatibility.mjs`와 `scripts/pack-manifest-compatibility.mjs`를 추가해 `artifacts/pack-manifest-compatibility/latest/pack-manifest-compatibility.json` 산출물을 생성함
+- `pack-compatibility-records.json`, `pack-dependency-edges.json`, `pack-compatibility-matrix.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/pack-manifest-compatibility.schema.json`으로 pack별 core compatibility, dependency edge, compatibility matrix의 최소 계약을 고정함
+- Review Dashboard에 `pack_manifest_compatibility` source/stage/summary metric을 추가하고 core version, compatible pack, dependency edge, missing/mismatch blocker count를 노출함
+- Review API에 `/api/pack-manifest-compatibility`, `/api/pack-compatibility-records`, `/api/pack-dependency-edges`, `/api/pack-compatibility-matrix`, `/api/pack-manifest-compatibility-validations` route를 추가함
+- Control Plane Loop에 `pack_manifest_compatibility` step을 추가하고 Goal Checkpoint에 `pack_manifest_compatibility_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 pack manifest compatibility artifact와 `packs:compatibility` script를 포함함
+
+완료 기준:
+
+- Pack manifest compatibility가 validation error 없이 `complete` 상태가 됨
+- 등록된 pack 4개가 모두 `core_compatibility.min_core_version`을 선언하고 현재 core `0.1.0`과 compatible 상태가 됨
+- non-common pack 3개가 `common@0.1.0` dependency edge를 선언하고 모든 dependency edge가 `satisfied` 상태가 됨
+- missing dependency, dependency version mismatch, common dependency gap이 모두 0임
+- law-firm pack의 기본 output status가 `pending_review`로 유지됨
+- Review API smoke가 compatibility artifact, pack record, dependency edge, matrix, validation route를 모두 조회함
+- Golden fixture 수가 80개로 증가하고 pack manifest compatibility artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run packs:compatibility -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5244,9 +5269,9 @@ Phase 177은 Phase 103의 Capability/Workflow Contract Freeze에서 생성한 `c
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 177이다.
+- 현재 완료 기준점은 Phase 178이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P178-P312, 총 135개다.
+- 남은 계획 슬롯은 P179-P312, 총 134개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

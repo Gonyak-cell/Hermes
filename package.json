@@ -154,6 +154,7 @@
     "observability:catalog": "node scripts/observability-catalog.mjs",
     "object-store:layout": "node scripts/immutable-object-store-layout.mjs",
     "output:catalog": "node scripts/output-artifact-catalog.mjs",
+    "packs:compatibility": "node scripts/pack-manifest-compatibility.mjs",
     "packs:registry": "node scripts/domain-pack-registry.mjs",
     "packs:validate": "node scripts/domain-pack-registry.mjs --check",
     "personal-dev:slice": "node scripts/run-personal-dev-slice.mjs",

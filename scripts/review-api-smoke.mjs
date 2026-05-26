@@ -212,6 +212,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-policy-index"));
   assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-version-policy-index"));
   assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-manifest-compatibility"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-compatibility-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-dependency-edges"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-compatibility-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-manifest-compatibility-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -361,6 +366,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-policy-index"));
   assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-version-policy-index"));
   assert.ok(index.routes.some((route) => route.path === "/api/capability-manifest-v2-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-manifest-compatibility"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-compatibility-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-dependency-edges"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-compatibility-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pack-manifest-compatibility-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -865,6 +875,26 @@ try {
   const capabilityManifestV2Validations = await fetchJson(`${url}/api/capability-manifest-v2-validations?status=passed&limit=5`);
   assert.equal(capabilityManifestV2Validations.collection, "capability_manifest_v2_validations");
   assert.ok(capabilityManifestV2Validations.count <= 5);
+
+  const packManifestCompatibility = await fetchJson(`${url}/api/pack-manifest-compatibility?compatibility_status=complete&limit=1`);
+  assert.equal(packManifestCompatibility.collection, "pack_manifest_compatibility");
+  assert.ok(packManifestCompatibility.count <= 1);
+
+  const packCompatibilityRecords = await fetchJson(`${url}/api/pack-compatibility-records?compatibility_status=compatible&limit=5`);
+  assert.equal(packCompatibilityRecords.collection, "pack_compatibility_records");
+  assert.ok(packCompatibilityRecords.count <= 5);
+
+  const packDependencyEdges = await fetchJson(`${url}/api/pack-dependency-edges?dependency_status=satisfied&limit=5`);
+  assert.equal(packDependencyEdges.collection, "pack_dependency_edges");
+  assert.ok(packDependencyEdges.count <= 5);
+
+  const packCompatibilityMatrix = await fetchJson(`${url}/api/pack-compatibility-matrix?compatibility_status=compatible&limit=5`);
+  assert.equal(packCompatibilityMatrix.collection, "pack_compatibility_matrix");
+  assert.ok(packCompatibilityMatrix.count <= 5);
+
+  const packManifestCompatibilityValidations = await fetchJson(`${url}/api/pack-manifest-compatibility-validations?status=passed&limit=5`);
+  assert.equal(packManifestCompatibilityValidations.collection, "pack_manifest_compatibility_validations");
+  assert.ok(packManifestCompatibilityValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

@@ -99,6 +99,7 @@ const GOAL_ITEMS = [
   sourceItem("ledger_golden_fixtures", "Ledger golden fixtures", "audit", "ledger_golden_fixtures", "control-plane-ledger-golden-fixtures", { acceptance_profile: "ledger_golden_fixtures_gate" }),
   sourceItem("observability_freeze", "Observability freeze", "observability", "observability_freeze", "control-plane-observability-freeze", { acceptance_profile: "observability_freeze_gate" }),
   sourceItem("capability_manifest_v2", "Capability Manifest v2 catalog", "contracts", "capability_manifest_v2", "control-plane-capability-manifest-v2", { acceptance_profile: "capability_manifest_v2_gate" }),
+  sourceItem("pack_manifest_compatibility", "Pack manifest compatibility", "domain_packs", "pack_manifest_compatibility", "control-plane-pack-manifest-compatibility", { acceptance_profile: "pack_manifest_compatibility_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -459,6 +460,7 @@ function evaluateStageAcceptance(item, stage) {
     "ledger_golden_fixtures_gate",
     "observability_freeze_gate",
     "capability_manifest_v2_gate",
+    "pack_manifest_compatibility_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -768,6 +770,28 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.human_review_capability_count ?? 0) === manifestCount
     ) {
       return passedWithOperationalGate(stage, "Capability Manifest v2 catalog verifies input/output, required fields, gate/runtime, policy, and version coverage for every registered capability while leaving all legal/client-facing outputs under human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "pack_manifest_compatibility_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.dependency_missing_count ?? 0)
+      + (metrics.dependency_version_mismatch_count ?? 0)
+      + (metrics.common_dependency_gap_count ?? 0);
+    const packCount = metrics.pack_count ?? 0;
+    if (
+      errors === 0
+      && metrics.compatibility_status === "complete"
+      && packCount > 0
+      && (metrics.compatible_pack_count ?? 0) === packCount
+      && (metrics.core_declared_pack_count ?? 0) === packCount
+      && (metrics.core_compatible_pack_count ?? 0) === packCount
+      && (metrics.dependency_declared_pack_count ?? 0) === packCount
+      && (metrics.dependency_edge_count ?? 0) > 0
+      && (metrics.dependency_satisfied_count ?? 0) === (metrics.dependency_edge_count ?? -1)
+      && (metrics.matrix_row_count ?? 0) === packCount
+    ) {
+      return passedWithOperationalGate(stage, "Pack manifest compatibility verifies every pack declares a core version floor, resolves dependency edges, and keeps the law-firm pack inside human-review defaults.");
     }
   }
 

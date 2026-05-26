@@ -93,6 +93,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   ledgerGoldenFixturesPath: "artifacts/ledger-golden-fixtures/latest/ledger-golden-fixtures.json",
   observabilityFreezePath: "artifacts/observability-freeze/latest/observability-freeze.json",
   capabilityManifestV2Path: "artifacts/capability-manifest-v2/latest/capability-manifest-v2.json",
+  packManifestCompatibilityPath: "artifacts/pack-manifest-compatibility/latest/pack-manifest-compatibility.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -621,6 +622,11 @@ const SOURCE_DEFINITIONS = [
     option: "capabilityManifestV2Path",
     source_id: "capability_manifest_v2",
     label: "Capability Manifest v2",
+  },
+  {
+    option: "packManifestCompatibilityPath",
+    source_id: "pack_manifest_compatibility",
+    label: "Pack Manifest Compatibility",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1217,6 +1223,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ledger_golden_fixtures") return data.summary ?? {};
   if (sourceId === "observability_freeze") return data.summary ?? {};
   if (sourceId === "capability_manifest_v2") return data.summary ?? {};
+  if (sourceId === "pack_manifest_compatibility") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1474,6 +1481,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLedgerGoldenFixturesStage(artifacts.ledger_golden_fixtures, sourceById.get("ledger_golden_fixtures")),
     buildObservabilityFreezeStage(artifacts.observability_freeze, sourceById.get("observability_freeze")),
     buildCapabilityManifestV2Stage(artifacts.capability_manifest_v2, sourceById.get("capability_manifest_v2")),
+    buildPackManifestCompatibilityStage(artifacts.pack_manifest_compatibility, sourceById.get("pack_manifest_compatibility")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -5751,6 +5759,41 @@ function buildCapabilityManifestV2Stage(catalog, source) {
       client_facing_ready_count: summary.client_facing_ready_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? catalog.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildPackManifestCompatibilityStage(compatibility, source) {
+  if (!compatibility) return missingStage("pack_manifest_compatibility", "Pack Manifest Compatibility", source);
+  const summary = compatibility.summary ?? {};
+  const blockers = (summary.validation_error_count ?? compatibility.validation?.errors?.length ?? 0)
+    + (summary.dependency_missing_count ?? 0)
+    + (summary.dependency_version_mismatch_count ?? 0)
+    + (summary.common_dependency_gap_count ?? 0);
+  const status = summary.compatibility_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "pack_manifest_compatibility",
+    label: "Pack Manifest Compatibility",
+    status,
+    message: status === "passed"
+      ? `${summary.pack_count ?? 0} pack(s), ${summary.dependency_edge_count ?? 0} dependency edge(s), core ${summary.core_version ?? "unknown"}.`
+      : `${blockers} pack compatibility blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      compatibility_status: summary.compatibility_status ?? "unknown",
+      core_version: summary.core_version ?? null,
+      pack_count: summary.pack_count ?? 0,
+      compatible_pack_count: summary.compatible_pack_count ?? 0,
+      core_declared_pack_count: summary.core_declared_pack_count ?? 0,
+      core_compatible_pack_count: summary.core_compatible_pack_count ?? 0,
+      dependency_declared_pack_count: summary.dependency_declared_pack_count ?? 0,
+      dependency_edge_count: summary.dependency_edge_count ?? 0,
+      dependency_satisfied_count: summary.dependency_satisfied_count ?? 0,
+      dependency_missing_count: summary.dependency_missing_count ?? 0,
+      dependency_version_mismatch_count: summary.dependency_version_mismatch_count ?? 0,
+      common_dependency_gap_count: summary.common_dependency_gap_count ?? 0,
+      matrix_row_count: summary.matrix_row_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? compatibility.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11234,6 +11277,20 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     capability_manifest_v2_client_facing_ready_count: artifacts.capability_manifest_v2?.summary?.client_facing_ready_count ?? 0,
     capability_manifest_v2_protected_action_executed_count: artifacts.capability_manifest_v2?.summary?.protected_action_executed_count ?? 0,
     capability_manifest_v2_validation_error_count: artifacts.capability_manifest_v2?.summary?.validation_error_count ?? artifacts.capability_manifest_v2?.validation?.errors?.length ?? 0,
+    pack_manifest_compatibility_status: artifacts.pack_manifest_compatibility?.summary?.compatibility_status ?? "unknown",
+    pack_manifest_compatibility_core_version: artifacts.pack_manifest_compatibility?.summary?.core_version ?? null,
+    pack_manifest_compatibility_pack_count: artifacts.pack_manifest_compatibility?.summary?.pack_count ?? 0,
+    pack_manifest_compatibility_compatible_pack_count: artifacts.pack_manifest_compatibility?.summary?.compatible_pack_count ?? 0,
+    pack_manifest_compatibility_core_declared_pack_count: artifacts.pack_manifest_compatibility?.summary?.core_declared_pack_count ?? 0,
+    pack_manifest_compatibility_core_compatible_pack_count: artifacts.pack_manifest_compatibility?.summary?.core_compatible_pack_count ?? 0,
+    pack_manifest_compatibility_dependency_declared_pack_count: artifacts.pack_manifest_compatibility?.summary?.dependency_declared_pack_count ?? 0,
+    pack_manifest_compatibility_dependency_edge_count: artifacts.pack_manifest_compatibility?.summary?.dependency_edge_count ?? 0,
+    pack_manifest_compatibility_dependency_satisfied_count: artifacts.pack_manifest_compatibility?.summary?.dependency_satisfied_count ?? 0,
+    pack_manifest_compatibility_dependency_missing_count: artifacts.pack_manifest_compatibility?.summary?.dependency_missing_count ?? 0,
+    pack_manifest_compatibility_dependency_version_mismatch_count: artifacts.pack_manifest_compatibility?.summary?.dependency_version_mismatch_count ?? 0,
+    pack_manifest_compatibility_common_dependency_gap_count: artifacts.pack_manifest_compatibility?.summary?.common_dependency_gap_count ?? 0,
+    pack_manifest_compatibility_matrix_row_count: artifacts.pack_manifest_compatibility?.summary?.matrix_row_count ?? 0,
+    pack_manifest_compatibility_validation_error_count: artifacts.pack_manifest_compatibility?.summary?.validation_error_count ?? artifacts.pack_manifest_compatibility?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13020,6 +13077,8 @@ function parseArgs(argv) {
     else if (arg === "--no-observability-freeze") parsed.observabilityFreezePath = false;
     else if (arg === "--capability-manifest-v2") parsed.capabilityManifestV2Path = argv[++index];
     else if (arg === "--no-capability-manifest-v2") parsed.capabilityManifestV2Path = false;
+    else if (arg === "--pack-manifest-compatibility") parsed.packManifestCompatibilityPath = argv[++index];
+    else if (arg === "--no-pack-manifest-compatibility") parsed.packManifestCompatibilityPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -13419,6 +13478,10 @@ Options:
   --no-observability-freeze       Do not include Observability Freeze status.
   --capability-manifest-v2 <path> capability-manifest-v2.json path.
   --no-capability-manifest-v2     Do not include Capability Manifest v2 status.
+  --pack-manifest-compatibility <path>
+                                  pack-manifest-compatibility.json path.
+  --no-pack-manifest-compatibility
+                                  Do not include Pack Manifest Compatibility status.
   --budget-alert-ledger <path>   budget-alert-ledger.json path.
   --no-budget-alert-ledger       Do not include Budget Alert Ledger status.
   --domain-pack-registry <path>  domain-pack-registry.json path.

@@ -2445,6 +2445,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/pack-manifest-compatibility") {
+    const compatibilityResult = await readDashboardSourceArtifact(dashboard, "pack_manifest_compatibility");
+    if (!compatibilityResult.available) {
+      return jsonResponse(503, buildError("pack_manifest_compatibility_unavailable", compatibilityResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pack_manifest_compatibility", [compatibilityResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/pack-compatibility-records") {
+    const compatibilityResult = await readDashboardSourceArtifact(dashboard, "pack_manifest_compatibility");
+    if (!compatibilityResult.available) {
+      return jsonResponse(503, buildError("pack_manifest_compatibility_unavailable", compatibilityResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("pack_compatibility_records", compatibilityResult.artifact.pack_compatibility_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/pack-dependency-edges") {
+    const compatibilityResult = await readDashboardSourceArtifact(dashboard, "pack_manifest_compatibility");
+    if (!compatibilityResult.available) {
+      return jsonResponse(503, buildError("pack_manifest_compatibility_unavailable", compatibilityResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("pack_dependency_edges", compatibilityResult.artifact.dependency_edges ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/pack-compatibility-matrix") {
+    const compatibilityResult = await readDashboardSourceArtifact(dashboard, "pack_manifest_compatibility");
+    if (!compatibilityResult.available) {
+      return jsonResponse(503, buildError("pack_manifest_compatibility_unavailable", compatibilityResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("pack_compatibility_matrix", compatibilityResult.artifact.compatibility_matrix ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/pack-manifest-compatibility-validations") {
+    const compatibilityResult = await readDashboardSourceArtifact(dashboard, "pack_manifest_compatibility");
+    if (!compatibilityResult.available) {
+      return jsonResponse(503, buildError("pack_manifest_compatibility_unavailable", compatibilityResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("pack_manifest_compatibility_validations", compatibilityResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -6554,6 +6605,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/capability-manifest-policy-index", "Capability Manifest v2 policy index"),
       route("GET", "/api/capability-manifest-version-policy-index", "Capability Manifest v2 version policy index"),
       route("GET", "/api/capability-manifest-v2-validations", "Capability Manifest v2 validation rows"),
+      route("GET", "/api/pack-manifest-compatibility", "Pack manifest compatibility artifact"),
+      route("GET", "/api/pack-compatibility-records", "Pack core compatibility records"),
+      route("GET", "/api/pack-dependency-edges", "Pack dependency compatibility edges"),
+      route("GET", "/api/pack-compatibility-matrix", "Pack compatibility matrix"),
+      route("GET", "/api/pack-manifest-compatibility-validations", "Pack manifest compatibility validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7173,6 +7229,9 @@ function filterItems(items, searchParams) {
     "panel_status",
     "observability_freeze_status",
     "capability_manifest_v2_status",
+    "compatibility_status",
+    "core_compatibility_status",
+    "dependency_status",
     "gate_runtime_status",
     "source_group",
     "trace_kind",
@@ -8278,6 +8337,9 @@ function readFilterValue(item, key) {
   if (key === "trace_status") return item.trace_status;
   if (key === "source_status") return item.source_status;
   if (key === "capability_manifest_v2_status") return item.summary?.capability_manifest_v2_status ?? item.capability_manifest_v2_status;
+  if (key === "compatibility_status") return item.summary?.compatibility_status ?? item.compatibility_status;
+  if (key === "core_compatibility_status") return item.core_compatibility_status;
+  if (key === "dependency_status") return item.dependency_status;
   if (key === "trace_id") return item.trace_id;
   if (key === "fact_claim_store_status") return item.summary?.fact_claim_store_status ?? item.fact_claim_store_status;
   if (key === "issue_graph_store_status") return item.summary?.issue_graph_store_status ?? item.issue_graph_store_status;

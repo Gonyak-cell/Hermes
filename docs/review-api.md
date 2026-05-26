@@ -462,6 +462,11 @@ npm run api:serve
 - `GET /api/capability-manifest-policy-index`: data, approval, idempotency, cost, and observability policy rows
 - `GET /api/capability-manifest-version-policy-index`: schema/version/source workflow policy rows
 - `GET /api/capability-manifest-v2-validations`: capability manifest v2 validation rows
+- `GET /api/pack-manifest-compatibility`: pack manifest compatibility artifact
+- `GET /api/pack-compatibility-records`: pack별 core version/dependency compatibility rows
+- `GET /api/pack-dependency-edges`: pack dependency edge compatibility rows
+- `GET /api/pack-compatibility-matrix`: pack compatibility matrix rows
+- `GET /api/pack-manifest-compatibility-validations`: pack manifest compatibility validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

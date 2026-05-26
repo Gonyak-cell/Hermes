@@ -1,0 +1,196 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.local/schemas/pack-manifest-compatibility.schema.json",
+  "title": "Pack Manifest Compatibility",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "compatibility_check_id",
+    "inputs",
+    "source_contracts",
+    "pack_manifest_compatibility",
+    "pack_compatibility_records",
+    "dependency_edges",
+    "compatibility_matrix",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "pack-manifest-compatibility.v1" },
+    "generated_at": { "type": "string" },
+    "compatibility_check_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "pack_manifest_compatibility": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "core_version",
+        "pack_compatibility_records",
+        "dependency_edges",
+        "compatibility_matrix"
+      ],
+      "properties": {
+        "schema_version": { "const": "pack-manifest-compatibility.v1" },
+        "core_version": { "type": "string", "minLength": 1 },
+        "pack_compatibility_records": { "type": "array" },
+        "dependency_edges": { "type": "array" },
+        "compatibility_matrix": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "pack_compatibility_records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "pack_id",
+          "pack_version",
+          "core_version",
+          "min_core_version",
+          "core_version_declared",
+          "core_compatibility_status",
+          "dependency_status",
+          "compatibility_status",
+          "dependency_count",
+          "common_dependency_declared",
+          "missing_dependency_count",
+          "dependency_version_mismatch_count"
+        ],
+        "properties": {
+          "schema_version": { "const": "pack-compatibility-record.v1" },
+          "pack_id": { "type": "string", "minLength": 1 },
+          "pack_version": { "type": "string", "minLength": 1 },
+          "core_version": { "type": "string", "minLength": 1 },
+          "min_core_version": { "type": "string", "minLength": 1 },
+          "core_version_declared": { "type": "boolean" },
+          "core_compatibility_status": { "enum": ["compatible", "blocked"] },
+          "dependency_status": { "enum": ["complete", "blocked"] },
+          "compatibility_status": { "enum": ["compatible", "blocked"] },
+          "dependency_count": { "type": "integer", "minimum": 0 },
+          "common_dependency_declared": { "type": "boolean" },
+          "missing_dependency_count": { "type": "integer", "minimum": 0 },
+          "dependency_version_mismatch_count": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "dependency_edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "source_pack_id",
+          "target_pack_id",
+          "required_version",
+          "target_version",
+          "dependency_status",
+          "dependency_exists",
+          "dependency_version_declared",
+          "version_satisfied",
+          "edge_id"
+        ],
+        "properties": {
+          "schema_version": { "const": "pack-dependency-edge.v1" },
+          "source_pack_id": { "type": "string", "minLength": 1 },
+          "target_pack_id": { "type": "string", "minLength": 1 },
+          "required_version": { "type": "string", "minLength": 1 },
+          "target_version": { "type": "string", "minLength": 1 },
+          "dependency_status": { "enum": ["satisfied", "blocked"] },
+          "dependency_exists": { "type": "boolean" },
+          "dependency_version_declared": { "type": "boolean" },
+          "version_satisfied": { "type": "boolean" },
+          "edge_id": { "type": "string", "minLength": 1 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "compatibility_matrix": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "pack_id",
+          "pack_version",
+          "core_version",
+          "min_core_version",
+          "core_compatibility_status",
+          "dependency_status",
+          "compatibility_status",
+          "dependency_edge_count",
+          "satisfied_dependency_edge_count",
+          "blocked_dependency_edge_count"
+        ],
+        "properties": {
+          "schema_version": { "const": "pack-compatibility-matrix-row.v1" },
+          "pack_id": { "type": "string", "minLength": 1 },
+          "pack_version": { "type": "string", "minLength": 1 },
+          "core_version": { "type": "string", "minLength": 1 },
+          "min_core_version": { "type": "string", "minLength": 1 },
+          "core_compatibility_status": { "enum": ["compatible", "blocked"] },
+          "dependency_status": { "enum": ["complete", "blocked"] },
+          "compatibility_status": { "enum": ["compatible", "blocked"] },
+          "dependency_edge_count": { "type": "integer", "minimum": 0 },
+          "satisfied_dependency_edge_count": { "type": "integer", "minimum": 0 },
+          "blocked_dependency_edge_count": { "type": "integer", "minimum": 0 }
+        },
+        "additionalProperties": true
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "compatibility_status",
+        "core_version",
+        "pack_count",
+        "compatible_pack_count",
+        "core_declared_pack_count",
+        "core_compatible_pack_count",
+        "dependency_declared_pack_count",
+        "dependency_edge_count",
+        "dependency_satisfied_count",
+        "dependency_missing_count",
+        "dependency_version_mismatch_count",
+        "common_dependency_gap_count",
+        "matrix_row_count",
+        "validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "compatibility_status": { "enum": ["complete", "blocked"] },
+        "core_version": { "type": "string", "minLength": 1 },
+        "pack_count": { "type": "integer", "minimum": 0 },
+        "compatible_pack_count": { "type": "integer", "minimum": 0 },
+        "core_declared_pack_count": { "type": "integer", "minimum": 0 },
+        "core_compatible_pack_count": { "type": "integer", "minimum": 0 },
+        "dependency_declared_pack_count": { "type": "integer", "minimum": 0 },
+        "dependency_edge_count": { "type": "integer", "minimum": 0 },
+        "dependency_satisfied_count": { "type": "integer", "minimum": 0 },
+        "dependency_missing_count": { "type": "integer", "minimum": 0 },
+        "dependency_version_mismatch_count": { "type": "integer", "minimum": 0 },
+        "common_dependency_gap_count": { "type": "integer", "minimum": 0 },
+        "matrix_row_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

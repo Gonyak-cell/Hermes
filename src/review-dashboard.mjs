@@ -55,6 +55,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
+  eventEnvelopeLedgerPath: "artifacts/event-envelope-ledger/latest/event-envelope-ledger.json",
   errorCostObservabilityContractFreezePath: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   evidenceViewerPath: "artifacts/evidence-viewer/latest/evidence-viewer.json",
   approvalQueuePath: "artifacts/approval-queue/latest/approval-queue.json",
@@ -412,6 +413,11 @@ const SOURCE_DEFINITIONS = [
     option: "eventAuditRunContractFreezePath",
     source_id: "event_audit_run_contract_freeze",
     label: "Event Audit Run Contract Freeze",
+  },
+  {
+    option: "eventEnvelopeLedgerPath",
+    source_id: "event_envelope_ledger",
+    label: "Event Envelope Ledger",
   },
   {
     option: "errorCostObservabilityContractFreezePath",
@@ -1065,6 +1071,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
+  if (sourceId === "event_envelope_ledger") return data.summary ?? {};
   if (sourceId === "error_cost_observability_contract_freeze") return data.summary ?? {};
   if (sourceId === "evidence_viewer") return data.summary ?? data.review_packet?.summary ?? {};
   if (sourceId === "approval_queue") return data.summary ?? {};
@@ -1303,6 +1310,7 @@ function buildStageStatuses(artifacts, sources) {
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
+    buildEventEnvelopeLedgerStage(artifacts.event_envelope_ledger, sourceById.get("event_envelope_ledger")),
     buildErrorCostObservabilityContractFreezeStage(artifacts.error_cost_observability_contract_freeze, sourceById.get("error_cost_observability_contract_freeze")),
     buildEvidenceViewerStage(artifacts.evidence_viewer, sourceById.get("evidence_viewer")),
     buildApprovalQueueStage(artifacts.approval_queue, sourceById.get("approval_queue"), artifacts.approval_decisions),
@@ -4028,6 +4036,49 @@ function buildEventAuditRunContractFreezeStage(freeze, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildEventEnvelopeLedgerStage(ledger, source) {
+  if (!ledger) return missingStage("event_envelope_ledger", "Event Envelope Ledger", source);
+  const summary = ledger.summary ?? {};
+  const status = summary.validation_error_count > 0 || summary.failed_validation_item_count > 0 || ledger.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "event_envelope_ledger",
+    label: "Event Envelope Ledger",
+    status,
+    message: `${summary.event_envelope_count ?? 0} envelope(s), ${summary.source_binding_count ?? 0} source binding(s), ${summary.required_field_complete_envelope_count ?? 0}/${summary.event_envelope_count ?? 0} required field complete.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      event_envelope_status: summary.event_envelope_status ?? "unknown",
+      event_envelope_contract_id: summary.event_envelope_contract_id ?? null,
+      specversion: summary.specversion ?? null,
+      source_freeze_status: summary.source_freeze_status ?? "unknown",
+      source_event_record_count: summary.source_event_record_count ?? 0,
+      source_audit_event_count: summary.source_audit_event_count ?? 0,
+      event_envelope_count: summary.event_envelope_count ?? 0,
+      event_record_envelope_count: summary.event_record_envelope_count ?? 0,
+      audit_event_envelope_count: summary.audit_event_envelope_count ?? 0,
+      source_binding_count: summary.source_binding_count ?? 0,
+      linked_source_binding_count: summary.linked_source_binding_count ?? 0,
+      round_trip_preserved_binding_count: summary.round_trip_preserved_binding_count ?? 0,
+      required_field_count: summary.required_field_count ?? 0,
+      required_field_complete_envelope_count: summary.required_field_complete_envelope_count ?? 0,
+      missing_required_field_count: summary.missing_required_field_count ?? 0,
+      specversion_1_0_count: summary.specversion_1_0_count ?? 0,
+      dataschema_declared_count: summary.dataschema_declared_count ?? 0,
+      schemaversion_declared_count: summary.schemaversion_declared_count ?? 0,
+      data_object_count: summary.data_object_count ?? 0,
+      correlation_id_count: summary.correlation_id_count ?? 0,
+      source_id_count: summary.source_id_count ?? 0,
+      time_declared_count: summary.time_declared_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? ledger.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -10216,6 +10267,21 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     event_audit_run_contract_freeze_run_with_policy_snapshot_count: artifacts.event_audit_run_contract_freeze?.summary?.run_with_policy_snapshot_count ?? 0,
     event_audit_run_contract_freeze_failed_validation_item_count: artifacts.event_audit_run_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     event_audit_run_contract_freeze_validation_error_count: artifacts.event_audit_run_contract_freeze?.summary?.validation_error_count ?? artifacts.event_audit_run_contract_freeze?.validation?.errors?.length ?? 0,
+    event_envelope_ledger_event_envelope_count: artifacts.event_envelope_ledger?.summary?.event_envelope_count ?? 0,
+    event_envelope_ledger_event_record_envelope_count: artifacts.event_envelope_ledger?.summary?.event_record_envelope_count ?? 0,
+    event_envelope_ledger_audit_event_envelope_count: artifacts.event_envelope_ledger?.summary?.audit_event_envelope_count ?? 0,
+    event_envelope_ledger_source_binding_count: artifacts.event_envelope_ledger?.summary?.source_binding_count ?? 0,
+    event_envelope_ledger_linked_source_binding_count: artifacts.event_envelope_ledger?.summary?.linked_source_binding_count ?? 0,
+    event_envelope_ledger_round_trip_preserved_binding_count: artifacts.event_envelope_ledger?.summary?.round_trip_preserved_binding_count ?? 0,
+    event_envelope_ledger_required_field_complete_envelope_count: artifacts.event_envelope_ledger?.summary?.required_field_complete_envelope_count ?? 0,
+    event_envelope_ledger_missing_required_field_count: artifacts.event_envelope_ledger?.summary?.missing_required_field_count ?? 0,
+    event_envelope_ledger_specversion_1_0_count: artifacts.event_envelope_ledger?.summary?.specversion_1_0_count ?? 0,
+    event_envelope_ledger_dataschema_declared_count: artifacts.event_envelope_ledger?.summary?.dataschema_declared_count ?? 0,
+    event_envelope_ledger_schemaversion_declared_count: artifacts.event_envelope_ledger?.summary?.schemaversion_declared_count ?? 0,
+    event_envelope_ledger_data_object_count: artifacts.event_envelope_ledger?.summary?.data_object_count ?? 0,
+    event_envelope_ledger_protected_action_executed_count: artifacts.event_envelope_ledger?.summary?.protected_action_executed_count ?? 0,
+    event_envelope_ledger_failed_validation_item_count: artifacts.event_envelope_ledger?.summary?.failed_validation_item_count ?? 0,
+    event_envelope_ledger_validation_error_count: artifacts.event_envelope_ledger?.summary?.validation_error_count ?? artifacts.event_envelope_ledger?.validation?.errors?.length ?? 0,
     error_cost_observability_contract_freeze_error_record_count: artifacts.error_cost_observability_contract_freeze?.summary?.error_record_count ?? 0,
     error_cost_observability_contract_freeze_run_blocked_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.run_blocked_error_count ?? 0,
     error_cost_observability_contract_freeze_gate_failed_error_count: artifacts.error_cost_observability_contract_freeze?.summary?.gate_failed_error_count ?? 0,
@@ -11498,6 +11564,8 @@ function parseArgs(argv) {
     else if (arg === "--no-output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = false;
     else if (arg === "--event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = argv[++index];
     else if (arg === "--no-event-audit-run-contract-freeze") parsed.eventAuditRunContractFreezePath = false;
+    else if (arg === "--event-envelope-ledger") parsed.eventEnvelopeLedgerPath = argv[++index];
+    else if (arg === "--no-event-envelope-ledger") parsed.eventEnvelopeLedgerPath = false;
     else if (arg === "--error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = argv[++index];
     else if (arg === "--no-error-cost-observability-contract-freeze") parsed.errorCostObservabilityContractFreezePath = false;
     else if (arg === "--evidence-viewer") parsed.evidenceViewerPath = argv[++index];
@@ -11843,6 +11911,8 @@ Options:
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze
                                   Do not include Capability Workflow Contract Freeze status.
+  --event-envelope-ledger <path> event-envelope-ledger.json path.
+  --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --evidence-viewer <path>       evidence-viewer.json path.
   --approval-queue <path>        approval-queue.json path.
   --evidence-review-draft <path> evidence-review-draft.json path.

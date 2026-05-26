@@ -72,6 +72,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:gates",
   "contracts:outputs",
   "contracts:events",
+  "events:envelopes",
   "contracts:observability",
 ];
 

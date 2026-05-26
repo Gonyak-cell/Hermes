@@ -66,6 +66,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/run-ledger-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-run-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/event-audit-run-contract-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-envelope-ledgers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-envelopes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-envelope-source-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/event-envelope-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-cost-observability-contract-freezes"));
   assert.ok(index.routes.some((route) => route.path === "/api/error-record-v2-contracts"));
   assert.ok(index.routes.some((route) => route.path === "/api/cost-observation-v2-contracts"));
@@ -809,6 +813,22 @@ try {
   const eventAuditRunContractValidations = await fetchJson(`${url}/api/event-audit-run-contract-validations?status=passed&limit=5`);
   assert.equal(eventAuditRunContractValidations.collection, "event_audit_run_contract_validations");
   assert.ok(eventAuditRunContractValidations.count <= 5);
+
+  const eventEnvelopeLedgers = await fetchJson(`${url}/api/event-envelope-ledgers?event_envelope_status=complete&limit=1`);
+  assert.equal(eventEnvelopeLedgers.collection, "event_envelope_ledgers");
+  assert.ok(eventEnvelopeLedgers.count <= 1);
+
+  const eventEnvelopes = await fetchJson(`${url}/api/event-envelopes?envelope_kind=event_record&specversion=1.0&limit=5`);
+  assert.equal(eventEnvelopes.collection, "event_envelopes");
+  assert.ok(eventEnvelopes.count <= 5);
+
+  const eventEnvelopeSourceBindings = await fetchJson(`${url}/api/event-envelope-source-bindings?source_kind=event_record&binding_status=linked&round_trip_status=round_trip_preserved&limit=5`);
+  assert.equal(eventEnvelopeSourceBindings.collection, "event_envelope_source_bindings");
+  assert.ok(eventEnvelopeSourceBindings.count <= 5);
+
+  const eventEnvelopeValidations = await fetchJson(`${url}/api/event-envelope-validations?status=passed&limit=5`);
+  assert.equal(eventEnvelopeValidations.collection, "event_envelope_validations");
+  assert.ok(eventEnvelopeValidations.count <= 5);
 
   const errorCostObservabilityContractFreezes = await fetchJson(`${url}/api/error-cost-observability-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(errorCostObservabilityContractFreezes.collection, "error_cost_observability_contract_freezes");

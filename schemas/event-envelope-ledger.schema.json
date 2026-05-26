@@ -1,0 +1,248 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/event-envelope-ledger.schema.json",
+  "title": "Hermes Event Envelope Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "event_envelope_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "event_envelope_contract",
+    "event_envelope_catalog",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "event-envelope-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "event_envelope_ledger_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "event_envelope_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_envelope_contract_id",
+        "specversion",
+        "required_fields",
+        "extension_fields"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-envelope-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_envelope_contract_id": { "const": "event-envelope.v1" },
+        "specversion": { "const": "1.0" },
+        "required_fields": {
+          "type": "array",
+          "contains": { "const": "id" }
+        },
+        "extension_fields": {
+          "type": "array",
+          "contains": { "const": "schemaversion" }
+        },
+        "notes": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "event_envelope_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "event_envelopes",
+        "source_bindings"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-envelope-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "event_envelopes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/event_envelope" }
+        },
+        "source_bindings": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/source_binding" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "event_envelope_status",
+        "event_envelope_contract_id",
+        "specversion",
+        "source_freeze_status",
+        "source_event_record_count",
+        "source_audit_event_count",
+        "event_envelope_count",
+        "event_record_envelope_count",
+        "audit_event_envelope_count",
+        "source_binding_count",
+        "linked_source_binding_count",
+        "round_trip_preserved_binding_count",
+        "required_field_count",
+        "required_field_complete_envelope_count",
+        "missing_required_field_count",
+        "specversion_1_0_count",
+        "dataschema_declared_count",
+        "schemaversion_declared_count",
+        "data_object_count",
+        "correlation_id_count",
+        "source_id_count",
+        "time_declared_count",
+        "protected_action_executed_count",
+        "validation_item_count",
+        "failed_validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "event_envelope_status": { "enum": ["complete", "blocked"] },
+        "event_envelope_contract_id": { "const": "event-envelope.v1" },
+        "specversion": { "const": "1.0" },
+        "source_freeze_status": { "type": "string" },
+        "source_event_record_count": { "type": "integer", "minimum": 0 },
+        "source_audit_event_count": { "type": "integer", "minimum": 0 },
+        "event_envelope_count": { "type": "integer", "minimum": 0 },
+        "event_record_envelope_count": { "type": "integer", "minimum": 0 },
+        "audit_event_envelope_count": { "type": "integer", "minimum": 0 },
+        "source_binding_count": { "type": "integer", "minimum": 0 },
+        "linked_source_binding_count": { "type": "integer", "minimum": 0 },
+        "round_trip_preserved_binding_count": { "type": "integer", "minimum": 0 },
+        "required_field_count": { "type": "integer", "minimum": 0 },
+        "required_field_complete_envelope_count": { "type": "integer", "minimum": 0 },
+        "missing_required_field_count": { "type": "integer", "minimum": 0 },
+        "specversion_1_0_count": { "type": "integer", "minimum": 0 },
+        "dataschema_declared_count": { "type": "integer", "minimum": 0 },
+        "schemaversion_declared_count": { "type": "integer", "minimum": 0 },
+        "data_object_count": { "type": "integer", "minimum": 0 },
+        "correlation_id_count": { "type": "integer", "minimum": 0 },
+        "source_id_count": { "type": "integer", "minimum": 0 },
+        "time_declared_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "event_envelope": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "envelope_kind",
+        "id",
+        "specversion",
+        "type",
+        "source",
+        "time",
+        "dataschema",
+        "datacontenttype",
+        "data",
+        "schemaversion",
+        "correlationid",
+        "tenantid",
+        "policysnapshotid",
+        "sourcekind",
+        "sourceid"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-envelope.v1" },
+        "envelope_kind": { "enum": ["event_record", "audit_event"] },
+        "id": { "type": "string" },
+        "specversion": { "const": "1.0" },
+        "type": { "type": "string" },
+        "source": { "type": "string" },
+        "subject": { "type": ["string", "null"] },
+        "time": { "type": "string", "format": "date-time" },
+        "dataschema": { "type": "string" },
+        "datacontenttype": { "const": "application/json" },
+        "data": { "type": "object" },
+        "schemaversion": { "type": "string" },
+        "sourceschemaversion": { "type": ["string", "null"] },
+        "correlationid": { "type": "string" },
+        "causationid": { "type": ["string", "null"] },
+        "tenantid": { "type": "string" },
+        "matterid": { "type": ["string", "null"] },
+        "workflowrunid": { "type": ["string", "null"] },
+        "runledgerid": { "type": ["string", "null"] },
+        "policysnapshotid": { "type": "string" },
+        "actortype": { "type": ["string", "null"] },
+        "actorid": { "type": ["string", "null"] },
+        "sourcekind": { "enum": ["event_record", "audit_event"] },
+        "sourceid": { "type": "string" },
+        "protected_action_event": { "type": "boolean" },
+        "protected_action_executed": { "type": "boolean" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "source_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_binding_id",
+        "envelope_id",
+        "envelope_type",
+        "source_kind",
+        "source_event_id",
+        "source_schema_version",
+        "binding_status",
+        "round_trip_status",
+        "required_field_status",
+        "recorded_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "event-envelope-source-binding.v1" },
+        "source_binding_id": { "type": "string" },
+        "envelope_id": { "type": "string" },
+        "envelope_type": { "type": "string" },
+        "source_kind": { "enum": ["event_record", "audit_event"] },
+        "source_event_id": { "type": "string" },
+        "source_schema_version": { "type": "string" },
+        "source_dataschema": { "type": "string" },
+        "binding_status": { "enum": ["linked", "missing_source"] },
+        "round_trip_status": { "enum": ["round_trip_preserved", "round_trip_mismatch"] },
+        "required_field_status": { "enum": ["complete", "missing_required_field"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "check_id", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

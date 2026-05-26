@@ -2644,6 +2644,46 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/event-envelope-ledgers") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "event_envelope_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("event_envelope_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("event_envelope_ledgers", [ledgerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/event-envelopes") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "event_envelope_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("event_envelope_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_envelopes", ledgerResult.artifact.event_envelope_catalog?.event_envelopes ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-envelope-source-bindings") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "event_envelope_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("event_envelope_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_envelope_source_bindings", ledgerResult.artifact.event_envelope_catalog?.source_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/event-envelope-validations") {
+    const ledgerResult = await readDashboardSourceArtifact(dashboard, "event_envelope_ledger");
+    if (!ledgerResult.available) {
+      return jsonResponse(503, buildError("event_envelope_ledger_unavailable", ledgerResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("event_envelope_validations", ledgerResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/error-cost-observability-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "error_cost_observability_contract_freeze");
     if (!freezeResult.available) {
@@ -5661,6 +5701,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/run-ledger-v2-contracts", "RunLedger v2 contract fixtures"),
       route("GET", "/api/event-run-bindings", "Event to RunLedger binding fixtures"),
       route("GET", "/api/event-audit-run-contract-validations", "Event/Audit/Run Ledger contract validation rows"),
+      route("GET", "/api/event-envelope-ledgers", "CloudEvents-style event envelope ledger artifacts"),
+      route("GET", "/api/event-envelopes", "CloudEvents-style event envelopes"),
+      route("GET", "/api/event-envelope-source-bindings", "Event envelope source binding rows"),
+      route("GET", "/api/event-envelope-validations", "Event envelope ledger validation rows"),
       route("GET", "/api/error-cost-observability-contract-freezes", "Error/Cost/Observability contract freeze artifacts"),
       route("GET", "/api/error-record-v2-contracts", "ErrorRecord v2 contract fixtures"),
       route("GET", "/api/cost-observation-v2-contracts", "CostObservation v2 contract fixtures"),
@@ -6053,6 +6097,13 @@ function filterItems(items, searchParams) {
     "evidence_regression_status",
     "resource_evidence_dashboard_status",
     "evidence_plane_freeze_status",
+    "event_envelope_status",
+    "envelope_kind",
+    "specversion",
+    "event_type",
+    "source_kind",
+    "round_trip_status",
+    "required_field_status",
     "checkpoint_status",
     "trace_status",
     "source_status",
@@ -7002,6 +7053,13 @@ function readFilterValue(item, key) {
   if (key === "evidence_regression_status") return item.summary?.evidence_regression_status ?? item.evidence_regression_status;
   if (key === "resource_evidence_dashboard_status") return item.summary?.resource_evidence_dashboard_status ?? item.resource_evidence_dashboard_status;
   if (key === "evidence_plane_freeze_status") return item.summary?.evidence_plane_freeze_status ?? item.evidence_plane_freeze_status;
+  if (key === "event_envelope_status") return item.summary?.event_envelope_status ?? item.event_envelope_status;
+  if (key === "envelope_kind") return item.envelope_kind;
+  if (key === "specversion") return item.specversion;
+  if (key === "event_type") return item.event_type ?? item.type ?? item.envelope_type;
+  if (key === "source_kind") return item.source_kind ?? item.sourcekind;
+  if (key === "round_trip_status") return item.round_trip_status;
+  if (key === "required_field_status") return item.required_field_status;
   if (key === "checkpoint_status") return item.status ?? item.checkpoint_status;
   if (key === "trace_status") return item.trace_status;
   if (key === "source_status") return item.source_status;

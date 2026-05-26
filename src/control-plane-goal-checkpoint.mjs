@@ -70,6 +70,7 @@ const GOAL_ITEMS = [
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
+  sourceItem("event_envelope_ledger", "CloudEvents-style event envelope ledger", "audit", "event_envelope_ledger", "control-plane-event-envelope-ledger", { acceptance_profile: "event_envelope_ledger_gate" }),
   sourceItem("error_cost_observability_contract_freeze", "Error, cost, and trace projection v2 contract freeze", "observability", "error_cost_observability_contract_freeze", "control-plane-error-cost-observability-contract-freeze", { acceptance_profile: "error_cost_observability_contract_freeze_gate" }),
   sourceItem("policy_matrix_catalog", "Identity/Policy matrix", "policy", "policy_matrix_catalog", "control-plane-policy-matrix"),
   sourceItem("policy_snapshot_ledger", "Policy snapshot ledger", "policy", "policy_snapshot_ledger", "control-plane-policy-snapshots"),
@@ -421,6 +422,7 @@ function evaluateStageAcceptance(item, stage) {
     "search_index_contract_gate",
     "vector_index_policy_boundary_gate",
     "retrieval_filter_compiler_gate",
+    "event_envelope_ledger_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -459,6 +461,29 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.output_policy_binding_count ?? 0) > 0
     ) {
       return passedWithOperationalGate(stage, "Policy snapshot binding ledger is implemented and every workflow, event, run, gate, approval, and output binding resolves to a known execution-time policy snapshot.");
+    }
+  }
+
+  if (item.acceptance_profile === "event_envelope_ledger_gate") {
+    const errors = metrics.validation_error_count ?? 0;
+    const envelopeCount = metrics.event_envelope_count ?? 0;
+    if (
+      errors === 0
+      && metrics.event_envelope_status === "complete"
+      && metrics.source_freeze_status === "complete"
+      && envelopeCount > 0
+      && envelopeCount === (metrics.source_event_record_count ?? 0) + (metrics.source_audit_event_count ?? 0)
+      && (metrics.source_binding_count ?? 0) === envelopeCount
+      && (metrics.linked_source_binding_count ?? 0) === envelopeCount
+      && (metrics.round_trip_preserved_binding_count ?? 0) === envelopeCount
+      && (metrics.required_field_complete_envelope_count ?? 0) === envelopeCount
+      && (metrics.missing_required_field_count ?? 1) === 0
+      && (metrics.specversion_1_0_count ?? 0) === envelopeCount
+      && (metrics.dataschema_declared_count ?? 0) === envelopeCount
+      && (metrics.schemaversion_declared_count ?? 0) === envelopeCount
+      && (metrics.data_object_count ?? 0) === envelopeCount
+    ) {
+      return passedWithOperationalGate(stage, "Event envelope ledger projects every EventRecord and AuditEvent into a CloudEvents-style envelope with schema, source binding, JSON data, and protected action flags preserved as audit data.");
     }
   }
 

@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-idempotency-ledger.schema.json",
+  "title": "Hermes Workflow Idempotency Ledger",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_idempotency_ledger_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_idempotency_contract",
+    "idempotency_key_records",
+    "idempotency_decision_records",
+    "duplicate_probe_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-idempotency-ledger.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_idempotency_ledger_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "workflow_idempotency_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "idempotency_contract_id",
+        "deterministic_key_manager",
+        "key_scope",
+        "duplicate_policy",
+        "new_run_on_duplicate_allowed",
+        "automatic_enqueue_allowed",
+        "protected_action_execution_allowed",
+        "key_material_fields",
+        "duplicate_resolution_rule"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-idempotency-contract.v1" },
+        "idempotency_contract_id": { "const": "workflow-idempotency-ledger.v1" },
+        "deterministic_key_manager": { "const": true },
+        "key_scope": { "const": "workflow_run_transition" },
+        "duplicate_policy": { "const": "same_run_or_skipped_duplicate" },
+        "new_run_on_duplicate_allowed": { "const": false },
+        "automatic_enqueue_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "key_material_fields": { "type": "array", "items": { "type": "string" } },
+        "duplicate_resolution_rule": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "idempotency_key_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/idempotency_key_record" }
+    },
+    "idempotency_decision_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/idempotency_decision_record" }
+    },
+    "duplicate_probe_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/duplicate_probe_record" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/validation_error" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_idempotency_status",
+        "idempotency_contract_id",
+        "source_workflow_queue_retry_backoff_status",
+        "source_workflow_state_machine_runner_status",
+        "source_workflow_run_ledger_status",
+        "source_workflow_queue_record_count",
+        "source_runner_plan_count",
+        "source_workflow_run_record_count",
+        "idempotency_key_count",
+        "unique_idempotency_key_count",
+        "duplicate_collision_count",
+        "cross_workflow_key_collision_count",
+        "idempotency_decision_count",
+        "same_run_resolution_count",
+        "skipped_duplicate_count",
+        "duplicate_probe_count",
+        "duplicate_probe_skipped_count",
+        "new_run_created_count",
+        "auto_enqueue_allowed_count",
+        "protected_action_executed_count",
+        "validation_item_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_idempotency_status": { "enum": ["complete", "blocked"] },
+        "idempotency_contract_id": { "const": "workflow-idempotency-ledger.v1" },
+        "source_workflow_queue_retry_backoff_status": { "type": "string" },
+        "source_workflow_state_machine_runner_status": { "type": "string" },
+        "source_workflow_run_ledger_status": { "type": "string" },
+        "source_workflow_queue_record_count": { "type": "integer", "minimum": 0 },
+        "source_runner_plan_count": { "type": "integer", "minimum": 0 },
+        "source_workflow_run_record_count": { "type": "integer", "minimum": 0 },
+        "idempotency_key_count": { "type": "integer", "minimum": 0 },
+        "unique_idempotency_key_count": { "type": "integer", "minimum": 0 },
+        "duplicate_collision_count": { "type": "integer", "minimum": 0 },
+        "cross_workflow_key_collision_count": { "type": "integer", "minimum": 0 },
+        "idempotency_decision_count": { "type": "integer", "minimum": 0 },
+        "primary_decision_count": { "type": "integer", "minimum": 0 },
+        "duplicate_decision_count": { "type": "integer", "minimum": 0 },
+        "same_run_resolution_count": { "type": "integer", "minimum": 0 },
+        "skipped_duplicate_count": { "type": "integer", "minimum": 0 },
+        "duplicate_probe_count": { "type": "integer", "minimum": 0 },
+        "duplicate_probe_skipped_count": { "type": "integer", "minimum": 0 },
+        "new_run_created_count": { "type": "integer", "minimum": 0 },
+        "held_queue_key_count": { "type": "integer", "minimum": 0 },
+        "law_firm_key_count": { "type": "integer", "minimum": 0 },
+        "law_firm_skipped_duplicate_count": { "type": "integer", "minimum": 0 },
+        "auto_enqueue_allowed_count": { "type": "integer", "minimum": 0 },
+        "protected_action_executed_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "type": "integer", "minimum": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "by_key_status": { "type": "object" },
+        "by_idempotency_decision": { "type": "object" },
+        "by_duplicate_probe_status": { "type": "object" },
+        "by_queue_status": { "type": "object" },
+        "by_domain_pack": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "idempotency_key_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "idempotency_key_record_id",
+        "idempotency_key",
+        "idempotency_key_hash",
+        "key_scope",
+        "key_status",
+        "source_workflow_queue_record_id",
+        "workflow_run_id",
+        "canonical_workflow_run_id",
+        "duplicate_policy",
+        "request_fingerprint_hash",
+        "key_material",
+        "auto_enqueue_allowed",
+        "protected_action_execution_allowed",
+        "record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-idempotency-key-record.v1" },
+        "idempotency_key_record_id": { "type": "string", "minLength": 1 },
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "idempotency_key_hash": { "type": "string", "pattern": "^sha256:" },
+        "key_scope": { "const": "workflow_run_transition" },
+        "key_status": { "const": "registered_existing_run" },
+        "source_workflow_queue_record_id": { "type": "string", "minLength": 1 },
+        "workflow_run_id": { "type": "string", "minLength": 1 },
+        "canonical_workflow_run_id": { "type": "string", "minLength": 1 },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "workflow_id": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": "string", "minLength": 1 },
+        "matter_id": { "type": ["string", "null"] },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "queue_status": { "type": "string" },
+        "dequeue_policy": { "type": "string" },
+        "duplicate_policy": { "const": "same_run_or_skipped_duplicate" },
+        "request_fingerprint_hash": { "type": "string", "pattern": "^sha256:" },
+        "key_material": { "type": "object" },
+        "auto_enqueue_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "record_hash": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "idempotency_decision_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "idempotency_decision_record_id",
+        "idempotency_key_record_id",
+        "idempotency_key",
+        "workflow_run_id",
+        "canonical_workflow_run_id",
+        "request_kind",
+        "request_status",
+        "idempotency_decision",
+        "duplicate_detected",
+        "new_run_created",
+        "skipped_duplicate",
+        "auto_enqueue_allowed",
+        "protected_action_execution_allowed",
+        "decision_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-idempotency-decision-record.v1" },
+        "idempotency_decision_record_id": { "type": "string", "minLength": 1 },
+        "idempotency_key_record_id": { "type": "string", "minLength": 1 },
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "source_workflow_queue_record_id": { "type": "string", "minLength": 1 },
+        "workflow_run_id": { "type": "string", "minLength": 1 },
+        "canonical_workflow_run_id": { "type": "string", "minLength": 1 },
+        "request_kind": { "enum": ["primary_queue_request", "duplicate_probe_request"] },
+        "request_status": { "enum": ["registered_existing_run", "duplicate_skipped"] },
+        "idempotency_decision": { "enum": ["same_run", "skipped_duplicate"] },
+        "duplicate_detected": { "type": "boolean" },
+        "new_run_created": { "const": false },
+        "skipped_duplicate": { "type": "boolean" },
+        "decision_reason": { "type": "string" },
+        "auto_enqueue_allowed": { "const": false },
+        "protected_action_execution_allowed": { "const": false },
+        "decided_at": { "type": "string", "format": "date-time" },
+        "decision_hash": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "duplicate_probe_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "duplicate_probe_record_id",
+        "idempotency_key_record_id",
+        "idempotency_decision_record_id",
+        "idempotency_key",
+        "attempted_workflow_run_id",
+        "resolved_workflow_run_id",
+        "duplicate_probe_status",
+        "duplicate_detected",
+        "new_run_created",
+        "skipped_duplicate",
+        "protected_action_execution_allowed",
+        "duplicate_probe_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-duplicate-probe-record.v1" },
+        "duplicate_probe_record_id": { "type": "string", "minLength": 1 },
+        "idempotency_key_record_id": { "type": "string", "minLength": 1 },
+        "idempotency_decision_record_id": { "type": "string", "minLength": 1 },
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "source_workflow_queue_record_id": { "type": "string", "minLength": 1 },
+        "attempted_workflow_run_id": { "type": "string", "minLength": 1 },
+        "resolved_workflow_run_id": { "type": "string", "minLength": 1 },
+        "duplicate_probe_status": { "const": "skipped_duplicate" },
+        "duplicate_detected": { "const": true },
+        "new_run_created": { "const": false },
+        "skipped_duplicate": { "const": true },
+        "protected_action_execution_allowed": { "const": false },
+        "probed_at": { "type": "string", "format": "date-time" },
+        "duplicate_probe_hash": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string", "minLength": 1 },
+        "path": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string", "minLength": 1 }
+      },
+      "additionalProperties": true
+    },
+    "validation_error": {
+      "type": "object",
+      "required": ["path", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

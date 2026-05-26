@@ -95,6 +95,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:state-model",
   "workflows:runner",
   "workflows:queue-retry",
+  "workflows:idempotency",
   "contracts:observability",
 ];
 

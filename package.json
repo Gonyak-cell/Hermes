@@ -161,6 +161,7 @@
     "workflows:state-model": "node scripts/workflow-dsl-state-model.mjs",
     "workflows:runner": "node scripts/workflow-state-machine-runner.mjs",
     "workflows:queue-retry": "node scripts/workflow-queue-retry-backoff-contract.mjs",
+    "workflows:idempotency": "node scripts/workflow-idempotency-ledger.mjs",
     "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "policy:surface": "node scripts/policy-operations-surface.mjs",
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",

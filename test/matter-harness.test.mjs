@@ -177,6 +177,7 @@ import { runPackManifestCompatibility } from "../src/pack-manifest-compatibility
 import { runWorkflowDslStateModel } from "../src/workflow-dsl-state-model.mjs";
 import { runWorkflowStateMachineRunner } from "../src/workflow-state-machine-runner.mjs";
 import { runWorkflowQueueRetryBackoffContract } from "../src/workflow-queue-retry-backoff-contract.mjs";
+import { runWorkflowIdempotencyLedger } from "../src/workflow-idempotency-ledger.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1806,6 +1807,7 @@ describe("matter harness", () => {
         workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
         workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
         workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
+        workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -1894,6 +1896,7 @@ describe("matter harness", () => {
         workflowDslStateModelPath: false,
         workflowStateMachineRunnerPath: false,
         workflowQueueRetryBackoffPath: false,
+        workflowIdempotencyLedgerPath: false,
         policyMatrixCatalogPath: false,
         policySnapshotLedgerPath: false,
         policySnapshotBindingLedgerPath: false,
@@ -4188,6 +4191,54 @@ describe("matter harness", () => {
       assert.ok(workflowQueueRetryBackoff.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-queue-retry-backoff", "summary.md"), "utf8"), /Workflow Queue\/Retry\/Backoff Contract/);
 
+      const workflowIdempotencyLedger = await runWorkflowIdempotencyLedger({
+        workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
+        workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        outDir: path.join(outDir, "workflow-idempotency"),
+        runAt: "2026-05-23T06:35:08.455Z",
+      });
+      const workflowIdempotencyLedgerSchema = JSON.parse(await readFile("schemas/workflow-idempotency-ledger.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowIdempotencyLedger, workflowIdempotencyLedgerSchema, {}, "workflow_idempotency_ledger"),
+        [],
+      );
+      assert.equal(workflowIdempotencyLedger.summary.workflow_idempotency_status, "complete");
+      assert.equal(workflowIdempotencyLedger.summary.idempotency_contract_id, "workflow-idempotency-ledger.v1");
+      assert.equal(workflowIdempotencyLedger.summary.source_workflow_queue_retry_backoff_status, "complete");
+      assert.equal(workflowIdempotencyLedger.summary.source_workflow_state_machine_runner_status, "complete");
+      assert.equal(workflowIdempotencyLedger.summary.source_workflow_run_ledger_status, "complete");
+      assert.equal(workflowIdempotencyLedger.summary.idempotency_key_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
+      assert.equal(workflowIdempotencyLedger.summary.source_workflow_queue_record_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
+      assert.equal(workflowIdempotencyLedger.summary.source_runner_plan_count, workflowStateMachineRunner.summary.runner_plan_count);
+      assert.equal(workflowIdempotencyLedger.summary.source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowIdempotencyLedger.summary.unique_idempotency_key_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.duplicate_collision_count, 0);
+      assert.equal(workflowIdempotencyLedger.summary.cross_workflow_key_collision_count, 0);
+      assert.equal(workflowIdempotencyLedger.summary.idempotency_decision_count, workflowIdempotencyLedger.summary.idempotency_key_count * 2);
+      assert.equal(workflowIdempotencyLedger.summary.primary_decision_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.duplicate_decision_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.same_run_resolution_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.skipped_duplicate_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.duplicate_probe_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.duplicate_probe_skipped_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedger.summary.new_run_created_count, 0);
+      assert.equal(workflowIdempotencyLedger.summary.auto_enqueue_allowed_count, 0);
+      assert.equal(workflowIdempotencyLedger.summary.protected_action_executed_count, 0);
+      assert.ok(workflowIdempotencyLedger.summary.held_queue_key_count > 0);
+      assert.ok(workflowIdempotencyLedger.summary.law_firm_key_count > 0);
+      assert.equal(workflowIdempotencyLedger.summary.law_firm_skipped_duplicate_count, workflowIdempotencyLedger.summary.law_firm_key_count);
+      assert.ok(workflowIdempotencyLedger.idempotency_key_records.every((record) => record.canonical_workflow_run_id === record.workflow_run_id && record.key_status === "registered_existing_run"));
+      assert.ok(workflowIdempotencyLedger.idempotency_decision_records
+        .filter((record) => record.idempotency_decision === "same_run")
+        .every((record) => !record.duplicate_detected && !record.new_run_created && !record.skipped_duplicate && record.workflow_run_id === record.canonical_workflow_run_id));
+      assert.ok(workflowIdempotencyLedger.idempotency_decision_records
+        .filter((record) => record.idempotency_decision === "skipped_duplicate")
+        .every((record) => record.duplicate_detected && !record.new_run_created && record.skipped_duplicate && record.request_status === "duplicate_skipped"));
+      assert.ok(workflowIdempotencyLedger.duplicate_probe_records.every((record) => record.duplicate_probe_status === "skipped_duplicate" && record.duplicate_detected && !record.new_run_created && record.skipped_duplicate));
+      assert.ok(workflowIdempotencyLedger.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-idempotency", "summary.md"), "utf8"), /Workflow Idempotency Ledger/);
+
       const retentionArchiveLedger = await runRetentionArchiveLedger({
         appendOnlyEventStorePath: path.join(outDir, "append-only-event-store", "append-only-event-store.json"),
         auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
@@ -5810,6 +5861,7 @@ describe("matter harness", () => {
           workflow_dsl_state_model: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
           workflow_state_machine_runner: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
           workflow_queue_retry_backoff_contract: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
+          workflow_idempotency_ledger: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -5821,8 +5873,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 83);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 83);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 84);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 84);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -5893,6 +5945,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_dsl_state_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_state_machine_runner"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_queue_retry_backoff_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_idempotency_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -5952,6 +6005,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:queue-retry"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:idempotency"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6292,6 +6346,10 @@ describe("matter harness", () => {
       assert.equal(workflowQueueRetryBackoffCheckpoint?.acceptance_profile, "workflow_queue_retry_backoff_gate");
       assert.equal(workflowQueueRetryBackoffCheckpoint?.status, "passed");
       assert.equal(workflowQueueRetryBackoffCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowIdempotencyCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-idempotency-ledger");
+      assert.equal(workflowIdempotencyCheckpoint?.acceptance_profile, "workflow_idempotency_gate");
+      assert.equal(workflowIdempotencyCheckpoint?.status, "passed");
+      assert.equal(workflowIdempotencyCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -7774,6 +7832,30 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_queue_retry_backoff_auto_dequeue_allowed_count, 0);
       assert.equal(dashboard.summary.workflow_queue_retry_backoff_protected_action_executed_count, 0);
       assert.equal(dashboard.summary.workflow_queue_retry_backoff_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_idempotency_status, "complete");
+      assert.equal(dashboard.summary.workflow_idempotency_contract_id, "workflow-idempotency-ledger.v1");
+      assert.equal(dashboard.summary.workflow_idempotency_source_workflow_queue_retry_backoff_status, "complete");
+      assert.equal(dashboard.summary.workflow_idempotency_source_workflow_state_machine_runner_status, "complete");
+      assert.equal(dashboard.summary.workflow_idempotency_source_workflow_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_idempotency_source_workflow_queue_record_count, workflowIdempotencyLedger.summary.source_workflow_queue_record_count);
+      assert.equal(dashboard.summary.workflow_idempotency_source_runner_plan_count, workflowIdempotencyLedger.summary.source_runner_plan_count);
+      assert.equal(dashboard.summary.workflow_idempotency_source_workflow_run_record_count, workflowIdempotencyLedger.summary.source_workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_idempotency_key_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(dashboard.summary.workflow_idempotency_unique_key_count, workflowIdempotencyLedger.summary.unique_idempotency_key_count);
+      assert.equal(dashboard.summary.workflow_idempotency_duplicate_collision_count, 0);
+      assert.equal(dashboard.summary.workflow_idempotency_cross_workflow_key_collision_count, 0);
+      assert.equal(dashboard.summary.workflow_idempotency_decision_count, workflowIdempotencyLedger.summary.idempotency_decision_count);
+      assert.equal(dashboard.summary.workflow_idempotency_same_run_resolution_count, workflowIdempotencyLedger.summary.same_run_resolution_count);
+      assert.equal(dashboard.summary.workflow_idempotency_skipped_duplicate_count, workflowIdempotencyLedger.summary.skipped_duplicate_count);
+      assert.equal(dashboard.summary.workflow_idempotency_duplicate_probe_count, workflowIdempotencyLedger.summary.duplicate_probe_count);
+      assert.equal(dashboard.summary.workflow_idempotency_duplicate_probe_skipped_count, workflowIdempotencyLedger.summary.duplicate_probe_skipped_count);
+      assert.equal(dashboard.summary.workflow_idempotency_new_run_created_count, 0);
+      assert.equal(dashboard.summary.workflow_idempotency_held_queue_key_count, workflowIdempotencyLedger.summary.held_queue_key_count);
+      assert.equal(dashboard.summary.workflow_idempotency_law_firm_key_count, workflowIdempotencyLedger.summary.law_firm_key_count);
+      assert.equal(dashboard.summary.workflow_idempotency_law_firm_skipped_duplicate_count, workflowIdempotencyLedger.summary.law_firm_skipped_duplicate_count);
+      assert.equal(dashboard.summary.workflow_idempotency_auto_enqueue_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_idempotency_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_idempotency_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8402,6 +8484,11 @@ describe("matter harness", () => {
       assert.equal(workflowQueueRetryBackoffStage?.status, "passed");
       assert.equal(workflowQueueRetryBackoffStage?.metrics.workflow_queue_record_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
       assert.equal(workflowQueueRetryBackoffStage?.metrics.backoff_policy_count, workflowQueueRetryBackoff.summary.backoff_policy_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_idempotency_ledger"));
+      const workflowIdempotencyLedgerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_idempotency_ledger");
+      assert.equal(workflowIdempotencyLedgerStage?.status, "passed");
+      assert.equal(workflowIdempotencyLedgerStage?.metrics.idempotency_key_count, workflowIdempotencyLedger.summary.idempotency_key_count);
+      assert.equal(workflowIdempotencyLedgerStage?.metrics.skipped_duplicate_count, workflowIdempotencyLedger.summary.skipped_duplicate_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9322,6 +9409,26 @@ describe("matter harness", () => {
       const workflowQueueValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-queue-validations?status=passed", apiOptions)).body);
       assert.equal(workflowQueueValidations.collection, "workflow_queue_validations");
       assert.equal(workflowQueueValidations.count, workflowQueueRetryBackoff.summary.validation_item_count);
+
+      const workflowIdempotencyLedgers = JSON.parse((await buildReviewApiResponse("/api/workflow-idempotency-ledgers?workflow_idempotency_status=complete", apiOptions)).body);
+      assert.equal(workflowIdempotencyLedgers.collection, "workflow_idempotency_ledgers");
+      assert.equal(workflowIdempotencyLedgers.count, 1);
+
+      const workflowIdempotencyKeys = JSON.parse((await buildReviewApiResponse("/api/workflow-idempotency-keys?key_status=registered_existing_run", apiOptions)).body);
+      assert.equal(workflowIdempotencyKeys.collection, "workflow_idempotency_keys");
+      assert.equal(workflowIdempotencyKeys.count, workflowIdempotencyLedger.summary.idempotency_key_count);
+
+      const workflowIdempotencyDecisions = JSON.parse((await buildReviewApiResponse("/api/workflow-idempotency-decisions?idempotency_decision=skipped_duplicate", apiOptions)).body);
+      assert.equal(workflowIdempotencyDecisions.collection, "workflow_idempotency_decisions");
+      assert.equal(workflowIdempotencyDecisions.count, workflowIdempotencyLedger.summary.skipped_duplicate_count);
+
+      const workflowDuplicateProbes = JSON.parse((await buildReviewApiResponse("/api/workflow-duplicate-probes?duplicate_probe_status=skipped_duplicate", apiOptions)).body);
+      assert.equal(workflowDuplicateProbes.collection, "workflow_duplicate_probes");
+      assert.equal(workflowDuplicateProbes.count, workflowIdempotencyLedger.summary.duplicate_probe_count);
+
+      const workflowIdempotencyValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-idempotency-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowIdempotencyValidations.collection, "workflow_idempotency_validations");
+      assert.equal(workflowIdempotencyValidations.count, workflowIdempotencyLedger.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

@@ -960,6 +960,26 @@ try {
   assert.equal(workflowQueueValidations.collection, "workflow_queue_validations");
   assert.ok(workflowQueueValidations.count <= 5);
 
+  const workflowIdempotencyLedgers = await fetchJson(`${url}/api/workflow-idempotency-ledgers?workflow_idempotency_status=complete&limit=1`);
+  assert.equal(workflowIdempotencyLedgers.collection, "workflow_idempotency_ledgers");
+  assert.ok(workflowIdempotencyLedgers.count <= 1);
+
+  const workflowIdempotencyKeys = await fetchJson(`${url}/api/workflow-idempotency-keys?key_status=registered_existing_run&limit=5`);
+  assert.equal(workflowIdempotencyKeys.collection, "workflow_idempotency_keys");
+  assert.ok(workflowIdempotencyKeys.count <= 5);
+
+  const workflowIdempotencyDecisions = await fetchJson(`${url}/api/workflow-idempotency-decisions?idempotency_decision=skipped_duplicate&limit=5`);
+  assert.equal(workflowIdempotencyDecisions.collection, "workflow_idempotency_decisions");
+  assert.ok(workflowIdempotencyDecisions.count <= 5);
+
+  const workflowDuplicateProbes = await fetchJson(`${url}/api/workflow-duplicate-probes?duplicate_probe_status=skipped_duplicate&limit=5`);
+  assert.equal(workflowDuplicateProbes.collection, "workflow_duplicate_probes");
+  assert.ok(workflowDuplicateProbes.count <= 5);
+
+  const workflowIdempotencyValidations = await fetchJson(`${url}/api/workflow-idempotency-validations?status=passed&limit=5`);
+  assert.equal(workflowIdempotencyValidations.collection, "workflow_idempotency_validations");
+  assert.ok(workflowIdempotencyValidations.count <= 5);
+
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");
   assert.ok(runtimeAgentRunContractFreezes.count <= 1);

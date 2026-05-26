@@ -5337,6 +5337,32 @@ Phase 181은 Phase 180의 workflow runner plan과 Phase 171의 Error/Retry Ledge
 - Golden fixture 수가 83개로 증가하고 workflow queue/retry/backoff artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:queue-retry -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 182 - Workflow Idempotency Key Manager
+
+Phase 182는 Phase 181의 held workflow queue record마다 deterministic idempotency key를 부여하고, 동일 요청이 다시 들어올 때 새 run을 만들지 않고 기존 run으로 해소하거나 skipped duplicate로 기록하는 idempotency ledger를 추가했다. 목적은 retry/resume 계층으로 넘어가기 전에 workflow 실행 중복을 same-run 또는 skip 결정으로 고정하고, law-firm human-review queue가 자동 enqueue/protected action으로 새지 않게 하는 것이다.
+
+구현 내용:
+
+- `src/workflow-idempotency-ledger.mjs`와 `scripts/workflow-idempotency-ledger.mjs`를 추가해 `artifacts/workflow-idempotency/latest/workflow-idempotency-ledger.json` 산출물을 생성함
+- `idempotency-key-records.json`, `idempotency-decision-records.json`, `duplicate-probe-records.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-idempotency-ledger.schema.json`으로 idempotency contract, key record, decision record, duplicate probe record의 최소 계약을 고정함
+- Review Dashboard에 `workflow_idempotency_ledger` source/stage/summary metric을 추가하고 key/decision/probe count, collision count, duplicate skip, 새 run 생성 0건을 노출함
+- Review API에 `/api/workflow-idempotency-ledgers`, `/api/workflow-idempotency-keys`, `/api/workflow-idempotency-decisions`, `/api/workflow-duplicate-probes`, `/api/workflow-idempotency-validations` route를 추가함
+- Control Plane Loop에 `workflow_idempotency_ledger` step을 추가하고 Goal Checkpoint에 `workflow_idempotency_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow idempotency ledger artifact와 `workflows:idempotency` script를 포함함
+
+완료 기준:
+
+- Workflow idempotency ledger가 validation error 없이 `complete` 상태가 됨
+- Workflow queue record마다 idempotency key가 정확히 1개 생성되고 unique key count가 key count와 일치함
+- key count가 Phase 181 queue record count, Phase 180 runner plan count, Workflow Run Ledger run record count와 모두 일치함
+- primary request는 기존 run으로 same-run 해소되고 duplicate probe는 skipped duplicate로 기록되며 새 workflow run 생성 count가 0으로 유지됨
+- law-firm queue key는 held 상태를 보존하고 law-firm duplicate probe는 모두 skipped duplicate로 처리됨
+- auto enqueue, protected action execution, cross-workflow key collision count가 모두 0임
+- Review API smoke가 idempotency ledger, key, decision, duplicate probe, validation route를 모두 조회함
+- Golden fixture 수가 84개로 증가하고 workflow idempotency ledger artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:idempotency -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5345,9 +5371,9 @@ Phase 181은 Phase 180의 workflow runner plan과 Phase 171의 Error/Retry Ledge
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 181이다.
+- 현재 완료 기준점은 Phase 182이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P182-P312, 총 131개다.
+- 남은 계획 슬롯은 P183-P312, 총 130개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

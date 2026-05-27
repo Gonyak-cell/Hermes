@@ -59,6 +59,7 @@
     "observability:errors": "node scripts/error-retry-ledger.mjs",
     "observability:freeze": "node scripts/observability-freeze.mjs",
     "capabilities:manifest-v2": "node scripts/capability-manifest-v2.mjs",
+    "capabilities:registry-api": "node scripts/capability-registry-api.mjs",
     "model:routing": "node scripts/model-routing-ledger.mjs",
     "control-plane:goal-checkpoint": "node scripts/control-plane-goal-checkpoint.mjs",
     "control-plane:audit-trail": "node scripts/control-plane-audit-trail.mjs",

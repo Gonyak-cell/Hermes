@@ -112,6 +112,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_in_run_gate_framework", "Workflow in-run gate framework", "workflow", "workflow_in_run_gate_framework", "control-plane-workflow-in-run-gate-framework", { acceptance_profile: "workflow_in_run_gate_framework_gate" }),
   sourceItem("workflow_post_run_gate_framework", "Workflow post-run gate framework", "workflow", "workflow_post_run_gate_framework", "control-plane-workflow-post-run-gate-framework", { acceptance_profile: "workflow_post_run_gate_framework_gate" }),
   sourceItem("gate_result_aggregator", "Gate result aggregator", "workflow", "gate_result_aggregator", "control-plane-gate-result-aggregator", { acceptance_profile: "gate_result_aggregator_gate" }),
+  sourceItem("capability_registry_api", "Capability registry API and Desktop Companion read-only surface", "api", "capability_registry_api", "control-plane-capability-registry-api", { acceptance_profile: "capability_registry_api_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -485,6 +486,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_in_run_gate_framework_gate",
     "workflow_post_run_gate_framework_gate",
     "gate_result_aggregator_gate",
+    "capability_registry_api_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1245,6 +1247,34 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.final_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Gate result aggregator normalizes pre/in/post-run gates and GateResult v2 rows into pass, warn, and manual states, projecting workflow gate status without authorizing execution, delivery, or final action.");
+    }
+  }
+
+  if (item.acceptance_profile === "capability_registry_api_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.mutation_route_count ?? 0)
+      + (metrics.protected_mutation_request_route_count ?? 0)
+      + (metrics.secret_material_route_count ?? 0)
+      + (metrics.installer_or_gateway_route_count ?? 0);
+    if (
+      errors === 0
+      && metrics.capability_registry_api_status === "complete"
+      && metrics.capability_registry_api_contract_id === "capability-registry-api.v1"
+      && metrics.desktop_companion_readiness_status === "read_only_ready"
+      && metrics.source_domain_pack_registry_status === "passed"
+      && metrics.source_capability_manifest_v2_status === "complete"
+      && metrics.source_pack_manifest_compatibility_status === "complete"
+      && metrics.source_gate_result_aggregator_status === "complete"
+      && (metrics.source_pack_count ?? 0) > 0
+      && (metrics.pack_api_card_count ?? 0) === (metrics.source_pack_count ?? 0)
+      && (metrics.capability_api_card_count ?? 0) === (metrics.source_capability_manifest_count ?? 0)
+      && (metrics.capability_version_api_card_count ?? 0) === (metrics.source_capability_manifest_count ?? 0)
+      && (metrics.gate_requirement_api_card_count ?? 0) === (metrics.source_gate_requirement_count ?? 0)
+      && (metrics.desktop_companion_route_group_count ?? 0) > 0
+      && (metrics.desktop_companion_route_count ?? 0) > 0
+      && (metrics.read_only_route_count ?? 0) === (metrics.desktop_companion_route_count ?? 0)
+    ) {
+      return passedWithOperationalGate(stage, "Capability registry API exposes pack, capability, version, and gate cards plus Desktop Companion route groups as a read-only operator surface, with no mutation, secret, installer, gateway, SSH, cron, or auto-update control.");
     }
   }
 

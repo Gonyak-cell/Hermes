@@ -186,6 +186,7 @@ import { runWorkflowPreRunGateFramework } from "../src/workflow-pre-run-gate-fra
 import { runWorkflowInRunGateFramework } from "../src/workflow-in-run-gate-framework.mjs";
 import { runWorkflowPostRunGateFramework } from "../src/workflow-post-run-gate-framework.mjs";
 import { runGateResultAggregator } from "../src/gate-result-aggregator.mjs";
+import { runCapabilityRegistryApi } from "../src/capability-registry-api.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1824,6 +1825,7 @@ describe("matter harness", () => {
         workflowInRunGateFrameworkPath: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
         workflowPostRunGateFrameworkPath: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
         gateResultAggregatorPath: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -6125,6 +6127,45 @@ describe("matter harness", () => {
       assert.ok(gateResultAggregator.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "gate-result-aggregator", "summary.md"), "utf8"), /Gate Result Aggregator/);
 
+      const capabilityRegistryApi = await runCapabilityRegistryApi({
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
+        packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        gateResultAggregatorPath: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
+        outDir: path.join(outDir, "capability-registry-api"),
+        runAt: "2026-05-23T06:37:08.759Z",
+      });
+      const capabilityRegistryApiSchema = JSON.parse(await readFile("schemas/capability-registry-api.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(capabilityRegistryApi, capabilityRegistryApiSchema, {}, "capability_registry_api"),
+        [],
+      );
+      assert.equal(capabilityRegistryApi.summary.capability_registry_api_status, "complete");
+      assert.equal(capabilityRegistryApi.summary.capability_registry_api_contract_id, "capability-registry-api.v1");
+      assert.equal(capabilityRegistryApi.summary.desktop_companion_readiness_status, "read_only_ready");
+      assert.equal(capabilityRegistryApi.summary.source_domain_pack_registry_status, "passed");
+      assert.equal(capabilityRegistryApi.summary.source_capability_manifest_v2_status, "complete");
+      assert.equal(capabilityRegistryApi.summary.source_pack_manifest_compatibility_status, "complete");
+      assert.equal(capabilityRegistryApi.summary.source_gate_result_aggregator_status, "complete");
+      assert.equal(capabilityRegistryApi.summary.pack_api_card_count, domainPackRegistry.summary.pack_count);
+      assert.equal(capabilityRegistryApi.summary.capability_api_card_count, capabilityManifestV2.summary.capability_manifest_count);
+      assert.equal(capabilityRegistryApi.summary.capability_version_api_card_count, capabilityManifestV2.summary.capability_manifest_count);
+      assert.equal(capabilityRegistryApi.summary.gate_requirement_api_card_count, capabilityManifestV2.summary.gate_requirement_count);
+      assert.ok(capabilityRegistryApi.summary.desktop_companion_route_group_count >= 8);
+      assert.ok(capabilityRegistryApi.summary.desktop_companion_route_count > 0);
+      assert.equal(capabilityRegistryApi.summary.read_only_route_count, capabilityRegistryApi.summary.desktop_companion_route_count);
+      assert.equal(capabilityRegistryApi.summary.mutation_route_count, 0);
+      assert.equal(capabilityRegistryApi.summary.protected_mutation_request_route_count, 0);
+      assert.equal(capabilityRegistryApi.summary.secret_material_route_count, 0);
+      assert.equal(capabilityRegistryApi.summary.installer_or_gateway_route_count, 0);
+      assert.equal(capabilityRegistryApi.summary.validation_error_count, 0);
+      assert.ok(capabilityRegistryApi.pack_api_cards.every((card) => card.read_only === true && card.mutation_allowed === false));
+      assert.ok(capabilityRegistryApi.capability_api_cards.every((card) => card.read_only === true && card.mutation_allowed === false));
+      assert.ok(capabilityRegistryApi.capability_version_api_cards.every((card) => card.read_only === true && card.mutation_allowed === false));
+      assert.ok(capabilityRegistryApi.gate_requirement_api_cards.every((card) => card.read_only === true && card.mutation_allowed === false));
+      assert.ok(capabilityRegistryApi.desktop_companion_route_groups.every((group) => group.read_only_route_count === group.route_count && group.mutation_route_count === 0 && group.secret_material_route_count === 0 && group.installer_or_gateway_route_count === 0));
+      assert.match(await readFile(path.join(outDir, "capability-registry-api", "summary.md"), "utf8"), /Capability Registry API/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6279,6 +6320,7 @@ describe("matter harness", () => {
           workflow_in_run_gate_framework: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
           workflow_post_run_gate_framework: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
           gate_result_aggregator: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
+          capability_registry_api: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -6290,8 +6332,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 92);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 92);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 93);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 93);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6371,6 +6413,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_in_run_gate_framework"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_post_run_gate_framework"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "gate_result_aggregator"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "capability_registry_api"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6439,6 +6482,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:in-run-gates"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:post-run-gates"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:gate-results"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:registry-api"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6815,6 +6859,10 @@ describe("matter harness", () => {
       assert.equal(gateResultAggregatorCheckpoint?.acceptance_profile, "gate_result_aggregator_gate");
       assert.equal(gateResultAggregatorCheckpoint?.status, "passed");
       assert.equal(gateResultAggregatorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const capabilityRegistryApiCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-capability-registry-api");
+      assert.equal(capabilityRegistryApiCheckpoint?.acceptance_profile, "capability_registry_api_gate");
+      assert.equal(capabilityRegistryApiCheckpoint?.status, "passed");
+      assert.equal(capabilityRegistryApiCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -8558,6 +8606,25 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.gate_result_aggregator_delivery_ready_count, 0);
       assert.equal(dashboard.summary.gate_result_aggregator_final_action_executed_count, 0);
       assert.equal(dashboard.summary.gate_result_aggregator_validation_error_count, 0);
+      assert.equal(dashboard.summary.capability_registry_api_status, "complete");
+      assert.equal(dashboard.summary.capability_registry_api_contract_id, "capability-registry-api.v1");
+      assert.equal(dashboard.summary.capability_registry_api_desktop_companion_readiness_status, "read_only_ready");
+      assert.equal(dashboard.summary.capability_registry_api_source_domain_pack_registry_status, "passed");
+      assert.equal(dashboard.summary.capability_registry_api_source_capability_manifest_v2_status, "complete");
+      assert.equal(dashboard.summary.capability_registry_api_source_pack_manifest_compatibility_status, "complete");
+      assert.equal(dashboard.summary.capability_registry_api_source_gate_result_aggregator_status, "complete");
+      assert.equal(dashboard.summary.capability_registry_api_pack_api_card_count, capabilityRegistryApi.summary.pack_api_card_count);
+      assert.equal(dashboard.summary.capability_registry_api_capability_api_card_count, capabilityRegistryApi.summary.capability_api_card_count);
+      assert.equal(dashboard.summary.capability_registry_api_capability_version_api_card_count, capabilityRegistryApi.summary.capability_version_api_card_count);
+      assert.equal(dashboard.summary.capability_registry_api_gate_requirement_api_card_count, capabilityRegistryApi.summary.gate_requirement_api_card_count);
+      assert.equal(dashboard.summary.capability_registry_api_desktop_companion_route_group_count, capabilityRegistryApi.summary.desktop_companion_route_group_count);
+      assert.equal(dashboard.summary.capability_registry_api_desktop_companion_route_count, capabilityRegistryApi.summary.desktop_companion_route_count);
+      assert.equal(dashboard.summary.capability_registry_api_read_only_route_count, capabilityRegistryApi.summary.desktop_companion_route_count);
+      assert.equal(dashboard.summary.capability_registry_api_mutation_route_count, 0);
+      assert.equal(dashboard.summary.capability_registry_api_protected_mutation_request_route_count, 0);
+      assert.equal(dashboard.summary.capability_registry_api_secret_material_route_count, 0);
+      assert.equal(dashboard.summary.capability_registry_api_installer_or_gateway_route_count, 0);
+      assert.equal(dashboard.summary.capability_registry_api_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -9258,6 +9325,15 @@ describe("matter harness", () => {
       assert.equal(gateResultAggregatorStage?.metrics.manual_review_required_workflow_count, gateResultAggregator.summary.manual_review_required_workflow_count);
       assert.equal(gateResultAggregatorStage?.metrics.failed_gate_count, 0);
       assert.equal(gateResultAggregatorStage?.metrics.final_action_executed_count, 0);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_registry_api"));
+      const capabilityRegistryApiStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "capability_registry_api");
+      assert.equal(capabilityRegistryApiStage?.status, "passed");
+      assert.equal(capabilityRegistryApiStage?.metrics.capability_api_card_count, capabilityRegistryApi.summary.capability_api_card_count);
+      assert.equal(capabilityRegistryApiStage?.metrics.desktop_companion_route_count, capabilityRegistryApi.summary.desktop_companion_route_count);
+      assert.equal(capabilityRegistryApiStage?.metrics.read_only_route_count, capabilityRegistryApi.summary.desktop_companion_route_count);
+      assert.equal(capabilityRegistryApiStage?.metrics.mutation_route_count, 0);
+      assert.equal(capabilityRegistryApiStage?.metrics.secret_material_route_count, 0);
+      assert.equal(capabilityRegistryApiStage?.metrics.installer_or_gateway_route_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9650,6 +9726,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-aggregate-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-statuses"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-result-aggregate-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capability-registry-apis"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capability-registry-packs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capability-registry-capabilities"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capability-registry-versions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capability-registry-gates"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-companion-route-groups"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/capability-registry-api-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -10150,6 +10233,35 @@ describe("matter harness", () => {
       const packManifestCompatibilityValidations = JSON.parse((await buildReviewApiResponse("/api/pack-manifest-compatibility-validations?status=passed", apiOptions)).body);
       assert.equal(packManifestCompatibilityValidations.collection, "pack_manifest_compatibility_validations");
       assert.equal(packManifestCompatibilityValidations.count, packManifestCompatibility.summary.validation_item_count);
+
+      const capabilityRegistryApis = JSON.parse((await buildReviewApiResponse("/api/capability-registry-apis?capability_registry_api_status=complete", apiOptions)).body);
+      assert.equal(capabilityRegistryApis.collection, "capability_registry_apis");
+      assert.equal(capabilityRegistryApis.count, 1);
+
+      const capabilityRegistryPacks = JSON.parse((await buildReviewApiResponse("/api/capability-registry-packs?pack_id=law-firm", apiOptions)).body);
+      assert.equal(capabilityRegistryPacks.collection, "pack_api_cards");
+      assert.equal(capabilityRegistryPacks.count, 1);
+
+      const capabilityRegistryCapabilities = JSON.parse((await buildReviewApiResponse("/api/capability-registry-capabilities?domain_pack=law-firm", apiOptions)).body);
+      assert.equal(capabilityRegistryCapabilities.collection, "capability_api_cards");
+      assert.equal(capabilityRegistryCapabilities.count, 2);
+
+      const capabilityRegistryVersions = JSON.parse((await buildReviewApiResponse("/api/capability-registry-versions?version_status=complete", apiOptions)).body);
+      assert.equal(capabilityRegistryVersions.collection, "capability_version_api_cards");
+      assert.equal(capabilityRegistryVersions.count, capabilityRegistryApi.summary.capability_version_api_card_count);
+
+      const capabilityRegistryGates = JSON.parse((await buildReviewApiResponse("/api/capability-registry-gates?gate_id=human_approval_gate", apiOptions)).body);
+      assert.equal(capabilityRegistryGates.collection, "gate_requirement_api_cards");
+      assert.ok(capabilityRegistryGates.count >= 1);
+
+      const desktopCompanionRouteGroups = JSON.parse((await buildReviewApiResponse("/api/desktop-companion-route-groups?desktop_surface=approvals", apiOptions)).body);
+      assert.equal(desktopCompanionRouteGroups.collection, "desktop_companion_route_groups");
+      assert.equal(desktopCompanionRouteGroups.count, 1);
+      assert.equal(desktopCompanionRouteGroups.items[0].mutation_route_count, 0);
+
+      const capabilityRegistryApiValidations = JSON.parse((await buildReviewApiResponse("/api/capability-registry-api-validations?status=passed", apiOptions)).body);
+      assert.equal(capabilityRegistryApiValidations.collection, "capability_registry_api_validations");
+      assert.equal(capabilityRegistryApiValidations.count, capabilityRegistryApi.summary.validation_item_count);
 
       const workflowDslStateModels = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete", apiOptions)).body);
       assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");

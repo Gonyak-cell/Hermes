@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 190이다.
-- 남은 planned slot은 P191-P312, 총 122개다.
+- 현재 완료 기준점은 Phase 191이다.
+- 남은 planned slot은 P192-P312, 총 121개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.
@@ -141,8 +141,8 @@
 | P188 | in-run gate framework 구현 | in-run gate runner | Promoted to Phase 188; tool invocation마다 dangerous command, sensitive access, timeout in-run gate가 생성되고 dangerous/sensitive target은 block record로 전환되며 execution/external transfer/protected action 0건 유지 |
 | P189 | post-run gate framework 구현 | post-run gate runner | Promoted to Phase 189; agent run마다 evidence, citation, test, approval, delivery post-run gate가 생성되고 test는 통과, evidence/citation/approval/delivery는 human review hold로 보존되며 client-facing/delivery/final action/protected action 0건 유지 |
 | P190 | gate result aggregator 구현 | gate aggregate artifact | Promoted to Phase 190; pre/in/post-run gate와 GateResult v2가 pass/warn/manual aggregate로 정규화되고 workflow gate status가 manual_review_required로 합쳐지며 fail/execution/delivery/final action 0건 유지 |
-| P191 | capability registry API 구현 | capability API routes | pack/capability/version/gate requirement 조회 가능 |
-| P192 | workflow run dashboard 구현 | workflow dashboard panel | queue, state, retry, gate, output 상태 조회 가능 |
+| P191 | capability registry API 구현 | capability API routes, Desktop Companion route groups | Promoted to Phase 191; pack/capability/version/gate cards와 Desktop Companion read-only route group이 생성되고 mutation/secret/installer/gateway route 0건 유지 |
+| P192 | workflow run dashboard 구현 | workflow dashboard panel | queue, state, retry, gate, output 상태를 Desktop Companion이 읽을 수 있는 panel/state summary로 조회 가능 |
 | P193 | workflow golden cases 구축 | workflow fixture suite | law/dev/document 대표 workflow가 state machine을 통과 |
 | P194 | Workflow/Gate freeze | workflow gate freeze report | capability->workflow->gate->audit vertical slice 통과 |
 
@@ -150,8 +150,8 @@
 
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
-| P195 | runtime adapter interface v2 구현 | runtime adapter contract | input, output, artifact, log, risk, verification 필드 고정 |
-| P196 | Hermes runtime adapter 구현 | hermes adapter | Hermes 호출 결과가 agent run ledger로 수집 |
+| P195 | runtime adapter interface v2 구현 | runtime adapter contract, operator surface policy | input, output, artifact, log, risk, verification 필드와 desktop_surface_policy/read_only/protected_mutation_request 경계 고정 |
+| P196 | Hermes runtime adapter 구현 | hermes adapter | Hermes 호출 결과가 agent run ledger로 수집되고 Hermes Desktop은 runtime/source of truth가 아닌 companion surface로 분리 |
 | P197 | Claude Code adapter contract 구현 | claude-code adapter stub/contract | Claude Code lane이 직접 신뢰되지 않고 diff/gate 대상으로 처리 |
 | P198 | Codex adapter contract 구현 | codex adapter | Codex output이 untrusted patch로 저장되고 검증 대기 |
 | P199 | local script adapter 구현 | local script adapter | deterministic extractor/renderer가 runtime contract로 실행 |
@@ -159,14 +159,14 @@
 | P201 | worktree manager v2 구현 | worktree manager | agent별 branch/worktree 생성, status, cleanup이 추적 |
 | P202 | sandbox policy model 구현 | sandbox policy schema | local/docker/ssh/cloud 실행 가능 범위가 policy로 결정 |
 | P203 | Docker/local backend selector 구현 | backend selector | 위험도와 data classification에 따라 backend가 선택 |
-| P204 | secrets broker contract 구현 | secrets access interface | agent가 secret 원문에 직접 접근하지 않음 |
+| P204 | secrets broker contract 구현 | secrets access interface | agent와 Desktop surface가 secret 원문/provider key에 직접 접근하지 않고 handle/audit만 사용 |
 | P205 | runtime artifact capture 구현 | artifact capture ledger | 생성 파일, diff, stdout/stderr, metadata가 output artifact와 연결 |
 | P206 | runtime log normalization 구현 | runtime log schema | runtime별 log가 공통 형태로 검색 가능 |
 | P207 | runtime timeout/heartbeat 구현 | runtime heartbeat ledger | 장기 실행 상태와 timeout이 run ledger에 남음 |
 | P208 | runtime cancel/resume 구현 | runtime control commands | 취소/재개 요청과 결과가 audit에 기록 |
 | P209 | protected file gate 구현 | protected file gate | secrets/config/migration/prod 파일 변경이 승인 전 차단 |
 | P210 | canonical test runner 구현 | canonical test artifact | agent self-report와 별도로 harness가 test를 재실행 |
-| P211 | runtime API/dashboard 구현 | runtime API routes, dashboard panel | adapter, worktree, logs, artifacts, test result 조회 가능 |
+| P211 | runtime API/dashboard 구현 | runtime API routes, dashboard panel | adapter, worktree, logs, artifacts, heartbeat/cancel/request 상태를 Desktop 소비용 read-only route로 조회 가능 |
 | P212 | Runtime freeze | runtime freeze report | Hermes/Codex/local script slice가 adapter/gate/ledger 통과 |
 
 ## P213-P230 Personal Dev Domain Pack
@@ -272,29 +272,29 @@
 
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
-| P287 | API route inventory 정리 | API inventory | core, review, evidence, policy, runtime route가 목록화 |
-| P288 | review dashboard information architecture 정리 | dashboard IA doc | dashboard navigation이 stage/actor/matter 기준으로 정리 |
-| P289 | approval queue UI 구현 | approval queue panel | pending approval, required actor, target artifact 조회 가능 |
+| P287 | API route inventory 정리 | API inventory | core, review, evidence, policy, runtime, desktop_companion route group이 목록화 |
+| P288 | review dashboard information architecture 정리 | dashboard IA doc | dashboard navigation이 Overview, Domain Packs, Capabilities, Runs, Approvals, Evidence, Policies, Cost, Diagnostics 기준으로 정리 |
+| P289 | approval queue UI 구현 | approval queue panel | pending approval, required actor, target artifact 조회와 receipt draft/protected request preview 가능 |
 | P290 | evidence viewer UI 구현 | evidence viewer | evidence item, source span, citation, coverage 확인 |
 | P291 | source span inspector 구현 | source span inspector | 원문 위치, normalized text, extracted fact를 비교 |
-| P292 | run ledger viewer 구현 | run ledger panel | workflow/agent/tool run과 logs/artifacts 조회 |
+| P292 | run ledger viewer 구현 | run ledger panel | workflow/agent/tool run과 logs/artifacts를 Desktop session/progress/history 관점으로 조회 |
 | P293 | matter cockpit UI 구현 | matter cockpit | profile, timeline, tasks, docs, evidence, approvals 통합 |
 | P294 | policy violation queue 구현 | policy violation panel | model/tool/access/output violation이 actor action으로 표시 |
-| P295 | cost/observability dashboard 구현 | cost observability panel | token, cost, latency, error, retry trend 표시 |
-| P296 | Dashboard/API freeze | dashboard API freeze report | dashboard build, API smoke, route fixture가 통과 |
+| P295 | cost/observability dashboard 구현 | cost observability panel | token, cost, latency, error, retry trend와 provider/runtime rollup 표시 |
+| P296 | Dashboard/API freeze | dashboard API freeze report, Desktop-ready API contract | dashboard build, API smoke, route fixture와 Desktop-ready API contract가 통과 |
 
 ## P297-P304 Security, Compliance, Performance Hardening
 
 | Slot | 목표 | 주요 산출물 | 완료 기준 |
 | --- | --- | --- | --- |
-| P297 | threat model refresh | threat model doc | prompt injection, data leak, over-agency, insecure tool 위험이 추적 |
+| P297 | threat model refresh | threat model doc | prompt injection, data leak, over-agency, insecure tool, Desktop installer/auto-update/SSH/cron/gateway/key 위험이 추적 |
 | P298 | prompt injection test suite 구현 | injection test fixtures | 외부 문서 지시문이 instruction으로 승격되지 않음 |
-| P299 | external model policy audit 구현 | external model audit report | classification별 provider 전송 여부가 감사 가능 |
-| P300 | secrets scan gate 구현 | secrets scan result | credential/token/env leakage가 gate fail로 처리 |
+| P299 | external model policy audit 구현 | external model audit report | classification별 provider 전송 여부와 Desktop provider/model 설정이 policy snapshot과 대조 가능 |
+| P300 | secrets scan gate 구현 | secrets scan result | credential/token/env/Desktop config leakage가 gate fail로 처리 |
 | P301 | retention/deletion policy 구현 | retention policy ledger | artifact/resource/audit 보존기간과 삭제 보류가 기록 |
 | P302 | access review report 구현 | access review report | tenant/matter/user별 접근권한 검토가 가능 |
 | P303 | performance/cost budget 구현 | performance budget report | batch, workflow, runtime별 시간/비용 상한이 검증 |
-| P304 | backup/restore drill 구현 | backup restore report | DB/object/artifact 복구 절차가 dry run으로 검증 |
+| P304 | backup/restore drill 구현 | backup restore report | DB/object/artifact/event/audit 복구 절차가 dry run으로 검증되고 Desktop export/import는 source of truth가 아님을 고정 |
 
 ## P305-P312 End-to-End Acceptance, Deployment, v1.0 Freeze
 
@@ -304,7 +304,7 @@
 | P306 | personal-dev E2E scenario 실행 | personal-dev E2E report | issue->plan->worktree->diff->test->PR draft->audit 통과 |
 | P307 | creative-document E2E scenario 실행 | creative-document E2E report | template->render->layout->approval->output artifact 통과 |
 | P308 | connector/resource expansion E2E 실행 | ingestion E2E report | connector->backfill->quarantine->evidence/dashboard 통과 |
-| P309 | deployment runbook 작성 | deployment runbook | local/dev/prod-like 실행과 rollback 절차 문서화 |
-| P310 | operator handbook 작성 | operator handbook | 사람이 approval, receipt, policy violation, recovery를 처리 가능 |
-| P311 | v1.0 release candidate 검증 | release candidate report | validate/test/control-plane/API/dashboard/E2E matrix 통과 |
-| P312 | Hermes Harness v1.0 freeze | v1.0 freeze note, tag checklist | 모든 planned slot이 실제 phase로 승격되고 release gate 통과 |
+| P309 | deployment runbook 작성 | deployment runbook | local/dev/prod-like 실행, optional Desktop Companion deployment, rollback 절차 문서화 |
+| P310 | operator handbook 작성 | operator handbook | 사람이 Desktop 화면 기준으로 approval, receipt, policy violation, recovery를 처리 가능 |
+| P311 | v1.0 release candidate 검증 | release candidate report | validate/test/control-plane/API/dashboard/E2E/Desktop-readiness matrix 통과 |
+| P312 | Hermes Harness v1.0 freeze | v1.0 freeze note, tag checklist | 모든 planned slot이 실제 phase로 승격되고 Electron import 없이 desktop-compatible API/operator UI contract가 release gate 통과 |

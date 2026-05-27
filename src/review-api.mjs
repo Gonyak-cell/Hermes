@@ -3130,6 +3130,79 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/capability-registry-apis") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("capability_registry_apis", [registryApiResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/capability-registry-packs") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("pack_api_cards", registryApiResult.artifact.pack_api_cards ?? registryApiResult.artifact.capability_registry_api_catalog?.pack_api_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-registry-capabilities") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_api_cards", registryApiResult.artifact.capability_api_cards ?? registryApiResult.artifact.capability_registry_api_catalog?.capability_api_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-registry-versions") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_version_api_cards", registryApiResult.artifact.capability_version_api_cards ?? registryApiResult.artifact.capability_registry_api_catalog?.capability_version_api_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-registry-gates") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("gate_requirement_api_cards", registryApiResult.artifact.gate_requirement_api_cards ?? registryApiResult.artifact.capability_registry_api_catalog?.gate_requirement_api_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/desktop-companion-route-groups") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("desktop_companion_route_groups", registryApiResult.artifact.desktop_companion_route_groups ?? registryApiResult.artifact.capability_registry_api_catalog?.desktop_companion_route_groups ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/capability-registry-api-validations") {
+    const registryApiResult = await readDashboardSourceArtifact(dashboard, "capability_registry_api");
+    if (!registryApiResult.available) {
+      return jsonResponse(503, buildError("capability_registry_api_unavailable", registryApiResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("capability_registry_api_validations", registryApiResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7244,6 +7317,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/pack-dependency-edges", "Pack dependency compatibility edges"),
       route("GET", "/api/pack-compatibility-matrix", "Pack compatibility matrix"),
       route("GET", "/api/pack-manifest-compatibility-validations", "Pack manifest compatibility validation rows"),
+      route("GET", "/api/capability-registry-apis", "Capability registry API artifacts"),
+      route("GET", "/api/capability-registry-packs", "Desktop-ready pack API cards"),
+      route("GET", "/api/capability-registry-capabilities", "Desktop-ready capability API cards"),
+      route("GET", "/api/capability-registry-versions", "Desktop-ready capability version cards"),
+      route("GET", "/api/capability-registry-gates", "Desktop-ready gate requirement cards"),
+      route("GET", "/api/desktop-companion-route-groups", "Read-only Desktop Companion route groups"),
+      route("GET", "/api/capability-registry-api-validations", "Capability registry API validation rows"),
       route("GET", "/api/workflow-dsl-state-models", "Workflow DSL state model artifacts"),
       route("GET", "/api/workflow-dsl-states", "Workflow DSL state definitions"),
       route("GET", "/api/workflow-dsl-transition-rules", "Workflow DSL transition rules"),
@@ -7959,6 +8039,20 @@ function filterItems(items, searchParams) {
     "post_run_gate_set_status",
     "post_run_guard_status",
     "gate_result_aggregator_status",
+    "capability_registry_api_status",
+    "desktop_companion_readiness_status",
+    "desktop_surface",
+    "desktop_card_status",
+    "desktop_route_group_id",
+    "route_group_id",
+    "route_path",
+    "route_method",
+    "route_status",
+    "read_only",
+    "mutation_allowed",
+    "protected_mutation_request_allowed",
+    "secret_material_exposed",
+    "installer_or_gateway_control",
     "aggregate_gate_state",
     "aggregate_gate_stage",
     "workflow_gate_status",
@@ -7986,6 +8080,10 @@ function filterItems(items, searchParams) {
     "post_run_guard_record_id",
     "gate_aggregate_record_id",
     "workflow_gate_status_id",
+    "pack_api_card_id",
+    "capability_api_card_id",
+    "capability_version_api_card_id",
+    "gate_requirement_api_card_id",
     "gate_type",
     "tool_invocation_id",
     "tool_id",
@@ -9176,6 +9274,20 @@ function readFilterValue(item, key) {
   if (key === "post_run_guard_status") return item.post_run_guard_status;
   if (key === "gate_result_aggregator_status") return item.summary?.gate_result_aggregator_status ?? item.gate_result_aggregator_status;
   if (key === "gate_result_aggregator_contract_id") return item.summary?.gate_result_aggregator_contract_id ?? item.gate_result_aggregator_contract_id;
+  if (key === "capability_registry_api_status") return item.summary?.capability_registry_api_status ?? item.capability_registry_api_status;
+  if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;
+  if (key === "desktop_surface") return item.desktop_surface;
+  if (key === "desktop_card_status") return item.desktop_card_status;
+  if (key === "desktop_route_group_id") return item.desktop_route_group_id;
+  if (key === "route_group_id") return item.route_group_id;
+  if (key === "route_path") return item.path ?? item.route_path;
+  if (key === "route_method") return item.method ?? item.route_method;
+  if (key === "route_status") return item.route_status;
+  if (key === "read_only") return String(Boolean(item.read_only));
+  if (key === "mutation_allowed") return String(Boolean(item.mutation_allowed));
+  if (key === "protected_mutation_request_allowed") return String(Boolean(item.protected_mutation_request_allowed));
+  if (key === "secret_material_exposed") return String(Boolean(item.secret_material_exposed));
+  if (key === "installer_or_gateway_control") return String(Boolean(item.installer_or_gateway_control));
   if (key === "aggregate_gate_state") return item.aggregate_gate_state;
   if (key === "aggregate_gate_stage") return item.aggregate_gate_stage;
   if (key === "workflow_gate_status") return item.workflow_gate_status;
@@ -9197,7 +9309,11 @@ function readFilterValue(item, key) {
   if (key === "post_run_guard_record_id") return item.post_run_guard_record_id;
   if (key === "gate_aggregate_record_id") return item.gate_aggregate_record_id;
   if (key === "workflow_gate_status_id") return item.workflow_gate_status_id;
-  if (key === "gate_type") return item.gate_type;
+  if (key === "pack_api_card_id") return item.pack_api_card_id;
+  if (key === "capability_api_card_id") return item.capability_api_card_id;
+  if (key === "capability_version_api_card_id") return item.capability_version_api_card_id;
+  if (key === "gate_requirement_api_card_id") return item.gate_requirement_api_card_id;
+  if (key === "gate_type") return item.gate_type ?? item.aggregate_gate_type ?? item.gate_id;
   if (key === "tool_invocation_id") return item.tool_invocation_id;
   if (key === "tool_id") return item.tool_id;
   if (key === "output_ref") return item.output_ref;

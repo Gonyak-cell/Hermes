@@ -5576,6 +5576,29 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 92개로 증가하고 gate result aggregator artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:gate-results -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 191 - Capability Registry API
+
+목표: Capability Manifest v2, Pack Manifest Compatibility, Domain Pack Registry, Gate Result Aggregator를 묶어 Desktop Companion이 읽을 수 있는 pack/capability/version/gate API card와 read-only route group을 생성한다.
+
+구현:
+
+- `src/capability-registry-api.mjs`와 `scripts/capability-registry-api.mjs`를 추가해 `npm run capabilities:registry-api` slice를 등록
+- `schemas/capability-registry-api.schema.json`로 Capability Registry API artifact, card, route group, validation summary를 검증
+- pack API card, capability API card, capability version card, gate requirement card를 생성
+- Desktop Companion route group을 Overview, Domain Packs, Capabilities, Workflow Gates, Runs, Approvals, Policy/Observability, Diagnostics로 선언
+- 모든 Desktop route를 `GET` only, read-only, mutation/protected mutation/secret/installer/gateway control 0건으로 고정
+- Review Dashboard stage와 summary metric, Review API route, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+- `docs/desktop-companion-integration.md`에 Hermes Desktop을 runtime/source of truth가 아닌 operator companion surface로 반영
+
+완료 기준:
+
+- Capability Registry API가 validation error 없이 `complete` 상태가 됨
+- 4개 pack card, 4개 capability card, 4개 version card, 28개 gate requirement card가 source artifact와 일치
+- Desktop Companion route group 8개와 read-only route 31개가 생성되고 mutation/protected mutation/secret/installer/gateway route가 모두 0건임
+- Review API가 `/api/capability-registry-apis`, `/api/capability-registry-packs`, `/api/capability-registry-capabilities`, `/api/capability-registry-versions`, `/api/capability-registry-gates`, `/api/desktop-companion-route-groups`, `/api/capability-registry-api-validations`를 제공
+- Golden fixture 수가 93개로 증가하고 capability registry API artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run capabilities:registry-api -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5584,9 +5607,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 190이다.
+- 현재 완료 기준점은 Phase 191이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P191-P312, 총 122개다.
+- 남은 계획 슬롯은 P192-P312, 총 121개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.
@@ -5599,15 +5622,15 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 | P133-P158 | Resource, Data, Evidence, Lineage Plane | immutable resource store, normalized text, source span, evidence, fact, issue, citation, lineage, coverage score를 end-to-end로 완성한다. |
 | P159-P176 | Event, Run Ledger, Audit, Observability | CloudEvents-style event log, workflow run, agent run, audit trail, policy snapshot, cost ledger, trace/metric/log projection을 운영 가능하게 만든다. |
 | P177-P194 | Capability, Workflow, Context, Gate Engine | capability manifest, workflow state machine, idempotency, retry/resume, context builder, retrieval compiler, pre/in/post gate contract를 완성한다. |
-| P195-P212 | Runtime Adapter, Sandbox, Worktree, Secrets | Hermes, Claude Code, Codex, local script, renderer adapter를 sandbox/worktree/secrets boundary와 artifact capture 아래에서 실행한다. |
+| P195-P212 | Runtime Adapter, Sandbox, Worktree, Secrets | Hermes, Claude Code, Codex, local script, renderer adapter를 sandbox/worktree/secrets boundary와 artifact capture 아래에서 실행하고 Desktop은 runtime이 아닌 operator surface로 계약화한다. |
 | P213-P230 | Personal Dev Domain Pack | repo profile, agent instruction registry, plan reconciliation, parallel worktree lane, diff review, canonical test, PR draft, debt ledger, release/rollback flow를 완성한다. |
 | P231-P252 | Law Firm Domain Pack | Matter OS, Evidence OS, LDD, litigation brief, meeting minutes, contract draft, VDR review, provided-material review, legal citation verifier, attorney approval workflow를 완성한다. |
 | P253-P266 | Creative and Document Domain Pack | template/style/asset registry, DOCX/PPTX/PDF/HTML renderer, layout validator, citation renderer, design system, web novel/video/PPTX production workflows를 완성한다. |
 | P267-P276 | Connector and Ingestion Layer | Outlook email, KakaoTalk import boundary, OneDrive/local folder, GitHub, VDR, Plaud, ERP, future Slack/Teams connector를 adapter 방식으로 확장한다. |
 | P277-P286 | Resource Expansion and Extractor Library | 2,713개 이상 파일 backfill, resumable batch cursor, quarantine, duplicate detection, extractor registry, document-type coverage dashboard를 완성한다. |
-| P287-P296 | API, Dashboard, Evidence Viewer, Matter Cockpit | API server, review dashboard, approval queue, evidence viewer, source span inspector, run ledger viewer, matter cockpit, policy violation queue를 usable UI로 연결한다. |
-| P297-P304 | Security, Compliance, Performance Hardening | prompt injection boundary, secrets scanning, external model policy, retention, access review, cost cap, performance budget, backup/restore 검증을 마친다. |
-| P305-P312 | End-to-End Acceptance, Deployment, v1.0 Freeze | law-firm, personal-dev, creative-document의 대표 workflow를 전체 계층으로 통과시키고 docs/runbooks/deployment/release gate를 완료해 Hermes Harness v1.0을 freeze한다. |
+| P287-P296 | API, Dashboard, Evidence Viewer, Matter Cockpit | API server, review dashboard, Desktop-ready route group, approval queue, evidence viewer, source span inspector, run ledger viewer, matter cockpit, policy violation queue를 usable UI로 연결한다. |
+| P297-P304 | Security, Compliance, Performance Hardening | prompt injection boundary, secrets scanning, external model policy, Desktop companion risk, retention, access review, cost cap, performance budget, backup/restore 검증을 마친다. |
+| P305-P312 | End-to-End Acceptance, Deployment, v1.0 Freeze | law-firm, personal-dev, creative-document의 대표 workflow를 전체 계층으로 통과시키고 docs/runbooks/deployment/Desktop-readiness/release gate를 완료해 Hermes Harness v1.0을 freeze한다. |
 
 최종 완료 정의:
 

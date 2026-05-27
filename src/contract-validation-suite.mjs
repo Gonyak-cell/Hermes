@@ -91,6 +91,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "ledgers:golden-fixtures",
   "observability:freeze",
   "capabilities:manifest-v2",
+  "capabilities:registry-api",
   "packs:compatibility",
   "workflows:state-model",
   "workflows:runner",

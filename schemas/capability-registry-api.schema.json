@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/capability-registry-api.schema.json",
+  "title": "Capability Registry API",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "capability_registry_api_id",
+    "inputs",
+    "source_contracts",
+    "capability_registry_api_contract",
+    "capability_registry_api_catalog",
+    "pack_api_cards",
+    "capability_api_cards",
+    "capability_version_api_cards",
+    "gate_requirement_api_cards",
+    "desktop_companion_route_groups",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "capability-registry-api.v1" },
+    "generated_at": { "type": "string" },
+    "capability_registry_api_id": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "capability_registry_api_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "contract_status",
+        "desktop_companion_role",
+        "source_of_truth",
+        "mutation_policy",
+        "secret_policy",
+        "installer_gateway_policy"
+      ],
+      "properties": {
+        "contract_id": { "const": "capability-registry-api.v1" },
+        "contract_status": { "const": "read_only_operator_surface" },
+        "desktop_companion_role": { "const": "operator_companion" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "mutation_policy": { "const": "not_allowed_in_v1" },
+        "secret_policy": { "const": "no_secret_material_exposed" },
+        "installer_gateway_policy": { "const": "not_owned_by_core" }
+      },
+      "additionalProperties": true
+    },
+    "capability_registry_api_catalog": {
+      "type": "object",
+      "required": [
+        "pack_api_cards",
+        "capability_api_cards",
+        "capability_version_api_cards",
+        "gate_requirement_api_cards",
+        "desktop_companion_route_groups"
+      ],
+      "additionalProperties": true
+    },
+    "pack_api_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/read_only_card" }
+    },
+    "capability_api_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/read_only_card" }
+    },
+    "capability_version_api_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/read_only_card" }
+    },
+    "gate_requirement_api_cards": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/read_only_card" }
+    },
+    "desktop_companion_route_groups": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/desktop_companion_route_group" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "capability_registry_api_status",
+        "capability_registry_api_contract_id",
+        "desktop_companion_readiness_status",
+        "source_domain_pack_registry_status",
+        "source_capability_manifest_v2_status",
+        "source_pack_manifest_compatibility_status",
+        "source_gate_result_aggregator_status",
+        "source_pack_count",
+        "source_capability_manifest_count",
+        "source_gate_requirement_count",
+        "pack_api_card_count",
+        "capability_api_card_count",
+        "capability_version_api_card_count",
+        "gate_requirement_api_card_count",
+        "desktop_companion_route_group_count",
+        "desktop_companion_route_count",
+        "read_only_route_count",
+        "mutation_route_count",
+        "protected_mutation_request_route_count",
+        "secret_material_route_count",
+        "installer_or_gateway_route_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "capability_registry_api_status": { "enum": ["complete", "blocked"] },
+        "capability_registry_api_contract_id": { "const": "capability-registry-api.v1" },
+        "desktop_companion_readiness_status": { "enum": ["read_only_ready", "blocked"] },
+        "mutation_route_count": { "const": 0 },
+        "protected_mutation_request_route_count": { "const": 0 },
+        "secret_material_route_count": { "const": 0 },
+        "installer_or_gateway_route_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "read_only_card": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "desktop_surface",
+        "read_only",
+        "mutation_allowed",
+        "route_paths",
+        "created_at"
+      ],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "desktop_surface": { "type": "string" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "route_paths": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "created_at": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "desktop_companion_route_group": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "desktop_route_group_id",
+        "label",
+        "desktop_surface",
+        "desktop_companion_role",
+        "mutation_policy",
+        "secret_policy",
+        "installer_gateway_policy",
+        "routes",
+        "route_count",
+        "read_only_route_count",
+        "mutation_route_count",
+        "protected_mutation_request_route_count",
+        "secret_material_route_count",
+        "installer_or_gateway_route_count"
+      ],
+      "properties": {
+        "schema_version": { "const": "desktop-companion-route-group.v1" },
+        "desktop_companion_role": { "const": "operator_read_only_view" },
+        "mutation_policy": { "const": "not_allowed" },
+        "secret_policy": { "const": "no_secret_material_exposed" },
+        "installer_gateway_policy": { "const": "not_owned_by_core" },
+        "mutation_route_count": { "const": 0 },
+        "protected_mutation_request_route_count": { "const": 0 },
+        "secret_material_route_count": { "const": 0 },
+        "installer_or_gateway_route_count": { "const": 0 },
+        "routes": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/desktop_companion_route" }
+        }
+      },
+      "additionalProperties": true
+    },
+    "desktop_companion_route": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "route_id",
+        "method",
+        "path",
+        "collection",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "secret_material_exposed",
+        "installer_or_gateway_control",
+        "source_of_truth",
+        "human_gate_required_for_mutation"
+      ],
+      "properties": {
+        "schema_version": { "const": "desktop-companion-route.v1" },
+        "method": { "const": "GET" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "human_gate_required_for_mutation": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

@@ -98,6 +98,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     workflow_in_run_gate_framework: "artifacts/workflow-in-run-gates/latest/workflow-in-run-gate-framework.json",
     workflow_post_run_gate_framework: "artifacts/workflow-post-run-gates/latest/workflow-post-run-gate-framework.json",
     gate_result_aggregator: "artifacts/gate-result-aggregator/latest/gate-result-aggregator.json",
+    capability_registry_api: "artifacts/capability-registry-api/latest/capability-registry-api.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -194,6 +195,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("workflow_in_run_gate_framework", "Workflow In-run Gate Framework", "workflow", "workflow-in-run-gate-framework.schema.json"),
   fixtureDefinition("workflow_post_run_gate_framework", "Workflow Post-run Gate Framework", "workflow", "workflow-post-run-gate-framework.schema.json"),
   fixtureDefinition("gate_result_aggregator", "Gate Result Aggregator", "workflow", "gate-result-aggregator.schema.json"),
+  fixtureDefinition("capability_registry_api", "Capability Registry API", "api", "capability-registry-api.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

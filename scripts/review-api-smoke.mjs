@@ -159,6 +159,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/gate-aggregate-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-statuses"));
   assert.ok(index.routes.some((route) => route.path === "/api/gate-result-aggregate-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-apis"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-packs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-capabilities"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-versions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/desktop-companion-route-groups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-api-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -253,6 +260,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/pack-dependency-edges"));
   assert.ok(index.routes.some((route) => route.path === "/api/pack-compatibility-matrix"));
   assert.ok(index.routes.some((route) => route.path === "/api/pack-manifest-compatibility-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-apis"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-packs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-capabilities"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-versions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/desktop-companion-route-groups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-api-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -407,6 +421,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/pack-dependency-edges"));
   assert.ok(index.routes.some((route) => route.path === "/api/pack-compatibility-matrix"));
   assert.ok(index.routes.some((route) => route.path === "/api/pack-manifest-compatibility-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-apis"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-packs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-capabilities"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-versions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-gates"));
+  assert.ok(index.routes.some((route) => route.path === "/api/desktop-companion-route-groups"));
+  assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-api-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-models"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-users"));
   assert.ok(index.routes.some((route) => route.path === "/api/identity-roles"));
@@ -931,6 +952,34 @@ try {
   const packManifestCompatibilityValidations = await fetchJson(`${url}/api/pack-manifest-compatibility-validations?status=passed&limit=5`);
   assert.equal(packManifestCompatibilityValidations.collection, "pack_manifest_compatibility_validations");
   assert.ok(packManifestCompatibilityValidations.count <= 5);
+
+  const capabilityRegistryApis = await fetchJson(`${url}/api/capability-registry-apis?capability_registry_api_status=complete&limit=1`);
+  assert.equal(capabilityRegistryApis.collection, "capability_registry_apis");
+  assert.ok(capabilityRegistryApis.count <= 1);
+
+  const capabilityRegistryPacks = await fetchJson(`${url}/api/capability-registry-packs?pack_id=law-firm&limit=2`);
+  assert.equal(capabilityRegistryPacks.collection, "pack_api_cards");
+  assert.ok(capabilityRegistryPacks.count <= 2);
+
+  const capabilityRegistryCapabilities = await fetchJson(`${url}/api/capability-registry-capabilities?domain_pack=law-firm&limit=5`);
+  assert.equal(capabilityRegistryCapabilities.collection, "capability_api_cards");
+  assert.ok(capabilityRegistryCapabilities.count <= 5);
+
+  const capabilityRegistryVersions = await fetchJson(`${url}/api/capability-registry-versions?version_status=complete&limit=5`);
+  assert.equal(capabilityRegistryVersions.collection, "capability_version_api_cards");
+  assert.ok(capabilityRegistryVersions.count <= 5);
+
+  const capabilityRegistryGates = await fetchJson(`${url}/api/capability-registry-gates?gate_id=human_approval_gate&limit=5`);
+  assert.equal(capabilityRegistryGates.collection, "gate_requirement_api_cards");
+  assert.ok(capabilityRegistryGates.count <= 5);
+
+  const desktopCompanionRouteGroups = await fetchJson(`${url}/api/desktop-companion-route-groups?desktop_surface=approvals&limit=2`);
+  assert.equal(desktopCompanionRouteGroups.collection, "desktop_companion_route_groups");
+  assert.ok(desktopCompanionRouteGroups.count <= 2);
+
+  const capabilityRegistryApiValidations = await fetchJson(`${url}/api/capability-registry-api-validations?status=passed&limit=5`);
+  assert.equal(capabilityRegistryApiValidations.collection, "capability_registry_api_validations");
+  assert.ok(capabilityRegistryApiValidations.count <= 5);
 
   const workflowDslStateModels = await fetchJson(`${url}/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete&limit=1`);
   assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");

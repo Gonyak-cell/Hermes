@@ -94,6 +94,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   observabilityFreezePath: "artifacts/observability-freeze/latest/observability-freeze.json",
   capabilityManifestV2Path: "artifacts/capability-manifest-v2/latest/capability-manifest-v2.json",
   packManifestCompatibilityPath: "artifacts/pack-manifest-compatibility/latest/pack-manifest-compatibility.json",
+  capabilityRegistryApiPath: "artifacts/capability-registry-api/latest/capability-registry-api.json",
   workflowDslStateModelPath: "artifacts/workflow-dsl-state-model/latest/workflow-dsl-state-model.json",
   workflowStateMachineRunnerPath: "artifacts/workflow-state-machine-runner/latest/workflow-state-machine-runner.json",
   workflowQueueRetryBackoffPath: "artifacts/workflow-queue-retry-backoff/latest/workflow-queue-retry-backoff-contract.json",
@@ -699,6 +700,11 @@ const SOURCE_DEFINITIONS = [
     option: "gateResultAggregatorPath",
     source_id: "gate_result_aggregator",
     label: "Gate Result Aggregator",
+  },
+  {
+    option: "capabilityRegistryApiPath",
+    source_id: "capability_registry_api",
+    label: "Capability Registry API",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1308,6 +1314,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_in_run_gate_framework") return data.summary ?? {};
   if (sourceId === "workflow_post_run_gate_framework") return data.summary ?? {};
   if (sourceId === "gate_result_aggregator") return data.summary ?? {};
+  if (sourceId === "capability_registry_api") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1578,6 +1585,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowInRunGateFrameworkStage(artifacts.workflow_in_run_gate_framework, sourceById.get("workflow_in_run_gate_framework")),
     buildWorkflowPostRunGateFrameworkStage(artifacts.workflow_post_run_gate_framework, sourceById.get("workflow_post_run_gate_framework")),
     buildGateResultAggregatorStage(artifacts.gate_result_aggregator, sourceById.get("gate_result_aggregator")),
+    buildCapabilityRegistryApiStage(artifacts.capability_registry_api, sourceById.get("capability_registry_api")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6597,6 +6605,67 @@ function buildGateResultAggregatorStage(aggregator, source) {
       delivery_ready_count: summary.delivery_ready_count ?? 0,
       final_action_executed_count: summary.final_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? aggregator.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildCapabilityRegistryApiStage(registryApi, source) {
+  if (!registryApi) return missingStage("capability_registry_api", "Capability Registry API", source);
+  const summary = registryApi.summary ?? {};
+  const blockers = (summary.validation_error_count ?? registryApi.validation?.errors?.length ?? 0)
+    + Math.max(0, (summary.source_pack_count ?? 0) - (summary.pack_api_card_count ?? 0))
+    + Math.max(0, (summary.source_capability_manifest_count ?? 0) - (summary.capability_api_card_count ?? 0))
+    + Math.max(0, (summary.source_capability_manifest_count ?? 0) - (summary.capability_version_api_card_count ?? 0))
+    + Math.max(0, (summary.source_gate_requirement_count ?? 0) - (summary.gate_requirement_api_card_count ?? 0))
+    + (summary.mutation_route_count ?? 0)
+    + (summary.protected_mutation_request_route_count ?? 0)
+    + (summary.secret_material_route_count ?? 0)
+    + (summary.installer_or_gateway_route_count ?? 0);
+  const status = summary.capability_registry_api_status === "complete"
+    && summary.capability_registry_api_contract_id === "capability-registry-api.v1"
+    && summary.desktop_companion_readiness_status === "read_only_ready"
+    && blockers === 0
+    && (summary.desktop_companion_route_group_count ?? 0) > 0
+    && (summary.desktop_companion_route_count ?? 0) > 0
+    && (summary.read_only_route_count ?? 0) === (summary.desktop_companion_route_count ?? 0)
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "capability_registry_api",
+    label: "Capability Registry API",
+    status,
+    message: status === "passed"
+      ? `${summary.capability_api_card_count ?? 0} capability card(s), ${summary.desktop_companion_route_count ?? 0} read-only Desktop Companion route(s).`
+      : `${blockers} capability registry API blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      capability_registry_api_status: summary.capability_registry_api_status ?? "unknown",
+      capability_registry_api_contract_id: summary.capability_registry_api_contract_id ?? null,
+      desktop_companion_readiness_status: summary.desktop_companion_readiness_status ?? "unknown",
+      source_domain_pack_registry_status: summary.source_domain_pack_registry_status ?? "unknown",
+      source_capability_manifest_v2_status: summary.source_capability_manifest_v2_status ?? "unknown",
+      source_pack_manifest_compatibility_status: summary.source_pack_manifest_compatibility_status ?? "unknown",
+      source_gate_result_aggregator_status: summary.source_gate_result_aggregator_status ?? "unknown",
+      source_pack_count: summary.source_pack_count ?? 0,
+      source_capability_count: summary.source_capability_count ?? 0,
+      source_capability_manifest_count: summary.source_capability_manifest_count ?? 0,
+      source_gate_requirement_count: summary.source_gate_requirement_count ?? 0,
+      pack_api_card_count: summary.pack_api_card_count ?? 0,
+      capability_api_card_count: summary.capability_api_card_count ?? 0,
+      capability_version_api_card_count: summary.capability_version_api_card_count ?? 0,
+      gate_requirement_api_card_count: summary.gate_requirement_api_card_count ?? 0,
+      desktop_companion_route_group_count: summary.desktop_companion_route_group_count ?? 0,
+      desktop_companion_route_count: summary.desktop_companion_route_count ?? 0,
+      read_only_route_count: summary.read_only_route_count ?? 0,
+      mutation_route_count: summary.mutation_route_count ?? 0,
+      protected_mutation_request_route_count: summary.protected_mutation_request_route_count ?? 0,
+      secret_material_route_count: summary.secret_material_route_count ?? 0,
+      installer_or_gateway_route_count: summary.installer_or_gateway_route_count ?? 0,
+      ready_pack_card_count: summary.ready_pack_card_count ?? 0,
+      ready_capability_card_count: summary.ready_capability_card_count ?? 0,
+      ready_gate_requirement_card_count: summary.ready_gate_requirement_card_count ?? 0,
+      attention_gate_requirement_card_count: summary.attention_gate_requirement_card_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? registryApi.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -12470,6 +12539,29 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     gate_result_aggregator_delivery_ready_count: artifacts.gate_result_aggregator?.summary?.delivery_ready_count ?? 0,
     gate_result_aggregator_final_action_executed_count: artifacts.gate_result_aggregator?.summary?.final_action_executed_count ?? 0,
     gate_result_aggregator_validation_error_count: artifacts.gate_result_aggregator?.summary?.validation_error_count ?? artifacts.gate_result_aggregator?.validation?.errors?.length ?? 0,
+    capability_registry_api_status: artifacts.capability_registry_api?.summary?.capability_registry_api_status ?? "unknown",
+    capability_registry_api_contract_id: artifacts.capability_registry_api?.summary?.capability_registry_api_contract_id ?? null,
+    capability_registry_api_desktop_companion_readiness_status: artifacts.capability_registry_api?.summary?.desktop_companion_readiness_status ?? "unknown",
+    capability_registry_api_source_domain_pack_registry_status: artifacts.capability_registry_api?.summary?.source_domain_pack_registry_status ?? "unknown",
+    capability_registry_api_source_capability_manifest_v2_status: artifacts.capability_registry_api?.summary?.source_capability_manifest_v2_status ?? "unknown",
+    capability_registry_api_source_pack_manifest_compatibility_status: artifacts.capability_registry_api?.summary?.source_pack_manifest_compatibility_status ?? "unknown",
+    capability_registry_api_source_gate_result_aggregator_status: artifacts.capability_registry_api?.summary?.source_gate_result_aggregator_status ?? "unknown",
+    capability_registry_api_source_pack_count: artifacts.capability_registry_api?.summary?.source_pack_count ?? 0,
+    capability_registry_api_source_capability_count: artifacts.capability_registry_api?.summary?.source_capability_count ?? 0,
+    capability_registry_api_source_capability_manifest_count: artifacts.capability_registry_api?.summary?.source_capability_manifest_count ?? 0,
+    capability_registry_api_source_gate_requirement_count: artifacts.capability_registry_api?.summary?.source_gate_requirement_count ?? 0,
+    capability_registry_api_pack_api_card_count: artifacts.capability_registry_api?.summary?.pack_api_card_count ?? 0,
+    capability_registry_api_capability_api_card_count: artifacts.capability_registry_api?.summary?.capability_api_card_count ?? 0,
+    capability_registry_api_capability_version_api_card_count: artifacts.capability_registry_api?.summary?.capability_version_api_card_count ?? 0,
+    capability_registry_api_gate_requirement_api_card_count: artifacts.capability_registry_api?.summary?.gate_requirement_api_card_count ?? 0,
+    capability_registry_api_desktop_companion_route_group_count: artifacts.capability_registry_api?.summary?.desktop_companion_route_group_count ?? 0,
+    capability_registry_api_desktop_companion_route_count: artifacts.capability_registry_api?.summary?.desktop_companion_route_count ?? 0,
+    capability_registry_api_read_only_route_count: artifacts.capability_registry_api?.summary?.read_only_route_count ?? 0,
+    capability_registry_api_mutation_route_count: artifacts.capability_registry_api?.summary?.mutation_route_count ?? 0,
+    capability_registry_api_protected_mutation_request_route_count: artifacts.capability_registry_api?.summary?.protected_mutation_request_route_count ?? 0,
+    capability_registry_api_secret_material_route_count: artifacts.capability_registry_api?.summary?.secret_material_route_count ?? 0,
+    capability_registry_api_installer_or_gateway_route_count: artifacts.capability_registry_api?.summary?.installer_or_gateway_route_count ?? 0,
+    capability_registry_api_validation_error_count: artifacts.capability_registry_api?.summary?.validation_error_count ?? artifacts.capability_registry_api?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -14258,6 +14350,8 @@ function parseArgs(argv) {
     else if (arg === "--no-capability-manifest-v2") parsed.capabilityManifestV2Path = false;
     else if (arg === "--pack-manifest-compatibility") parsed.packManifestCompatibilityPath = argv[++index];
     else if (arg === "--no-pack-manifest-compatibility") parsed.packManifestCompatibilityPath = false;
+    else if (arg === "--capability-registry-api") parsed.capabilityRegistryApiPath = argv[++index];
+    else if (arg === "--no-capability-registry-api") parsed.capabilityRegistryApiPath = false;
     else if (arg === "--workflow-dsl-state-model") parsed.workflowDslStateModelPath = argv[++index];
     else if (arg === "--no-workflow-dsl-state-model") parsed.workflowDslStateModelPath = false;
     else if (arg === "--workflow-state-machine-runner") parsed.workflowStateMachineRunnerPath = argv[++index];
@@ -14685,6 +14779,9 @@ Options:
                                   pack-manifest-compatibility.json path.
   --no-pack-manifest-compatibility
                                   Do not include Pack Manifest Compatibility status.
+  --capability-registry-api <path>
+                                  capability-registry-api.json path.
+  --no-capability-registry-api    Do not include Capability Registry API status.
   --workflow-dsl-state-model <path>
                                   workflow-dsl-state-model.json path.
   --no-workflow-dsl-state-model

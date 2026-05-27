@@ -185,6 +185,7 @@ import { runWorkflowPromptInjectionBoundary } from "../src/workflow-prompt-injec
 import { runWorkflowPreRunGateFramework } from "../src/workflow-pre-run-gate-framework.mjs";
 import { runWorkflowInRunGateFramework } from "../src/workflow-in-run-gate-framework.mjs";
 import { runWorkflowPostRunGateFramework } from "../src/workflow-post-run-gate-framework.mjs";
+import { runGateResultAggregator } from "../src/gate-result-aggregator.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1822,6 +1823,7 @@ describe("matter harness", () => {
         workflowPreRunGateFrameworkPath: path.join(outDir, "workflow-pre-run-gates", "workflow-pre-run-gate-framework.json"),
         workflowInRunGateFrameworkPath: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
         workflowPostRunGateFrameworkPath: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
+        gateResultAggregatorPath: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -6066,6 +6068,63 @@ describe("matter harness", () => {
       assert.ok(workflowPostRunGateFramework.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-post-run-gates", "summary.md"), "utf8"), /Workflow Post-run Gate Framework/);
 
+      const gateResultAggregator = await runGateResultAggregator({
+        workflowPreRunGateFrameworkPath: path.join(outDir, "workflow-pre-run-gates", "workflow-pre-run-gate-framework.json"),
+        workflowInRunGateFrameworkPath: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
+        workflowPostRunGateFrameworkPath: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        outDir: path.join(outDir, "gate-result-aggregator"),
+        runAt: "2026-05-23T06:36:08.759Z",
+      });
+      const gateResultAggregatorSchema = JSON.parse(await readFile("schemas/gate-result-aggregator.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(gateResultAggregator, gateResultAggregatorSchema, {}, "gate_result_aggregator"),
+        [],
+      );
+      assert.equal(gateResultAggregator.summary.gate_result_aggregator_status, "complete");
+      assert.equal(gateResultAggregator.summary.gate_result_aggregator_contract_id, "gate-result-aggregator.v1");
+      assert.equal(gateResultAggregator.summary.source_workflow_pre_run_gate_framework_status, "complete");
+      assert.equal(gateResultAggregator.summary.source_workflow_in_run_gate_framework_status, "complete");
+      assert.equal(gateResultAggregator.summary.source_workflow_post_run_gate_framework_status, "complete");
+      assert.equal(gateResultAggregator.summary.source_gate_approval_contract_freeze_status, "complete");
+      assert.equal(gateResultAggregator.summary.source_workflow_run_ledger_status, "complete");
+      assert.equal(gateResultAggregator.summary.source_agent_run_ledger_status, "complete");
+      assert.equal(gateResultAggregator.summary.source_pre_run_gate_record_count, workflowPreRunGateFramework.summary.pre_run_gate_record_count);
+      assert.equal(gateResultAggregator.summary.source_in_run_gate_record_count, workflowInRunGateFramework.summary.in_run_gate_record_count);
+      assert.equal(gateResultAggregator.summary.source_in_run_block_record_count, workflowInRunGateFramework.summary.in_run_block_record_count);
+      assert.equal(gateResultAggregator.summary.source_post_run_gate_record_count, workflowPostRunGateFramework.summary.post_run_gate_record_count);
+      assert.equal(gateResultAggregator.summary.source_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
+      assert.equal(gateResultAggregator.summary.source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(
+        gateResultAggregator.summary.gate_aggregate_record_count,
+        workflowPreRunGateFramework.summary.pre_run_gate_record_count
+          + workflowInRunGateFramework.summary.in_run_gate_record_count
+          + workflowInRunGateFramework.summary.in_run_block_record_count
+          + workflowPostRunGateFramework.summary.post_run_gate_record_count
+          + gateApprovalContractFreeze.summary.gate_result_count,
+      );
+      assert.equal(gateResultAggregator.summary.workflow_gate_status_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.ok(gateResultAggregator.summary.passed_gate_count > 0);
+      assert.ok(gateResultAggregator.summary.warning_gate_count > 0);
+      assert.ok(gateResultAggregator.summary.manual_gate_count > 0);
+      assert.equal(gateResultAggregator.summary.failed_gate_count, 0);
+      assert.equal(gateResultAggregator.summary.manual_review_required_workflow_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(gateResultAggregator.summary.blocked_workflow_gate_status_count, 0);
+      assert.equal(gateResultAggregator.summary.execution_allowed_count, 0);
+      assert.equal(gateResultAggregator.summary.execution_performed_count, 0);
+      assert.equal(gateResultAggregator.summary.external_transfer_allowed_count, 0);
+      assert.equal(gateResultAggregator.summary.protected_action_executed_count, 0);
+      assert.equal(gateResultAggregator.summary.client_facing_ready_count, 0);
+      assert.equal(gateResultAggregator.summary.delivery_ready_count, 0);
+      assert.equal(gateResultAggregator.summary.final_action_executed_count, 0);
+      assert.equal(gateResultAggregator.summary.validation_error_count, 0);
+      assert.ok(gateResultAggregator.gate_aggregate_records.every((record) => ["pass", "warn", "manual"].includes(record.aggregate_gate_state) && record.execution_allowed === false && record.execution_performed === false && record.external_transfer_allowed === false && record.protected_action_execution_allowed === false && record.final_action_executed === false));
+      assert.ok(gateResultAggregator.workflow_gate_status_records.every((record) => record.workflow_gate_status === "manual_review_required" && record.ready_for_execution === false && record.ready_for_delivery === false && record.final_action_allowed === false));
+      assert.ok(gateResultAggregator.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "gate-result-aggregator", "summary.md"), "utf8"), /Gate Result Aggregator/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6219,6 +6278,7 @@ describe("matter harness", () => {
           workflow_pre_run_gate_framework: path.join(outDir, "workflow-pre-run-gates", "workflow-pre-run-gate-framework.json"),
           workflow_in_run_gate_framework: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
           workflow_post_run_gate_framework: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
+          gate_result_aggregator: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -6230,8 +6290,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 91);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 91);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 92);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 92);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6310,6 +6370,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_pre_run_gate_framework"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_in_run_gate_framework"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_post_run_gate_framework"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "gate_result_aggregator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6377,6 +6438,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:pre-run-gates"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:in-run-gates"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:post-run-gates"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:gate-results"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6749,6 +6811,10 @@ describe("matter harness", () => {
       assert.equal(workflowPostRunGateFrameworkCheckpoint?.acceptance_profile, "workflow_post_run_gate_framework_gate");
       assert.equal(workflowPostRunGateFrameworkCheckpoint?.status, "passed");
       assert.equal(workflowPostRunGateFrameworkCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const gateResultAggregatorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-result-aggregator");
+      assert.equal(gateResultAggregatorCheckpoint?.acceptance_profile, "gate_result_aggregator_gate");
+      assert.equal(gateResultAggregatorCheckpoint?.status, "passed");
+      assert.equal(gateResultAggregatorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -8474,6 +8540,24 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_post_run_gate_framework_delivery_ready_count, 0);
       assert.equal(dashboard.summary.workflow_post_run_gate_framework_final_action_executed_count, 0);
       assert.equal(dashboard.summary.workflow_post_run_gate_framework_validation_error_count, 0);
+      assert.equal(dashboard.summary.gate_result_aggregator_status, "complete");
+      assert.equal(dashboard.summary.gate_result_aggregator_contract_id, "gate-result-aggregator.v1");
+      assert.equal(dashboard.summary.gate_result_aggregator_source_workflow_pre_run_gate_framework_status, "complete");
+      assert.equal(dashboard.summary.gate_result_aggregator_source_workflow_in_run_gate_framework_status, "complete");
+      assert.equal(dashboard.summary.gate_result_aggregator_source_workflow_post_run_gate_framework_status, "complete");
+      assert.equal(dashboard.summary.gate_result_aggregator_source_gate_approval_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.gate_result_aggregator_gate_aggregate_record_count, gateResultAggregator.summary.gate_aggregate_record_count);
+      assert.equal(dashboard.summary.gate_result_aggregator_workflow_gate_status_count, gateResultAggregator.summary.workflow_gate_status_count);
+      assert.equal(dashboard.summary.gate_result_aggregator_passed_gate_count, gateResultAggregator.summary.passed_gate_count);
+      assert.equal(dashboard.summary.gate_result_aggregator_warning_gate_count, gateResultAggregator.summary.warning_gate_count);
+      assert.equal(dashboard.summary.gate_result_aggregator_manual_gate_count, gateResultAggregator.summary.manual_gate_count);
+      assert.equal(dashboard.summary.gate_result_aggregator_failed_gate_count, 0);
+      assert.equal(dashboard.summary.gate_result_aggregator_manual_review_required_workflow_count, gateResultAggregator.summary.manual_review_required_workflow_count);
+      assert.equal(dashboard.summary.gate_result_aggregator_blocked_workflow_gate_status_count, 0);
+      assert.equal(dashboard.summary.gate_result_aggregator_execution_performed_count, 0);
+      assert.equal(dashboard.summary.gate_result_aggregator_delivery_ready_count, 0);
+      assert.equal(dashboard.summary.gate_result_aggregator_final_action_executed_count, 0);
+      assert.equal(dashboard.summary.gate_result_aggregator_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -9166,6 +9250,14 @@ describe("matter harness", () => {
       assert.equal(workflowPostRunGateFrameworkStage?.metrics.client_facing_ready_count, 0);
       assert.equal(workflowPostRunGateFrameworkStage?.metrics.delivery_ready_count, 0);
       assert.equal(workflowPostRunGateFrameworkStage?.metrics.final_action_executed_count, 0);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "gate_result_aggregator"));
+      const gateResultAggregatorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "gate_result_aggregator");
+      assert.equal(gateResultAggregatorStage?.status, "passed");
+      assert.equal(gateResultAggregatorStage?.metrics.gate_aggregate_record_count, gateResultAggregator.summary.gate_aggregate_record_count);
+      assert.equal(gateResultAggregatorStage?.metrics.workflow_gate_status_count, gateResultAggregator.summary.workflow_gate_status_count);
+      assert.equal(gateResultAggregatorStage?.metrics.manual_review_required_workflow_count, gateResultAggregator.summary.manual_review_required_workflow_count);
+      assert.equal(gateResultAggregatorStage?.metrics.failed_gate_count, 0);
+      assert.equal(gateResultAggregatorStage?.metrics.final_action_executed_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9554,6 +9646,10 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/post-run-gate-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/post-run-gate-guards"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/post-run-gate-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-result-aggregators"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-aggregate-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-statuses"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/gate-result-aggregate-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -10286,6 +10382,22 @@ describe("matter harness", () => {
       const postRunGateValidations = JSON.parse((await buildReviewApiResponse("/api/post-run-gate-validations?status=passed", apiOptions)).body);
       assert.equal(postRunGateValidations.collection, "post_run_gate_validations");
       assert.equal(postRunGateValidations.count, workflowPostRunGateFramework.summary.validation_item_count);
+
+      const gateResultAggregators = JSON.parse((await buildReviewApiResponse("/api/gate-result-aggregators?gate_result_aggregator_status=complete", apiOptions)).body);
+      assert.equal(gateResultAggregators.collection, "gate_result_aggregators");
+      assert.equal(gateResultAggregators.count, 1);
+
+      const manualGateAggregateRecords = JSON.parse((await buildReviewApiResponse("/api/gate-aggregate-records?aggregate_gate_state=manual", apiOptions)).body);
+      assert.equal(manualGateAggregateRecords.collection, "gate_aggregate_records");
+      assert.equal(manualGateAggregateRecords.count, gateResultAggregator.summary.manual_gate_count);
+
+      const workflowGateStatuses = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-statuses?workflow_gate_status=manual_review_required", apiOptions)).body);
+      assert.equal(workflowGateStatuses.collection, "workflow_gate_statuses");
+      assert.equal(workflowGateStatuses.count, gateResultAggregator.summary.manual_review_required_workflow_count);
+
+      const gateResultAggregateValidations = JSON.parse((await buildReviewApiResponse("/api/gate-result-aggregate-validations?status=passed", apiOptions)).body);
+      assert.equal(gateResultAggregateValidations.collection, "gate_result_aggregate_validations");
+      assert.equal(gateResultAggregateValidations.count, gateResultAggregator.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

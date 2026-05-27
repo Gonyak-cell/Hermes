@@ -5549,6 +5549,33 @@ Phase 189는 Phase 188의 in-run gate artifact 위에 실행 후 gate runner를 
 - Golden fixture 수가 91개로 증가하고 workflow post-run gate framework artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:post-run-gates -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 190 - Gate Result Aggregator
+
+Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 GateResult v2 계약을 workflow 단위 상태로 합치는 gate result aggregator를 추가했다. 목적은 개별 gate의 `passed`, `blocked`, `review_required`, `pending` 상태를 `pass`, `warn`, `manual`, `fail`로 정규화하고, workflow별 최종 gate status를 만들되 실행, client delivery, protected action, final action을 승인하지 않는 것이다.
+
+구현 내용:
+
+- `src/gate-result-aggregator.mjs`와 `scripts/gate-result-aggregator.mjs`를 추가해 `artifacts/gate-result-aggregator/latest/gate-result-aggregator.json` 산출물을 생성함
+- `gate-aggregate-records.json`, `workflow-gate-statuses.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/gate-result-aggregator.schema.json`으로 gate aggregate record와 workflow gate status record의 최소 계약을 고정함
+- Workflow Pre-run Gate Framework, Workflow In-run Gate Framework, Workflow Post-run Gate Framework, Gate/Approval Contract Freeze, Workflow Run Ledger, Agent Run Ledger를 source contract로 묶음
+- in-run unsafe block은 실행 차단 경고(`warn`)로, human approval/pending/review gate는 `manual`로, 통과 gate는 `pass`로 정규화함
+- Review Dashboard에 `gate_result_aggregator` source/stage/summary metric을 추가하고 aggregate count, workflow status, pass/warn/manual/fail, no-execution/no-delivery/no-final-action metric을 노출함
+- Review API에 `/api/gate-result-aggregators`, `/api/gate-aggregate-records`, `/api/workflow-gate-statuses`, `/api/gate-result-aggregate-validations` route를 추가함
+- Control Plane Loop에 `gate_result_aggregator` step을 추가하고 Goal Checkpoint에 `gate_result_aggregator_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 gate result aggregator artifact와 `workflows:gate-results` script를 포함함
+
+완료 기준:
+
+- Gate result aggregator가 validation error 없이 `complete` 상태가 됨
+- pre-run gate 20개, in-run gate 117개, in-run block 63개, post-run gate 30개, GateResult v2 14개를 합쳐 총 244개 aggregate record가 생성됨
+- 4개 workflow run ledger record가 모두 workflow gate status로 projection되고 현재 safe demo에서는 모두 `manual_review_required`로 유지됨
+- pass/warn/manual gate가 모두 존재하고 failed gate 및 blocked workflow gate status는 0건임
+- execution allowed/performed, external transfer, protected action, client-facing ready, delivery ready, final action executed가 모두 0건임
+- Review API smoke가 aggregator, aggregate record, workflow status, validation route를 모두 조회함
+- Golden fixture 수가 92개로 증가하고 gate result aggregator artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:gate-results -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5557,9 +5584,9 @@ Phase 189는 Phase 188의 in-run gate artifact 위에 실행 후 gate runner를 
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 189이다.
+- 현재 완료 기준점은 Phase 190이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P190-P312, 총 123개다.
+- 남은 계획 슬롯은 P191-P312, 총 122개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

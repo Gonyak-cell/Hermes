@@ -155,6 +155,10 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-guards"));
   assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-result-aggregators"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-aggregate-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-statuses"));
+  assert.ok(index.routes.some((route) => route.path === "/api/gate-result-aggregate-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -1159,6 +1163,22 @@ try {
   const postRunGateValidations = await fetchJson(`${url}/api/post-run-gate-validations?status=passed&limit=5`);
   assert.equal(postRunGateValidations.collection, "post_run_gate_validations");
   assert.ok(postRunGateValidations.count <= 5);
+
+  const gateResultAggregators = await fetchJson(`${url}/api/gate-result-aggregators?gate_result_aggregator_status=complete&limit=1`);
+  assert.equal(gateResultAggregators.collection, "gate_result_aggregators");
+  assert.ok(gateResultAggregators.count <= 1);
+
+  const manualGateAggregateRecords = await fetchJson(`${url}/api/gate-aggregate-records?aggregate_gate_state=manual&limit=5`);
+  assert.equal(manualGateAggregateRecords.collection, "gate_aggregate_records");
+  assert.ok(manualGateAggregateRecords.count <= 5);
+
+  const workflowGateStatuses = await fetchJson(`${url}/api/workflow-gate-statuses?workflow_gate_status=manual_review_required&limit=5`);
+  assert.equal(workflowGateStatuses.collection, "workflow_gate_statuses");
+  assert.ok(workflowGateStatuses.count <= 5);
+
+  const gateResultAggregateValidations = await fetchJson(`${url}/api/gate-result-aggregate-validations?status=passed&limit=5`);
+  assert.equal(gateResultAggregateValidations.collection, "gate_result_aggregate_validations");
+  assert.ok(gateResultAggregateValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/gate-result-aggregator.schema.json",
+  "title": "Gate Result Aggregator",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "gate_result_aggregator_id",
+    "inputs",
+    "source_contracts",
+    "gate_result_aggregator_contract",
+    "gate_aggregate_records",
+    "workflow_gate_status_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "gate-result-aggregator.v1" },
+    "generated_at": { "type": "string" },
+    "gate_result_aggregator_id": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "gate_result_aggregator_contract": { "type": "object" },
+    "gate_aggregate_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/gate_aggregate_record" }
+    },
+    "workflow_gate_status_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/workflow_gate_status" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "gate_result_aggregator_status",
+        "gate_result_aggregator_contract_id",
+        "source_workflow_pre_run_gate_framework_status",
+        "source_workflow_in_run_gate_framework_status",
+        "source_workflow_post_run_gate_framework_status",
+        "source_gate_approval_contract_freeze_status",
+        "source_workflow_run_ledger_status",
+        "source_agent_run_ledger_status",
+        "source_pre_run_gate_record_count",
+        "source_in_run_gate_record_count",
+        "source_in_run_block_record_count",
+        "source_post_run_gate_record_count",
+        "source_gate_result_count",
+        "source_workflow_run_record_count",
+        "gate_aggregate_record_count",
+        "workflow_gate_status_count",
+        "passed_gate_count",
+        "warning_gate_count",
+        "manual_gate_count",
+        "failed_gate_count",
+        "manual_review_required_workflow_count",
+        "blocked_workflow_gate_status_count",
+        "execution_allowed_count",
+        "execution_performed_count",
+        "external_transfer_allowed_count",
+        "protected_action_executed_count",
+        "client_facing_ready_count",
+        "delivery_ready_count",
+        "final_action_executed_count",
+        "validation_error_count"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "gate_aggregate_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "gate_aggregate_record_id",
+        "gate_result_aggregator_contract_id",
+        "source_artifact_id",
+        "source_record_id",
+        "aggregate_gate_stage",
+        "aggregate_gate_type",
+        "aggregate_gate_state",
+        "workflow_run_id",
+        "human_review_required",
+        "blocking",
+        "execution_allowed",
+        "execution_performed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "client_facing_ready",
+        "delivery_ready",
+        "final_action_executed",
+        "recorded_at",
+        "gate_aggregate_record_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "gate-aggregate-record.v1" },
+        "gate_aggregate_record_id": { "type": "string" },
+        "gate_result_aggregator_contract_id": { "const": "gate-result-aggregator.v1" },
+        "source_artifact_id": {
+          "enum": [
+            "workflow_pre_run_gate_framework",
+            "workflow_in_run_gate_framework",
+            "workflow_post_run_gate_framework",
+            "gate_approval_contract_freeze"
+          ]
+        },
+        "source_record_id": { "type": "string" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "source_gate_contract_id": { "type": ["string", "null"] },
+        "aggregate_gate_stage": { "enum": ["pre_run", "in_run", "post_run", "unknown"] },
+        "aggregate_gate_type": { "type": "string" },
+        "aggregate_gate_state": { "enum": ["pass", "warn", "manual", "fail"] },
+        "source_gate_status": { "type": ["string", "null"] },
+        "source_gate_decision": { "type": ["string", "null"] },
+        "workflow_run_id": { "type": ["string", "null"] },
+        "agent_run_id": { "type": ["string", "null"] },
+        "tool_invocation_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "runtime_id": { "type": ["string", "null"] },
+        "gate_result_id": { "type": ["string", "null"] },
+        "gate_id": { "type": ["string", "null"] },
+        "human_review_required": { "type": "boolean" },
+        "blocking": { "type": "boolean" },
+        "execution_allowed": { "type": "boolean" },
+        "execution_performed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "client_facing_ready": { "type": "boolean" },
+        "delivery_ready": { "type": "boolean" },
+        "final_action_executed": { "type": "boolean" },
+        "reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "recorded_at": { "type": "string" },
+        "metadata": { "type": "object" },
+        "gate_aggregate_record_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "workflow_gate_status": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_gate_status_id",
+        "gate_result_aggregator_contract_id",
+        "workflow_run_id",
+        "workflow_gate_status",
+        "gate_aggregate_record_count",
+        "passed_gate_count",
+        "warning_gate_count",
+        "manual_gate_count",
+        "failed_gate_count",
+        "human_review_required",
+        "ready_for_execution",
+        "ready_for_delivery",
+        "final_action_allowed",
+        "recorded_at",
+        "workflow_gate_status_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-gate-status.v1" },
+        "workflow_gate_status_id": { "type": "string" },
+        "gate_result_aggregator_contract_id": { "const": "gate-result-aggregator.v1" },
+        "workflow_run_id": { "type": "string" },
+        "workflow_run_record_id": { "type": ["string", "null"] },
+        "workflow_id": { "type": ["string", "null"] },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "capability_id": { "type": ["string", "null"] },
+        "source_run_status": { "type": ["string", "null"] },
+        "source_terminal_state": { "type": ["string", "null"] },
+        "workflow_gate_status": { "enum": ["passed", "warning", "manual_review_required", "blocked"] },
+        "gate_aggregate_record_count": { "type": "number" },
+        "passed_gate_count": { "type": "number" },
+        "warning_gate_count": { "type": "number" },
+        "manual_gate_count": { "type": "number" },
+        "failed_gate_count": { "type": "number" },
+        "human_review_required": { "type": "boolean" },
+        "ready_for_execution": { "type": "boolean" },
+        "ready_for_delivery": { "type": "boolean" },
+        "final_action_allowed": { "type": "boolean" },
+        "execution_allowed_count": { "type": "number" },
+        "execution_performed_count": { "type": "number" },
+        "external_transfer_allowed_count": { "type": "number" },
+        "protected_action_executed_count": { "type": "number" },
+        "client_facing_ready_count": { "type": "number" },
+        "delivery_ready_count": { "type": "number" },
+        "final_action_executed_count": { "type": "number" },
+        "reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "recorded_at": { "type": "string" },
+        "workflow_gate_status_hash": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    }
+  }
+}

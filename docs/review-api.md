@@ -525,6 +525,10 @@ npm run api:serve
 - `GET /api/post-run-gate-decisions`: agent-run post-run gate decision rows
 - `GET /api/post-run-gate-guards`: required post-run gate set guard rows
 - `GET /api/post-run-gate-validations`: post-run gate framework validation rows
+- `GET /api/gate-result-aggregators`: gate result aggregator artifact
+- `GET /api/gate-aggregate-records`: normalized pass/warn/manual/fail gate aggregate rows
+- `GET /api/workflow-gate-statuses`: workflow-level gate status rows
+- `GET /api/gate-result-aggregate-validations`: gate result aggregate validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows
@@ -586,6 +590,8 @@ Event correlation route는 `event_correlation_status`, `correlation_id`, `correl
 Ledger API/dashboard route는 `ledger_api_dashboard_status`, `ledger_domain`, `panel_id`, `panel_status`, `route_id`, `route_path`, `route_method`, `route_status`, `source_ledger_id`, `metric_id`, `metric_key`, `metric_status`, `link_id`, `link_type`, `link_status`, `from_ledger_domain`, `to_ledger_domain`, `status`, `limit` query를 지원한다.
 
 Ledger golden fixture route는 `ledger_golden_fixture_status`, `ledger_golden_case_id`, `fixture_group`, `case_status`, `source_artifact_id`, `lock_status`, `assertion_status`, `expected_outcome`, `status`, `limit` query를 지원한다.
+
+Gate result aggregator route는 `gate_result_aggregator_status`, `gate_result_aggregator_contract_id`, `aggregate_gate_state`, `aggregate_gate_stage`, `workflow_gate_status`, `gate_aggregate_record_id`, `workflow_gate_status_id`, `workflow_run_id`, `agent_run_id`, `gate_type`, `status`, `limit` query를 지원한다.
 
 ## 검증
 

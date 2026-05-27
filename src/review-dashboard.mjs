@@ -105,6 +105,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowPreRunGateFrameworkPath: "artifacts/workflow-pre-run-gates/latest/workflow-pre-run-gate-framework.json",
   workflowInRunGateFrameworkPath: "artifacts/workflow-in-run-gates/latest/workflow-in-run-gate-framework.json",
   workflowPostRunGateFrameworkPath: "artifacts/workflow-post-run-gates/latest/workflow-post-run-gate-framework.json",
+  gateResultAggregatorPath: "artifacts/gate-result-aggregator/latest/gate-result-aggregator.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -693,6 +694,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowPostRunGateFrameworkPath",
     source_id: "workflow_post_run_gate_framework",
     label: "Workflow Post-run Gate Framework",
+  },
+  {
+    option: "gateResultAggregatorPath",
+    source_id: "gate_result_aggregator",
+    label: "Gate Result Aggregator",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1301,6 +1307,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_pre_run_gate_framework") return data.summary ?? {};
   if (sourceId === "workflow_in_run_gate_framework") return data.summary ?? {};
   if (sourceId === "workflow_post_run_gate_framework") return data.summary ?? {};
+  if (sourceId === "gate_result_aggregator") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1570,6 +1577,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowPreRunGateFrameworkStage(artifacts.workflow_pre_run_gate_framework, sourceById.get("workflow_pre_run_gate_framework")),
     buildWorkflowInRunGateFrameworkStage(artifacts.workflow_in_run_gate_framework, sourceById.get("workflow_in_run_gate_framework")),
     buildWorkflowPostRunGateFrameworkStage(artifacts.workflow_post_run_gate_framework, sourceById.get("workflow_post_run_gate_framework")),
+    buildGateResultAggregatorStage(artifacts.gate_result_aggregator, sourceById.get("gate_result_aggregator")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6508,6 +6516,87 @@ function buildWorkflowPostRunGateFrameworkStage(framework, source) {
       delivery_ready_count: summary.delivery_ready_count ?? 0,
       final_action_executed_count: summary.final_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? framework.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildGateResultAggregatorStage(aggregator, source) {
+  if (!aggregator) return missingStage("gate_result_aggregator", "Gate Result Aggregator", source);
+  const summary = aggregator.summary ?? {};
+  const expectedAggregateCount = (summary.source_pre_run_gate_record_count ?? 0)
+    + (summary.source_in_run_gate_record_count ?? 0)
+    + (summary.source_in_run_block_record_count ?? 0)
+    + (summary.source_post_run_gate_record_count ?? 0)
+    + (summary.source_gate_result_count ?? 0);
+  const blockers = (summary.validation_error_count ?? aggregator.validation?.errors?.length ?? 0)
+    + (summary.failed_gate_count ?? 0)
+    + (summary.blocked_workflow_gate_status_count ?? 0)
+    + (summary.execution_allowed_count ?? 0)
+    + (summary.execution_performed_count ?? 0)
+    + (summary.external_transfer_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0)
+    + (summary.client_facing_ready_count ?? 0)
+    + (summary.delivery_ready_count ?? 0)
+    + (summary.final_action_executed_count ?? 0)
+    + Math.max(0, expectedAggregateCount - (summary.gate_aggregate_record_count ?? 0))
+    + Math.max(0, (summary.source_workflow_run_record_count ?? 0) - (summary.workflow_gate_status_count ?? 0));
+  const status = summary.gate_result_aggregator_status === "complete"
+    && summary.gate_result_aggregator_contract_id === "gate-result-aggregator.v1"
+    && blockers === 0
+    && (summary.gate_aggregate_record_count ?? 0) === expectedAggregateCount
+    && (summary.workflow_gate_status_count ?? 0) === (summary.source_workflow_run_record_count ?? 0)
+    && (summary.passed_gate_count ?? 0) > 0
+    && (summary.warning_gate_count ?? 0) > 0
+    && (summary.manual_gate_count ?? 0) > 0
+    && (summary.manual_review_required_workflow_count ?? 0) > 0
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "gate_result_aggregator",
+    label: "Gate Result Aggregator",
+    status,
+    message: status === "passed"
+      ? `${summary.gate_aggregate_record_count ?? 0} aggregate gate record(s), ${summary.workflow_gate_status_count ?? 0} workflow status row(s).`
+      : `${blockers} gate result aggregate blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      gate_result_aggregator_status: summary.gate_result_aggregator_status ?? "unknown",
+      gate_result_aggregator_contract_id: summary.gate_result_aggregator_contract_id ?? null,
+      source_workflow_pre_run_gate_framework_status: summary.source_workflow_pre_run_gate_framework_status ?? "unknown",
+      source_workflow_in_run_gate_framework_status: summary.source_workflow_in_run_gate_framework_status ?? "unknown",
+      source_workflow_post_run_gate_framework_status: summary.source_workflow_post_run_gate_framework_status ?? "unknown",
+      source_gate_approval_contract_freeze_status: summary.source_gate_approval_contract_freeze_status ?? "unknown",
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_agent_run_ledger_status: summary.source_agent_run_ledger_status ?? "unknown",
+      source_pre_run_gate_record_count: summary.source_pre_run_gate_record_count ?? 0,
+      source_in_run_gate_record_count: summary.source_in_run_gate_record_count ?? 0,
+      source_in_run_block_record_count: summary.source_in_run_block_record_count ?? 0,
+      source_post_run_gate_record_count: summary.source_post_run_gate_record_count ?? 0,
+      source_gate_result_count: summary.source_gate_result_count ?? 0,
+      source_workflow_run_record_count: summary.source_workflow_run_record_count ?? 0,
+      source_agent_run_record_count: summary.source_agent_run_record_count ?? 0,
+      gate_aggregate_record_count: summary.gate_aggregate_record_count ?? 0,
+      workflow_gate_status_count: summary.workflow_gate_status_count ?? 0,
+      passed_gate_count: summary.passed_gate_count ?? 0,
+      warning_gate_count: summary.warning_gate_count ?? 0,
+      manual_gate_count: summary.manual_gate_count ?? 0,
+      failed_gate_count: summary.failed_gate_count ?? 0,
+      pre_run_aggregate_count: summary.pre_run_aggregate_count ?? 0,
+      in_run_aggregate_count: summary.in_run_aggregate_count ?? 0,
+      post_run_aggregate_count: summary.post_run_aggregate_count ?? 0,
+      gate_result_contract_aggregate_count: summary.gate_result_contract_aggregate_count ?? 0,
+      passed_workflow_gate_status_count: summary.passed_workflow_gate_status_count ?? 0,
+      warning_workflow_gate_status_count: summary.warning_workflow_gate_status_count ?? 0,
+      manual_review_required_workflow_count: summary.manual_review_required_workflow_count ?? 0,
+      blocked_workflow_gate_status_count: summary.blocked_workflow_gate_status_count ?? 0,
+      execution_allowed_count: summary.execution_allowed_count ?? 0,
+      execution_performed_count: summary.execution_performed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      delivery_ready_count: summary.delivery_ready_count ?? 0,
+      final_action_executed_count: summary.final_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? aggregator.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -12350,6 +12439,37 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_post_run_gate_framework_delivery_ready_count: artifacts.workflow_post_run_gate_framework?.summary?.delivery_ready_count ?? 0,
     workflow_post_run_gate_framework_final_action_executed_count: artifacts.workflow_post_run_gate_framework?.summary?.final_action_executed_count ?? 0,
     workflow_post_run_gate_framework_validation_error_count: artifacts.workflow_post_run_gate_framework?.summary?.validation_error_count ?? artifacts.workflow_post_run_gate_framework?.validation?.errors?.length ?? 0,
+    gate_result_aggregator_status: artifacts.gate_result_aggregator?.summary?.gate_result_aggregator_status ?? "unknown",
+    gate_result_aggregator_contract_id: artifacts.gate_result_aggregator?.summary?.gate_result_aggregator_contract_id ?? null,
+    gate_result_aggregator_source_workflow_pre_run_gate_framework_status: artifacts.gate_result_aggregator?.summary?.source_workflow_pre_run_gate_framework_status ?? "unknown",
+    gate_result_aggregator_source_workflow_in_run_gate_framework_status: artifacts.gate_result_aggregator?.summary?.source_workflow_in_run_gate_framework_status ?? "unknown",
+    gate_result_aggregator_source_workflow_post_run_gate_framework_status: artifacts.gate_result_aggregator?.summary?.source_workflow_post_run_gate_framework_status ?? "unknown",
+    gate_result_aggregator_source_gate_approval_contract_freeze_status: artifacts.gate_result_aggregator?.summary?.source_gate_approval_contract_freeze_status ?? "unknown",
+    gate_result_aggregator_source_workflow_run_ledger_status: artifacts.gate_result_aggregator?.summary?.source_workflow_run_ledger_status ?? "unknown",
+    gate_result_aggregator_source_agent_run_ledger_status: artifacts.gate_result_aggregator?.summary?.source_agent_run_ledger_status ?? "unknown",
+    gate_result_aggregator_source_pre_run_gate_record_count: artifacts.gate_result_aggregator?.summary?.source_pre_run_gate_record_count ?? 0,
+    gate_result_aggregator_source_in_run_gate_record_count: artifacts.gate_result_aggregator?.summary?.source_in_run_gate_record_count ?? 0,
+    gate_result_aggregator_source_in_run_block_record_count: artifacts.gate_result_aggregator?.summary?.source_in_run_block_record_count ?? 0,
+    gate_result_aggregator_source_post_run_gate_record_count: artifacts.gate_result_aggregator?.summary?.source_post_run_gate_record_count ?? 0,
+    gate_result_aggregator_source_gate_result_count: artifacts.gate_result_aggregator?.summary?.source_gate_result_count ?? 0,
+    gate_result_aggregator_source_workflow_run_record_count: artifacts.gate_result_aggregator?.summary?.source_workflow_run_record_count ?? 0,
+    gate_result_aggregator_source_agent_run_record_count: artifacts.gate_result_aggregator?.summary?.source_agent_run_record_count ?? 0,
+    gate_result_aggregator_gate_aggregate_record_count: artifacts.gate_result_aggregator?.summary?.gate_aggregate_record_count ?? 0,
+    gate_result_aggregator_workflow_gate_status_count: artifacts.gate_result_aggregator?.summary?.workflow_gate_status_count ?? 0,
+    gate_result_aggregator_passed_gate_count: artifacts.gate_result_aggregator?.summary?.passed_gate_count ?? 0,
+    gate_result_aggregator_warning_gate_count: artifacts.gate_result_aggregator?.summary?.warning_gate_count ?? 0,
+    gate_result_aggregator_manual_gate_count: artifacts.gate_result_aggregator?.summary?.manual_gate_count ?? 0,
+    gate_result_aggregator_failed_gate_count: artifacts.gate_result_aggregator?.summary?.failed_gate_count ?? 0,
+    gate_result_aggregator_manual_review_required_workflow_count: artifacts.gate_result_aggregator?.summary?.manual_review_required_workflow_count ?? 0,
+    gate_result_aggregator_blocked_workflow_gate_status_count: artifacts.gate_result_aggregator?.summary?.blocked_workflow_gate_status_count ?? 0,
+    gate_result_aggregator_execution_allowed_count: artifacts.gate_result_aggregator?.summary?.execution_allowed_count ?? 0,
+    gate_result_aggregator_execution_performed_count: artifacts.gate_result_aggregator?.summary?.execution_performed_count ?? 0,
+    gate_result_aggregator_external_transfer_allowed_count: artifacts.gate_result_aggregator?.summary?.external_transfer_allowed_count ?? 0,
+    gate_result_aggregator_protected_action_executed_count: artifacts.gate_result_aggregator?.summary?.protected_action_executed_count ?? 0,
+    gate_result_aggregator_client_facing_ready_count: artifacts.gate_result_aggregator?.summary?.client_facing_ready_count ?? 0,
+    gate_result_aggregator_delivery_ready_count: artifacts.gate_result_aggregator?.summary?.delivery_ready_count ?? 0,
+    gate_result_aggregator_final_action_executed_count: artifacts.gate_result_aggregator?.summary?.final_action_executed_count ?? 0,
+    gate_result_aggregator_validation_error_count: artifacts.gate_result_aggregator?.summary?.validation_error_count ?? artifacts.gate_result_aggregator?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -14160,6 +14280,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-in-run-gates") parsed.workflowInRunGateFrameworkPath = false;
     else if (arg === "--workflow-post-run-gates") parsed.workflowPostRunGateFrameworkPath = argv[++index];
     else if (arg === "--no-workflow-post-run-gates") parsed.workflowPostRunGateFrameworkPath = false;
+    else if (arg === "--gate-result-aggregator") parsed.gateResultAggregatorPath = argv[++index];
+    else if (arg === "--no-gate-result-aggregator") parsed.gateResultAggregatorPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];

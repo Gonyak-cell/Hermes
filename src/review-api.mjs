@@ -3090,6 +3090,46 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/gate-result-aggregators") {
+    const aggregateResult = await readDashboardSourceArtifact(dashboard, "gate_result_aggregator");
+    if (!aggregateResult.available) {
+      return jsonResponse(503, buildError("gate_result_aggregator_unavailable", aggregateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("gate_result_aggregators", [aggregateResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/gate-aggregate-records") {
+    const aggregateResult = await readDashboardSourceArtifact(dashboard, "gate_result_aggregator");
+    if (!aggregateResult.available) {
+      return jsonResponse(503, buildError("gate_result_aggregator_unavailable", aggregateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("gate_aggregate_records", aggregateResult.artifact.gate_aggregate_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-gate-statuses") {
+    const aggregateResult = await readDashboardSourceArtifact(dashboard, "gate_result_aggregator");
+    if (!aggregateResult.available) {
+      return jsonResponse(503, buildError("gate_result_aggregator_unavailable", aggregateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_gate_statuses", aggregateResult.artifact.workflow_gate_status_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/gate-result-aggregate-validations") {
+    const aggregateResult = await readDashboardSourceArtifact(dashboard, "gate_result_aggregator");
+    if (!aggregateResult.available) {
+      return jsonResponse(503, buildError("gate_result_aggregator_unavailable", aggregateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("gate_result_aggregate_validations", aggregateResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7262,6 +7302,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/post-run-gate-decisions", "Post-run gate decision rows"),
       route("GET", "/api/post-run-gate-guards", "Post-run gate guard rows"),
       route("GET", "/api/post-run-gate-validations", "Post-run gate validation rows"),
+      route("GET", "/api/gate-result-aggregators", "Gate result aggregator artifacts"),
+      route("GET", "/api/gate-aggregate-records", "Gate aggregate rows"),
+      route("GET", "/api/workflow-gate-statuses", "Workflow gate status rows"),
+      route("GET", "/api/gate-result-aggregate-validations", "Gate result aggregate validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7914,11 +7958,16 @@ function filterItems(items, searchParams) {
     "post_run_gate_decision",
     "post_run_gate_set_status",
     "post_run_guard_status",
+    "gate_result_aggregator_status",
+    "aggregate_gate_state",
+    "aggregate_gate_stage",
+    "workflow_gate_status",
     "retrieval_compiler_contract_id",
     "prompt_injection_boundary_contract_id",
     "pre_run_gate_framework_contract_id",
     "in_run_gate_framework_contract_id",
     "post_run_gate_framework_contract_id",
+    "gate_result_aggregator_contract_id",
     "retrieval_request_record_id",
     "retrieval_candidate_record_id",
     "source_span_priority_record_id",
@@ -7935,6 +7984,8 @@ function filterItems(items, searchParams) {
     "post_run_gate_record_id",
     "post_run_gate_decision_record_id",
     "post_run_guard_record_id",
+    "gate_aggregate_record_id",
+    "workflow_gate_status_id",
     "gate_type",
     "tool_invocation_id",
     "tool_id",
@@ -9123,6 +9174,11 @@ function readFilterValue(item, key) {
   if (key === "post_run_gate_decision") return item.post_run_gate_decision;
   if (key === "post_run_gate_set_status") return item.post_run_gate_set_status;
   if (key === "post_run_guard_status") return item.post_run_guard_status;
+  if (key === "gate_result_aggregator_status") return item.summary?.gate_result_aggregator_status ?? item.gate_result_aggregator_status;
+  if (key === "gate_result_aggregator_contract_id") return item.summary?.gate_result_aggregator_contract_id ?? item.gate_result_aggregator_contract_id;
+  if (key === "aggregate_gate_state") return item.aggregate_gate_state;
+  if (key === "aggregate_gate_stage") return item.aggregate_gate_stage;
+  if (key === "workflow_gate_status") return item.workflow_gate_status;
   if (key === "retrieval_request_record_id") return item.retrieval_request_record_id;
   if (key === "retrieval_candidate_record_id") return item.retrieval_candidate_record_id;
   if (key === "source_span_priority_record_id") return item.source_span_priority_record_id;
@@ -9139,6 +9195,8 @@ function readFilterValue(item, key) {
   if (key === "post_run_gate_record_id") return item.post_run_gate_record_id;
   if (key === "post_run_gate_decision_record_id") return item.post_run_gate_decision_record_id;
   if (key === "post_run_guard_record_id") return item.post_run_guard_record_id;
+  if (key === "gate_aggregate_record_id") return item.gate_aggregate_record_id;
+  if (key === "workflow_gate_status_id") return item.workflow_gate_status_id;
   if (key === "gate_type") return item.gate_type;
   if (key === "tool_invocation_id") return item.tool_invocation_id;
   if (key === "tool_id") return item.tool_id;

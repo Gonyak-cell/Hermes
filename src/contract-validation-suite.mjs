@@ -103,6 +103,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:pre-run-gates",
   "workflows:in-run-gates",
   "workflows:post-run-gates",
+  "workflows:gate-results",
   "contracts:observability",
 ];
 

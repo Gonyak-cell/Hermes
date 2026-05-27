@@ -111,6 +111,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_pre_run_gate_framework", "Workflow pre-run gate framework", "workflow", "workflow_pre_run_gate_framework", "control-plane-workflow-pre-run-gate-framework", { acceptance_profile: "workflow_pre_run_gate_framework_gate" }),
   sourceItem("workflow_in_run_gate_framework", "Workflow in-run gate framework", "workflow", "workflow_in_run_gate_framework", "control-plane-workflow-in-run-gate-framework", { acceptance_profile: "workflow_in_run_gate_framework_gate" }),
   sourceItem("workflow_post_run_gate_framework", "Workflow post-run gate framework", "workflow", "workflow_post_run_gate_framework", "control-plane-workflow-post-run-gate-framework", { acceptance_profile: "workflow_post_run_gate_framework_gate" }),
+  sourceItem("gate_result_aggregator", "Gate result aggregator", "workflow", "gate_result_aggregator", "control-plane-gate-result-aggregator", { acceptance_profile: "gate_result_aggregator_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -483,6 +484,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_pre_run_gate_framework_gate",
     "workflow_in_run_gate_framework_gate",
     "workflow_post_run_gate_framework_gate",
+    "gate_result_aggregator_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1202,6 +1204,47 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.final_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow post-run gate framework binds every agent run to evidence, citation, test, approval, and delivery gates, passing regression tests while holding client-facing release and final action for human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "gate_result_aggregator_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.failed_gate_count ?? 0)
+      + (metrics.blocked_workflow_gate_status_count ?? 0)
+      + (metrics.execution_allowed_count ?? 0)
+      + (metrics.execution_performed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0)
+      + (metrics.client_facing_ready_count ?? 0)
+      + (metrics.delivery_ready_count ?? 0)
+      + (metrics.final_action_executed_count ?? 0);
+    const expectedAggregateCount = (metrics.source_pre_run_gate_record_count ?? 0)
+      + (metrics.source_in_run_gate_record_count ?? 0)
+      + (metrics.source_in_run_block_record_count ?? 0)
+      + (metrics.source_post_run_gate_record_count ?? 0)
+      + (metrics.source_gate_result_count ?? 0);
+    if (
+      errors === 0
+      && metrics.gate_result_aggregator_status === "complete"
+      && metrics.gate_result_aggregator_contract_id === "gate-result-aggregator.v1"
+      && expectedAggregateCount > 0
+      && (metrics.gate_aggregate_record_count ?? 0) === expectedAggregateCount
+      && (metrics.workflow_gate_status_count ?? 0) === (metrics.source_workflow_run_record_count ?? 0)
+      && (metrics.passed_gate_count ?? 0) > 0
+      && (metrics.warning_gate_count ?? 0) > 0
+      && (metrics.manual_gate_count ?? 0) > 0
+      && (metrics.failed_gate_count ?? 1) === 0
+      && (metrics.manual_review_required_workflow_count ?? 0) > 0
+      && (metrics.blocked_workflow_gate_status_count ?? 1) === 0
+      && (metrics.execution_allowed_count ?? 1) === 0
+      && (metrics.execution_performed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+      && (metrics.client_facing_ready_count ?? 1) === 0
+      && (metrics.delivery_ready_count ?? 1) === 0
+      && (metrics.final_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Gate result aggregator normalizes pre/in/post-run gates and GateResult v2 rows into pass, warn, and manual states, projecting workflow gate status without authorizing execution, delivery, or final action.");
     }
   }
 

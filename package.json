@@ -168,6 +168,7 @@
     "workflows:prompt-injection-boundary": "node scripts/workflow-prompt-injection-boundary.mjs",
     "workflows:pre-run-gates": "node scripts/workflow-pre-run-gate-framework.mjs",
     "workflows:in-run-gates": "node scripts/workflow-in-run-gate-framework.mjs",
+    "workflows:post-run-gates": "node scripts/workflow-post-run-gate-framework.mjs",
     "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "policy:surface": "node scripts/policy-operations-surface.mjs",
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",

@@ -3039,6 +3039,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-post-run-gate-frameworks") {
+    const postRunGateResult = await readDashboardSourceArtifact(dashboard, "workflow_post_run_gate_framework");
+    if (!postRunGateResult.available) {
+      return jsonResponse(503, buildError("workflow_post_run_gate_framework_unavailable", postRunGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_post_run_gate_frameworks", [postRunGateResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/post-run-gate-records") {
+    const postRunGateResult = await readDashboardSourceArtifact(dashboard, "workflow_post_run_gate_framework");
+    if (!postRunGateResult.available) {
+      return jsonResponse(503, buildError("workflow_post_run_gate_framework_unavailable", postRunGateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("post_run_gate_records", postRunGateResult.artifact.post_run_gate_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/post-run-gate-decisions") {
+    const postRunGateResult = await readDashboardSourceArtifact(dashboard, "workflow_post_run_gate_framework");
+    if (!postRunGateResult.available) {
+      return jsonResponse(503, buildError("workflow_post_run_gate_framework_unavailable", postRunGateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("post_run_gate_decisions", postRunGateResult.artifact.post_run_gate_decision_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/post-run-gate-guards") {
+    const postRunGateResult = await readDashboardSourceArtifact(dashboard, "workflow_post_run_gate_framework");
+    if (!postRunGateResult.available) {
+      return jsonResponse(503, buildError("workflow_post_run_gate_framework_unavailable", postRunGateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("post_run_gate_guards", postRunGateResult.artifact.post_run_guard_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/post-run-gate-validations") {
+    const postRunGateResult = await readDashboardSourceArtifact(dashboard, "workflow_post_run_gate_framework");
+    if (!postRunGateResult.available) {
+      return jsonResponse(503, buildError("workflow_post_run_gate_framework_unavailable", postRunGateResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("post_run_gate_validations", postRunGateResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7206,6 +7257,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/in-run-block-records", "In-run block rows"),
       route("GET", "/api/in-run-guard-records", "In-run gate guard rows"),
       route("GET", "/api/in-run-gate-validations", "In-run gate validation rows"),
+      route("GET", "/api/workflow-post-run-gate-frameworks", "Workflow post-run gate framework artifacts"),
+      route("GET", "/api/post-run-gate-records", "Post-run gate rows"),
+      route("GET", "/api/post-run-gate-decisions", "Post-run gate decision rows"),
+      route("GET", "/api/post-run-gate-guards", "Post-run gate guard rows"),
+      route("GET", "/api/post-run-gate-validations", "Post-run gate validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7853,10 +7909,16 @@ function filterItems(items, searchParams) {
     "in_run_gate_decision",
     "in_run_block_status",
     "in_run_guard_status",
+    "workflow_post_run_gate_framework_status",
+    "post_run_gate_status",
+    "post_run_gate_decision",
+    "post_run_gate_set_status",
+    "post_run_guard_status",
     "retrieval_compiler_contract_id",
     "prompt_injection_boundary_contract_id",
     "pre_run_gate_framework_contract_id",
     "in_run_gate_framework_contract_id",
+    "post_run_gate_framework_contract_id",
     "retrieval_request_record_id",
     "retrieval_candidate_record_id",
     "source_span_priority_record_id",
@@ -7870,9 +7932,13 @@ function filterItems(items, searchParams) {
     "in_run_gate_record_id",
     "in_run_block_record_id",
     "in_run_guard_record_id",
+    "post_run_gate_record_id",
+    "post_run_gate_decision_record_id",
+    "post_run_guard_record_id",
     "gate_type",
     "tool_invocation_id",
     "tool_id",
+    "output_ref",
     "selected_for_context",
     "source_span_bound",
     "content_role",
@@ -9051,6 +9117,12 @@ function readFilterValue(item, key) {
   if (key === "in_run_gate_decision") return item.in_run_gate_decision;
   if (key === "in_run_block_status") return item.in_run_block_status;
   if (key === "in_run_guard_status") return item.in_run_guard_status;
+  if (key === "workflow_post_run_gate_framework_status") return item.summary?.workflow_post_run_gate_framework_status ?? item.workflow_post_run_gate_framework_status;
+  if (key === "post_run_gate_framework_contract_id") return item.summary?.post_run_gate_framework_contract_id ?? item.post_run_gate_framework_contract_id;
+  if (key === "post_run_gate_status") return item.post_run_gate_status;
+  if (key === "post_run_gate_decision") return item.post_run_gate_decision;
+  if (key === "post_run_gate_set_status") return item.post_run_gate_set_status;
+  if (key === "post_run_guard_status") return item.post_run_guard_status;
   if (key === "retrieval_request_record_id") return item.retrieval_request_record_id;
   if (key === "retrieval_candidate_record_id") return item.retrieval_candidate_record_id;
   if (key === "source_span_priority_record_id") return item.source_span_priority_record_id;
@@ -9064,9 +9136,13 @@ function readFilterValue(item, key) {
   if (key === "in_run_gate_record_id") return item.in_run_gate_record_id;
   if (key === "in_run_block_record_id") return item.in_run_block_record_id;
   if (key === "in_run_guard_record_id") return item.in_run_guard_record_id;
+  if (key === "post_run_gate_record_id") return item.post_run_gate_record_id;
+  if (key === "post_run_gate_decision_record_id") return item.post_run_gate_decision_record_id;
+  if (key === "post_run_guard_record_id") return item.post_run_guard_record_id;
   if (key === "gate_type") return item.gate_type;
   if (key === "tool_invocation_id") return item.tool_invocation_id;
   if (key === "tool_id") return item.tool_id;
+  if (key === "output_ref") return item.output_ref;
   if (key === "selected_for_context") return String(Boolean(item.selected_for_context));
   if (key === "source_span_bound") return String(Boolean(item.source_span_bound));
   if (key === "content_role") return item.content_role;

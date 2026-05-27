@@ -110,6 +110,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_prompt_injection_boundary", "Workflow prompt injection boundary", "workflow", "workflow_prompt_injection_boundary", "control-plane-workflow-prompt-injection-boundary", { acceptance_profile: "workflow_prompt_injection_boundary_gate" }),
   sourceItem("workflow_pre_run_gate_framework", "Workflow pre-run gate framework", "workflow", "workflow_pre_run_gate_framework", "control-plane-workflow-pre-run-gate-framework", { acceptance_profile: "workflow_pre_run_gate_framework_gate" }),
   sourceItem("workflow_in_run_gate_framework", "Workflow in-run gate framework", "workflow", "workflow_in_run_gate_framework", "control-plane-workflow-in-run-gate-framework", { acceptance_profile: "workflow_in_run_gate_framework_gate" }),
+  sourceItem("workflow_post_run_gate_framework", "Workflow post-run gate framework", "workflow", "workflow_post_run_gate_framework", "control-plane-workflow-post-run-gate-framework", { acceptance_profile: "workflow_post_run_gate_framework_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -481,6 +482,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_prompt_injection_boundary_gate",
     "workflow_pre_run_gate_framework_gate",
     "workflow_in_run_gate_framework_gate",
+    "workflow_post_run_gate_framework_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1157,6 +1159,49 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow in-run gate framework binds every tool invocation to dangerous-command, sensitive-access, and timeout gates, converting unsafe runtime attempts into block records without execution or transfer.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_post_run_gate_framework_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.blocked_gate_count ?? 0)
+      + (metrics.blocked_after_run_decision_count ?? 0)
+      + (metrics.execution_allowed_count ?? 0)
+      + (metrics.execution_performed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0)
+      + (metrics.client_facing_ready_count ?? 0)
+      + (metrics.delivery_ready_count ?? 0)
+      + (metrics.final_action_executed_count ?? 0);
+    const sourceAgentRunCount = metrics.source_agent_run_record_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_post_run_gate_framework_status === "complete"
+      && metrics.post_run_gate_framework_contract_id === "workflow-post-run-gate-framework.v1"
+      && sourceAgentRunCount > 0
+      && (metrics.post_run_gate_record_count ?? 0) === sourceAgentRunCount * 5
+      && (metrics.evidence_gate_count ?? 0) === sourceAgentRunCount
+      && (metrics.citation_gate_count ?? 0) === sourceAgentRunCount
+      && (metrics.test_gate_count ?? 0) === sourceAgentRunCount
+      && (metrics.approval_gate_count ?? 0) === sourceAgentRunCount
+      && (metrics.delivery_gate_count ?? 0) === sourceAgentRunCount
+      && (metrics.test_gate_passed_count ?? 0) === sourceAgentRunCount
+      && (metrics.post_run_guard_count ?? 0) === sourceAgentRunCount
+      && (metrics.post_run_guard_passed_count ?? 0) === sourceAgentRunCount
+      && (metrics.post_run_gate_decision_count ?? 0) === sourceAgentRunCount
+      && (metrics.held_for_human_review_decision_count ?? 0) === sourceAgentRunCount
+      && (metrics.review_required_gate_count ?? 0) > 0
+      && (metrics.ready_after_post_run_gate_decision_count ?? 1) === 0
+      && (metrics.blocked_after_run_decision_count ?? 1) === 0
+      && (metrics.execution_allowed_count ?? 1) === 0
+      && (metrics.execution_performed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+      && (metrics.client_facing_ready_count ?? 1) === 0
+      && (metrics.delivery_ready_count ?? 1) === 0
+      && (metrics.final_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow post-run gate framework binds every agent run to evidence, citation, test, approval, and delivery gates, passing regression tests while holding client-facing release and final action for human review.");
     }
   }
 

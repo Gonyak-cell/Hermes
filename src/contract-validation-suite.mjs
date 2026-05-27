@@ -102,6 +102,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:prompt-injection-boundary",
   "workflows:pre-run-gates",
   "workflows:in-run-gates",
+  "workflows:post-run-gates",
   "contracts:observability",
 ];
 

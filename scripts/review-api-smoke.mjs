@@ -150,6 +150,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/in-run-block-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/in-run-guard-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/in-run-gate-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-post-run-gate-frameworks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-guards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/post-run-gate-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -1134,6 +1139,26 @@ try {
   const inRunGateValidations = await fetchJson(`${url}/api/in-run-gate-validations?status=passed&limit=5`);
   assert.equal(inRunGateValidations.collection, "in_run_gate_validations");
   assert.ok(inRunGateValidations.count <= 5);
+
+  const workflowPostRunGateFrameworks = await fetchJson(`${url}/api/workflow-post-run-gate-frameworks?workflow_post_run_gate_framework_status=complete&limit=1`);
+  assert.equal(workflowPostRunGateFrameworks.collection, "workflow_post_run_gate_frameworks");
+  assert.ok(workflowPostRunGateFrameworks.count <= 1);
+
+  const postRunGateRecords = await fetchJson(`${url}/api/post-run-gate-records?gate_type=evidence_gate&limit=5`);
+  assert.equal(postRunGateRecords.collection, "post_run_gate_records");
+  assert.ok(postRunGateRecords.count <= 5);
+
+  const postRunGateDecisions = await fetchJson(`${url}/api/post-run-gate-decisions?post_run_gate_decision=hold_for_human_review&limit=5`);
+  assert.equal(postRunGateDecisions.collection, "post_run_gate_decisions");
+  assert.ok(postRunGateDecisions.count <= 5);
+
+  const postRunGateGuards = await fetchJson(`${url}/api/post-run-gate-guards?post_run_guard_status=passed&limit=5`);
+  assert.equal(postRunGateGuards.collection, "post_run_gate_guards");
+  assert.ok(postRunGateGuards.count <= 5);
+
+  const postRunGateValidations = await fetchJson(`${url}/api/post-run-gate-validations?status=passed&limit=5`);
+  assert.equal(postRunGateValidations.collection, "post_run_gate_validations");
+  assert.ok(postRunGateValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

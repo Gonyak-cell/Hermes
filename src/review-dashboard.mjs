@@ -103,6 +103,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowRetrievalCompilerPath: "artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json",
   workflowPromptInjectionBoundaryPath: "artifacts/workflow-prompt-injection-boundary/latest/workflow-prompt-injection-boundary.json",
   workflowPreRunGateFrameworkPath: "artifacts/workflow-pre-run-gates/latest/workflow-pre-run-gate-framework.json",
+  workflowInRunGateFrameworkPath: "artifacts/workflow-in-run-gates/latest/workflow-in-run-gate-framework.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -681,6 +682,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowPreRunGateFrameworkPath",
     source_id: "workflow_pre_run_gate_framework",
     label: "Workflow Pre-run Gate Framework",
+  },
+  {
+    option: "workflowInRunGateFrameworkPath",
+    source_id: "workflow_in_run_gate_framework",
+    label: "Workflow In-run Gate Framework",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1287,6 +1293,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_retrieval_compiler") return data.summary ?? {};
   if (sourceId === "workflow_prompt_injection_boundary") return data.summary ?? {};
   if (sourceId === "workflow_pre_run_gate_framework") return data.summary ?? {};
+  if (sourceId === "workflow_in_run_gate_framework") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1554,6 +1561,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowRetrievalCompilerStage(artifacts.workflow_retrieval_compiler, sourceById.get("workflow_retrieval_compiler")),
     buildWorkflowPromptInjectionBoundaryStage(artifacts.workflow_prompt_injection_boundary, sourceById.get("workflow_prompt_injection_boundary")),
     buildWorkflowPreRunGateFrameworkStage(artifacts.workflow_pre_run_gate_framework, sourceById.get("workflow_pre_run_gate_framework")),
+    buildWorkflowInRunGateFrameworkStage(artifacts.workflow_in_run_gate_framework, sourceById.get("workflow_in_run_gate_framework")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6331,6 +6339,75 @@ function buildWorkflowPreRunGateFrameworkStage(framework, source) {
       ready_after_pre_run_gate_decision_count: summary.ready_after_pre_run_gate_decision_count ?? 0,
       blocked_before_execution_decision_count: summary.blocked_before_execution_decision_count ?? 0,
       execution_allowed_count: summary.execution_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? framework.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowInRunGateFrameworkStage(framework, source) {
+  if (!framework) return missingStage("workflow_in_run_gate_framework", "Workflow In-run Gate Framework", source);
+  const summary = framework.summary ?? {};
+  const blockers = (summary.validation_error_count ?? framework.validation?.errors?.length ?? 0)
+    + (summary.dangerous_command_allowed_count ?? 0)
+    + (summary.sensitive_access_allowed_count ?? 0)
+    + (summary.timeout_without_gate_count ?? 0)
+    + (summary.timeout_block_count ?? 0)
+    + (summary.execution_allowed_count ?? 0)
+    + (summary.execution_performed_count ?? 0)
+    + (summary.continued_execution_allowed_count ?? 0)
+    + (summary.external_transfer_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0)
+    + Math.max(0, (summary.source_pre_run_gate_guard_count ?? 0) - (summary.in_run_guard_count ?? 0))
+    + Math.max(0, (summary.source_tool_invocation_record_count ?? 0) * 3 - (summary.in_run_gate_record_count ?? 0));
+  const status = summary.workflow_in_run_gate_framework_status === "complete"
+    && blockers === 0
+    && (summary.in_run_block_record_count ?? 0) > 0
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "workflow_in_run_gate_framework",
+    label: "Workflow In-run Gate Framework",
+    status,
+    message: status === "passed"
+      ? `${summary.source_tool_invocation_record_count ?? 0} tool invocation(s), ${summary.in_run_gate_record_count ?? 0} in-run gate(s), ${summary.in_run_block_record_count ?? 0} block(s).`
+      : `${blockers} in-run gate framework blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_in_run_gate_framework_status: summary.workflow_in_run_gate_framework_status ?? "unknown",
+      in_run_gate_framework_contract_id: summary.in_run_gate_framework_contract_id ?? null,
+      source_workflow_pre_run_gate_framework_status: summary.source_workflow_pre_run_gate_framework_status ?? "unknown",
+      source_tool_invocation_ledger_status: summary.source_tool_invocation_ledger_status ?? "unknown",
+      source_agent_run_ledger_status: summary.source_agent_run_ledger_status ?? "unknown",
+      source_workflow_state_machine_runner_status: summary.source_workflow_state_machine_runner_status ?? "unknown",
+      source_pre_run_gate_guard_count: summary.source_pre_run_gate_guard_count ?? 0,
+      source_tool_invocation_record_count: summary.source_tool_invocation_record_count ?? 0,
+      source_agent_run_record_count: summary.source_agent_run_record_count ?? 0,
+      source_runner_plan_count: summary.source_runner_plan_count ?? 0,
+      in_run_gate_record_count: summary.in_run_gate_record_count ?? 0,
+      in_run_block_record_count: summary.in_run_block_record_count ?? 0,
+      in_run_guard_count: summary.in_run_guard_count ?? 0,
+      dangerous_command_gate_count: summary.dangerous_command_gate_count ?? 0,
+      sensitive_access_gate_count: summary.sensitive_access_gate_count ?? 0,
+      timeout_gate_count: summary.timeout_gate_count ?? 0,
+      dangerous_command_target_count: summary.dangerous_command_target_count ?? 0,
+      sensitive_access_target_count: summary.sensitive_access_target_count ?? 0,
+      timeout_configured_count: summary.timeout_configured_count ?? 0,
+      passed_gate_count: summary.passed_gate_count ?? 0,
+      blocked_gate_count: summary.blocked_gate_count ?? 0,
+      dangerous_command_block_count: summary.dangerous_command_block_count ?? 0,
+      sensitive_access_block_count: summary.sensitive_access_block_count ?? 0,
+      timeout_block_count: summary.timeout_block_count ?? 0,
+      timeout_gate_passed_count: summary.timeout_gate_passed_count ?? 0,
+      in_run_guard_passed_count: summary.in_run_guard_passed_count ?? 0,
+      no_invocation_scheduled_guard_count: summary.no_invocation_scheduled_guard_count ?? 0,
+      dangerous_command_allowed_count: summary.dangerous_command_allowed_count ?? 0,
+      sensitive_access_allowed_count: summary.sensitive_access_allowed_count ?? 0,
+      timeout_without_gate_count: summary.timeout_without_gate_count ?? 0,
+      execution_allowed_count: summary.execution_allowed_count ?? 0,
+      execution_performed_count: summary.execution_performed_count ?? 0,
+      continued_execution_allowed_count: summary.continued_execution_allowed_count ?? 0,
       external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
       protected_action_executed_count: summary.protected_action_executed_count ?? 0,
       validation_error_count: summary.validation_error_count ?? framework.validation?.errors?.length ?? 0,
@@ -12093,6 +12170,42 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_pre_run_gate_framework_external_transfer_allowed_count: artifacts.workflow_pre_run_gate_framework?.summary?.external_transfer_allowed_count ?? 0,
     workflow_pre_run_gate_framework_protected_action_executed_count: artifacts.workflow_pre_run_gate_framework?.summary?.protected_action_executed_count ?? 0,
     workflow_pre_run_gate_framework_validation_error_count: artifacts.workflow_pre_run_gate_framework?.summary?.validation_error_count ?? artifacts.workflow_pre_run_gate_framework?.validation?.errors?.length ?? 0,
+    workflow_in_run_gate_framework_status: artifacts.workflow_in_run_gate_framework?.summary?.workflow_in_run_gate_framework_status ?? "unknown",
+    workflow_in_run_gate_framework_contract_id: artifacts.workflow_in_run_gate_framework?.summary?.in_run_gate_framework_contract_id ?? null,
+    workflow_in_run_gate_framework_source_workflow_pre_run_gate_framework_status: artifacts.workflow_in_run_gate_framework?.summary?.source_workflow_pre_run_gate_framework_status ?? "unknown",
+    workflow_in_run_gate_framework_source_tool_invocation_ledger_status: artifacts.workflow_in_run_gate_framework?.summary?.source_tool_invocation_ledger_status ?? "unknown",
+    workflow_in_run_gate_framework_source_agent_run_ledger_status: artifacts.workflow_in_run_gate_framework?.summary?.source_agent_run_ledger_status ?? "unknown",
+    workflow_in_run_gate_framework_source_workflow_state_machine_runner_status: artifacts.workflow_in_run_gate_framework?.summary?.source_workflow_state_machine_runner_status ?? "unknown",
+    workflow_in_run_gate_framework_source_pre_run_gate_guard_count: artifacts.workflow_in_run_gate_framework?.summary?.source_pre_run_gate_guard_count ?? 0,
+    workflow_in_run_gate_framework_source_tool_invocation_record_count: artifacts.workflow_in_run_gate_framework?.summary?.source_tool_invocation_record_count ?? 0,
+    workflow_in_run_gate_framework_source_agent_run_record_count: artifacts.workflow_in_run_gate_framework?.summary?.source_agent_run_record_count ?? 0,
+    workflow_in_run_gate_framework_source_runner_plan_count: artifacts.workflow_in_run_gate_framework?.summary?.source_runner_plan_count ?? 0,
+    workflow_in_run_gate_framework_in_run_gate_record_count: artifacts.workflow_in_run_gate_framework?.summary?.in_run_gate_record_count ?? 0,
+    workflow_in_run_gate_framework_in_run_block_record_count: artifacts.workflow_in_run_gate_framework?.summary?.in_run_block_record_count ?? 0,
+    workflow_in_run_gate_framework_in_run_guard_count: artifacts.workflow_in_run_gate_framework?.summary?.in_run_guard_count ?? 0,
+    workflow_in_run_gate_framework_dangerous_command_gate_count: artifacts.workflow_in_run_gate_framework?.summary?.dangerous_command_gate_count ?? 0,
+    workflow_in_run_gate_framework_sensitive_access_gate_count: artifacts.workflow_in_run_gate_framework?.summary?.sensitive_access_gate_count ?? 0,
+    workflow_in_run_gate_framework_timeout_gate_count: artifacts.workflow_in_run_gate_framework?.summary?.timeout_gate_count ?? 0,
+    workflow_in_run_gate_framework_dangerous_command_target_count: artifacts.workflow_in_run_gate_framework?.summary?.dangerous_command_target_count ?? 0,
+    workflow_in_run_gate_framework_sensitive_access_target_count: artifacts.workflow_in_run_gate_framework?.summary?.sensitive_access_target_count ?? 0,
+    workflow_in_run_gate_framework_timeout_configured_count: artifacts.workflow_in_run_gate_framework?.summary?.timeout_configured_count ?? 0,
+    workflow_in_run_gate_framework_passed_gate_count: artifacts.workflow_in_run_gate_framework?.summary?.passed_gate_count ?? 0,
+    workflow_in_run_gate_framework_blocked_gate_count: artifacts.workflow_in_run_gate_framework?.summary?.blocked_gate_count ?? 0,
+    workflow_in_run_gate_framework_dangerous_command_block_count: artifacts.workflow_in_run_gate_framework?.summary?.dangerous_command_block_count ?? 0,
+    workflow_in_run_gate_framework_sensitive_access_block_count: artifacts.workflow_in_run_gate_framework?.summary?.sensitive_access_block_count ?? 0,
+    workflow_in_run_gate_framework_timeout_block_count: artifacts.workflow_in_run_gate_framework?.summary?.timeout_block_count ?? 0,
+    workflow_in_run_gate_framework_timeout_gate_passed_count: artifacts.workflow_in_run_gate_framework?.summary?.timeout_gate_passed_count ?? 0,
+    workflow_in_run_gate_framework_in_run_guard_passed_count: artifacts.workflow_in_run_gate_framework?.summary?.in_run_guard_passed_count ?? 0,
+    workflow_in_run_gate_framework_no_invocation_scheduled_guard_count: artifacts.workflow_in_run_gate_framework?.summary?.no_invocation_scheduled_guard_count ?? 0,
+    workflow_in_run_gate_framework_dangerous_command_allowed_count: artifacts.workflow_in_run_gate_framework?.summary?.dangerous_command_allowed_count ?? 0,
+    workflow_in_run_gate_framework_sensitive_access_allowed_count: artifacts.workflow_in_run_gate_framework?.summary?.sensitive_access_allowed_count ?? 0,
+    workflow_in_run_gate_framework_timeout_without_gate_count: artifacts.workflow_in_run_gate_framework?.summary?.timeout_without_gate_count ?? 0,
+    workflow_in_run_gate_framework_execution_allowed_count: artifacts.workflow_in_run_gate_framework?.summary?.execution_allowed_count ?? 0,
+    workflow_in_run_gate_framework_execution_performed_count: artifacts.workflow_in_run_gate_framework?.summary?.execution_performed_count ?? 0,
+    workflow_in_run_gate_framework_continued_execution_allowed_count: artifacts.workflow_in_run_gate_framework?.summary?.continued_execution_allowed_count ?? 0,
+    workflow_in_run_gate_framework_external_transfer_allowed_count: artifacts.workflow_in_run_gate_framework?.summary?.external_transfer_allowed_count ?? 0,
+    workflow_in_run_gate_framework_protected_action_executed_count: artifacts.workflow_in_run_gate_framework?.summary?.protected_action_executed_count ?? 0,
+    workflow_in_run_gate_framework_validation_error_count: artifacts.workflow_in_run_gate_framework?.summary?.validation_error_count ?? artifacts.workflow_in_run_gate_framework?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13899,6 +14012,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-prompt-injection-boundary") parsed.workflowPromptInjectionBoundaryPath = false;
     else if (arg === "--workflow-pre-run-gates") parsed.workflowPreRunGateFrameworkPath = argv[++index];
     else if (arg === "--no-workflow-pre-run-gates") parsed.workflowPreRunGateFrameworkPath = false;
+    else if (arg === "--workflow-in-run-gates") parsed.workflowInRunGateFrameworkPath = argv[++index];
+    else if (arg === "--no-workflow-in-run-gates") parsed.workflowInRunGateFrameworkPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];

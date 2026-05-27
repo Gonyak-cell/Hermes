@@ -109,6 +109,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_retrieval_compiler", "Workflow retrieval compiler", "workflow", "workflow_retrieval_compiler", "control-plane-workflow-retrieval-compiler", { acceptance_profile: "workflow_retrieval_compiler_gate" }),
   sourceItem("workflow_prompt_injection_boundary", "Workflow prompt injection boundary", "workflow", "workflow_prompt_injection_boundary", "control-plane-workflow-prompt-injection-boundary", { acceptance_profile: "workflow_prompt_injection_boundary_gate" }),
   sourceItem("workflow_pre_run_gate_framework", "Workflow pre-run gate framework", "workflow", "workflow_pre_run_gate_framework", "control-plane-workflow-pre-run-gate-framework", { acceptance_profile: "workflow_pre_run_gate_framework_gate" }),
+  sourceItem("workflow_in_run_gate_framework", "Workflow in-run gate framework", "workflow", "workflow_in_run_gate_framework", "control-plane-workflow-in-run-gate-framework", { acceptance_profile: "workflow_in_run_gate_framework_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -479,6 +480,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_retrieval_compiler_gate",
     "workflow_prompt_injection_boundary_gate",
     "workflow_pre_run_gate_framework_gate",
+    "workflow_in_run_gate_framework_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1112,6 +1114,49 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow pre-run gate framework resolves access, model, tool, budget, and conflict gates for every prompt-boundary-guarded workflow run, holding execution for human review without transfers or protected actions.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_in_run_gate_framework_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.dangerous_command_allowed_count ?? 0)
+      + (metrics.sensitive_access_allowed_count ?? 0)
+      + (metrics.timeout_without_gate_count ?? 0)
+      + (metrics.timeout_block_count ?? 0)
+      + (metrics.execution_allowed_count ?? 0)
+      + (metrics.execution_performed_count ?? 0)
+      + (metrics.continued_execution_allowed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const sourceInvocationCount = metrics.source_tool_invocation_record_count ?? 0;
+    const sourcePreRunGuardCount = metrics.source_pre_run_gate_guard_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_in_run_gate_framework_status === "complete"
+      && metrics.in_run_gate_framework_contract_id === "workflow-in-run-gate-framework.v1"
+      && sourceInvocationCount > 0
+      && sourcePreRunGuardCount > 0
+      && (metrics.in_run_gate_record_count ?? 0) === sourceInvocationCount * 3
+      && (metrics.dangerous_command_gate_count ?? 0) === sourceInvocationCount
+      && (metrics.sensitive_access_gate_count ?? 0) === sourceInvocationCount
+      && (metrics.timeout_gate_count ?? 0) === sourceInvocationCount
+      && (metrics.timeout_gate_passed_count ?? 0) === sourceInvocationCount
+      && (metrics.timeout_configured_count ?? 0) === sourceInvocationCount
+      && (metrics.in_run_guard_count ?? 0) === sourcePreRunGuardCount
+      && (metrics.in_run_guard_passed_count ?? 0) === sourcePreRunGuardCount
+      && (metrics.in_run_block_record_count ?? 0) > 0
+      && (metrics.dangerous_command_block_count ?? 0) === (metrics.dangerous_command_target_count ?? 0)
+      && (metrics.sensitive_access_block_count ?? 0) === (metrics.sensitive_access_target_count ?? 0)
+      && (metrics.dangerous_command_allowed_count ?? 1) === 0
+      && (metrics.sensitive_access_allowed_count ?? 1) === 0
+      && (metrics.timeout_without_gate_count ?? 1) === 0
+      && (metrics.execution_allowed_count ?? 1) === 0
+      && (metrics.execution_performed_count ?? 1) === 0
+      && (metrics.continued_execution_allowed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow in-run gate framework binds every tool invocation to dangerous-command, sensitive-access, and timeout gates, converting unsafe runtime attempts into block records without execution or transfer.");
     }
   }
 

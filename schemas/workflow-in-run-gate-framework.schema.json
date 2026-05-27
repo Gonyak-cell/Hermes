@@ -1,0 +1,235 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/workflow-in-run-gate-framework.schema.json",
+  "title": "Workflow In-run Gate Framework",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_in_run_gate_framework_id",
+    "inputs",
+    "source_contracts",
+    "in_run_gate_framework_contract",
+    "in_run_gate_records",
+    "in_run_block_records",
+    "in_run_guard_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-in-run-gate-framework.v1" },
+    "generated_at": { "type": "string" },
+    "workflow_in_run_gate_framework_id": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "in_run_gate_framework_contract": { "type": "object" },
+    "in_run_gate_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/in_run_gate_record" }
+    },
+    "in_run_block_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/in_run_block_record" }
+    },
+    "in_run_guard_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/in_run_guard_record" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_in_run_gate_framework_status",
+        "in_run_gate_framework_contract_id",
+        "source_tool_invocation_record_count",
+        "in_run_gate_record_count",
+        "in_run_block_record_count",
+        "in_run_guard_count",
+        "dangerous_command_gate_count",
+        "sensitive_access_gate_count",
+        "timeout_gate_count",
+        "dangerous_command_allowed_count",
+        "sensitive_access_allowed_count",
+        "timeout_without_gate_count",
+        "execution_allowed_count",
+        "execution_performed_count",
+        "external_transfer_allowed_count",
+        "protected_action_executed_count",
+        "validation_error_count"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "in_run_gate_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "in_run_gate_record_id",
+        "in_run_gate_framework_contract_id",
+        "gate_type",
+        "gate_stage",
+        "tool_invocation_id",
+        "agent_run_id",
+        "workflow_run_id",
+        "tool_id",
+        "in_run_gate_decision",
+        "in_run_gate_status",
+        "execution_allowed",
+        "execution_performed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "human_review_required",
+        "required_during_execution"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-in-run-gate-record.v1" },
+        "in_run_gate_record_id": { "type": "string" },
+        "in_run_gate_framework_contract_id": { "const": "workflow-in-run-gate-framework.v1" },
+        "gate_type": {
+          "enum": ["dangerous_command_gate", "sensitive_access_gate", "timeout_gate"]
+        },
+        "gate_stage": { "const": "in_run" },
+        "tool_invocation_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "pre_run_gate_guard_record_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "domain_pack": { "type": ["string", "null"] },
+        "runtime_id": { "type": ["string", "null"] },
+        "tool_id": { "type": "string" },
+        "source_required_gates": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "timeout_seconds": { "type": "number" },
+        "in_run_gate_decision": { "enum": ["allow", "block"] },
+        "in_run_gate_status": { "enum": ["passed", "blocked"] },
+        "execution_allowed": { "type": "boolean" },
+        "execution_performed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" },
+        "required_during_execution": { "type": "boolean" },
+        "block_reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "in_run_block_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "in_run_block_record_id",
+        "in_run_gate_framework_contract_id",
+        "in_run_gate_record_id",
+        "tool_invocation_id",
+        "agent_run_id",
+        "workflow_run_id",
+        "gate_type",
+        "in_run_block_status",
+        "execution_allowed",
+        "execution_performed",
+        "continued_execution_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-in-run-block-record.v1" },
+        "in_run_block_record_id": { "type": "string" },
+        "in_run_gate_framework_contract_id": { "const": "workflow-in-run-gate-framework.v1" },
+        "in_run_gate_record_id": { "type": "string" },
+        "tool_invocation_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "gate_type": { "type": "string" },
+        "in_run_block_type": { "type": "string" },
+        "in_run_block_status": { "const": "blocked" },
+        "execution_allowed": { "type": "boolean" },
+        "execution_performed": { "type": "boolean" },
+        "continued_execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "in_run_guard_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "in_run_guard_record_id",
+        "in_run_gate_framework_contract_id",
+        "workflow_run_id",
+        "pre_run_gate_guard_record_id",
+        "required_gate_types",
+        "tool_invocation_count",
+        "gate_record_count",
+        "missing_tool_invocation_gate_count",
+        "in_run_block_record_count",
+        "in_run_guard_status",
+        "execution_allowed",
+        "execution_performed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-in-run-guard.v1" },
+        "in_run_guard_record_id": { "type": "string" },
+        "in_run_gate_framework_contract_id": { "const": "workflow-in-run-gate-framework.v1" },
+        "workflow_run_id": { "type": "string" },
+        "pre_run_gate_guard_record_id": { "type": "string" },
+        "required_gate_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "gate_record_count": { "type": "integer", "minimum": 0 },
+        "missing_tool_invocation_gate_count": { "type": "integer", "minimum": 0 },
+        "in_run_block_record_count": { "type": "integer", "minimum": 0 },
+        "in_run_guard_status": { "enum": ["passed", "blocked"] },
+        "no_invocation_scheduled": { "type": "boolean" },
+        "execution_allowed": { "type": "boolean" },
+        "execution_performed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string" },
+        "path": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

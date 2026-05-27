@@ -515,6 +515,11 @@ npm run api:serve
 - `GET /api/pre-run-gate-decisions`: workflow pre-run gate decision rows
 - `GET /api/pre-run-gate-guards`: required pre-run gate set guard rows
 - `GET /api/pre-run-gate-validations`: pre-run gate framework validation rows
+- `GET /api/workflow-in-run-gate-frameworks`: workflow in-run gate framework artifact
+- `GET /api/in-run-gate-records`: dangerous command/sensitive access/timeout in-run gate rows
+- `GET /api/in-run-block-records`: in-run block records for unsafe runtime attempts
+- `GET /api/in-run-guard-records`: workflow-level in-run gate guard rows
+- `GET /api/in-run-gate-validations`: in-run gate framework validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -135,6 +135,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/source-span-priority-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/retrieval-guard-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-retrieval-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-prompt-injection-boundaries"));
+  assert.ok(index.routes.some((route) => route.path === "/api/untrusted-content-wrappers"));
+  assert.ok(index.routes.some((route) => route.path === "/api/instruction-signal-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/prompt-boundary-guard-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/prompt-injection-boundary-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -1059,6 +1064,26 @@ try {
   const workflowRetrievalValidations = await fetchJson(`${url}/api/workflow-retrieval-validations?status=passed&limit=5`);
   assert.equal(workflowRetrievalValidations.collection, "workflow_retrieval_validations");
   assert.ok(workflowRetrievalValidations.count <= 5);
+
+  const workflowPromptInjectionBoundaries = await fetchJson(`${url}/api/workflow-prompt-injection-boundaries?workflow_prompt_injection_boundary_status=complete&limit=1`);
+  assert.equal(workflowPromptInjectionBoundaries.collection, "workflow_prompt_injection_boundaries");
+  assert.ok(workflowPromptInjectionBoundaries.count <= 1);
+
+  const untrustedContentWrappers = await fetchJson(`${url}/api/untrusted-content-wrappers?wrapper_status=wrapped_as_untrusted_evidence_content&limit=5`);
+  assert.equal(untrustedContentWrappers.collection, "untrusted_content_wrappers");
+  assert.ok(untrustedContentWrappers.count <= 5);
+
+  const instructionSignalRecords = await fetchJson(`${url}/api/instruction-signal-records?instruction_signal_status=no_instruction_signal_detected&limit=5`);
+  assert.equal(instructionSignalRecords.collection, "instruction_signal_records");
+  assert.ok(instructionSignalRecords.count <= 5);
+
+  const promptBoundaryGuardRecords = await fetchJson(`${url}/api/prompt-boundary-guard-records?prompt_boundary_guard_status=passed&limit=5`);
+  assert.equal(promptBoundaryGuardRecords.collection, "prompt_boundary_guard_records");
+  assert.ok(promptBoundaryGuardRecords.count <= 5);
+
+  const promptInjectionBoundaryValidations = await fetchJson(`${url}/api/prompt-injection-boundary-validations?status=passed&limit=5`);
+  assert.equal(promptInjectionBoundaryValidations.collection, "prompt_injection_boundary_validations");
+  assert.ok(promptInjectionBoundaryValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

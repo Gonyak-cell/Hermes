@@ -505,6 +505,11 @@ npm run api:serve
 - `GET /api/source-span-priority-records`: source span priority ranking rows
 - `GET /api/retrieval-guard-records`: retrieval guard rows
 - `GET /api/workflow-retrieval-validations`: workflow retrieval compiler validation rows
+- `GET /api/workflow-prompt-injection-boundaries`: workflow prompt injection boundary artifact
+- `GET /api/untrusted-content-wrappers`: untrusted evidence content wrapper rows
+- `GET /api/instruction-signal-records`: prompt injection instruction signal rows
+- `GET /api/prompt-boundary-guard-records`: prompt boundary guard rows
+- `GET /api/prompt-injection-boundary-validations`: prompt injection boundary validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

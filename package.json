@@ -165,6 +165,7 @@
     "workflows:resume-cancel": "node scripts/workflow-resume-cancel-contract.mjs",
     "workflows:context-builder": "node scripts/workflow-context-builder-contract.mjs",
     "workflows:retrieval-compiler": "node scripts/workflow-retrieval-compiler.mjs",
+    "workflows:prompt-injection-boundary": "node scripts/workflow-prompt-injection-boundary.mjs",
     "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "policy:surface": "node scripts/policy-operations-surface.mjs",
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",

@@ -5444,6 +5444,32 @@ Phase 185는 Phase 184의 Context Packet v2를 실제 query adapter 실행 전 �
 - Golden fixture 수가 87개로 증가하고 workflow retrieval compiler artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:retrieval-compiler -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 186 - Workflow Prompt Injection Boundary
+
+Phase 186은 Phase 185의 retrieval candidate를 runtime prompt나 tool instruction으로 바로 넘기지 않고, 모두 `untrusted evidence content` wrapper로 감싸는 prompt injection boundary를 추가했다. 목적은 외부 문서, source span preview, metadata-only fallback 안에 명령처럼 보이는 문장이 있더라도 이를 증거 본문 신호로만 기록하고 system/developer/tool/policy instruction으로 승격하지 못하게 하는 것이다.
+
+구현 내용:
+
+- `src/workflow-prompt-injection-boundary.mjs`와 `scripts/workflow-prompt-injection-boundary.mjs`를 추가해 `artifacts/workflow-prompt-injection-boundary/latest/workflow-prompt-injection-boundary.json` 산출물을 생성함
+- `untrusted-content-wrappers.json`, `instruction-signal-records.json`, `prompt-boundary-guard-records.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-prompt-injection-boundary.schema.json`으로 untrusted content wrapper, instruction signal, prompt boundary guard의 최소 계약을 고정함
+- Review Dashboard에 `workflow_prompt_injection_boundary` source/stage/summary metric을 추가하고 wrapper, instruction signal, neutralization, guard, promotion blocker count를 노출함
+- Review API에 `/api/workflow-prompt-injection-boundaries`, `/api/untrusted-content-wrappers`, `/api/instruction-signal-records`, `/api/prompt-boundary-guard-records`, `/api/prompt-injection-boundary-validations` route를 추가함
+- Control Plane Loop에 `workflow_prompt_injection_boundary` step을 추가하고 Goal Checkpoint에 `workflow_prompt_injection_boundary_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow prompt injection boundary artifact와 `workflows:prompt-injection-boundary` script를 포함함
+
+완료 기준:
+
+- Workflow prompt injection boundary가 validation error 없이 `complete` 상태가 됨
+- 모든 retrieval candidate마다 untrusted content wrapper와 instruction signal record가 정확히 1개 생성됨
+- 모든 wrapper가 content role을 `evidence_content`로 고정하고 prompt/tool/policy/client/external/protected action promotion을 차단함
+- instruction-like text는 deterministic signal로 기록되지만 `evidence_content_only`로 neutralized 되며 prompt/tool instruction으로 승격되지 않음
+- retrieval request마다 prompt boundary guard가 1개 생성되고 wrapper/content-role/instruction-promotion/tool-policy guard가 모두 통과함
+- client-facing output, external transfer, protected action execution count가 모두 0임
+- Review API smoke가 boundary, wrapper, instruction signal, guard, validation route를 모두 조회함
+- Golden fixture 수가 88개로 증가하고 workflow prompt injection boundary artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:prompt-injection-boundary -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5452,9 +5478,9 @@ Phase 185는 Phase 184의 Context Packet v2를 실제 query adapter 실행 전 �
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 185이다.
+- 현재 완료 기준점은 Phase 186이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P186-P312, 총 127개다.
+- 남은 계획 슬롯은 P187-P312, 총 126개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

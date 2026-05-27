@@ -2886,6 +2886,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-prompt-injection-boundaries") {
+    const promptBoundaryResult = await readDashboardSourceArtifact(dashboard, "workflow_prompt_injection_boundary");
+    if (!promptBoundaryResult.available) {
+      return jsonResponse(503, buildError("workflow_prompt_injection_boundary_unavailable", promptBoundaryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_prompt_injection_boundaries", [promptBoundaryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/untrusted-content-wrappers") {
+    const promptBoundaryResult = await readDashboardSourceArtifact(dashboard, "workflow_prompt_injection_boundary");
+    if (!promptBoundaryResult.available) {
+      return jsonResponse(503, buildError("workflow_prompt_injection_boundary_unavailable", promptBoundaryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("untrusted_content_wrappers", promptBoundaryResult.artifact.untrusted_content_wrapper_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/instruction-signal-records") {
+    const promptBoundaryResult = await readDashboardSourceArtifact(dashboard, "workflow_prompt_injection_boundary");
+    if (!promptBoundaryResult.available) {
+      return jsonResponse(503, buildError("workflow_prompt_injection_boundary_unavailable", promptBoundaryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("instruction_signal_records", promptBoundaryResult.artifact.instruction_signal_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/prompt-boundary-guard-records") {
+    const promptBoundaryResult = await readDashboardSourceArtifact(dashboard, "workflow_prompt_injection_boundary");
+    if (!promptBoundaryResult.available) {
+      return jsonResponse(503, buildError("workflow_prompt_injection_boundary_unavailable", promptBoundaryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("prompt_boundary_guard_records", promptBoundaryResult.artifact.prompt_boundary_guard_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/prompt-injection-boundary-validations") {
+    const promptBoundaryResult = await readDashboardSourceArtifact(dashboard, "workflow_prompt_injection_boundary");
+    if (!promptBoundaryResult.available) {
+      return jsonResponse(503, buildError("workflow_prompt_injection_boundary_unavailable", promptBoundaryResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("prompt_injection_boundary_validations", promptBoundaryResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7038,6 +7089,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/source-span-priority-records", "Source span priority rows"),
       route("GET", "/api/retrieval-guard-records", "Workflow retrieval guard rows"),
       route("GET", "/api/workflow-retrieval-validations", "Workflow retrieval compiler validation rows"),
+      route("GET", "/api/workflow-prompt-injection-boundaries", "Workflow prompt injection boundary artifacts"),
+      route("GET", "/api/untrusted-content-wrappers", "Untrusted evidence content wrapper rows"),
+      route("GET", "/api/instruction-signal-records", "Prompt injection instruction signal rows"),
+      route("GET", "/api/prompt-boundary-guard-records", "Prompt boundary guard rows"),
+      route("GET", "/api/prompt-injection-boundary-validations", "Prompt injection boundary validation rows"),
       route("GET", "/api/runtime-agentrun-contract-freezes", "Runtime/AgentRun contract freeze artifacts"),
       route("GET", "/api/runtime-adapter-v2-contracts", "RuntimeAdapter v2 contract fixtures"),
       route("GET", "/api/runtime-execution-contracts", "Runtime execution contract fixtures"),
@@ -7667,17 +7723,26 @@ function filterItems(items, searchParams) {
     "workflow_resume_cancel_status",
     "workflow_context_builder_status",
     "workflow_retrieval_compiler_status",
+    "workflow_prompt_injection_boundary_status",
     "retrieval_request_status",
     "retrieval_candidate_status",
     "source_span_priority_status",
     "retrieval_guard_status",
+    "wrapper_status",
+    "instruction_signal_status",
+    "prompt_boundary_guard_status",
     "retrieval_compiler_contract_id",
+    "prompt_injection_boundary_contract_id",
     "retrieval_request_record_id",
     "retrieval_candidate_record_id",
     "source_span_priority_record_id",
     "retrieval_guard_record_id",
+    "untrusted_content_wrapper_id",
+    "instruction_signal_record_id",
+    "prompt_boundary_guard_id",
     "selected_for_context",
     "source_span_bound",
+    "content_role",
     "context_packet_v2_status",
     "selection_decision",
     "token_budget_status",
@@ -8832,16 +8897,25 @@ function readFilterValue(item, key) {
   if (key === "context_builder_contract_id") return item.summary?.context_builder_contract_id ?? item.context_builder_contract_id;
   if (key === "workflow_retrieval_compiler_status") return item.summary?.workflow_retrieval_compiler_status ?? item.workflow_retrieval_compiler_status;
   if (key === "retrieval_compiler_contract_id") return item.summary?.retrieval_compiler_contract_id ?? item.retrieval_compiler_contract_id;
+  if (key === "workflow_prompt_injection_boundary_status") return item.summary?.workflow_prompt_injection_boundary_status ?? item.workflow_prompt_injection_boundary_status;
+  if (key === "prompt_injection_boundary_contract_id") return item.summary?.prompt_injection_boundary_contract_id ?? item.prompt_injection_boundary_contract_id;
   if (key === "retrieval_request_status") return item.retrieval_request_status;
   if (key === "retrieval_candidate_status") return item.candidate_status ?? item.retrieval_candidate_status;
   if (key === "source_span_priority_status") return item.source_span_priority_status;
   if (key === "retrieval_guard_status") return item.retrieval_guard_status;
+  if (key === "wrapper_status") return item.wrapper_status;
+  if (key === "instruction_signal_status") return item.instruction_signal_status;
+  if (key === "prompt_boundary_guard_status") return item.prompt_boundary_guard_status;
   if (key === "retrieval_request_record_id") return item.retrieval_request_record_id;
   if (key === "retrieval_candidate_record_id") return item.retrieval_candidate_record_id;
   if (key === "source_span_priority_record_id") return item.source_span_priority_record_id;
   if (key === "retrieval_guard_record_id") return item.retrieval_guard_record_id;
+  if (key === "untrusted_content_wrapper_id") return item.untrusted_content_wrapper_id;
+  if (key === "instruction_signal_record_id") return item.instruction_signal_record_id;
+  if (key === "prompt_boundary_guard_id") return item.prompt_boundary_guard_id;
   if (key === "selected_for_context") return String(Boolean(item.selected_for_context));
   if (key === "source_span_bound") return String(Boolean(item.source_span_bound));
+  if (key === "content_role") return item.content_role;
   if (key === "transition_guard_status") return item.transition_guard_status;
   if (key === "guard_decision") return item.guard_decision;
   if (key === "runner_plan_status") return item.runner_plan_status;

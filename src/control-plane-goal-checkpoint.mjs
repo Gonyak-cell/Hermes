@@ -107,6 +107,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_resume_cancel_contract", "Workflow resume/cancel contract", "workflow", "workflow_resume_cancel_contract", "control-plane-workflow-resume-cancel", { acceptance_profile: "workflow_resume_cancel_gate" }),
   sourceItem("workflow_context_builder_contract", "Workflow context builder contract", "workflow", "workflow_context_builder_contract", "control-plane-workflow-context-builder", { acceptance_profile: "workflow_context_builder_gate" }),
   sourceItem("workflow_retrieval_compiler", "Workflow retrieval compiler", "workflow", "workflow_retrieval_compiler", "control-plane-workflow-retrieval-compiler", { acceptance_profile: "workflow_retrieval_compiler_gate" }),
+  sourceItem("workflow_prompt_injection_boundary", "Workflow prompt injection boundary", "workflow", "workflow_prompt_injection_boundary", "control-plane-workflow-prompt-injection-boundary", { acceptance_profile: "workflow_prompt_injection_boundary_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -475,6 +476,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_resume_cancel_gate",
     "workflow_context_builder_gate",
     "workflow_retrieval_compiler_gate",
+    "workflow_prompt_injection_boundary_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1032,6 +1034,47 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.law_firm_human_review_request_count ?? 0) === lawFirmRequestCount
     ) {
       return passedWithOperationalGate(stage, "Workflow retrieval compiler binds every context packet v2 record to held retrieval requests, ranked source-span candidates, matter/classification guards, and law-firm human review without query execution or external transfer.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_prompt_injection_boundary_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.promoted_prompt_instruction_count ?? 0)
+      + (metrics.promoted_tool_instruction_count ?? 0)
+      + (metrics.policy_override_allowed_count ?? 0)
+      + (metrics.tool_instruction_allowed_count ?? 0)
+      + (metrics.system_prompt_override_allowed_count ?? 0)
+      + (metrics.client_facing_output_allowed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0);
+    const wrapperCount = metrics.untrusted_content_wrapper_count ?? 0;
+    const guardCount = metrics.prompt_boundary_guard_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_prompt_injection_boundary_status === "complete"
+      && metrics.prompt_injection_boundary_contract_id === "workflow-prompt-injection-boundary.v1"
+      && wrapperCount > 0
+      && wrapperCount === (metrics.source_retrieval_candidate_count ?? 0)
+      && (metrics.evidence_content_role_count ?? 0) === wrapperCount
+      && (metrics.instruction_signal_record_count ?? 0) === wrapperCount
+      && (metrics.neutralized_instruction_signal_count ?? 0) === (metrics.instruction_signal_count ?? -1)
+      && guardCount === (metrics.source_retrieval_request_count ?? 0)
+      && (metrics.prompt_boundary_guard_passed_count ?? 0) === guardCount
+      && (metrics.wrapper_guard_passed_count ?? 0) === guardCount
+      && (metrics.content_role_guard_passed_count ?? 0) === guardCount
+      && (metrics.instruction_promotion_guard_passed_count ?? 0) === guardCount
+      && (metrics.no_tool_instruction_guard_passed_count ?? 0) === guardCount
+      && (metrics.no_policy_override_guard_passed_count ?? 0) === guardCount
+      && (metrics.human_review_required_guard_count ?? 0) === guardCount
+      && (metrics.promoted_prompt_instruction_count ?? 1) === 0
+      && (metrics.promoted_tool_instruction_count ?? 1) === 0
+      && (metrics.policy_override_allowed_count ?? 1) === 0
+      && (metrics.tool_instruction_allowed_count ?? 1) === 0
+      && (metrics.system_prompt_override_allowed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow prompt injection boundary wraps every retrieval candidate as untrusted evidence content, neutralizes instruction-like text, and blocks prompt/tool/policy promotion without external transfer or protected actions.");
     }
   }
 

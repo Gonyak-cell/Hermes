@@ -99,6 +99,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:resume-cancel",
   "workflows:context-builder",
   "workflows:retrieval-compiler",
+  "workflows:prompt-injection-boundary",
   "contracts:observability",
 ];
 

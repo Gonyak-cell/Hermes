@@ -181,6 +181,7 @@ import { runWorkflowIdempotencyLedger } from "../src/workflow-idempotency-ledger
 import { runWorkflowResumeCancelContract } from "../src/workflow-resume-cancel-contract.mjs";
 import { runWorkflowContextBuilderContract } from "../src/workflow-context-builder-contract.mjs";
 import { runWorkflowRetrievalCompiler } from "../src/workflow-retrieval-compiler.mjs";
+import { runWorkflowPromptInjectionBoundary } from "../src/workflow-prompt-injection-boundary.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1814,6 +1815,7 @@ describe("matter harness", () => {
         workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
         workflowContextBuilderContractPath: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
         workflowRetrievalCompilerPath: path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json"),
+        workflowPromptInjectionBoundaryPath: path.join(outDir, "workflow-prompt-injection-boundary", "workflow-prompt-injection-boundary.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -5866,6 +5868,46 @@ describe("matter harness", () => {
       assert.ok(workflowRetrievalCompiler.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-retrieval-compiler", "summary.md"), "utf8"), /Workflow Retrieval Compiler/);
 
+      const workflowPromptInjectionBoundary = await runWorkflowPromptInjectionBoundary({
+        workflowRetrievalCompilerPath: path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        outDir: path.join(outDir, "workflow-prompt-injection-boundary"),
+        runAt: "2026-05-23T06:35:08.459Z",
+      });
+      const workflowPromptInjectionBoundarySchema = JSON.parse(await readFile("schemas/workflow-prompt-injection-boundary.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowPromptInjectionBoundary, workflowPromptInjectionBoundarySchema, {}, "workflow_prompt_injection_boundary"),
+        [],
+      );
+      assert.equal(workflowPromptInjectionBoundary.summary.workflow_prompt_injection_boundary_status, "complete");
+      assert.equal(workflowPromptInjectionBoundary.summary.prompt_injection_boundary_contract_id, "workflow-prompt-injection-boundary.v1");
+      assert.equal(workflowPromptInjectionBoundary.summary.source_workflow_retrieval_compiler_status, "complete");
+      assert.equal(workflowPromptInjectionBoundary.summary.source_source_span_store_status, "complete");
+      assert.equal(workflowPromptInjectionBoundary.summary.untrusted_content_wrapper_count, workflowRetrievalCompiler.summary.retrieval_candidate_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.evidence_content_role_count, workflowPromptInjectionBoundary.summary.untrusted_content_wrapper_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.instruction_signal_record_count, workflowPromptInjectionBoundary.summary.untrusted_content_wrapper_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.neutralized_instruction_signal_count, workflowPromptInjectionBoundary.summary.instruction_signal_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count, workflowRetrievalCompiler.summary.retrieval_request_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.prompt_boundary_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.wrapper_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.content_role_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.instruction_promotion_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.no_tool_instruction_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.no_policy_override_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(workflowPromptInjectionBoundary.summary.promoted_prompt_instruction_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.promoted_tool_instruction_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.policy_override_allowed_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.tool_instruction_allowed_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.system_prompt_override_allowed_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.external_transfer_allowed_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.protected_action_executed_count, 0);
+      assert.equal(workflowPromptInjectionBoundary.summary.validation_error_count, 0);
+      assert.ok(workflowPromptInjectionBoundary.untrusted_content_wrapper_records.every((record) => record.content_role === "evidence_content" && record.prompt_injection_handling === "treat_untrusted_content_as_evidence_data" && record.tool_instruction_allowed === false && record.policy_override_allowed === false));
+      assert.ok(workflowPromptInjectionBoundary.instruction_signal_records.every((record) => record.neutralized === true && record.instruction_treatment === "evidence_content_only" && record.promoted_to_prompt_instruction === false && record.promoted_to_tool_instruction === false));
+      assert.ok(workflowPromptInjectionBoundary.prompt_boundary_guard_records.every((record) => record.prompt_boundary_guard_status === "passed" && record.external_transfer_allowed === false && record.protected_action_execution_allowed === false));
+      assert.ok(workflowPromptInjectionBoundary.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-prompt-injection-boundary", "summary.md"), "utf8"), /Workflow Prompt Injection Boundary/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6015,6 +6057,7 @@ describe("matter harness", () => {
           workflow_resume_cancel_contract: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
           workflow_context_builder_contract: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
           workflow_retrieval_compiler: path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json"),
+          workflow_prompt_injection_boundary: path.join(outDir, "workflow-prompt-injection-boundary", "workflow-prompt-injection-boundary.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -6026,8 +6069,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 87);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 87);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 88);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 88);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6102,6 +6145,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_resume_cancel_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_context_builder_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_retrieval_compiler"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_prompt_injection_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6165,6 +6209,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:resume-cancel"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:context-builder"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:retrieval-compiler"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:prompt-injection-boundary"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:search-index"));
@@ -6521,6 +6566,10 @@ describe("matter harness", () => {
       assert.equal(workflowRetrievalCompilerCheckpoint?.acceptance_profile, "workflow_retrieval_compiler_gate");
       assert.equal(workflowRetrievalCompilerCheckpoint?.status, "passed");
       assert.equal(workflowRetrievalCompilerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowPromptInjectionBoundaryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-prompt-injection-boundary");
+      assert.equal(workflowPromptInjectionBoundaryCheckpoint?.acceptance_profile, "workflow_prompt_injection_boundary_gate");
+      assert.equal(workflowPromptInjectionBoundaryCheckpoint?.status, "passed");
+      assert.equal(workflowPromptInjectionBoundaryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -8120,6 +8169,40 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_retrieval_compiler_law_firm_retrieval_request_count, workflowRetrievalCompiler.summary.law_firm_retrieval_request_count);
       assert.equal(dashboard.summary.workflow_retrieval_compiler_law_firm_human_review_request_count, workflowRetrievalCompiler.summary.law_firm_human_review_request_count);
       assert.equal(dashboard.summary.workflow_retrieval_compiler_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_status, "complete");
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_contract_id, "workflow-prompt-injection-boundary.v1");
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_source_workflow_retrieval_compiler_status, "complete");
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_source_source_span_store_status, "complete");
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_source_retrieval_request_count, workflowPromptInjectionBoundary.summary.source_retrieval_request_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_source_retrieval_candidate_count, workflowPromptInjectionBoundary.summary.source_retrieval_candidate_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_source_source_span_count, workflowPromptInjectionBoundary.summary.source_source_span_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_untrusted_content_wrapper_count, workflowPromptInjectionBoundary.summary.untrusted_content_wrapper_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_source_span_bound_wrapper_count, workflowPromptInjectionBoundary.summary.source_span_bound_wrapper_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_metadata_only_wrapper_count, workflowPromptInjectionBoundary.summary.metadata_only_wrapper_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_evidence_content_role_count, workflowPromptInjectionBoundary.summary.evidence_content_role_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_wrapper_with_preview_count, workflowPromptInjectionBoundary.summary.wrapper_with_preview_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_instruction_signal_record_count, workflowPromptInjectionBoundary.summary.instruction_signal_record_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_instruction_signal_count, workflowPromptInjectionBoundary.summary.instruction_signal_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_wrapper_with_instruction_signal_count, workflowPromptInjectionBoundary.summary.wrapper_with_instruction_signal_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_neutralized_instruction_signal_count, workflowPromptInjectionBoundary.summary.neutralized_instruction_signal_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_promoted_prompt_instruction_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_promoted_tool_instruction_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_policy_override_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_tool_instruction_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_system_prompt_override_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_client_facing_output_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_prompt_boundary_guard_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_prompt_boundary_guard_passed_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_wrapper_guard_passed_count, workflowPromptInjectionBoundary.summary.wrapper_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_content_role_guard_passed_count, workflowPromptInjectionBoundary.summary.content_role_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_instruction_promotion_guard_passed_count, workflowPromptInjectionBoundary.summary.instruction_promotion_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_no_tool_instruction_guard_passed_count, workflowPromptInjectionBoundary.summary.no_tool_instruction_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_no_policy_override_guard_passed_count, workflowPromptInjectionBoundary.summary.no_policy_override_guard_passed_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_human_review_required_guard_count, workflowPromptInjectionBoundary.summary.human_review_required_guard_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_law_firm_wrapper_count, workflowPromptInjectionBoundary.summary.law_firm_wrapper_count);
+      assert.equal(dashboard.summary.workflow_prompt_injection_boundary_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -8775,6 +8858,13 @@ describe("matter harness", () => {
       assert.equal(workflowRetrievalCompilerStage?.metrics.selected_candidate_count, workflowRetrievalCompiler.summary.selected_candidate_count);
       assert.equal(workflowRetrievalCompilerStage?.metrics.source_span_priority_record_count, workflowRetrievalCompiler.summary.source_span_priority_record_count);
       assert.equal(workflowRetrievalCompilerStage?.metrics.retrieval_guard_record_count, workflowRetrievalCompiler.summary.retrieval_guard_record_count);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_prompt_injection_boundary"));
+      const workflowPromptInjectionBoundaryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_prompt_injection_boundary");
+      assert.equal(workflowPromptInjectionBoundaryStage?.status, "passed");
+      assert.equal(workflowPromptInjectionBoundaryStage?.metrics.untrusted_content_wrapper_count, workflowPromptInjectionBoundary.summary.untrusted_content_wrapper_count);
+      assert.equal(workflowPromptInjectionBoundaryStage?.metrics.instruction_signal_count, workflowPromptInjectionBoundary.summary.instruction_signal_count);
+      assert.equal(workflowPromptInjectionBoundaryStage?.metrics.neutralized_instruction_signal_count, workflowPromptInjectionBoundary.summary.neutralized_instruction_signal_count);
+      assert.equal(workflowPromptInjectionBoundaryStage?.metrics.prompt_boundary_guard_count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9143,6 +9233,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-priority-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/retrieval-guard-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-retrieval-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-prompt-injection-boundaries"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/untrusted-content-wrappers"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/instruction-signal-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-boundary-guard-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/prompt-injection-boundary-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -9795,6 +9890,26 @@ describe("matter harness", () => {
       const workflowRetrievalValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-retrieval-validations?status=passed", apiOptions)).body);
       assert.equal(workflowRetrievalValidations.collection, "workflow_retrieval_validations");
       assert.equal(workflowRetrievalValidations.count, workflowRetrievalCompiler.summary.validation_item_count);
+
+      const workflowPromptInjectionBoundaries = JSON.parse((await buildReviewApiResponse("/api/workflow-prompt-injection-boundaries?workflow_prompt_injection_boundary_status=complete", apiOptions)).body);
+      assert.equal(workflowPromptInjectionBoundaries.collection, "workflow_prompt_injection_boundaries");
+      assert.equal(workflowPromptInjectionBoundaries.count, 1);
+
+      const untrustedContentWrappers = JSON.parse((await buildReviewApiResponse("/api/untrusted-content-wrappers?wrapper_status=wrapped_as_untrusted_evidence_content", apiOptions)).body);
+      assert.equal(untrustedContentWrappers.collection, "untrusted_content_wrappers");
+      assert.equal(untrustedContentWrappers.count, workflowPromptInjectionBoundary.summary.untrusted_content_wrapper_count);
+
+      const instructionSignalRecords = JSON.parse((await buildReviewApiResponse("/api/instruction-signal-records?instruction_signal_status=neutralized_instruction_like_text", apiOptions)).body);
+      assert.equal(instructionSignalRecords.collection, "instruction_signal_records");
+      assert.equal(instructionSignalRecords.count, workflowPromptInjectionBoundary.summary.wrapper_with_instruction_signal_count);
+
+      const promptBoundaryGuardRecords = JSON.parse((await buildReviewApiResponse("/api/prompt-boundary-guard-records?prompt_boundary_guard_status=passed", apiOptions)).body);
+      assert.equal(promptBoundaryGuardRecords.collection, "prompt_boundary_guard_records");
+      assert.equal(promptBoundaryGuardRecords.count, workflowPromptInjectionBoundary.summary.prompt_boundary_guard_count);
+
+      const promptInjectionBoundaryValidations = JSON.parse((await buildReviewApiResponse("/api/prompt-injection-boundary-validations?status=passed", apiOptions)).body);
+      assert.equal(promptInjectionBoundaryValidations.collection, "prompt_injection_boundary_validations");
+      assert.equal(promptInjectionBoundaryValidations.count, workflowPromptInjectionBoundary.summary.validation_item_count);
 
       const runtimeAgentRunContractFreezes = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

@@ -101,6 +101,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowResumeCancelContractPath: "artifacts/workflow-resume-cancel/latest/workflow-resume-cancel-contract.json",
   workflowContextBuilderContractPath: "artifacts/workflow-context-builder/latest/workflow-context-builder-contract.json",
   workflowRetrievalCompilerPath: "artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json",
+  workflowPromptInjectionBoundaryPath: "artifacts/workflow-prompt-injection-boundary/latest/workflow-prompt-injection-boundary.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -669,6 +670,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowRetrievalCompilerPath",
     source_id: "workflow_retrieval_compiler",
     label: "Workflow Retrieval Compiler",
+  },
+  {
+    option: "workflowPromptInjectionBoundaryPath",
+    source_id: "workflow_prompt_injection_boundary",
+    label: "Workflow Prompt Injection Boundary",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1273,6 +1279,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_resume_cancel_contract") return data.summary ?? {};
   if (sourceId === "workflow_context_builder_contract") return data.summary ?? {};
   if (sourceId === "workflow_retrieval_compiler") return data.summary ?? {};
+  if (sourceId === "workflow_prompt_injection_boundary") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1538,6 +1545,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowResumeCancelContractStage(artifacts.workflow_resume_cancel_contract, sourceById.get("workflow_resume_cancel_contract")),
     buildWorkflowContextBuilderContractStage(artifacts.workflow_context_builder_contract, sourceById.get("workflow_context_builder_contract")),
     buildWorkflowRetrievalCompilerStage(artifacts.workflow_retrieval_compiler, sourceById.get("workflow_retrieval_compiler")),
+    buildWorkflowPromptInjectionBoundaryStage(artifacts.workflow_prompt_injection_boundary, sourceById.get("workflow_prompt_injection_boundary")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6204,6 +6212,66 @@ function buildWorkflowRetrievalCompilerStage(contract, source) {
       law_firm_retrieval_request_count: summary.law_firm_retrieval_request_count ?? 0,
       law_firm_human_review_request_count: summary.law_firm_human_review_request_count ?? 0,
       validation_error_count: summary.validation_error_count ?? contract.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowPromptInjectionBoundaryStage(boundary, source) {
+  if (!boundary) return missingStage("workflow_prompt_injection_boundary", "Workflow Prompt Injection Boundary", source);
+  const summary = boundary.summary ?? {};
+  const blockers = (summary.validation_error_count ?? boundary.validation?.errors?.length ?? 0)
+    + (summary.promoted_prompt_instruction_count ?? 0)
+    + (summary.promoted_tool_instruction_count ?? 0)
+    + (summary.policy_override_allowed_count ?? 0)
+    + (summary.tool_instruction_allowed_count ?? 0)
+    + (summary.system_prompt_override_allowed_count ?? 0)
+    + (summary.client_facing_output_allowed_count ?? 0)
+    + (summary.external_transfer_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0);
+  const status = summary.workflow_prompt_injection_boundary_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_prompt_injection_boundary",
+    label: "Workflow Prompt Injection Boundary",
+    status,
+    message: status === "passed"
+      ? `${summary.untrusted_content_wrapper_count ?? 0} wrapper(s), ${summary.instruction_signal_count ?? 0} instruction signal(s) neutralized.`
+      : `${blockers} prompt injection boundary blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_prompt_injection_boundary_status: summary.workflow_prompt_injection_boundary_status ?? "unknown",
+      prompt_injection_boundary_contract_id: summary.prompt_injection_boundary_contract_id ?? null,
+      source_workflow_retrieval_compiler_status: summary.source_workflow_retrieval_compiler_status ?? "unknown",
+      source_source_span_store_status: summary.source_source_span_store_status ?? "unknown",
+      source_retrieval_request_count: summary.source_retrieval_request_count ?? 0,
+      source_retrieval_candidate_count: summary.source_retrieval_candidate_count ?? 0,
+      source_source_span_count: summary.source_source_span_count ?? 0,
+      untrusted_content_wrapper_count: summary.untrusted_content_wrapper_count ?? 0,
+      source_span_bound_wrapper_count: summary.source_span_bound_wrapper_count ?? 0,
+      metadata_only_wrapper_count: summary.metadata_only_wrapper_count ?? 0,
+      evidence_content_role_count: summary.evidence_content_role_count ?? 0,
+      wrapper_with_preview_count: summary.wrapper_with_preview_count ?? 0,
+      instruction_signal_record_count: summary.instruction_signal_record_count ?? 0,
+      instruction_signal_count: summary.instruction_signal_count ?? 0,
+      wrapper_with_instruction_signal_count: summary.wrapper_with_instruction_signal_count ?? 0,
+      neutralized_instruction_signal_count: summary.neutralized_instruction_signal_count ?? 0,
+      promoted_prompt_instruction_count: summary.promoted_prompt_instruction_count ?? 0,
+      promoted_tool_instruction_count: summary.promoted_tool_instruction_count ?? 0,
+      policy_override_allowed_count: summary.policy_override_allowed_count ?? 0,
+      tool_instruction_allowed_count: summary.tool_instruction_allowed_count ?? 0,
+      system_prompt_override_allowed_count: summary.system_prompt_override_allowed_count ?? 0,
+      client_facing_output_allowed_count: summary.client_facing_output_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      prompt_boundary_guard_count: summary.prompt_boundary_guard_count ?? 0,
+      prompt_boundary_guard_passed_count: summary.prompt_boundary_guard_passed_count ?? 0,
+      wrapper_guard_passed_count: summary.wrapper_guard_passed_count ?? 0,
+      content_role_guard_passed_count: summary.content_role_guard_passed_count ?? 0,
+      instruction_promotion_guard_passed_count: summary.instruction_promotion_guard_passed_count ?? 0,
+      no_tool_instruction_guard_passed_count: summary.no_tool_instruction_guard_passed_count ?? 0,
+      no_policy_override_guard_passed_count: summary.no_policy_override_guard_passed_count ?? 0,
+      human_review_required_guard_count: summary.human_review_required_guard_count ?? 0,
+      law_firm_wrapper_count: summary.law_firm_wrapper_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? boundary.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11892,6 +11960,40 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_retrieval_compiler_law_firm_retrieval_request_count: artifacts.workflow_retrieval_compiler?.summary?.law_firm_retrieval_request_count ?? 0,
     workflow_retrieval_compiler_law_firm_human_review_request_count: artifacts.workflow_retrieval_compiler?.summary?.law_firm_human_review_request_count ?? 0,
     workflow_retrieval_compiler_validation_error_count: artifacts.workflow_retrieval_compiler?.summary?.validation_error_count ?? artifacts.workflow_retrieval_compiler?.validation?.errors?.length ?? 0,
+    workflow_prompt_injection_boundary_status: artifacts.workflow_prompt_injection_boundary?.summary?.workflow_prompt_injection_boundary_status ?? "unknown",
+    workflow_prompt_injection_boundary_contract_id: artifacts.workflow_prompt_injection_boundary?.summary?.prompt_injection_boundary_contract_id ?? null,
+    workflow_prompt_injection_boundary_source_workflow_retrieval_compiler_status: artifacts.workflow_prompt_injection_boundary?.summary?.source_workflow_retrieval_compiler_status ?? "unknown",
+    workflow_prompt_injection_boundary_source_source_span_store_status: artifacts.workflow_prompt_injection_boundary?.summary?.source_source_span_store_status ?? "unknown",
+    workflow_prompt_injection_boundary_source_retrieval_request_count: artifacts.workflow_prompt_injection_boundary?.summary?.source_retrieval_request_count ?? 0,
+    workflow_prompt_injection_boundary_source_retrieval_candidate_count: artifacts.workflow_prompt_injection_boundary?.summary?.source_retrieval_candidate_count ?? 0,
+    workflow_prompt_injection_boundary_source_source_span_count: artifacts.workflow_prompt_injection_boundary?.summary?.source_source_span_count ?? 0,
+    workflow_prompt_injection_boundary_untrusted_content_wrapper_count: artifacts.workflow_prompt_injection_boundary?.summary?.untrusted_content_wrapper_count ?? 0,
+    workflow_prompt_injection_boundary_source_span_bound_wrapper_count: artifacts.workflow_prompt_injection_boundary?.summary?.source_span_bound_wrapper_count ?? 0,
+    workflow_prompt_injection_boundary_metadata_only_wrapper_count: artifacts.workflow_prompt_injection_boundary?.summary?.metadata_only_wrapper_count ?? 0,
+    workflow_prompt_injection_boundary_evidence_content_role_count: artifacts.workflow_prompt_injection_boundary?.summary?.evidence_content_role_count ?? 0,
+    workflow_prompt_injection_boundary_wrapper_with_preview_count: artifacts.workflow_prompt_injection_boundary?.summary?.wrapper_with_preview_count ?? 0,
+    workflow_prompt_injection_boundary_instruction_signal_record_count: artifacts.workflow_prompt_injection_boundary?.summary?.instruction_signal_record_count ?? 0,
+    workflow_prompt_injection_boundary_instruction_signal_count: artifacts.workflow_prompt_injection_boundary?.summary?.instruction_signal_count ?? 0,
+    workflow_prompt_injection_boundary_wrapper_with_instruction_signal_count: artifacts.workflow_prompt_injection_boundary?.summary?.wrapper_with_instruction_signal_count ?? 0,
+    workflow_prompt_injection_boundary_neutralized_instruction_signal_count: artifacts.workflow_prompt_injection_boundary?.summary?.neutralized_instruction_signal_count ?? 0,
+    workflow_prompt_injection_boundary_promoted_prompt_instruction_count: artifacts.workflow_prompt_injection_boundary?.summary?.promoted_prompt_instruction_count ?? 0,
+    workflow_prompt_injection_boundary_promoted_tool_instruction_count: artifacts.workflow_prompt_injection_boundary?.summary?.promoted_tool_instruction_count ?? 0,
+    workflow_prompt_injection_boundary_policy_override_allowed_count: artifacts.workflow_prompt_injection_boundary?.summary?.policy_override_allowed_count ?? 0,
+    workflow_prompt_injection_boundary_tool_instruction_allowed_count: artifacts.workflow_prompt_injection_boundary?.summary?.tool_instruction_allowed_count ?? 0,
+    workflow_prompt_injection_boundary_system_prompt_override_allowed_count: artifacts.workflow_prompt_injection_boundary?.summary?.system_prompt_override_allowed_count ?? 0,
+    workflow_prompt_injection_boundary_client_facing_output_allowed_count: artifacts.workflow_prompt_injection_boundary?.summary?.client_facing_output_allowed_count ?? 0,
+    workflow_prompt_injection_boundary_external_transfer_allowed_count: artifacts.workflow_prompt_injection_boundary?.summary?.external_transfer_allowed_count ?? 0,
+    workflow_prompt_injection_boundary_protected_action_executed_count: artifacts.workflow_prompt_injection_boundary?.summary?.protected_action_executed_count ?? 0,
+    workflow_prompt_injection_boundary_prompt_boundary_guard_count: artifacts.workflow_prompt_injection_boundary?.summary?.prompt_boundary_guard_count ?? 0,
+    workflow_prompt_injection_boundary_prompt_boundary_guard_passed_count: artifacts.workflow_prompt_injection_boundary?.summary?.prompt_boundary_guard_passed_count ?? 0,
+    workflow_prompt_injection_boundary_wrapper_guard_passed_count: artifacts.workflow_prompt_injection_boundary?.summary?.wrapper_guard_passed_count ?? 0,
+    workflow_prompt_injection_boundary_content_role_guard_passed_count: artifacts.workflow_prompt_injection_boundary?.summary?.content_role_guard_passed_count ?? 0,
+    workflow_prompt_injection_boundary_instruction_promotion_guard_passed_count: artifacts.workflow_prompt_injection_boundary?.summary?.instruction_promotion_guard_passed_count ?? 0,
+    workflow_prompt_injection_boundary_no_tool_instruction_guard_passed_count: artifacts.workflow_prompt_injection_boundary?.summary?.no_tool_instruction_guard_passed_count ?? 0,
+    workflow_prompt_injection_boundary_no_policy_override_guard_passed_count: artifacts.workflow_prompt_injection_boundary?.summary?.no_policy_override_guard_passed_count ?? 0,
+    workflow_prompt_injection_boundary_human_review_required_guard_count: artifacts.workflow_prompt_injection_boundary?.summary?.human_review_required_guard_count ?? 0,
+    workflow_prompt_injection_boundary_law_firm_wrapper_count: artifacts.workflow_prompt_injection_boundary?.summary?.law_firm_wrapper_count ?? 0,
+    workflow_prompt_injection_boundary_validation_error_count: artifacts.workflow_prompt_injection_boundary?.summary?.validation_error_count ?? artifacts.workflow_prompt_injection_boundary?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13694,6 +13796,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-context-builder") parsed.workflowContextBuilderContractPath = false;
     else if (arg === "--workflow-retrieval-compiler") parsed.workflowRetrievalCompilerPath = argv[++index];
     else if (arg === "--no-workflow-retrieval-compiler") parsed.workflowRetrievalCompilerPath = false;
+    else if (arg === "--workflow-prompt-injection-boundary") parsed.workflowPromptInjectionBoundaryPath = argv[++index];
+    else if (arg === "--no-workflow-prompt-injection-boundary") parsed.workflowPromptInjectionBoundaryPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];

@@ -5470,6 +5470,32 @@ Phase 186은 Phase 185의 retrieval candidate를 runtime prompt나 tool instruct
 - Golden fixture 수가 88개로 증가하고 workflow prompt injection boundary artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:prompt-injection-boundary -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 187 - Workflow Pre-run Gate Framework
+
+Phase 187은 Phase 186의 prompt-boundary-guarded workflow run 위에 pre-run gate runner를 추가했다. 목적은 workflow 실행 전에 access, model, tool, budget, conflict gate를 모두 deterministic record로 판단하고, 법률/클라이언트 관련 판단은 human review hold로 묶되 실제 실행, 외부 전송, protected action은 계속 0으로 유지하는 것이다.
+
+구현 내용:
+
+- `src/workflow-pre-run-gate-framework.mjs`와 `scripts/workflow-pre-run-gate-framework.mjs`를 추가해 `artifacts/workflow-pre-run-gates/latest/workflow-pre-run-gate-framework.json` 산출물을 생성함
+- `pre-run-gate-records.json`, `pre-run-gate-decisions.json`, `pre-run-gate-guards.json`, `validation-report.json`, `summary.md`를 함께 출력함
+- `schemas/workflow-pre-run-gate-framework.schema.json`으로 pre-run gate record, decision, guard의 최소 계약을 고정함
+- Matter Access Policy, Model Policy Enforcement, Tool/Runtime Policy, Cost Budget Ledger, Conflict Check Interface를 source contract로 묶어 workflow별 5-gate set을 생성함
+- Review Dashboard에 `workflow_pre_run_gate_framework` source/stage/summary metric을 추가하고 gate type, review hold, no-execution blocker count를 노출함
+- Review API에 `/api/workflow-pre-run-gate-frameworks`, `/api/pre-run-gate-records`, `/api/pre-run-gate-decisions`, `/api/pre-run-gate-guards`, `/api/pre-run-gate-validations` route를 추가함
+- Control Plane Loop에 `workflow_pre_run_gate_framework` step을 추가하고 Goal Checkpoint에 `workflow_pre_run_gate_framework_gate` acceptance profile을 추가함
+- Contract Golden Fixtures와 Contract Validation Suite에 workflow pre-run gate framework artifact와 `workflows:pre-run-gates` script를 포함함
+
+완료 기준:
+
+- Workflow pre-run gate framework가 validation error 없이 `complete` 상태가 됨
+- 모든 prompt boundary guard마다 access, model, tool, budget, conflict gate가 각각 1개씩 생성됨
+- workflow run별 pre-run decision과 guard가 1개씩 생성되고 required gate set 누락이 0건임
+- client-confidential/law-firm 또는 tool/conflict review가 필요한 실행은 `hold_for_human_review` decision으로 보존됨
+- execution allowed, external transfer allowed, protected action execution count가 모두 0임
+- Review API smoke가 pre-run framework, gate, decision, guard, validation route를 모두 조회함
+- Golden fixture 수가 89개로 증가하고 workflow pre-run gate framework artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:pre-run-gates -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5478,9 +5504,9 @@ Phase 186은 Phase 185의 retrieval candidate를 runtime prompt나 tool instruct
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 186이다.
+- 현재 완료 기준점은 Phase 187이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P187-P312, 총 126개다.
+- 남은 계획 슬롯은 P188-P312, 총 125개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

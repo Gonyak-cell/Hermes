@@ -100,6 +100,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:context-builder",
   "workflows:retrieval-compiler",
   "workflows:prompt-injection-boundary",
+  "workflows:pre-run-gates",
   "contracts:observability",
 ];
 

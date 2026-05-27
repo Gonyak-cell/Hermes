@@ -108,6 +108,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_context_builder_contract", "Workflow context builder contract", "workflow", "workflow_context_builder_contract", "control-plane-workflow-context-builder", { acceptance_profile: "workflow_context_builder_gate" }),
   sourceItem("workflow_retrieval_compiler", "Workflow retrieval compiler", "workflow", "workflow_retrieval_compiler", "control-plane-workflow-retrieval-compiler", { acceptance_profile: "workflow_retrieval_compiler_gate" }),
   sourceItem("workflow_prompt_injection_boundary", "Workflow prompt injection boundary", "workflow", "workflow_prompt_injection_boundary", "control-plane-workflow-prompt-injection-boundary", { acceptance_profile: "workflow_prompt_injection_boundary_gate" }),
+  sourceItem("workflow_pre_run_gate_framework", "Workflow pre-run gate framework", "workflow", "workflow_pre_run_gate_framework", "control-plane-workflow-pre-run-gate-framework", { acceptance_profile: "workflow_pre_run_gate_framework_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -477,6 +478,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_context_builder_gate",
     "workflow_retrieval_compiler_gate",
     "workflow_prompt_injection_boundary_gate",
+    "workflow_pre_run_gate_framework_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1075,6 +1077,41 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.protected_action_executed_count ?? 1) === 0
     ) {
       return passedWithOperationalGate(stage, "Workflow prompt injection boundary wraps every retrieval candidate as untrusted evidence content, neutralizes instruction-like text, and blocks prompt/tool/policy promotion without external transfer or protected actions.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_pre_run_gate_framework_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.execution_allowed_count ?? 0)
+      + (metrics.external_transfer_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0)
+      + (metrics.blocked_gate_count ?? 0)
+      + (metrics.blocked_before_execution_decision_count ?? 0);
+    const gateSetCount = metrics.workflow_run_with_gate_set_count ?? 0;
+    const sourceGuardCount = metrics.source_prompt_boundary_guard_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_pre_run_gate_framework_status === "complete"
+      && metrics.pre_run_gate_framework_contract_id === "workflow-pre-run-gate-framework.v1"
+      && sourceGuardCount > 0
+      && gateSetCount === sourceGuardCount
+      && (metrics.pre_run_gate_guard_count ?? 0) === gateSetCount
+      && (metrics.pre_run_gate_decision_count ?? 0) === gateSetCount
+      && (metrics.pre_run_gate_record_count ?? 0) === gateSetCount * 5
+      && (metrics.access_gate_count ?? 0) === gateSetCount
+      && (metrics.model_gate_count ?? 0) === gateSetCount
+      && (metrics.tool_gate_count ?? 0) === gateSetCount
+      && (metrics.budget_gate_count ?? 0) === gateSetCount
+      && (metrics.conflict_gate_count ?? 0) === gateSetCount
+      && (metrics.all_required_gate_set_count ?? 0) === gateSetCount
+      && (metrics.pre_run_guard_passed_count ?? 0) === gateSetCount
+      && (metrics.held_for_human_review_decision_count ?? 0) === gateSetCount
+      && (metrics.human_review_required_gate_count ?? 0) > 0
+      && (metrics.execution_allowed_count ?? 1) === 0
+      && (metrics.external_transfer_allowed_count ?? 1) === 0
+      && (metrics.protected_action_executed_count ?? 1) === 0
+    ) {
+      return passedWithOperationalGate(stage, "Workflow pre-run gate framework resolves access, model, tool, budget, and conflict gates for every prompt-boundary-guarded workflow run, holding execution for human review without transfers or protected actions.");
     }
   }
 

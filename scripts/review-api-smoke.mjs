@@ -140,6 +140,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/instruction-signal-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/prompt-boundary-guard-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/prompt-injection-boundary-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-pre-run-gate-frameworks"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pre-run-gate-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pre-run-gate-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pre-run-gate-guards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/pre-run-gate-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-routing-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -1084,6 +1089,26 @@ try {
   const promptInjectionBoundaryValidations = await fetchJson(`${url}/api/prompt-injection-boundary-validations?status=passed&limit=5`);
   assert.equal(promptInjectionBoundaryValidations.collection, "prompt_injection_boundary_validations");
   assert.ok(promptInjectionBoundaryValidations.count <= 5);
+
+  const workflowPreRunGateFrameworks = await fetchJson(`${url}/api/workflow-pre-run-gate-frameworks?workflow_pre_run_gate_framework_status=complete&limit=1`);
+  assert.equal(workflowPreRunGateFrameworks.collection, "workflow_pre_run_gate_frameworks");
+  assert.ok(workflowPreRunGateFrameworks.count <= 1);
+
+  const preRunGateRecords = await fetchJson(`${url}/api/pre-run-gate-records?gate_type=access_gate&limit=5`);
+  assert.equal(preRunGateRecords.collection, "pre_run_gate_records");
+  assert.ok(preRunGateRecords.count <= 5);
+
+  const preRunGateDecisions = await fetchJson(`${url}/api/pre-run-gate-decisions?pre_run_gate_decision=hold_for_human_review&limit=5`);
+  assert.equal(preRunGateDecisions.collection, "pre_run_gate_decisions");
+  assert.ok(preRunGateDecisions.count <= 5);
+
+  const preRunGateGuards = await fetchJson(`${url}/api/pre-run-gate-guards?pre_run_guard_status=passed&limit=5`);
+  assert.equal(preRunGateGuards.collection, "pre_run_gate_guards");
+  assert.ok(preRunGateGuards.count <= 5);
+
+  const preRunGateValidations = await fetchJson(`${url}/api/pre-run-gate-validations?status=passed&limit=5`);
+  assert.equal(preRunGateValidations.collection, "pre_run_gate_validations");
+  assert.ok(preRunGateValidations.count <= 5);
 
   const runtimeAgentRunContractFreezes = await fetchJson(`${url}/api/runtime-agentrun-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(runtimeAgentRunContractFreezes.collection, "runtime_agentrun_contract_freezes");

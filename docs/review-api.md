@@ -510,6 +510,11 @@ npm run api:serve
 - `GET /api/instruction-signal-records`: prompt injection instruction signal rows
 - `GET /api/prompt-boundary-guard-records`: prompt boundary guard rows
 - `GET /api/prompt-injection-boundary-validations`: prompt injection boundary validation rows
+- `GET /api/workflow-pre-run-gate-frameworks`: workflow pre-run gate framework artifact
+- `GET /api/pre-run-gate-records`: access/model/tool/budget/conflict pre-run gate rows
+- `GET /api/pre-run-gate-decisions`: workflow pre-run gate decision rows
+- `GET /api/pre-run-gate-guards`: required pre-run gate set guard rows
+- `GET /api/pre-run-gate-validations`: pre-run gate framework validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

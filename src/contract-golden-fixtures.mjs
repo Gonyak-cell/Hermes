@@ -94,6 +94,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     workflow_context_builder_contract: "artifacts/workflow-context-builder/latest/workflow-context-builder-contract.json",
     workflow_retrieval_compiler: "artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json",
     workflow_prompt_injection_boundary: "artifacts/workflow-prompt-injection-boundary/latest/workflow-prompt-injection-boundary.json",
+    workflow_pre_run_gate_framework: "artifacts/workflow-pre-run-gates/latest/workflow-pre-run-gate-framework.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -186,6 +187,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("workflow_context_builder_contract", "Workflow Context Builder Contract", "workflow", "workflow-context-builder-contract.schema.json"),
   fixtureDefinition("workflow_retrieval_compiler", "Workflow Retrieval Compiler", "workflow", "workflow-retrieval-compiler.schema.json"),
   fixtureDefinition("workflow_prompt_injection_boundary", "Workflow Prompt Injection Boundary", "workflow", "workflow-prompt-injection-boundary.schema.json"),
+  fixtureDefinition("workflow_pre_run_gate_framework", "Workflow Pre-run Gate Framework", "workflow", "workflow-pre-run-gate-framework.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

@@ -102,6 +102,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowContextBuilderContractPath: "artifacts/workflow-context-builder/latest/workflow-context-builder-contract.json",
   workflowRetrievalCompilerPath: "artifacts/workflow-retrieval-compiler/latest/workflow-retrieval-compiler.json",
   workflowPromptInjectionBoundaryPath: "artifacts/workflow-prompt-injection-boundary/latest/workflow-prompt-injection-boundary.json",
+  workflowPreRunGateFrameworkPath: "artifacts/workflow-pre-run-gates/latest/workflow-pre-run-gate-framework.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -675,6 +676,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowPromptInjectionBoundaryPath",
     source_id: "workflow_prompt_injection_boundary",
     label: "Workflow Prompt Injection Boundary",
+  },
+  {
+    option: "workflowPreRunGateFrameworkPath",
+    source_id: "workflow_pre_run_gate_framework",
+    label: "Workflow Pre-run Gate Framework",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1280,6 +1286,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_context_builder_contract") return data.summary ?? {};
   if (sourceId === "workflow_retrieval_compiler") return data.summary ?? {};
   if (sourceId === "workflow_prompt_injection_boundary") return data.summary ?? {};
+  if (sourceId === "workflow_pre_run_gate_framework") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1546,6 +1553,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowContextBuilderContractStage(artifacts.workflow_context_builder_contract, sourceById.get("workflow_context_builder_contract")),
     buildWorkflowRetrievalCompilerStage(artifacts.workflow_retrieval_compiler, sourceById.get("workflow_retrieval_compiler")),
     buildWorkflowPromptInjectionBoundaryStage(artifacts.workflow_prompt_injection_boundary, sourceById.get("workflow_prompt_injection_boundary")),
+    buildWorkflowPreRunGateFrameworkStage(artifacts.workflow_pre_run_gate_framework, sourceById.get("workflow_pre_run_gate_framework")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6272,6 +6280,60 @@ function buildWorkflowPromptInjectionBoundaryStage(boundary, source) {
       human_review_required_guard_count: summary.human_review_required_guard_count ?? 0,
       law_firm_wrapper_count: summary.law_firm_wrapper_count ?? 0,
       validation_error_count: summary.validation_error_count ?? boundary.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowPreRunGateFrameworkStage(framework, source) {
+  if (!framework) return missingStage("workflow_pre_run_gate_framework", "Workflow Pre-run Gate Framework", source);
+  const summary = framework.summary ?? {};
+  const blockers = (summary.validation_error_count ?? framework.validation?.errors?.length ?? 0)
+    + (summary.execution_allowed_count ?? 0)
+    + (summary.external_transfer_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0)
+    + (summary.blocked_gate_count ?? 0)
+    + Math.max(0, (summary.source_prompt_boundary_guard_count ?? 0) - (summary.all_required_gate_set_count ?? 0));
+  const status = summary.workflow_pre_run_gate_framework_status === "complete" && blockers === 0 ? "passed" : "blocked";
+  return {
+    stage_id: "workflow_pre_run_gate_framework",
+    label: "Workflow Pre-run Gate Framework",
+    status,
+    message: status === "passed"
+      ? `${summary.workflow_run_with_gate_set_count ?? 0} workflow run(s), ${summary.pre_run_gate_record_count ?? 0} pre-run gate(s).`
+      : `${blockers} pre-run gate framework blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_pre_run_gate_framework_status: summary.workflow_pre_run_gate_framework_status ?? "unknown",
+      pre_run_gate_framework_contract_id: summary.pre_run_gate_framework_contract_id ?? null,
+      source_workflow_prompt_injection_boundary_status: summary.source_workflow_prompt_injection_boundary_status ?? "unknown",
+      source_matter_access_policy_status: summary.source_matter_access_policy_status ?? "unknown",
+      source_model_policy_enforcement_status: summary.source_model_policy_enforcement_status ?? "unknown",
+      source_tool_runtime_policy_enforcement_status: summary.source_tool_runtime_policy_enforcement_status ?? "unknown",
+      source_cost_budget_ledger_status: summary.source_cost_budget_ledger_status ?? "unknown",
+      source_conflict_check_interface_status: summary.source_conflict_check_interface_status ?? "unknown",
+      source_prompt_boundary_guard_count: summary.source_prompt_boundary_guard_count ?? 0,
+      pre_run_gate_record_count: summary.pre_run_gate_record_count ?? 0,
+      pre_run_gate_decision_count: summary.pre_run_gate_decision_count ?? 0,
+      pre_run_gate_guard_count: summary.pre_run_gate_guard_count ?? 0,
+      workflow_run_with_gate_set_count: summary.workflow_run_with_gate_set_count ?? 0,
+      access_gate_count: summary.access_gate_count ?? 0,
+      model_gate_count: summary.model_gate_count ?? 0,
+      tool_gate_count: summary.tool_gate_count ?? 0,
+      budget_gate_count: summary.budget_gate_count ?? 0,
+      conflict_gate_count: summary.conflict_gate_count ?? 0,
+      passed_gate_count: summary.passed_gate_count ?? 0,
+      review_required_gate_count: summary.review_required_gate_count ?? 0,
+      blocked_gate_count: summary.blocked_gate_count ?? 0,
+      human_review_required_gate_count: summary.human_review_required_gate_count ?? 0,
+      all_required_gate_set_count: summary.all_required_gate_set_count ?? 0,
+      pre_run_guard_passed_count: summary.pre_run_guard_passed_count ?? 0,
+      held_for_human_review_decision_count: summary.held_for_human_review_decision_count ?? 0,
+      ready_after_pre_run_gate_decision_count: summary.ready_after_pre_run_gate_decision_count ?? 0,
+      blocked_before_execution_decision_count: summary.blocked_before_execution_decision_count ?? 0,
+      execution_allowed_count: summary.execution_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? framework.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -11994,6 +12056,43 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_prompt_injection_boundary_human_review_required_guard_count: artifacts.workflow_prompt_injection_boundary?.summary?.human_review_required_guard_count ?? 0,
     workflow_prompt_injection_boundary_law_firm_wrapper_count: artifacts.workflow_prompt_injection_boundary?.summary?.law_firm_wrapper_count ?? 0,
     workflow_prompt_injection_boundary_validation_error_count: artifacts.workflow_prompt_injection_boundary?.summary?.validation_error_count ?? artifacts.workflow_prompt_injection_boundary?.validation?.errors?.length ?? 0,
+    workflow_pre_run_gate_framework_status: artifacts.workflow_pre_run_gate_framework?.summary?.workflow_pre_run_gate_framework_status ?? "unknown",
+    workflow_pre_run_gate_framework_contract_id: artifacts.workflow_pre_run_gate_framework?.summary?.pre_run_gate_framework_contract_id ?? null,
+    workflow_pre_run_gate_framework_source_workflow_prompt_injection_boundary_status: artifacts.workflow_pre_run_gate_framework?.summary?.source_workflow_prompt_injection_boundary_status ?? "unknown",
+    workflow_pre_run_gate_framework_source_matter_access_policy_status: artifacts.workflow_pre_run_gate_framework?.summary?.source_matter_access_policy_status ?? "unknown",
+    workflow_pre_run_gate_framework_source_model_policy_enforcement_status: artifacts.workflow_pre_run_gate_framework?.summary?.source_model_policy_enforcement_status ?? "unknown",
+    workflow_pre_run_gate_framework_source_tool_runtime_policy_enforcement_status: artifacts.workflow_pre_run_gate_framework?.summary?.source_tool_runtime_policy_enforcement_status ?? "unknown",
+    workflow_pre_run_gate_framework_source_cost_budget_ledger_status: artifacts.workflow_pre_run_gate_framework?.summary?.source_cost_budget_ledger_status ?? "unknown",
+    workflow_pre_run_gate_framework_source_conflict_check_interface_status: artifacts.workflow_pre_run_gate_framework?.summary?.source_conflict_check_interface_status ?? "unknown",
+    workflow_pre_run_gate_framework_source_prompt_boundary_guard_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_prompt_boundary_guard_count ?? 0,
+    workflow_pre_run_gate_framework_source_matter_access_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_matter_access_decision_count ?? 0,
+    workflow_pre_run_gate_framework_source_resource_access_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_resource_access_decision_count ?? 0,
+    workflow_pre_run_gate_framework_source_route_model_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_route_model_gate_count ?? 0,
+    workflow_pre_run_gate_framework_source_agent_run_tool_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_agent_run_tool_gate_count ?? 0,
+    workflow_pre_run_gate_framework_source_budget_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_budget_decision_count ?? 0,
+    workflow_pre_run_gate_framework_source_conflict_check_result_count: artifacts.workflow_pre_run_gate_framework?.summary?.source_conflict_check_result_count ?? 0,
+    workflow_pre_run_gate_framework_pre_run_gate_record_count: artifacts.workflow_pre_run_gate_framework?.summary?.pre_run_gate_record_count ?? 0,
+    workflow_pre_run_gate_framework_pre_run_gate_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.pre_run_gate_decision_count ?? 0,
+    workflow_pre_run_gate_framework_pre_run_gate_guard_count: artifacts.workflow_pre_run_gate_framework?.summary?.pre_run_gate_guard_count ?? 0,
+    workflow_pre_run_gate_framework_workflow_run_with_gate_set_count: artifacts.workflow_pre_run_gate_framework?.summary?.workflow_run_with_gate_set_count ?? 0,
+    workflow_pre_run_gate_framework_access_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.access_gate_count ?? 0,
+    workflow_pre_run_gate_framework_model_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.model_gate_count ?? 0,
+    workflow_pre_run_gate_framework_tool_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.tool_gate_count ?? 0,
+    workflow_pre_run_gate_framework_budget_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.budget_gate_count ?? 0,
+    workflow_pre_run_gate_framework_conflict_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.conflict_gate_count ?? 0,
+    workflow_pre_run_gate_framework_passed_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.passed_gate_count ?? 0,
+    workflow_pre_run_gate_framework_review_required_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.review_required_gate_count ?? 0,
+    workflow_pre_run_gate_framework_blocked_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.blocked_gate_count ?? 0,
+    workflow_pre_run_gate_framework_human_review_required_gate_count: artifacts.workflow_pre_run_gate_framework?.summary?.human_review_required_gate_count ?? 0,
+    workflow_pre_run_gate_framework_all_required_gate_set_count: artifacts.workflow_pre_run_gate_framework?.summary?.all_required_gate_set_count ?? 0,
+    workflow_pre_run_gate_framework_pre_run_guard_passed_count: artifacts.workflow_pre_run_gate_framework?.summary?.pre_run_guard_passed_count ?? 0,
+    workflow_pre_run_gate_framework_held_for_human_review_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.held_for_human_review_decision_count ?? 0,
+    workflow_pre_run_gate_framework_ready_after_pre_run_gate_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.ready_after_pre_run_gate_decision_count ?? 0,
+    workflow_pre_run_gate_framework_blocked_before_execution_decision_count: artifacts.workflow_pre_run_gate_framework?.summary?.blocked_before_execution_decision_count ?? 0,
+    workflow_pre_run_gate_framework_execution_allowed_count: artifacts.workflow_pre_run_gate_framework?.summary?.execution_allowed_count ?? 0,
+    workflow_pre_run_gate_framework_external_transfer_allowed_count: artifacts.workflow_pre_run_gate_framework?.summary?.external_transfer_allowed_count ?? 0,
+    workflow_pre_run_gate_framework_protected_action_executed_count: artifacts.workflow_pre_run_gate_framework?.summary?.protected_action_executed_count ?? 0,
+    workflow_pre_run_gate_framework_validation_error_count: artifacts.workflow_pre_run_gate_framework?.summary?.validation_error_count ?? artifacts.workflow_pre_run_gate_framework?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -13798,6 +13897,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-retrieval-compiler") parsed.workflowRetrievalCompilerPath = false;
     else if (arg === "--workflow-prompt-injection-boundary") parsed.workflowPromptInjectionBoundaryPath = argv[++index];
     else if (arg === "--no-workflow-prompt-injection-boundary") parsed.workflowPromptInjectionBoundaryPath = false;
+    else if (arg === "--workflow-pre-run-gates") parsed.workflowPreRunGateFrameworkPath = argv[++index];
+    else if (arg === "--no-workflow-pre-run-gates") parsed.workflowPreRunGateFrameworkPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];

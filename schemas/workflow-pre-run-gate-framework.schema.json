@@ -1,0 +1,241 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/workflow-pre-run-gate-framework.schema.json",
+  "title": "Workflow Pre-run Gate Framework",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_pre_run_gate_framework_id",
+    "inputs",
+    "source_contracts",
+    "pre_run_gate_framework_contract",
+    "pre_run_gate_records",
+    "pre_run_gate_decision_records",
+    "pre_run_gate_guard_records",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-pre-run-gate-framework.v1" },
+    "generated_at": { "type": "string" },
+    "workflow_pre_run_gate_framework_id": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "pre_run_gate_framework_contract": { "type": "object" },
+    "pre_run_gate_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pre_run_gate_record" }
+    },
+    "pre_run_gate_decision_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pre_run_gate_decision" }
+    },
+    "pre_run_gate_guard_records": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/pre_run_gate_guard" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_pre_run_gate_framework_status",
+        "pre_run_gate_framework_contract_id",
+        "pre_run_gate_record_count",
+        "pre_run_gate_decision_count",
+        "pre_run_gate_guard_count",
+        "workflow_run_with_gate_set_count",
+        "access_gate_count",
+        "model_gate_count",
+        "tool_gate_count",
+        "budget_gate_count",
+        "conflict_gate_count",
+        "execution_allowed_count",
+        "external_transfer_allowed_count",
+        "protected_action_executed_count",
+        "validation_error_count"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "pre_run_gate_record": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "pre_run_gate_record_id",
+        "pre_run_gate_framework_contract_id",
+        "gate_type",
+        "gate_stage",
+        "workflow_run_id",
+        "prompt_boundary_guard_id",
+        "pre_run_gate_decision",
+        "pre_run_gate_status",
+        "execution_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "human_review_required",
+        "required_before_execution"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-pre-run-gate-record.v1" },
+        "pre_run_gate_record_id": { "type": "string" },
+        "pre_run_gate_framework_contract_id": { "const": "workflow-pre-run-gate-framework.v1" },
+        "gate_type": {
+          "enum": ["access_gate", "model_gate", "tool_gate", "budget_gate", "conflict_gate"]
+        },
+        "gate_stage": { "const": "pre_run" },
+        "retrieval_request_record_id": { "type": "string" },
+        "prompt_boundary_guard_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "matter_id": { "type": "string" },
+        "classification_floor": { "type": "string" },
+        "policy_snapshot_id": { "type": ["string", "null"] },
+        "source_record_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "source_statuses": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "pre_run_gate_decision": { "enum": ["allow", "review"] },
+        "pre_run_gate_status": { "enum": ["passed", "review_required", "blocked"] },
+        "execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" },
+        "required_before_execution": { "type": "boolean" },
+        "reason_codes": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "metadata": { "type": "object" }
+      },
+      "additionalProperties": true
+    },
+    "pre_run_gate_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "pre_run_gate_decision_record_id",
+        "pre_run_gate_framework_contract_id",
+        "workflow_run_id",
+        "required_gate_types",
+        "resolved_gate_types",
+        "pre_run_gate_record_ids",
+        "pre_run_gate_decision",
+        "pre_run_gate_set_status",
+        "execution_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "human_review_required",
+        "pre_run_only"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-pre-run-gate-decision.v1" },
+        "pre_run_gate_decision_record_id": { "type": "string" },
+        "pre_run_gate_framework_contract_id": { "const": "workflow-pre-run-gate-framework.v1" },
+        "workflow_run_id": { "type": "string" },
+        "required_gate_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "resolved_gate_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "pre_run_gate_record_ids": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "pre_run_gate_decision": {
+          "enum": ["blocked_before_execution", "hold_for_human_review", "ready_after_pre_run_gates"]
+        },
+        "pre_run_gate_set_status": { "enum": ["blocked", "review_required", "passed"] },
+        "passed_gate_count": { "type": "integer", "minimum": 0 },
+        "review_required_gate_count": { "type": "integer", "minimum": 0 },
+        "blocked_gate_count": { "type": "integer", "minimum": 0 },
+        "execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" },
+        "pre_run_only": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "pre_run_gate_guard": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "pre_run_gate_guard_record_id",
+        "pre_run_gate_framework_contract_id",
+        "workflow_run_id",
+        "required_gate_types",
+        "missing_gate_types",
+        "gate_record_count",
+        "access_gate_status",
+        "model_gate_status",
+        "tool_gate_status",
+        "budget_gate_status",
+        "conflict_gate_status",
+        "pre_run_guard_status",
+        "execution_allowed",
+        "external_transfer_allowed",
+        "protected_action_execution_allowed",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-pre-run-gate-guard.v1" },
+        "pre_run_gate_guard_record_id": { "type": "string" },
+        "pre_run_gate_framework_contract_id": { "const": "workflow-pre-run-gate-framework.v1" },
+        "workflow_run_id": { "type": "string" },
+        "required_gate_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "missing_gate_types": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "gate_record_count": { "type": "integer", "minimum": 0 },
+        "access_gate_status": { "type": "string" },
+        "model_gate_status": { "type": "string" },
+        "tool_gate_status": { "type": "string" },
+        "budget_gate_status": { "type": "string" },
+        "conflict_gate_status": { "type": "string" },
+        "pre_run_guard_status": { "type": "string" },
+        "execution_allowed": { "type": "boolean" },
+        "external_transfer_allowed": { "type": "boolean" },
+        "protected_action_execution_allowed": { "type": "boolean" },
+        "human_review_required": { "type": "boolean" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["check_id", "path", "status", "message"],
+      "properties": {
+        "check_id": { "type": "string" },
+        "path": { "type": "string" },
+        "status": { "type": "string" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

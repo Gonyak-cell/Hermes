@@ -4071,6 +4071,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("runtime_log_normalization_validations", logResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/runtime-timeout-heartbeat") {
+    const lifecycleResult = await readDashboardSourceArtifact(dashboard, "runtime_timeout_heartbeat");
+    if (!lifecycleResult.available) {
+      return jsonResponse(503, buildError("runtime_timeout_heartbeat_unavailable", lifecycleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_timeout_heartbeat", [lifecycleResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-heartbeat-records") {
+    const lifecycleResult = await readDashboardSourceArtifact(dashboard, "runtime_timeout_heartbeat");
+    if (!lifecycleResult.available) {
+      return jsonResponse(503, buildError("runtime_timeout_heartbeat_unavailable", lifecycleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_heartbeat_records", lifecycleResult.artifact.runtime_heartbeat_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-timeout-records") {
+    const lifecycleResult = await readDashboardSourceArtifact(dashboard, "runtime_timeout_heartbeat");
+    if (!lifecycleResult.available) {
+      return jsonResponse(503, buildError("runtime_timeout_heartbeat_unavailable", lifecycleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_timeout_records", lifecycleResult.artifact.runtime_timeout_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-lifecycle-ledger-bindings") {
+    const lifecycleResult = await readDashboardSourceArtifact(dashboard, "runtime_timeout_heartbeat");
+    if (!lifecycleResult.available) {
+      return jsonResponse(503, buildError("runtime_timeout_heartbeat_unavailable", lifecycleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_lifecycle_ledger_bindings", lifecycleResult.artifact.runtime_lifecycle_ledger_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-heartbeat-desktop-boundary") {
+    const lifecycleResult = await readDashboardSourceArtifact(dashboard, "runtime_timeout_heartbeat");
+    if (!lifecycleResult.available) {
+      return jsonResponse(503, buildError("runtime_timeout_heartbeat_unavailable", lifecycleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_heartbeat_desktop_boundary", [lifecycleResult.artifact.runtime_heartbeat_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-timeout-heartbeat-validations") {
+    const lifecycleResult = await readDashboardSourceArtifact(dashboard, "runtime_timeout_heartbeat");
+    if (!lifecycleResult.available) {
+      return jsonResponse(503, buildError("runtime_timeout_heartbeat_unavailable", lifecycleResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_timeout_heartbeat_validations", lifecycleResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8255,6 +8297,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-log-trace-bindings", "Runtime log trace binding rows"),
       route("GET", "/api/runtime-log-desktop-boundary", "Runtime Log Normalization Desktop boundary"),
       route("GET", "/api/runtime-log-normalization-validations", "Runtime Log Normalization validation rows"),
+      route("GET", "/api/runtime-timeout-heartbeat", "Runtime Timeout/Heartbeat artifact"),
+      route("GET", "/api/runtime-heartbeat-records", "Runtime heartbeat ledger rows"),
+      route("GET", "/api/runtime-timeout-records", "Runtime timeout ledger rows"),
+      route("GET", "/api/runtime-lifecycle-ledger-bindings", "Runtime lifecycle ledger binding rows"),
+      route("GET", "/api/runtime-heartbeat-desktop-boundary", "Runtime Timeout/Heartbeat Desktop boundary"),
+      route("GET", "/api/runtime-timeout-heartbeat-validations", "Runtime Timeout/Heartbeat validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8915,7 +8963,14 @@ function filterItems(items, searchParams) {
     "secrets_broker_contract_status",
     "runtime_artifact_capture_status",
     "runtime_log_normalization_status",
+    "runtime_timeout_heartbeat_status",
     "normalization_status",
+    "heartbeat_status",
+    "timeout_status",
+    "long_running_state",
+    "timed_out",
+    "active_timeout",
+    "heartbeat_missed",
     "index_status",
     "severity",
     "capture_status",
@@ -10213,7 +10268,14 @@ function readFilterValue(item, key) {
   if (key === "secrets_broker_contract_status") return item.summary?.secrets_broker_contract_status ?? item.secrets_broker_contract_status;
   if (key === "runtime_artifact_capture_status") return item.summary?.runtime_artifact_capture_status ?? item.runtime_artifact_capture_status;
   if (key === "runtime_log_normalization_status") return item.summary?.runtime_log_normalization_status ?? item.runtime_log_normalization_status;
+  if (key === "runtime_timeout_heartbeat_status") return item.summary?.runtime_timeout_heartbeat_status ?? item.runtime_timeout_heartbeat_status;
   if (key === "normalization_status") return item.normalization_status ?? item.summary?.normalization_status;
+  if (key === "heartbeat_status") return item.heartbeat_status;
+  if (key === "timeout_status") return item.timeout_status;
+  if (key === "long_running_state") return item.long_running_state;
+  if (key === "timed_out") return item.timed_out;
+  if (key === "active_timeout") return item.active_timeout;
+  if (key === "heartbeat_missed") return item.heartbeat_missed;
   if (key === "index_status") return item.index_status;
   if (key === "severity") return item.severity;
   if (key === "broker_status") return item.summary?.broker_status ?? item.broker_status;

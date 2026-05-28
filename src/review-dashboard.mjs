@@ -64,6 +64,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   secretsBrokerContractPath: "artifacts/secrets-broker/latest/secrets-broker-contract.json",
   runtimeArtifactCapturePath: "artifacts/runtime-artifact-capture/latest/runtime-artifact-capture.json",
   runtimeLogNormalizationPath: "artifacts/runtime-log-normalization/latest/runtime-log-normalization.json",
+  runtimeTimeoutHeartbeatPath: "artifacts/runtime-timeout-heartbeat/latest/runtime-timeout-heartbeat.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -505,6 +506,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeLogNormalizationPath",
     source_id: "runtime_log_normalization",
     label: "Runtime Log Normalization",
+  },
+  {
+    option: "runtimeTimeoutHeartbeatPath",
+    source_id: "runtime_timeout_heartbeat",
+    label: "Runtime Timeout/Heartbeat",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1362,6 +1368,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "secrets_broker_contract") return data.summary ?? {};
   if (sourceId === "runtime_artifact_capture") return data.summary ?? {};
   if (sourceId === "runtime_log_normalization") return data.summary ?? {};
+  if (sourceId === "runtime_timeout_heartbeat") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1648,6 +1655,7 @@ function buildStageStatuses(artifacts, sources) {
     buildSecretsBrokerContractStage(artifacts.secrets_broker_contract, sourceById.get("secrets_broker_contract")),
     buildRuntimeArtifactCaptureStage(artifacts.runtime_artifact_capture, sourceById.get("runtime_artifact_capture")),
     buildRuntimeLogNormalizationStage(artifacts.runtime_log_normalization, sourceById.get("runtime_log_normalization")),
+    buildRuntimeTimeoutHeartbeatStage(artifacts.runtime_timeout_heartbeat, sourceById.get("runtime_timeout_heartbeat")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5207,6 +5215,90 @@ function buildRuntimeLogNormalizationStage(logArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? logArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRuntimeTimeoutHeartbeatStage(lifecycleArtifact, source) {
+  if (!lifecycleArtifact) return missingStage("runtime_timeout_heartbeat", "Runtime Timeout/Heartbeat", source);
+  const summary = lifecycleArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.runtime_timeout_heartbeat_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.runtime_self_report_trusted !== false
+    || summary.agent_run_count === 0
+    || summary.heartbeat_record_count !== summary.agent_run_count
+    || summary.observed_heartbeat_count !== summary.heartbeat_record_count
+    || summary.heartbeat_missed_count !== 0
+    || summary.timeout_record_count !== summary.agent_run_count
+    || summary.timeout_policy_bound_count !== summary.timeout_record_count
+    || summary.timed_out_count !== 0
+    || summary.active_timeout_count !== 0
+    || summary.timeout_action_required_count !== 0
+    || summary.run_ledger_binding_count !== summary.agent_run_count
+    || summary.bound_run_ledger_binding_count !== summary.run_ledger_binding_count
+    || summary.known_trace_binding_count !== summary.run_ledger_binding_count
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.heartbeat_write_allowed === true
+    || summary.timeout_override_allowed === true
+    || summary.cancel_allowed === true
+    || summary.resume_allowed === true
+    || summary.clock_edit_allowed === true
+    || summary.runtime_start_allowed === true
+    || summary.runtime_process_control_allowed === true
+    || lifecycleArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "runtime_timeout_heartbeat",
+    label: "Runtime Timeout/Heartbeat",
+    status,
+    message: `${summary.observed_heartbeat_count ?? 0}/${summary.heartbeat_record_count ?? 0} heartbeats observed, ${summary.timeout_record_count ?? 0} timeout records, timed_out=${summary.timed_out_count ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      runtime_timeout_heartbeat_status: summary.runtime_timeout_heartbeat_status ?? "unknown",
+      lifecycle_contract_id: summary.lifecycle_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      heartbeat_authority: summary.heartbeat_authority ?? "unknown",
+      timeout_authority: summary.timeout_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? true,
+      agent_run_count: summary.agent_run_count ?? 0,
+      heartbeat_record_count: summary.heartbeat_record_count ?? 0,
+      observed_heartbeat_count: summary.observed_heartbeat_count ?? 0,
+      recorded_heartbeat_count: summary.recorded_heartbeat_count ?? 0,
+      heartbeat_due_count: summary.heartbeat_due_count ?? 0,
+      heartbeat_missed_count: summary.heartbeat_missed_count ?? 0,
+      terminal_heartbeat_count: summary.terminal_heartbeat_count ?? 0,
+      timeout_record_count: summary.timeout_record_count ?? 0,
+      timeout_policy_bound_count: summary.timeout_policy_bound_count ?? 0,
+      long_running_watch_count: summary.long_running_watch_count ?? 0,
+      timed_out_count: summary.timed_out_count ?? 0,
+      active_timeout_count: summary.active_timeout_count ?? 0,
+      timeout_action_required_count: summary.timeout_action_required_count ?? 0,
+      run_ledger_binding_count: summary.run_ledger_binding_count ?? 0,
+      bound_run_ledger_binding_count: summary.bound_run_ledger_binding_count ?? 0,
+      known_trace_binding_count: summary.known_trace_binding_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      heartbeat_write_allowed: summary.heartbeat_write_allowed ?? false,
+      timeout_override_allowed: summary.timeout_override_allowed ?? false,
+      cancel_allowed: summary.cancel_allowed ?? false,
+      resume_allowed: summary.resume_allowed ?? false,
+      clock_edit_allowed: summary.clock_edit_allowed ?? false,
+      runtime_start_allowed: summary.runtime_start_allowed ?? false,
+      runtime_process_control_allowed: summary.runtime_process_control_allowed ?? false,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? lifecycleArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14443,6 +14535,34 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_log_normalization_override_allowed: artifacts.runtime_log_normalization?.summary?.normalization_override_allowed ?? false,
     runtime_log_normalization_stream_write_allowed: artifacts.runtime_log_normalization?.summary?.stream_write_allowed ?? false,
     runtime_log_normalization_validation_error_count: artifacts.runtime_log_normalization?.summary?.validation_error_count ?? artifacts.runtime_log_normalization?.validation?.errors?.length ?? 0,
+    runtime_timeout_heartbeat_status: artifacts.runtime_timeout_heartbeat?.summary?.runtime_timeout_heartbeat_status ?? "unknown",
+    runtime_timeout_heartbeat_contract_status: artifacts.runtime_timeout_heartbeat?.summary?.contract_status ?? "unknown",
+    runtime_timeout_heartbeat_authority: artifacts.runtime_timeout_heartbeat?.summary?.heartbeat_authority ?? "unknown",
+    runtime_timeout_heartbeat_source_of_truth: artifacts.runtime_timeout_heartbeat?.summary?.source_of_truth ?? "unknown",
+    runtime_timeout_heartbeat_runtime_self_report_trusted: artifacts.runtime_timeout_heartbeat?.summary?.runtime_self_report_trusted ?? true,
+    runtime_timeout_heartbeat_agent_run_count: artifacts.runtime_timeout_heartbeat?.summary?.agent_run_count ?? 0,
+    runtime_timeout_heartbeat_record_count: artifacts.runtime_timeout_heartbeat?.summary?.heartbeat_record_count ?? 0,
+    runtime_timeout_heartbeat_observed_count: artifacts.runtime_timeout_heartbeat?.summary?.observed_heartbeat_count ?? 0,
+    runtime_timeout_heartbeat_missed_count: artifacts.runtime_timeout_heartbeat?.summary?.heartbeat_missed_count ?? 0,
+    runtime_timeout_heartbeat_timeout_record_count: artifacts.runtime_timeout_heartbeat?.summary?.timeout_record_count ?? 0,
+    runtime_timeout_heartbeat_timed_out_count: artifacts.runtime_timeout_heartbeat?.summary?.timed_out_count ?? 0,
+    runtime_timeout_heartbeat_active_timeout_count: artifacts.runtime_timeout_heartbeat?.summary?.active_timeout_count ?? 0,
+    runtime_timeout_heartbeat_action_required_count: artifacts.runtime_timeout_heartbeat?.summary?.timeout_action_required_count ?? 0,
+    runtime_timeout_heartbeat_run_ledger_binding_count: artifacts.runtime_timeout_heartbeat?.summary?.run_ledger_binding_count ?? 0,
+    runtime_timeout_heartbeat_bound_run_ledger_binding_count: artifacts.runtime_timeout_heartbeat?.summary?.bound_run_ledger_binding_count ?? 0,
+    runtime_timeout_heartbeat_known_trace_binding_count: artifacts.runtime_timeout_heartbeat?.summary?.known_trace_binding_count ?? 0,
+    runtime_timeout_heartbeat_desktop_read_only: artifacts.runtime_timeout_heartbeat?.summary?.desktop_read_only ?? false,
+    runtime_timeout_heartbeat_desktop_mutation_allowed: artifacts.runtime_timeout_heartbeat?.summary?.desktop_mutation_allowed ?? false,
+    runtime_timeout_heartbeat_desktop_protected_mutation_execution_allowed: artifacts.runtime_timeout_heartbeat?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    runtime_timeout_heartbeat_desktop_source_of_truth: artifacts.runtime_timeout_heartbeat?.summary?.desktop_source_of_truth ?? false,
+    runtime_timeout_heartbeat_write_allowed: artifacts.runtime_timeout_heartbeat?.summary?.heartbeat_write_allowed ?? false,
+    runtime_timeout_heartbeat_override_allowed: artifacts.runtime_timeout_heartbeat?.summary?.timeout_override_allowed ?? false,
+    runtime_timeout_heartbeat_cancel_allowed: artifacts.runtime_timeout_heartbeat?.summary?.cancel_allowed ?? false,
+    runtime_timeout_heartbeat_resume_allowed: artifacts.runtime_timeout_heartbeat?.summary?.resume_allowed ?? false,
+    runtime_timeout_heartbeat_clock_edit_allowed: artifacts.runtime_timeout_heartbeat?.summary?.clock_edit_allowed ?? false,
+    runtime_timeout_heartbeat_start_allowed: artifacts.runtime_timeout_heartbeat?.summary?.runtime_start_allowed ?? false,
+    runtime_timeout_heartbeat_process_control_allowed: artifacts.runtime_timeout_heartbeat?.summary?.runtime_process_control_allowed ?? false,
+    runtime_timeout_heartbeat_validation_error_count: artifacts.runtime_timeout_heartbeat?.summary?.validation_error_count ?? artifacts.runtime_timeout_heartbeat?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16154,6 +16274,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-artifact-capture") parsed.runtimeArtifactCapturePath = false;
     else if (arg === "--runtime-log-normalization") parsed.runtimeLogNormalizationPath = argv[++index];
     else if (arg === "--no-runtime-log-normalization") parsed.runtimeLogNormalizationPath = false;
+    else if (arg === "--runtime-timeout-heartbeat") parsed.runtimeTimeoutHeartbeatPath = argv[++index];
+    else if (arg === "--no-runtime-timeout-heartbeat") parsed.runtimeTimeoutHeartbeatPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16622,6 +16744,10 @@ Options:
   --runtime-log-normalization <path>
                                   runtime-log-normalization.json path.
   --no-runtime-log-normalization Do not include Runtime Log Normalization status.
+  --runtime-timeout-heartbeat <path>
+                                  runtime-timeout-heartbeat.json path.
+  --no-runtime-timeout-heartbeat
+                                  Do not include Runtime Timeout/Heartbeat status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

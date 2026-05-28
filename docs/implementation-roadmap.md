@@ -5974,6 +5974,34 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 108개로 증가하고 runtime_log_normalization artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:log-normalization -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 207 - Runtime Timeout/Heartbeat
+
+목표: Runtime/AgentRun lifecycle policy의 `timeout_seconds`와 `heartbeat_seconds`를 AgentRun ledger, WorkflowRun ledger, Runtime Log Normalization, in-run timeout gate와 결합해 장기 실행 감시 상태를 run ledger에 남긴다. Runtime self-report를 신뢰하지 않고 harness control plane이 heartbeat/timeout authority가 되며, Hermes Desktop은 lifecycle status를 보는 read-only operator surface로만 유지한다.
+
+구현:
+
+- `src/runtime-timeout-heartbeat.mjs`와 `scripts/runtime-timeout-heartbeat.mjs`를 추가해 `npm run runtime:timeout-heartbeat` slice를 등록
+- `schemas/runtime-timeout-heartbeat.schema.json`으로 heartbeat record, timeout record, lifecycle ledger binding, Desktop boundary를 검증
+- Runtime/AgentRun Contract Freeze, Agent Run Ledger, Workflow Run Ledger, Runtime Log Normalization, Workflow In-run Gate Framework, Desktop Companion 설계 문서를 source contract로 연결
+- AgentRun 6개마다 terminal heartbeat record 6개와 timeout record 6개를 생성하고 lifecycle policy hash, elapsed seconds, timeout deadline, timeout gate count를 기록
+- heartbeat/timeout record를 AgentRun record, run ledger id, normalized runtime log, runtime log trace binding, observability/correlation trace에 연결하는 lifecycle ledger binding 6개를 생성
+- Runtime Timeout/Heartbeat Desktop boundary를 read-only로 고정하고 heartbeat write, timeout override, cancel/resume, clock edit, runtime start/process control, protected execution, source-of-truth 권한을 모두 false로 유지
+- Review Dashboard와 Review API에 `/api/runtime-timeout-heartbeat`, `/api/runtime-heartbeat-records`, `/api/runtime-timeout-records`, `/api/runtime-lifecycle-ledger-bindings`, `/api/runtime-heartbeat-desktop-boundary`, `/api/runtime-timeout-heartbeat-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Runtime Timeout/Heartbeat를 연결
+
+완료 기준:
+
+- Runtime Timeout/Heartbeat가 validation error 없이 `complete` 상태가 됨
+- lifecycle contract가 `locked`이고 heartbeat/timeout authority가 `harness_control_plane`, source of truth가 `runtime_agentrun_contract_agent_run_ledger_and_runtime_logs`임
+- runtime self-report trusted가 false이고 heartbeat record 6개, timeout record 6개, lifecycle ledger binding 6개가 생성됨
+- observed heartbeat count가 heartbeat record count와 일치하고 heartbeat missed count가 0임
+- timeout policy bound count가 timeout record count와 일치하고 timed out, active timeout, timeout action required count가 모두 0임
+- lifecycle ledger binding이 AgentRun ledger, normalized log, observability trace에 모두 bound됨
+- Desktop read-only는 true이고 Desktop mutation/protected execution/source-of-truth/heartbeat write/timeout override/cancel/resume/clock edit/runtime start/runtime process control 권한은 모두 false
+- Review API와 dashboard가 Runtime Timeout/Heartbeat 상태를 read-only로 노출
+- Golden fixture 수가 109개로 증가하고 runtime_timeout_heartbeat artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:timeout-heartbeat -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5982,9 +6010,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 206이다.
+- 현재 완료 기준점은 Phase 207이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P207-P312, 총 106개다.
+- 남은 계획 슬롯은 P208-P312, 총 105개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

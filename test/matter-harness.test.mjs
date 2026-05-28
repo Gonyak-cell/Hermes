@@ -203,6 +203,7 @@ import { runDockerLocalBackendSelector } from "../src/docker-local-backend-selec
 import { runSecretsBrokerContract } from "../src/secrets-broker-contract.mjs";
 import { runRuntimeArtifactCapture } from "../src/runtime-artifact-capture.mjs";
 import { runRuntimeLogNormalization } from "../src/runtime-log-normalization.mjs";
+import { runRuntimeTimeoutHeartbeat } from "../src/runtime-timeout-heartbeat.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1808,6 +1809,7 @@ describe("matter harness", () => {
         secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
         runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
         runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
+        runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6981,6 +6983,54 @@ describe("matter harness", () => {
       assert.equal(runtimeLogNormalization.runtime_log_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "runtime-log-normalization", "summary.md"), "utf8"), /Runtime Log Normalization/);
 
+      const runtimeTimeoutHeartbeat = await runRuntimeTimeoutHeartbeat({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
+        workflowInRunGateFrameworkPath: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-timeout-heartbeat"),
+        runAt: "2026-05-23T06:45:43.000Z",
+      });
+      const runtimeTimeoutHeartbeatSchema = JSON.parse(await readFile("schemas/runtime-timeout-heartbeat.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeTimeoutHeartbeat, runtimeTimeoutHeartbeatSchema, {}, "runtime_timeout_heartbeat"), []);
+      assert.equal(runtimeTimeoutHeartbeat.summary.runtime_timeout_heartbeat_status, "complete");
+      assert.equal(runtimeTimeoutHeartbeat.summary.contract_status, "locked");
+      assert.equal(runtimeTimeoutHeartbeat.summary.heartbeat_authority, "harness_control_plane");
+      assert.equal(runtimeTimeoutHeartbeat.summary.timeout_authority, "harness_control_plane");
+      assert.equal(runtimeTimeoutHeartbeat.summary.source_of_truth, "runtime_agentrun_contract_agent_run_ledger_and_runtime_logs");
+      assert.equal(runtimeTimeoutHeartbeat.summary.runtime_self_report_trusted, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.agent_run_count, runtimeAgentRunContractFreeze.summary.agent_run_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.heartbeat_record_count, runtimeTimeoutHeartbeat.summary.agent_run_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.observed_heartbeat_count, runtimeTimeoutHeartbeat.summary.heartbeat_record_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.recorded_heartbeat_count, runtimeTimeoutHeartbeat.summary.heartbeat_record_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.heartbeat_missed_count, 0);
+      assert.equal(runtimeTimeoutHeartbeat.summary.timeout_record_count, runtimeTimeoutHeartbeat.summary.agent_run_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.timeout_policy_bound_count, runtimeTimeoutHeartbeat.summary.timeout_record_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.timed_out_count, 0);
+      assert.equal(runtimeTimeoutHeartbeat.summary.active_timeout_count, 0);
+      assert.equal(runtimeTimeoutHeartbeat.summary.timeout_action_required_count, 0);
+      assert.equal(runtimeTimeoutHeartbeat.summary.run_ledger_binding_count, runtimeTimeoutHeartbeat.summary.agent_run_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.bound_run_ledger_binding_count, runtimeTimeoutHeartbeat.summary.run_ledger_binding_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.known_trace_binding_count, runtimeTimeoutHeartbeat.summary.run_ledger_binding_count);
+      assert.equal(runtimeTimeoutHeartbeat.summary.desktop_read_only, true);
+      assert.equal(runtimeTimeoutHeartbeat.summary.desktop_mutation_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.desktop_source_of_truth, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.heartbeat_write_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.timeout_override_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.cancel_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.resume_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.clock_edit_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.runtime_start_allowed, false);
+      assert.equal(runtimeTimeoutHeartbeat.summary.runtime_process_control_allowed, false);
+      assert.ok(runtimeTimeoutHeartbeat.runtime_heartbeat_records.every((record) => record.heartbeat_status === "observed_terminal" && record.heartbeat_missed === false));
+      assert.ok(runtimeTimeoutHeartbeat.runtime_timeout_records.every((record) => record.timeout_status === "within_timeout" && record.timed_out === false));
+      assert.ok(runtimeTimeoutHeartbeat.runtime_lifecycle_ledger_bindings.every((binding) => binding.binding_status === "bound" && binding.runtime_self_report_trusted === false));
+      assert.equal(runtimeTimeoutHeartbeat.runtime_heartbeat_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "runtime-timeout-heartbeat", "summary.md"), "utf8"), /Runtime Timeout\/Heartbeat/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7111,6 +7161,7 @@ describe("matter harness", () => {
           secrets_broker_contract: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
           runtime_artifact_capture: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
           runtime_log_normalization: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
+          runtime_timeout_heartbeat: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7162,8 +7213,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 108);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 108);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 109);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 109);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7259,6 +7310,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_broker_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_artifact_capture"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_log_normalization"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_timeout_heartbeat"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7313,6 +7365,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:secrets-broker"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:artifact-capture"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:log-normalization"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:timeout-heartbeat"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7807,6 +7860,10 @@ describe("matter harness", () => {
       assert.equal(runtimeLogNormalizationCheckpoint?.acceptance_profile, "runtime_log_normalization_gate");
       assert.equal(runtimeLogNormalizationCheckpoint?.status, "passed");
       assert.equal(runtimeLogNormalizationCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runtimeTimeoutHeartbeatCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-timeout-heartbeat");
+      assert.equal(runtimeTimeoutHeartbeatCheckpoint?.acceptance_profile, "runtime_timeout_heartbeat_gate");
+      assert.equal(runtimeTimeoutHeartbeatCheckpoint?.status, "passed");
+      assert.equal(runtimeTimeoutHeartbeatCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -11286,6 +11343,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-trace-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-normalization-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-timeout-heartbeat"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-heartbeat-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-timeout-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-lifecycle-ledger-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-heartbeat-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-timeout-heartbeat-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12450,6 +12513,30 @@ describe("matter harness", () => {
       const runtimeLogNormalizationValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-log-normalization-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeLogNormalizationValidations.collection, "runtime_log_normalization_validations");
       assert.equal(runtimeLogNormalizationValidations.count, runtimeLogNormalization.summary.validation_item_count);
+
+      const runtimeTimeoutHeartbeatResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-timeout-heartbeat?runtime_timeout_heartbeat_status=complete", apiOptions)).body);
+      assert.equal(runtimeTimeoutHeartbeatResponse.collection, "runtime_timeout_heartbeat");
+      assert.equal(runtimeTimeoutHeartbeatResponse.count, 1);
+
+      const runtimeHeartbeatRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-heartbeat-records?heartbeat_status=observed_terminal", apiOptions)).body);
+      assert.equal(runtimeHeartbeatRecordsResponse.collection, "runtime_heartbeat_records");
+      assert.equal(runtimeHeartbeatRecordsResponse.count, runtimeTimeoutHeartbeat.summary.heartbeat_record_count);
+
+      const runtimeTimeoutRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-timeout-records?timeout_status=within_timeout", apiOptions)).body);
+      assert.equal(runtimeTimeoutRecordsResponse.collection, "runtime_timeout_records");
+      assert.equal(runtimeTimeoutRecordsResponse.count, runtimeTimeoutHeartbeat.summary.timeout_record_count);
+
+      const runtimeLifecycleLedgerBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-lifecycle-ledger-bindings?binding_status=bound", apiOptions)).body);
+      assert.equal(runtimeLifecycleLedgerBindingsResponse.collection, "runtime_lifecycle_ledger_bindings");
+      assert.equal(runtimeLifecycleLedgerBindingsResponse.count, runtimeTimeoutHeartbeat.summary.run_ledger_binding_count);
+
+      const runtimeHeartbeatDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-heartbeat-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(runtimeHeartbeatDesktopBoundaryResponse.collection, "runtime_heartbeat_desktop_boundary");
+      assert.equal(runtimeHeartbeatDesktopBoundaryResponse.count, 1);
+
+      const runtimeTimeoutHeartbeatValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-timeout-heartbeat-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeTimeoutHeartbeatValidations.collection, "runtime_timeout_heartbeat_validations");
+      assert.equal(runtimeTimeoutHeartbeatValidations.count, runtimeTimeoutHeartbeat.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

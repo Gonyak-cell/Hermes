@@ -80,6 +80,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:secrets-broker",
   "runtime:artifact-capture",
   "runtime:log-normalization",
+  "runtime:timeout-heartbeat",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

@@ -79,6 +79,7 @@ const GOAL_ITEMS = [
   sourceItem("secrets_broker_contract", "Secrets broker contract", "runtime", "secrets_broker_contract", "control-plane-secrets-broker-contract", { acceptance_profile: "secrets_broker_contract_gate" }),
   sourceItem("runtime_artifact_capture", "Runtime artifact capture", "runtime", "runtime_artifact_capture", "control-plane-runtime-artifact-capture", { acceptance_profile: "runtime_artifact_capture_gate" }),
   sourceItem("runtime_log_normalization", "Runtime log normalization", "runtime", "runtime_log_normalization", "control-plane-runtime-log-normalization", { acceptance_profile: "runtime_log_normalization_gate" }),
+  sourceItem("runtime_timeout_heartbeat", "Runtime timeout/heartbeat", "runtime", "runtime_timeout_heartbeat", "control-plane-runtime-timeout-heartbeat", { acceptance_profile: "runtime_timeout_heartbeat_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -517,6 +518,7 @@ function evaluateStageAcceptance(item, stage) {
     "secrets_broker_contract_gate",
     "runtime_artifact_capture_gate",
     "runtime_log_normalization_gate",
+    "runtime_timeout_heartbeat_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1880,6 +1882,43 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.stream_write_allowed === false
     ) {
       return passedWithOperationalGate(stage, "Runtime Log Normalization converts runtime stdout/stderr captures into common searchable log entries with trace bindings while keeping Desktop read-only.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_timeout_heartbeat_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.runtime_timeout_heartbeat_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.heartbeat_authority === "harness_control_plane"
+      && metrics.timeout_authority === "harness_control_plane"
+      && metrics.source_of_truth === "runtime_agentrun_contract_agent_run_ledger_and_runtime_logs"
+      && metrics.runtime_self_report_trusted === false
+      && metrics.agent_run_count > 0
+      && metrics.heartbeat_record_count === metrics.agent_run_count
+      && metrics.observed_heartbeat_count === metrics.heartbeat_record_count
+      && metrics.heartbeat_missed_count === 0
+      && metrics.timeout_record_count === metrics.agent_run_count
+      && metrics.timeout_policy_bound_count === metrics.timeout_record_count
+      && metrics.timed_out_count === 0
+      && metrics.active_timeout_count === 0
+      && metrics.timeout_action_required_count === 0
+      && metrics.run_ledger_binding_count === metrics.agent_run_count
+      && metrics.bound_run_ledger_binding_count === metrics.run_ledger_binding_count
+      && metrics.known_trace_binding_count === metrics.run_ledger_binding_count
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.heartbeat_write_allowed === false
+      && metrics.timeout_override_allowed === false
+      && metrics.cancel_allowed === false
+      && metrics.resume_allowed === false
+      && metrics.clock_edit_allowed === false
+      && metrics.runtime_start_allowed === false
+      && metrics.runtime_process_control_allowed === false
+    ) {
+      return passedWithOperationalGate(stage, "Runtime Timeout/Heartbeat records lifecycle status and timeout policy in the run ledger while keeping Desktop read-only for lifecycle control.");
     }
   }
 

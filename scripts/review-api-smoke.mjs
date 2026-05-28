@@ -354,6 +354,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-trace-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-normalization-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-timeout-heartbeat"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-heartbeat-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-timeout-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-lifecycle-ledger-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-heartbeat-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-timeout-heartbeat-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1699,6 +1705,30 @@ try {
   const runtimeLogNormalizationValidations = await fetchJson(`${url}/api/runtime-log-normalization-validations?status=passed&limit=5`);
   assert.equal(runtimeLogNormalizationValidations.collection, "runtime_log_normalization_validations");
   assert.ok(runtimeLogNormalizationValidations.count <= 5);
+
+  const runtimeTimeoutHeartbeat = await fetchJson(`${url}/api/runtime-timeout-heartbeat?runtime_timeout_heartbeat_status=complete&limit=1`);
+  assert.equal(runtimeTimeoutHeartbeat.collection, "runtime_timeout_heartbeat");
+  assert.ok(runtimeTimeoutHeartbeat.count <= 1);
+
+  const runtimeHeartbeatRecords = await fetchJson(`${url}/api/runtime-heartbeat-records?heartbeat_status=observed_terminal&limit=5`);
+  assert.equal(runtimeHeartbeatRecords.collection, "runtime_heartbeat_records");
+  assert.ok(runtimeHeartbeatRecords.count <= 5);
+
+  const runtimeTimeoutRecords = await fetchJson(`${url}/api/runtime-timeout-records?timeout_status=within_timeout&limit=5`);
+  assert.equal(runtimeTimeoutRecords.collection, "runtime_timeout_records");
+  assert.ok(runtimeTimeoutRecords.count <= 5);
+
+  const runtimeLifecycleLedgerBindings = await fetchJson(`${url}/api/runtime-lifecycle-ledger-bindings?binding_status=bound&limit=5`);
+  assert.equal(runtimeLifecycleLedgerBindings.collection, "runtime_lifecycle_ledger_bindings");
+  assert.ok(runtimeLifecycleLedgerBindings.count <= 5);
+
+  const runtimeHeartbeatDesktopBoundary = await fetchJson(`${url}/api/runtime-heartbeat-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(runtimeHeartbeatDesktopBoundary.collection, "runtime_heartbeat_desktop_boundary");
+  assert.ok(runtimeHeartbeatDesktopBoundary.count <= 1);
+
+  const runtimeTimeoutHeartbeatValidations = await fetchJson(`${url}/api/runtime-timeout-heartbeat-validations?status=passed&limit=5`);
+  assert.equal(runtimeTimeoutHeartbeatValidations.collection, "runtime_timeout_heartbeat_validations");
+  assert.ok(runtimeTimeoutHeartbeatValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

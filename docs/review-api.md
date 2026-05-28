@@ -623,6 +623,12 @@ npm run api:serve
 - `GET /api/runtime-log-trace-bindings`: runtime log to observability trace binding rows
 - `GET /api/runtime-log-desktop-boundary`: Runtime Log Normalization Desktop boundary row
 - `GET /api/runtime-log-normalization-validations`: Runtime Log Normalization validation rows
+- `GET /api/runtime-timeout-heartbeat`: Runtime Timeout/Heartbeat artifact
+- `GET /api/runtime-heartbeat-records`: Runtime heartbeat ledger rows
+- `GET /api/runtime-timeout-records`: Runtime timeout ledger rows
+- `GET /api/runtime-lifecycle-ledger-bindings`: Runtime lifecycle ledger binding rows
+- `GET /api/runtime-heartbeat-desktop-boundary`: Runtime Timeout/Heartbeat Desktop boundary row
+- `GET /api/runtime-timeout-heartbeat-validations`: Runtime Timeout/Heartbeat validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -629,6 +629,12 @@ npm run api:serve
 - `GET /api/runtime-lifecycle-ledger-bindings`: Runtime lifecycle ledger binding rows
 - `GET /api/runtime-heartbeat-desktop-boundary`: Runtime Timeout/Heartbeat Desktop boundary row
 - `GET /api/runtime-timeout-heartbeat-validations`: Runtime Timeout/Heartbeat validation rows
+- `GET /api/runtime-control-commands`: Runtime Control Commands artifact
+- `GET /api/runtime-control-command-requests`: cancel/resume command request rows
+- `GET /api/runtime-control-command-results`: cancel/resume command result rows
+- `GET /api/runtime-control-audit-bindings`: runtime control audit binding rows
+- `GET /api/runtime-control-desktop-boundary`: Runtime Control Commands Desktop boundary row
+- `GET /api/runtime-control-command-validations`: Runtime Control Commands validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

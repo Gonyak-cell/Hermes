@@ -80,6 +80,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_artifact_capture", "Runtime artifact capture", "runtime", "runtime_artifact_capture", "control-plane-runtime-artifact-capture", { acceptance_profile: "runtime_artifact_capture_gate" }),
   sourceItem("runtime_log_normalization", "Runtime log normalization", "runtime", "runtime_log_normalization", "control-plane-runtime-log-normalization", { acceptance_profile: "runtime_log_normalization_gate" }),
   sourceItem("runtime_timeout_heartbeat", "Runtime timeout/heartbeat", "runtime", "runtime_timeout_heartbeat", "control-plane-runtime-timeout-heartbeat", { acceptance_profile: "runtime_timeout_heartbeat_gate" }),
+  sourceItem("runtime_control_commands", "Runtime control commands", "runtime", "runtime_control_commands", "control-plane-runtime-control-commands", { acceptance_profile: "runtime_control_commands_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -519,6 +520,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_artifact_capture_gate",
     "runtime_log_normalization_gate",
     "runtime_timeout_heartbeat_gate",
+    "runtime_control_commands_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1919,6 +1921,48 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.runtime_process_control_allowed === false
     ) {
       return passedWithOperationalGate(stage, "Runtime Timeout/Heartbeat records lifecycle status and timeout policy in the run ledger while keeping Desktop read-only for lifecycle control.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_control_commands_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.runtime_control_command_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.control_command_authority === "harness_control_plane"
+      && metrics.source_of_truth === "runtime_timeout_heartbeat_agent_run_ledger_and_audit_event_ledger"
+      && metrics.runtime_self_report_trusted === false
+      && metrics.agent_run_count > 0
+      && metrics.control_command_request_count === metrics.agent_run_count * 2
+      && metrics.cancel_request_count === metrics.agent_run_count
+      && metrics.resume_request_count === metrics.agent_run_count
+      && metrics.protected_control_request_count === metrics.control_command_request_count
+      && metrics.human_gate_required_request_count === metrics.control_command_request_count
+      && metrics.command_result_count === metrics.control_command_request_count
+      && metrics.held_or_not_executed_result_count === metrics.command_result_count
+      && metrics.audit_recorded_count === metrics.command_result_count
+      && metrics.audit_binding_count === metrics.command_result_count
+      && metrics.recorded_audit_binding_count === metrics.audit_binding_count
+      && metrics.audit_append_required_count === metrics.audit_binding_count
+      && metrics.audit_separated_from_observability_count === metrics.audit_binding_count
+      && metrics.command_execution_allowed_count === 0
+      && metrics.runtime_process_control_allowed_count === 0
+      && metrics.auto_control_allowed_count === 0
+      && metrics.execution_performed_count === 0
+      && metrics.protected_action_executed_count === 0
+      && metrics.new_run_created_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.cancel_allowed === false
+      && metrics.resume_allowed === false
+      && metrics.runtime_start_allowed === false
+      && metrics.runtime_process_control_allowed === false
+      && metrics.command_execution_allowed === false
+      && metrics.process_signal_allowed === false
+    ) {
+      return passedWithOperationalGate(stage, "Runtime Control Commands records cancel/resume requests and results as audit-bound receipts while keeping Desktop request-only and non-executing.");
     }
   }
 

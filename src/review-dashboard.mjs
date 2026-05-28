@@ -65,6 +65,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeArtifactCapturePath: "artifacts/runtime-artifact-capture/latest/runtime-artifact-capture.json",
   runtimeLogNormalizationPath: "artifacts/runtime-log-normalization/latest/runtime-log-normalization.json",
   runtimeTimeoutHeartbeatPath: "artifacts/runtime-timeout-heartbeat/latest/runtime-timeout-heartbeat.json",
+  runtimeControlCommandsPath: "artifacts/runtime-control-commands/latest/runtime-control-commands.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -511,6 +512,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeTimeoutHeartbeatPath",
     source_id: "runtime_timeout_heartbeat",
     label: "Runtime Timeout/Heartbeat",
+  },
+  {
+    option: "runtimeControlCommandsPath",
+    source_id: "runtime_control_commands",
+    label: "Runtime Control Commands",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1369,6 +1375,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "runtime_artifact_capture") return data.summary ?? {};
   if (sourceId === "runtime_log_normalization") return data.summary ?? {};
   if (sourceId === "runtime_timeout_heartbeat") return data.summary ?? {};
+  if (sourceId === "runtime_control_commands") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1656,6 +1663,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeArtifactCaptureStage(artifacts.runtime_artifact_capture, sourceById.get("runtime_artifact_capture")),
     buildRuntimeLogNormalizationStage(artifacts.runtime_log_normalization, sourceById.get("runtime_log_normalization")),
     buildRuntimeTimeoutHeartbeatStage(artifacts.runtime_timeout_heartbeat, sourceById.get("runtime_timeout_heartbeat")),
+    buildRuntimeControlCommandsStage(artifacts.runtime_control_commands, sourceById.get("runtime_control_commands")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5299,6 +5307,94 @@ function buildRuntimeTimeoutHeartbeatStage(lifecycleArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? lifecycleArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRuntimeControlCommandsStage(controlArtifact, source) {
+  if (!controlArtifact) return missingStage("runtime_control_commands", "Runtime Control Commands", source);
+  const summary = controlArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.runtime_control_command_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.control_command_authority !== "harness_control_plane"
+    || summary.runtime_self_report_trusted !== false
+    || summary.agent_run_count === 0
+    || summary.control_command_request_count !== summary.agent_run_count * 2
+    || summary.cancel_request_count !== summary.agent_run_count
+    || summary.resume_request_count !== summary.agent_run_count
+    || summary.protected_control_request_count !== summary.control_command_request_count
+    || summary.human_gate_required_request_count !== summary.control_command_request_count
+    || summary.command_result_count !== summary.control_command_request_count
+    || summary.audit_recorded_count !== summary.command_result_count
+    || summary.audit_binding_count !== summary.command_result_count
+    || summary.recorded_audit_binding_count !== summary.audit_binding_count
+    || summary.audit_separated_from_observability_count !== summary.audit_binding_count
+    || summary.execution_performed_count !== 0
+    || summary.protected_action_executed_count !== 0
+    || summary.new_run_created_count !== 0
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.cancel_allowed === true
+    || summary.resume_allowed === true
+    || summary.runtime_start_allowed === true
+    || summary.runtime_process_control_allowed === true
+    || summary.command_execution_allowed === true
+    || summary.process_signal_allowed === true
+    || controlArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "runtime_control_commands",
+    label: "Runtime Control Commands",
+    status,
+    message: `${summary.control_command_request_count ?? 0} control request receipts, ${summary.audit_binding_count ?? 0} audit bindings, execution_performed=${summary.execution_performed_count ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      runtime_control_command_status: summary.runtime_control_command_status ?? "unknown",
+      control_command_contract_id: summary.control_command_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      control_command_authority: summary.control_command_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? true,
+      agent_run_count: summary.agent_run_count ?? 0,
+      control_command_request_count: summary.control_command_request_count ?? 0,
+      cancel_request_count: summary.cancel_request_count ?? 0,
+      resume_request_count: summary.resume_request_count ?? 0,
+      protected_control_request_count: summary.protected_control_request_count ?? 0,
+      human_gate_required_request_count: summary.human_gate_required_request_count ?? 0,
+      terminal_state_guard_count: summary.terminal_state_guard_count ?? 0,
+      command_execution_allowed_count: summary.command_execution_allowed_count ?? 0,
+      runtime_process_control_allowed_count: summary.runtime_process_control_allowed_count ?? 0,
+      auto_control_allowed_count: summary.auto_control_allowed_count ?? 0,
+      command_result_count: summary.command_result_count ?? 0,
+      held_or_not_executed_result_count: summary.held_or_not_executed_result_count ?? 0,
+      audit_recorded_count: summary.audit_recorded_count ?? 0,
+      execution_performed_count: summary.execution_performed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      new_run_created_count: summary.new_run_created_count ?? 0,
+      audit_binding_count: summary.audit_binding_count ?? 0,
+      recorded_audit_binding_count: summary.recorded_audit_binding_count ?? 0,
+      audit_append_required_count: summary.audit_append_required_count ?? 0,
+      audit_separated_from_observability_count: summary.audit_separated_from_observability_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      cancel_allowed: summary.cancel_allowed ?? false,
+      resume_allowed: summary.resume_allowed ?? false,
+      runtime_start_allowed: summary.runtime_start_allowed ?? false,
+      runtime_process_control_allowed: summary.runtime_process_control_allowed ?? false,
+      command_execution_allowed: summary.command_execution_allowed ?? false,
+      process_signal_allowed: summary.process_signal_allowed ?? false,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? controlArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14563,6 +14659,33 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_timeout_heartbeat_start_allowed: artifacts.runtime_timeout_heartbeat?.summary?.runtime_start_allowed ?? false,
     runtime_timeout_heartbeat_process_control_allowed: artifacts.runtime_timeout_heartbeat?.summary?.runtime_process_control_allowed ?? false,
     runtime_timeout_heartbeat_validation_error_count: artifacts.runtime_timeout_heartbeat?.summary?.validation_error_count ?? artifacts.runtime_timeout_heartbeat?.validation?.errors?.length ?? 0,
+    runtime_control_command_status: artifacts.runtime_control_commands?.summary?.runtime_control_command_status ?? "unknown",
+    runtime_control_command_contract_status: artifacts.runtime_control_commands?.summary?.contract_status ?? "unknown",
+    runtime_control_command_authority: artifacts.runtime_control_commands?.summary?.control_command_authority ?? "unknown",
+    runtime_control_command_source_of_truth: artifacts.runtime_control_commands?.summary?.source_of_truth ?? "unknown",
+    runtime_control_command_runtime_self_report_trusted: artifacts.runtime_control_commands?.summary?.runtime_self_report_trusted ?? true,
+    runtime_control_command_agent_run_count: artifacts.runtime_control_commands?.summary?.agent_run_count ?? 0,
+    runtime_control_command_request_count: artifacts.runtime_control_commands?.summary?.control_command_request_count ?? 0,
+    runtime_control_command_cancel_request_count: artifacts.runtime_control_commands?.summary?.cancel_request_count ?? 0,
+    runtime_control_command_resume_request_count: artifacts.runtime_control_commands?.summary?.resume_request_count ?? 0,
+    runtime_control_command_human_gate_required_request_count: artifacts.runtime_control_commands?.summary?.human_gate_required_request_count ?? 0,
+    runtime_control_command_result_count: artifacts.runtime_control_commands?.summary?.command_result_count ?? 0,
+    runtime_control_command_audit_recorded_count: artifacts.runtime_control_commands?.summary?.audit_recorded_count ?? 0,
+    runtime_control_command_audit_binding_count: artifacts.runtime_control_commands?.summary?.audit_binding_count ?? 0,
+    runtime_control_command_execution_performed_count: artifacts.runtime_control_commands?.summary?.execution_performed_count ?? 0,
+    runtime_control_command_protected_action_executed_count: artifacts.runtime_control_commands?.summary?.protected_action_executed_count ?? 0,
+    runtime_control_command_new_run_created_count: artifacts.runtime_control_commands?.summary?.new_run_created_count ?? 0,
+    runtime_control_command_desktop_read_only: artifacts.runtime_control_commands?.summary?.desktop_read_only ?? false,
+    runtime_control_command_desktop_mutation_allowed: artifacts.runtime_control_commands?.summary?.desktop_mutation_allowed ?? false,
+    runtime_control_command_desktop_protected_mutation_execution_allowed: artifacts.runtime_control_commands?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    runtime_control_command_desktop_source_of_truth: artifacts.runtime_control_commands?.summary?.desktop_source_of_truth ?? false,
+    runtime_control_command_cancel_allowed: artifacts.runtime_control_commands?.summary?.cancel_allowed ?? false,
+    runtime_control_command_resume_allowed: artifacts.runtime_control_commands?.summary?.resume_allowed ?? false,
+    runtime_control_command_start_allowed: artifacts.runtime_control_commands?.summary?.runtime_start_allowed ?? false,
+    runtime_control_command_process_control_allowed: artifacts.runtime_control_commands?.summary?.runtime_process_control_allowed ?? false,
+    runtime_control_command_execution_allowed: artifacts.runtime_control_commands?.summary?.command_execution_allowed ?? false,
+    runtime_control_command_process_signal_allowed: artifacts.runtime_control_commands?.summary?.process_signal_allowed ?? false,
+    runtime_control_command_validation_error_count: artifacts.runtime_control_commands?.summary?.validation_error_count ?? artifacts.runtime_control_commands?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16276,6 +16399,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-log-normalization") parsed.runtimeLogNormalizationPath = false;
     else if (arg === "--runtime-timeout-heartbeat") parsed.runtimeTimeoutHeartbeatPath = argv[++index];
     else if (arg === "--no-runtime-timeout-heartbeat") parsed.runtimeTimeoutHeartbeatPath = false;
+    else if (arg === "--runtime-control-commands") parsed.runtimeControlCommandsPath = argv[++index];
+    else if (arg === "--no-runtime-control-commands") parsed.runtimeControlCommandsPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16748,6 +16873,10 @@ Options:
                                   runtime-timeout-heartbeat.json path.
   --no-runtime-timeout-heartbeat
                                   Do not include Runtime Timeout/Heartbeat status.
+  --runtime-control-commands <path>
+                                  runtime-control-commands.json path.
+  --no-runtime-control-commands
+                                  Do not include Runtime Control Commands status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

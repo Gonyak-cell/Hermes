@@ -81,6 +81,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:artifact-capture",
   "runtime:log-normalization",
   "runtime:timeout-heartbeat",
+  "runtime:control-commands",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

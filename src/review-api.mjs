@@ -4113,6 +4113,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("runtime_timeout_heartbeat_validations", lifecycleResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/runtime-control-commands") {
+    const controlResult = await readDashboardSourceArtifact(dashboard, "runtime_control_commands");
+    if (!controlResult.available) {
+      return jsonResponse(503, buildError("runtime_control_commands_unavailable", controlResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_control_commands", [controlResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-control-command-requests") {
+    const controlResult = await readDashboardSourceArtifact(dashboard, "runtime_control_commands");
+    if (!controlResult.available) {
+      return jsonResponse(503, buildError("runtime_control_commands_unavailable", controlResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_control_command_requests", controlResult.artifact.runtime_control_command_requests ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-control-command-results") {
+    const controlResult = await readDashboardSourceArtifact(dashboard, "runtime_control_commands");
+    if (!controlResult.available) {
+      return jsonResponse(503, buildError("runtime_control_commands_unavailable", controlResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_control_command_results", controlResult.artifact.runtime_control_command_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-control-audit-bindings") {
+    const controlResult = await readDashboardSourceArtifact(dashboard, "runtime_control_commands");
+    if (!controlResult.available) {
+      return jsonResponse(503, buildError("runtime_control_commands_unavailable", controlResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_control_audit_bindings", controlResult.artifact.runtime_control_audit_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-control-desktop-boundary") {
+    const controlResult = await readDashboardSourceArtifact(dashboard, "runtime_control_commands");
+    if (!controlResult.available) {
+      return jsonResponse(503, buildError("runtime_control_commands_unavailable", controlResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_control_desktop_boundary", [controlResult.artifact.runtime_control_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-control-command-validations") {
+    const controlResult = await readDashboardSourceArtifact(dashboard, "runtime_control_commands");
+    if (!controlResult.available) {
+      return jsonResponse(503, buildError("runtime_control_commands_unavailable", controlResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_control_command_validations", controlResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8303,6 +8345,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-lifecycle-ledger-bindings", "Runtime lifecycle ledger binding rows"),
       route("GET", "/api/runtime-heartbeat-desktop-boundary", "Runtime Timeout/Heartbeat Desktop boundary"),
       route("GET", "/api/runtime-timeout-heartbeat-validations", "Runtime Timeout/Heartbeat validation rows"),
+      route("GET", "/api/runtime-control-commands", "Runtime Control Commands artifact"),
+      route("GET", "/api/runtime-control-command-requests", "Runtime cancel/resume command request rows"),
+      route("GET", "/api/runtime-control-command-results", "Runtime cancel/resume command result rows"),
+      route("GET", "/api/runtime-control-audit-bindings", "Runtime control audit binding rows"),
+      route("GET", "/api/runtime-control-desktop-boundary", "Runtime Control Commands Desktop boundary"),
+      route("GET", "/api/runtime-control-command-validations", "Runtime Control Commands validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8964,6 +9012,12 @@ function filterItems(items, searchParams) {
     "runtime_artifact_capture_status",
     "runtime_log_normalization_status",
     "runtime_timeout_heartbeat_status",
+    "runtime_control_command_status",
+    "control_command_kind",
+    "request_status",
+    "result_status",
+    "audit_binding_status",
+    "audit_record_status",
     "normalization_status",
     "heartbeat_status",
     "timeout_status",
@@ -10269,6 +10323,12 @@ function readFilterValue(item, key) {
   if (key === "runtime_artifact_capture_status") return item.summary?.runtime_artifact_capture_status ?? item.runtime_artifact_capture_status;
   if (key === "runtime_log_normalization_status") return item.summary?.runtime_log_normalization_status ?? item.runtime_log_normalization_status;
   if (key === "runtime_timeout_heartbeat_status") return item.summary?.runtime_timeout_heartbeat_status ?? item.runtime_timeout_heartbeat_status;
+  if (key === "runtime_control_command_status") return item.summary?.runtime_control_command_status ?? item.runtime_control_command_status;
+  if (key === "control_command_kind") return item.control_command_kind;
+  if (key === "request_status") return item.request_status;
+  if (key === "result_status") return item.result_status;
+  if (key === "audit_binding_status") return item.audit_binding_status;
+  if (key === "audit_record_status") return item.audit_record_status;
   if (key === "normalization_status") return item.normalization_status ?? item.summary?.normalization_status;
   if (key === "heartbeat_status") return item.heartbeat_status;
   if (key === "timeout_status") return item.timeout_status;

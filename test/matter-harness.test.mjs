@@ -204,6 +204,7 @@ import { runSecretsBrokerContract } from "../src/secrets-broker-contract.mjs";
 import { runRuntimeArtifactCapture } from "../src/runtime-artifact-capture.mjs";
 import { runRuntimeLogNormalization } from "../src/runtime-log-normalization.mjs";
 import { runRuntimeTimeoutHeartbeat } from "../src/runtime-timeout-heartbeat.mjs";
+import { runRuntimeControlCommands } from "../src/runtime-control-commands.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1810,6 +1811,7 @@ describe("matter harness", () => {
         runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
         runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
         runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
+        runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7031,6 +7033,58 @@ describe("matter harness", () => {
       assert.equal(runtimeTimeoutHeartbeat.runtime_heartbeat_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "runtime-timeout-heartbeat", "summary.md"), "utf8"), /Runtime Timeout\/Heartbeat/);
 
+      const runtimeControlCommands = await runRuntimeControlCommands({
+        runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
+        gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-control-commands"),
+        runAt: "2026-05-23T06:45:44.000Z",
+      });
+      const runtimeControlCommandsSchema = JSON.parse(await readFile("schemas/runtime-control-commands.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeControlCommands, runtimeControlCommandsSchema, {}, "runtime_control_commands"), []);
+      assert.equal(runtimeControlCommands.summary.runtime_control_command_status, "complete");
+      assert.equal(runtimeControlCommands.summary.contract_status, "locked");
+      assert.equal(runtimeControlCommands.summary.control_command_authority, "harness_control_plane");
+      assert.equal(runtimeControlCommands.summary.source_of_truth, "runtime_timeout_heartbeat_agent_run_ledger_and_audit_event_ledger");
+      assert.equal(runtimeControlCommands.summary.runtime_self_report_trusted, false);
+      assert.equal(runtimeControlCommands.summary.agent_run_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runtimeControlCommands.summary.control_command_request_count, runtimeControlCommands.summary.agent_run_count * 2);
+      assert.equal(runtimeControlCommands.summary.cancel_request_count, runtimeControlCommands.summary.agent_run_count);
+      assert.equal(runtimeControlCommands.summary.resume_request_count, runtimeControlCommands.summary.agent_run_count);
+      assert.equal(runtimeControlCommands.summary.protected_control_request_count, runtimeControlCommands.summary.control_command_request_count);
+      assert.equal(runtimeControlCommands.summary.human_gate_required_request_count, runtimeControlCommands.summary.control_command_request_count);
+      assert.equal(runtimeControlCommands.summary.command_result_count, runtimeControlCommands.summary.control_command_request_count);
+      assert.equal(runtimeControlCommands.summary.held_or_not_executed_result_count, runtimeControlCommands.summary.command_result_count);
+      assert.equal(runtimeControlCommands.summary.audit_recorded_count, runtimeControlCommands.summary.command_result_count);
+      assert.equal(runtimeControlCommands.summary.audit_binding_count, runtimeControlCommands.summary.command_result_count);
+      assert.equal(runtimeControlCommands.summary.recorded_audit_binding_count, runtimeControlCommands.summary.audit_binding_count);
+      assert.equal(runtimeControlCommands.summary.audit_append_required_count, runtimeControlCommands.summary.audit_binding_count);
+      assert.equal(runtimeControlCommands.summary.audit_separated_from_observability_count, runtimeControlCommands.summary.audit_binding_count);
+      assert.equal(runtimeControlCommands.summary.command_execution_allowed_count, 0);
+      assert.equal(runtimeControlCommands.summary.runtime_process_control_allowed_count, 0);
+      assert.equal(runtimeControlCommands.summary.auto_control_allowed_count, 0);
+      assert.equal(runtimeControlCommands.summary.execution_performed_count, 0);
+      assert.equal(runtimeControlCommands.summary.protected_action_executed_count, 0);
+      assert.equal(runtimeControlCommands.summary.new_run_created_count, 0);
+      assert.equal(runtimeControlCommands.summary.desktop_read_only, true);
+      assert.equal(runtimeControlCommands.summary.desktop_mutation_allowed, false);
+      assert.equal(runtimeControlCommands.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(runtimeControlCommands.summary.desktop_source_of_truth, false);
+      assert.equal(runtimeControlCommands.summary.cancel_allowed, false);
+      assert.equal(runtimeControlCommands.summary.resume_allowed, false);
+      assert.equal(runtimeControlCommands.summary.runtime_start_allowed, false);
+      assert.equal(runtimeControlCommands.summary.runtime_process_control_allowed, false);
+      assert.equal(runtimeControlCommands.summary.command_execution_allowed, false);
+      assert.equal(runtimeControlCommands.summary.process_signal_allowed, false);
+      assert.ok(runtimeControlCommands.runtime_control_command_requests.every((request) => request.request_status === "recorded_pending_human_gate" && request.human_gate_required === true));
+      assert.ok(runtimeControlCommands.runtime_control_command_results.every((result) => result.execution_performed === false && result.audit_recorded === true));
+      assert.ok(runtimeControlCommands.runtime_control_audit_bindings.every((binding) => binding.audit_binding_status === "recorded" && binding.protected_action_executed === false));
+      assert.equal(runtimeControlCommands.runtime_control_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "runtime-control-commands", "summary.md"), "utf8"), /Runtime Control Commands/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7162,6 +7216,7 @@ describe("matter harness", () => {
           runtime_artifact_capture: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
           runtime_log_normalization: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
           runtime_timeout_heartbeat: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
+          runtime_control_commands: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7213,8 +7268,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 109);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 109);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 110);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 110);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7311,6 +7366,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_artifact_capture"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_log_normalization"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_timeout_heartbeat"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_control_commands"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7366,6 +7422,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:artifact-capture"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:log-normalization"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:timeout-heartbeat"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:control-commands"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7864,6 +7921,10 @@ describe("matter harness", () => {
       assert.equal(runtimeTimeoutHeartbeatCheckpoint?.acceptance_profile, "runtime_timeout_heartbeat_gate");
       assert.equal(runtimeTimeoutHeartbeatCheckpoint?.status, "passed");
       assert.equal(runtimeTimeoutHeartbeatCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runtimeControlCommandsCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-control-commands");
+      assert.equal(runtimeControlCommandsCheckpoint?.acceptance_profile, "runtime_control_commands_gate");
+      assert.equal(runtimeControlCommandsCheckpoint?.status, "passed");
+      assert.equal(runtimeControlCommandsCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -11349,6 +11410,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-lifecycle-ledger-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-heartbeat-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-timeout-heartbeat-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-commands"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-command-requests"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-command-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-audit-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-command-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12537,6 +12604,30 @@ describe("matter harness", () => {
       const runtimeTimeoutHeartbeatValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-timeout-heartbeat-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeTimeoutHeartbeatValidations.collection, "runtime_timeout_heartbeat_validations");
       assert.equal(runtimeTimeoutHeartbeatValidations.count, runtimeTimeoutHeartbeat.summary.validation_item_count);
+
+      const runtimeControlCommandsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-control-commands?runtime_control_command_status=complete", apiOptions)).body);
+      assert.equal(runtimeControlCommandsResponse.collection, "runtime_control_commands");
+      assert.equal(runtimeControlCommandsResponse.count, 1);
+
+      const runtimeControlCommandRequestsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-control-command-requests?control_command_kind=cancel&request_status=recorded_pending_human_gate", apiOptions)).body);
+      assert.equal(runtimeControlCommandRequestsResponse.collection, "runtime_control_command_requests");
+      assert.equal(runtimeControlCommandRequestsResponse.count, runtimeControlCommands.summary.cancel_request_count);
+
+      const runtimeControlCommandResultsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-control-command-results?result_status=not_executed_terminal_state", apiOptions)).body);
+      assert.equal(runtimeControlCommandResultsResponse.collection, "runtime_control_command_results");
+      assert.equal(runtimeControlCommandResultsResponse.count, runtimeControlCommands.summary.command_result_count);
+
+      const runtimeControlAuditBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-control-audit-bindings?audit_binding_status=recorded", apiOptions)).body);
+      assert.equal(runtimeControlAuditBindingsResponse.collection, "runtime_control_audit_bindings");
+      assert.equal(runtimeControlAuditBindingsResponse.count, runtimeControlCommands.summary.audit_binding_count);
+
+      const runtimeControlDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-control-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(runtimeControlDesktopBoundaryResponse.collection, "runtime_control_desktop_boundary");
+      assert.equal(runtimeControlDesktopBoundaryResponse.count, 1);
+
+      const runtimeControlCommandValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-control-command-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeControlCommandValidations.collection, "runtime_control_command_validations");
+      assert.equal(runtimeControlCommandValidations.count, runtimeControlCommands.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

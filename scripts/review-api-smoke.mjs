@@ -360,6 +360,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-lifecycle-ledger-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-heartbeat-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-timeout-heartbeat-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-commands"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-command-requests"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-command-results"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-audit-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-command-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1729,6 +1735,30 @@ try {
   const runtimeTimeoutHeartbeatValidations = await fetchJson(`${url}/api/runtime-timeout-heartbeat-validations?status=passed&limit=5`);
   assert.equal(runtimeTimeoutHeartbeatValidations.collection, "runtime_timeout_heartbeat_validations");
   assert.ok(runtimeTimeoutHeartbeatValidations.count <= 5);
+
+  const runtimeControlCommands = await fetchJson(`${url}/api/runtime-control-commands?runtime_control_command_status=complete&limit=1`);
+  assert.equal(runtimeControlCommands.collection, "runtime_control_commands");
+  assert.ok(runtimeControlCommands.count <= 1);
+
+  const runtimeControlCommandRequests = await fetchJson(`${url}/api/runtime-control-command-requests?control_command_kind=cancel&request_status=recorded_pending_human_gate&limit=5`);
+  assert.equal(runtimeControlCommandRequests.collection, "runtime_control_command_requests");
+  assert.ok(runtimeControlCommandRequests.count <= 5);
+
+  const runtimeControlCommandResults = await fetchJson(`${url}/api/runtime-control-command-results?result_status=not_executed_terminal_state&limit=5`);
+  assert.equal(runtimeControlCommandResults.collection, "runtime_control_command_results");
+  assert.ok(runtimeControlCommandResults.count <= 5);
+
+  const runtimeControlAuditBindings = await fetchJson(`${url}/api/runtime-control-audit-bindings?audit_binding_status=recorded&limit=5`);
+  assert.equal(runtimeControlAuditBindings.collection, "runtime_control_audit_bindings");
+  assert.ok(runtimeControlAuditBindings.count <= 5);
+
+  const runtimeControlDesktopBoundary = await fetchJson(`${url}/api/runtime-control-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(runtimeControlDesktopBoundary.collection, "runtime_control_desktop_boundary");
+  assert.ok(runtimeControlDesktopBoundary.count <= 1);
+
+  const runtimeControlCommandValidations = await fetchJson(`${url}/api/runtime-control-command-validations?status=passed&limit=5`);
+  assert.equal(runtimeControlCommandValidations.collection, "runtime_control_command_validations");
+  assert.ok(runtimeControlCommandValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

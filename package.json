@@ -49,6 +49,7 @@
     "runtime:log-normalization": "node scripts/runtime-log-normalization.mjs",
     "runtime:timeout-heartbeat": "node scripts/runtime-timeout-heartbeat.mjs",
     "runtime:control-commands": "node scripts/runtime-control-commands.mjs",
+    "gates:protected-files": "node scripts/protected-file-gate.mjs",
     "contracts:gates": "node scripts/gate-approval-contract-freeze.mjs",
     "contracts:outputs": "node scripts/output-delivery-contract-freeze.mjs",
     "contracts:events": "node scripts/event-audit-run-contract-freeze.mjs",

@@ -205,6 +205,7 @@ import { runRuntimeArtifactCapture } from "../src/runtime-artifact-capture.mjs";
 import { runRuntimeLogNormalization } from "../src/runtime-log-normalization.mjs";
 import { runRuntimeTimeoutHeartbeat } from "../src/runtime-timeout-heartbeat.mjs";
 import { runRuntimeControlCommands } from "../src/runtime-control-commands.mjs";
+import { runProtectedFileGate } from "../src/protected-file-gate.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1812,6 +1813,7 @@ describe("matter harness", () => {
         runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
         runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
         runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7085,6 +7087,62 @@ describe("matter harness", () => {
       assert.equal(runtimeControlCommands.runtime_control_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "runtime-control-commands", "summary.md"), "utf8"), /Runtime Control Commands/);
 
+      const protectedFileGate = await runProtectedFileGate({
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+        codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+        runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
+        policyMatrixPath: "examples/core/policy-matrix.json",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "protected-file-gate"),
+        runAt: "2026-05-23T06:45:45.000Z",
+      });
+      const protectedFileGateSchema = JSON.parse(await readFile("schemas/protected-file-gate.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(protectedFileGate, protectedFileGateSchema, {}, "protected_file_gate"), []);
+      assert.equal(protectedFileGate.summary.protected_file_gate_status, "complete");
+      assert.equal(protectedFileGate.summary.contract_status, "locked");
+      assert.equal(protectedFileGate.summary.gate_authority, "harness_control_plane");
+      assert.equal(protectedFileGate.summary.source_of_truth, "runtime_artifact_capture_adapter_gate_contracts_and_policy_matrix");
+      assert.equal(protectedFileGate.summary.runtime_self_report_trusted, false);
+      assert.equal(protectedFileGate.summary.rule_count, 4);
+      assert.equal(protectedFileGate.summary.locked_rule_count, protectedFileGate.summary.rule_count);
+      assert.equal(protectedFileGate.summary.secret_rule_count, 1);
+      assert.equal(protectedFileGate.summary.production_config_rule_count, 1);
+      assert.equal(protectedFileGate.summary.migration_rule_count, 1);
+      assert.equal(protectedFileGate.summary.change_evaluation_count, 16);
+      assert.equal(protectedFileGate.summary.diff_capture_evaluated_count, runtimeArtifactCapture.summary.diff_capture_record_count);
+      assert.equal(protectedFileGate.summary.declared_change_evaluation_count, 6);
+      assert.equal(protectedFileGate.summary.protected_fixture_evaluation_count, 10);
+      assert.equal(protectedFileGate.summary.protected_file_detected_count, 10);
+      assert.equal(protectedFileGate.summary.unprotected_change_count, 6);
+      assert.equal(protectedFileGate.summary.blocked_before_approval_count, protectedFileGate.summary.protected_file_detected_count);
+      assert.equal(protectedFileGate.summary.explicit_approval_required_count, protectedFileGate.summary.protected_file_detected_count);
+      assert.equal(protectedFileGate.summary.approval_requirement_count, protectedFileGate.summary.protected_file_detected_count);
+      assert.equal(protectedFileGate.summary.pending_explicit_approval_count, protectedFileGate.summary.approval_requirement_count);
+      assert.ok(protectedFileGate.summary.secret_file_block_count > 0);
+      assert.ok(protectedFileGate.summary.production_config_block_count > 0);
+      assert.ok(protectedFileGate.summary.migration_block_count > 0);
+      assert.equal(protectedFileGate.summary.direct_apply_allowed_count, 0);
+      assert.equal(protectedFileGate.summary.direct_merge_allowed_count, 0);
+      assert.equal(protectedFileGate.summary.protected_path_write_allowed_count, 0);
+      assert.equal(protectedFileGate.summary.write_allowed_before_approval_count, 0);
+      assert.equal(protectedFileGate.summary.mutation_allowed_before_approval_count, 0);
+      assert.equal(protectedFileGate.summary.protected_action_executed_count, 0);
+      assert.equal(protectedFileGate.summary.desktop_read_only, true);
+      assert.equal(protectedFileGate.summary.desktop_mutation_allowed, false);
+      assert.equal(protectedFileGate.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(protectedFileGate.summary.desktop_source_of_truth, false);
+      assert.equal(protectedFileGate.summary.direct_file_write_allowed, false);
+      assert.equal(protectedFileGate.summary.protected_file_write_allowed, false);
+      assert.equal(protectedFileGate.summary.approval_bypass_allowed, false);
+      assert.equal(protectedFileGate.summary.rule_edit_allowed, false);
+      assert.ok(protectedFileGate.protected_file_change_evaluations.every((evaluation) => evaluation.direct_apply_allowed === false && evaluation.write_allowed_before_approval === false));
+      assert.ok(protectedFileGate.protected_file_change_evaluations.filter((evaluation) => evaluation.protected_file_detected).every((evaluation) => evaluation.gate_status === "blocked_pending_explicit_approval" && evaluation.blocked_before_approval === true));
+      assert.ok(protectedFileGate.protected_file_approval_requirements.every((requirement) => requirement.approval_requirement_status === "pending_explicit_approval" && requirement.protected_action_executed === false));
+      assert.equal(protectedFileGate.protected_file_gate_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "protected-file-gate", "summary.md"), "utf8"), /Protected File Gate/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7217,6 +7275,7 @@ describe("matter harness", () => {
           runtime_log_normalization: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
           runtime_timeout_heartbeat: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
           runtime_control_commands: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
+          protected_file_gate: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7268,8 +7327,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 110);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 110);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 111);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 111);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7367,6 +7426,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_log_normalization"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_timeout_heartbeat"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_control_commands"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "protected_file_gate"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7423,6 +7483,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:log-normalization"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:timeout-heartbeat"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:control-commands"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "gates:protected-files"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7925,6 +7986,10 @@ describe("matter harness", () => {
       assert.equal(runtimeControlCommandsCheckpoint?.acceptance_profile, "runtime_control_commands_gate");
       assert.equal(runtimeControlCommandsCheckpoint?.status, "passed");
       assert.equal(runtimeControlCommandsCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const protectedFileGateCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-protected-file-gate");
+      assert.equal(protectedFileGateCheckpoint?.acceptance_profile, "protected_file_gate_gate");
+      assert.equal(protectedFileGateCheckpoint?.status, "passed");
+      assert.equal(protectedFileGateCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -11416,6 +11481,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-audit-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-control-command-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-gate"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-gate-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-change-evaluations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-approval-requirements"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-gate-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-gate-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12628,6 +12699,30 @@ describe("matter harness", () => {
       const runtimeControlCommandValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-control-command-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeControlCommandValidations.collection, "runtime_control_command_validations");
       assert.equal(runtimeControlCommandValidations.count, runtimeControlCommands.summary.validation_item_count);
+
+      const protectedFileGateResponse = JSON.parse((await buildReviewApiResponse("/api/protected-file-gate?protected_file_gate_status=complete", apiOptions)).body);
+      assert.equal(protectedFileGateResponse.collection, "protected_file_gate");
+      assert.equal(protectedFileGateResponse.count, 1);
+
+      const protectedFileGateRulesResponse = JSON.parse((await buildReviewApiResponse("/api/protected-file-gate-rules?protected_class=secret", apiOptions)).body);
+      assert.equal(protectedFileGateRulesResponse.collection, "protected_file_gate_rules");
+      assert.equal(protectedFileGateRulesResponse.count, protectedFileGate.summary.secret_rule_count);
+
+      const protectedFileChangeEvaluationsResponse = JSON.parse((await buildReviewApiResponse("/api/protected-file-change-evaluations?gate_status=blocked_pending_explicit_approval&blocked_before_approval=true", apiOptions)).body);
+      assert.equal(protectedFileChangeEvaluationsResponse.collection, "protected_file_change_evaluations");
+      assert.equal(protectedFileChangeEvaluationsResponse.count, protectedFileGate.summary.blocked_before_approval_count);
+
+      const protectedFileApprovalRequirementsResponse = JSON.parse((await buildReviewApiResponse("/api/protected-file-approval-requirements?approval_requirement_status=pending_explicit_approval", apiOptions)).body);
+      assert.equal(protectedFileApprovalRequirementsResponse.collection, "protected_file_approval_requirements");
+      assert.equal(protectedFileApprovalRequirementsResponse.count, protectedFileGate.summary.approval_requirement_count);
+
+      const protectedFileGateDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/protected-file-gate-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(protectedFileGateDesktopBoundaryResponse.collection, "protected_file_gate_desktop_boundary");
+      assert.equal(protectedFileGateDesktopBoundaryResponse.count, 1);
+
+      const protectedFileGateValidations = JSON.parse((await buildReviewApiResponse("/api/protected-file-gate-validations?status=passed", apiOptions)).body);
+      assert.equal(protectedFileGateValidations.collection, "protected_file_gate_validations");
+      assert.equal(protectedFileGateValidations.count, protectedFileGate.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

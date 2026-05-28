@@ -6030,6 +6030,36 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 110개로 증가하고 runtime_control_commands artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:control-commands -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 209 - Protected File Gate
+
+목표: Claude Code/Codex diff 또는 patch가 secrets, production config, migration, prod infra 같은 protected file을 변경하려 할 때, 실행 주체의 self-report를 신뢰하지 않고 harness가 승인 전 차단 상태와 explicit human approval requirement를 결정적으로 기록한다. Hermes Desktop은 protected file 상태 조회와 approval request draft만 가능한 operator surface로 유지한다.
+
+구현:
+
+- `src/protected-file-gate.mjs`와 `scripts/protected-file-gate.mjs`를 추가해 `npm run gates:protected-files` slice를 등록
+- `schemas/protected-file-gate.schema.json`으로 protected file gate contract, rule set, change evaluation, approval requirement, Desktop boundary를 검증
+- Runtime Artifact Capture, Runtime/AgentRun Contract Freeze, Claude Code Adapter Contract, Codex Adapter Contract, Runtime Control Commands, Policy Matrix, Desktop Companion 설계 문서를 source contract로 연결
+- Runtime Artifact Capture의 Claude/Codex diff capture 2개에 대해 PR draft declared change 6건과 protected fixture path 10건, 총 16건의 file change evaluation을 생성
+- `.env`, provider key config, migration file, prod infra file, credential loader fixture를 protected file로 감지하고 10건 모두 `blocked_pending_explicit_approval` 및 pending explicit approval requirement로 기록
+- direct apply, direct merge, protected path write, write before approval, protected action executed count를 모두 0으로 고정
+- Protected File Gate Desktop boundary를 read-only로 고정하고 direct file write, protected file write, approval bypass, rule edit, runtime process control, protected mutation execution 권한을 모두 false로 유지
+- Review Dashboard와 Review API에 `/api/protected-file-gate`, `/api/protected-file-gate-rules`, `/api/protected-file-change-evaluations`, `/api/protected-file-approval-requirements`, `/api/protected-file-gate-desktop-boundary`, `/api/protected-file-gate-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Protected File Gate를 연결
+
+완료 기준:
+
+- Protected File Gate가 validation error 없이 `complete` 상태가 됨
+- gate contract가 `locked`이고 gate authority가 `harness_control_plane`, source of truth가 `runtime_artifact_capture_adapter_gate_contracts_and_policy_matrix`임
+- protected file rule 4개가 locked 상태이고 secret, production config, migration rule을 포함함
+- file change evaluation 16건 중 protected fixture 10건이 protected file로 감지되어 승인 전 차단되고, declared change 6건은 unprotected로 분류됨
+- blocked before approval, explicit approval required, approval requirement, pending explicit approval count가 protected file detected count와 일치함
+- secret, production config, migration block count가 모두 1건 이상임
+- direct apply, direct merge, protected path write, write/mutation before approval, protected action executed count가 모두 0임
+- Desktop read-only는 true이고 Desktop mutation/protected execution/source-of-truth/direct file write/protected file write/approval bypass/rule edit/runtime process control 권한은 모두 false
+- Review API와 dashboard가 Protected File Gate 상태를 read-only로 노출
+- Golden fixture 수가 111개로 증가하고 protected_file_gate artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run gates:protected-files -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6038,9 +6068,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 208이다.
+- 현재 완료 기준점은 Phase 209이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P209-P312, 총 104개다.
+- 남은 계획 슬롯은 P210-P312, 총 103개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

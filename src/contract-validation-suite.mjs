@@ -82,6 +82,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:log-normalization",
   "runtime:timeout-heartbeat",
   "runtime:control-commands",
+  "gates:protected-files",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

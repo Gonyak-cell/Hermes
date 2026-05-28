@@ -81,6 +81,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_log_normalization", "Runtime log normalization", "runtime", "runtime_log_normalization", "control-plane-runtime-log-normalization", { acceptance_profile: "runtime_log_normalization_gate" }),
   sourceItem("runtime_timeout_heartbeat", "Runtime timeout/heartbeat", "runtime", "runtime_timeout_heartbeat", "control-plane-runtime-timeout-heartbeat", { acceptance_profile: "runtime_timeout_heartbeat_gate" }),
   sourceItem("runtime_control_commands", "Runtime control commands", "runtime", "runtime_control_commands", "control-plane-runtime-control-commands", { acceptance_profile: "runtime_control_commands_gate" }),
+  sourceItem("protected_file_gate", "Protected file gate", "gate_approval", "protected_file_gate", "control-plane-protected-file-gate", { acceptance_profile: "protected_file_gate_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -521,6 +522,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_log_normalization_gate",
     "runtime_timeout_heartbeat_gate",
     "runtime_control_commands_gate",
+    "protected_file_gate_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1963,6 +1965,52 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.process_signal_allowed === false
     ) {
       return passedWithOperationalGate(stage, "Runtime Control Commands records cancel/resume requests and results as audit-bound receipts while keeping Desktop request-only and non-executing.");
+    }
+  }
+
+  if (item.acceptance_profile === "protected_file_gate_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.protected_file_gate_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.gate_authority === "harness_control_plane"
+      && metrics.source_of_truth === "runtime_artifact_capture_adapter_gate_contracts_and_policy_matrix"
+      && metrics.runtime_self_report_trusted === false
+      && metrics.rule_count > 0
+      && metrics.rule_count === metrics.locked_rule_count
+      && metrics.secret_rule_count > 0
+      && metrics.production_config_rule_count > 0
+      && metrics.migration_rule_count > 0
+      && metrics.change_evaluation_count > 0
+      && metrics.diff_capture_evaluated_count > 0
+      && metrics.declared_change_evaluation_count > 0
+      && metrics.protected_fixture_evaluation_count > 0
+      && metrics.protected_file_detected_count > 0
+      && metrics.unprotected_change_count > 0
+      && metrics.blocked_before_approval_count === metrics.protected_file_detected_count
+      && metrics.explicit_approval_required_count === metrics.protected_file_detected_count
+      && metrics.approval_requirement_count === metrics.protected_file_detected_count
+      && metrics.pending_explicit_approval_count === metrics.approval_requirement_count
+      && metrics.secret_file_block_count > 0
+      && metrics.production_config_block_count > 0
+      && metrics.migration_block_count > 0
+      && metrics.direct_apply_allowed_count === 0
+      && metrics.direct_merge_allowed_count === 0
+      && metrics.protected_path_write_allowed_count === 0
+      && metrics.write_allowed_before_approval_count === 0
+      && metrics.mutation_allowed_before_approval_count === 0
+      && metrics.protected_action_executed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.direct_file_write_allowed === false
+      && metrics.protected_file_write_allowed === false
+      && metrics.approval_bypass_allowed === false
+      && metrics.rule_edit_allowed === false
+      && metrics.runtime_process_control_allowed === false
+    ) {
+      return passedWithOperationalGate(stage, "Protected File Gate blocks secret, config, migration, and production file changes before explicit human approval while keeping Desktop read-only and request-draft only.");
     }
   }
 

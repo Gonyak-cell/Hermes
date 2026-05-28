@@ -366,6 +366,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-audit-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-control-command-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/protected-file-gate"));
+  assert.ok(index.routes.some((route) => route.path === "/api/protected-file-gate-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/protected-file-change-evaluations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/protected-file-approval-requirements"));
+  assert.ok(index.routes.some((route) => route.path === "/api/protected-file-gate-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/protected-file-gate-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1759,6 +1765,30 @@ try {
   const runtimeControlCommandValidations = await fetchJson(`${url}/api/runtime-control-command-validations?status=passed&limit=5`);
   assert.equal(runtimeControlCommandValidations.collection, "runtime_control_command_validations");
   assert.ok(runtimeControlCommandValidations.count <= 5);
+
+  const protectedFileGate = await fetchJson(`${url}/api/protected-file-gate?protected_file_gate_status=complete&limit=1`);
+  assert.equal(protectedFileGate.collection, "protected_file_gate");
+  assert.ok(protectedFileGate.count <= 1);
+
+  const protectedFileGateRules = await fetchJson(`${url}/api/protected-file-gate-rules?protected_class=secret&limit=5`);
+  assert.equal(protectedFileGateRules.collection, "protected_file_gate_rules");
+  assert.ok(protectedFileGateRules.count <= 5);
+
+  const protectedFileChangeEvaluations = await fetchJson(`${url}/api/protected-file-change-evaluations?gate_status=blocked_pending_explicit_approval&blocked_before_approval=true&limit=5`);
+  assert.equal(protectedFileChangeEvaluations.collection, "protected_file_change_evaluations");
+  assert.ok(protectedFileChangeEvaluations.count <= 5);
+
+  const protectedFileApprovalRequirements = await fetchJson(`${url}/api/protected-file-approval-requirements?approval_requirement_status=pending_explicit_approval&limit=5`);
+  assert.equal(protectedFileApprovalRequirements.collection, "protected_file_approval_requirements");
+  assert.ok(protectedFileApprovalRequirements.count <= 5);
+
+  const protectedFileGateDesktopBoundary = await fetchJson(`${url}/api/protected-file-gate-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(protectedFileGateDesktopBoundary.collection, "protected_file_gate_desktop_boundary");
+  assert.ok(protectedFileGateDesktopBoundary.count <= 1);
+
+  const protectedFileGateValidations = await fetchJson(`${url}/api/protected-file-gate-validations?status=passed&limit=5`);
+  assert.equal(protectedFileGateValidations.collection, "protected_file_gate_validations");
+  assert.ok(protectedFileGateValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

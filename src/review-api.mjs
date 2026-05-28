@@ -4155,6 +4155,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("runtime_control_command_validations", controlResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/protected-file-gate") {
+    const protectedFileGateResult = await readDashboardSourceArtifact(dashboard, "protected_file_gate");
+    if (!protectedFileGateResult.available) {
+      return jsonResponse(503, buildError("protected_file_gate_unavailable", protectedFileGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("protected_file_gate", [protectedFileGateResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/protected-file-gate-rules") {
+    const protectedFileGateResult = await readDashboardSourceArtifact(dashboard, "protected_file_gate");
+    if (!protectedFileGateResult.available) {
+      return jsonResponse(503, buildError("protected_file_gate_unavailable", protectedFileGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("protected_file_gate_rules", protectedFileGateResult.artifact.protected_file_gate_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/protected-file-change-evaluations") {
+    const protectedFileGateResult = await readDashboardSourceArtifact(dashboard, "protected_file_gate");
+    if (!protectedFileGateResult.available) {
+      return jsonResponse(503, buildError("protected_file_gate_unavailable", protectedFileGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("protected_file_change_evaluations", protectedFileGateResult.artifact.protected_file_change_evaluations ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/protected-file-approval-requirements") {
+    const protectedFileGateResult = await readDashboardSourceArtifact(dashboard, "protected_file_gate");
+    if (!protectedFileGateResult.available) {
+      return jsonResponse(503, buildError("protected_file_gate_unavailable", protectedFileGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("protected_file_approval_requirements", protectedFileGateResult.artifact.protected_file_approval_requirements ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/protected-file-gate-desktop-boundary") {
+    const protectedFileGateResult = await readDashboardSourceArtifact(dashboard, "protected_file_gate");
+    if (!protectedFileGateResult.available) {
+      return jsonResponse(503, buildError("protected_file_gate_unavailable", protectedFileGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("protected_file_gate_desktop_boundary", [protectedFileGateResult.artifact.protected_file_gate_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/protected-file-gate-validations") {
+    const protectedFileGateResult = await readDashboardSourceArtifact(dashboard, "protected_file_gate");
+    if (!protectedFileGateResult.available) {
+      return jsonResponse(503, buildError("protected_file_gate_unavailable", protectedFileGateResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("protected_file_gate_validations", protectedFileGateResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8351,6 +8393,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-control-audit-bindings", "Runtime control audit binding rows"),
       route("GET", "/api/runtime-control-desktop-boundary", "Runtime Control Commands Desktop boundary"),
       route("GET", "/api/runtime-control-command-validations", "Runtime Control Commands validation rows"),
+      route("GET", "/api/protected-file-gate", "Protected File Gate artifact"),
+      route("GET", "/api/protected-file-gate-rules", "Protected file gate rule rows"),
+      route("GET", "/api/protected-file-change-evaluations", "Protected file change evaluation rows"),
+      route("GET", "/api/protected-file-approval-requirements", "Protected file approval requirement rows"),
+      route("GET", "/api/protected-file-gate-desktop-boundary", "Protected File Gate Desktop boundary"),
+      route("GET", "/api/protected-file-gate-validations", "Protected File Gate validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9013,11 +9061,20 @@ function filterItems(items, searchParams) {
     "runtime_log_normalization_status",
     "runtime_timeout_heartbeat_status",
     "runtime_control_command_status",
+    "protected_file_gate_status",
     "control_command_kind",
     "request_status",
     "result_status",
     "audit_binding_status",
     "audit_record_status",
+    "candidate_origin",
+    "protected_class",
+    "gate_status",
+    "approval_requirement_status",
+    "approval_authority",
+    "protected_file_detected",
+    "blocked_before_approval",
+    "write_allowed_before_approval",
     "normalization_status",
     "heartbeat_status",
     "timeout_status",
@@ -10324,11 +10381,20 @@ function readFilterValue(item, key) {
   if (key === "runtime_log_normalization_status") return item.summary?.runtime_log_normalization_status ?? item.runtime_log_normalization_status;
   if (key === "runtime_timeout_heartbeat_status") return item.summary?.runtime_timeout_heartbeat_status ?? item.runtime_timeout_heartbeat_status;
   if (key === "runtime_control_command_status") return item.summary?.runtime_control_command_status ?? item.runtime_control_command_status;
+  if (key === "protected_file_gate_status") return item.summary?.protected_file_gate_status ?? item.protected_file_gate_status;
   if (key === "control_command_kind") return item.control_command_kind;
   if (key === "request_status") return item.request_status;
   if (key === "result_status") return item.result_status;
   if (key === "audit_binding_status") return item.audit_binding_status;
   if (key === "audit_record_status") return item.audit_record_status;
+  if (key === "candidate_origin") return item.candidate_origin;
+  if (key === "protected_class") return item.protected_class;
+  if (key === "gate_status") return item.gate_status;
+  if (key === "approval_requirement_status") return item.approval_requirement_status;
+  if (key === "approval_authority") return item.approval_authority;
+  if (key === "protected_file_detected") return String(Boolean(item.protected_file_detected));
+  if (key === "blocked_before_approval") return String(Boolean(item.blocked_before_approval));
+  if (key === "write_allowed_before_approval") return String(Boolean(item.write_allowed_before_approval));
   if (key === "normalization_status") return item.normalization_status ?? item.summary?.normalization_status;
   if (key === "heartbeat_status") return item.heartbeat_status;
   if (key === "timeout_status") return item.timeout_status;

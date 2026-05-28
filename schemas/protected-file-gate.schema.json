@@ -1,0 +1,295 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/protected-file-gate.schema.json",
+  "title": "Hermes Protected File Gate",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "protected_file_gate_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "protected_file_gate_contract",
+    "protected_file_gate_rules",
+    "protected_file_change_evaluations",
+    "protected_file_approval_requirements",
+    "protected_file_gate_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "protected-file-gate.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "protected_file_gate_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_artifact_capture_path",
+        "runtime_agentrun_contract_freeze_path",
+        "claude_code_adapter_contract_path",
+        "codex_adapter_contract_path",
+        "runtime_control_commands_path",
+        "policy_matrix_path",
+        "pr_draft_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_artifact_capture",
+        "runtime_agentrun_contract_freeze",
+        "claude_code_adapter_contract",
+        "codex_adapter_contract",
+        "runtime_control_commands",
+        "policy_matrix",
+        "desktop_companion_integration"
+      ]
+    },
+    "protected_file_gate_contract": {
+      "type": "object",
+      "required": [
+        "protected_file_gate_contract_id",
+        "contract_status",
+        "gate_authority",
+        "source_of_truth",
+        "blocking_by_default",
+        "explicit_approval_required_for_protected_paths",
+        "human_gate_required",
+        "audit_event_append_required",
+        "direct_apply_allowed",
+        "direct_merge_allowed",
+        "protected_path_write_allowed",
+        "write_allowed_before_approval",
+        "mutation_allowed_before_approval",
+        "protected_action_executed",
+        "runtime_self_report_trusted",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_source_of_truth"
+      ],
+      "properties": {
+        "protected_file_gate_contract_id": { "const": "protected-file-gate.default" },
+        "contract_status": { "const": "locked" },
+        "gate_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "runtime_artifact_capture_adapter_gate_contracts_and_policy_matrix" },
+        "blocking_by_default": { "const": true },
+        "explicit_approval_required_for_protected_paths": { "const": true },
+        "human_gate_required": { "const": true },
+        "audit_event_append_required": { "const": true },
+        "direct_apply_allowed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "protected_path_write_allowed": { "const": false },
+        "write_allowed_before_approval": { "const": false },
+        "mutation_allowed_before_approval": { "const": false },
+        "protected_action_executed": { "const": false },
+        "runtime_self_report_trusted": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false }
+      }
+    },
+    "protected_file_gate_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "protected_file_gate_rule_id",
+          "rule_type",
+          "protected_class",
+          "patterns",
+          "gate_decision",
+          "blocking_by_default",
+          "explicit_approval_required",
+          "human_gate_required",
+          "write_allowed_before_approval",
+          "mutation_allowed_before_approval",
+          "protected_action_executed",
+          "rule_status"
+        ],
+        "properties": {
+          "protected_class": { "enum": ["protected_path", "secret", "production_config", "migration"] },
+          "patterns": { "type": "array", "minItems": 1 },
+          "gate_decision": { "const": "block_pending_explicit_approval" },
+          "blocking_by_default": { "const": true },
+          "explicit_approval_required": { "const": true },
+          "human_gate_required": { "const": true },
+          "write_allowed_before_approval": { "const": false },
+          "mutation_allowed_before_approval": { "const": false },
+          "protected_action_executed": { "const": false },
+          "rule_status": { "const": "locked" }
+        }
+      }
+    },
+    "protected_file_change_evaluations": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "protected_file_change_evaluation_id",
+          "source_diff_capture_record_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "adapter_id",
+          "candidate_origin",
+          "file_path",
+          "protected_file_detected",
+          "gate_status",
+          "blocked_before_approval",
+          "human_gate_required",
+          "write_allowed_before_approval",
+          "mutation_allowed_before_approval",
+          "direct_apply_allowed",
+          "direct_merge_allowed",
+          "protected_path_write_allowed",
+          "protected_action_executed",
+          "runtime_self_report_trusted",
+          "adapter_protected_file_gate_required"
+        ],
+        "properties": {
+          "candidate_origin": { "enum": ["pr_draft_declared_change", "protected_rule_fixture"] },
+          "gate_status": { "enum": ["passed_unprotected", "blocked_pending_explicit_approval"] },
+          "human_gate_required": { "const": true },
+          "write_allowed_before_approval": { "const": false },
+          "mutation_allowed_before_approval": { "const": false },
+          "direct_apply_allowed": { "const": false },
+          "direct_merge_allowed": { "const": false },
+          "protected_path_write_allowed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "runtime_self_report_trusted": { "const": false },
+          "adapter_protected_file_gate_required": { "const": true }
+        }
+      }
+    },
+    "protected_file_approval_requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "protected_file_approval_requirement_id",
+          "protected_file_change_evaluation_id",
+          "approval_requirement_status",
+          "approval_authority",
+          "explicit_approval_required",
+          "human_gate_required",
+          "write_allowed_before_approval",
+          "mutation_allowed_before_approval",
+          "protected_action_executed",
+          "audit_event_append_required"
+        ],
+        "properties": {
+          "approval_requirement_status": { "const": "pending_explicit_approval" },
+          "approval_authority": { "const": "human_gate" },
+          "explicit_approval_required": { "const": true },
+          "human_gate_required": { "const": true },
+          "write_allowed_before_approval": { "const": false },
+          "mutation_allowed_before_approval": { "const": false },
+          "protected_action_executed": { "const": false },
+          "audit_event_append_required": { "const": true }
+        }
+      }
+    },
+    "protected_file_gate_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "desktop_surface_policy",
+        "desktop_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_execution_allowed",
+        "direct_file_write_allowed",
+        "protected_file_write_allowed",
+        "approval_bypass_allowed",
+        "rule_edit_allowed",
+        "runtime_process_control_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "locked" },
+        "desktop_surface_policy": { "const": "read_only_protected_file_status_with_approval_request_drafts" },
+        "desktop_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": true },
+        "protected_mutation_execution_allowed": { "const": false },
+        "direct_file_write_allowed": { "const": false },
+        "protected_file_write_allowed": { "const": false },
+        "approval_bypass_allowed": { "const": false },
+        "rule_edit_allowed": { "const": false },
+        "runtime_process_control_allowed": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "protected_file_gate_status",
+        "protected_file_gate_contract_id",
+        "contract_status",
+        "gate_authority",
+        "source_of_truth",
+        "runtime_self_report_trusted",
+        "rule_count",
+        "change_evaluation_count",
+        "protected_file_detected_count",
+        "blocked_before_approval_count",
+        "approval_requirement_count",
+        "pending_explicit_approval_count",
+        "direct_apply_allowed_count",
+        "direct_merge_allowed_count",
+        "protected_path_write_allowed_count",
+        "write_allowed_before_approval_count",
+        "mutation_allowed_before_approval_count",
+        "protected_action_executed_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_source_of_truth",
+        "direct_file_write_allowed",
+        "protected_file_write_allowed",
+        "approval_bypass_allowed",
+        "rule_edit_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "protected_file_gate_status": { "enum": ["complete", "blocked"] },
+        "protected_file_gate_contract_id": { "const": "protected-file-gate.default" },
+        "contract_status": { "const": "locked" },
+        "gate_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "runtime_artifact_capture_adapter_gate_contracts_and_policy_matrix" },
+        "runtime_self_report_trusted": { "const": false },
+        "direct_apply_allowed_count": { "const": 0 },
+        "direct_merge_allowed_count": { "const": 0 },
+        "protected_path_write_allowed_count": { "const": 0 },
+        "write_allowed_before_approval_count": { "const": 0 },
+        "mutation_allowed_before_approval_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "direct_file_write_allowed": { "const": false },
+        "protected_file_write_allowed": { "const": false },
+        "approval_bypass_allowed": { "const": false },
+        "rule_edit_allowed": { "const": false }
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    }
+  }
+}

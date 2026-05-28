@@ -635,6 +635,12 @@ npm run api:serve
 - `GET /api/runtime-control-audit-bindings`: runtime control audit binding rows
 - `GET /api/runtime-control-desktop-boundary`: Runtime Control Commands Desktop boundary row
 - `GET /api/runtime-control-command-validations`: Runtime Control Commands validation rows
+- `GET /api/protected-file-gate`: Protected File Gate artifact
+- `GET /api/protected-file-gate-rules`: protected file rule rows
+- `GET /api/protected-file-change-evaluations`: protected file change evaluation rows
+- `GET /api/protected-file-approval-requirements`: pending explicit approval rows for protected file changes
+- `GET /api/protected-file-gate-desktop-boundary`: Protected File Gate Desktop boundary row
+- `GET /api/protected-file-gate-validations`: Protected File Gate validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -66,6 +66,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeLogNormalizationPath: "artifacts/runtime-log-normalization/latest/runtime-log-normalization.json",
   runtimeTimeoutHeartbeatPath: "artifacts/runtime-timeout-heartbeat/latest/runtime-timeout-heartbeat.json",
   runtimeControlCommandsPath: "artifacts/runtime-control-commands/latest/runtime-control-commands.json",
+  protectedFileGatePath: "artifacts/protected-file-gate/latest/protected-file-gate.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -517,6 +518,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeControlCommandsPath",
     source_id: "runtime_control_commands",
     label: "Runtime Control Commands",
+  },
+  {
+    option: "protectedFileGatePath",
+    source_id: "protected_file_gate",
+    label: "Protected File Gate",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1664,6 +1670,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeLogNormalizationStage(artifacts.runtime_log_normalization, sourceById.get("runtime_log_normalization")),
     buildRuntimeTimeoutHeartbeatStage(artifacts.runtime_timeout_heartbeat, sourceById.get("runtime_timeout_heartbeat")),
     buildRuntimeControlCommandsStage(artifacts.runtime_control_commands, sourceById.get("runtime_control_commands")),
+    buildProtectedFileGateStage(artifacts.protected_file_gate, sourceById.get("protected_file_gate")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5395,6 +5402,97 @@ function buildRuntimeControlCommandsStage(controlArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? controlArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildProtectedFileGateStage(gateArtifact, source) {
+  if (!gateArtifact) return missingStage("protected_file_gate", "Protected File Gate", source);
+  const summary = gateArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.protected_file_gate_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.gate_authority !== "harness_control_plane"
+    || summary.runtime_self_report_trusted !== false
+    || summary.rule_count === 0
+    || summary.change_evaluation_count === 0
+    || summary.diff_capture_evaluated_count === 0
+    || summary.protected_file_detected_count === 0
+    || summary.blocked_before_approval_count !== summary.protected_file_detected_count
+    || summary.explicit_approval_required_count !== summary.protected_file_detected_count
+    || summary.approval_requirement_count !== summary.protected_file_detected_count
+    || summary.pending_explicit_approval_count !== summary.approval_requirement_count
+    || summary.direct_apply_allowed_count !== 0
+    || summary.direct_merge_allowed_count !== 0
+    || summary.protected_path_write_allowed_count !== 0
+    || summary.write_allowed_before_approval_count !== 0
+    || summary.mutation_allowed_before_approval_count !== 0
+    || summary.protected_action_executed_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.direct_file_write_allowed === true
+    || summary.protected_file_write_allowed === true
+    || summary.approval_bypass_allowed === true
+    || summary.rule_edit_allowed === true
+    || summary.runtime_process_control_allowed === true
+    || gateArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "protected_file_gate",
+    label: "Protected File Gate",
+    status,
+    message: `${summary.protected_file_detected_count ?? 0}/${summary.change_evaluation_count ?? 0} candidate file changes blocked before approval; desktop write_allowed=${summary.direct_file_write_allowed ?? false}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      protected_file_gate_status: summary.protected_file_gate_status ?? "unknown",
+      protected_file_gate_contract_id: summary.protected_file_gate_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      gate_authority: summary.gate_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? true,
+      rule_count: summary.rule_count ?? 0,
+      locked_rule_count: summary.locked_rule_count ?? 0,
+      secret_rule_count: summary.secret_rule_count ?? 0,
+      production_config_rule_count: summary.production_config_rule_count ?? 0,
+      migration_rule_count: summary.migration_rule_count ?? 0,
+      change_evaluation_count: summary.change_evaluation_count ?? 0,
+      diff_capture_evaluated_count: summary.diff_capture_evaluated_count ?? 0,
+      declared_change_evaluation_count: summary.declared_change_evaluation_count ?? 0,
+      protected_fixture_evaluation_count: summary.protected_fixture_evaluation_count ?? 0,
+      protected_file_detected_count: summary.protected_file_detected_count ?? 0,
+      unprotected_change_count: summary.unprotected_change_count ?? 0,
+      blocked_before_approval_count: summary.blocked_before_approval_count ?? 0,
+      explicit_approval_required_count: summary.explicit_approval_required_count ?? 0,
+      approval_requirement_count: summary.approval_requirement_count ?? 0,
+      pending_explicit_approval_count: summary.pending_explicit_approval_count ?? 0,
+      secret_file_block_count: summary.secret_file_block_count ?? 0,
+      production_config_block_count: summary.production_config_block_count ?? 0,
+      migration_block_count: summary.migration_block_count ?? 0,
+      direct_apply_allowed_count: summary.direct_apply_allowed_count ?? 0,
+      direct_merge_allowed_count: summary.direct_merge_allowed_count ?? 0,
+      protected_path_write_allowed_count: summary.protected_path_write_allowed_count ?? 0,
+      write_allowed_before_approval_count: summary.write_allowed_before_approval_count ?? 0,
+      mutation_allowed_before_approval_count: summary.mutation_allowed_before_approval_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      direct_file_write_allowed: summary.direct_file_write_allowed ?? false,
+      protected_file_write_allowed: summary.protected_file_write_allowed ?? false,
+      approval_bypass_allowed: summary.approval_bypass_allowed ?? false,
+      rule_edit_allowed: summary.rule_edit_allowed ?? false,
+      runtime_process_control_allowed: summary.runtime_process_control_allowed ?? false,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? gateArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14686,6 +14784,47 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_control_command_execution_allowed: artifacts.runtime_control_commands?.summary?.command_execution_allowed ?? false,
     runtime_control_command_process_signal_allowed: artifacts.runtime_control_commands?.summary?.process_signal_allowed ?? false,
     runtime_control_command_validation_error_count: artifacts.runtime_control_commands?.summary?.validation_error_count ?? artifacts.runtime_control_commands?.validation?.errors?.length ?? 0,
+    protected_file_gate_status: artifacts.protected_file_gate?.summary?.protected_file_gate_status ?? "unknown",
+    protected_file_gate_contract_status: artifacts.protected_file_gate?.summary?.contract_status ?? "unknown",
+    protected_file_gate_authority: artifacts.protected_file_gate?.summary?.gate_authority ?? "unknown",
+    protected_file_gate_source_of_truth: artifacts.protected_file_gate?.summary?.source_of_truth ?? "unknown",
+    protected_file_gate_runtime_self_report_trusted: artifacts.protected_file_gate?.summary?.runtime_self_report_trusted ?? true,
+    protected_file_gate_rule_count: artifacts.protected_file_gate?.summary?.rule_count ?? 0,
+    protected_file_gate_locked_rule_count: artifacts.protected_file_gate?.summary?.locked_rule_count ?? 0,
+    protected_file_gate_secret_rule_count: artifacts.protected_file_gate?.summary?.secret_rule_count ?? 0,
+    protected_file_gate_production_config_rule_count: artifacts.protected_file_gate?.summary?.production_config_rule_count ?? 0,
+    protected_file_gate_migration_rule_count: artifacts.protected_file_gate?.summary?.migration_rule_count ?? 0,
+    protected_file_gate_change_evaluation_count: artifacts.protected_file_gate?.summary?.change_evaluation_count ?? 0,
+    protected_file_gate_diff_capture_evaluated_count: artifacts.protected_file_gate?.summary?.diff_capture_evaluated_count ?? 0,
+    protected_file_gate_declared_change_evaluation_count: artifacts.protected_file_gate?.summary?.declared_change_evaluation_count ?? 0,
+    protected_file_gate_protected_fixture_evaluation_count: artifacts.protected_file_gate?.summary?.protected_fixture_evaluation_count ?? 0,
+    protected_file_gate_protected_file_detected_count: artifacts.protected_file_gate?.summary?.protected_file_detected_count ?? 0,
+    protected_file_gate_unprotected_change_count: artifacts.protected_file_gate?.summary?.unprotected_change_count ?? 0,
+    protected_file_gate_blocked_before_approval_count: artifacts.protected_file_gate?.summary?.blocked_before_approval_count ?? 0,
+    protected_file_gate_explicit_approval_required_count: artifacts.protected_file_gate?.summary?.explicit_approval_required_count ?? 0,
+    protected_file_gate_approval_requirement_count: artifacts.protected_file_gate?.summary?.approval_requirement_count ?? 0,
+    protected_file_gate_pending_explicit_approval_count: artifacts.protected_file_gate?.summary?.pending_explicit_approval_count ?? 0,
+    protected_file_gate_secret_file_block_count: artifacts.protected_file_gate?.summary?.secret_file_block_count ?? 0,
+    protected_file_gate_production_config_block_count: artifacts.protected_file_gate?.summary?.production_config_block_count ?? 0,
+    protected_file_gate_migration_block_count: artifacts.protected_file_gate?.summary?.migration_block_count ?? 0,
+    protected_file_gate_direct_apply_allowed_count: artifacts.protected_file_gate?.summary?.direct_apply_allowed_count ?? 0,
+    protected_file_gate_direct_merge_allowed_count: artifacts.protected_file_gate?.summary?.direct_merge_allowed_count ?? 0,
+    protected_file_gate_protected_path_write_allowed_count: artifacts.protected_file_gate?.summary?.protected_path_write_allowed_count ?? 0,
+    protected_file_gate_write_allowed_before_approval_count: artifacts.protected_file_gate?.summary?.write_allowed_before_approval_count ?? 0,
+    protected_file_gate_mutation_allowed_before_approval_count: artifacts.protected_file_gate?.summary?.mutation_allowed_before_approval_count ?? 0,
+    protected_file_gate_protected_action_executed_count: artifacts.protected_file_gate?.summary?.protected_action_executed_count ?? 0,
+    protected_file_gate_desktop_surface_policy: artifacts.protected_file_gate?.summary?.desktop_surface_policy ?? "unknown",
+    protected_file_gate_desktop_read_only: artifacts.protected_file_gate?.summary?.desktop_read_only ?? false,
+    protected_file_gate_desktop_mutation_allowed: artifacts.protected_file_gate?.summary?.desktop_mutation_allowed ?? false,
+    protected_file_gate_desktop_protected_mutation_request_allowed: artifacts.protected_file_gate?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    protected_file_gate_desktop_protected_mutation_execution_allowed: artifacts.protected_file_gate?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    protected_file_gate_desktop_source_of_truth: artifacts.protected_file_gate?.summary?.desktop_source_of_truth ?? false,
+    protected_file_gate_direct_file_write_allowed: artifacts.protected_file_gate?.summary?.direct_file_write_allowed ?? false,
+    protected_file_gate_protected_file_write_allowed: artifacts.protected_file_gate?.summary?.protected_file_write_allowed ?? false,
+    protected_file_gate_approval_bypass_allowed: artifacts.protected_file_gate?.summary?.approval_bypass_allowed ?? false,
+    protected_file_gate_rule_edit_allowed: artifacts.protected_file_gate?.summary?.rule_edit_allowed ?? false,
+    protected_file_gate_runtime_process_control_allowed: artifacts.protected_file_gate?.summary?.runtime_process_control_allowed ?? false,
+    protected_file_gate_validation_error_count: artifacts.protected_file_gate?.summary?.validation_error_count ?? artifacts.protected_file_gate?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16401,6 +16540,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-timeout-heartbeat") parsed.runtimeTimeoutHeartbeatPath = false;
     else if (arg === "--runtime-control-commands") parsed.runtimeControlCommandsPath = argv[++index];
     else if (arg === "--no-runtime-control-commands") parsed.runtimeControlCommandsPath = false;
+    else if (arg === "--protected-file-gate") parsed.protectedFileGatePath = argv[++index];
+    else if (arg === "--no-protected-file-gate") parsed.protectedFileGatePath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16877,6 +17018,8 @@ Options:
                                   runtime-control-commands.json path.
   --no-runtime-control-commands
                                   Do not include Runtime Control Commands status.
+  --protected-file-gate <path>    protected-file-gate.json path.
+  --no-protected-file-gate        Do not include Protected File Gate status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

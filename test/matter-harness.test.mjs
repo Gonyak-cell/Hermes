@@ -202,6 +202,7 @@ import { runSandboxPolicyModel } from "../src/sandbox-policy-model.mjs";
 import { runDockerLocalBackendSelector } from "../src/docker-local-backend-selector.mjs";
 import { runSecretsBrokerContract } from "../src/secrets-broker-contract.mjs";
 import { runRuntimeArtifactCapture } from "../src/runtime-artifact-capture.mjs";
+import { runRuntimeLogNormalization } from "../src/runtime-log-normalization.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1806,6 +1807,7 @@ describe("matter harness", () => {
         dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
         secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
         runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6934,6 +6936,51 @@ describe("matter harness", () => {
       assert.equal(runtimeArtifactCapture.runtime_artifact_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "runtime-artifact-capture", "summary.md"), "utf8"), /Runtime Artifact Capture/);
 
+      const runtimeLogNormalization = await runRuntimeLogNormalization({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        observabilityTraceProjectionPath: path.join(outDir, "observability-trace-projection", "observability-trace-projection.json"),
+        agentTraceBindingsPath: path.join(outDir, "observability-trace-projection", "agent-trace-bindings.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-log-normalization"),
+        runAt: "2026-05-23T06:45:42.000Z",
+      });
+      const runtimeLogNormalizationSchema = JSON.parse(await readFile("schemas/runtime-log-normalization.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeLogNormalization, runtimeLogNormalizationSchema, {}, "runtime_log_normalization"), []);
+      assert.equal(runtimeLogNormalization.summary.runtime_log_normalization_status, "complete");
+      assert.equal(runtimeLogNormalization.summary.contract_status, "locked");
+      assert.equal(runtimeLogNormalization.summary.normalization_authority, "harness_control_plane");
+      assert.equal(runtimeLogNormalization.summary.source_of_truth, "runtime_log_contract_agent_run_ledger_and_artifact_capture");
+      assert.equal(runtimeLogNormalization.summary.common_log_schema_version, "runtime-log-entry.v1");
+      assert.equal(runtimeLogNormalization.summary.runtime_self_report_trusted, false);
+      assert.equal(runtimeLogNormalization.summary.normalized_log_count, runtimeAgentRunContractFreeze.summary.runtime_log_count);
+      assert.equal(runtimeLogNormalization.summary.normalized_stream_count, runtimeArtifactCapture.summary.stream_capture_record_count);
+      assert.equal(runtimeLogNormalization.summary.stdout_stream_count, runtimeAgentRunContractFreeze.summary.runtime_log_count);
+      assert.equal(runtimeLogNormalization.summary.stderr_stream_count, runtimeAgentRunContractFreeze.summary.runtime_log_count);
+      assert.equal(runtimeLogNormalization.summary.bound_stream_count, runtimeLogNormalization.summary.normalized_stream_count);
+      assert.equal(runtimeLogNormalization.summary.search_document_count, runtimeLogNormalization.summary.normalized_stream_count);
+      assert.equal(runtimeLogNormalization.summary.indexed_search_document_count, runtimeLogNormalization.summary.search_document_count);
+      assert.equal(runtimeLogNormalization.summary.trace_binding_count, runtimeLogNormalization.summary.normalized_log_count);
+      assert.equal(runtimeLogNormalization.summary.known_trace_binding_count, runtimeLogNormalization.summary.trace_binding_count);
+      assert.equal(runtimeLogNormalization.summary.unbound_trace_binding_count, 0);
+      assert.equal(runtimeLogNormalization.summary.desktop_read_only, true);
+      assert.equal(runtimeLogNormalization.summary.desktop_mutation_allowed, false);
+      assert.equal(runtimeLogNormalization.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(runtimeLogNormalization.summary.desktop_source_of_truth, false);
+      assert.equal(runtimeLogNormalization.summary.log_write_allowed, false);
+      assert.equal(runtimeLogNormalization.summary.raw_log_export_allowed, false);
+      assert.equal(runtimeLogNormalization.summary.search_index_mutation_allowed, false);
+      assert.equal(runtimeLogNormalization.summary.normalization_override_allowed, false);
+      assert.equal(runtimeLogNormalization.summary.stream_write_allowed, false);
+      assert.ok(runtimeLogNormalization.normalized_runtime_logs.every((record) => record.stream_count === 2 && record.searchable === true));
+      assert.ok(runtimeLogNormalization.normalized_log_streams.some((stream) => stream.stream_name === "stdout" && stream.severity === "info"));
+      assert.ok(runtimeLogNormalization.normalized_log_streams.some((stream) => stream.stream_name === "stderr" && stream.severity === "warning"));
+      assert.ok(runtimeLogNormalization.runtime_log_search_documents.every((document) => document.index_status === "indexed" && document.desktop_read_only === true));
+      assert.ok(runtimeLogNormalization.runtime_log_trace_bindings.every((binding) => binding.binding_status === "known"));
+      assert.equal(runtimeLogNormalization.runtime_log_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "runtime-log-normalization", "summary.md"), "utf8"), /Runtime Log Normalization/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7063,6 +7110,7 @@ describe("matter harness", () => {
           docker_local_backend_selector: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
           secrets_broker_contract: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
           runtime_artifact_capture: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+          runtime_log_normalization: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7114,8 +7162,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 107);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 107);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 108);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 108);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7209,6 +7257,8 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "sandbox_policy_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docker_local_backend_selector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_broker_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_artifact_capture"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_log_normalization"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7262,6 +7312,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:backend-selector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:secrets-broker"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:artifact-capture"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:log-normalization"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7752,6 +7803,10 @@ describe("matter harness", () => {
       assert.equal(runtimeArtifactCaptureCheckpoint?.acceptance_profile, "runtime_artifact_capture_gate");
       assert.equal(runtimeArtifactCaptureCheckpoint?.status, "passed");
       assert.equal(runtimeArtifactCaptureCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runtimeLogNormalizationCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-log-normalization");
+      assert.equal(runtimeLogNormalizationCheckpoint?.acceptance_profile, "runtime_log_normalization_gate");
+      assert.equal(runtimeLogNormalizationCheckpoint?.status, "passed");
+      assert.equal(runtimeLogNormalizationCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -11224,6 +11279,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-capture-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-artifact-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-artifact-capture-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-normalization"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-runtime-logs"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/normalized-log-streams"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-search-documents"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-trace-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-log-normalization-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12360,6 +12422,34 @@ describe("matter harness", () => {
       const runtimeArtifactCaptureValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-artifact-capture-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeArtifactCaptureValidations.collection, "runtime_artifact_capture_validations");
       assert.equal(runtimeArtifactCaptureValidations.count, runtimeArtifactCapture.summary.validation_item_count);
+
+      const runtimeLogNormalizationResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-log-normalization?runtime_log_normalization_status=complete", apiOptions)).body);
+      assert.equal(runtimeLogNormalizationResponse.collection, "runtime_log_normalization");
+      assert.equal(runtimeLogNormalizationResponse.count, 1);
+
+      const normalizedRuntimeLogsResponse = JSON.parse((await buildReviewApiResponse("/api/normalized-runtime-logs?normalization_status=normalized", apiOptions)).body);
+      assert.equal(normalizedRuntimeLogsResponse.collection, "normalized_runtime_logs");
+      assert.equal(normalizedRuntimeLogsResponse.count, runtimeLogNormalization.summary.normalized_log_count);
+
+      const normalizedLogStreamsResponse = JSON.parse((await buildReviewApiResponse("/api/normalized-log-streams?stream_name=stdout", apiOptions)).body);
+      assert.equal(normalizedLogStreamsResponse.collection, "normalized_log_streams");
+      assert.equal(normalizedLogStreamsResponse.count, runtimeLogNormalization.summary.stdout_stream_count);
+
+      const runtimeLogSearchDocumentsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-log-search-documents?index_status=indexed", apiOptions)).body);
+      assert.equal(runtimeLogSearchDocumentsResponse.collection, "runtime_log_search_documents");
+      assert.equal(runtimeLogSearchDocumentsResponse.count, runtimeLogNormalization.summary.search_document_count);
+
+      const runtimeLogTraceBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-log-trace-bindings?binding_status=known", apiOptions)).body);
+      assert.equal(runtimeLogTraceBindingsResponse.collection, "runtime_log_trace_bindings");
+      assert.equal(runtimeLogTraceBindingsResponse.count, runtimeLogNormalization.summary.trace_binding_count);
+
+      const runtimeLogDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-log-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(runtimeLogDesktopBoundaryResponse.collection, "runtime_log_desktop_boundary");
+      assert.equal(runtimeLogDesktopBoundaryResponse.count, 1);
+
+      const runtimeLogNormalizationValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-log-normalization-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeLogNormalizationValidations.collection, "runtime_log_normalization_validations");
+      assert.equal(runtimeLogNormalizationValidations.count, runtimeLogNormalization.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

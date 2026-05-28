@@ -4022,6 +4022,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("runtime_artifact_capture_validations", captureResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/runtime-log-normalization") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_log_normalization", [logResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-runtime-logs") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_runtime_logs", logResult.artifact.normalized_runtime_logs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-log-streams") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_log_streams", logResult.artifact.normalized_log_streams ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-log-search-documents") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_log_search_documents", logResult.artifact.runtime_log_search_documents ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-log-trace-bindings") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_log_trace_bindings", logResult.artifact.runtime_log_trace_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-log-desktop-boundary") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_log_desktop_boundary", [logResult.artifact.runtime_log_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-log-normalization-validations") {
+    const logResult = await readDashboardSourceArtifact(dashboard, "runtime_log_normalization");
+    if (!logResult.available) {
+      return jsonResponse(503, buildError("runtime_log_normalization_unavailable", logResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_log_normalization_validations", logResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8199,6 +8248,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/output-artifact-capture-bindings", "OutputArtifact capture binding rows"),
       route("GET", "/api/runtime-artifact-desktop-boundary", "Runtime Artifact Capture Desktop boundary"),
       route("GET", "/api/runtime-artifact-capture-validations", "Runtime Artifact Capture validation rows"),
+      route("GET", "/api/runtime-log-normalization", "Runtime Log Normalization artifact"),
+      route("GET", "/api/normalized-runtime-logs", "Normalized runtime log rows"),
+      route("GET", "/api/normalized-log-streams", "Normalized stdout/stderr log stream rows"),
+      route("GET", "/api/runtime-log-search-documents", "Runtime log search document rows"),
+      route("GET", "/api/runtime-log-trace-bindings", "Runtime log trace binding rows"),
+      route("GET", "/api/runtime-log-desktop-boundary", "Runtime Log Normalization Desktop boundary"),
+      route("GET", "/api/runtime-log-normalization-validations", "Runtime Log Normalization validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8858,6 +8914,10 @@ function filterItems(items, searchParams) {
     "docker_local_backend_selector_status",
     "secrets_broker_contract_status",
     "runtime_artifact_capture_status",
+    "runtime_log_normalization_status",
+    "normalization_status",
+    "index_status",
+    "severity",
     "capture_status",
     "capture_kind",
     "diff_capture_kind",
@@ -10152,6 +10212,10 @@ function readFilterValue(item, key) {
   if (key === "docker_local_backend_selector_status") return item.summary?.docker_local_backend_selector_status ?? item.docker_local_backend_selector_status;
   if (key === "secrets_broker_contract_status") return item.summary?.secrets_broker_contract_status ?? item.secrets_broker_contract_status;
   if (key === "runtime_artifact_capture_status") return item.summary?.runtime_artifact_capture_status ?? item.runtime_artifact_capture_status;
+  if (key === "runtime_log_normalization_status") return item.summary?.runtime_log_normalization_status ?? item.runtime_log_normalization_status;
+  if (key === "normalization_status") return item.normalization_status ?? item.summary?.normalization_status;
+  if (key === "index_status") return item.index_status;
+  if (key === "severity") return item.severity;
   if (key === "broker_status") return item.summary?.broker_status ?? item.broker_status;
   if (key === "secret_access_status") return item.secret_access_status;
   if (key === "secret_kind") return item.secret_kind;

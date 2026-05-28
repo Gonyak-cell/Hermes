@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/runtime-log-normalization.schema.json",
+  "title": "Hermes Runtime Log Normalization",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "runtime_log_normalization_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "runtime_log_normalization_contract",
+    "normalized_runtime_logs",
+    "normalized_log_streams",
+    "runtime_log_search_documents",
+    "runtime_log_trace_bindings",
+    "runtime_log_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "runtime-log-normalization.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "runtime_log_normalization_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_agentrun_contract_freeze_path",
+        "agent_run_ledger_path",
+        "runtime_artifact_capture_path",
+        "observability_trace_projection_path",
+        "agent_trace_bindings_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_agentrun_contract_freeze",
+        "agent_run_ledger",
+        "runtime_artifact_capture",
+        "observability_trace_projection",
+        "agent_trace_bindings",
+        "desktop_companion_integration"
+      ]
+    },
+    "runtime_log_normalization_contract": {
+      "type": "object",
+      "required": [
+        "normalization_contract_id",
+        "contract_status",
+        "normalization_status",
+        "normalization_authority",
+        "source_of_truth",
+        "common_log_schema_version",
+        "stdout_stderr_capture_required",
+        "output_artifact_binding_required",
+        "trace_binding_required",
+        "searchable_document_required",
+        "runtime_self_report_trusted",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth"
+      ],
+      "properties": {
+        "normalization_contract_id": { "const": "runtime-log-normalization.default" },
+        "contract_status": { "const": "locked" },
+        "normalization_status": { "const": "locked" },
+        "normalization_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "runtime_log_contract_agent_run_ledger_and_artifact_capture" },
+        "common_log_schema_version": { "const": "runtime-log-entry.v1" },
+        "stdout_stderr_capture_required": { "const": true },
+        "output_artifact_binding_required": { "const": true },
+        "trace_binding_required": { "const": true },
+        "searchable_document_required": { "const": true },
+        "runtime_self_report_trusted": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false }
+      }
+    },
+    "normalized_runtime_logs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "normalized_log_id",
+          "common_log_schema_version",
+          "normalization_authority",
+          "normalization_status",
+          "runtime_log_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "logs_ref",
+          "stream_count",
+          "stdout_stream_count",
+          "stderr_stream_count",
+          "output_artifact_binding_status",
+          "searchable",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "common_log_schema_version": { "const": "runtime-log-entry.v1" },
+          "normalization_authority": { "const": "harness_control_plane" },
+          "normalization_status": { "const": "normalized" },
+          "stream_count": { "const": 2 },
+          "stdout_stream_count": { "const": 1 },
+          "stderr_stream_count": { "const": 1 },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "searchable": { "const": true },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "normalized_log_streams": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "normalized_stream_id",
+          "normalized_log_id",
+          "common_log_schema_version",
+          "normalization_status",
+          "stream_capture_record_id",
+          "runtime_log_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "stream_name",
+          "log_event_type",
+          "severity",
+          "message_ref",
+          "stream_ref",
+          "output_artifact_id",
+          "output_artifact_binding_status",
+          "search_text",
+          "searchable",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "common_log_schema_version": { "const": "runtime-log-entry.v1" },
+          "normalization_status": { "const": "normalized" },
+          "stream_name": { "enum": ["stdout", "stderr"] },
+          "log_event_type": { "const": "runtime_stream_capture" },
+          "severity": { "enum": ["info", "warning"] },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "searchable": { "const": true },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "runtime_log_search_documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "runtime_log_search_document_id",
+          "index_status",
+          "common_log_schema_version",
+          "normalized_stream_id",
+          "normalized_log_id",
+          "runtime_log_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "stream_name",
+          "severity",
+          "search_text",
+          "search_hash",
+          "searchable",
+          "desktop_read_only",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "index_status": { "const": "indexed" },
+          "common_log_schema_version": { "const": "runtime-log-entry.v1" },
+          "search_hash": { "type": "string", "minLength": 64 },
+          "searchable": { "const": true },
+          "desktop_read_only": { "const": true },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "runtime_log_trace_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "runtime_log_trace_binding_id",
+          "binding_authority",
+          "binding_status",
+          "normalized_log_id",
+          "runtime_log_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "trace_required",
+          "observability_trace_id",
+          "correlation_trace_id",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "binding_authority": { "const": "harness_control_plane" },
+          "binding_status": { "const": "known" },
+          "trace_required": { "const": true },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "runtime_log_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_id",
+        "boundary_status",
+        "desktop_surface_policy",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_execution_allowed",
+        "desktop_source_of_truth",
+        "log_write_allowed",
+        "raw_log_export_allowed",
+        "search_index_mutation_allowed",
+        "normalization_override_allowed",
+        "stream_write_allowed"
+      ],
+      "properties": {
+        "boundary_status": { "const": "locked" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "log_write_allowed": { "const": false },
+        "raw_log_export_allowed": { "const": false },
+        "search_index_mutation_allowed": { "const": false },
+        "normalization_override_allowed": { "const": false },
+        "stream_write_allowed": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "runtime_log_normalization_status",
+        "contract_status",
+        "normalization_authority",
+        "source_of_truth",
+        "common_log_schema_version",
+        "runtime_self_report_trusted",
+        "normalized_log_count",
+        "normalized_stream_count",
+        "search_document_count",
+        "trace_binding_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "runtime_log_normalization_status": { "const": "complete" },
+        "contract_status": { "const": "locked" },
+        "normalization_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "runtime_log_contract_agent_run_ledger_and_artifact_capture" },
+        "common_log_schema_version": { "const": "runtime-log-entry.v1" },
+        "runtime_self_report_trusted": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

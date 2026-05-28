@@ -5946,6 +5946,34 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 107개로 증가하고 runtime_artifact_capture artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:artifact-capture -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 206 - Runtime Log Normalization
+
+목표: runtime별 `logs_ref`, stdout/stderr capture, AgentRun log reference를 공통 `runtime-log-entry.v1` 형태로 정규화해 runtime log를 검색 가능한 운영 데이터로 고정한다. Runtime self-report를 신뢰하지 않고 Runtime/AgentRun contract, AgentRun ledger, Runtime Artifact Capture, Observability Trace Projection을 source of truth로 삼으며 Hermes Desktop은 log status/search surface를 읽는 operator surface로만 유지한다.
+
+구현:
+
+- `src/runtime-log-normalization.mjs`와 `scripts/runtime-log-normalization.mjs`를 추가해 `npm run runtime:log-normalization` slice를 등록
+- `schemas/runtime-log-normalization.schema.json`으로 normalized runtime log, stdout/stderr stream, search document, trace binding, Desktop boundary를 검증
+- Runtime/AgentRun Contract Freeze, Agent Run Ledger, Runtime Artifact Capture, Observability Trace Projection, Agent Trace Bindings, Desktop Companion 설계 문서를 source contract로 연결
+- runtime log 6개를 `runtime-log-entry.v1` 공통 schema의 normalized runtime log로 정규화하고 각 log가 stdout/stderr 2개 stream을 갖도록 고정
+- P205 stream capture 12개를 normalized log stream 12개와 runtime log search document 12개로 materialize
+- AgentRun trace binding 6개를 runtime log trace binding 6개로 연결해 log 검색 결과가 workflow/agent observability trace에 연결되도록 함
+- Runtime Log Desktop boundary를 read-only로 고정하고 log write, raw log export, search index mutation, normalization override, stream write, protected execution, source-of-truth 권한을 모두 false로 유지
+- Review Dashboard와 Review API에 `/api/runtime-log-normalization`, `/api/normalized-runtime-logs`, `/api/normalized-log-streams`, `/api/runtime-log-search-documents`, `/api/runtime-log-trace-bindings`, `/api/runtime-log-desktop-boundary`, `/api/runtime-log-normalization-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Runtime Log Normalization을 연결
+
+완료 기준:
+
+- Runtime Log Normalization이 validation error 없이 `complete` 상태가 됨
+- normalization contract가 `locked`이고 normalization authority가 `harness_control_plane`, source of truth가 `runtime_log_contract_agent_run_ledger_and_artifact_capture`임
+- common log schema version이 `runtime-log-entry.v1`이고 runtime self-report trusted가 false임
+- normalized runtime log 6개, normalized stream 12개, indexed search document 12개, known trace binding 6개가 생성됨
+- stdout/stderr stream이 runtime log별로 1개씩 생성되고 bound stream count가 normalized stream count와 일치함
+- Desktop read-only는 true이고 Desktop mutation/protected execution/source-of-truth/log write/raw log export/search index mutation/normalization override/stream write 권한은 모두 false
+- Review API와 dashboard가 Runtime Log Normalization 상태를 read-only로 노출
+- Golden fixture 수가 108개로 증가하고 runtime_log_normalization artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:log-normalization -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5954,9 +5982,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 205이다.
+- 현재 완료 기준점은 Phase 206이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P206-P312, 총 107개다.
+- 남은 계획 슬롯은 P207-P312, 총 106개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

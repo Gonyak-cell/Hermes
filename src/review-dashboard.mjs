@@ -63,6 +63,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   dockerLocalBackendSelectorPath: "artifacts/docker-local-backend-selector/latest/docker-local-backend-selector.json",
   secretsBrokerContractPath: "artifacts/secrets-broker/latest/secrets-broker-contract.json",
   runtimeArtifactCapturePath: "artifacts/runtime-artifact-capture/latest/runtime-artifact-capture.json",
+  runtimeLogNormalizationPath: "artifacts/runtime-log-normalization/latest/runtime-log-normalization.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -499,6 +500,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeArtifactCapturePath",
     source_id: "runtime_artifact_capture",
     label: "Runtime Artifact Capture",
+  },
+  {
+    option: "runtimeLogNormalizationPath",
+    source_id: "runtime_log_normalization",
+    label: "Runtime Log Normalization",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1355,6 +1361,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "docker_local_backend_selector") return data.summary ?? {};
   if (sourceId === "secrets_broker_contract") return data.summary ?? {};
   if (sourceId === "runtime_artifact_capture") return data.summary ?? {};
+  if (sourceId === "runtime_log_normalization") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1640,6 +1647,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDockerLocalBackendSelectorStage(artifacts.docker_local_backend_selector, sourceById.get("docker_local_backend_selector")),
     buildSecretsBrokerContractStage(artifacts.secrets_broker_contract, sourceById.get("secrets_broker_contract")),
     buildRuntimeArtifactCaptureStage(artifacts.runtime_artifact_capture, sourceById.get("runtime_artifact_capture")),
+    buildRuntimeLogNormalizationStage(artifacts.runtime_log_normalization, sourceById.get("runtime_log_normalization")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5128,6 +5136,77 @@ function buildRuntimeArtifactCaptureStage(captureArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? captureArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRuntimeLogNormalizationStage(logArtifact, source) {
+  if (!logArtifact) return missingStage("runtime_log_normalization", "Runtime Log Normalization", source);
+  const summary = logArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.runtime_log_normalization_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.runtime_self_report_trusted !== false
+    || summary.normalized_log_count === 0
+    || summary.normalized_stream_count === 0
+    || summary.bound_stream_count !== summary.normalized_stream_count
+    || summary.search_document_count !== summary.normalized_stream_count
+    || summary.indexed_search_document_count !== summary.search_document_count
+    || summary.trace_binding_count !== summary.normalized_log_count
+    || summary.known_trace_binding_count !== summary.trace_binding_count
+    || summary.unbound_trace_binding_count !== 0
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.log_write_allowed === true
+    || summary.raw_log_export_allowed === true
+    || summary.search_index_mutation_allowed === true
+    || summary.normalization_override_allowed === true
+    || summary.stream_write_allowed === true
+    || logArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "runtime_log_normalization",
+    label: "Runtime Log Normalization",
+    status,
+    message: `${summary.normalized_log_count ?? 0} logs, ${summary.bound_stream_count ?? 0}/${summary.normalized_stream_count ?? 0} streams, ${summary.indexed_search_document_count ?? 0}/${summary.search_document_count ?? 0} search docs normalized.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      runtime_log_normalization_status: summary.runtime_log_normalization_status ?? "unknown",
+      normalization_contract_id: summary.normalization_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      normalization_authority: summary.normalization_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      common_log_schema_version: summary.common_log_schema_version ?? "unknown",
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? true,
+      normalized_log_count: summary.normalized_log_count ?? 0,
+      normalized_stream_count: summary.normalized_stream_count ?? 0,
+      stdout_stream_count: summary.stdout_stream_count ?? 0,
+      stderr_stream_count: summary.stderr_stream_count ?? 0,
+      bound_stream_count: summary.bound_stream_count ?? 0,
+      searchable_stream_count: summary.searchable_stream_count ?? 0,
+      search_document_count: summary.search_document_count ?? 0,
+      indexed_search_document_count: summary.indexed_search_document_count ?? 0,
+      trace_binding_count: summary.trace_binding_count ?? 0,
+      known_trace_binding_count: summary.known_trace_binding_count ?? 0,
+      unbound_trace_binding_count: summary.unbound_trace_binding_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      log_write_allowed: summary.log_write_allowed ?? false,
+      raw_log_export_allowed: summary.raw_log_export_allowed ?? false,
+      search_index_mutation_allowed: summary.search_index_mutation_allowed ?? false,
+      normalization_override_allowed: summary.normalization_override_allowed ?? false,
+      stream_write_allowed: summary.stream_write_allowed ?? false,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? logArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14338,6 +14417,32 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_artifact_capture_stream_write_allowed: artifacts.runtime_artifact_capture?.summary?.stream_write_allowed ?? false,
     runtime_artifact_capture_metadata_edit_allowed: artifacts.runtime_artifact_capture?.summary?.metadata_edit_allowed ?? false,
     runtime_artifact_capture_validation_error_count: artifacts.runtime_artifact_capture?.summary?.validation_error_count ?? artifacts.runtime_artifact_capture?.validation?.errors?.length ?? 0,
+    runtime_log_normalization_status: artifacts.runtime_log_normalization?.summary?.runtime_log_normalization_status ?? "unknown",
+    runtime_log_normalization_contract_status: artifacts.runtime_log_normalization?.summary?.contract_status ?? "unknown",
+    runtime_log_normalization_authority: artifacts.runtime_log_normalization?.summary?.normalization_authority ?? "unknown",
+    runtime_log_normalization_source_of_truth: artifacts.runtime_log_normalization?.summary?.source_of_truth ?? "unknown",
+    runtime_log_normalization_common_schema_version: artifacts.runtime_log_normalization?.summary?.common_log_schema_version ?? "unknown",
+    runtime_log_normalization_runtime_self_report_trusted: artifacts.runtime_log_normalization?.summary?.runtime_self_report_trusted ?? true,
+    runtime_log_normalization_log_count: artifacts.runtime_log_normalization?.summary?.normalized_log_count ?? 0,
+    runtime_log_normalization_stream_count: artifacts.runtime_log_normalization?.summary?.normalized_stream_count ?? 0,
+    runtime_log_normalization_stdout_count: artifacts.runtime_log_normalization?.summary?.stdout_stream_count ?? 0,
+    runtime_log_normalization_stderr_count: artifacts.runtime_log_normalization?.summary?.stderr_stream_count ?? 0,
+    runtime_log_normalization_bound_stream_count: artifacts.runtime_log_normalization?.summary?.bound_stream_count ?? 0,
+    runtime_log_normalization_search_document_count: artifacts.runtime_log_normalization?.summary?.search_document_count ?? 0,
+    runtime_log_normalization_indexed_search_document_count: artifacts.runtime_log_normalization?.summary?.indexed_search_document_count ?? 0,
+    runtime_log_normalization_trace_binding_count: artifacts.runtime_log_normalization?.summary?.trace_binding_count ?? 0,
+    runtime_log_normalization_known_trace_binding_count: artifacts.runtime_log_normalization?.summary?.known_trace_binding_count ?? 0,
+    runtime_log_normalization_unbound_trace_binding_count: artifacts.runtime_log_normalization?.summary?.unbound_trace_binding_count ?? 0,
+    runtime_log_normalization_desktop_read_only: artifacts.runtime_log_normalization?.summary?.desktop_read_only ?? false,
+    runtime_log_normalization_desktop_mutation_allowed: artifacts.runtime_log_normalization?.summary?.desktop_mutation_allowed ?? false,
+    runtime_log_normalization_desktop_protected_mutation_execution_allowed: artifacts.runtime_log_normalization?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    runtime_log_normalization_desktop_source_of_truth: artifacts.runtime_log_normalization?.summary?.desktop_source_of_truth ?? false,
+    runtime_log_normalization_log_write_allowed: artifacts.runtime_log_normalization?.summary?.log_write_allowed ?? false,
+    runtime_log_normalization_raw_log_export_allowed: artifacts.runtime_log_normalization?.summary?.raw_log_export_allowed ?? false,
+    runtime_log_normalization_search_index_mutation_allowed: artifacts.runtime_log_normalization?.summary?.search_index_mutation_allowed ?? false,
+    runtime_log_normalization_override_allowed: artifacts.runtime_log_normalization?.summary?.normalization_override_allowed ?? false,
+    runtime_log_normalization_stream_write_allowed: artifacts.runtime_log_normalization?.summary?.stream_write_allowed ?? false,
+    runtime_log_normalization_validation_error_count: artifacts.runtime_log_normalization?.summary?.validation_error_count ?? artifacts.runtime_log_normalization?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16047,6 +16152,8 @@ function parseArgs(argv) {
     else if (arg === "--no-secrets-broker-contract") parsed.secretsBrokerContractPath = false;
     else if (arg === "--runtime-artifact-capture") parsed.runtimeArtifactCapturePath = argv[++index];
     else if (arg === "--no-runtime-artifact-capture") parsed.runtimeArtifactCapturePath = false;
+    else if (arg === "--runtime-log-normalization") parsed.runtimeLogNormalizationPath = argv[++index];
+    else if (arg === "--no-runtime-log-normalization") parsed.runtimeLogNormalizationPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16512,6 +16619,9 @@ Options:
   --runtime-artifact-capture <path>
                                   runtime-artifact-capture.json path.
   --no-runtime-artifact-capture  Do not include Runtime Artifact Capture status.
+  --runtime-log-normalization <path>
+                                  runtime-log-normalization.json path.
+  --no-runtime-log-normalization Do not include Runtime Log Normalization status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

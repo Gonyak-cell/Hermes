@@ -616,6 +616,13 @@ npm run api:serve
 - `GET /api/output-artifact-capture-bindings`: capture-to-OutputArtifact binding rows
 - `GET /api/runtime-artifact-desktop-boundary`: Runtime Artifact Capture Desktop boundary row
 - `GET /api/runtime-artifact-capture-validations`: Runtime Artifact Capture validation rows
+- `GET /api/runtime-log-normalization`: Runtime Log Normalization artifact
+- `GET /api/normalized-runtime-logs`: runtime log rows normalized to `runtime-log-entry.v1`
+- `GET /api/normalized-log-streams`: normalized stdout/stderr stream rows
+- `GET /api/runtime-log-search-documents`: indexed runtime log search document rows
+- `GET /api/runtime-log-trace-bindings`: runtime log to observability trace binding rows
+- `GET /api/runtime-log-desktop-boundary`: Runtime Log Normalization Desktop boundary row
+- `GET /api/runtime-log-normalization-validations`: Runtime Log Normalization validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

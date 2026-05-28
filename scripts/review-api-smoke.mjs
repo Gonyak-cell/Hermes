@@ -347,6 +347,13 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/output-artifact-capture-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-artifact-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-artifact-capture-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-normalization"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-runtime-logs"));
+  assert.ok(index.routes.some((route) => route.path === "/api/normalized-log-streams"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-search-documents"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-trace-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-log-normalization-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1664,6 +1671,34 @@ try {
   const runtimeArtifactCaptureValidations = await fetchJson(`${url}/api/runtime-artifact-capture-validations?status=passed&limit=5`);
   assert.equal(runtimeArtifactCaptureValidations.collection, "runtime_artifact_capture_validations");
   assert.ok(runtimeArtifactCaptureValidations.count <= 5);
+
+  const runtimeLogNormalization = await fetchJson(`${url}/api/runtime-log-normalization?runtime_log_normalization_status=complete&limit=1`);
+  assert.equal(runtimeLogNormalization.collection, "runtime_log_normalization");
+  assert.ok(runtimeLogNormalization.count <= 1);
+
+  const normalizedRuntimeLogs = await fetchJson(`${url}/api/normalized-runtime-logs?normalization_status=normalized&limit=5`);
+  assert.equal(normalizedRuntimeLogs.collection, "normalized_runtime_logs");
+  assert.ok(normalizedRuntimeLogs.count <= 5);
+
+  const normalizedLogStreams = await fetchJson(`${url}/api/normalized-log-streams?stream_name=stdout&limit=5`);
+  assert.equal(normalizedLogStreams.collection, "normalized_log_streams");
+  assert.ok(normalizedLogStreams.count <= 5);
+
+  const runtimeLogSearchDocuments = await fetchJson(`${url}/api/runtime-log-search-documents?index_status=indexed&limit=5`);
+  assert.equal(runtimeLogSearchDocuments.collection, "runtime_log_search_documents");
+  assert.ok(runtimeLogSearchDocuments.count <= 5);
+
+  const runtimeLogTraceBindings = await fetchJson(`${url}/api/runtime-log-trace-bindings?binding_status=known&limit=5`);
+  assert.equal(runtimeLogTraceBindings.collection, "runtime_log_trace_bindings");
+  assert.ok(runtimeLogTraceBindings.count <= 5);
+
+  const runtimeLogDesktopBoundary = await fetchJson(`${url}/api/runtime-log-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(runtimeLogDesktopBoundary.collection, "runtime_log_desktop_boundary");
+  assert.ok(runtimeLogDesktopBoundary.count <= 1);
+
+  const runtimeLogNormalizationValidations = await fetchJson(`${url}/api/runtime-log-normalization-validations?status=passed&limit=5`);
+  assert.equal(runtimeLogNormalizationValidations.collection, "runtime_log_normalization_validations");
+  assert.ok(runtimeLogNormalizationValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

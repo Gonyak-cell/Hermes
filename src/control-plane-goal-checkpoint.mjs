@@ -78,6 +78,7 @@ const GOAL_ITEMS = [
   sourceItem("docker_local_backend_selector", "Docker/local backend selector", "runtime", "docker_local_backend_selector", "control-plane-docker-local-backend-selector", { acceptance_profile: "docker_local_backend_selector_gate" }),
   sourceItem("secrets_broker_contract", "Secrets broker contract", "runtime", "secrets_broker_contract", "control-plane-secrets-broker-contract", { acceptance_profile: "secrets_broker_contract_gate" }),
   sourceItem("runtime_artifact_capture", "Runtime artifact capture", "runtime", "runtime_artifact_capture", "control-plane-runtime-artifact-capture", { acceptance_profile: "runtime_artifact_capture_gate" }),
+  sourceItem("runtime_log_normalization", "Runtime log normalization", "runtime", "runtime_log_normalization", "control-plane-runtime-log-normalization", { acceptance_profile: "runtime_log_normalization_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -515,6 +516,7 @@ function evaluateStageAcceptance(item, stage) {
     "docker_local_backend_selector_gate",
     "secrets_broker_contract_gate",
     "runtime_artifact_capture_gate",
+    "runtime_log_normalization_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1847,6 +1849,37 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.metadata_edit_allowed === false
     ) {
       return passedWithOperationalGate(stage, "Runtime Artifact Capture binds generated files, diffs, stdout/stderr, and metadata to OutputArtifact records while keeping Desktop read-only.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_log_normalization_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.runtime_log_normalization_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.normalization_authority === "harness_control_plane"
+      && metrics.source_of_truth === "runtime_log_contract_agent_run_ledger_and_artifact_capture"
+      && metrics.common_log_schema_version === "runtime-log-entry.v1"
+      && metrics.runtime_self_report_trusted === false
+      && metrics.normalized_log_count > 0
+      && metrics.normalized_stream_count > 0
+      && metrics.bound_stream_count === metrics.normalized_stream_count
+      && metrics.search_document_count === metrics.normalized_stream_count
+      && metrics.indexed_search_document_count === metrics.search_document_count
+      && metrics.trace_binding_count === metrics.normalized_log_count
+      && metrics.known_trace_binding_count === metrics.trace_binding_count
+      && metrics.unbound_trace_binding_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.log_write_allowed === false
+      && metrics.raw_log_export_allowed === false
+      && metrics.search_index_mutation_allowed === false
+      && metrics.normalization_override_allowed === false
+      && metrics.stream_write_allowed === false
+    ) {
+      return passedWithOperationalGate(stage, "Runtime Log Normalization converts runtime stdout/stderr captures into common searchable log entries with trace bindings while keeping Desktop read-only.");
     }
   }
 

@@ -79,6 +79,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:backend-selector",
   "runtime:secrets-broker",
   "runtime:artifact-capture",
+  "runtime:log-normalization",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

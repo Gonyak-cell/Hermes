@@ -1,0 +1,267 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/personal-dev-pack-manifest.schema.json",
+  "title": "Personal Dev Pack Manifest",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "personal_dev_pack_manifest_id",
+    "output_dir",
+    "personal_dev_pack_manifest_status",
+    "safe_handling",
+    "inputs",
+    "source_contracts",
+    "personal_dev_pack_manifest_contract",
+    "personal_dev_pack_registration",
+    "personal_dev_capability_registrations",
+    "personal_dev_pack_boundary",
+    "personal_dev_pack_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "personal-dev-pack-manifest.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "personal_dev_pack_manifest_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "personal_dev_pack_manifest_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "source_pack_manifest_mutation_allowed",
+        "core_registry_mutation_allowed",
+        "runtime_execution_performed",
+        "protected_mutation_executed",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth",
+        "secret_material_exposed",
+        "provider_key_visible",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "source_pack_manifest_mutation_allowed": { "const": false },
+        "core_registry_mutation_allowed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "protected_mutation_executed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "personal_dev_pack_manifest_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "pack_id",
+        "source_of_truth",
+        "registration_rule",
+        "capability_rule",
+        "desktop_companion_rule",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "personal-dev-pack-manifest-contract.v1" },
+        "contract_id": { "const": "personal-dev-pack-manifest.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "source_of_truth": { "const": "domain_pack_registry_and_pack_manifest" }
+      },
+      "additionalProperties": true
+    },
+    "personal_dev_pack_registration": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "registration_id",
+        "pack_id",
+        "pack_version",
+        "manifest_schema_version",
+        "registry_pack_present",
+        "registry_validation_status",
+        "compatibility_status",
+        "common_dependency_declared",
+        "capability_count",
+        "registered_capability_count",
+        "capability_manifest_v2_count",
+        "core_pack_mutation_required",
+        "core_capability_registration_required",
+        "core_route_registration_required",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth",
+        "registration_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "personal-dev-pack-registration.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "manifest_schema_version": { "const": "domain-pack-manifest.v1" },
+        "registry_pack_present": { "type": "boolean" },
+        "compatibility_status": { "enum": ["compatible", "missing", "blocked"] },
+        "core_pack_mutation_required": { "const": false },
+        "core_capability_registration_required": { "const": false },
+        "core_route_registration_required": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "registration_status": { "enum": ["registered", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "personal_dev_capability_registrations": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/capability_registration" }
+    },
+    "personal_dev_pack_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_id",
+        "pack_id",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth",
+        "protected_mutations_require_human_gate",
+        "raw_secret_material_exposed",
+        "provider_key_exposed",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control",
+        "core_mutation_required_count",
+        "agent_outputs_trusted",
+        "merge_requires_gate",
+        "boundary_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "personal-dev-pack-boundary.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "protected_mutations_require_human_gate": { "const": true },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "core_mutation_required_count": { "const": 0 },
+        "agent_outputs_trusted": { "const": false },
+        "merge_requires_gate": { "const": true },
+        "boundary_status": { "enum": ["enforced", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "personal_dev_pack_checkpoints": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "personal_dev_pack_manifest_status",
+        "personal_dev_pack_manifest_contract_id",
+        "pack_id",
+        "registration_status",
+        "compatibility_status",
+        "common_dependency_declared",
+        "capability_count",
+        "registered_capability_count",
+        "capability_manifest_v2_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth",
+        "core_pack_mutation_required",
+        "core_capability_registration_required",
+        "core_route_registration_required",
+        "core_mutation_required_count",
+        "agent_outputs_trusted",
+        "merge_requires_gate",
+        "validation_error_count"
+      ],
+      "properties": {
+        "personal_dev_pack_manifest_status": { "enum": ["complete", "blocked"] },
+        "personal_dev_pack_manifest_contract_id": { "const": "personal-dev-pack-manifest.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "core_pack_mutation_required": { "const": false },
+        "core_capability_registration_required": { "const": false },
+        "core_route_registration_required": { "const": false },
+        "core_mutation_required_count": { "const": 0 },
+        "agent_outputs_trusted": { "const": false },
+        "merge_requires_gate": { "const": true },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "capability_registration": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "capability_registration_id",
+        "capability_id",
+        "version",
+        "pack_id",
+        "registry_capability_present",
+        "capability_manifest_v2_present",
+        "capability_api_card_present",
+        "capability_version_api_card_present",
+        "core_registration_required",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "registration_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "personal-dev-capability-registration.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "core_registration_required": { "const": false },
+        "direct_apply_allowed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "registration_status": { "enum": ["registered", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "status", "message"],
+      "properties": {
+        "schema_version": { "type": "string" },
+        "checkpoint_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "path": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

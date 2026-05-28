@@ -209,6 +209,7 @@ import { runProtectedFileGate } from "../src/protected-file-gate.mjs";
 import { runCanonicalTestRunner } from "../src/canonical-test-runner.mjs";
 import { runRuntimeApiDashboard } from "../src/runtime-api-dashboard.mjs";
 import { runRuntimeFreeze } from "../src/runtime-freeze.mjs";
+import { runPersonalDevPackManifest } from "../src/personal-dev-pack-manifest.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1820,6 +1821,7 @@ describe("matter harness", () => {
         canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
         runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
         runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        personalDevPackManifestPath: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7349,6 +7351,39 @@ describe("matter harness", () => {
       assert.ok(runtimeFreeze.runtime_freeze_slices.every((slice) => slice.runtime_freeze_slice_status === "passed" && slice.desktop_read_only === true && slice.desktop_mutation_allowed === false));
       assert.match(await readFile(path.join(outDir, "runtime-freeze", "summary.md"), "utf8"), /Runtime Freeze/);
 
+      const personalDevPackManifest = await runPersonalDevPackManifest({
+        personalDevPackPath: "packs/personal-dev/pack.json",
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "personal-dev-pack-manifest"),
+        runAt: "2026-05-23T06:45:49.000Z",
+      });
+      const personalDevPackManifestSchema = JSON.parse(await readFile("schemas/personal-dev-pack-manifest.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(personalDevPackManifest, personalDevPackManifestSchema, {}, "personal_dev_pack_manifest"), []);
+      assert.equal(personalDevPackManifest.summary.personal_dev_pack_manifest_status, "complete");
+      assert.equal(personalDevPackManifest.summary.pack_id, "personal-dev");
+      assert.equal(personalDevPackManifest.summary.registration_status, "registered");
+      assert.equal(personalDevPackManifest.summary.compatibility_status, "compatible");
+      assert.equal(personalDevPackManifest.summary.common_dependency_declared, true);
+      assert.equal(personalDevPackManifest.summary.registered_capability_count, personalDevPackManifest.summary.capability_count);
+      assert.equal(personalDevPackManifest.summary.capability_manifest_v2_count, personalDevPackManifest.summary.capability_count);
+      assert.equal(personalDevPackManifest.summary.capability_registry_api_pack_card_present, true);
+      assert.equal(personalDevPackManifest.summary.capability_registry_api_capability_card_count, personalDevPackManifest.summary.capability_count);
+      assert.equal(personalDevPackManifest.summary.runtime_freeze_status, "complete");
+      assert.equal(personalDevPackManifest.summary.core_mutation_required_count, 0);
+      assert.equal(personalDevPackManifest.summary.desktop_read_only, true);
+      assert.equal(personalDevPackManifest.summary.desktop_mutation_allowed, false);
+      assert.equal(personalDevPackManifest.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(personalDevPackManifest.summary.agent_outputs_trusted, false);
+      assert.equal(personalDevPackManifest.summary.merge_requires_gate, true);
+      assert.ok(personalDevPackManifest.personal_dev_capability_registrations.every((registration) => registration.registration_status === "registered" && registration.core_registration_required === false && registration.desktop_mutation_allowed === false));
+      assert.match(await readFile(path.join(outDir, "personal-dev-pack-manifest", "summary.md"), "utf8"), /Personal Dev Pack Manifest/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7485,6 +7520,7 @@ describe("matter harness", () => {
           canonical_test_runner: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
           runtime_api_dashboard: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
           runtime_freeze: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+          personal_dev_pack_manifest: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7536,8 +7572,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 114);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 114);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 115);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 115);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7639,6 +7675,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "canonical_test_runner"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_api_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_pack_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -8214,6 +8251,10 @@ describe("matter harness", () => {
       assert.equal(runtimeFreezeCheckpoint?.acceptance_profile, "runtime_freeze_gate");
       assert.equal(runtimeFreezeCheckpoint?.status, "passed");
       assert.equal(runtimeFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const personalDevPackManifestCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-personal-dev-pack-manifest");
+      assert.equal(personalDevPackManifestCheckpoint?.acceptance_profile, "personal_dev_pack_manifest_gate");
+      assert.equal(personalDevPackManifestCheckpoint?.status, "passed");
+      assert.equal(personalDevPackManifestCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10456,6 +10497,25 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.runtime_freeze_desktop_runtime_control_allowed, false);
       assert.equal(dashboard.summary.runtime_freeze_desktop_test_execution_allowed, false);
       assert.equal(dashboard.summary.runtime_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_registration_status, "registered");
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_compatibility_status, "compatible");
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_common_dependency_declared, true);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_capability_count, personalDevPackManifest.summary.capability_count);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_registered_capability_count, personalDevPackManifest.summary.registered_capability_count);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_capability_manifest_v2_count, personalDevPackManifest.summary.capability_manifest_v2_count);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_capability_registry_api_pack_card_present, true);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_capability_registry_api_capability_card_count, personalDevPackManifest.summary.capability_registry_api_capability_card_count);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_desktop_read_only, true);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_core_mutation_required_count, 0);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_agent_outputs_trusted, false);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_merge_requires_gate, true);
+      assert.equal(dashboard.summary.personal_dev_pack_manifest_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11397,6 +11457,17 @@ describe("matter harness", () => {
       assert.equal(runtimeFreezeStage?.metrics.runtime_control_execution_performed_count, 0);
       assert.equal(runtimeFreezeStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeFreezeStage?.metrics.desktop_runtime_execution_allowed, false);
+      const personalDevPackManifestStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "personal_dev_pack_manifest");
+      assert.equal(personalDevPackManifestStage?.status, "passed");
+      assert.equal(personalDevPackManifestStage?.metrics.personal_dev_pack_manifest_status, "complete");
+      assert.equal(personalDevPackManifestStage?.metrics.pack_id, "personal-dev");
+      assert.equal(personalDevPackManifestStage?.metrics.registration_status, "registered");
+      assert.equal(personalDevPackManifestStage?.metrics.compatibility_status, "compatible");
+      assert.equal(personalDevPackManifestStage?.metrics.registered_capability_count, personalDevPackManifest.summary.capability_count);
+      assert.equal(personalDevPackManifestStage?.metrics.core_mutation_required_count, 0);
+      assert.equal(personalDevPackManifestStage?.metrics.desktop_read_only, true);
+      assert.equal(personalDevPackManifestStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(personalDevPackManifestStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -13153,6 +13224,26 @@ describe("matter harness", () => {
       const runtimeFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-freeze-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeFreezeValidationsResponse.collection, "runtime_freeze_validations");
       assert.equal(runtimeFreezeValidationsResponse.count, runtimeFreeze.summary.validation_item_count);
+
+      const personalDevPackManifestsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-pack-manifests?personal_dev_pack_manifest_status=complete", apiOptions)).body);
+      assert.equal(personalDevPackManifestsResponse.collection, "personal_dev_pack_manifests");
+      assert.equal(personalDevPackManifestsResponse.count, 1);
+
+      const personalDevPackRegistrationResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-pack-registration?registration_status=registered", apiOptions)).body);
+      assert.equal(personalDevPackRegistrationResponse.collection, "personal_dev_pack_registration");
+      assert.equal(personalDevPackRegistrationResponse.count, 1);
+
+      const personalDevCapabilityRegistrationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-capability-registrations?personal_dev_capability_registration_status=registered", apiOptions)).body);
+      assert.equal(personalDevCapabilityRegistrationsResponse.collection, "personal_dev_capability_registrations");
+      assert.equal(personalDevCapabilityRegistrationsResponse.count, personalDevPackManifest.summary.registered_capability_count);
+
+      const personalDevPackBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-pack-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(personalDevPackBoundaryResponse.collection, "personal_dev_pack_boundary");
+      assert.equal(personalDevPackBoundaryResponse.count, 1);
+
+      const personalDevPackValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-pack-validations?status=passed", apiOptions)).body);
+      assert.equal(personalDevPackValidationsResponse.collection, "personal_dev_pack_validations");
+      assert.equal(personalDevPackValidationsResponse.count, personalDevPackManifest.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

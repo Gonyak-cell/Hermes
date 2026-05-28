@@ -724,6 +724,8 @@ Runtime API Dashboard route는 `runtime_api_dashboard_status`, `runtime_api_rout
 
 Runtime Freeze route는 `runtime_freeze_status`, `runtime_freeze_source_status`, `runtime_freeze_slice_status`, `runtime_freeze_loop_binding_status`, `runtime_id`, `status`, `limit` query를 지원한다. `/api/runtime-freezes`, `/api/runtime-freeze-sources`, `/api/runtime-freeze-slices`, `/api/runtime-freeze-loop-bindings`, `/api/runtime-freeze-validations`는 P195-P211 runtime track을 freeze report로 노출하며 Hermes Desktop은 readiness, blocked reason, loop binding 상태만 읽고 runtime execution/control/test/secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
 
+Personal Dev Pack Manifest route는 `personal_dev_pack_manifest_status`, `personal_dev_capability_registration_status`, `registration_status`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/personal-dev-pack-manifests`, `/api/personal-dev-pack-registration`, `/api/personal-dev-capability-registrations`, `/api/personal-dev-pack-boundary`, `/api/personal-dev-pack-validations`는 P213 personal-dev pack registration을 read-only로 노출하며 Hermes Desktop은 pack/capability/gate 상태를 조회할 수 있지만 core mutation, direct apply/merge, protected mutation execution, secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
+
 ## 검증
 
 ```bash

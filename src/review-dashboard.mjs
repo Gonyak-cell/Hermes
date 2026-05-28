@@ -70,6 +70,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   canonicalTestRunnerPath: "artifacts/canonical-test-runner/latest/canonical-test-runner.json",
   runtimeApiDashboardPath: "artifacts/runtime-api-dashboard/latest/runtime-api-dashboard.json",
   runtimeFreezePath: "artifacts/runtime-freeze/latest/runtime-freeze.json",
+  personalDevPackManifestPath: "artifacts/personal-dev-pack-manifest/latest/personal-dev-pack-manifest.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -541,6 +542,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeFreezePath",
     source_id: "runtime_freeze",
     label: "Runtime Freeze",
+  },
+  {
+    option: "personalDevPackManifestPath",
+    source_id: "personal_dev_pack_manifest",
+    label: "Personal Dev Pack Manifest",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1692,6 +1698,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCanonicalTestRunnerStage(artifacts.canonical_test_runner, sourceById.get("canonical_test_runner")),
     buildRuntimeApiDashboardStage(artifacts.runtime_api_dashboard, sourceById.get("runtime_api_dashboard")),
     buildRuntimeFreezeStage(artifacts.runtime_freeze, sourceById.get("runtime_freeze")),
+    buildPersonalDevPackManifestStage(artifacts.personal_dev_pack_manifest, sourceById.get("personal_dev_pack_manifest")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5768,6 +5775,86 @@ function buildRuntimeFreezeStage(runtimeFreeze, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? runtimeFreeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildPersonalDevPackManifestStage(personalDevPackManifest, source) {
+  if (!personalDevPackManifest) return missingStage("personal_dev_pack_manifest", "Personal Dev Pack Manifest", source);
+  const summary = personalDevPackManifest.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.personal_dev_pack_manifest_status !== "complete"
+    || summary.registration_status !== "registered"
+    || summary.compatibility_status !== "compatible"
+    || summary.common_dependency_declared !== true
+    || summary.registered_capability_count !== summary.capability_count
+    || summary.capability_manifest_v2_count !== summary.capability_count
+    || summary.capability_registry_api_pack_card_present !== true
+    || summary.capability_registry_api_capability_card_count !== summary.capability_count
+    || summary.runtime_freeze_status !== "complete"
+    || summary.core_mutation_required_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_runtime_source_of_truth === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.raw_secret_material_exposed === true
+    || summary.provider_key_exposed === true
+    || summary.installer_or_gateway_control === true
+    || summary.ssh_or_cron_control === true
+    || summary.agent_outputs_trusted !== false
+    || summary.merge_requires_gate !== true
+    || personalDevPackManifest.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "personal_dev_pack_manifest",
+    label: "Personal Dev Pack Manifest",
+    status,
+    message: `${summary.registered_capability_count ?? 0}/${summary.capability_count ?? 0} personal-dev capability registration(s); core mutation count ${summary.core_mutation_required_count ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      personal_dev_pack_manifest_status: summary.personal_dev_pack_manifest_status ?? "unknown",
+      personal_dev_pack_manifest_contract_id: summary.personal_dev_pack_manifest_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      pack_version: summary.pack_version ?? null,
+      manifest_schema_version: summary.manifest_schema_version ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      registration_status: summary.registration_status ?? "unknown",
+      registry_pack_present: summary.registry_pack_present ?? false,
+      registry_validation_status: summary.registry_validation_status ?? "unknown",
+      compatibility_status: summary.compatibility_status ?? "unknown",
+      core_compatibility_status: summary.core_compatibility_status ?? "unknown",
+      dependency_status: summary.dependency_status ?? "unknown",
+      common_dependency_declared: summary.common_dependency_declared ?? false,
+      capability_count: summary.capability_count ?? 0,
+      registered_capability_count: summary.registered_capability_count ?? 0,
+      capability_manifest_v2_count: summary.capability_manifest_v2_count ?? 0,
+      capability_registry_api_pack_card_present: summary.capability_registry_api_pack_card_present ?? false,
+      capability_registry_api_capability_card_count: summary.capability_registry_api_capability_card_count ?? 0,
+      runtime_freeze_status: summary.runtime_freeze_status ?? "unknown",
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      raw_secret_material_exposed: summary.raw_secret_material_exposed ?? false,
+      provider_key_exposed: summary.provider_key_exposed ?? false,
+      installer_or_gateway_control: summary.installer_or_gateway_control ?? false,
+      ssh_or_cron_control: summary.ssh_or_cron_control ?? false,
+      core_pack_mutation_required: summary.core_pack_mutation_required ?? false,
+      core_capability_registration_required: summary.core_capability_registration_required ?? false,
+      core_route_registration_required: summary.core_route_registration_required ?? false,
+      core_mutation_required_count: summary.core_mutation_required_count ?? 0,
+      max_classification: summary.max_classification ?? null,
+      external_model_policy: summary.external_model_policy ?? null,
+      default_output_status: summary.default_output_status ?? null,
+      agent_outputs_trusted: summary.agent_outputs_trusted ?? false,
+      merge_requires_gate: summary.merge_requires_gate ?? false,
+      checkpoint_count: summary.checkpoint_count ?? 0,
+      passed_checkpoint_count: summary.passed_checkpoint_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? personalDevPackManifest.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -15208,6 +15295,35 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_freeze_desktop_installer_or_gateway_control: artifacts.runtime_freeze?.summary?.desktop_installer_or_gateway_control ?? false,
     runtime_freeze_desktop_ssh_or_cron_control: artifacts.runtime_freeze?.summary?.desktop_ssh_or_cron_control ?? false,
     runtime_freeze_validation_error_count: artifacts.runtime_freeze?.summary?.validation_error_count ?? artifacts.runtime_freeze?.validation?.errors?.length ?? 0,
+    personal_dev_pack_manifest_status: artifacts.personal_dev_pack_manifest?.summary?.personal_dev_pack_manifest_status ?? "unknown",
+    personal_dev_pack_manifest_contract_id: artifacts.personal_dev_pack_manifest?.summary?.personal_dev_pack_manifest_contract_id ?? null,
+    personal_dev_pack_manifest_pack_id: artifacts.personal_dev_pack_manifest?.summary?.pack_id ?? null,
+    personal_dev_pack_manifest_pack_version: artifacts.personal_dev_pack_manifest?.summary?.pack_version ?? null,
+    personal_dev_pack_manifest_registration_status: artifacts.personal_dev_pack_manifest?.summary?.registration_status ?? "unknown",
+    personal_dev_pack_manifest_compatibility_status: artifacts.personal_dev_pack_manifest?.summary?.compatibility_status ?? "unknown",
+    personal_dev_pack_manifest_common_dependency_declared: artifacts.personal_dev_pack_manifest?.summary?.common_dependency_declared ?? false,
+    personal_dev_pack_manifest_capability_count: artifacts.personal_dev_pack_manifest?.summary?.capability_count ?? 0,
+    personal_dev_pack_manifest_registered_capability_count: artifacts.personal_dev_pack_manifest?.summary?.registered_capability_count ?? 0,
+    personal_dev_pack_manifest_capability_manifest_v2_count: artifacts.personal_dev_pack_manifest?.summary?.capability_manifest_v2_count ?? 0,
+    personal_dev_pack_manifest_capability_registry_api_pack_card_present: artifacts.personal_dev_pack_manifest?.summary?.capability_registry_api_pack_card_present ?? false,
+    personal_dev_pack_manifest_capability_registry_api_capability_card_count: artifacts.personal_dev_pack_manifest?.summary?.capability_registry_api_capability_card_count ?? 0,
+    personal_dev_pack_manifest_runtime_freeze_status: artifacts.personal_dev_pack_manifest?.summary?.runtime_freeze_status ?? "unknown",
+    personal_dev_pack_manifest_desktop_read_only: artifacts.personal_dev_pack_manifest?.summary?.desktop_read_only ?? false,
+    personal_dev_pack_manifest_desktop_mutation_allowed: artifacts.personal_dev_pack_manifest?.summary?.desktop_mutation_allowed ?? false,
+    personal_dev_pack_manifest_desktop_runtime_source_of_truth: artifacts.personal_dev_pack_manifest?.summary?.desktop_runtime_source_of_truth ?? false,
+    personal_dev_pack_manifest_desktop_protected_mutation_execution_allowed: artifacts.personal_dev_pack_manifest?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    personal_dev_pack_manifest_raw_secret_material_exposed: artifacts.personal_dev_pack_manifest?.summary?.raw_secret_material_exposed ?? false,
+    personal_dev_pack_manifest_provider_key_exposed: artifacts.personal_dev_pack_manifest?.summary?.provider_key_exposed ?? false,
+    personal_dev_pack_manifest_installer_or_gateway_control: artifacts.personal_dev_pack_manifest?.summary?.installer_or_gateway_control ?? false,
+    personal_dev_pack_manifest_ssh_or_cron_control: artifacts.personal_dev_pack_manifest?.summary?.ssh_or_cron_control ?? false,
+    personal_dev_pack_manifest_core_pack_mutation_required: artifacts.personal_dev_pack_manifest?.summary?.core_pack_mutation_required ?? false,
+    personal_dev_pack_manifest_core_capability_registration_required: artifacts.personal_dev_pack_manifest?.summary?.core_capability_registration_required ?? false,
+    personal_dev_pack_manifest_core_route_registration_required: artifacts.personal_dev_pack_manifest?.summary?.core_route_registration_required ?? false,
+    personal_dev_pack_manifest_core_mutation_required_count: artifacts.personal_dev_pack_manifest?.summary?.core_mutation_required_count ?? 0,
+    personal_dev_pack_manifest_agent_outputs_trusted: artifacts.personal_dev_pack_manifest?.summary?.agent_outputs_trusted ?? false,
+    personal_dev_pack_manifest_merge_requires_gate: artifacts.personal_dev_pack_manifest?.summary?.merge_requires_gate ?? false,
+    personal_dev_pack_manifest_failed_checkpoint_count: artifacts.personal_dev_pack_manifest?.summary?.failed_checkpoint_count ?? 0,
+    personal_dev_pack_manifest_validation_error_count: artifacts.personal_dev_pack_manifest?.summary?.validation_error_count ?? artifacts.personal_dev_pack_manifest?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16931,6 +17047,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-api-dashboard") parsed.runtimeApiDashboardPath = false;
     else if (arg === "--runtime-freeze") parsed.runtimeFreezePath = argv[++index];
     else if (arg === "--no-runtime-freeze") parsed.runtimeFreezePath = false;
+    else if (arg === "--personal-dev-pack-manifest") parsed.personalDevPackManifestPath = argv[++index];
+    else if (arg === "--no-personal-dev-pack-manifest") parsed.personalDevPackManifestPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

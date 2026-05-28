@@ -1864,6 +1864,26 @@ try {
   assert.equal(runtimeFreezeValidations.collection, "runtime_freeze_validations");
   assert.ok(runtimeFreezeValidations.count <= 5);
 
+  const personalDevPackManifests = await fetchJson(`${url}/api/personal-dev-pack-manifests?personal_dev_pack_manifest_status=complete&limit=1`);
+  assert.equal(personalDevPackManifests.collection, "personal_dev_pack_manifests");
+  assert.ok(personalDevPackManifests.count <= 1);
+
+  const personalDevPackRegistration = await fetchJson(`${url}/api/personal-dev-pack-registration?registration_status=registered&limit=1`);
+  assert.equal(personalDevPackRegistration.collection, "personal_dev_pack_registration");
+  assert.ok(personalDevPackRegistration.count <= 1);
+
+  const personalDevCapabilityRegistrations = await fetchJson(`${url}/api/personal-dev-capability-registrations?personal_dev_capability_registration_status=registered&limit=5`);
+  assert.equal(personalDevCapabilityRegistrations.collection, "personal_dev_capability_registrations");
+  assert.ok(personalDevCapabilityRegistrations.count <= 5);
+
+  const personalDevPackBoundary = await fetchJson(`${url}/api/personal-dev-pack-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(personalDevPackBoundary.collection, "personal_dev_pack_boundary");
+  assert.ok(personalDevPackBoundary.count <= 1);
+
+  const personalDevPackValidations = await fetchJson(`${url}/api/personal-dev-pack-validations?status=passed&limit=5`);
+  assert.equal(personalDevPackValidations.collection, "personal_dev_pack_validations");
+  assert.ok(personalDevPackValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

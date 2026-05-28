@@ -4316,6 +4316,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("runtime_freeze_validations", runtimeFreezeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/personal-dev-pack-manifests") {
+    const personalDevPackManifestResult = await readDashboardSourceArtifact(dashboard, "personal_dev_pack_manifest");
+    if (!personalDevPackManifestResult.available) {
+      return jsonResponse(503, buildError("personal_dev_pack_manifest_unavailable", personalDevPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_pack_manifests", [personalDevPackManifestResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-pack-registration") {
+    const personalDevPackManifestResult = await readDashboardSourceArtifact(dashboard, "personal_dev_pack_manifest");
+    if (!personalDevPackManifestResult.available) {
+      return jsonResponse(503, buildError("personal_dev_pack_manifest_unavailable", personalDevPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_pack_registration", [personalDevPackManifestResult.artifact.personal_dev_pack_registration].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-capability-registrations") {
+    const personalDevPackManifestResult = await readDashboardSourceArtifact(dashboard, "personal_dev_pack_manifest");
+    if (!personalDevPackManifestResult.available) {
+      return jsonResponse(503, buildError("personal_dev_pack_manifest_unavailable", personalDevPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_capability_registrations", personalDevPackManifestResult.artifact.personal_dev_capability_registrations ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-pack-boundary") {
+    const personalDevPackManifestResult = await readDashboardSourceArtifact(dashboard, "personal_dev_pack_manifest");
+    if (!personalDevPackManifestResult.available) {
+      return jsonResponse(503, buildError("personal_dev_pack_manifest_unavailable", personalDevPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_pack_boundary", [personalDevPackManifestResult.artifact.personal_dev_pack_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-pack-validations") {
+    const personalDevPackManifestResult = await readDashboardSourceArtifact(dashboard, "personal_dev_pack_manifest");
+    if (!personalDevPackManifestResult.available) {
+      return jsonResponse(503, buildError("personal_dev_pack_manifest_unavailable", personalDevPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_pack_validations", personalDevPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8535,6 +8570,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-freeze-slices", "Runtime freeze representative slice rows"),
       route("GET", "/api/runtime-freeze-loop-bindings", "Runtime freeze control-plane loop bindings"),
       route("GET", "/api/runtime-freeze-validations", "Runtime freeze validation rows"),
+      route("GET", "/api/personal-dev-pack-manifests", "Personal-dev pack manifest artifact"),
+      route("GET", "/api/personal-dev-pack-registration", "Personal-dev pack registration row"),
+      route("GET", "/api/personal-dev-capability-registrations", "Personal-dev capability registration rows"),
+      route("GET", "/api/personal-dev-pack-boundary", "Personal-dev Desktop/core mutation boundary"),
+      route("GET", "/api/personal-dev-pack-validations", "Personal-dev pack manifest validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9207,6 +9247,9 @@ function filterItems(items, searchParams) {
     "runtime_freeze_source_status",
     "runtime_freeze_slice_status",
     "runtime_freeze_loop_binding_status",
+    "personal_dev_pack_manifest_status",
+    "personal_dev_capability_registration_status",
+    "registration_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
     "test_gate_status",
@@ -10549,6 +10592,9 @@ function readFilterValue(item, key) {
   if (key === "runtime_freeze_source_status") return item.runtime_freeze_source_status;
   if (key === "runtime_freeze_slice_status") return item.runtime_freeze_slice_status;
   if (key === "runtime_freeze_loop_binding_status") return item.runtime_freeze_loop_binding_status;
+  if (key === "personal_dev_pack_manifest_status") return item.summary?.personal_dev_pack_manifest_status ?? item.personal_dev_pack_manifest_status;
+  if (key === "personal_dev_capability_registration_status") return item.registration_status;
+  if (key === "registration_status") return item.summary?.registration_status ?? item.registration_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;
   if (key === "test_gate_status") return item.summary?.test_gate_status ?? item.test_gate_status;

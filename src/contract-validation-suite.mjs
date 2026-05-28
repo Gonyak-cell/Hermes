@@ -111,6 +111,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "capabilities:manifest-v2",
   "capabilities:registry-api",
   "packs:compatibility",
+  "personal-dev:pack-manifest",
   "workflows:state-model",
   "workflows:runner",
   "workflows:queue-retry",

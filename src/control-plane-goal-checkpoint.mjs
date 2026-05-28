@@ -85,6 +85,7 @@ const GOAL_ITEMS = [
   sourceItem("canonical_test_runner", "Canonical test runner", "gate_approval", "canonical_test_runner", "control-plane-canonical-test-runner", { acceptance_profile: "canonical_test_runner_gate" }),
   sourceItem("runtime_api_dashboard", "Runtime API dashboard", "api", "runtime_api_dashboard", "control-plane-runtime-api-dashboard", { acceptance_profile: "runtime_api_dashboard_gate" }),
   sourceItem("runtime_freeze", "Runtime freeze", "runtime", "runtime_freeze", "control-plane-runtime-freeze", { acceptance_profile: "runtime_freeze_gate" }),
+  sourceItem("personal_dev_pack_manifest", "Personal-dev pack manifest", "personal_dev", "personal_dev_pack_manifest", "control-plane-personal-dev-pack-manifest", { acceptance_profile: "personal_dev_pack_manifest_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -529,6 +530,7 @@ function evaluateStageAcceptance(item, stage) {
     "canonical_test_runner_gate",
     "runtime_api_dashboard_gate",
     "runtime_freeze_gate",
+    "personal_dev_pack_manifest_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2139,6 +2141,43 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_ssh_or_cron_control === false
     ) {
       return passedWithOperationalGate(stage, "Runtime Freeze closes P195-P211 by proving Hermes, Codex, and local_script representative slices pass adapter, gate, ledger, capture, and read-only Desktop boundary checks.");
+    }
+  }
+
+  if (item.acceptance_profile === "personal_dev_pack_manifest_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.personal_dev_pack_manifest_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.registration_status === "registered"
+      && metrics.registry_pack_present === true
+      && metrics.compatibility_status === "compatible"
+      && metrics.core_compatibility_status === "compatible"
+      && metrics.dependency_status === "complete"
+      && metrics.common_dependency_declared === true
+      && metrics.capability_count > 0
+      && metrics.registered_capability_count === metrics.capability_count
+      && metrics.capability_manifest_v2_count === metrics.capability_count
+      && metrics.capability_registry_api_pack_card_present === true
+      && metrics.capability_registry_api_capability_card_count === metrics.capability_count
+      && metrics.runtime_freeze_status === "complete"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.core_pack_mutation_required === false
+      && metrics.core_capability_registration_required === false
+      && metrics.core_route_registration_required === false
+      && metrics.core_mutation_required_count === 0
+      && metrics.agent_outputs_trusted === false
+      && metrics.merge_requires_gate === true
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Personal-dev pack manifest is registered through the domain-pack registry and Desktop exposes only read-only pack/capability status without core mutation.");
     }
   }
 

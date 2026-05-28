@@ -6147,6 +6147,31 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 114개로 증가하고 runtime_freeze artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 213 - Personal Dev Pack Manifest
+
+목표: P213 Personal Dev Domain Pack 트랙의 시작점으로 `packs/personal-dev/pack.json`을 독립 artifact로 고정하고, core 수정 없이 registry/capability/API/Desktop read-only surface에 등록되는지 검증한다. Hermes Desktop은 계속 operator companion이며 pack/capability 상태만 읽고 runtime source of truth나 mutation surface가 되지 않는다.
+
+구현:
+
+- `src/personal-dev-pack-manifest.mjs`와 `scripts/personal-dev-pack-manifest.mjs`를 추가해 `npm run personal-dev:pack-manifest` slice를 등록
+- `schemas/personal-dev-pack-manifest.schema.json`으로 pack registration, capability registration, core mutation boundary, Desktop read-only boundary, checkpoint를 검증
+- `packs/personal-dev/pack.json`, Domain Pack Registry, Pack Manifest Compatibility, Capability Manifest v2, Capability Registry API, Runtime Freeze를 source contract로 연결
+- personal-dev capability가 registry/capability manifest/API card에 모두 등록됐는지 확인하고 common dependency, P1_INTERNAL max classification, external model audit policy, draft output, untrusted agent output, merge gate requirement를 고정
+- Review Dashboard와 Review API에 `/api/personal-dev-pack-manifests`, `/api/personal-dev-pack-registration`, `/api/personal-dev-capability-registrations`, `/api/personal-dev-pack-boundary`, `/api/personal-dev-pack-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Personal Dev Pack Manifest를 연결
+
+완료 기준:
+
+- Personal Dev Pack Manifest가 validation error 없이 `complete` 상태가 됨
+- `personal-dev` pack이 registry에 valid pack으로 존재하고 compatibility status가 `compatible`임
+- manifest capability 1개가 Domain Pack Registry, Capability Manifest v2, Capability Registry API에 모두 등록됨
+- common dependency가 선언되고 core pack/capability/route mutation required count가 0임
+- Desktop read-only는 true이고 Desktop mutation/protected mutation execution/runtime source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- agent output은 trusted false, merge requires gate true, default output은 draft로 유지됨
+- Review API와 dashboard가 Personal Dev Pack Manifest 상태를 read-only로 노출
+- Golden fixture 수가 115개로 증가하고 personal_dev_pack_manifest artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:pack-manifest -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6155,9 +6180,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 212이다.
+- 현재 완료 기준점은 Phase 213이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P213-P312, 총 100개다.
+- 남은 계획 슬롯은 P214-P312, 총 99개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

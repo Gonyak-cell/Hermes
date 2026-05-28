@@ -68,6 +68,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeControlCommandsPath: "artifacts/runtime-control-commands/latest/runtime-control-commands.json",
   protectedFileGatePath: "artifacts/protected-file-gate/latest/protected-file-gate.json",
   canonicalTestRunnerPath: "artifacts/canonical-test-runner/latest/canonical-test-runner.json",
+  runtimeApiDashboardPath: "artifacts/runtime-api-dashboard/latest/runtime-api-dashboard.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -529,6 +530,11 @@ const SOURCE_DEFINITIONS = [
     option: "canonicalTestRunnerPath",
     source_id: "canonical_test_runner",
     label: "Canonical Test Runner",
+  },
+  {
+    option: "runtimeApiDashboardPath",
+    source_id: "runtime_api_dashboard",
+    label: "Runtime API Dashboard",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1678,6 +1684,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeControlCommandsStage(artifacts.runtime_control_commands, sourceById.get("runtime_control_commands")),
     buildProtectedFileGateStage(artifacts.protected_file_gate, sourceById.get("protected_file_gate")),
     buildCanonicalTestRunnerStage(artifacts.canonical_test_runner, sourceById.get("canonical_test_runner")),
+    buildRuntimeApiDashboardStage(artifacts.runtime_api_dashboard, sourceById.get("runtime_api_dashboard")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5583,6 +5590,87 @@ function buildCanonicalTestRunnerStage(runner, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? runner.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRuntimeApiDashboardStage(runtimeApiDashboard, source) {
+  if (!runtimeApiDashboard) return missingStage("runtime_api_dashboard", "Runtime API Dashboard", source);
+  const summary = runtimeApiDashboard.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.runtime_api_dashboard_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.missing_route_count !== 0
+    || summary.mutation_route_count !== 0
+    || summary.runtime_execution_allowed_count !== 0
+    || summary.runtime_control_allowed_count !== 0
+    || summary.secret_material_exposed_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_runtime_source_of_truth === true
+    || summary.desktop_runtime_execution_allowed === true
+    || summary.desktop_runtime_control_allowed === true
+    || summary.desktop_test_execution_allowed === true
+    || summary.desktop_secret_material_exposed === true
+    || summary.desktop_provider_key_visible === true
+    || summary.desktop_installer_or_gateway_control === true
+    || summary.desktop_ssh_or_cron_control === true
+    || runtimeApiDashboard.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "runtime_api_dashboard",
+    label: "Runtime API Dashboard",
+    status,
+    message: `${summary.declared_route_count ?? 0}/${summary.runtime_api_route_count ?? 0} runtime API route(s) declared; Desktop policy ${summary.desktop_surface_policy ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      runtime_api_dashboard_status: summary.runtime_api_dashboard_status ?? "unknown",
+      runtime_api_dashboard_contract_id: summary.runtime_api_dashboard_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      route_authority: summary.route_authority ?? "unknown",
+      dashboard_authority: summary.dashboard_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      source_count: summary.source_count ?? 0,
+      complete_source_count: summary.complete_source_count ?? 0,
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
+      runtime_api_route_group_count: summary.runtime_api_route_group_count ?? 0,
+      ready_route_group_count: summary.ready_route_group_count ?? 0,
+      attention_route_group_count: summary.attention_route_group_count ?? 0,
+      read_only_route_group_count: summary.read_only_route_group_count ?? 0,
+      protected_mutation_request_route_group_count: summary.protected_mutation_request_route_group_count ?? 0,
+      runtime_api_route_count: summary.runtime_api_route_count ?? 0,
+      declared_route_count: summary.declared_route_count ?? 0,
+      missing_route_count: summary.missing_route_count ?? 0,
+      mutation_route_count: summary.mutation_route_count ?? 0,
+      protected_mutation_request_route_count: summary.protected_mutation_request_route_count ?? 0,
+      runtime_dashboard_panel_count: summary.runtime_dashboard_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      attention_panel_count: summary.attention_panel_count ?? 0,
+      runtime_status_card_count: summary.runtime_status_card_count ?? 0,
+      complete_status_card_count: summary.complete_status_card_count ?? 0,
+      runtime_execution_allowed_count: summary.runtime_execution_allowed_count ?? 0,
+      runtime_control_allowed_count: summary.runtime_control_allowed_count ?? 0,
+      test_execution_allowed_count: summary.test_execution_allowed_count ?? 0,
+      secret_material_exposed_count: summary.secret_material_exposed_count ?? 0,
+      desktop_boundary_status: summary.desktop_boundary_status ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      desktop_runtime_execution_allowed: summary.desktop_runtime_execution_allowed ?? false,
+      desktop_runtime_control_allowed: summary.desktop_runtime_control_allowed ?? false,
+      desktop_test_execution_allowed: summary.desktop_test_execution_allowed ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_provider_key_visible: summary.desktop_provider_key_visible ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_ssh_or_cron_control: summary.desktop_ssh_or_cron_control ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? runtimeApiDashboard.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14950,6 +15038,38 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     canonical_test_desktop_protected_mutation_execution_allowed: artifacts.canonical_test_runner?.summary?.desktop_protected_mutation_execution_allowed ?? false,
     canonical_test_desktop_source_of_truth: artifacts.canonical_test_runner?.summary?.desktop_source_of_truth ?? false,
     canonical_test_validation_error_count: artifacts.canonical_test_runner?.summary?.validation_error_count ?? artifacts.canonical_test_runner?.validation?.errors?.length ?? 0,
+    runtime_api_dashboard_status: artifacts.runtime_api_dashboard?.summary?.runtime_api_dashboard_status ?? "unknown",
+    runtime_api_dashboard_contract_status: artifacts.runtime_api_dashboard?.summary?.contract_status ?? "unknown",
+    runtime_api_dashboard_route_authority: artifacts.runtime_api_dashboard?.summary?.route_authority ?? "unknown",
+    runtime_api_dashboard_dashboard_authority: artifacts.runtime_api_dashboard?.summary?.dashboard_authority ?? "unknown",
+    runtime_api_dashboard_source_of_truth: artifacts.runtime_api_dashboard?.summary?.source_of_truth ?? "unknown",
+    runtime_api_dashboard_desktop_surface_policy: artifacts.runtime_api_dashboard?.summary?.desktop_surface_policy ?? "unknown",
+    runtime_api_dashboard_source_count: artifacts.runtime_api_dashboard?.summary?.source_count ?? 0,
+    runtime_api_dashboard_complete_source_count: artifacts.runtime_api_dashboard?.summary?.complete_source_count ?? 0,
+    runtime_api_dashboard_route_group_count: artifacts.runtime_api_dashboard?.summary?.runtime_api_route_group_count ?? 0,
+    runtime_api_dashboard_read_only_route_group_count: artifacts.runtime_api_dashboard?.summary?.read_only_route_group_count ?? 0,
+    runtime_api_dashboard_route_count: artifacts.runtime_api_dashboard?.summary?.runtime_api_route_count ?? 0,
+    runtime_api_dashboard_declared_route_count: artifacts.runtime_api_dashboard?.summary?.declared_route_count ?? 0,
+    runtime_api_dashboard_missing_route_count: artifacts.runtime_api_dashboard?.summary?.missing_route_count ?? 0,
+    runtime_api_dashboard_mutation_route_count: artifacts.runtime_api_dashboard?.summary?.mutation_route_count ?? 0,
+    runtime_api_dashboard_protected_mutation_request_route_count: artifacts.runtime_api_dashboard?.summary?.protected_mutation_request_route_count ?? 0,
+    runtime_api_dashboard_panel_count: artifacts.runtime_api_dashboard?.summary?.runtime_dashboard_panel_count ?? 0,
+    runtime_api_dashboard_status_card_count: artifacts.runtime_api_dashboard?.summary?.runtime_status_card_count ?? 0,
+    runtime_api_dashboard_runtime_execution_allowed_count: artifacts.runtime_api_dashboard?.summary?.runtime_execution_allowed_count ?? 0,
+    runtime_api_dashboard_runtime_control_allowed_count: artifacts.runtime_api_dashboard?.summary?.runtime_control_allowed_count ?? 0,
+    runtime_api_dashboard_secret_material_exposed_count: artifacts.runtime_api_dashboard?.summary?.secret_material_exposed_count ?? 0,
+    runtime_api_dashboard_desktop_read_only: artifacts.runtime_api_dashboard?.summary?.desktop_read_only ?? false,
+    runtime_api_dashboard_desktop_mutation_allowed: artifacts.runtime_api_dashboard?.summary?.desktop_mutation_allowed ?? false,
+    runtime_api_dashboard_desktop_protected_mutation_execution_allowed: artifacts.runtime_api_dashboard?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    runtime_api_dashboard_desktop_runtime_source_of_truth: artifacts.runtime_api_dashboard?.summary?.desktop_runtime_source_of_truth ?? false,
+    runtime_api_dashboard_desktop_runtime_execution_allowed: artifacts.runtime_api_dashboard?.summary?.desktop_runtime_execution_allowed ?? false,
+    runtime_api_dashboard_desktop_runtime_control_allowed: artifacts.runtime_api_dashboard?.summary?.desktop_runtime_control_allowed ?? false,
+    runtime_api_dashboard_desktop_test_execution_allowed: artifacts.runtime_api_dashboard?.summary?.desktop_test_execution_allowed ?? false,
+    runtime_api_dashboard_desktop_secret_material_exposed: artifacts.runtime_api_dashboard?.summary?.desktop_secret_material_exposed ?? false,
+    runtime_api_dashboard_desktop_provider_key_visible: artifacts.runtime_api_dashboard?.summary?.desktop_provider_key_visible ?? false,
+    runtime_api_dashboard_desktop_installer_or_gateway_control: artifacts.runtime_api_dashboard?.summary?.desktop_installer_or_gateway_control ?? false,
+    runtime_api_dashboard_desktop_ssh_or_cron_control: artifacts.runtime_api_dashboard?.summary?.desktop_ssh_or_cron_control ?? false,
+    runtime_api_dashboard_validation_error_count: artifacts.runtime_api_dashboard?.summary?.validation_error_count ?? artifacts.runtime_api_dashboard?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16669,6 +16789,8 @@ function parseArgs(argv) {
     else if (arg === "--no-protected-file-gate") parsed.protectedFileGatePath = false;
     else if (arg === "--canonical-test-runner") parsed.canonicalTestRunnerPath = argv[++index];
     else if (arg === "--no-canonical-test-runner") parsed.canonicalTestRunnerPath = false;
+    else if (arg === "--runtime-api-dashboard") parsed.runtimeApiDashboardPath = argv[++index];
+    else if (arg === "--no-runtime-api-dashboard") parsed.runtimeApiDashboardPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -17510,6 +17632,8 @@ Options:
   --no-creative-document-summary Do not include Creative Document slice status.
   --canonical-test-runner <path> canonical-test-runner.json path.
   --no-canonical-test-runner     Do not include Canonical Test Runner status.
+  --runtime-api-dashboard <path> runtime-api-dashboard.json path.
+  --no-runtime-api-dashboard     Do not include Runtime API Dashboard status.
   --out-dir <folder>             Output directory.
   --run-at <iso>                 Deterministic generated_at timestamp.
   -h, --help                     Show this help.

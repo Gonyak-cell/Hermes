@@ -36,6 +36,12 @@ Desktop v1은 실행 버튼을 제공하지 않는다. 사용자가 Desktop에�
 
 Canonical Test Runner는 agent self-report를 source of truth로 쓰지 않고 harness가 `npm run` canonical command를 직접 재실행한 결과만 test gate 판단에 사용한다. Desktop Companion은 canonical test status, command preview, gate result, validation row를 읽을 수 있지만 test 실행, pass 표시, diff apply, merge, protected mutation execution을 직접 수행하지 않는다. Desktop에서 재실행이 필요하면 rerun request draft만 만들고 실제 실행은 control-plane/human gate 경로로 들어간다.
 
+## P211 Runtime API Dashboard 경계
+
+Runtime API Dashboard는 Hermes Desktop이 runtime 운영 상태를 하나의 operator surface로 소비하기 위한 read-only index다. Desktop은 adapter, worktree, sandbox/backend, secrets handle metadata, artifact capture, normalized logs, heartbeat/timeout, cancel/resume request receipt, protected file gate, canonical test 상태를 조회할 수 있지만 runtime 실행, process signal, test 실행, file write, diff apply, merge, provider key 조회, installer/gateway/SSH/cron control을 수행하지 않는다.
+
+P211의 route group은 모두 Review API `GET` route로 고정된다. Protected mutation request route는 cancel/resume, worktree, gate, rerun 같은 의도를 보여주는 draft/receipt metadata일 뿐이며 protected action execution은 Human Gate와 control-plane runtime adapter가 별도로 처리한다.
+
 ## Core naming generalization
 
 현재 core에는 `matter_id` 잔상이 남아 있다. Desktop Companion은 새 core 필드명을 선도하지 않고 pack/capability/readiness/route group 같은 중립 UI 언어만 사용한다. `matter_id`를 `scope_id` 또는 `workspace_id`로 올리고 law-firm pack에서 `matter_id` alias를 제공할지는 별도 core naming/generalization phase에서 다룬다.

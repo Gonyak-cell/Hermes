@@ -49,6 +49,7 @@
     "runtime:log-normalization": "node scripts/runtime-log-normalization.mjs",
     "runtime:timeout-heartbeat": "node scripts/runtime-timeout-heartbeat.mjs",
     "runtime:control-commands": "node scripts/runtime-control-commands.mjs",
+    "runtime:api-dashboard": "node scripts/runtime-api-dashboard.mjs",
     "gates:protected-files": "node scripts/protected-file-gate.mjs",
     "test:canonical": "node scripts/canonical-test-runner.mjs",
     "contracts:gates": "node scripts/gate-approval-contract-freeze.mjs",

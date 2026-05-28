@@ -4239,6 +4239,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("canonical_test_validations", canonicalTestResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/runtime-api-dashboard") {
+    const runtimeApiResult = await readDashboardSourceArtifact(dashboard, "runtime_api_dashboard");
+    if (!runtimeApiResult.available) {
+      return jsonResponse(503, buildError("runtime_api_dashboard_unavailable", runtimeApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_api_dashboard", [runtimeApiResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-api-route-groups") {
+    const runtimeApiResult = await readDashboardSourceArtifact(dashboard, "runtime_api_dashboard");
+    if (!runtimeApiResult.available) {
+      return jsonResponse(503, buildError("runtime_api_dashboard_unavailable", runtimeApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_api_route_groups", runtimeApiResult.artifact.runtime_api_route_groups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-dashboard-panels") {
+    const runtimeApiResult = await readDashboardSourceArtifact(dashboard, "runtime_api_dashboard");
+    if (!runtimeApiResult.available) {
+      return jsonResponse(503, buildError("runtime_api_dashboard_unavailable", runtimeApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_dashboard_panels", runtimeApiResult.artifact.runtime_dashboard_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-status-cards") {
+    const runtimeApiResult = await readDashboardSourceArtifact(dashboard, "runtime_api_dashboard");
+    if (!runtimeApiResult.available) {
+      return jsonResponse(503, buildError("runtime_api_dashboard_unavailable", runtimeApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_status_cards", runtimeApiResult.artifact.runtime_status_cards ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-api-desktop-boundary") {
+    const runtimeApiResult = await readDashboardSourceArtifact(dashboard, "runtime_api_dashboard");
+    if (!runtimeApiResult.available) {
+      return jsonResponse(503, buildError("runtime_api_dashboard_unavailable", runtimeApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_api_desktop_boundary", [runtimeApiResult.artifact.runtime_api_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-api-dashboard-validations") {
+    const runtimeApiResult = await readDashboardSourceArtifact(dashboard, "runtime_api_dashboard");
+    if (!runtimeApiResult.available) {
+      return jsonResponse(503, buildError("runtime_api_dashboard_unavailable", runtimeApiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_api_dashboard_validations", runtimeApiResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8447,6 +8489,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/canonical-test-gate-results", "Canonical test gate result rows"),
       route("GET", "/api/canonical-test-desktop-boundary", "Canonical Test Runner Desktop boundary"),
       route("GET", "/api/canonical-test-validations", "Canonical Test Runner validation rows"),
+      route("GET", "/api/runtime-api-dashboard", "Runtime API Dashboard artifact"),
+      route("GET", "/api/runtime-api-route-groups", "Runtime API route group rows"),
+      route("GET", "/api/runtime-dashboard-panels", "Runtime dashboard panel rows"),
+      route("GET", "/api/runtime-status-cards", "Runtime status card rows"),
+      route("GET", "/api/runtime-api-desktop-boundary", "Runtime API Dashboard Desktop boundary"),
+      route("GET", "/api/runtime-api-dashboard-validations", "Runtime API Dashboard validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9111,6 +9159,10 @@ function filterItems(items, searchParams) {
     "runtime_control_command_status",
     "protected_file_gate_status",
     "canonical_test_runner_status",
+    "runtime_api_dashboard_status",
+    "runtime_api_route_group_status",
+    "runtime_dashboard_panel_status",
+    "runtime_status_card_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
     "test_gate_status",
@@ -9118,6 +9170,12 @@ function filterItems(items, searchParams) {
     "execution_source",
     "agent_self_report_trusted",
     "command_id",
+    "route_group_kind",
+    "panel_kind",
+    "card_kind",
+    "source_artifact_id",
+    "read_only",
+    "boundary_status",
     "control_command_kind",
     "request_status",
     "result_status",
@@ -10439,6 +10497,10 @@ function readFilterValue(item, key) {
   if (key === "runtime_control_command_status") return item.summary?.runtime_control_command_status ?? item.runtime_control_command_status;
   if (key === "protected_file_gate_status") return item.summary?.protected_file_gate_status ?? item.protected_file_gate_status;
   if (key === "canonical_test_runner_status") return item.summary?.canonical_test_runner_status ?? item.canonical_test_runner_status;
+  if (key === "runtime_api_dashboard_status") return item.summary?.runtime_api_dashboard_status ?? item.runtime_api_dashboard_status;
+  if (key === "runtime_api_route_group_status") return item.route_group_status;
+  if (key === "runtime_dashboard_panel_status") return item.panel_status;
+  if (key === "runtime_status_card_status") return item.source_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;
   if (key === "test_gate_status") return item.summary?.test_gate_status ?? item.test_gate_status;
@@ -10446,6 +10508,12 @@ function readFilterValue(item, key) {
   if (key === "execution_source") return item.summary?.execution_source ?? item.execution_source;
   if (key === "agent_self_report_trusted") return String(Boolean(item.summary?.agent_self_report_trusted ?? item.agent_self_report_trusted));
   if (key === "command_id") return item.command_id;
+  if (key === "route_group_kind") return item.route_group_kind;
+  if (key === "panel_kind") return item.panel_kind;
+  if (key === "card_kind") return item.card_kind;
+  if (key === "source_artifact_id") return item.source_artifact_id;
+  if (key === "read_only") return String(Boolean(item.read_only ?? item.desktop_read_only));
+  if (key === "boundary_status") return item.boundary_status;
   if (key === "control_command_kind") return item.control_command_kind;
   if (key === "request_status") return item.request_status;
   if (key === "result_status") return item.result_status;
@@ -10504,7 +10572,7 @@ function readFilterValue(item, key) {
   if (key === "route_path") return item.path ?? item.route_path;
   if (key === "route_method") return item.method ?? item.route_method;
   if (key === "route_status") return item.route_status;
-  if (key === "read_only") return String(Boolean(item.read_only));
+  if (key === "read_only") return String(Boolean(item.read_only ?? item.desktop_read_only));
   if (key === "mutation_allowed") return String(Boolean(item.mutation_allowed));
   if (key === "protected_mutation_request_allowed") return String(Boolean(item.protected_mutation_request_allowed));
   if (key === "secret_material_exposed") return String(Boolean(item.secret_material_exposed));

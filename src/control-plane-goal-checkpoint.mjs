@@ -83,6 +83,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_control_commands", "Runtime control commands", "runtime", "runtime_control_commands", "control-plane-runtime-control-commands", { acceptance_profile: "runtime_control_commands_gate" }),
   sourceItem("protected_file_gate", "Protected file gate", "gate_approval", "protected_file_gate", "control-plane-protected-file-gate", { acceptance_profile: "protected_file_gate_gate" }),
   sourceItem("canonical_test_runner", "Canonical test runner", "gate_approval", "canonical_test_runner", "control-plane-canonical-test-runner", { acceptance_profile: "canonical_test_runner_gate" }),
+  sourceItem("runtime_api_dashboard", "Runtime API dashboard", "api", "runtime_api_dashboard", "control-plane-runtime-api-dashboard", { acceptance_profile: "runtime_api_dashboard_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -525,6 +526,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_control_commands_gate",
     "protected_file_gate_gate",
     "canonical_test_runner_gate",
+    "runtime_api_dashboard_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2052,6 +2054,46 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Canonical Test Runner reruns Personal Dev canonical commands under harness authority, uses agent reports only as reference, and advances passed tests only to human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_api_dashboard_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.runtime_api_dashboard_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.route_authority === "harness_review_api"
+      && metrics.dashboard_authority === "harness_review_dashboard"
+      && metrics.source_of_truth === "runtime_contract_artifacts_and_review_api_dashboard"
+      && metrics.source_count > 0
+      && metrics.complete_source_count === metrics.source_count
+      && metrics.source_validation_error_count === 0
+      && metrics.runtime_api_route_group_count >= 10
+      && metrics.read_only_route_group_count === metrics.runtime_api_route_group_count
+      && metrics.runtime_api_route_count > 0
+      && metrics.declared_route_count === metrics.runtime_api_route_count
+      && metrics.missing_route_count === 0
+      && metrics.mutation_route_count === 0
+      && metrics.protected_mutation_request_route_count > 0
+      && metrics.runtime_dashboard_panel_count === metrics.runtime_api_route_group_count
+      && metrics.runtime_status_card_count === metrics.source_count
+      && metrics.runtime_execution_allowed_count === 0
+      && metrics.runtime_control_allowed_count === 0
+      && metrics.test_execution_allowed_count === 0
+      && metrics.secret_material_exposed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_runtime_control_allowed === false
+      && metrics.desktop_test_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_provider_key_visible === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_ssh_or_cron_control === false
+    ) {
+      return passedWithOperationalGate(stage, "Runtime API Dashboard exposes adapter, worktree, log, artifact, heartbeat, control request, gate, and canonical test status as read-only Desktop Companion API routes.");
     }
   }
 

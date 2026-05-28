@@ -715,6 +715,8 @@ Secrets broker route는 `secrets_broker_contract_status`, `broker_status`, `secr
 
 Capability registry API route는 `capability_registry_api_status`, `desktop_companion_readiness_status`, `pack_api_card_id`, `capability_api_card_id`, `capability_version_api_card_id`, `gate_requirement_api_card_id`, `pack_id`, `domain_pack`, `capability_id`, `version_status`, `gate_id`, `gate_phase`, `desktop_surface`, `desktop_card_status`, `desktop_route_group_id`, `route_group_id`, `route_path`, `route_method`, `read_only`, `mutation_allowed`, `protected_mutation_request_allowed`, `secret_material_exposed`, `installer_or_gateway_control`, `status`, `limit` query를 지원한다. Desktop Companion route group은 v1에서 모두 GET/read-only이며 mutation, secret, installer, gateway, SSH, cron, auto-update control을 노출하지 않는다.
 
+Runtime API Dashboard route는 `runtime_api_dashboard_status`, `runtime_api_route_group_status`, `runtime_dashboard_panel_status`, `runtime_status_card_status`, `route_group_kind`, `panel_kind`, `card_kind`, `source_artifact_id`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/runtime-api-dashboard`, `/api/runtime-api-route-groups`, `/api/runtime-dashboard-panels`, `/api/runtime-status-cards`, `/api/runtime-api-desktop-boundary`, `/api/runtime-api-dashboard-validations`는 adapter/worktree/sandbox/secrets/artifact/log/heartbeat/control/gate/test 상태를 Desktop Companion read-only operator surface로 묶어 제공하며 runtime execution, process control, test execution, file write, direct apply/merge, secret/provider key, installer/gateway/SSH/cron control을 노출하지 않는다.
+
 ## 검증
 
 ```bash

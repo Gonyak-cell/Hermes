@@ -1820,6 +1820,30 @@ try {
   assert.equal(canonicalTestValidations.collection, "canonical_test_validations");
   assert.ok(canonicalTestValidations.count <= 5);
 
+  const runtimeApiDashboard = await fetchJson(`${url}/api/runtime-api-dashboard?runtime_api_dashboard_status=complete&limit=1`);
+  assert.equal(runtimeApiDashboard.collection, "runtime_api_dashboard");
+  assert.ok(runtimeApiDashboard.count <= 1);
+
+  const runtimeApiRouteGroups = await fetchJson(`${url}/api/runtime-api-route-groups?runtime_api_route_group_status=ready&read_only=true&limit=5`);
+  assert.equal(runtimeApiRouteGroups.collection, "runtime_api_route_groups");
+  assert.ok(runtimeApiRouteGroups.count <= 5);
+
+  const runtimeDashboardPanels = await fetchJson(`${url}/api/runtime-dashboard-panels?runtime_dashboard_panel_status=ready&read_only=true&limit=5`);
+  assert.equal(runtimeDashboardPanels.collection, "runtime_dashboard_panels");
+  assert.ok(runtimeDashboardPanels.count <= 5);
+
+  const runtimeStatusCards = await fetchJson(`${url}/api/runtime-status-cards?runtime_status_card_status=complete&read_only=true&limit=5`);
+  assert.equal(runtimeStatusCards.collection, "runtime_status_cards");
+  assert.ok(runtimeStatusCards.count <= 5);
+
+  const runtimeApiDesktopBoundary = await fetchJson(`${url}/api/runtime-api-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(runtimeApiDesktopBoundary.collection, "runtime_api_desktop_boundary");
+  assert.ok(runtimeApiDesktopBoundary.count <= 1);
+
+  const runtimeApiDashboardValidations = await fetchJson(`${url}/api/runtime-api-dashboard-validations?status=passed&limit=5`);
+  assert.equal(runtimeApiDashboardValidations.collection, "runtime_api_dashboard_validations");
+  assert.ok(runtimeApiDashboardValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

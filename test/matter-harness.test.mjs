@@ -207,6 +207,7 @@ import { runRuntimeTimeoutHeartbeat } from "../src/runtime-timeout-heartbeat.mjs
 import { runRuntimeControlCommands } from "../src/runtime-control-commands.mjs";
 import { runProtectedFileGate } from "../src/protected-file-gate.mjs";
 import { runCanonicalTestRunner } from "../src/canonical-test-runner.mjs";
+import { runRuntimeApiDashboard } from "../src/runtime-api-dashboard.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1816,6 +1817,7 @@ describe("matter harness", () => {
         runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
         protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
         canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
+        runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -1962,6 +1964,7 @@ describe("matter harness", () => {
         controlPlaneActionPlanPath: false,
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
+        runtimeApiDashboardPath: false,
         outputDeliveryContractFreezePath: false,
         eventAuditRunContractFreezePath: false,
         eventEnvelopeLedgerPath: false,
@@ -7196,6 +7199,69 @@ describe("matter harness", () => {
       assert.equal(canonicalTestRunner.canonical_test_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "canonical-test-runner", "summary.md"), "utf8"), /Canonical Test Runner/);
 
+      const runtimeApiDashboard = await runRuntimeApiDashboard({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
+        claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+        codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+        localScriptAdapterPath: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
+        sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
+        dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
+        secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
+        runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
+        runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
+        packagePath: "package.json",
+        reviewApiPath: "src/review-api.mjs",
+        reviewDashboardPath: "src/review-dashboard.mjs",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-api-dashboard"),
+        runAt: "2026-05-23T06:45:47.000Z",
+      });
+      const runtimeApiDashboardSchema = JSON.parse(await readFile("schemas/runtime-api-dashboard.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeApiDashboard, runtimeApiDashboardSchema, {}, "runtime_api_dashboard"), []);
+      assert.equal(runtimeApiDashboard.summary.runtime_api_dashboard_status, "complete");
+      assert.equal(runtimeApiDashboard.summary.contract_status, "locked");
+      assert.equal(runtimeApiDashboard.summary.route_authority, "harness_review_api");
+      assert.equal(runtimeApiDashboard.summary.dashboard_authority, "harness_review_dashboard");
+      assert.equal(runtimeApiDashboard.summary.source_of_truth, "runtime_contract_artifacts_and_review_api_dashboard");
+      assert.equal(runtimeApiDashboard.summary.source_count, 16);
+      assert.equal(runtimeApiDashboard.summary.complete_source_count, runtimeApiDashboard.summary.source_count);
+      assert.equal(runtimeApiDashboard.summary.source_validation_error_count, 0);
+      assert.equal(runtimeApiDashboard.summary.runtime_api_route_group_count, 11);
+      assert.equal(runtimeApiDashboard.summary.read_only_route_group_count, runtimeApiDashboard.summary.runtime_api_route_group_count);
+      assert.equal(runtimeApiDashboard.summary.runtime_api_route_count, runtimeApiDashboard.summary.declared_route_count);
+      assert.equal(runtimeApiDashboard.summary.missing_route_count, 0);
+      assert.equal(runtimeApiDashboard.summary.mutation_route_count, 0);
+      assert.ok(runtimeApiDashboard.summary.protected_mutation_request_route_count > 0);
+      assert.equal(runtimeApiDashboard.summary.runtime_dashboard_panel_count, runtimeApiDashboard.summary.runtime_api_route_group_count);
+      assert.equal(runtimeApiDashboard.summary.runtime_status_card_count, runtimeApiDashboard.summary.source_count);
+      assert.equal(runtimeApiDashboard.summary.runtime_execution_allowed_count, 0);
+      assert.equal(runtimeApiDashboard.summary.runtime_control_allowed_count, 0);
+      assert.equal(runtimeApiDashboard.summary.test_execution_allowed_count, 0);
+      assert.equal(runtimeApiDashboard.summary.secret_material_exposed_count, 0);
+      assert.equal(runtimeApiDashboard.summary.desktop_read_only, true);
+      assert.equal(runtimeApiDashboard.summary.desktop_mutation_allowed, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_runtime_control_allowed, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_test_execution_allowed, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_secret_material_exposed, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_provider_key_visible, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_installer_or_gateway_control, false);
+      assert.equal(runtimeApiDashboard.summary.desktop_ssh_or_cron_control, false);
+      assert.ok(runtimeApiDashboard.runtime_api_route_groups.every((group) => group.route_group_status === "ready" && group.read_only === true && group.mutation_route_count === 0));
+      assert.ok(runtimeApiDashboard.runtime_dashboard_panels.every((panel) => panel.panel_status === "ready" && panel.read_only === true && panel.runtime_execution_allowed === false));
+      assert.ok(runtimeApiDashboard.runtime_status_cards.every((card) => card.source_status === "complete" && card.desktop_read_only === true && card.desktop_mutation_allowed === false));
+      assert.equal(runtimeApiDashboard.runtime_api_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "runtime-api-dashboard", "summary.md"), "utf8"), /Runtime API Dashboard/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7330,6 +7396,7 @@ describe("matter harness", () => {
           runtime_control_commands: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
           protected_file_gate: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
           canonical_test_runner: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
+          runtime_api_dashboard: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7381,8 +7448,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 112);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 112);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 113);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 113);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7482,6 +7549,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_control_commands"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "protected_file_gate"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "canonical_test_runner"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_api_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -8049,6 +8117,10 @@ describe("matter harness", () => {
       assert.equal(canonicalTestRunnerCheckpoint?.acceptance_profile, "canonical_test_runner_gate");
       assert.equal(canonicalTestRunnerCheckpoint?.status, "passed");
       assert.equal(canonicalTestRunnerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runtimeApiDashboardCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-api-dashboard");
+      assert.equal(runtimeApiDashboardCheckpoint?.acceptance_profile, "runtime_api_dashboard_gate");
+      assert.equal(runtimeApiDashboardCheckpoint?.status, "passed");
+      assert.equal(runtimeApiDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10242,6 +10314,34 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.canonical_test_desktop_protected_mutation_execution_allowed, false);
       assert.equal(dashboard.summary.canonical_test_desktop_source_of_truth, false);
       assert.equal(dashboard.summary.canonical_test_validation_error_count, 0);
+      assert.equal(dashboard.summary.runtime_api_dashboard_status, "complete");
+      assert.equal(dashboard.summary.runtime_api_dashboard_contract_status, "locked");
+      assert.equal(dashboard.summary.runtime_api_dashboard_route_authority, "harness_review_api");
+      assert.equal(dashboard.summary.runtime_api_dashboard_dashboard_authority, "harness_review_dashboard");
+      assert.equal(dashboard.summary.runtime_api_dashboard_source_of_truth, "runtime_contract_artifacts_and_review_api_dashboard");
+      assert.equal(dashboard.summary.runtime_api_dashboard_source_count, runtimeApiDashboard.summary.source_count);
+      assert.equal(dashboard.summary.runtime_api_dashboard_complete_source_count, runtimeApiDashboard.summary.complete_source_count);
+      assert.equal(dashboard.summary.runtime_api_dashboard_route_group_count, runtimeApiDashboard.summary.runtime_api_route_group_count);
+      assert.equal(dashboard.summary.runtime_api_dashboard_read_only_route_group_count, runtimeApiDashboard.summary.read_only_route_group_count);
+      assert.equal(dashboard.summary.runtime_api_dashboard_route_count, runtimeApiDashboard.summary.runtime_api_route_count);
+      assert.equal(dashboard.summary.runtime_api_dashboard_declared_route_count, runtimeApiDashboard.summary.declared_route_count);
+      assert.equal(dashboard.summary.runtime_api_dashboard_missing_route_count, 0);
+      assert.equal(dashboard.summary.runtime_api_dashboard_mutation_route_count, 0);
+      assert.equal(dashboard.summary.runtime_api_dashboard_runtime_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.runtime_api_dashboard_runtime_control_allowed_count, 0);
+      assert.equal(dashboard.summary.runtime_api_dashboard_secret_material_exposed_count, 0);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_read_only, true);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_runtime_control_allowed, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_test_execution_allowed, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_secret_material_exposed, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_provider_key_visible, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_installer_or_gateway_control, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_desktop_ssh_or_cron_control, false);
+      assert.equal(dashboard.summary.runtime_api_dashboard_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11162,6 +11262,21 @@ describe("matter harness", () => {
       assert.equal(canonicalTestRunnerStage?.metrics.desktop_read_only, true);
       assert.equal(canonicalTestRunnerStage?.metrics.desktop_canonical_test_execution_allowed, false);
       assert.equal(canonicalTestRunnerStage?.metrics.desktop_source_of_truth, false);
+      const runtimeApiDashboardStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "runtime_api_dashboard");
+      assert.equal(runtimeApiDashboardStage?.status, "passed");
+      assert.equal(runtimeApiDashboardStage?.metrics.runtime_api_dashboard_status, "complete");
+      assert.equal(runtimeApiDashboardStage?.metrics.route_authority, "harness_review_api");
+      assert.equal(runtimeApiDashboardStage?.metrics.dashboard_authority, "harness_review_dashboard");
+      assert.equal(runtimeApiDashboardStage?.metrics.declared_route_count, runtimeApiDashboard.summary.runtime_api_route_count);
+      assert.equal(runtimeApiDashboardStage?.metrics.missing_route_count, 0);
+      assert.equal(runtimeApiDashboardStage?.metrics.mutation_route_count, 0);
+      assert.equal(runtimeApiDashboardStage?.metrics.runtime_execution_allowed_count, 0);
+      assert.equal(runtimeApiDashboardStage?.metrics.runtime_control_allowed_count, 0);
+      assert.equal(runtimeApiDashboardStage?.metrics.secret_material_exposed_count, 0);
+      assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
+      assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
+      assert.equal(runtimeApiDashboardStage?.metrics.desktop_source_of_truth ?? runtimeApiDashboardStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -12870,6 +12985,30 @@ describe("matter harness", () => {
       const canonicalTestValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-validations?status=passed", apiOptions)).body);
       assert.equal(canonicalTestValidationsResponse.collection, "canonical_test_validations");
       assert.equal(canonicalTestValidationsResponse.count, canonicalTestRunner.summary.validation_item_count);
+
+      const runtimeApiDashboardResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-api-dashboard?runtime_api_dashboard_status=complete", apiOptions)).body);
+      assert.equal(runtimeApiDashboardResponse.collection, "runtime_api_dashboard");
+      assert.equal(runtimeApiDashboardResponse.count, 1);
+
+      const runtimeApiRouteGroupsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-api-route-groups?runtime_api_route_group_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(runtimeApiRouteGroupsResponse.collection, "runtime_api_route_groups");
+      assert.equal(runtimeApiRouteGroupsResponse.count, runtimeApiDashboard.summary.ready_route_group_count);
+
+      const runtimeDashboardPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-dashboard-panels?runtime_dashboard_panel_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(runtimeDashboardPanelsResponse.collection, "runtime_dashboard_panels");
+      assert.equal(runtimeDashboardPanelsResponse.count, runtimeApiDashboard.summary.ready_panel_count);
+
+      const runtimeStatusCardsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-status-cards?runtime_status_card_status=complete&read_only=true", apiOptions)).body);
+      assert.equal(runtimeStatusCardsResponse.collection, "runtime_status_cards");
+      assert.equal(runtimeStatusCardsResponse.count, runtimeApiDashboard.summary.complete_status_card_count);
+
+      const runtimeApiDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-api-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(runtimeApiDesktopBoundaryResponse.collection, "runtime_api_desktop_boundary");
+      assert.equal(runtimeApiDesktopBoundaryResponse.count, 1);
+
+      const runtimeApiDashboardValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-api-dashboard-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeApiDashboardValidationsResponse.collection, "runtime_api_dashboard_validations");
+      assert.equal(runtimeApiDashboardValidationsResponse.count, runtimeApiDashboard.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

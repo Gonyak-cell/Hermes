@@ -6092,6 +6092,33 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 112개로 증가하고 canonical_test_runner artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run test:canonical -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 211 - Runtime API Dashboard
+
+목표: runtime adapter, worktree, sandbox/backend, secrets, artifact capture, log normalization, timeout/heartbeat, cancel/resume request, protected file gate, canonical test 상태를 Hermes Desktop이 하나의 operator surface로 읽을 수 있게 Runtime API/Dashboard contract로 묶는다. Desktop Companion은 계속 core runtime이나 source of truth가 아니며, 모든 route는 GET/read-only이고 protected mutation은 request draft/receipt metadata로만 노출한다.
+
+구현:
+
+- `src/runtime-api-dashboard.mjs`와 `scripts/runtime-api-dashboard.mjs`를 추가해 `npm run runtime:api-dashboard` slice를 등록
+- `schemas/runtime-api-dashboard.schema.json`으로 runtime API dashboard contract, route group, dashboard panel, status card, Desktop boundary를 검증
+- Runtime Adapter Interface v2, Hermes/Claude Code/Codex/local script/document renderer adapter, Worktree Manager v2, Sandbox Policy Model, Docker/local Backend Selector, Secrets Broker, Runtime Artifact Capture, Runtime Log Normalization, Runtime Timeout/Heartbeat, Runtime Control Commands, Protected File Gate, Canonical Test Runner를 source contract로 연결
+- adapters, worktrees, sandbox, secrets, artifacts, logs, lifecycle, control, gates, tests, desktop_index 총 11개 route group을 만들고 Review API route 선언 여부를 검증
+- Runtime dashboard panel 11개와 runtime status card 16개를 생성해 Desktop이 adapter/worktree/log/artifact/heartbeat/cancel/request/test 상태를 한 화면에서 읽을 수 있게 함
+- Runtime API Desktop boundary를 `read_only_runtime_operations_dashboard`로 고정하고 runtime execution, process control, test execution, file write, direct apply/merge, secret/provider key, installer/gateway, SSH/cron control 권한을 모두 false로 유지
+- Review Dashboard와 Review API에 `/api/runtime-api-dashboard`, `/api/runtime-api-route-groups`, `/api/runtime-dashboard-panels`, `/api/runtime-status-cards`, `/api/runtime-api-desktop-boundary`, `/api/runtime-api-dashboard-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Runtime API Dashboard를 연결
+
+완료 기준:
+
+- Runtime API Dashboard가 validation error 없이 `complete` 상태가 됨
+- contract가 `locked`이고 route authority가 `harness_review_api`, dashboard authority가 `harness_review_dashboard`, source of truth가 `runtime_contract_artifacts_and_review_api_dashboard`임
+- source artifact 16개가 모두 complete이고 source validation error count가 0임
+- runtime API route group 11개가 모두 read-only이고 declared route count가 runtime API route count와 일치하며 missing route count가 0임
+- mutation route, runtime execution allowed, runtime control allowed, test execution allowed, secret material exposed count가 모두 0임
+- Desktop read-only는 true이고 Desktop mutation/protected mutation execution/runtime source-of-truth/runtime execution/runtime control/test execution/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Review API와 dashboard가 Runtime API Dashboard 상태를 read-only로 노출
+- Golden fixture 수가 113개로 증가하고 runtime_api_dashboard artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:api-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6100,9 +6127,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 210이다.
+- 현재 완료 기준점은 Phase 211이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P211-P312, 총 102개다.
+- 남은 계획 슬롯은 P212-P312, 총 101개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

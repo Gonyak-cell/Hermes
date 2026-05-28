@@ -61,6 +61,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   worktreeManagerV2Path: "artifacts/worktree-manager-v2/latest/worktree-manager-v2.json",
   sandboxPolicyModelPath: "artifacts/sandbox-policy-model/latest/sandbox-policy-model.json",
   dockerLocalBackendSelectorPath: "artifacts/docker-local-backend-selector/latest/docker-local-backend-selector.json",
+  secretsBrokerContractPath: "artifacts/secrets-broker/latest/secrets-broker-contract.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -487,6 +488,11 @@ const SOURCE_DEFINITIONS = [
     option: "dockerLocalBackendSelectorPath",
     source_id: "docker_local_backend_selector",
     label: "Docker/local Backend Selector",
+  },
+  {
+    option: "secretsBrokerContractPath",
+    source_id: "secrets_broker_contract",
+    label: "Secrets Broker Contract",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1341,6 +1347,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "worktree_manager_v2") return data.summary ?? {};
   if (sourceId === "sandbox_policy_model") return data.summary ?? {};
   if (sourceId === "docker_local_backend_selector") return data.summary ?? {};
+  if (sourceId === "secrets_broker_contract") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1624,6 +1631,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorktreeManagerV2Stage(artifacts.worktree_manager_v2, sourceById.get("worktree_manager_v2")),
     buildSandboxPolicyModelStage(artifacts.sandbox_policy_model, sourceById.get("sandbox_policy_model")),
     buildDockerLocalBackendSelectorStage(artifacts.docker_local_backend_selector, sourceById.get("docker_local_backend_selector")),
+    buildSecretsBrokerContractStage(artifacts.secrets_broker_contract, sourceById.get("secrets_broker_contract")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4940,6 +4948,101 @@ function buildDockerLocalBackendSelectorStage(selectorArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? selectorArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildSecretsBrokerContractStage(secretsArtifact, source) {
+  if (!secretsArtifact) return missingStage("secrets_broker_contract", "Secrets Broker Contract", source);
+  const summary = secretsArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.secrets_broker_contract_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.broker_status !== "locked"
+    || summary.secret_handle_required !== true
+    || summary.audit_required !== true
+    || summary.policy_snapshot_required !== true
+    || summary.secret_handle_policy_count < 8
+    || summary.runtime_secret_access_binding_count < 9
+    || summary.secret_audit_binding_count < 9
+    || summary.raw_secret_material_allowed_count !== 0
+    || summary.runtime_raw_secret_exposed_count !== 0
+    || summary.desktop_secret_material_exposed_count !== 0
+    || summary.provider_key_direct_access_allowed_count !== 0
+    || summary.provider_key_visible_to_desktop_count !== 0
+    || summary.raw_secret_material_logged_count !== 0
+    || summary.provider_key_logged_count !== 0
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_secret_material_exposed === true
+    || summary.desktop_provider_key_visible === true
+    || summary.desktop_source_of_truth === true
+    || secretsArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "secrets_broker_contract",
+    label: "Secrets Broker Contract",
+    status,
+    message: `Secrets broker ${summary.broker_status ?? "unknown"}; handle policies=${summary.secret_handle_policy_count ?? 0}; runtime bindings=${summary.runtime_secret_access_binding_count ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      secrets_broker_contract_status: summary.secrets_broker_contract_status ?? "unknown",
+      broker_contract_id: summary.broker_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      broker_status: summary.broker_status ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      secret_material_source_of_truth: summary.secret_material_source_of_truth ?? "unknown",
+      access_authority: summary.access_authority ?? "unknown",
+      secret_handle_required: summary.secret_handle_required ?? false,
+      audit_required: summary.audit_required ?? false,
+      policy_snapshot_required: summary.policy_snapshot_required ?? false,
+      raw_secret_material_persisted: summary.raw_secret_material_persisted ?? false,
+      raw_secret_material_exposed_to_runtime: summary.raw_secret_material_exposed_to_runtime ?? false,
+      raw_secret_material_exposed_to_desktop: summary.raw_secret_material_exposed_to_desktop ?? false,
+      raw_secret_material_logged: summary.raw_secret_material_logged ?? false,
+      provider_key_direct_access_allowed: summary.provider_key_direct_access_allowed ?? false,
+      provider_key_visible_to_desktop: summary.provider_key_visible_to_desktop ?? false,
+      runtime_self_report_trusted_for_secret_access: summary.runtime_self_report_trusted_for_secret_access ?? false,
+      secret_handle_policy_count: summary.secret_handle_policy_count ?? 0,
+      locked_secret_handle_policy_count: summary.locked_secret_handle_policy_count ?? 0,
+      desktop_visible_handle_metadata_count: summary.desktop_visible_handle_metadata_count ?? 0,
+      runtime_secret_access_binding_count: summary.runtime_secret_access_binding_count ?? 0,
+      brokered_handle_only_runtime_count: summary.brokered_handle_only_runtime_count ?? 0,
+      handle_optional_runtime_count: summary.handle_optional_runtime_count ?? 0,
+      metadata_only_runtime_count: summary.metadata_only_runtime_count ?? 0,
+      receipt_reference_runtime_count: summary.receipt_reference_runtime_count ?? 0,
+      blocked_runtime_secret_access_count: summary.blocked_runtime_secret_access_count ?? 0,
+      runtime_secret_handle_required_count: summary.runtime_secret_handle_required_count ?? 0,
+      brokered_handle_request_allowed_count: summary.brokered_handle_request_allowed_count ?? 0,
+      scoped_runtime_token_allowed_count: summary.scoped_runtime_token_allowed_count ?? 0,
+      raw_secret_material_allowed_count: summary.raw_secret_material_allowed_count ?? 0,
+      runtime_raw_secret_exposed_count: summary.runtime_raw_secret_exposed_count ?? 0,
+      desktop_secret_material_exposed_count: summary.desktop_secret_material_exposed_count ?? 0,
+      provider_key_direct_access_allowed_count: summary.provider_key_direct_access_allowed_count ?? 0,
+      provider_key_visible_to_desktop_count: summary.provider_key_visible_to_desktop_count ?? 0,
+      secret_audit_binding_count: summary.secret_audit_binding_count ?? 0,
+      locked_secret_audit_binding_count: summary.locked_secret_audit_binding_count ?? 0,
+      audit_policy_snapshot_required_count: summary.audit_policy_snapshot_required_count ?? 0,
+      raw_secret_material_logged_count: summary.raw_secret_material_logged_count ?? 0,
+      provider_key_logged_count: summary.provider_key_logged_count ?? 0,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      human_gate_required_for_secret_exception: summary.human_gate_required_for_secret_exception ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_provider_key_visible: summary.desktop_provider_key_visible ?? false,
+      desktop_credential_export_allowed: summary.desktop_credential_export_allowed ?? false,
+      desktop_local_secret_store_write_allowed: summary.desktop_local_secret_store_write_allowed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_ssh_or_cron_control: summary.desktop_ssh_or_cron_control ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? secretsArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14086,6 +14189,44 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     docker_local_backend_selector_desktop_secret_material_exposed: artifacts.docker_local_backend_selector?.summary?.desktop_secret_material_exposed ?? false,
     docker_local_backend_selector_desktop_runtime_source_of_truth: artifacts.docker_local_backend_selector?.summary?.desktop_runtime_source_of_truth ?? false,
     docker_local_backend_selector_validation_error_count: artifacts.docker_local_backend_selector?.summary?.validation_error_count ?? artifacts.docker_local_backend_selector?.validation?.errors?.length ?? 0,
+    secrets_broker_contract_status: artifacts.secrets_broker_contract?.summary?.secrets_broker_contract_status ?? "unknown",
+    secrets_broker_contract_id: artifacts.secrets_broker_contract?.summary?.broker_contract_id ?? null,
+    secrets_broker_contract_status_lock: artifacts.secrets_broker_contract?.summary?.contract_status ?? "unknown",
+    secrets_broker_contract_broker_status: artifacts.secrets_broker_contract?.summary?.broker_status ?? "unknown",
+    secrets_broker_contract_source_of_truth: artifacts.secrets_broker_contract?.summary?.source_of_truth ?? "unknown",
+    secrets_broker_contract_secret_material_source_of_truth: artifacts.secrets_broker_contract?.summary?.secret_material_source_of_truth ?? "unknown",
+    secrets_broker_contract_secret_handle_required: artifacts.secrets_broker_contract?.summary?.secret_handle_required ?? false,
+    secrets_broker_contract_audit_required: artifacts.secrets_broker_contract?.summary?.audit_required ?? false,
+    secrets_broker_contract_policy_snapshot_required: artifacts.secrets_broker_contract?.summary?.policy_snapshot_required ?? false,
+    secrets_broker_contract_raw_secret_material_persisted: artifacts.secrets_broker_contract?.summary?.raw_secret_material_persisted ?? false,
+    secrets_broker_contract_raw_secret_material_exposed_to_runtime: artifacts.secrets_broker_contract?.summary?.raw_secret_material_exposed_to_runtime ?? false,
+    secrets_broker_contract_raw_secret_material_exposed_to_desktop: artifacts.secrets_broker_contract?.summary?.raw_secret_material_exposed_to_desktop ?? false,
+    secrets_broker_contract_raw_secret_material_logged: artifacts.secrets_broker_contract?.summary?.raw_secret_material_logged ?? false,
+    secrets_broker_contract_provider_key_direct_access_allowed: artifacts.secrets_broker_contract?.summary?.provider_key_direct_access_allowed ?? false,
+    secrets_broker_contract_provider_key_visible_to_desktop: artifacts.secrets_broker_contract?.summary?.provider_key_visible_to_desktop ?? false,
+    secrets_broker_contract_secret_handle_policy_count: artifacts.secrets_broker_contract?.summary?.secret_handle_policy_count ?? 0,
+    secrets_broker_contract_locked_secret_handle_policy_count: artifacts.secrets_broker_contract?.summary?.locked_secret_handle_policy_count ?? 0,
+    secrets_broker_contract_runtime_secret_access_binding_count: artifacts.secrets_broker_contract?.summary?.runtime_secret_access_binding_count ?? 0,
+    secrets_broker_contract_brokered_handle_only_runtime_count: artifacts.secrets_broker_contract?.summary?.brokered_handle_only_runtime_count ?? 0,
+    secrets_broker_contract_handle_optional_runtime_count: artifacts.secrets_broker_contract?.summary?.handle_optional_runtime_count ?? 0,
+    secrets_broker_contract_blocked_runtime_secret_access_count: artifacts.secrets_broker_contract?.summary?.blocked_runtime_secret_access_count ?? 0,
+    secrets_broker_contract_raw_secret_material_allowed_count: artifacts.secrets_broker_contract?.summary?.raw_secret_material_allowed_count ?? 0,
+    secrets_broker_contract_runtime_raw_secret_exposed_count: artifacts.secrets_broker_contract?.summary?.runtime_raw_secret_exposed_count ?? 0,
+    secrets_broker_contract_desktop_secret_material_exposed_count: artifacts.secrets_broker_contract?.summary?.desktop_secret_material_exposed_count ?? 0,
+    secrets_broker_contract_provider_key_direct_access_allowed_count: artifacts.secrets_broker_contract?.summary?.provider_key_direct_access_allowed_count ?? 0,
+    secrets_broker_contract_provider_key_visible_to_desktop_count: artifacts.secrets_broker_contract?.summary?.provider_key_visible_to_desktop_count ?? 0,
+    secrets_broker_contract_secret_audit_binding_count: artifacts.secrets_broker_contract?.summary?.secret_audit_binding_count ?? 0,
+    secrets_broker_contract_raw_secret_material_logged_count: artifacts.secrets_broker_contract?.summary?.raw_secret_material_logged_count ?? 0,
+    secrets_broker_contract_provider_key_logged_count: artifacts.secrets_broker_contract?.summary?.provider_key_logged_count ?? 0,
+    secrets_broker_contract_protected_mutation_route: artifacts.secrets_broker_contract?.summary?.protected_mutation_route ?? "unknown",
+    secrets_broker_contract_human_gate_required_for_secret_exception: artifacts.secrets_broker_contract?.summary?.human_gate_required_for_secret_exception ?? false,
+    secrets_broker_contract_desktop_read_only: artifacts.secrets_broker_contract?.summary?.desktop_read_only ?? false,
+    secrets_broker_contract_desktop_mutation_allowed: artifacts.secrets_broker_contract?.summary?.desktop_mutation_allowed ?? false,
+    secrets_broker_contract_desktop_protected_mutation_execution_allowed: artifacts.secrets_broker_contract?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    secrets_broker_contract_desktop_secret_material_exposed: artifacts.secrets_broker_contract?.summary?.desktop_secret_material_exposed ?? false,
+    secrets_broker_contract_desktop_provider_key_visible: artifacts.secrets_broker_contract?.summary?.desktop_provider_key_visible ?? false,
+    secrets_broker_contract_desktop_source_of_truth: artifacts.secrets_broker_contract?.summary?.desktop_source_of_truth ?? false,
+    secrets_broker_contract_validation_error_count: artifacts.secrets_broker_contract?.summary?.validation_error_count ?? artifacts.secrets_broker_contract?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15791,6 +15932,8 @@ function parseArgs(argv) {
     else if (arg === "--no-sandbox-policy-model") parsed.sandboxPolicyModelPath = false;
     else if (arg === "--docker-local-backend-selector") parsed.dockerLocalBackendSelectorPath = argv[++index];
     else if (arg === "--no-docker-local-backend-selector") parsed.dockerLocalBackendSelectorPath = false;
+    else if (arg === "--secrets-broker-contract") parsed.secretsBrokerContractPath = argv[++index];
+    else if (arg === "--no-secrets-broker-contract") parsed.secretsBrokerContractPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16250,6 +16393,9 @@ Options:
                                   docker-local-backend-selector.json path.
   --no-docker-local-backend-selector
                                   Do not include Docker/local Backend Selector status.
+  --secrets-broker-contract <path>
+                                  secrets-broker-contract.json path.
+  --no-secrets-broker-contract   Do not include Secrets Broker Contract status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

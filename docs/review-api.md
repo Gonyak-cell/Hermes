@@ -602,6 +602,12 @@ npm run api:serve
 - `GET /api/runtime-classification-backend-matrix`: runtime/classification backend matrix rows
 - `GET /api/backend-selector-desktop-boundary`: Backend Selector Desktop boundary row
 - `GET /api/backend-selector-validations`: Backend Selector validation rows
+- `GET /api/secrets-broker-contract`: Secrets Broker Contract artifact
+- `GET /api/secret-handle-policies`: secret handle policy rows
+- `GET /api/runtime-secret-access-bindings`: runtime secret access binding rows
+- `GET /api/secret-audit-bindings`: secret audit binding rows
+- `GET /api/secrets-desktop-boundary`: Secrets Broker Desktop boundary row
+- `GET /api/secrets-broker-validations`: Secrets Broker validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows
@@ -665,6 +671,8 @@ Ledger API/dashboard route는 `ledger_api_dashboard_status`, `ledger_domain`, `p
 Ledger golden fixture route는 `ledger_golden_fixture_status`, `ledger_golden_case_id`, `fixture_group`, `case_status`, `source_artifact_id`, `lock_status`, `assertion_status`, `expected_outcome`, `status`, `limit` query를 지원한다.
 
 Gate result aggregator route는 `gate_result_aggregator_status`, `gate_result_aggregator_contract_id`, `aggregate_gate_state`, `aggregate_gate_stage`, `workflow_gate_status`, `gate_aggregate_record_id`, `workflow_gate_status_id`, `workflow_run_id`, `agent_run_id`, `gate_type`, `status`, `limit` query를 지원한다.
+
+Secrets broker route는 `secrets_broker_contract_status`, `broker_status`, `secret_access_status`, `secret_kind`, `audit_event_type`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. Desktop Companion은 raw secret, provider key, local secret store write, installer/gateway/SSH/cron control을 source of truth로 삼거나 실행하지 않고 read-only secret handle status와 audit receipt metadata만 소비한다.
 
 Capability registry API route는 `capability_registry_api_status`, `desktop_companion_readiness_status`, `pack_api_card_id`, `capability_api_card_id`, `capability_version_api_card_id`, `gate_requirement_api_card_id`, `pack_id`, `domain_pack`, `capability_id`, `version_status`, `gate_id`, `gate_phase`, `desktop_surface`, `desktop_card_status`, `desktop_route_group_id`, `route_group_id`, `route_path`, `route_method`, `read_only`, `mutation_allowed`, `protected_mutation_request_allowed`, `secret_material_exposed`, `installer_or_gateway_control`, `status`, `limit` query를 지원한다. Desktop Companion route group은 v1에서 모두 GET/read-only이며 mutation, secret, installer, gateway, SSH, cron, auto-update control을 노출하지 않는다.
 

@@ -200,6 +200,7 @@ import { runDocumentRendererAdapter } from "../src/document-renderer-adapter.mjs
 import { runWorktreeManagerV2 } from "../src/worktree-manager-v2.mjs";
 import { runSandboxPolicyModel } from "../src/sandbox-policy-model.mjs";
 import { runDockerLocalBackendSelector } from "../src/docker-local-backend-selector.mjs";
+import { runSecretsBrokerContract } from "../src/secrets-broker-contract.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1802,6 +1803,7 @@ describe("matter harness", () => {
         worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
         sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
         dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
+        secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6850,6 +6852,42 @@ describe("matter harness", () => {
       assert.equal(dockerLocalBackendSelector.backend_selector_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "docker-local-backend-selector", "summary.md"), "utf8"), /Docker\/local Backend Selector/);
 
+      const secretsBrokerContract = await runSecretsBrokerContract({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
+        dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        policyMatrixPath: "examples/core/policy-matrix.json",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "secrets-broker"),
+        runAt: "2026-05-23T06:45:40.000Z",
+      });
+      const secretsBrokerContractSchema = JSON.parse(await readFile("schemas/secrets-broker-contract.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(secretsBrokerContract, secretsBrokerContractSchema, {}, "secrets_broker_contract"), []);
+      assert.equal(secretsBrokerContract.summary.secrets_broker_contract_status, "complete");
+      assert.equal(secretsBrokerContract.summary.contract_status, "locked");
+      assert.equal(secretsBrokerContract.summary.broker_status, "locked");
+      assert.equal(secretsBrokerContract.summary.secret_handle_policy_count, 8);
+      assert.equal(secretsBrokerContract.summary.runtime_secret_access_binding_count, 9);
+      assert.equal(secretsBrokerContract.summary.secret_audit_binding_count, 9);
+      assert.equal(secretsBrokerContract.summary.brokered_handle_only_runtime_count, 3);
+      assert.equal(secretsBrokerContract.summary.handle_optional_runtime_count, 2);
+      assert.equal(secretsBrokerContract.summary.blocked_runtime_secret_access_count, 2);
+      assert.equal(secretsBrokerContract.summary.raw_secret_material_allowed_count, 0);
+      assert.equal(secretsBrokerContract.summary.provider_key_direct_access_allowed_count, 0);
+      assert.equal(secretsBrokerContract.summary.desktop_secret_material_exposed_count, 0);
+      assert.equal(secretsBrokerContract.summary.raw_secret_material_logged_count, 0);
+      assert.equal(secretsBrokerContract.summary.provider_key_logged_count, 0);
+      assert.equal(secretsBrokerContract.summary.desktop_read_only, true);
+      assert.equal(secretsBrokerContract.summary.desktop_mutation_allowed, false);
+      assert.equal(secretsBrokerContract.summary.desktop_secret_material_exposed, false);
+      assert.equal(secretsBrokerContract.summary.desktop_source_of_truth, false);
+      assert.ok(secretsBrokerContract.secret_handle_policies.some((policy) => policy.secret_kind === "provider_api_key" && policy.raw_secret_material_exposed === false));
+      assert.ok(secretsBrokerContract.runtime_secret_access_bindings.some((binding) => binding.runtime_id === "codex" && binding.secret_access_status === "brokered_handle_only"));
+      assert.ok(secretsBrokerContract.runtime_secret_access_bindings.some((binding) => binding.runtime_id === "browser" && binding.secret_access_status === "blocked"));
+      assert.equal(secretsBrokerContract.secrets_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "secrets-broker", "summary.md"), "utf8"), /Secrets Broker Contract/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6977,6 +7015,7 @@ describe("matter harness", () => {
           worktree_manager_v2: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
           sandbox_policy_model: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
           docker_local_backend_selector: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
+          secrets_broker_contract: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7028,8 +7067,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 105);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 105);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 106);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 106);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7122,6 +7161,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "worktree_manager_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "sandbox_policy_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docker_local_backend_selector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "secrets_broker_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7173,6 +7213,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "worktree:manager-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:sandbox-policy-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:backend-selector"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:secrets-broker"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7655,6 +7696,10 @@ describe("matter harness", () => {
       assert.equal(dockerLocalBackendSelectorCheckpoint?.acceptance_profile, "docker_local_backend_selector_gate");
       assert.equal(dockerLocalBackendSelectorCheckpoint?.status, "passed");
       assert.equal(dockerLocalBackendSelectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const secretsBrokerContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-secrets-broker-contract");
+      assert.equal(secretsBrokerContractCheckpoint?.acceptance_profile, "secrets_broker_contract_gate");
+      assert.equal(secretsBrokerContractCheckpoint?.status, "passed");
+      assert.equal(secretsBrokerContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9784,6 +9829,32 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.docker_local_backend_selector_desktop_cloud_runtime_control_allowed, false);
       assert.equal(dashboard.summary.docker_local_backend_selector_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.docker_local_backend_selector_validation_error_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_status, "complete");
+      assert.equal(dashboard.summary.secrets_broker_contract_status_lock, "locked");
+      assert.equal(dashboard.summary.secrets_broker_contract_broker_status, "locked");
+      assert.equal(dashboard.summary.secrets_broker_contract_secret_handle_required, true);
+      assert.equal(dashboard.summary.secrets_broker_contract_audit_required, true);
+      assert.equal(dashboard.summary.secrets_broker_contract_policy_snapshot_required, true);
+      assert.equal(dashboard.summary.secrets_broker_contract_secret_handle_policy_count, 8);
+      assert.equal(dashboard.summary.secrets_broker_contract_runtime_secret_access_binding_count, 9);
+      assert.equal(dashboard.summary.secrets_broker_contract_brokered_handle_only_runtime_count, 3);
+      assert.equal(dashboard.summary.secrets_broker_contract_handle_optional_runtime_count, 2);
+      assert.equal(dashboard.summary.secrets_broker_contract_blocked_runtime_secret_access_count, 2);
+      assert.equal(dashboard.summary.secrets_broker_contract_raw_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_runtime_raw_secret_exposed_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_secret_material_exposed_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_provider_key_direct_access_allowed_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_provider_key_visible_to_desktop_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_secret_audit_binding_count, 9);
+      assert.equal(dashboard.summary.secrets_broker_contract_raw_secret_material_logged_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_provider_key_logged_count, 0);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_read_only, true);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_secret_material_exposed, false);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_provider_key_visible, false);
+      assert.equal(dashboard.summary.secrets_broker_contract_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.secrets_broker_contract_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -10672,6 +10743,18 @@ describe("matter harness", () => {
       assert.equal(dockerLocalBackendSelectorStage?.metrics.external_transfer_allowed_count, 0);
       assert.equal(dockerLocalBackendSelectorStage?.metrics.secret_material_allowed_count, 0);
       assert.equal(dockerLocalBackendSelectorStage?.metrics.desktop_runtime_source_of_truth, false);
+      const secretsBrokerContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "secrets_broker_contract");
+      assert.equal(secretsBrokerContractStage?.status, "passed");
+      assert.equal(secretsBrokerContractStage?.metrics.secrets_broker_contract_status, "complete");
+      assert.equal(secretsBrokerContractStage?.metrics.broker_status, "locked");
+      assert.equal(secretsBrokerContractStage?.metrics.secret_handle_policy_count, 8);
+      assert.equal(secretsBrokerContractStage?.metrics.runtime_secret_access_binding_count, 9);
+      assert.equal(secretsBrokerContractStage?.metrics.secret_audit_binding_count, 9);
+      assert.equal(secretsBrokerContractStage?.metrics.raw_secret_material_allowed_count, 0);
+      assert.equal(secretsBrokerContractStage?.metrics.provider_key_direct_access_allowed_count, 0);
+      assert.equal(secretsBrokerContractStage?.metrics.desktop_secret_material_exposed_count, 0);
+      assert.equal(secretsBrokerContractStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(secretsBrokerContractStage?.metrics.desktop_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -11075,6 +11158,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-classification-backend-matrix"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/backend-selector-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/backend-selector-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-broker-contract"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secret-handle-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-secret-access-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secret-audit-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-broker-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12155,6 +12244,30 @@ describe("matter harness", () => {
       const backendSelectorValidations = JSON.parse((await buildReviewApiResponse("/api/backend-selector-validations?status=passed", apiOptions)).body);
       assert.equal(backendSelectorValidations.collection, "backend_selector_validations");
       assert.equal(backendSelectorValidations.count, dockerLocalBackendSelector.summary.validation_item_count);
+
+      const secretsBrokerContractResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-broker-contract?secrets_broker_contract_status=complete", apiOptions)).body);
+      assert.equal(secretsBrokerContractResponse.collection, "secrets_broker_contract");
+      assert.equal(secretsBrokerContractResponse.count, 1);
+
+      const secretHandlePoliciesResponse = JSON.parse((await buildReviewApiResponse("/api/secret-handle-policies?secret_kind=provider_api_key", apiOptions)).body);
+      assert.equal(secretHandlePoliciesResponse.collection, "secret_handle_policies");
+      assert.equal(secretHandlePoliciesResponse.count, 1);
+
+      const runtimeSecretAccessBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-secret-access-bindings?secret_access_status=brokered_handle_only", apiOptions)).body);
+      assert.equal(runtimeSecretAccessBindingsResponse.collection, "runtime_secret_access_bindings");
+      assert.equal(runtimeSecretAccessBindingsResponse.count, secretsBrokerContract.summary.brokered_handle_only_runtime_count);
+
+      const secretAuditBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/secret-audit-bindings?audit_event_type=secret.handle.requested", apiOptions)).body);
+      assert.equal(secretAuditBindingsResponse.collection, "secret_audit_bindings");
+      assert.equal(secretAuditBindingsResponse.count, secretsBrokerContract.summary.brokered_handle_request_allowed_count);
+
+      const secretsDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/secrets-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(secretsDesktopBoundaryResponse.collection, "secrets_desktop_boundary");
+      assert.equal(secretsDesktopBoundaryResponse.count, 1);
+
+      const secretsBrokerValidations = JSON.parse((await buildReviewApiResponse("/api/secrets-broker-validations?status=passed", apiOptions)).body);
+      assert.equal(secretsBrokerValidations.collection, "secrets_broker_validations");
+      assert.equal(secretsBrokerValidations.count, secretsBrokerContract.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

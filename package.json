@@ -216,6 +216,7 @@
     "runtime:document-renderer-adapter": "node scripts/document-renderer-adapter.mjs",
     "runtime:sandbox-policy-model": "node scripts/sandbox-policy-model.mjs",
     "runtime:backend-selector": "node scripts/docker-local-backend-selector.mjs",
+    "runtime:secrets-broker": "node scripts/secrets-broker-contract.mjs",
     "worktree:manager-v2": "node scripts/worktree-manager-v2.mjs",
     "slice:run": "node scripts/run-vertical-slice.mjs",
     "worktree:prepare": "node scripts/worktree-manager.mjs",

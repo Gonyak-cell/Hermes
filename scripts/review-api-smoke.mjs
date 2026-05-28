@@ -326,6 +326,19 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/sandbox-policy-decisions"));
   assert.ok(index.routes.some((route) => route.path === "/api/sandbox-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/sandbox-policy-model-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/docker-local-backend-selector"));
+  assert.ok(index.routes.some((route) => route.path === "/api/backend-selection-rules"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-backend-selections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/classification-backend-selections"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-classification-backend-matrix"));
+  assert.ok(index.routes.some((route) => route.path === "/api/backend-selector-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/backend-selector-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/secrets-broker-contract"));
+  assert.ok(index.routes.some((route) => route.path === "/api/secret-handle-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-secret-access-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/secret-audit-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/secrets-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/secrets-broker-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1587,6 +1600,30 @@ try {
   const backendSelectorValidations = await fetchJson(`${url}/api/backend-selector-validations?status=passed&limit=5`);
   assert.equal(backendSelectorValidations.collection, "backend_selector_validations");
   assert.ok(backendSelectorValidations.count <= 5);
+
+  const secretsBrokerContract = await fetchJson(`${url}/api/secrets-broker-contract?secrets_broker_contract_status=complete&limit=1`);
+  assert.equal(secretsBrokerContract.collection, "secrets_broker_contract");
+  assert.ok(secretsBrokerContract.count <= 1);
+
+  const secretHandlePolicies = await fetchJson(`${url}/api/secret-handle-policies?secret_kind=provider_api_key&limit=1`);
+  assert.equal(secretHandlePolicies.collection, "secret_handle_policies");
+  assert.ok(secretHandlePolicies.count <= 1);
+
+  const runtimeSecretAccessBindings = await fetchJson(`${url}/api/runtime-secret-access-bindings?secret_access_status=brokered_handle_only&limit=3`);
+  assert.equal(runtimeSecretAccessBindings.collection, "runtime_secret_access_bindings");
+  assert.ok(runtimeSecretAccessBindings.count <= 3);
+
+  const secretAuditBindings = await fetchJson(`${url}/api/secret-audit-bindings?audit_event_type=secret.handle.requested&limit=5`);
+  assert.equal(secretAuditBindings.collection, "secret_audit_bindings");
+  assert.ok(secretAuditBindings.count <= 5);
+
+  const secretsDesktopBoundary = await fetchJson(`${url}/api/secrets-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(secretsDesktopBoundary.collection, "secrets_desktop_boundary");
+  assert.ok(secretsDesktopBoundary.count <= 1);
+
+  const secretsBrokerValidations = await fetchJson(`${url}/api/secrets-broker-validations?status=passed&limit=5`);
+  assert.equal(secretsBrokerValidations.collection, "secrets_broker_validations");
+  assert.ok(secretsBrokerValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

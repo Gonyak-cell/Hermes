@@ -3924,6 +3924,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/secrets-broker-contract") {
+    const brokerResult = await readDashboardSourceArtifact(dashboard, "secrets_broker_contract");
+    if (!brokerResult.available) {
+      return jsonResponse(503, buildError("secrets_broker_contract_unavailable", brokerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_broker_contract", [brokerResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/secret-handle-policies") {
+    const brokerResult = await readDashboardSourceArtifact(dashboard, "secrets_broker_contract");
+    if (!brokerResult.available) {
+      return jsonResponse(503, buildError("secrets_broker_contract_unavailable", brokerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secret_handle_policies", brokerResult.artifact.secret_handle_policies ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-secret-access-bindings") {
+    const brokerResult = await readDashboardSourceArtifact(dashboard, "secrets_broker_contract");
+    if (!brokerResult.available) {
+      return jsonResponse(503, buildError("secrets_broker_contract_unavailable", brokerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_secret_access_bindings", brokerResult.artifact.runtime_secret_access_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/secret-audit-bindings") {
+    const brokerResult = await readDashboardSourceArtifact(dashboard, "secrets_broker_contract");
+    if (!brokerResult.available) {
+      return jsonResponse(503, buildError("secrets_broker_contract_unavailable", brokerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secret_audit_bindings", brokerResult.artifact.secret_audit_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-desktop-boundary") {
+    const brokerResult = await readDashboardSourceArtifact(dashboard, "secrets_broker_contract");
+    if (!brokerResult.available) {
+      return jsonResponse(503, buildError("secrets_broker_contract_unavailable", brokerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_desktop_boundary", [brokerResult.artifact.secrets_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/secrets-broker-validations") {
+    const brokerResult = await readDashboardSourceArtifact(dashboard, "secrets_broker_contract");
+    if (!brokerResult.available) {
+      return jsonResponse(503, buildError("secrets_broker_contract_unavailable", brokerResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("secrets_broker_validations", brokerResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8087,6 +8129,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-classification-backend-matrix", "Runtime/classification backend matrix rows"),
       route("GET", "/api/backend-selector-desktop-boundary", "Backend Selector Desktop boundary"),
       route("GET", "/api/backend-selector-validations", "Backend Selector validation rows"),
+      route("GET", "/api/secrets-broker-contract", "Secrets Broker Contract artifact"),
+      route("GET", "/api/secret-handle-policies", "Secret handle policy rows"),
+      route("GET", "/api/runtime-secret-access-bindings", "Runtime secret access binding rows"),
+      route("GET", "/api/secret-audit-bindings", "Secret audit binding rows"),
+      route("GET", "/api/secrets-desktop-boundary", "Secrets Broker Desktop boundary"),
+      route("GET", "/api/secrets-broker-validations", "Secrets Broker validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8744,6 +8792,11 @@ function filterItems(items, searchParams) {
     "worktree_manager_v2_status",
     "sandbox_policy_model_status",
     "docker_local_backend_selector_status",
+    "secrets_broker_contract_status",
+    "broker_status",
+    "secret_access_status",
+    "secret_kind",
+    "audit_event_type",
     "backend_kind",
     "backend_policy_status",
     "backend_selection_status",
@@ -10025,6 +10078,11 @@ function readFilterValue(item, key) {
   if (key === "worktree_manager_v2_status") return item.summary?.worktree_manager_v2_status ?? item.worktree_manager_v2_status;
   if (key === "sandbox_policy_model_status") return item.summary?.sandbox_policy_model_status ?? item.sandbox_policy_model_status;
   if (key === "docker_local_backend_selector_status") return item.summary?.docker_local_backend_selector_status ?? item.docker_local_backend_selector_status;
+  if (key === "secrets_broker_contract_status") return item.summary?.secrets_broker_contract_status ?? item.secrets_broker_contract_status;
+  if (key === "broker_status") return item.summary?.broker_status ?? item.broker_status;
+  if (key === "secret_access_status") return item.secret_access_status;
+  if (key === "secret_kind") return item.secret_kind;
+  if (key === "audit_event_type") return item.audit_event_type;
   if (key === "backend_kind") return item.backend_kind;
   if (key === "backend_policy_status") return item.backend_policy_status;
   if (key === "backend_selection_status") return item.backend_selection_status;

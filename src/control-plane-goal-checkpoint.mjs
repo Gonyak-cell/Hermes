@@ -76,6 +76,7 @@ const GOAL_ITEMS = [
   sourceItem("worktree_manager_v2", "Worktree Manager v2", "runtime", "worktree_manager_v2", "control-plane-worktree-manager-v2", { acceptance_profile: "worktree_manager_v2_gate" }),
   sourceItem("sandbox_policy_model", "Sandbox policy model", "runtime", "sandbox_policy_model", "control-plane-sandbox-policy-model", { acceptance_profile: "sandbox_policy_model_gate" }),
   sourceItem("docker_local_backend_selector", "Docker/local backend selector", "runtime", "docker_local_backend_selector", "control-plane-docker-local-backend-selector", { acceptance_profile: "docker_local_backend_selector_gate" }),
+  sourceItem("secrets_broker_contract", "Secrets broker contract", "runtime", "secrets_broker_contract", "control-plane-secrets-broker-contract", { acceptance_profile: "secrets_broker_contract_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -511,6 +512,7 @@ function evaluateStageAcceptance(item, stage) {
     "worktree_manager_v2_gate",
     "sandbox_policy_model_gate",
     "docker_local_backend_selector_gate",
+    "secrets_broker_contract_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1776,6 +1778,41 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_runtime_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Docker/local Backend Selector chooses only local or Docker by runtime risk and classification, keeps SSH/cloud/operator surfaces unselected, and leaves Desktop read-only.");
+    }
+  }
+
+  if (item.acceptance_profile === "secrets_broker_contract_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.failed_validation_item_count ?? 0);
+    if (
+      errors === 0
+      && metrics.secrets_broker_contract_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.broker_status === "locked"
+      && metrics.secret_handle_required === true
+      && metrics.audit_required === true
+      && metrics.policy_snapshot_required === true
+      && metrics.secret_handle_policy_count >= 8
+      && metrics.runtime_secret_access_binding_count >= 9
+      && metrics.secret_audit_binding_count >= 9
+      && metrics.brokered_handle_only_runtime_count >= 3
+      && metrics.blocked_runtime_secret_access_count >= 2
+      && metrics.raw_secret_material_allowed_count === 0
+      && metrics.runtime_raw_secret_exposed_count === 0
+      && metrics.desktop_secret_material_exposed_count === 0
+      && metrics.provider_key_direct_access_allowed_count === 0
+      && metrics.provider_key_visible_to_desktop_count === 0
+      && metrics.raw_secret_material_logged_count === 0
+      && metrics.provider_key_logged_count === 0
+      && metrics.protected_mutation_route === "protected_action_request_only"
+      && metrics.human_gate_required_for_secret_exception === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_provider_key_visible === false
+      && metrics.desktop_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Secrets Broker Contract keeps agents and Desktop on handle references, scoped runtime tokens, and audit receipts while forbidding raw secret and provider key exposure.");
     }
   }
 

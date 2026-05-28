@@ -5643,6 +5643,29 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 95개로 증가하고 workflow golden cases artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:golden-cases -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 194 - Workflow/Gate Freeze
+
+목표: P177-P193 capability, workflow, context, gate, dashboard, golden case 산출물을 capability->workflow->gate->audit vertical slice로 고정하고 Desktop Companion이 읽을 수 있는 read-only 운영 경계를 freeze한다.
+
+구현:
+
+- `src/workflow-gate-freeze.mjs`와 `scripts/workflow-gate-freeze.mjs`를 추가해 `npm run workflows:gate-freeze` slice를 등록
+- `schemas/workflow-gate-freeze.schema.json`로 freeze source, checkpoint, vertical slice, loop binding, summary 계약을 검증
+- capability manifest, pack compatibility, workflow DSL/runner/queue/idempotency/resume/context/retrieval/prompt boundary, pre/in/post gate, gate result, capability registry API, workflow dashboard, workflow golden cases, workflow run ledger, audit event ledger를 freeze source로 묶음
+- law-firm, personal-dev, creative-document 대표 workflow 3개를 capability, workflow run, dashboard panel, gate aggregate, event binding, audit ledger 상태에 연결한 vertical slice로 고정
+- Desktop Companion readiness를 `read_only_ready`로 고정하되 mutation, protected action, final action, installer/gateway/secrets 실행은 0건으로 유지
+- Review Dashboard stage와 summary metric, Review API route, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Workflow/Gate Freeze가 validation error 없이 `complete` 상태가 됨
+- 19개 freeze source가 모두 passed 상태이고 P177-P193 control-plane loop binding이 모두 passed 상태임
+- 대표 domain pack 3개 vertical slice가 capability/workflow/gate/audit/Desktop binding을 모두 통과함
+- mutation/protected action/final action 실행이 모두 0건이고 Desktop Companion readiness가 `read_only_ready`임
+- Review API가 `/api/workflow-gate-freezes`, `/api/workflow-gate-freeze-sources`, `/api/workflow-gate-freeze-checkpoints`, `/api/workflow-gate-vertical-slices`, `/api/workflow-gate-loop-bindings`, `/api/workflow-gate-freeze-validations`를 제공
+- Golden fixture 수가 96개로 증가하고 workflow gate freeze artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:gate-freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5651,9 +5674,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 193이다.
+- 현재 완료 기준점은 Phase 194이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P194-P312, 총 119개다.
+- 남은 계획 슬롯은 P195-P312, 총 118개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

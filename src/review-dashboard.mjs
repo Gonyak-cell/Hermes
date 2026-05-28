@@ -109,6 +109,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   gateResultAggregatorPath: "artifacts/gate-result-aggregator/latest/gate-result-aggregator.json",
   workflowRunDashboardPath: "artifacts/workflow-run-dashboard/latest/workflow-run-dashboard.json",
   workflowGoldenCasesPath: "artifacts/workflow-golden-cases/latest/workflow-golden-cases.json",
+  workflowGateFreezePath: "artifacts/workflow-gate-freeze/latest/workflow-gate-freeze.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -717,6 +718,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowGoldenCasesPath",
     source_id: "workflow_golden_cases",
     label: "Workflow Golden Cases",
+  },
+  {
+    option: "workflowGateFreezePath",
+    source_id: "workflow_gate_freeze",
+    label: "Workflow/Gate Freeze",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1329,6 +1335,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "capability_registry_api") return data.summary ?? {};
   if (sourceId === "workflow_run_dashboard") return data.summary ?? {};
   if (sourceId === "workflow_golden_cases") return data.summary ?? {};
+  if (sourceId === "workflow_gate_freeze") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1602,6 +1609,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCapabilityRegistryApiStage(artifacts.capability_registry_api, sourceById.get("capability_registry_api")),
     buildWorkflowRunDashboardStage(artifacts.workflow_run_dashboard, sourceById.get("workflow_run_dashboard")),
     buildWorkflowGoldenCasesStage(artifacts.workflow_golden_cases, sourceById.get("workflow_golden_cases")),
+    buildWorkflowGateFreezeStage(artifacts.workflow_gate_freeze, sourceById.get("workflow_gate_freeze")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6867,6 +6875,102 @@ function buildWorkflowGoldenCasesStage(goldenCases, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? goldenCases.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowGateFreezeStage(freeze, source) {
+  if (!freeze) return missingStage("workflow_gate_freeze", "Workflow/Gate Freeze", source);
+  const summary = freeze.summary ?? {};
+  const sliceCount = summary.workflow_gate_vertical_slice_count ?? 0;
+  const blockers = (summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0)
+    + (summary.source_validation_error_count ?? 0)
+    + (summary.failed_source_count ?? 0)
+    + (summary.missing_required_domain_pack_count ?? 0)
+    + (summary.blocked_vertical_slice_count ?? 0)
+    + (summary.failed_loop_binding_count ?? 0)
+    + (summary.missing_loop_binding_count ?? 0)
+    + (summary.failed_checkpoint_count ?? 0)
+    + (summary.mutation_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0)
+    + (summary.final_action_executed_count ?? 0);
+  const status = summary.workflow_gate_freeze_status === "complete"
+    && summary.workflow_gate_freeze_contract_id === "workflow-gate-freeze.v1"
+    && summary.desktop_companion_readiness_status === "read_only_ready"
+    && blockers === 0
+    && sliceCount === (summary.required_domain_pack_count ?? 0)
+    && (summary.passed_vertical_slice_count ?? 0) === sliceCount
+    && (summary.capability_bound_slice_count ?? 0) === sliceCount
+    && (summary.workflow_bound_slice_count ?? 0) === sliceCount
+    && (summary.gate_bound_slice_count ?? 0) === sliceCount
+    && (summary.audit_bound_slice_count ?? 0) === sliceCount
+    && (summary.desktop_bound_slice_count ?? 0) === sliceCount
+    && (summary.read_only_slice_count ?? 0) === sliceCount
+    && (summary.passed_loop_binding_count ?? 0) === (summary.loop_binding_count ?? 0)
+    && (summary.passed_checkpoint_count ?? 0) === (summary.freeze_checkpoint_count ?? 0)
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "workflow_gate_freeze",
+    label: "Workflow/Gate Freeze",
+    status,
+    message: status === "passed"
+      ? `${sliceCount} capability->workflow->gate->audit slice(s) frozen for read-only Desktop Companion use.`
+      : `${blockers} workflow/gate freeze blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_gate_freeze_status: summary.workflow_gate_freeze_status ?? "unknown",
+      workflow_gate_freeze_contract_id: summary.workflow_gate_freeze_contract_id ?? null,
+      desktop_companion_readiness_status: summary.desktop_companion_readiness_status ?? "unknown",
+      source_capability_manifest_v2_status: summary.source_capability_manifest_v2_status ?? "unknown",
+      source_pack_manifest_compatibility_status: summary.source_pack_manifest_compatibility_status ?? "unknown",
+      source_workflow_dsl_state_model_status: summary.source_workflow_dsl_state_model_status ?? "unknown",
+      source_workflow_state_machine_runner_status: summary.source_workflow_state_machine_runner_status ?? "unknown",
+      source_workflow_queue_retry_backoff_status: summary.source_workflow_queue_retry_backoff_status ?? "unknown",
+      source_workflow_idempotency_status: summary.source_workflow_idempotency_status ?? "unknown",
+      source_workflow_resume_cancel_status: summary.source_workflow_resume_cancel_status ?? "unknown",
+      source_workflow_context_builder_status: summary.source_workflow_context_builder_status ?? "unknown",
+      source_workflow_retrieval_compiler_status: summary.source_workflow_retrieval_compiler_status ?? "unknown",
+      source_workflow_prompt_injection_boundary_status: summary.source_workflow_prompt_injection_boundary_status ?? "unknown",
+      source_workflow_pre_run_gate_framework_status: summary.source_workflow_pre_run_gate_framework_status ?? "unknown",
+      source_workflow_in_run_gate_framework_status: summary.source_workflow_in_run_gate_framework_status ?? "unknown",
+      source_workflow_post_run_gate_framework_status: summary.source_workflow_post_run_gate_framework_status ?? "unknown",
+      source_gate_result_aggregator_status: summary.source_gate_result_aggregator_status ?? "unknown",
+      source_capability_registry_api_status: summary.source_capability_registry_api_status ?? "unknown",
+      source_workflow_run_dashboard_status: summary.source_workflow_run_dashboard_status ?? "unknown",
+      source_workflow_golden_cases_status: summary.source_workflow_golden_cases_status ?? "unknown",
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_audit_event_ledger_status: summary.source_audit_event_ledger_status ?? "unknown",
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
+      freeze_source_count: summary.freeze_source_count ?? 0,
+      passed_source_count: summary.passed_source_count ?? 0,
+      failed_source_count: summary.failed_source_count ?? 0,
+      required_domain_pack_count: summary.required_domain_pack_count ?? 0,
+      represented_domain_pack_count: summary.represented_domain_pack_count ?? 0,
+      missing_required_domain_pack_count: summary.missing_required_domain_pack_count ?? 0,
+      workflow_gate_vertical_slice_count: sliceCount,
+      passed_vertical_slice_count: summary.passed_vertical_slice_count ?? 0,
+      blocked_vertical_slice_count: summary.blocked_vertical_slice_count ?? 0,
+      capability_bound_slice_count: summary.capability_bound_slice_count ?? 0,
+      workflow_bound_slice_count: summary.workflow_bound_slice_count ?? 0,
+      gate_bound_slice_count: summary.gate_bound_slice_count ?? 0,
+      audit_bound_slice_count: summary.audit_bound_slice_count ?? 0,
+      desktop_bound_slice_count: summary.desktop_bound_slice_count ?? 0,
+      human_review_required_slice_count: summary.human_review_required_slice_count ?? 0,
+      read_only_slice_count: summary.read_only_slice_count ?? 0,
+      mutation_allowed_count: summary.mutation_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      final_action_executed_count: summary.final_action_executed_count ?? 0,
+      gate_aggregate_record_count: summary.gate_aggregate_record_count ?? 0,
+      workflow_event_binding_count: summary.workflow_event_binding_count ?? 0,
+      loop_binding_count: summary.loop_binding_count ?? 0,
+      passed_loop_binding_count: summary.passed_loop_binding_count ?? 0,
+      failed_loop_binding_count: summary.failed_loop_binding_count ?? 0,
+      missing_loop_binding_count: summary.missing_loop_binding_count ?? 0,
+      freeze_checkpoint_count: summary.freeze_checkpoint_count ?? 0,
+      passed_checkpoint_count: summary.passed_checkpoint_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -12841,6 +12945,57 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_golden_regression_hash_count: artifacts.workflow_golden_cases?.summary?.regression_hash_count ?? 0,
     workflow_golden_locked_regression_hash_count: artifacts.workflow_golden_cases?.summary?.locked_regression_hash_count ?? 0,
     workflow_golden_validation_error_count: artifacts.workflow_golden_cases?.summary?.validation_error_count ?? artifacts.workflow_golden_cases?.validation?.errors?.length ?? 0,
+    workflow_gate_freeze_status: artifacts.workflow_gate_freeze?.summary?.workflow_gate_freeze_status ?? "unknown",
+    workflow_gate_freeze_contract_id: artifacts.workflow_gate_freeze?.summary?.workflow_gate_freeze_contract_id ?? null,
+    workflow_gate_freeze_desktop_companion_readiness_status: artifacts.workflow_gate_freeze?.summary?.desktop_companion_readiness_status ?? "unknown",
+    workflow_gate_freeze_source_capability_manifest_v2_status: artifacts.workflow_gate_freeze?.summary?.source_capability_manifest_v2_status ?? "unknown",
+    workflow_gate_freeze_source_pack_manifest_compatibility_status: artifacts.workflow_gate_freeze?.summary?.source_pack_manifest_compatibility_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_dsl_state_model_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_dsl_state_model_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_state_machine_runner_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_state_machine_runner_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_queue_retry_backoff_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_queue_retry_backoff_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_idempotency_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_idempotency_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_resume_cancel_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_resume_cancel_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_context_builder_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_context_builder_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_retrieval_compiler_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_retrieval_compiler_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_prompt_injection_boundary_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_prompt_injection_boundary_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_pre_run_gate_framework_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_pre_run_gate_framework_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_in_run_gate_framework_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_in_run_gate_framework_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_post_run_gate_framework_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_post_run_gate_framework_status ?? "unknown",
+    workflow_gate_freeze_source_gate_result_aggregator_status: artifacts.workflow_gate_freeze?.summary?.source_gate_result_aggregator_status ?? "unknown",
+    workflow_gate_freeze_source_capability_registry_api_status: artifacts.workflow_gate_freeze?.summary?.source_capability_registry_api_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_run_dashboard_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_run_dashboard_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_golden_cases_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_golden_cases_status ?? "unknown",
+    workflow_gate_freeze_source_workflow_run_ledger_status: artifacts.workflow_gate_freeze?.summary?.source_workflow_run_ledger_status ?? "unknown",
+    workflow_gate_freeze_source_audit_event_ledger_status: artifacts.workflow_gate_freeze?.summary?.source_audit_event_ledger_status ?? "unknown",
+    workflow_gate_freeze_source_validation_error_count: artifacts.workflow_gate_freeze?.summary?.source_validation_error_count ?? 0,
+    workflow_gate_freeze_source_count: artifacts.workflow_gate_freeze?.summary?.freeze_source_count ?? 0,
+    workflow_gate_freeze_passed_source_count: artifacts.workflow_gate_freeze?.summary?.passed_source_count ?? 0,
+    workflow_gate_freeze_failed_source_count: artifacts.workflow_gate_freeze?.summary?.failed_source_count ?? 0,
+    workflow_gate_freeze_required_domain_pack_count: artifacts.workflow_gate_freeze?.summary?.required_domain_pack_count ?? 0,
+    workflow_gate_freeze_represented_domain_pack_count: artifacts.workflow_gate_freeze?.summary?.represented_domain_pack_count ?? 0,
+    workflow_gate_freeze_missing_required_domain_pack_count: artifacts.workflow_gate_freeze?.summary?.missing_required_domain_pack_count ?? 0,
+    workflow_gate_freeze_vertical_slice_count: artifacts.workflow_gate_freeze?.summary?.workflow_gate_vertical_slice_count ?? 0,
+    workflow_gate_freeze_passed_vertical_slice_count: artifacts.workflow_gate_freeze?.summary?.passed_vertical_slice_count ?? 0,
+    workflow_gate_freeze_blocked_vertical_slice_count: artifacts.workflow_gate_freeze?.summary?.blocked_vertical_slice_count ?? 0,
+    workflow_gate_freeze_capability_bound_slice_count: artifacts.workflow_gate_freeze?.summary?.capability_bound_slice_count ?? 0,
+    workflow_gate_freeze_workflow_bound_slice_count: artifacts.workflow_gate_freeze?.summary?.workflow_bound_slice_count ?? 0,
+    workflow_gate_freeze_gate_bound_slice_count: artifacts.workflow_gate_freeze?.summary?.gate_bound_slice_count ?? 0,
+    workflow_gate_freeze_audit_bound_slice_count: artifacts.workflow_gate_freeze?.summary?.audit_bound_slice_count ?? 0,
+    workflow_gate_freeze_desktop_bound_slice_count: artifacts.workflow_gate_freeze?.summary?.desktop_bound_slice_count ?? 0,
+    workflow_gate_freeze_human_review_required_slice_count: artifacts.workflow_gate_freeze?.summary?.human_review_required_slice_count ?? 0,
+    workflow_gate_freeze_read_only_slice_count: artifacts.workflow_gate_freeze?.summary?.read_only_slice_count ?? 0,
+    workflow_gate_freeze_mutation_allowed_count: artifacts.workflow_gate_freeze?.summary?.mutation_allowed_count ?? 0,
+    workflow_gate_freeze_protected_action_executed_count: artifacts.workflow_gate_freeze?.summary?.protected_action_executed_count ?? 0,
+    workflow_gate_freeze_final_action_executed_count: artifacts.workflow_gate_freeze?.summary?.final_action_executed_count ?? 0,
+    workflow_gate_freeze_gate_aggregate_record_count: artifacts.workflow_gate_freeze?.summary?.gate_aggregate_record_count ?? 0,
+    workflow_gate_freeze_workflow_event_binding_count: artifacts.workflow_gate_freeze?.summary?.workflow_event_binding_count ?? 0,
+    workflow_gate_freeze_loop_binding_count: artifacts.workflow_gate_freeze?.summary?.loop_binding_count ?? 0,
+    workflow_gate_freeze_passed_loop_binding_count: artifacts.workflow_gate_freeze?.summary?.passed_loop_binding_count ?? 0,
+    workflow_gate_freeze_missing_loop_binding_count: artifacts.workflow_gate_freeze?.summary?.missing_loop_binding_count ?? 0,
+    workflow_gate_freeze_checkpoint_count: artifacts.workflow_gate_freeze?.summary?.freeze_checkpoint_count ?? 0,
+    workflow_gate_freeze_passed_checkpoint_count: artifacts.workflow_gate_freeze?.summary?.passed_checkpoint_count ?? 0,
+    workflow_gate_freeze_failed_checkpoint_count: artifacts.workflow_gate_freeze?.summary?.failed_checkpoint_count ?? 0,
+    workflow_gate_freeze_validation_error_count: artifacts.workflow_gate_freeze?.summary?.validation_error_count ?? artifacts.workflow_gate_freeze?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -14659,6 +14814,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-run-dashboard") parsed.workflowRunDashboardPath = false;
     else if (arg === "--workflow-golden-cases") parsed.workflowGoldenCasesPath = argv[++index];
     else if (arg === "--no-workflow-golden-cases") parsed.workflowGoldenCasesPath = false;
+    else if (arg === "--workflow-gate-freeze") parsed.workflowGateFreezePath = argv[++index];
+    else if (arg === "--no-workflow-gate-freeze") parsed.workflowGateFreezePath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -15071,6 +15228,8 @@ Options:
   --workflow-golden-cases <path>
                                   workflow-golden-cases.json path.
   --no-workflow-golden-cases      Do not include Workflow Golden Cases status.
+  --workflow-gate-freeze <path>   workflow-gate-freeze.json path.
+  --no-workflow-gate-freeze       Do not include Workflow/Gate Freeze status.
   --workflow-dsl-state-model <path>
                                   workflow-dsl-state-model.json path.
   --no-workflow-dsl-state-model

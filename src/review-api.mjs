@@ -3316,6 +3316,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-gate-freezes") {
+    const workflowGateFreezeResult = await readDashboardSourceArtifact(dashboard, "workflow_gate_freeze");
+    if (!workflowGateFreezeResult.available) {
+      return jsonResponse(503, buildError("workflow_gate_freeze_unavailable", workflowGateFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_gate_freezes", [workflowGateFreezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-gate-freeze-sources") {
+    const workflowGateFreezeResult = await readDashboardSourceArtifact(dashboard, "workflow_gate_freeze");
+    if (!workflowGateFreezeResult.available) {
+      return jsonResponse(503, buildError("workflow_gate_freeze_unavailable", workflowGateFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_gate_freeze_sources", workflowGateFreezeResult.artifact.workflow_gate_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-gate-freeze-checkpoints") {
+    const workflowGateFreezeResult = await readDashboardSourceArtifact(dashboard, "workflow_gate_freeze");
+    if (!workflowGateFreezeResult.available) {
+      return jsonResponse(503, buildError("workflow_gate_freeze_unavailable", workflowGateFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_gate_freeze_checkpoints", workflowGateFreezeResult.artifact.workflow_gate_freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-gate-vertical-slices") {
+    const workflowGateFreezeResult = await readDashboardSourceArtifact(dashboard, "workflow_gate_freeze");
+    if (!workflowGateFreezeResult.available) {
+      return jsonResponse(503, buildError("workflow_gate_freeze_unavailable", workflowGateFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_gate_vertical_slices", workflowGateFreezeResult.artifact.workflow_gate_vertical_slices ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-gate-loop-bindings") {
+    const workflowGateFreezeResult = await readDashboardSourceArtifact(dashboard, "workflow_gate_freeze");
+    if (!workflowGateFreezeResult.available) {
+      return jsonResponse(503, buildError("workflow_gate_freeze_unavailable", workflowGateFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_gate_loop_bindings", workflowGateFreezeResult.artifact.workflow_gate_loop_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-gate-freeze-validations") {
+    const workflowGateFreezeResult = await readDashboardSourceArtifact(dashboard, "workflow_gate_freeze");
+    if (!workflowGateFreezeResult.available) {
+      return jsonResponse(503, buildError("workflow_gate_freeze_unavailable", workflowGateFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_gate_freeze_validations", workflowGateFreezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7448,6 +7490,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-golden-cases", "Representative workflow golden cases"),
       route("GET", "/api/workflow-golden-case-steps", "Workflow golden case state-machine steps"),
       route("GET", "/api/workflow-golden-case-validations", "Workflow golden case validation rows"),
+      route("GET", "/api/workflow-gate-freezes", "Workflow/Gate freeze artifacts"),
+      route("GET", "/api/workflow-gate-freeze-sources", "Workflow/Gate freeze source status rows"),
+      route("GET", "/api/workflow-gate-freeze-checkpoints", "Workflow/Gate freeze checkpoint rows"),
+      route("GET", "/api/workflow-gate-vertical-slices", "Capability-to-workflow-to-gate-to-audit vertical slices"),
+      route("GET", "/api/workflow-gate-loop-bindings", "Workflow/Gate freeze control-plane loop bindings"),
+      route("GET", "/api/workflow-gate-freeze-validations", "Workflow/Gate freeze validation rows"),
       route("GET", "/api/workflow-dsl-state-models", "Workflow DSL state model artifacts"),
       route("GET", "/api/workflow-dsl-states", "Workflow DSL state definitions"),
       route("GET", "/api/workflow-dsl-transition-rules", "Workflow DSL transition rules"),
@@ -8166,6 +8214,9 @@ function filterItems(items, searchParams) {
     "capability_registry_api_status",
     "workflow_run_dashboard_status",
     "workflow_golden_case_status",
+    "workflow_gate_freeze_status",
+    "workflow_gate_vertical_slice_status",
+    "audit_binding_status",
     "state_machine_pass_status",
     "state_machine_step_status",
     "step_boundary",
@@ -9413,6 +9464,9 @@ function readFilterValue(item, key) {
   if (key === "capability_registry_api_status") return item.summary?.capability_registry_api_status ?? item.capability_registry_api_status;
   if (key === "workflow_run_dashboard_status") return item.summary?.workflow_run_dashboard_status ?? item.workflow_run_dashboard_status;
   if (key === "workflow_golden_case_status") return item.summary?.workflow_golden_case_status ?? item.workflow_golden_case_status;
+  if (key === "workflow_gate_freeze_status") return item.summary?.workflow_gate_freeze_status ?? item.workflow_gate_freeze_status;
+  if (key === "workflow_gate_vertical_slice_status") return item.workflow_gate_vertical_slice_status;
+  if (key === "audit_binding_status") return item.audit_binding_status;
   if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;
   if (key === "desktop_surface") return item.desktop_surface;
   if (key === "desktop_card_status") return item.desktop_card_status;

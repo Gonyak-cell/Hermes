@@ -278,6 +278,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-cases"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-case-steps"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-case-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-freezes"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-freeze-sources"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-freeze-checkpoints"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-vertical-slices"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-loop-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-freeze-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1035,6 +1041,30 @@ try {
   const workflowGoldenCaseValidations = await fetchJson(`${url}/api/workflow-golden-case-validations?status=passed&limit=5`);
   assert.equal(workflowGoldenCaseValidations.collection, "workflow_golden_case_validations");
   assert.ok(workflowGoldenCaseValidations.count <= 5);
+
+  const workflowGateFreezes = await fetchJson(`${url}/api/workflow-gate-freezes?workflow_gate_freeze_status=complete&limit=1`);
+  assert.equal(workflowGateFreezes.collection, "workflow_gate_freezes");
+  assert.ok(workflowGateFreezes.count <= 1);
+
+  const workflowGateFreezeSources = await fetchJson(`${url}/api/workflow-gate-freeze-sources?source_status=passed&limit=5`);
+  assert.equal(workflowGateFreezeSources.collection, "workflow_gate_freeze_sources");
+  assert.ok(workflowGateFreezeSources.count <= 5);
+
+  const workflowGateFreezeCheckpoints = await fetchJson(`${url}/api/workflow-gate-freeze-checkpoints?checkpoint_status=passed&limit=5`);
+  assert.equal(workflowGateFreezeCheckpoints.collection, "workflow_gate_freeze_checkpoints");
+  assert.ok(workflowGateFreezeCheckpoints.count <= 5);
+
+  const workflowGateVerticalSlices = await fetchJson(`${url}/api/workflow-gate-vertical-slices?workflow_gate_vertical_slice_status=passed&limit=5`);
+  assert.equal(workflowGateVerticalSlices.collection, "workflow_gate_vertical_slices");
+  assert.ok(workflowGateVerticalSlices.count <= 5);
+
+  const workflowGateLoopBindings = await fetchJson(`${url}/api/workflow-gate-loop-bindings?loop_binding_status=passed&limit=5`);
+  assert.equal(workflowGateLoopBindings.collection, "workflow_gate_loop_bindings");
+  assert.ok(workflowGateLoopBindings.count <= 5);
+
+  const workflowGateFreezeValidations = await fetchJson(`${url}/api/workflow-gate-freeze-validations?status=passed&limit=5`);
+  assert.equal(workflowGateFreezeValidations.collection, "workflow_gate_freeze_validations");
+  assert.ok(workflowGateFreezeValidations.count <= 5);
 
   const workflowDslStateModels = await fetchJson(`${url}/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete&limit=1`);
   assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");

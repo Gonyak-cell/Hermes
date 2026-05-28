@@ -173,6 +173,7 @@
     "workflows:gate-results": "node scripts/gate-result-aggregator.mjs",
     "workflows:run-dashboard": "node scripts/workflow-run-dashboard.mjs",
     "workflows:golden-cases": "node scripts/workflow-golden-cases.mjs",
+    "workflows:gate-freeze": "node scripts/workflow-gate-freeze.mjs",
     "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "policy:surface": "node scripts/policy-operations-surface.mjs",
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",

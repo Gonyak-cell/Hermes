@@ -115,6 +115,7 @@ const GOAL_ITEMS = [
   sourceItem("capability_registry_api", "Capability registry API and Desktop Companion read-only surface", "api", "capability_registry_api", "control-plane-capability-registry-api", { acceptance_profile: "capability_registry_api_gate" }),
   sourceItem("workflow_run_dashboard", "Workflow run dashboard and Desktop Companion run panels", "api", "workflow_run_dashboard", "control-plane-workflow-run-dashboard", { acceptance_profile: "workflow_run_dashboard_gate" }),
   sourceItem("workflow_golden_cases", "Workflow golden cases", "workflow", "workflow_golden_cases", "control-plane-workflow-golden-cases", { acceptance_profile: "workflow_golden_cases_gate" }),
+  sourceItem("workflow_gate_freeze", "Workflow/Gate freeze", "workflow", "workflow_gate_freeze", "control-plane-workflow-gate-freeze", { acceptance_profile: "workflow_gate_freeze_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -491,6 +492,7 @@ function evaluateStageAcceptance(item, stage) {
     "capability_registry_api_gate",
     "workflow_run_dashboard_gate",
     "workflow_golden_cases_gate",
+    "workflow_gate_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1362,6 +1364,41 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.locked_regression_hash_count ?? 0) === caseCount
     ) {
       return passedWithOperationalGate(stage, "Workflow golden cases lock representative law-firm, personal-dev, and creative-document workflows against the deterministic state machine while preserving human review holds and prohibiting auto mutation, protected action execution, delivery, or final action.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_gate_freeze_gate") {
+    const sliceCount = metrics.workflow_gate_vertical_slice_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.source_validation_error_count ?? 0)
+      + (metrics.failed_source_count ?? 0)
+      + (metrics.missing_required_domain_pack_count ?? 0)
+      + (metrics.blocked_vertical_slice_count ?? 0)
+      + (metrics.failed_loop_binding_count ?? 0)
+      + (metrics.missing_loop_binding_count ?? 0)
+      + (metrics.failed_checkpoint_count ?? 0)
+      + (metrics.mutation_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0)
+      + (metrics.final_action_executed_count ?? 0);
+    if (
+      errors === 0
+      && metrics.workflow_gate_freeze_status === "complete"
+      && metrics.workflow_gate_freeze_contract_id === "workflow-gate-freeze.v1"
+      && metrics.desktop_companion_readiness_status === "read_only_ready"
+      && (metrics.required_domain_pack_count ?? 0) === 3
+      && (metrics.represented_domain_pack_count ?? 0) === 3
+      && sliceCount === 3
+      && (metrics.passed_vertical_slice_count ?? 0) === sliceCount
+      && (metrics.capability_bound_slice_count ?? 0) === sliceCount
+      && (metrics.workflow_bound_slice_count ?? 0) === sliceCount
+      && (metrics.gate_bound_slice_count ?? 0) === sliceCount
+      && (metrics.audit_bound_slice_count ?? 0) === sliceCount
+      && (metrics.desktop_bound_slice_count ?? 0) === sliceCount
+      && (metrics.read_only_slice_count ?? 0) === sliceCount
+      && (metrics.passed_loop_binding_count ?? 0) === (metrics.loop_binding_count ?? 0)
+      && (metrics.passed_checkpoint_count ?? 0) === (metrics.freeze_checkpoint_count ?? 0)
+    ) {
+      return passedWithOperationalGate(stage, "Workflow/Gate freeze locks the capability-to-workflow-to-gate-to-audit vertical slice for representative domain packs and keeps Desktop Companion access read-only with no protected or final action execution.");
     }
   }
 

@@ -485,6 +485,12 @@ npm run api:serve
 - `GET /api/workflow-golden-cases`: representative law-firm, personal-dev, and creative-document workflow golden cases
 - `GET /api/workflow-golden-case-steps`: workflow golden case state-machine step rows
 - `GET /api/workflow-golden-case-validations`: workflow golden case validation rows
+- `GET /api/workflow-gate-freezes`: Workflow/Gate freeze artifact
+- `GET /api/workflow-gate-freeze-sources`: Workflow/Gate freeze source status rows
+- `GET /api/workflow-gate-freeze-checkpoints`: Workflow/Gate freeze checkpoint rows
+- `GET /api/workflow-gate-vertical-slices`: capability->workflow->gate->audit vertical slices
+- `GET /api/workflow-gate-loop-bindings`: Workflow/Gate freeze control-plane loop binding rows
+- `GET /api/workflow-gate-freeze-validations`: Workflow/Gate freeze validation rows
 - `GET /api/workflow-dsl-state-models`: workflow DSL state model artifact
 - `GET /api/workflow-dsl-states`: started/waiting/gated/approved/failed/completed state definitions
 - `GET /api/workflow-dsl-transition-rules`: workflow DSL transition rule rows

@@ -101,6 +101,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     capability_registry_api: "artifacts/capability-registry-api/latest/capability-registry-api.json",
     workflow_run_dashboard: "artifacts/workflow-run-dashboard/latest/workflow-run-dashboard.json",
     workflow_golden_cases: "artifacts/workflow-golden-cases/latest/workflow-golden-cases.json",
+    workflow_gate_freeze: "artifacts/workflow-gate-freeze/latest/workflow-gate-freeze.json",
     error_cost_observability_contract_freeze: "artifacts/error-cost-observability-contract-freeze/latest/error-cost-observability-contract-freeze.json",
   },
 };
@@ -200,6 +201,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("capability_registry_api", "Capability Registry API", "api", "capability-registry-api.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
+  fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),
   fixtureDefinition("error_cost_observability_contract_freeze", "Error Cost Observability Contract Freeze", "observability", "error-cost-observability-contract-freeze.schema.json"),
 ];
 

@@ -189,6 +189,7 @@ import { runGateResultAggregator } from "../src/gate-result-aggregator.mjs";
 import { runCapabilityRegistryApi } from "../src/capability-registry-api.mjs";
 import { runWorkflowRunDashboard } from "../src/workflow-run-dashboard.mjs";
 import { runWorkflowGoldenCases } from "../src/workflow-golden-cases.mjs";
+import { runWorkflowGateFreeze } from "../src/workflow-gate-freeze.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1830,6 +1831,7 @@ describe("matter harness", () => {
         capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
         workflowRunDashboardPath: path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json"),
         workflowGoldenCasesPath: path.join(outDir, "workflow-golden-cases", "workflow-golden-cases.json"),
+        workflowGateFreezePath: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -6277,6 +6279,86 @@ describe("matter harness", () => {
       assert.ok(workflowGoldenCases.workflow_golden_case_steps.every((step) => step.state_machine_step_status === "passed" && step.mutation_allowed === false));
       assert.match(await readFile(path.join(outDir, "workflow-golden-cases", "summary.md"), "utf8"), /Workflow Golden Cases/);
 
+      const workflowGateFreezeLoopDir = path.join(outDir, "workflow-gate-freeze-control-plane-loop");
+      await runControlPlaneLoop({
+        outDir: workflowGateFreezeLoopDir,
+        runAt: "2026-05-23T06:37:38.850Z",
+        steps: [
+          loopStep("capability_manifest_v2", "Capability Manifest v2", "contracts", path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json")),
+          loopStep("pack_manifest_compatibility", "Pack Manifest Compatibility", "domain_packs", path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json")),
+          loopStep("workflow_dsl_state_model", "Workflow DSL State Model", "workflow", path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json")),
+          loopStep("workflow_state_machine_runner", "Workflow State Machine Runner", "workflow", path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json")),
+          loopStep("workflow_queue_retry_backoff_contract", "Workflow Queue/Retry/Backoff Contract", "workflow", path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json")),
+          loopStep("workflow_idempotency_ledger", "Workflow Idempotency Ledger", "workflow", path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json")),
+          loopStep("workflow_resume_cancel_contract", "Workflow Resume/Cancel Contract", "workflow", path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json")),
+          loopStep("workflow_context_builder_contract", "Workflow Context Builder Contract", "workflow", path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json")),
+          loopStep("workflow_retrieval_compiler", "Workflow Retrieval Compiler", "workflow", path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json")),
+          loopStep("workflow_prompt_injection_boundary", "Workflow Prompt Injection Boundary", "workflow", path.join(outDir, "workflow-prompt-injection-boundary", "workflow-prompt-injection-boundary.json")),
+          loopStep("workflow_pre_run_gate_framework", "Workflow Pre-run Gate Framework", "workflow", path.join(outDir, "workflow-pre-run-gates", "workflow-pre-run-gate-framework.json")),
+          loopStep("workflow_in_run_gate_framework", "Workflow In-run Gate Framework", "workflow", path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json")),
+          loopStep("workflow_post_run_gate_framework", "Workflow Post-run Gate Framework", "workflow", path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json")),
+          loopStep("gate_result_aggregator", "Gate Result Aggregator", "workflow", path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json")),
+          loopStep("capability_registry_api", "Capability Registry API", "api", path.join(outDir, "capability-registry-api", "capability-registry-api.json")),
+          loopStep("workflow_run_dashboard", "Workflow Run Dashboard", "api", path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json")),
+          loopStep("workflow_golden_cases", "Workflow Golden Cases", "workflow", path.join(outDir, "workflow-golden-cases", "workflow-golden-cases.json")),
+        ],
+      });
+
+      const workflowGateFreeze = await runWorkflowGateFreeze({
+        capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
+        packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
+        workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+        workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
+        workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
+        workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
+        workflowContextBuilderContractPath: path.join(outDir, "workflow-context-builder", "workflow-context-builder-contract.json"),
+        workflowRetrievalCompilerPath: path.join(outDir, "workflow-retrieval-compiler", "workflow-retrieval-compiler.json"),
+        workflowPromptInjectionBoundaryPath: path.join(outDir, "workflow-prompt-injection-boundary", "workflow-prompt-injection-boundary.json"),
+        workflowPreRunGateFrameworkPath: path.join(outDir, "workflow-pre-run-gates", "workflow-pre-run-gate-framework.json"),
+        workflowInRunGateFrameworkPath: path.join(outDir, "workflow-in-run-gates", "workflow-in-run-gate-framework.json"),
+        workflowPostRunGateFrameworkPath: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
+        gateResultAggregatorPath: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        workflowRunDashboardPath: path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json"),
+        workflowGoldenCasesPath: path.join(outDir, "workflow-golden-cases", "workflow-golden-cases.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        workflowRunRecordsPath: path.join(outDir, "workflow-run-ledger", "workflow-run-records.json"),
+        workflowEventBindingsPath: path.join(outDir, "workflow-run-ledger", "workflow-event-bindings.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        auditTrailRecordsPath: path.join(outDir, "audit-event-ledger", "audit-trail-records.json"),
+        controlPlaneLoopPath: path.join(workflowGateFreezeLoopDir, "control-plane-loop.json"),
+        outDir: path.join(outDir, "workflow-gate-freeze"),
+        runAt: "2026-05-23T06:37:38.900Z",
+      });
+      const workflowGateFreezeSchema = JSON.parse(await readFile("schemas/workflow-gate-freeze.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowGateFreeze, workflowGateFreezeSchema, {}, "workflow_gate_freeze"),
+        [],
+      );
+      assert.equal(workflowGateFreeze.summary.workflow_gate_freeze_status, "complete");
+      assert.equal(workflowGateFreeze.summary.workflow_gate_freeze_contract_id, "workflow-gate-freeze.v1");
+      assert.equal(workflowGateFreeze.summary.desktop_companion_readiness_status, "read_only_ready");
+      assert.equal(workflowGateFreeze.summary.freeze_source_count, 19);
+      assert.equal(workflowGateFreeze.summary.passed_source_count, 19);
+      assert.equal(workflowGateFreeze.summary.workflow_gate_vertical_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.passed_vertical_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.capability_bound_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.workflow_bound_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.gate_bound_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.audit_bound_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.desktop_bound_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.read_only_slice_count, 3);
+      assert.equal(workflowGateFreeze.summary.mutation_allowed_count, 0);
+      assert.equal(workflowGateFreeze.summary.protected_action_executed_count, 0);
+      assert.equal(workflowGateFreeze.summary.final_action_executed_count, 0);
+      assert.equal(workflowGateFreeze.summary.passed_loop_binding_count, workflowGateFreeze.summary.loop_binding_count);
+      assert.equal(workflowGateFreeze.summary.passed_checkpoint_count, workflowGateFreeze.summary.freeze_checkpoint_count);
+      assert.equal(workflowGateFreeze.summary.validation_error_count, 0);
+      assert.ok(workflowGateFreeze.workflow_gate_vertical_slices.every((slice) => slice.workflow_gate_vertical_slice_status === "passed" && slice.read_only === true && slice.mutation_allowed === false));
+      assert.ok(workflowGateFreeze.workflow_gate_freeze_checkpoints.every((checkpoint) => checkpoint.checkpoint_status === "passed"));
+      assert.match(await readFile(path.join(outDir, "workflow-gate-freeze", "summary.md"), "utf8"), /Workflow\/Gate Freeze/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6434,6 +6516,7 @@ describe("matter harness", () => {
           capability_registry_api: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
           workflow_run_dashboard: path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json"),
           workflow_golden_cases: path.join(outDir, "workflow-golden-cases", "workflow-golden-cases.json"),
+          workflow_gate_freeze: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -6445,8 +6528,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 95);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 95);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 96);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 96);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6529,6 +6612,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "capability_registry_api"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_golden_cases"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_gate_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6599,6 +6683,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:gate-results"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:run-dashboard"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:golden-cases"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:gate-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:registry-api"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
@@ -6988,6 +7073,10 @@ describe("matter harness", () => {
       assert.equal(workflowGoldenCasesCheckpoint?.acceptance_profile, "workflow_golden_cases_gate");
       assert.equal(workflowGoldenCasesCheckpoint?.status, "passed");
       assert.equal(workflowGoldenCasesCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowGateFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-gate-freeze");
+      assert.equal(workflowGateFreezeCheckpoint?.acceptance_profile, "workflow_gate_freeze_gate");
+      assert.equal(workflowGateFreezeCheckpoint?.status, "passed");
+      assert.equal(workflowGateFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -8821,6 +8910,29 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.workflow_golden_regression_hash_count, workflowGoldenCases.summary.regression_hash_count);
       assert.equal(dashboard.summary.workflow_golden_locked_regression_hash_count, workflowGoldenCases.summary.locked_regression_hash_count);
       assert.equal(dashboard.summary.workflow_golden_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_gate_freeze_status, "complete");
+      assert.equal(dashboard.summary.workflow_gate_freeze_contract_id, "workflow-gate-freeze.v1");
+      assert.equal(dashboard.summary.workflow_gate_freeze_desktop_companion_readiness_status, "read_only_ready");
+      assert.equal(dashboard.summary.workflow_gate_freeze_source_capability_manifest_v2_status, "complete");
+      assert.equal(dashboard.summary.workflow_gate_freeze_source_workflow_golden_cases_status, "complete");
+      assert.equal(dashboard.summary.workflow_gate_freeze_source_workflow_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_gate_freeze_source_audit_event_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_gate_freeze_source_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_gate_freeze_source_count, workflowGateFreeze.summary.freeze_source_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_passed_source_count, workflowGateFreeze.summary.passed_source_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_vertical_slice_count, workflowGateFreeze.summary.workflow_gate_vertical_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_passed_vertical_slice_count, workflowGateFreeze.summary.passed_vertical_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_capability_bound_slice_count, workflowGateFreeze.summary.capability_bound_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_workflow_bound_slice_count, workflowGateFreeze.summary.workflow_bound_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_gate_bound_slice_count, workflowGateFreeze.summary.gate_bound_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_audit_bound_slice_count, workflowGateFreeze.summary.audit_bound_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_read_only_slice_count, workflowGateFreeze.summary.read_only_slice_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_mutation_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_gate_freeze_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_gate_freeze_final_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_gate_freeze_passed_loop_binding_count, workflowGateFreeze.summary.passed_loop_binding_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_passed_checkpoint_count, workflowGateFreeze.summary.passed_checkpoint_count);
+      assert.equal(dashboard.summary.workflow_gate_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -9559,6 +9671,20 @@ describe("matter harness", () => {
       assert.equal(workflowGoldenCasesStage?.metrics.auto_transition_allowed_count, 0);
       assert.equal(workflowGoldenCasesStage?.metrics.protected_action_executed_count, 0);
       assert.equal(workflowGoldenCasesStage?.metrics.final_action_executed_count, 0);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_gate_freeze"));
+      const workflowGateFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_gate_freeze");
+      assert.equal(workflowGateFreezeStage?.status, "passed");
+      assert.equal(workflowGateFreezeStage?.metrics.workflow_gate_freeze_status, "complete");
+      assert.equal(workflowGateFreezeStage?.metrics.workflow_gate_vertical_slice_count, workflowGateFreeze.summary.workflow_gate_vertical_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.passed_vertical_slice_count, workflowGateFreeze.summary.passed_vertical_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.capability_bound_slice_count, workflowGateFreeze.summary.capability_bound_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.workflow_bound_slice_count, workflowGateFreeze.summary.workflow_bound_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.gate_bound_slice_count, workflowGateFreeze.summary.gate_bound_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.audit_bound_slice_count, workflowGateFreeze.summary.audit_bound_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.read_only_slice_count, workflowGateFreeze.summary.read_only_slice_count);
+      assert.equal(workflowGateFreezeStage?.metrics.mutation_allowed_count, 0);
+      assert.equal(workflowGateFreezeStage?.metrics.protected_action_executed_count, 0);
+      assert.equal(workflowGateFreezeStage?.metrics.final_action_executed_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -9969,6 +10095,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-golden-cases"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-golden-case-steps"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-golden-case-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-freezes"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-freeze-sources"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-freeze-checkpoints"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-vertical-slices"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-loop-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-freeze-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -10545,6 +10677,30 @@ describe("matter harness", () => {
       const workflowGoldenCaseValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-golden-case-validations?status=passed", apiOptions)).body);
       assert.equal(workflowGoldenCaseValidations.collection, "workflow_golden_case_validations");
       assert.equal(workflowGoldenCaseValidations.count, workflowGoldenCases.summary.validation_item_count);
+
+      const workflowGateFreezes = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-freezes?workflow_gate_freeze_status=complete", apiOptions)).body);
+      assert.equal(workflowGateFreezes.collection, "workflow_gate_freezes");
+      assert.equal(workflowGateFreezes.count, 1);
+
+      const workflowGateFreezeSources = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-freeze-sources?source_status=passed", apiOptions)).body);
+      assert.equal(workflowGateFreezeSources.collection, "workflow_gate_freeze_sources");
+      assert.equal(workflowGateFreezeSources.count, workflowGateFreeze.summary.freeze_source_count);
+
+      const workflowGateFreezeCheckpoints = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-freeze-checkpoints?checkpoint_status=passed", apiOptions)).body);
+      assert.equal(workflowGateFreezeCheckpoints.collection, "workflow_gate_freeze_checkpoints");
+      assert.equal(workflowGateFreezeCheckpoints.count, workflowGateFreeze.summary.freeze_checkpoint_count);
+
+      const workflowGateVerticalSlices = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-vertical-slices?workflow_gate_vertical_slice_status=passed", apiOptions)).body);
+      assert.equal(workflowGateVerticalSlices.collection, "workflow_gate_vertical_slices");
+      assert.equal(workflowGateVerticalSlices.count, workflowGateFreeze.summary.workflow_gate_vertical_slice_count);
+
+      const workflowGateLoopBindings = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-loop-bindings?loop_binding_status=passed", apiOptions)).body);
+      assert.equal(workflowGateLoopBindings.collection, "workflow_gate_loop_bindings");
+      assert.equal(workflowGateLoopBindings.count, workflowGateFreeze.summary.loop_binding_count);
+
+      const workflowGateFreezeValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-gate-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowGateFreezeValidations.collection, "workflow_gate_freeze_validations");
+      assert.equal(workflowGateFreezeValidations.count, workflowGateFreeze.summary.validation_item_count);
 
       const workflowDslStateModels = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete", apiOptions)).body);
       assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");
@@ -14193,6 +14349,16 @@ function runGit(cwd, args) {
   const result = spawnSync("git", args, { cwd, encoding: "utf8" });
   assert.equal(result.status, 0, `git ${args.join(" ")} failed: ${result.stderr || result.stdout}`);
   return result;
+}
+
+function loopStep(stepId, label, category, expectedArtifact) {
+  return {
+    step_id: stepId,
+    label,
+    category,
+    command: [process.execPath, "-e", `console.log(${JSON.stringify(`${stepId} passed`)})`],
+    expected_artifacts: [expectedArtifact],
+  };
 }
 
 async function writeEvidenceGoldenFixtureInputStores(root, generatedAt) {

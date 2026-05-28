@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-gate-freeze.schema.json",
+  "title": "Hermes Workflow/Gate Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_gate_freeze_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_gate_freeze_contract",
+    "workflow_gate_freeze_sources",
+    "workflow_gate_freeze_checkpoints",
+    "workflow_gate_vertical_slices",
+    "workflow_gate_loop_bindings",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-gate-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_gate_freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": {
+      "type": "object",
+      "additionalProperties": { "$ref": "#/$defs/source_contract" }
+    },
+    "workflow_gate_freeze_contract": { "$ref": "#/$defs/freeze_contract" },
+    "workflow_gate_freeze_sources": {
+      "type": "array",
+      "minItems": 19,
+      "items": { "$ref": "#/$defs/source_status" }
+    },
+    "workflow_gate_freeze_checkpoints": {
+      "type": "array",
+      "minItems": 9,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "workflow_gate_vertical_slices": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/vertical_slice" }
+    },
+    "workflow_gate_loop_bindings": {
+      "type": "array",
+      "minItems": 17,
+      "items": { "$ref": "#/$defs/loop_binding" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_contract": {
+      "type": "object",
+      "required": ["schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "freeze_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_gate_freeze_contract_id",
+        "generated_at",
+        "freeze_scope",
+        "source_of_truth",
+        "required_domain_packs",
+        "acceptance_rule",
+        "desktop_companion_rule",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-gate-freeze-contract.v1" },
+        "workflow_gate_freeze_contract_id": { "const": "workflow-gate-freeze.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "freeze_scope": { "const": "capability_to_workflow_to_gate_to_audit" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "required_domain_packs": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "enum": ["law-firm", "personal-dev", "creative-document"] }
+        },
+        "acceptance_rule": { "type": "string" },
+        "desktop_companion_rule": { "type": "string" },
+        "mutation_policy": { "const": "read_only_freeze_no_auto_execution" }
+      }
+    },
+    "source_status": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_id",
+        "label",
+        "phase",
+        "source_path",
+        "expected_status",
+        "observed_status",
+        "validation_error_count",
+        "source_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-gate-freeze-source-status.v1" },
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "phase": { "type": "string" },
+        "source_path": { "type": "string" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "expected_status": { "type": "string" },
+        "observed_status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "source_status": { "enum": ["passed", "failed"] },
+        "content_hash": { "type": ["string", "null"] }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_gate_freeze_checkpoint_id",
+        "checkpoint_id",
+        "label",
+        "checkpoint_status",
+        "passed",
+        "message",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-gate-freeze-checkpoint.v1" },
+        "workflow_gate_freeze_checkpoint_id": { "type": "string" },
+        "checkpoint_id": { "type": "string" },
+        "label": { "type": "string" },
+        "checkpoint_status": { "enum": ["passed", "failed"] },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string" },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "vertical_slice": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_gate_vertical_slice_id",
+        "domain_pack",
+        "capability_id",
+        "workflow_id",
+        "workflow_run_id",
+        "workflow_gate_status",
+        "workflow_gate_vertical_slice_status",
+        "audit_binding_status",
+        "gate_aggregate_record_count",
+        "workflow_event_binding_count",
+        "human_review_required",
+        "read_only",
+        "mutation_allowed",
+        "protected_action_executed",
+        "final_action_executed",
+        "source_bindings",
+        "pass_checks",
+        "freeze_note",
+        "recorded_at",
+        "workflow_gate_vertical_slice_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-gate-vertical-slice.v1" },
+        "workflow_gate_vertical_slice_id": { "type": "string" },
+        "domain_pack": { "enum": ["law-firm", "personal-dev", "creative-document"] },
+        "capability_id": { "type": "string" },
+        "workflow_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": ["string", "null"] },
+        "matter_id": { "type": ["string", "null"] },
+        "workflow_gate_status": { "type": "string" },
+        "workflow_gate_vertical_slice_status": { "const": "passed" },
+        "audit_binding_status": { "const": "event_run_audit_bound" },
+        "gate_aggregate_record_count": { "type": "integer", "minimum": 1 },
+        "workflow_event_binding_count": { "type": "integer", "minimum": 1 },
+        "audit_trail_record_count": { "type": "integer", "minimum": 0 },
+        "event_envelope_count": { "type": "integer", "minimum": 0 },
+        "stored_event_count": { "type": "integer", "minimum": 0 },
+        "human_review_required": { "const": true },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "final_action_executed": { "const": false },
+        "source_bindings": { "type": "object" },
+        "pass_checks": {
+          "type": "object",
+          "required": [
+            "capability_bound",
+            "workflow_bound",
+            "gate_bound",
+            "audit_bound",
+            "desktop_bound",
+            "human_review_hold_preserved",
+            "no_auto_mutation",
+            "source_validation_clean"
+          ]
+        },
+        "freeze_note": { "type": "string" },
+        "recorded_at": { "type": "string", "format": "date-time" },
+        "workflow_gate_vertical_slice_hash": { "type": "string" }
+      }
+    },
+    "loop_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_gate_loop_binding_id",
+        "loop_step_id",
+        "loop_step_label",
+        "loop_step_category",
+        "loop_binding_status",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-gate-loop-binding.v1" },
+        "workflow_gate_loop_binding_id": { "type": "string" },
+        "loop_step_id": { "type": "string" },
+        "loop_step_label": { "type": "string" },
+        "loop_step_category": { "type": "string" },
+        "loop_binding_status": { "const": "passed" },
+        "expected_artifact_count": { "type": "integer", "minimum": 0 },
+        "missing_artifact_count": { "type": "integer", "minimum": 0 },
+        "exit_code": { "type": ["integer", "null"] },
+        "duration_ms": { "type": ["integer", "null"], "minimum": 0 },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "code", "status", "passed", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "code": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_gate_freeze_status",
+        "workflow_gate_freeze_contract_id",
+        "desktop_companion_readiness_status",
+        "workflow_gate_vertical_slice_count",
+        "passed_vertical_slice_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_gate_freeze_status": { "const": "complete" },
+        "workflow_gate_freeze_contract_id": { "const": "workflow-gate-freeze.v1" },
+        "desktop_companion_readiness_status": { "const": "read_only_ready" },
+        "workflow_gate_vertical_slice_count": { "type": "integer", "minimum": 3 },
+        "passed_vertical_slice_count": { "type": "integer", "minimum": 3 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

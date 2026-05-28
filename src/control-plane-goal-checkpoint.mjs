@@ -74,6 +74,7 @@ const GOAL_ITEMS = [
   sourceItem("local_script_adapter", "Local script adapter", "runtime", "local_script_adapter", "control-plane-local-script-adapter", { acceptance_profile: "local_script_adapter_gate" }),
   sourceItem("document_renderer_adapter", "Document renderer adapter", "runtime", "document_renderer_adapter", "control-plane-document-renderer-adapter", { acceptance_profile: "document_renderer_adapter_gate" }),
   sourceItem("worktree_manager_v2", "Worktree Manager v2", "runtime", "worktree_manager_v2", "control-plane-worktree-manager-v2", { acceptance_profile: "worktree_manager_v2_gate" }),
+  sourceItem("sandbox_policy_model", "Sandbox policy model", "runtime", "sandbox_policy_model", "control-plane-sandbox-policy-model", { acceptance_profile: "sandbox_policy_model_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -507,6 +508,7 @@ function evaluateStageAcceptance(item, stage) {
     "local_script_adapter_gate",
     "document_renderer_adapter_gate",
     "worktree_manager_v2_gate",
+    "sandbox_policy_model_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1706,6 +1708,37 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_runtime_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Worktree Manager v2 binds Claude Code and Codex AgentRuns to tracked branch/worktree/status/cleanup records while leaving Desktop as a read-only operator surface.");
+    }
+  }
+
+  if (item.acceptance_profile === "sandbox_policy_model_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.failed_validation_item_count ?? 0);
+    if (
+      errors === 0
+      && metrics.sandbox_policy_model_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.backend_policy_count === 4
+      && metrics.local_backend_policy_status === "allowed"
+      && metrics.docker_backend_policy_status === "allowed"
+      && metrics.ssh_backend_policy_status === "blocked_by_default"
+      && metrics.cloud_backend_policy_status === "blocked_by_default"
+      && metrics.runtime_sandbox_binding_count >= metrics.sandbox_required_runtime_count
+      && metrics.git_worktree_overlay_count >= 2
+      && metrics.network_access_allowed_count === 0
+      && metrics.external_transfer_allowed_count === 0
+      && metrics.secret_material_allowed_count === 0
+      && metrics.ssh_cloud_blocked_count === 2
+      && metrics.protected_mutation_route === "protected_action_request_only"
+      && metrics.human_gate_required_for_protected_mutation === true
+      && metrics.runtime_self_report_trusted === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_ssh_control_allowed === false
+      && metrics.desktop_cloud_runtime_control_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Sandbox Policy Model classifies local and Docker as allowed sandbox backends, blocks SSH/cloud by default, and keeps Desktop read-only.");
     }
   }
 

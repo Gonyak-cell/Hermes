@@ -198,6 +198,7 @@ import { runCodexAdapterContract } from "../src/codex-adapter-contract.mjs";
 import { runLocalScriptAdapter } from "../src/local-script-adapter.mjs";
 import { runDocumentRendererAdapter } from "../src/document-renderer-adapter.mjs";
 import { runWorktreeManagerV2 } from "../src/worktree-manager-v2.mjs";
+import { runSandboxPolicyModel } from "../src/sandbox-policy-model.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1798,6 +1799,7 @@ describe("matter harness", () => {
         localScriptAdapterPath: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
         documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
         worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
+        sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6747,6 +6749,53 @@ describe("matter harness", () => {
       assert.equal(worktreeManagerV2.worktree_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "worktree-manager-v2", "summary.md"), "utf8"), /Worktree Manager v2/);
 
+      const sandboxPolicyModel = await runSandboxPolicyModel({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        policyMatrixPath: "examples/core/policy-matrix.json",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "sandbox-policy-model"),
+        runAt: "2026-05-23T06:44:39.000Z",
+      });
+      const sandboxPolicyModelSchema = JSON.parse(await readFile("schemas/sandbox-policy-model.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(sandboxPolicyModel, sandboxPolicyModelSchema, {}, "sandbox_policy_model"),
+        [],
+      );
+      assert.equal(sandboxPolicyModel.summary.sandbox_policy_model_status, "complete");
+      assert.equal(sandboxPolicyModel.summary.contract_status, "locked");
+      assert.equal(sandboxPolicyModel.summary.backend_policy_count, 4);
+      assert.equal(sandboxPolicyModel.summary.local_backend_policy_status, "allowed");
+      assert.equal(sandboxPolicyModel.summary.docker_backend_policy_status, "allowed");
+      assert.equal(sandboxPolicyModel.summary.ssh_backend_policy_status, "blocked_by_default");
+      assert.equal(sandboxPolicyModel.summary.cloud_backend_policy_status, "blocked_by_default");
+      assert.equal(sandboxPolicyModel.summary.runtime_sandbox_binding_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
+      assert.equal(sandboxPolicyModel.summary.sandbox_required_runtime_count, 7);
+      assert.equal(sandboxPolicyModel.summary.allowed_runtime_sandbox_binding_count, 5);
+      assert.equal(sandboxPolicyModel.summary.git_worktree_overlay_count, 2);
+      assert.equal(sandboxPolicyModel.summary.network_access_allowed_count, 0);
+      assert.equal(sandboxPolicyModel.summary.external_transfer_allowed_count, 0);
+      assert.equal(sandboxPolicyModel.summary.secret_material_allowed_count, 0);
+      assert.equal(sandboxPolicyModel.summary.ssh_cloud_blocked_count, 2);
+      assert.equal(sandboxPolicyModel.summary.protected_mutation_route, "protected_action_request_only");
+      assert.equal(sandboxPolicyModel.summary.human_gate_required_for_protected_mutation, true);
+      assert.equal(sandboxPolicyModel.summary.runtime_self_report_trusted, false);
+      assert.equal(sandboxPolicyModel.summary.desktop_read_only, true);
+      assert.equal(sandboxPolicyModel.summary.desktop_mutation_allowed, false);
+      assert.equal(sandboxPolicyModel.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(sandboxPolicyModel.summary.desktop_ssh_control_allowed, false);
+      assert.equal(sandboxPolicyModel.summary.desktop_cloud_runtime_control_allowed, false);
+      assert.equal(sandboxPolicyModel.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(sandboxPolicyModel.summary.validation_error_count, 0);
+      assert.deepEqual(sandboxPolicyModel.sandbox_policy_contract.supported_backend_kinds, ["local", "docker", "ssh", "cloud"]);
+      assert.ok(sandboxPolicyModel.sandbox_backend_policies.some((policy) => policy.backend_kind === "ssh" && policy.backend_policy_status === "blocked_by_default"));
+      assert.ok(sandboxPolicyModel.runtime_sandbox_bindings.some((binding) => binding.runtime_id === "local_script" && binding.backend_kind === "local" && binding.policy_decision_status === "allowed"));
+      assert.ok(sandboxPolicyModel.runtime_sandbox_bindings.some((binding) => binding.runtime_id === "codex" && binding.git_worktree_overlay_required === true));
+      assert.equal(sandboxPolicyModel.sandbox_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "sandbox-policy-model", "summary.md"), "utf8"), /Sandbox Policy Model/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6872,6 +6921,7 @@ describe("matter harness", () => {
           local_script_adapter: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
           document_renderer_adapter: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
           worktree_manager_v2: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
+          sandbox_policy_model: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6923,8 +6973,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 103);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 103);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 104);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 104);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7015,6 +7065,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_script_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "document_renderer_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "worktree_manager_v2"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "sandbox_policy_model"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7064,6 +7115,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:local-script-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:document-renderer-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "worktree:manager-v2"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:sandbox-policy-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7538,6 +7590,10 @@ describe("matter harness", () => {
       assert.equal(worktreeManagerV2Checkpoint?.acceptance_profile, "worktree_manager_v2_gate");
       assert.equal(worktreeManagerV2Checkpoint?.status, "passed");
       assert.equal(worktreeManagerV2Checkpoint?.implementation_status, "passed_with_operational_gate");
+      const sandboxPolicyModelCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-sandbox-policy-model");
+      assert.equal(sandboxPolicyModelCheckpoint?.acceptance_profile, "sandbox_policy_model_gate");
+      assert.equal(sandboxPolicyModelCheckpoint?.status, "passed");
+      assert.equal(sandboxPolicyModelCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9617,6 +9673,30 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.worktree_manager_v2_desktop_cleanup_allowed, false);
       assert.equal(dashboard.summary.worktree_manager_v2_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.worktree_manager_v2_validation_error_count, 0);
+      assert.equal(dashboard.summary.sandbox_policy_model_status, "complete");
+      assert.equal(dashboard.summary.sandbox_policy_model_contract_status, "locked");
+      assert.equal(dashboard.summary.sandbox_policy_model_backend_policy_count, 4);
+      assert.equal(dashboard.summary.sandbox_policy_model_local_backend_policy_status, "allowed");
+      assert.equal(dashboard.summary.sandbox_policy_model_docker_backend_policy_status, "allowed");
+      assert.equal(dashboard.summary.sandbox_policy_model_ssh_backend_policy_status, "blocked_by_default");
+      assert.equal(dashboard.summary.sandbox_policy_model_cloud_backend_policy_status, "blocked_by_default");
+      assert.equal(dashboard.summary.sandbox_policy_model_runtime_sandbox_binding_count, sandboxPolicyModel.summary.runtime_sandbox_binding_count);
+      assert.equal(dashboard.summary.sandbox_policy_model_sandbox_required_runtime_count, sandboxPolicyModel.summary.sandbox_required_runtime_count);
+      assert.equal(dashboard.summary.sandbox_policy_model_git_worktree_overlay_count, 2);
+      assert.equal(dashboard.summary.sandbox_policy_model_network_access_allowed_count, 0);
+      assert.equal(dashboard.summary.sandbox_policy_model_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.sandbox_policy_model_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.sandbox_policy_model_ssh_cloud_blocked_count, 2);
+      assert.equal(dashboard.summary.sandbox_policy_model_protected_mutation_route, "protected_action_request_only");
+      assert.equal(dashboard.summary.sandbox_policy_model_human_gate_required_for_protected_mutation, true);
+      assert.equal(dashboard.summary.sandbox_policy_model_runtime_self_report_trusted, false);
+      assert.equal(dashboard.summary.sandbox_policy_model_desktop_read_only, true);
+      assert.equal(dashboard.summary.sandbox_policy_model_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.sandbox_policy_model_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.sandbox_policy_model_desktop_ssh_control_allowed, false);
+      assert.equal(dashboard.summary.sandbox_policy_model_desktop_cloud_runtime_control_allowed, false);
+      assert.equal(dashboard.summary.sandbox_policy_model_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.sandbox_policy_model_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -10476,6 +10556,19 @@ describe("matter harness", () => {
       assert.equal(worktreeManagerV2Stage?.metrics.cleanup_tracking_ready_count, 2);
       assert.equal(worktreeManagerV2Stage?.metrics.auto_cleanup_allowed_count, 0);
       assert.equal(worktreeManagerV2Stage?.metrics.desktop_runtime_source_of_truth, false);
+      const sandboxPolicyModelStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "sandbox_policy_model");
+      assert.equal(sandboxPolicyModelStage?.status, "passed");
+      assert.equal(sandboxPolicyModelStage?.metrics.sandbox_policy_model_status, "complete");
+      assert.equal(sandboxPolicyModelStage?.metrics.contract_status, "locked");
+      assert.equal(sandboxPolicyModelStage?.metrics.backend_policy_count, 4);
+      assert.equal(sandboxPolicyModelStage?.metrics.local_backend_policy_status, "allowed");
+      assert.equal(sandboxPolicyModelStage?.metrics.docker_backend_policy_status, "allowed");
+      assert.equal(sandboxPolicyModelStage?.metrics.ssh_backend_policy_status, "blocked_by_default");
+      assert.equal(sandboxPolicyModelStage?.metrics.cloud_backend_policy_status, "blocked_by_default");
+      assert.equal(sandboxPolicyModelStage?.metrics.git_worktree_overlay_count, 2);
+      assert.equal(sandboxPolicyModelStage?.metrics.network_access_allowed_count, 0);
+      assert.equal(sandboxPolicyModelStage?.metrics.external_transfer_allowed_count, 0);
+      assert.equal(sandboxPolicyModelStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10866,6 +10959,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-cleanup-records"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-manager-v2-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-policy-model"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-backend-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-sandbox-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-policy-decisions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-policy-model-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -11894,6 +11993,30 @@ describe("matter harness", () => {
       const worktreeManagerV2Validations = JSON.parse((await buildReviewApiResponse("/api/worktree-manager-v2-validations?status=passed", apiOptions)).body);
       assert.equal(worktreeManagerV2Validations.collection, "worktree_manager_v2_validations");
       assert.equal(worktreeManagerV2Validations.count, worktreeManagerV2.summary.validation_item_count);
+
+      const sandboxPolicyModelResponse = JSON.parse((await buildReviewApiResponse("/api/sandbox-policy-model?sandbox_policy_model_status=complete", apiOptions)).body);
+      assert.equal(sandboxPolicyModelResponse.collection, "sandbox_policy_model");
+      assert.equal(sandboxPolicyModelResponse.count, 1);
+
+      const sandboxBackendPoliciesResponse = JSON.parse((await buildReviewApiResponse("/api/sandbox-backend-policies?backend_policy_status=allowed", apiOptions)).body);
+      assert.equal(sandboxBackendPoliciesResponse.collection, "sandbox_backend_policies");
+      assert.equal(sandboxBackendPoliciesResponse.count, sandboxPolicyModel.summary.allowed_backend_policy_count);
+
+      const runtimeSandboxBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-sandbox-bindings?policy_decision_status=allowed", apiOptions)).body);
+      assert.equal(runtimeSandboxBindingsResponse.collection, "runtime_sandbox_bindings");
+      assert.equal(runtimeSandboxBindingsResponse.count, sandboxPolicyModel.summary.allowed_runtime_sandbox_binding_count);
+
+      const sandboxPolicyDecisionsResponse = JSON.parse((await buildReviewApiResponse("/api/sandbox-policy-decisions?backend_kind=ssh", apiOptions)).body);
+      assert.equal(sandboxPolicyDecisionsResponse.collection, "sandbox_policy_decisions");
+      assert.equal(sandboxPolicyDecisionsResponse.count, 1);
+
+      const sandboxDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/sandbox-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(sandboxDesktopBoundaryResponse.collection, "sandbox_desktop_boundary");
+      assert.equal(sandboxDesktopBoundaryResponse.count, 1);
+
+      const sandboxPolicyModelValidations = JSON.parse((await buildReviewApiResponse("/api/sandbox-policy-model-validations?status=passed", apiOptions)).body);
+      assert.equal(sandboxPolicyModelValidations.collection, "sandbox_policy_model_validations");
+      assert.equal(sandboxPolicyModelValidations.count, sandboxPolicyModel.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

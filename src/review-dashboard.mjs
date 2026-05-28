@@ -59,6 +59,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   localScriptAdapterPath: "artifacts/local-script-adapter/latest/local-script-adapter.json",
   documentRendererAdapterPath: "artifacts/document-renderer-adapter/latest/document-renderer-adapter.json",
   worktreeManagerV2Path: "artifacts/worktree-manager-v2/latest/worktree-manager-v2.json",
+  sandboxPolicyModelPath: "artifacts/sandbox-policy-model/latest/sandbox-policy-model.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -475,6 +476,11 @@ const SOURCE_DEFINITIONS = [
     option: "worktreeManagerV2Path",
     source_id: "worktree_manager_v2",
     label: "Worktree Manager v2",
+  },
+  {
+    option: "sandboxPolicyModelPath",
+    source_id: "sandbox_policy_model",
+    label: "Sandbox Policy Model",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1327,6 +1333,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "local_script_adapter") return data.summary ?? {};
   if (sourceId === "document_renderer_adapter") return data.summary ?? {};
   if (sourceId === "worktree_manager_v2") return data.summary ?? {};
+  if (sourceId === "sandbox_policy_model") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1608,6 +1615,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLocalScriptAdapterStage(artifacts.local_script_adapter, sourceById.get("local_script_adapter")),
     buildDocumentRendererAdapterStage(artifacts.document_renderer_adapter, sourceById.get("document_renderer_adapter")),
     buildWorktreeManagerV2Stage(artifacts.worktree_manager_v2, sourceById.get("worktree_manager_v2")),
+    buildSandboxPolicyModelStage(artifacts.sandbox_policy_model, sourceById.get("sandbox_policy_model")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4763,6 +4771,81 @@ function buildWorktreeManagerV2Stage(worktreeArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? worktreeArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildSandboxPolicyModelStage(sandboxArtifact, source) {
+  if (!sandboxArtifact) return missingStage("sandbox_policy_model", "Sandbox Policy Model", source);
+  const summary = sandboxArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.backend_policy_count !== 4
+    || summary.local_backend_policy_status !== "allowed"
+    || summary.docker_backend_policy_status !== "allowed"
+    || summary.ssh_backend_policy_status !== "blocked_by_default"
+    || summary.cloud_backend_policy_status !== "blocked_by_default"
+    || summary.runtime_sandbox_binding_count < summary.sandbox_required_runtime_count
+    || summary.git_worktree_overlay_count < 2
+    || summary.network_access_allowed_count !== 0
+    || summary.external_transfer_allowed_count !== 0
+    || summary.secret_material_allowed_count !== 0
+    || summary.ssh_cloud_blocked_count !== 2
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_ssh_control_allowed === true
+    || summary.desktop_cloud_runtime_control_allowed === true
+    || summary.desktop_runtime_source_of_truth === true
+    || sandboxArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "sandbox_policy_model",
+    label: "Sandbox Policy Model",
+    status,
+    message: `Sandbox policy ${summary.contract_status ?? "unknown"}; backends=${summary.backend_policy_count ?? 0}; runtime bindings=${summary.runtime_sandbox_binding_count ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      sandbox_policy_model_status: summary.sandbox_policy_model_status ?? "unknown",
+      sandbox_policy_contract_id: summary.sandbox_policy_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      policy_decision_authority: summary.policy_decision_authority ?? "unknown",
+      backend_policy_count: summary.backend_policy_count ?? 0,
+      backend_policy_decision_count: summary.backend_policy_decision_count ?? 0,
+      local_backend_policy_status: summary.local_backend_policy_status ?? "unknown",
+      docker_backend_policy_status: summary.docker_backend_policy_status ?? "unknown",
+      ssh_backend_policy_status: summary.ssh_backend_policy_status ?? "unknown",
+      cloud_backend_policy_status: summary.cloud_backend_policy_status ?? "unknown",
+      allowed_backend_policy_count: summary.allowed_backend_policy_count ?? 0,
+      blocked_backend_policy_count: summary.blocked_backend_policy_count ?? 0,
+      runtime_sandbox_binding_count: summary.runtime_sandbox_binding_count ?? 0,
+      sandbox_required_runtime_count: summary.sandbox_required_runtime_count ?? 0,
+      allowed_runtime_sandbox_binding_count: summary.allowed_runtime_sandbox_binding_count ?? 0,
+      blocked_runtime_sandbox_binding_count: summary.blocked_runtime_sandbox_binding_count ?? 0,
+      not_applicable_runtime_binding_count: summary.not_applicable_runtime_binding_count ?? 0,
+      git_worktree_overlay_count: summary.git_worktree_overlay_count ?? 0,
+      network_access_allowed_count: summary.network_access_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      secret_material_allowed_count: summary.secret_material_allowed_count ?? 0,
+      ssh_cloud_blocked_count: summary.ssh_cloud_blocked_count ?? 0,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      human_gate_required_for_protected_mutation: summary.human_gate_required_for_protected_mutation ?? false,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_local_process_control_allowed: summary.desktop_local_process_control_allowed ?? false,
+      desktop_docker_control_allowed: summary.desktop_docker_control_allowed ?? false,
+      desktop_ssh_control_allowed: summary.desktop_ssh_control_allowed ?? false,
+      desktop_cloud_runtime_control_allowed: summary.desktop_cloud_runtime_control_allowed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? sandboxArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -13828,6 +13911,44 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     worktree_manager_v2_desktop_cleanup_allowed: artifacts.worktree_manager_v2?.summary?.desktop_cleanup_allowed ?? false,
     worktree_manager_v2_desktop_runtime_source_of_truth: artifacts.worktree_manager_v2?.summary?.desktop_runtime_source_of_truth ?? false,
     worktree_manager_v2_validation_error_count: artifacts.worktree_manager_v2?.summary?.validation_error_count ?? artifacts.worktree_manager_v2?.validation?.errors?.length ?? 0,
+    sandbox_policy_model_status: artifacts.sandbox_policy_model?.summary?.sandbox_policy_model_status ?? "unknown",
+    sandbox_policy_model_contract_id: artifacts.sandbox_policy_model?.summary?.sandbox_policy_contract_id ?? null,
+    sandbox_policy_model_contract_status: artifacts.sandbox_policy_model?.summary?.contract_status ?? "unknown",
+    sandbox_policy_model_source_of_truth: artifacts.sandbox_policy_model?.summary?.source_of_truth ?? "unknown",
+    sandbox_policy_model_policy_decision_authority: artifacts.sandbox_policy_model?.summary?.policy_decision_authority ?? "unknown",
+    sandbox_policy_model_backend_policy_count: artifacts.sandbox_policy_model?.summary?.backend_policy_count ?? 0,
+    sandbox_policy_model_backend_policy_decision_count: artifacts.sandbox_policy_model?.summary?.backend_policy_decision_count ?? 0,
+    sandbox_policy_model_local_backend_policy_status: artifacts.sandbox_policy_model?.summary?.local_backend_policy_status ?? "unknown",
+    sandbox_policy_model_docker_backend_policy_status: artifacts.sandbox_policy_model?.summary?.docker_backend_policy_status ?? "unknown",
+    sandbox_policy_model_ssh_backend_policy_status: artifacts.sandbox_policy_model?.summary?.ssh_backend_policy_status ?? "unknown",
+    sandbox_policy_model_cloud_backend_policy_status: artifacts.sandbox_policy_model?.summary?.cloud_backend_policy_status ?? "unknown",
+    sandbox_policy_model_allowed_backend_policy_count: artifacts.sandbox_policy_model?.summary?.allowed_backend_policy_count ?? 0,
+    sandbox_policy_model_blocked_backend_policy_count: artifacts.sandbox_policy_model?.summary?.blocked_backend_policy_count ?? 0,
+    sandbox_policy_model_runtime_sandbox_binding_count: artifacts.sandbox_policy_model?.summary?.runtime_sandbox_binding_count ?? 0,
+    sandbox_policy_model_sandbox_required_runtime_count: artifacts.sandbox_policy_model?.summary?.sandbox_required_runtime_count ?? 0,
+    sandbox_policy_model_allowed_runtime_sandbox_binding_count: artifacts.sandbox_policy_model?.summary?.allowed_runtime_sandbox_binding_count ?? 0,
+    sandbox_policy_model_blocked_runtime_sandbox_binding_count: artifacts.sandbox_policy_model?.summary?.blocked_runtime_sandbox_binding_count ?? 0,
+    sandbox_policy_model_not_applicable_runtime_binding_count: artifacts.sandbox_policy_model?.summary?.not_applicable_runtime_binding_count ?? 0,
+    sandbox_policy_model_git_worktree_overlay_count: artifacts.sandbox_policy_model?.summary?.git_worktree_overlay_count ?? 0,
+    sandbox_policy_model_network_access_allowed_count: artifacts.sandbox_policy_model?.summary?.network_access_allowed_count ?? 0,
+    sandbox_policy_model_external_transfer_allowed_count: artifacts.sandbox_policy_model?.summary?.external_transfer_allowed_count ?? 0,
+    sandbox_policy_model_secret_material_allowed_count: artifacts.sandbox_policy_model?.summary?.secret_material_allowed_count ?? 0,
+    sandbox_policy_model_ssh_cloud_blocked_count: artifacts.sandbox_policy_model?.summary?.ssh_cloud_blocked_count ?? 0,
+    sandbox_policy_model_protected_mutation_route: artifacts.sandbox_policy_model?.summary?.protected_mutation_route ?? "unknown",
+    sandbox_policy_model_human_gate_required_for_protected_mutation: artifacts.sandbox_policy_model?.summary?.human_gate_required_for_protected_mutation ?? false,
+    sandbox_policy_model_runtime_self_report_trusted: artifacts.sandbox_policy_model?.summary?.runtime_self_report_trusted ?? false,
+    sandbox_policy_model_desktop_read_only: artifacts.sandbox_policy_model?.summary?.desktop_read_only ?? false,
+    sandbox_policy_model_desktop_mutation_allowed: artifacts.sandbox_policy_model?.summary?.desktop_mutation_allowed ?? false,
+    sandbox_policy_model_desktop_protected_mutation_request_allowed: artifacts.sandbox_policy_model?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    sandbox_policy_model_desktop_protected_mutation_execution_allowed: artifacts.sandbox_policy_model?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    sandbox_policy_model_desktop_local_process_control_allowed: artifacts.sandbox_policy_model?.summary?.desktop_local_process_control_allowed ?? false,
+    sandbox_policy_model_desktop_docker_control_allowed: artifacts.sandbox_policy_model?.summary?.desktop_docker_control_allowed ?? false,
+    sandbox_policy_model_desktop_ssh_control_allowed: artifacts.sandbox_policy_model?.summary?.desktop_ssh_control_allowed ?? false,
+    sandbox_policy_model_desktop_cloud_runtime_control_allowed: artifacts.sandbox_policy_model?.summary?.desktop_cloud_runtime_control_allowed ?? false,
+    sandbox_policy_model_desktop_installer_or_gateway_control: artifacts.sandbox_policy_model?.summary?.desktop_installer_or_gateway_control ?? false,
+    sandbox_policy_model_desktop_secret_material_exposed: artifacts.sandbox_policy_model?.summary?.desktop_secret_material_exposed ?? false,
+    sandbox_policy_model_desktop_runtime_source_of_truth: artifacts.sandbox_policy_model?.summary?.desktop_runtime_source_of_truth ?? false,
+    sandbox_policy_model_validation_error_count: artifacts.sandbox_policy_model?.summary?.validation_error_count ?? artifacts.sandbox_policy_model?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15529,6 +15650,8 @@ function parseArgs(argv) {
     else if (arg === "--no-document-renderer-adapter") parsed.documentRendererAdapterPath = false;
     else if (arg === "--worktree-manager-v2") parsed.worktreeManagerV2Path = argv[++index];
     else if (arg === "--no-worktree-manager-v2") parsed.worktreeManagerV2Path = false;
+    else if (arg === "--sandbox-policy-model") parsed.sandboxPolicyModelPath = argv[++index];
+    else if (arg === "--no-sandbox-policy-model") parsed.sandboxPolicyModelPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15982,6 +16105,8 @@ Options:
                                   Do not include Document Renderer Adapter status.
   --worktree-manager-v2 <path>    worktree-manager-v2.json path.
   --no-worktree-manager-v2        Do not include Worktree Manager v2 status.
+  --sandbox-policy-model <path>   sandbox-policy-model.json path.
+  --no-sandbox-policy-model       Do not include Sandbox Policy Model status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

@@ -589,6 +589,12 @@ npm run api:serve
 - `GET /api/worktree-cleanup-records`: Worktree cleanup records
 - `GET /api/worktree-desktop-boundary`: Worktree Manager Desktop boundary row
 - `GET /api/worktree-manager-v2-validations`: Worktree Manager v2 validation rows
+- `GET /api/sandbox-policy-model`: Sandbox Policy Model artifact
+- `GET /api/sandbox-backend-policies`: Sandbox backend policy rows
+- `GET /api/runtime-sandbox-bindings`: Runtime sandbox binding rows
+- `GET /api/sandbox-policy-decisions`: Sandbox policy decision rows
+- `GET /api/sandbox-desktop-boundary`: Sandbox Policy Model Desktop boundary row
+- `GET /api/sandbox-policy-model-validations`: Sandbox Policy Model validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -3797,6 +3797,64 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/sandbox-policy-model") {
+    const sandboxResult = await readDashboardSourceArtifact(dashboard, "sandbox_policy_model");
+    if (!sandboxResult.available) {
+      return jsonResponse(503, buildError("sandbox_policy_model_unavailable", sandboxResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("sandbox_policy_model", [sandboxResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/sandbox-backend-policies") {
+    const sandboxResult = await readDashboardSourceArtifact(dashboard, "sandbox_policy_model");
+    if (!sandboxResult.available) {
+      return jsonResponse(503, buildError("sandbox_policy_model_unavailable", sandboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("sandbox_backend_policies", sandboxResult.artifact.sandbox_backend_policies ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-sandbox-bindings") {
+    const sandboxResult = await readDashboardSourceArtifact(dashboard, "sandbox_policy_model");
+    if (!sandboxResult.available) {
+      return jsonResponse(503, buildError("sandbox_policy_model_unavailable", sandboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_sandbox_bindings", sandboxResult.artifact.runtime_sandbox_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/sandbox-policy-decisions") {
+    const sandboxResult = await readDashboardSourceArtifact(dashboard, "sandbox_policy_model");
+    if (!sandboxResult.available) {
+      return jsonResponse(503, buildError("sandbox_policy_model_unavailable", sandboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("sandbox_policy_decisions", sandboxResult.artifact.sandbox_policy_decisions ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/sandbox-desktop-boundary") {
+    const sandboxResult = await readDashboardSourceArtifact(dashboard, "sandbox_policy_model");
+    if (!sandboxResult.available) {
+      return jsonResponse(503, buildError("sandbox_policy_model_unavailable", sandboxResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("sandbox_desktop_boundary", [sandboxResult.artifact.sandbox_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/sandbox-policy-model-validations") {
+    const sandboxResult = await readDashboardSourceArtifact(dashboard, "sandbox_policy_model");
+    if (!sandboxResult.available) {
+      return jsonResponse(503, buildError("sandbox_policy_model_unavailable", sandboxResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("sandbox_policy_model_validations", sandboxResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7947,6 +8005,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/worktree-cleanup-records", "Worktree cleanup records"),
       route("GET", "/api/worktree-desktop-boundary", "Worktree Manager Desktop boundary"),
       route("GET", "/api/worktree-manager-v2-validations", "Worktree Manager v2 validation rows"),
+      route("GET", "/api/sandbox-policy-model", "Sandbox Policy Model artifact"),
+      route("GET", "/api/sandbox-backend-policies", "Sandbox backend policy rows"),
+      route("GET", "/api/runtime-sandbox-bindings", "Runtime sandbox binding rows"),
+      route("GET", "/api/sandbox-policy-decisions", "Sandbox policy decision rows"),
+      route("GET", "/api/sandbox-desktop-boundary", "Sandbox Policy Model Desktop boundary"),
+      route("GET", "/api/sandbox-policy-model-validations", "Sandbox Policy Model validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8602,6 +8666,11 @@ function filterItems(items, searchParams) {
     "local_script_adapter_status",
     "document_renderer_adapter_status",
     "worktree_manager_v2_status",
+    "sandbox_policy_model_status",
+    "backend_kind",
+    "backend_policy_status",
+    "policy_decision_status",
+    "sandbox_binding_status",
     "interface_status",
     "operator_surface_policy_status",
     "desktop_surface_policy",
@@ -9873,6 +9942,11 @@ function readFilterValue(item, key) {
   if (key === "local_script_adapter_status") return item.summary?.local_script_adapter_status ?? item.local_script_adapter_status;
   if (key === "document_renderer_adapter_status") return item.summary?.document_renderer_adapter_status ?? item.document_renderer_adapter_status;
   if (key === "worktree_manager_v2_status") return item.summary?.worktree_manager_v2_status ?? item.worktree_manager_v2_status;
+  if (key === "sandbox_policy_model_status") return item.summary?.sandbox_policy_model_status ?? item.sandbox_policy_model_status;
+  if (key === "backend_kind") return item.backend_kind;
+  if (key === "backend_policy_status") return item.backend_policy_status;
+  if (key === "policy_decision_status") return item.policy_decision_status;
+  if (key === "sandbox_binding_status") return item.binding_status;
   if (key === "interface_status") return item.interface_status;
   if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
   if (key === "desktop_surface_policy") return item.desktop_surface_policy;

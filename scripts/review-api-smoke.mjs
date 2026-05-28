@@ -320,6 +320,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/worktree-cleanup-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/worktree-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/worktree-manager-v2-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/sandbox-policy-model"));
+  assert.ok(index.routes.some((route) => route.path === "/api/sandbox-backend-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-sandbox-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/sandbox-policy-decisions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/sandbox-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/sandbox-policy-model-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1529,6 +1535,30 @@ try {
   const worktreeManagerV2Validations = await fetchJson(`${url}/api/worktree-manager-v2-validations?status=passed&limit=5`);
   assert.equal(worktreeManagerV2Validations.collection, "worktree_manager_v2_validations");
   assert.ok(worktreeManagerV2Validations.count <= 5);
+
+  const sandboxPolicyModel = await fetchJson(`${url}/api/sandbox-policy-model?sandbox_policy_model_status=complete&limit=1`);
+  assert.equal(sandboxPolicyModel.collection, "sandbox_policy_model");
+  assert.ok(sandboxPolicyModel.count <= 1);
+
+  const sandboxBackendPolicies = await fetchJson(`${url}/api/sandbox-backend-policies?backend_policy_status=allowed&limit=5`);
+  assert.equal(sandboxBackendPolicies.collection, "sandbox_backend_policies");
+  assert.ok(sandboxBackendPolicies.count <= 5);
+
+  const runtimeSandboxBindings = await fetchJson(`${url}/api/runtime-sandbox-bindings?policy_decision_status=allowed&limit=5`);
+  assert.equal(runtimeSandboxBindings.collection, "runtime_sandbox_bindings");
+  assert.ok(runtimeSandboxBindings.count <= 5);
+
+  const sandboxPolicyDecisions = await fetchJson(`${url}/api/sandbox-policy-decisions?backend_kind=ssh&limit=1`);
+  assert.equal(sandboxPolicyDecisions.collection, "sandbox_policy_decisions");
+  assert.ok(sandboxPolicyDecisions.count <= 1);
+
+  const sandboxDesktopBoundary = await fetchJson(`${url}/api/sandbox-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(sandboxDesktopBoundary.collection, "sandbox_desktop_boundary");
+  assert.ok(sandboxDesktopBoundary.count <= 1);
+
+  const sandboxPolicyModelValidations = await fetchJson(`${url}/api/sandbox-policy-model-validations?status=passed&limit=5`);
+  assert.equal(sandboxPolicyModelValidations.collection, "sandbox_policy_model_validations");
+  assert.ok(sandboxPolicyModelValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

@@ -1,0 +1,358 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/sandbox-policy-model.schema.json",
+  "title": "Hermes Sandbox Policy Model",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "sandbox_policy_model_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "sandbox_policy_contract",
+    "sandbox_backend_policies",
+    "runtime_sandbox_bindings",
+    "sandbox_policy_decisions",
+    "sandbox_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "sandbox-policy-model.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "sandbox_policy_model_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2_path",
+        "runtime_agentrun_contract_freeze_path",
+        "worktree_manager_v2_path",
+        "tool_runtime_policy_enforcement_path",
+        "policy_matrix_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2",
+        "runtime_agentrun_contract_freeze",
+        "worktree_manager_v2",
+        "tool_runtime_policy_enforcement",
+        "policy_matrix",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_adapter_interface_v2": {
+          "type": "object",
+          "required": ["runtime_adapter_interface_status", "operator_surface_policy_count", "read_only_policy_count"],
+          "properties": {
+            "runtime_adapter_interface_status": { "const": "complete" },
+            "operator_surface_policy_count": { "type": "integer", "minimum": 1 },
+            "read_only_policy_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "runtime_adapter_count", "sandbox_required_runtime_count"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "runtime_adapter_count": { "type": "integer", "minimum": 1 },
+            "sandbox_required_runtime_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "worktree_manager_v2": {
+          "type": "object",
+          "required": ["worktree_manager_v2_status", "worktree_required_runtime_count", "protected_mutation_route"],
+          "properties": {
+            "worktree_manager_v2_status": { "const": "complete" },
+            "worktree_required_runtime_count": { "type": "integer", "minimum": 2 },
+            "protected_mutation_route": { "const": "protected_action_request_only" }
+          }
+        },
+        "tool_runtime_policy_enforcement": {
+          "type": "object",
+          "required": ["tool_runtime_policy_enforcement_status", "runtime_policy_gate_count", "protected_action_tool_gate_count"],
+          "properties": {
+            "tool_runtime_policy_enforcement_status": { "const": "complete" },
+            "runtime_policy_gate_count": { "type": "integer", "minimum": 1 },
+            "protected_action_tool_gate_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "policy_matrix": {
+          "type": "object",
+          "required": ["runtime_rule_count"],
+          "properties": {
+            "runtime_rule_count": { "type": "integer", "minimum": 1 },
+            "classification_level_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": [
+            "declares_read_only",
+            "declares_not_runtime_source_of_truth",
+            "declares_human_gate_for_mutation",
+            "blocks_ssh_or_gateway_control"
+          ],
+          "properties": {
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true },
+            "declares_human_gate_for_mutation": { "const": true },
+            "blocks_ssh_or_gateway_control": { "const": true }
+          }
+        }
+      }
+    },
+    "sandbox_policy_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "contract_status",
+        "source_of_truth",
+        "policy_decision_authority",
+        "supported_backend_kinds",
+        "backend_policy_count",
+        "default_network_access_allowed",
+        "default_external_transfer_allowed",
+        "secret_material_allowed",
+        "runtime_self_report_trusted",
+        "protected_mutation_route",
+        "human_gate_required_for_protected_mutation",
+        "desktop_surface_policy",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth"
+      ],
+      "properties": {
+        "contract_id": { "const": "sandbox-policy-model.default" },
+        "contract_status": { "const": "locked" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "policy_decision_authority": { "const": "gate_engine_policy_snapshot" },
+        "supported_backend_kinds": {
+          "type": "array",
+          "minItems": 4,
+          "allOf": [
+            { "contains": { "const": "local" } },
+            { "contains": { "const": "docker" } },
+            { "contains": { "const": "ssh" } },
+            { "contains": { "const": "cloud" } }
+          ]
+        },
+        "backend_policy_count": { "const": 4 },
+        "default_network_access_allowed": { "const": false },
+        "default_external_transfer_allowed": { "const": false },
+        "secret_material_allowed": { "const": false },
+        "runtime_self_report_trusted": { "const": false },
+        "protected_mutation_route": { "const": "protected_action_request_only" },
+        "human_gate_required_for_protected_mutation": { "const": true },
+        "desktop_surface_policy": { "const": "read_only_sandbox_status" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false }
+      }
+    },
+    "sandbox_backend_policies": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "backend_policy_id",
+          "backend_kind",
+          "backend_policy_status",
+          "execution_allowed_by_default",
+          "execution_modes",
+          "allowed_isolation_types",
+          "default_network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "protected_mutation_route",
+          "desktop_control_allowed",
+          "source_of_truth"
+        ],
+        "properties": {
+          "backend_kind": { "enum": ["local", "docker", "ssh", "cloud"] },
+          "backend_policy_status": { "enum": ["allowed", "blocked_by_default"] },
+          "execution_allowed_by_default": { "type": "boolean" },
+          "execution_modes": { "type": "array", "minItems": 1 },
+          "allowed_isolation_types": { "type": "array", "minItems": 1 },
+          "default_network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "desktop_control_allowed": { "const": false },
+          "source_of_truth": { "const": "harness_control_plane" }
+        }
+      }
+    },
+    "runtime_sandbox_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "runtime_sandbox_binding_id",
+          "runtime_id",
+          "adapter_id",
+          "execution_mode",
+          "sandbox_required",
+          "workspace_isolation_type",
+          "backend_kind",
+          "binding_status",
+          "policy_decision_status",
+          "execution_allowed",
+          "network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "protected_mutation_route",
+          "desktop_read_only",
+          "desktop_mutation_allowed",
+          "desktop_protected_mutation_execution_allowed",
+          "source_of_truth",
+          "runtime_source_of_truth"
+        ],
+        "properties": {
+          "policy_decision_status": {
+            "enum": ["allowed", "blocked_by_default", "blocked_until_backend_policy", "not_applicable"]
+          },
+          "network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "desktop_read_only": { "const": true },
+          "desktop_mutation_allowed": { "const": false },
+          "desktop_protected_mutation_execution_allowed": { "const": false },
+          "source_of_truth": { "const": "harness_control_plane" },
+          "runtime_source_of_truth": { "const": false }
+        }
+      }
+    },
+    "sandbox_policy_decisions": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "sandbox_policy_decision_id",
+          "backend_kind",
+          "backend_policy_status",
+          "execution_allowed_by_default",
+          "policy_decision_status",
+          "default_network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "protected_mutation_route",
+          "desktop_mutation_allowed",
+          "source_of_truth"
+        ],
+        "properties": {
+          "backend_kind": { "enum": ["local", "docker", "ssh", "cloud"] },
+          "policy_decision_status": { "enum": ["allow", "blocked_by_default"] },
+          "default_network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "desktop_mutation_allowed": { "const": false },
+          "source_of_truth": { "const": "harness_control_plane" }
+        }
+      }
+    },
+    "sandbox_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_id",
+        "boundary_status",
+        "desktop_surface",
+        "desktop_surface_policy",
+        "source_of_truth",
+        "runtime_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_execution_allowed",
+        "local_process_control_allowed",
+        "docker_control_allowed",
+        "ssh_control_allowed",
+        "cloud_runtime_control_allowed",
+        "installer_or_gateway_control",
+        "secret_material_exposed",
+        "protected_mutation_route"
+      ],
+      "properties": {
+        "boundary_status": { "const": "locked" },
+        "desktop_surface": { "const": "sandbox_policy_model" },
+        "desktop_surface_policy": { "const": "read_only_sandbox_status" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "runtime_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "local_process_control_allowed": { "const": false },
+        "docker_control_allowed": { "const": false },
+        "ssh_control_allowed": { "const": false },
+        "cloud_runtime_control_allowed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "protected_mutation_route": { "const": "protected_action_request_only" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "sandbox_policy_model_status",
+        "backend_policy_count",
+        "local_backend_policy_status",
+        "docker_backend_policy_status",
+        "ssh_backend_policy_status",
+        "cloud_backend_policy_status",
+        "runtime_sandbox_binding_count",
+        "sandbox_required_runtime_count",
+        "git_worktree_overlay_count",
+        "network_access_allowed_count",
+        "external_transfer_allowed_count",
+        "secret_material_allowed_count",
+        "ssh_cloud_blocked_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_runtime_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "sandbox_policy_model_status": { "const": "complete" },
+        "backend_policy_count": { "const": 4 },
+        "local_backend_policy_status": { "const": "allowed" },
+        "docker_backend_policy_status": { "const": "allowed" },
+        "ssh_backend_policy_status": { "const": "blocked_by_default" },
+        "cloud_backend_policy_status": { "const": "blocked_by_default" },
+        "runtime_sandbox_binding_count": { "type": "integer", "minimum": 1 },
+        "sandbox_required_runtime_count": { "type": "integer", "minimum": 1 },
+        "git_worktree_overlay_count": { "type": "integer", "minimum": 2 },
+        "network_access_allowed_count": { "const": 0 },
+        "external_transfer_allowed_count": { "const": 0 },
+        "secret_material_allowed_count": { "const": 0 },
+        "ssh_cloud_blocked_count": { "const": 2 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}

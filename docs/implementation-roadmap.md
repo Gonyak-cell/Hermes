@@ -5833,6 +5833,33 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 103개로 증가하고 worktree_manager_v2 artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run worktree:manager-v2 -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 202 - Sandbox Policy Model
+
+목표: Runtime Adapter v2 계층의 실행 백엔드를 local/docker/ssh/cloud 정책으로 정규화하고, 실제 실행 가능 범위를 policy snapshot/gate가 판정하도록 고정한다. Hermes Desktop은 이 상태를 읽는 operator surface일 뿐 실행·SSH·cloud·installer·gateway 제어권을 갖지 않는다.
+
+구현:
+
+- `src/sandbox-policy-model.mjs`와 `scripts/sandbox-policy-model.mjs`를 추가해 `npm run runtime:sandbox-policy-model` slice를 등록
+- `schemas/sandbox-policy-model.schema.json`으로 Sandbox Policy Model contract, backend policy, runtime sandbox binding, policy decision, Desktop boundary를 검증
+- Runtime Adapter Interface v2, Runtime/AgentRun freeze, Worktree Manager v2, Tool/Runtime Policy Enforcement, core policy matrix, Desktop Companion 설계 문서를 source contract로 연결
+- local backend는 `local_process` + `temp_dir`, docker backend는 `docker` + `docker_container/git_worktree`를 allowed로 고정
+- ssh/cloud backend는 `blocked_by_default`로 고정하고 예외는 `protected_action_request_only`와 human gate 아래에서만 다루도록 계약화
+- 모든 backend/runtime binding에서 default network access, external transfer, raw secret material을 false로 고정하고 runtime self-report trust를 false로 유지
+- Review Dashboard와 Review API에 `/api/sandbox-policy-model`, `/api/sandbox-backend-policies`, `/api/runtime-sandbox-bindings`, `/api/sandbox-policy-decisions`, `/api/sandbox-desktop-boundary`, `/api/sandbox-policy-model-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Sandbox Policy Model을 연결
+
+완료 기준:
+
+- Sandbox Policy Model이 validation error 없이 `complete` 상태가 됨
+- backend policy가 local/docker/ssh/cloud 4개로 생성되고 local/docker는 `allowed`, ssh/cloud는 `blocked_by_default`임
+- Runtime/AgentRun freeze의 9개 runtime이 모두 sandbox binding을 가지며 sandbox-required runtime 7개 중 local/docker/worktree lane 5개는 allowed, browser/mcp surface는 backend policy 전까지 blocked 상태임
+- Claude Code와 Codex binding은 Worktree Manager v2의 git worktree overlay 요구를 보존함
+- network access, external transfer, secret material allowed count가 모두 0이고 SSH/cloud blocked count가 2임
+- Desktop mutation/protected execution/local/docker/ssh/cloud control/installer/gateway/source-of-truth 권한은 모두 false
+- Review API와 dashboard가 Sandbox Policy Model 상태를 read-only로 노출
+- Golden fixture 수가 104개로 증가하고 sandbox_policy_model artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:sandbox-policy-model -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5841,9 +5868,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 201이다.
+- 현재 완료 기준점은 Phase 202이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P202-P312, 총 111개다.
+- 남은 계획 슬롯은 P203-P312, 총 110개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

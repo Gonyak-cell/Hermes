@@ -60,6 +60,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   documentRendererAdapterPath: "artifacts/document-renderer-adapter/latest/document-renderer-adapter.json",
   worktreeManagerV2Path: "artifacts/worktree-manager-v2/latest/worktree-manager-v2.json",
   sandboxPolicyModelPath: "artifacts/sandbox-policy-model/latest/sandbox-policy-model.json",
+  dockerLocalBackendSelectorPath: "artifacts/docker-local-backend-selector/latest/docker-local-backend-selector.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -481,6 +482,11 @@ const SOURCE_DEFINITIONS = [
     option: "sandboxPolicyModelPath",
     source_id: "sandbox_policy_model",
     label: "Sandbox Policy Model",
+  },
+  {
+    option: "dockerLocalBackendSelectorPath",
+    source_id: "docker_local_backend_selector",
+    label: "Docker/local Backend Selector",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1334,6 +1340,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "document_renderer_adapter") return data.summary ?? {};
   if (sourceId === "worktree_manager_v2") return data.summary ?? {};
   if (sourceId === "sandbox_policy_model") return data.summary ?? {};
+  if (sourceId === "docker_local_backend_selector") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1616,6 +1623,7 @@ function buildStageStatuses(artifacts, sources) {
     buildDocumentRendererAdapterStage(artifacts.document_renderer_adapter, sourceById.get("document_renderer_adapter")),
     buildWorktreeManagerV2Stage(artifacts.worktree_manager_v2, sourceById.get("worktree_manager_v2")),
     buildSandboxPolicyModelStage(artifacts.sandbox_policy_model, sourceById.get("sandbox_policy_model")),
+    buildDockerLocalBackendSelectorStage(artifacts.docker_local_backend_selector, sourceById.get("docker_local_backend_selector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4846,6 +4854,92 @@ function buildSandboxPolicyModelStage(sandboxArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? sandboxArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildDockerLocalBackendSelectorStage(selectorArtifact, source) {
+  if (!selectorArtifact) return missingStage("docker_local_backend_selector", "Docker/local Backend Selector", source);
+  const summary = selectorArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.docker_local_backend_selector_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.selector_status !== "locked"
+    || summary.selectable_backend_count !== 2
+    || summary.selected_runtime_backend_count < 5
+    || summary.local_selected_runtime_count < 1
+    || summary.docker_selected_runtime_count < 4
+    || summary.classification_backend_selection_count < 6
+    || summary.runtime_classification_matrix_count < 54
+    || summary.ssh_cloud_selected_count !== 0
+    || summary.operator_surface_selected_count !== 0
+    || summary.network_access_allowed_count !== 0
+    || summary.external_transfer_allowed_count !== 0
+    || summary.secret_material_allowed_count !== 0
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_local_process_control_allowed === true
+    || summary.desktop_docker_control_allowed === true
+    || summary.desktop_ssh_control_allowed === true
+    || summary.desktop_cloud_runtime_control_allowed === true
+    || summary.desktop_runtime_source_of_truth === true
+    || selectorArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "docker_local_backend_selector",
+    label: "Docker/local Backend Selector",
+    status,
+    message: `Backend selector ${summary.selector_status ?? "unknown"}; runtime selections=${summary.runtime_backend_selection_count ?? 0}; classifications=${summary.classification_backend_selection_count ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      docker_local_backend_selector_status: summary.docker_local_backend_selector_status ?? "unknown",
+      backend_selector_contract_id: summary.backend_selector_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      selector_status: summary.selector_status ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      selection_authority: summary.selection_authority ?? "unknown",
+      selectable_backend_count: summary.selectable_backend_count ?? 0,
+      blocked_backend_count: summary.blocked_backend_count ?? 0,
+      backend_selection_rule_count: summary.backend_selection_rule_count ?? 0,
+      runtime_backend_selection_count: summary.runtime_backend_selection_count ?? 0,
+      selected_runtime_backend_count: summary.selected_runtime_backend_count ?? 0,
+      blocked_runtime_backend_count: summary.blocked_runtime_backend_count ?? 0,
+      not_applicable_runtime_backend_count: summary.not_applicable_runtime_backend_count ?? 0,
+      local_selected_runtime_count: summary.local_selected_runtime_count ?? 0,
+      docker_selected_runtime_count: summary.docker_selected_runtime_count ?? 0,
+      high_risk_docker_selected_runtime_count: summary.high_risk_docker_selected_runtime_count ?? 0,
+      git_worktree_overlay_count: summary.git_worktree_overlay_count ?? 0,
+      classification_backend_selection_count: summary.classification_backend_selection_count ?? 0,
+      selected_classification_backend_count: summary.selected_classification_backend_count ?? 0,
+      human_gated_classification_backend_count: summary.human_gated_classification_backend_count ?? 0,
+      protected_review_classification_count: summary.protected_review_classification_count ?? 0,
+      runtime_classification_matrix_count: summary.runtime_classification_matrix_count ?? 0,
+      human_gated_runtime_classification_count: summary.human_gated_runtime_classification_count ?? 0,
+      blocked_runtime_classification_count: summary.blocked_runtime_classification_count ?? 0,
+      ssh_cloud_selected_count: summary.ssh_cloud_selected_count ?? 0,
+      operator_surface_selected_count: summary.operator_surface_selected_count ?? 0,
+      network_access_allowed_count: summary.network_access_allowed_count ?? 0,
+      external_transfer_allowed_count: summary.external_transfer_allowed_count ?? 0,
+      secret_material_allowed_count: summary.secret_material_allowed_count ?? 0,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      human_gate_required_for_protected_mutation: summary.human_gate_required_for_protected_mutation ?? false,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_local_process_control_allowed: summary.desktop_local_process_control_allowed ?? false,
+      desktop_docker_control_allowed: summary.desktop_docker_control_allowed ?? false,
+      desktop_ssh_control_allowed: summary.desktop_ssh_control_allowed ?? false,
+      desktop_cloud_runtime_control_allowed: summary.desktop_cloud_runtime_control_allowed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? selectorArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -13949,6 +14043,49 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     sandbox_policy_model_desktop_secret_material_exposed: artifacts.sandbox_policy_model?.summary?.desktop_secret_material_exposed ?? false,
     sandbox_policy_model_desktop_runtime_source_of_truth: artifacts.sandbox_policy_model?.summary?.desktop_runtime_source_of_truth ?? false,
     sandbox_policy_model_validation_error_count: artifacts.sandbox_policy_model?.summary?.validation_error_count ?? artifacts.sandbox_policy_model?.validation?.errors?.length ?? 0,
+    docker_local_backend_selector_status: artifacts.docker_local_backend_selector?.summary?.docker_local_backend_selector_status ?? "unknown",
+    docker_local_backend_selector_contract_id: artifacts.docker_local_backend_selector?.summary?.backend_selector_contract_id ?? null,
+    docker_local_backend_selector_contract_status: artifacts.docker_local_backend_selector?.summary?.contract_status ?? "unknown",
+    docker_local_backend_selector_selector_status: artifacts.docker_local_backend_selector?.summary?.selector_status ?? "unknown",
+    docker_local_backend_selector_source_of_truth: artifacts.docker_local_backend_selector?.summary?.source_of_truth ?? "unknown",
+    docker_local_backend_selector_selection_authority: artifacts.docker_local_backend_selector?.summary?.selection_authority ?? "unknown",
+    docker_local_backend_selector_selectable_backend_count: artifacts.docker_local_backend_selector?.summary?.selectable_backend_count ?? 0,
+    docker_local_backend_selector_blocked_backend_count: artifacts.docker_local_backend_selector?.summary?.blocked_backend_count ?? 0,
+    docker_local_backend_selector_backend_selection_rule_count: artifacts.docker_local_backend_selector?.summary?.backend_selection_rule_count ?? 0,
+    docker_local_backend_selector_runtime_backend_selection_count: artifacts.docker_local_backend_selector?.summary?.runtime_backend_selection_count ?? 0,
+    docker_local_backend_selector_selected_runtime_backend_count: artifacts.docker_local_backend_selector?.summary?.selected_runtime_backend_count ?? 0,
+    docker_local_backend_selector_blocked_runtime_backend_count: artifacts.docker_local_backend_selector?.summary?.blocked_runtime_backend_count ?? 0,
+    docker_local_backend_selector_not_applicable_runtime_backend_count: artifacts.docker_local_backend_selector?.summary?.not_applicable_runtime_backend_count ?? 0,
+    docker_local_backend_selector_local_selected_runtime_count: artifacts.docker_local_backend_selector?.summary?.local_selected_runtime_count ?? 0,
+    docker_local_backend_selector_docker_selected_runtime_count: artifacts.docker_local_backend_selector?.summary?.docker_selected_runtime_count ?? 0,
+    docker_local_backend_selector_high_risk_docker_selected_runtime_count: artifacts.docker_local_backend_selector?.summary?.high_risk_docker_selected_runtime_count ?? 0,
+    docker_local_backend_selector_git_worktree_overlay_count: artifacts.docker_local_backend_selector?.summary?.git_worktree_overlay_count ?? 0,
+    docker_local_backend_selector_classification_backend_selection_count: artifacts.docker_local_backend_selector?.summary?.classification_backend_selection_count ?? 0,
+    docker_local_backend_selector_human_gated_classification_backend_count: artifacts.docker_local_backend_selector?.summary?.human_gated_classification_backend_count ?? 0,
+    docker_local_backend_selector_protected_review_classification_count: artifacts.docker_local_backend_selector?.summary?.protected_review_classification_count ?? 0,
+    docker_local_backend_selector_runtime_classification_matrix_count: artifacts.docker_local_backend_selector?.summary?.runtime_classification_matrix_count ?? 0,
+    docker_local_backend_selector_human_gated_runtime_classification_count: artifacts.docker_local_backend_selector?.summary?.human_gated_runtime_classification_count ?? 0,
+    docker_local_backend_selector_blocked_runtime_classification_count: artifacts.docker_local_backend_selector?.summary?.blocked_runtime_classification_count ?? 0,
+    docker_local_backend_selector_ssh_cloud_selected_count: artifacts.docker_local_backend_selector?.summary?.ssh_cloud_selected_count ?? 0,
+    docker_local_backend_selector_operator_surface_selected_count: artifacts.docker_local_backend_selector?.summary?.operator_surface_selected_count ?? 0,
+    docker_local_backend_selector_network_access_allowed_count: artifacts.docker_local_backend_selector?.summary?.network_access_allowed_count ?? 0,
+    docker_local_backend_selector_external_transfer_allowed_count: artifacts.docker_local_backend_selector?.summary?.external_transfer_allowed_count ?? 0,
+    docker_local_backend_selector_secret_material_allowed_count: artifacts.docker_local_backend_selector?.summary?.secret_material_allowed_count ?? 0,
+    docker_local_backend_selector_protected_mutation_route: artifacts.docker_local_backend_selector?.summary?.protected_mutation_route ?? "unknown",
+    docker_local_backend_selector_human_gate_required_for_protected_mutation: artifacts.docker_local_backend_selector?.summary?.human_gate_required_for_protected_mutation ?? false,
+    docker_local_backend_selector_runtime_self_report_trusted: artifacts.docker_local_backend_selector?.summary?.runtime_self_report_trusted ?? false,
+    docker_local_backend_selector_desktop_read_only: artifacts.docker_local_backend_selector?.summary?.desktop_read_only ?? false,
+    docker_local_backend_selector_desktop_mutation_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_mutation_allowed ?? false,
+    docker_local_backend_selector_desktop_protected_mutation_request_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    docker_local_backend_selector_desktop_protected_mutation_execution_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    docker_local_backend_selector_desktop_local_process_control_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_local_process_control_allowed ?? false,
+    docker_local_backend_selector_desktop_docker_control_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_docker_control_allowed ?? false,
+    docker_local_backend_selector_desktop_ssh_control_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_ssh_control_allowed ?? false,
+    docker_local_backend_selector_desktop_cloud_runtime_control_allowed: artifacts.docker_local_backend_selector?.summary?.desktop_cloud_runtime_control_allowed ?? false,
+    docker_local_backend_selector_desktop_installer_or_gateway_control: artifacts.docker_local_backend_selector?.summary?.desktop_installer_or_gateway_control ?? false,
+    docker_local_backend_selector_desktop_secret_material_exposed: artifacts.docker_local_backend_selector?.summary?.desktop_secret_material_exposed ?? false,
+    docker_local_backend_selector_desktop_runtime_source_of_truth: artifacts.docker_local_backend_selector?.summary?.desktop_runtime_source_of_truth ?? false,
+    docker_local_backend_selector_validation_error_count: artifacts.docker_local_backend_selector?.summary?.validation_error_count ?? artifacts.docker_local_backend_selector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15652,6 +15789,8 @@ function parseArgs(argv) {
     else if (arg === "--no-worktree-manager-v2") parsed.worktreeManagerV2Path = false;
     else if (arg === "--sandbox-policy-model") parsed.sandboxPolicyModelPath = argv[++index];
     else if (arg === "--no-sandbox-policy-model") parsed.sandboxPolicyModelPath = false;
+    else if (arg === "--docker-local-backend-selector") parsed.dockerLocalBackendSelectorPath = argv[++index];
+    else if (arg === "--no-docker-local-backend-selector") parsed.dockerLocalBackendSelectorPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16107,6 +16246,10 @@ Options:
   --no-worktree-manager-v2        Do not include Worktree Manager v2 status.
   --sandbox-policy-model <path>   sandbox-policy-model.json path.
   --no-sandbox-policy-model       Do not include Sandbox Policy Model status.
+  --docker-local-backend-selector <path>
+                                  docker-local-backend-selector.json path.
+  --no-docker-local-backend-selector
+                                  Do not include Docker/local Backend Selector status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

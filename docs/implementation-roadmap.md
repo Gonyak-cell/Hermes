@@ -5860,6 +5860,34 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 104개로 증가하고 sandbox_policy_model artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:sandbox-policy-model -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 203 - Docker/local Backend Selector
+
+목표: Sandbox Policy Model 위에 Runtime 위험도와 P0-P5 data classification을 조합하는 backend selector를 추가해, 실제 선택 가능한 실행 백엔드를 local/docker로만 좁히고 SSH/cloud/operator surface는 선택되지 않게 고정한다. Hermes Desktop은 selector 결과를 읽는 operator surface일 뿐 backend 변경, local process 실행, container 시작, SSH/cloud 제어권을 갖지 않는다.
+
+구현:
+
+- `src/docker-local-backend-selector.mjs`와 `scripts/docker-local-backend-selector.mjs`를 추가해 `npm run runtime:backend-selector` slice를 등록
+- `schemas/docker-local-backend-selector.schema.json`으로 selector contract, classification rule, runtime selection, runtime/classification matrix, Desktop boundary를 검증
+- Sandbox Policy Model, Runtime Adapter Interface v2, core policy matrix, Desktop Companion 설계 문서를 source contract로 연결
+- Runtime 9개에 대해 `local_script`는 local/temp_dir, Hermes/Claude Code/Codex/Document Renderer는 docker 계열, Browser/MCP는 blocked, Harness/Manual은 not_applicable로 정규화
+- P0-P5 classification별 backend selection row를 만들고 P5 secret은 자동 backend selection 없이 protected review only로 고정
+- Runtime/classification matrix 54개 row를 생성해 restricted/forbidden runtime, human gate, redaction, protected mutation route를 함께 기록
+- Review Dashboard와 Review API에 `/api/docker-local-backend-selector`, `/api/backend-selection-rules`, `/api/runtime-backend-selections`, `/api/classification-backend-selections`, `/api/runtime-classification-backend-matrix`, `/api/backend-selector-desktop-boundary`, `/api/backend-selector-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Docker/local Backend Selector를 연결
+
+완료 기준:
+
+- Docker/local Backend Selector가 validation error 없이 `complete` 상태가 됨
+- selector contract가 `local`, `docker`만 selectable backend로 고정하고 `ssh`, `cloud`는 blocked backend로 보존함
+- Runtime backend selection 9개 중 selected 5개, blocked 2개, not_applicable 2개가 생성됨
+- local selected runtime은 1개, docker selected runtime은 4개이며 high-risk docker runtime 3개와 git worktree overlay 2개가 보존됨
+- P0-P5 classification 6개와 runtime/classification matrix 54개가 생성되고 P5 secret은 protected review only로 고정됨
+- SSH/cloud/operator surface selected count, network access, external transfer, raw secret material allowed count가 모두 0임
+- Desktop mutation/protected execution/local process/docker/SSH/cloud/installer/gateway/source-of-truth 권한은 모두 false
+- Review API와 dashboard가 Docker/local Backend Selector 상태를 read-only로 노출
+- Golden fixture 수가 105개로 증가하고 docker_local_backend_selector artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:backend-selector -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5868,9 +5896,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 202이다.
+- 현재 완료 기준점은 Phase 203이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P203-P312, 총 110개다.
+- 남은 계획 슬롯은 P204-P312, 총 109개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

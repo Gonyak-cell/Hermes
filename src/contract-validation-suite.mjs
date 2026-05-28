@@ -76,6 +76,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:local-script-adapter",
   "runtime:document-renderer-adapter",
   "runtime:sandbox-policy-model",
+  "runtime:backend-selector",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

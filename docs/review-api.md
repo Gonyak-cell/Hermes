@@ -595,6 +595,13 @@ npm run api:serve
 - `GET /api/sandbox-policy-decisions`: Sandbox policy decision rows
 - `GET /api/sandbox-desktop-boundary`: Sandbox Policy Model Desktop boundary row
 - `GET /api/sandbox-policy-model-validations`: Sandbox Policy Model validation rows
+- `GET /api/docker-local-backend-selector`: Docker/local Backend Selector artifact
+- `GET /api/backend-selection-rules`: backend selection rule rows
+- `GET /api/runtime-backend-selections`: runtime backend selection rows
+- `GET /api/classification-backend-selections`: classification backend selection rows
+- `GET /api/runtime-classification-backend-matrix`: runtime/classification backend matrix rows
+- `GET /api/backend-selector-desktop-boundary`: Backend Selector Desktop boundary row
+- `GET /api/backend-selector-validations`: Backend Selector validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

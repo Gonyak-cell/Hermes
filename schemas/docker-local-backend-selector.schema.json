@@ -1,0 +1,387 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/docker-local-backend-selector.schema.json",
+  "title": "Hermes Docker/local Backend Selector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "docker_local_backend_selector_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "backend_selector_contract",
+    "backend_selection_rules",
+    "runtime_backend_selections",
+    "classification_backend_selections",
+    "runtime_classification_backend_matrix",
+    "backend_selector_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "docker-local-backend-selector.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "docker_local_backend_selector_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "sandbox_policy_model_path",
+        "runtime_adapter_interface_v2_path",
+        "policy_matrix_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "sandbox_policy_model",
+        "runtime_adapter_interface_v2",
+        "policy_matrix",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "sandbox_policy_model": {
+          "type": "object",
+          "required": [
+            "sandbox_policy_model_status",
+            "contract_status",
+            "local_backend_policy_status",
+            "docker_backend_policy_status",
+            "ssh_backend_policy_status",
+            "cloud_backend_policy_status",
+            "runtime_sandbox_binding_count",
+            "network_access_allowed_count",
+            "external_transfer_allowed_count",
+            "secret_material_allowed_count"
+          ],
+          "properties": {
+            "sandbox_policy_model_status": { "const": "complete" },
+            "contract_status": { "const": "locked" },
+            "local_backend_policy_status": { "const": "allowed" },
+            "docker_backend_policy_status": { "const": "allowed" },
+            "ssh_backend_policy_status": { "const": "blocked_by_default" },
+            "cloud_backend_policy_status": { "const": "blocked_by_default" },
+            "runtime_sandbox_binding_count": { "type": "integer", "minimum": 1 },
+            "network_access_allowed_count": { "const": 0 },
+            "external_transfer_allowed_count": { "const": 0 },
+            "secret_material_allowed_count": { "const": 0 }
+          }
+        },
+        "runtime_adapter_interface_v2": {
+          "type": "object",
+          "required": ["runtime_adapter_interface_status", "operator_surface_policy_count", "read_only_policy_count"],
+          "properties": {
+            "runtime_adapter_interface_status": { "const": "complete" },
+            "operator_surface_policy_count": { "type": "integer", "minimum": 1 },
+            "read_only_policy_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "policy_matrix": {
+          "type": "object",
+          "required": ["classification_level_count", "runtime_rule_count"],
+          "properties": {
+            "classification_level_count": { "type": "integer", "minimum": 6 },
+            "runtime_rule_count": { "type": "integer", "minimum": 6 }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": [
+            "declares_read_only",
+            "declares_not_runtime_source_of_truth",
+            "declares_human_gate_for_mutation",
+            "blocks_installer_gateway_or_ssh_control"
+          ],
+          "properties": {
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true },
+            "declares_human_gate_for_mutation": { "const": true },
+            "blocks_installer_gateway_or_ssh_control": { "const": true }
+          }
+        }
+      }
+    },
+    "backend_selector_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "contract_status",
+        "selector_status",
+        "source_of_truth",
+        "selection_authority",
+        "selectable_backend_kinds",
+        "blocked_backend_kinds",
+        "default_network_access_allowed",
+        "default_external_transfer_allowed",
+        "secret_material_allowed",
+        "runtime_self_report_trusted",
+        "protected_mutation_route",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth"
+      ],
+      "properties": {
+        "contract_id": { "const": "docker-local-backend-selector.default" },
+        "contract_status": { "const": "locked" },
+        "selector_status": { "const": "locked" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "selection_authority": { "const": "policy_snapshot_and_sandbox_model" },
+        "selectable_backend_kinds": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "allOf": [
+            { "contains": { "const": "local" } },
+            { "contains": { "const": "docker" } }
+          ]
+        },
+        "blocked_backend_kinds": {
+          "type": "array",
+          "minItems": 2,
+          "allOf": [
+            { "contains": { "const": "ssh" } },
+            { "contains": { "const": "cloud" } }
+          ]
+        },
+        "default_network_access_allowed": { "const": false },
+        "default_external_transfer_allowed": { "const": false },
+        "secret_material_allowed": { "const": false },
+        "runtime_self_report_trusted": { "const": false },
+        "protected_mutation_route": { "const": "protected_action_request_only" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false }
+      }
+    },
+    "backend_selection_rules": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "backend_selection_rule_id",
+          "classification",
+          "selectable_backend_kinds",
+          "protected_backend_kinds",
+          "blocked_backend_kinds",
+          "network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "protected_mutation_route",
+          "source_of_truth"
+        ],
+        "properties": {
+          "network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "source_of_truth": { "const": "harness_control_plane" }
+        }
+      }
+    },
+    "runtime_backend_selections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "runtime_backend_selection_id",
+          "runtime_id",
+          "risk_level",
+          "source_backend_kind",
+          "selected_backend_kind",
+          "selection_status",
+          "workspace_isolation_type",
+          "network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "runtime_self_report_trusted",
+          "protected_mutation_route",
+          "desktop_read_only",
+          "desktop_mutation_allowed",
+          "desktop_protected_mutation_execution_allowed",
+          "source_of_truth",
+          "runtime_source_of_truth",
+          "classification_outcomes"
+        ],
+        "properties": {
+          "selected_backend_kind": { "type": ["string", "null"] },
+          "selection_status": { "enum": ["selected", "blocked", "not_applicable"] },
+          "network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "runtime_self_report_trusted": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "desktop_read_only": { "const": true },
+          "desktop_mutation_allowed": { "const": false },
+          "desktop_protected_mutation_execution_allowed": { "const": false },
+          "source_of_truth": { "const": "harness_control_plane" },
+          "runtime_source_of_truth": { "const": false },
+          "classification_outcomes": { "type": "array", "minItems": 1 }
+        }
+      }
+    },
+    "classification_backend_selections": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": [
+          "classification_backend_selection_id",
+          "classification",
+          "backend_selection_status",
+          "selected_backend_kinds",
+          "protected_backend_kinds",
+          "blocked_backend_kinds",
+          "network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "protected_mutation_route",
+          "source_of_truth"
+        ],
+        "properties": {
+          "backend_selection_status": { "enum": ["selected", "selected_with_human_gate", "protected_review_only"] },
+          "selected_backend_kinds": { "type": "array" },
+          "protected_backend_kinds": { "type": "array" },
+          "blocked_backend_kinds": { "type": "array" },
+          "network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "source_of_truth": { "const": "harness_control_plane" }
+        }
+      }
+    },
+    "runtime_classification_backend_matrix": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "runtime_classification_backend_selection_id",
+          "runtime_id",
+          "classification",
+          "selected_backend_kind",
+          "backend_selection_status",
+          "human_gate_required",
+          "network_access_allowed",
+          "external_transfer_allowed",
+          "secret_material_allowed",
+          "protected_mutation_route"
+        ],
+        "properties": {
+          "selected_backend_kind": { "type": ["string", "null"] },
+          "backend_selection_status": { "enum": ["selected", "selected_with_human_gate", "blocked", "not_applicable"] },
+          "network_access_allowed": { "const": false },
+          "external_transfer_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" }
+        }
+      }
+    },
+    "backend_selector_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_id",
+        "boundary_status",
+        "desktop_surface",
+        "desktop_surface_policy",
+        "source_of_truth",
+        "runtime_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_execution_allowed",
+        "local_process_control_allowed",
+        "docker_control_allowed",
+        "ssh_control_allowed",
+        "cloud_runtime_control_allowed",
+        "installer_or_gateway_control",
+        "secret_material_exposed",
+        "protected_mutation_route"
+      ],
+      "properties": {
+        "boundary_status": { "const": "locked" },
+        "desktop_surface": { "const": "docker_local_backend_selector" },
+        "desktop_surface_policy": { "const": "read_only_backend_selection_status" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "runtime_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "local_process_control_allowed": { "const": false },
+        "docker_control_allowed": { "const": false },
+        "ssh_control_allowed": { "const": false },
+        "cloud_runtime_control_allowed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "protected_mutation_route": { "const": "protected_action_request_only" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "docker_local_backend_selector_status",
+        "contract_status",
+        "selector_status",
+        "selectable_backend_count",
+        "runtime_backend_selection_count",
+        "selected_runtime_backend_count",
+        "blocked_runtime_backend_count",
+        "not_applicable_runtime_backend_count",
+        "local_selected_runtime_count",
+        "docker_selected_runtime_count",
+        "classification_backend_selection_count",
+        "runtime_classification_matrix_count",
+        "ssh_cloud_selected_count",
+        "operator_surface_selected_count",
+        "network_access_allowed_count",
+        "external_transfer_allowed_count",
+        "secret_material_allowed_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_runtime_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "docker_local_backend_selector_status": { "const": "complete" },
+        "contract_status": { "const": "locked" },
+        "selector_status": { "const": "locked" },
+        "selectable_backend_count": { "const": 2 },
+        "runtime_backend_selection_count": { "type": "integer", "minimum": 1 },
+        "selected_runtime_backend_count": { "type": "integer", "minimum": 1 },
+        "blocked_runtime_backend_count": { "type": "integer", "minimum": 1 },
+        "not_applicable_runtime_backend_count": { "type": "integer", "minimum": 1 },
+        "local_selected_runtime_count": { "type": "integer", "minimum": 1 },
+        "docker_selected_runtime_count": { "type": "integer", "minimum": 1 },
+        "classification_backend_selection_count": { "type": "integer", "minimum": 6 },
+        "runtime_classification_matrix_count": { "type": "integer", "minimum": 1 },
+        "ssh_cloud_selected_count": { "const": 0 },
+        "operator_surface_selected_count": { "const": 0 },
+        "network_access_allowed_count": { "const": 0 },
+        "external_transfer_allowed_count": { "const": 0 },
+        "secret_material_allowed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}

@@ -199,6 +199,7 @@ import { runLocalScriptAdapter } from "../src/local-script-adapter.mjs";
 import { runDocumentRendererAdapter } from "../src/document-renderer-adapter.mjs";
 import { runWorktreeManagerV2 } from "../src/worktree-manager-v2.mjs";
 import { runSandboxPolicyModel } from "../src/sandbox-policy-model.mjs";
+import { runDockerLocalBackendSelector } from "../src/docker-local-backend-selector.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1800,6 +1801,7 @@ describe("matter harness", () => {
         documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
         worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
         sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
+        dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6796,6 +6798,58 @@ describe("matter harness", () => {
       assert.equal(sandboxPolicyModel.sandbox_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "sandbox-policy-model", "summary.md"), "utf8"), /Sandbox Policy Model/);
 
+      const dockerLocalBackendSelector = await runDockerLocalBackendSelector({
+        sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        policyMatrixPath: "examples/core/policy-matrix.json",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "docker-local-backend-selector"),
+        runAt: "2026-05-23T06:45:39.000Z",
+      });
+      const dockerLocalBackendSelectorSchema = JSON.parse(await readFile("schemas/docker-local-backend-selector.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(dockerLocalBackendSelector, dockerLocalBackendSelectorSchema, {}, "docker_local_backend_selector"),
+        [],
+      );
+      assert.equal(dockerLocalBackendSelector.summary.docker_local_backend_selector_status, "complete");
+      assert.equal(dockerLocalBackendSelector.summary.contract_status, "locked");
+      assert.equal(dockerLocalBackendSelector.summary.selector_status, "locked");
+      assert.equal(dockerLocalBackendSelector.summary.selectable_backend_count, 2);
+      assert.equal(dockerLocalBackendSelector.summary.runtime_backend_selection_count, sandboxPolicyModel.summary.runtime_sandbox_binding_count);
+      assert.equal(dockerLocalBackendSelector.summary.selected_runtime_backend_count, 5);
+      assert.equal(dockerLocalBackendSelector.summary.blocked_runtime_backend_count, 2);
+      assert.equal(dockerLocalBackendSelector.summary.not_applicable_runtime_backend_count, 2);
+      assert.equal(dockerLocalBackendSelector.summary.local_selected_runtime_count, 1);
+      assert.equal(dockerLocalBackendSelector.summary.docker_selected_runtime_count, 4);
+      assert.equal(dockerLocalBackendSelector.summary.high_risk_docker_selected_runtime_count, 3);
+      assert.equal(dockerLocalBackendSelector.summary.git_worktree_overlay_count, 2);
+      assert.equal(dockerLocalBackendSelector.summary.classification_backend_selection_count, 6);
+      assert.equal(dockerLocalBackendSelector.summary.protected_review_classification_count, 1);
+      assert.equal(dockerLocalBackendSelector.summary.runtime_classification_matrix_count, 54);
+      assert.equal(dockerLocalBackendSelector.summary.ssh_cloud_selected_count, 0);
+      assert.equal(dockerLocalBackendSelector.summary.operator_surface_selected_count, 0);
+      assert.equal(dockerLocalBackendSelector.summary.network_access_allowed_count, 0);
+      assert.equal(dockerLocalBackendSelector.summary.external_transfer_allowed_count, 0);
+      assert.equal(dockerLocalBackendSelector.summary.secret_material_allowed_count, 0);
+      assert.equal(dockerLocalBackendSelector.summary.protected_mutation_route, "protected_action_request_only");
+      assert.equal(dockerLocalBackendSelector.summary.runtime_self_report_trusted, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_read_only, true);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_mutation_allowed, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_local_process_control_allowed, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_docker_control_allowed, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_ssh_control_allowed, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_cloud_runtime_control_allowed, false);
+      assert.equal(dockerLocalBackendSelector.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(dockerLocalBackendSelector.summary.validation_error_count, 0);
+      assert.deepEqual(dockerLocalBackendSelector.backend_selector_contract.selectable_backend_kinds, ["local", "docker"]);
+      assert.ok(dockerLocalBackendSelector.runtime_backend_selections.some((selection) => selection.runtime_id === "local_script" && selection.selected_backend_kind === "local"));
+      assert.ok(dockerLocalBackendSelector.runtime_backend_selections.some((selection) => selection.runtime_id === "codex" && selection.selected_backend_kind === "docker" && selection.git_worktree_overlay_required === true));
+      assert.ok(dockerLocalBackendSelector.runtime_backend_selections.some((selection) => selection.runtime_id === "browser" && selection.selection_status === "blocked"));
+      assert.ok(dockerLocalBackendSelector.classification_backend_selections.some((selection) => selection.classification === "P5_SECRET" && selection.backend_selection_status === "protected_review_only" && selection.selected_backend_kinds.length === 0));
+      assert.equal(dockerLocalBackendSelector.backend_selector_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "docker-local-backend-selector", "summary.md"), "utf8"), /Docker\/local Backend Selector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6922,6 +6976,7 @@ describe("matter harness", () => {
           document_renderer_adapter: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
           worktree_manager_v2: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
           sandbox_policy_model: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
+          docker_local_backend_selector: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6973,8 +7028,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 104);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 104);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 105);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 105);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7066,6 +7121,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "document_renderer_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "worktree_manager_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "sandbox_policy_model"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "docker_local_backend_selector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7116,6 +7172,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:document-renderer-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "worktree:manager-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:sandbox-policy-model"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:backend-selector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7594,6 +7651,10 @@ describe("matter harness", () => {
       assert.equal(sandboxPolicyModelCheckpoint?.acceptance_profile, "sandbox_policy_model_gate");
       assert.equal(sandboxPolicyModelCheckpoint?.status, "passed");
       assert.equal(sandboxPolicyModelCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const dockerLocalBackendSelectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-docker-local-backend-selector");
+      assert.equal(dockerLocalBackendSelectorCheckpoint?.acceptance_profile, "docker_local_backend_selector_gate");
+      assert.equal(dockerLocalBackendSelectorCheckpoint?.status, "passed");
+      assert.equal(dockerLocalBackendSelectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9697,6 +9758,32 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.sandbox_policy_model_desktop_cloud_runtime_control_allowed, false);
       assert.equal(dashboard.summary.sandbox_policy_model_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.sandbox_policy_model_validation_error_count, 0);
+      assert.equal(dashboard.summary.docker_local_backend_selector_status, "complete");
+      assert.equal(dashboard.summary.docker_local_backend_selector_contract_status, "locked");
+      assert.equal(dashboard.summary.docker_local_backend_selector_selector_status, "locked");
+      assert.equal(dashboard.summary.docker_local_backend_selector_selectable_backend_count, 2);
+      assert.equal(dashboard.summary.docker_local_backend_selector_runtime_backend_selection_count, dockerLocalBackendSelector.summary.runtime_backend_selection_count);
+      assert.equal(dashboard.summary.docker_local_backend_selector_selected_runtime_backend_count, 5);
+      assert.equal(dashboard.summary.docker_local_backend_selector_local_selected_runtime_count, 1);
+      assert.equal(dashboard.summary.docker_local_backend_selector_docker_selected_runtime_count, 4);
+      assert.equal(dashboard.summary.docker_local_backend_selector_high_risk_docker_selected_runtime_count, 3);
+      assert.equal(dashboard.summary.docker_local_backend_selector_classification_backend_selection_count, 6);
+      assert.equal(dashboard.summary.docker_local_backend_selector_protected_review_classification_count, 1);
+      assert.equal(dashboard.summary.docker_local_backend_selector_runtime_classification_matrix_count, 54);
+      assert.equal(dashboard.summary.docker_local_backend_selector_ssh_cloud_selected_count, 0);
+      assert.equal(dashboard.summary.docker_local_backend_selector_operator_surface_selected_count, 0);
+      assert.equal(dashboard.summary.docker_local_backend_selector_network_access_allowed_count, 0);
+      assert.equal(dashboard.summary.docker_local_backend_selector_external_transfer_allowed_count, 0);
+      assert.equal(dashboard.summary.docker_local_backend_selector_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_read_only, true);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_local_process_control_allowed, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_docker_control_allowed, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_ssh_control_allowed, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_cloud_runtime_control_allowed, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.docker_local_backend_selector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -10569,6 +10656,22 @@ describe("matter harness", () => {
       assert.equal(sandboxPolicyModelStage?.metrics.network_access_allowed_count, 0);
       assert.equal(sandboxPolicyModelStage?.metrics.external_transfer_allowed_count, 0);
       assert.equal(sandboxPolicyModelStage?.metrics.desktop_runtime_source_of_truth, false);
+      const dockerLocalBackendSelectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "docker_local_backend_selector");
+      assert.equal(dockerLocalBackendSelectorStage?.status, "passed");
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.docker_local_backend_selector_status, "complete");
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.selector_status, "locked");
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.selectable_backend_count, 2);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.selected_runtime_backend_count, 5);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.local_selected_runtime_count, 1);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.docker_selected_runtime_count, 4);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.classification_backend_selection_count, 6);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.runtime_classification_matrix_count, 54);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.ssh_cloud_selected_count, 0);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.operator_surface_selected_count, 0);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.network_access_allowed_count, 0);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.external_transfer_allowed_count, 0);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.secret_material_allowed_count, 0);
+      assert.equal(dockerLocalBackendSelectorStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10965,6 +11068,13 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-policy-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/sandbox-policy-model-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/docker-local-backend-selector"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backend-selection-rules"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-backend-selections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/classification-backend-selections"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-classification-backend-matrix"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backend-selector-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/backend-selector-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12017,6 +12127,34 @@ describe("matter harness", () => {
       const sandboxPolicyModelValidations = JSON.parse((await buildReviewApiResponse("/api/sandbox-policy-model-validations?status=passed", apiOptions)).body);
       assert.equal(sandboxPolicyModelValidations.collection, "sandbox_policy_model_validations");
       assert.equal(sandboxPolicyModelValidations.count, sandboxPolicyModel.summary.validation_item_count);
+
+      const dockerLocalBackendSelectorResponse = JSON.parse((await buildReviewApiResponse("/api/docker-local-backend-selector?docker_local_backend_selector_status=complete", apiOptions)).body);
+      assert.equal(dockerLocalBackendSelectorResponse.collection, "docker_local_backend_selector");
+      assert.equal(dockerLocalBackendSelectorResponse.count, 1);
+
+      const backendSelectionRulesResponse = JSON.parse((await buildReviewApiResponse("/api/backend-selection-rules?classification=P5_SECRET", apiOptions)).body);
+      assert.equal(backendSelectionRulesResponse.collection, "backend_selection_rules");
+      assert.equal(backendSelectionRulesResponse.count, 1);
+
+      const runtimeBackendSelectionsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-backend-selections?selection_status=selected", apiOptions)).body);
+      assert.equal(runtimeBackendSelectionsResponse.collection, "runtime_backend_selections");
+      assert.equal(runtimeBackendSelectionsResponse.count, dockerLocalBackendSelector.summary.selected_runtime_backend_count);
+
+      const classificationBackendSelectionsResponse = JSON.parse((await buildReviewApiResponse("/api/classification-backend-selections?backend_selection_status=protected_review_only", apiOptions)).body);
+      assert.equal(classificationBackendSelectionsResponse.collection, "classification_backend_selections");
+      assert.equal(classificationBackendSelectionsResponse.count, dockerLocalBackendSelector.summary.protected_review_classification_count);
+
+      const runtimeClassificationBackendMatrixResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-classification-backend-matrix?classification=P2_CLIENT_CONFIDENTIAL", apiOptions)).body);
+      assert.equal(runtimeClassificationBackendMatrixResponse.collection, "runtime_classification_backend_matrix");
+      assert.equal(runtimeClassificationBackendMatrixResponse.count, dockerLocalBackendSelector.summary.runtime_backend_selection_count);
+
+      const backendSelectorDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/backend-selector-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(backendSelectorDesktopBoundaryResponse.collection, "backend_selector_desktop_boundary");
+      assert.equal(backendSelectorDesktopBoundaryResponse.count, 1);
+
+      const backendSelectorValidations = JSON.parse((await buildReviewApiResponse("/api/backend-selector-validations?status=passed", apiOptions)).body);
+      assert.equal(backendSelectorValidations.collection, "backend_selector_validations");
+      assert.equal(backendSelectorValidations.count, dockerLocalBackendSelector.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

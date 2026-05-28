@@ -3855,6 +3855,75 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/docker-local-backend-selector") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("docker_local_backend_selector", [selectorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/backend-selection-rules") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("backend_selection_rules", selectorResult.artifact.backend_selection_rules ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-backend-selections") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_backend_selections", selectorResult.artifact.runtime_backend_selections ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/classification-backend-selections") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("classification_backend_selections", selectorResult.artifact.classification_backend_selections ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-classification-backend-matrix") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_classification_backend_matrix", selectorResult.artifact.runtime_classification_backend_matrix ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/backend-selector-desktop-boundary") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("backend_selector_desktop_boundary", [selectorResult.artifact.backend_selector_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/backend-selector-validations") {
+    const selectorResult = await readDashboardSourceArtifact(dashboard, "docker_local_backend_selector");
+    if (!selectorResult.available) {
+      return jsonResponse(503, buildError("docker_local_backend_selector_unavailable", selectorResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("backend_selector_validations", selectorResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8011,6 +8080,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/sandbox-policy-decisions", "Sandbox policy decision rows"),
       route("GET", "/api/sandbox-desktop-boundary", "Sandbox Policy Model Desktop boundary"),
       route("GET", "/api/sandbox-policy-model-validations", "Sandbox Policy Model validation rows"),
+      route("GET", "/api/docker-local-backend-selector", "Docker/local Backend Selector artifact"),
+      route("GET", "/api/backend-selection-rules", "Backend selection rule rows"),
+      route("GET", "/api/runtime-backend-selections", "Runtime backend selection rows"),
+      route("GET", "/api/classification-backend-selections", "Classification backend selection rows"),
+      route("GET", "/api/runtime-classification-backend-matrix", "Runtime/classification backend matrix rows"),
+      route("GET", "/api/backend-selector-desktop-boundary", "Backend Selector Desktop boundary"),
+      route("GET", "/api/backend-selector-validations", "Backend Selector validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8667,8 +8743,13 @@ function filterItems(items, searchParams) {
     "document_renderer_adapter_status",
     "worktree_manager_v2_status",
     "sandbox_policy_model_status",
+    "docker_local_backend_selector_status",
     "backend_kind",
     "backend_policy_status",
+    "backend_selection_status",
+    "selection_status",
+    "selected_backend_kind",
+    "classification",
     "policy_decision_status",
     "sandbox_binding_status",
     "interface_status",
@@ -9943,8 +10024,13 @@ function readFilterValue(item, key) {
   if (key === "document_renderer_adapter_status") return item.summary?.document_renderer_adapter_status ?? item.document_renderer_adapter_status;
   if (key === "worktree_manager_v2_status") return item.summary?.worktree_manager_v2_status ?? item.worktree_manager_v2_status;
   if (key === "sandbox_policy_model_status") return item.summary?.sandbox_policy_model_status ?? item.sandbox_policy_model_status;
+  if (key === "docker_local_backend_selector_status") return item.summary?.docker_local_backend_selector_status ?? item.docker_local_backend_selector_status;
   if (key === "backend_kind") return item.backend_kind;
   if (key === "backend_policy_status") return item.backend_policy_status;
+  if (key === "backend_selection_status") return item.backend_selection_status;
+  if (key === "selection_status") return item.selection_status;
+  if (key === "selected_backend_kind") return item.selected_backend_kind ?? item.summary?.selected_backend_kind;
+  if (key === "classification") return item.classification;
   if (key === "policy_decision_status") return item.policy_decision_status;
   if (key === "sandbox_binding_status") return item.binding_status;
   if (key === "interface_status") return item.interface_status;

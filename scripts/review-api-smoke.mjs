@@ -1560,6 +1560,34 @@ try {
   assert.equal(sandboxPolicyModelValidations.collection, "sandbox_policy_model_validations");
   assert.ok(sandboxPolicyModelValidations.count <= 5);
 
+  const dockerLocalBackendSelector = await fetchJson(`${url}/api/docker-local-backend-selector?docker_local_backend_selector_status=complete&limit=1`);
+  assert.equal(dockerLocalBackendSelector.collection, "docker_local_backend_selector");
+  assert.ok(dockerLocalBackendSelector.count <= 1);
+
+  const backendSelectionRules = await fetchJson(`${url}/api/backend-selection-rules?classification=P5_SECRET&limit=1`);
+  assert.equal(backendSelectionRules.collection, "backend_selection_rules");
+  assert.ok(backendSelectionRules.count <= 1);
+
+  const runtimeBackendSelections = await fetchJson(`${url}/api/runtime-backend-selections?selection_status=selected&limit=5`);
+  assert.equal(runtimeBackendSelections.collection, "runtime_backend_selections");
+  assert.ok(runtimeBackendSelections.count <= 5);
+
+  const classificationBackendSelections = await fetchJson(`${url}/api/classification-backend-selections?backend_selection_status=protected_review_only&limit=5`);
+  assert.equal(classificationBackendSelections.collection, "classification_backend_selections");
+  assert.ok(classificationBackendSelections.count <= 5);
+
+  const runtimeClassificationBackendMatrix = await fetchJson(`${url}/api/runtime-classification-backend-matrix?classification=P2_CLIENT_CONFIDENTIAL&limit=5`);
+  assert.equal(runtimeClassificationBackendMatrix.collection, "runtime_classification_backend_matrix");
+  assert.ok(runtimeClassificationBackendMatrix.count <= 5);
+
+  const backendSelectorDesktopBoundary = await fetchJson(`${url}/api/backend-selector-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(backendSelectorDesktopBoundary.collection, "backend_selector_desktop_boundary");
+  assert.ok(backendSelectorDesktopBoundary.count <= 1);
+
+  const backendSelectorValidations = await fetchJson(`${url}/api/backend-selector-validations?status=passed&limit=5`);
+  assert.equal(backendSelectorValidations.collection, "backend_selector_validations");
+  assert.ok(backendSelectorValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

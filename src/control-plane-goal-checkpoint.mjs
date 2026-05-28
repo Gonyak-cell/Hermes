@@ -77,6 +77,7 @@ const GOAL_ITEMS = [
   sourceItem("sandbox_policy_model", "Sandbox policy model", "runtime", "sandbox_policy_model", "control-plane-sandbox-policy-model", { acceptance_profile: "sandbox_policy_model_gate" }),
   sourceItem("docker_local_backend_selector", "Docker/local backend selector", "runtime", "docker_local_backend_selector", "control-plane-docker-local-backend-selector", { acceptance_profile: "docker_local_backend_selector_gate" }),
   sourceItem("secrets_broker_contract", "Secrets broker contract", "runtime", "secrets_broker_contract", "control-plane-secrets-broker-contract", { acceptance_profile: "secrets_broker_contract_gate" }),
+  sourceItem("runtime_artifact_capture", "Runtime artifact capture", "runtime", "runtime_artifact_capture", "control-plane-runtime-artifact-capture", { acceptance_profile: "runtime_artifact_capture_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -513,6 +514,7 @@ function evaluateStageAcceptance(item, stage) {
     "sandbox_policy_model_gate",
     "docker_local_backend_selector_gate",
     "secrets_broker_contract_gate",
+    "runtime_artifact_capture_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1813,6 +1815,38 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Secrets Broker Contract keeps agents and Desktop on handle references, scoped runtime tokens, and audit receipts while forbidding raw secret and provider key exposure.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_artifact_capture_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.runtime_artifact_capture_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.capture_authority === "harness_control_plane"
+      && metrics.source_of_truth === "runtime_agentrun_contract_freeze_and_agent_run_ledger"
+      && metrics.runtime_self_report_trusted === false
+      && metrics.artifact_capture_record_count > 0
+      && metrics.bound_artifact_capture_count === metrics.artifact_capture_record_count
+      && metrics.diff_capture_record_count >= 2
+      && metrics.bound_diff_capture_count === metrics.diff_capture_record_count
+      && metrics.stream_capture_record_count > 0
+      && metrics.bound_stream_capture_count === metrics.stream_capture_record_count
+      && metrics.stdout_capture_count > 0
+      && metrics.stderr_capture_count > 0
+      && metrics.metadata_capture_record_count > 0
+      && metrics.bound_metadata_capture_count === metrics.metadata_capture_record_count
+      && metrics.unbound_output_artifact_capture_binding_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.artifact_write_allowed === false
+      && metrics.diff_apply_allowed === false
+      && metrics.stream_write_allowed === false
+      && metrics.metadata_edit_allowed === false
+    ) {
+      return passedWithOperationalGate(stage, "Runtime Artifact Capture binds generated files, diffs, stdout/stderr, and metadata to OutputArtifact records while keeping Desktop read-only.");
     }
   }
 

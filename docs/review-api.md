@@ -608,6 +608,14 @@ npm run api:serve
 - `GET /api/secret-audit-bindings`: secret audit binding rows
 - `GET /api/secrets-desktop-boundary`: Secrets Broker Desktop boundary row
 - `GET /api/secrets-broker-validations`: Secrets Broker validation rows
+- `GET /api/runtime-artifact-capture`: Runtime Artifact Capture artifact
+- `GET /api/artifact-capture-records`: generated runtime artifact capture rows bound to OutputArtifact
+- `GET /api/diff-capture-records`: Claude/Codex diff or patch capture rows
+- `GET /api/stream-capture-records`: stdout/stderr capture rows
+- `GET /api/metadata-capture-records`: runtime artifact metadata capture rows
+- `GET /api/output-artifact-capture-bindings`: capture-to-OutputArtifact binding rows
+- `GET /api/runtime-artifact-desktop-boundary`: Runtime Artifact Capture Desktop boundary row
+- `GET /api/runtime-artifact-capture-validations`: Runtime Artifact Capture validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

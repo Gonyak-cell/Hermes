@@ -3966,6 +3966,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("secrets_broker_validations", brokerResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/runtime-artifact-capture") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_artifact_capture", [captureResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/artifact-capture-records") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("artifact_capture_records", captureResult.artifact.artifact_capture_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-capture-records") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_capture_records", captureResult.artifact.diff_capture_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/stream-capture-records") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("stream_capture_records", captureResult.artifact.stream_capture_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/metadata-capture-records") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("metadata_capture_records", captureResult.artifact.metadata_capture_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/output-artifact-capture-bindings") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("output_artifact_capture_bindings", captureResult.artifact.output_artifact_capture_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-artifact-desktop-boundary") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_artifact_desktop_boundary", [captureResult.artifact.runtime_artifact_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-artifact-capture-validations") {
+    const captureResult = await readDashboardSourceArtifact(dashboard, "runtime_artifact_capture");
+    if (!captureResult.available) {
+      return jsonResponse(503, buildError("runtime_artifact_capture_unavailable", captureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_artifact_capture_validations", captureResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8135,6 +8191,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/secret-audit-bindings", "Secret audit binding rows"),
       route("GET", "/api/secrets-desktop-boundary", "Secrets Broker Desktop boundary"),
       route("GET", "/api/secrets-broker-validations", "Secrets Broker validation rows"),
+      route("GET", "/api/runtime-artifact-capture", "Runtime Artifact Capture artifact"),
+      route("GET", "/api/artifact-capture-records", "Runtime artifact capture rows"),
+      route("GET", "/api/diff-capture-records", "Runtime diff/patch capture rows"),
+      route("GET", "/api/stream-capture-records", "Runtime stdout/stderr capture rows"),
+      route("GET", "/api/metadata-capture-records", "Runtime metadata capture rows"),
+      route("GET", "/api/output-artifact-capture-bindings", "OutputArtifact capture binding rows"),
+      route("GET", "/api/runtime-artifact-desktop-boundary", "Runtime Artifact Capture Desktop boundary"),
+      route("GET", "/api/runtime-artifact-capture-validations", "Runtime Artifact Capture validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8793,6 +8857,14 @@ function filterItems(items, searchParams) {
     "sandbox_policy_model_status",
     "docker_local_backend_selector_status",
     "secrets_broker_contract_status",
+    "runtime_artifact_capture_status",
+    "capture_status",
+    "capture_kind",
+    "diff_capture_kind",
+    "stream_name",
+    "metadata_scope",
+    "output_artifact_binding_status",
+    "human_review_required",
     "broker_status",
     "secret_access_status",
     "secret_kind",
@@ -10079,6 +10151,7 @@ function readFilterValue(item, key) {
   if (key === "sandbox_policy_model_status") return item.summary?.sandbox_policy_model_status ?? item.sandbox_policy_model_status;
   if (key === "docker_local_backend_selector_status") return item.summary?.docker_local_backend_selector_status ?? item.docker_local_backend_selector_status;
   if (key === "secrets_broker_contract_status") return item.summary?.secrets_broker_contract_status ?? item.secrets_broker_contract_status;
+  if (key === "runtime_artifact_capture_status") return item.summary?.runtime_artifact_capture_status ?? item.runtime_artifact_capture_status;
   if (key === "broker_status") return item.summary?.broker_status ?? item.broker_status;
   if (key === "secret_access_status") return item.secret_access_status;
   if (key === "secret_kind") return item.secret_kind;

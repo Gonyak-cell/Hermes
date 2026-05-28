@@ -1,0 +1,436 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/runtime-artifact-capture.schema.json",
+  "title": "Hermes Runtime Artifact Capture",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "runtime_artifact_capture_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "runtime_artifact_capture_contract",
+    "artifact_capture_records",
+    "diff_capture_records",
+    "stream_capture_records",
+    "metadata_capture_records",
+    "output_artifact_capture_bindings",
+    "runtime_artifact_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "runtime-artifact-capture.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "runtime_artifact_capture_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_agentrun_contract_freeze_path",
+        "agent_run_ledger_path",
+        "output_delivery_contract_freeze_path",
+        "claude_code_adapter_contract_path",
+        "codex_adapter_contract_path",
+        "secrets_broker_contract_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_agentrun_contract_freeze",
+        "agent_run_ledger",
+        "output_delivery_contract_freeze",
+        "claude_code_adapter_contract",
+        "codex_adapter_contract",
+        "secrets_broker_contract",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "runtime_artifact_count", "runtime_log_count", "runtime_output_count", "validation_error_count"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "runtime_artifact_count": { "type": "integer", "minimum": 1 },
+            "runtime_log_count": { "type": "integer", "minimum": 1 },
+            "runtime_output_count": { "type": "integer", "minimum": 1 },
+            "validation_error_count": { "const": 0 }
+          }
+        },
+        "agent_run_ledger": {
+          "type": "object",
+          "required": ["agent_run_ledger_status", "agent_run_record_count", "agent_run_artifact_reference_count", "agent_run_log_reference_count", "validation_error_count"],
+          "properties": {
+            "agent_run_ledger_status": { "const": "complete" },
+            "agent_run_record_count": { "type": "integer", "minimum": 1 },
+            "agent_run_artifact_reference_count": { "type": "integer", "minimum": 1 },
+            "agent_run_log_reference_count": { "type": "integer", "minimum": 1 },
+            "validation_error_count": { "const": 0 }
+          }
+        },
+        "output_delivery_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "output_artifact_count", "output_delivery_binding_count", "validation_error_count"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "output_artifact_count": { "type": "integer", "minimum": 1 },
+            "output_delivery_binding_count": { "type": "integer", "minimum": 1 },
+            "validation_error_count": { "const": 0 }
+          }
+        },
+        "claude_code_adapter_contract": {
+          "type": "object",
+          "required": ["adapter_status", "diff_gate_contract_count", "direct_apply_allowed", "direct_merge_allowed", "desktop_runtime_source_of_truth", "validation_error_count"],
+          "properties": {
+            "adapter_status": { "const": "complete" },
+            "diff_gate_contract_count": { "type": "integer", "minimum": 1 },
+            "direct_apply_allowed": { "const": false },
+            "direct_merge_allowed": { "const": false },
+            "desktop_runtime_source_of_truth": { "const": false },
+            "validation_error_count": { "const": 0 }
+          }
+        },
+        "codex_adapter_contract": {
+          "type": "object",
+          "required": ["adapter_status", "patch_gate_contract_count", "direct_apply_allowed", "direct_merge_allowed", "desktop_runtime_source_of_truth", "validation_error_count"],
+          "properties": {
+            "adapter_status": { "const": "complete" },
+            "patch_gate_contract_count": { "type": "integer", "minimum": 1 },
+            "direct_apply_allowed": { "const": false },
+            "direct_merge_allowed": { "const": false },
+            "desktop_runtime_source_of_truth": { "const": false },
+            "validation_error_count": { "const": 0 }
+          }
+        },
+        "secrets_broker_contract": {
+          "type": "object",
+          "required": ["secrets_broker_contract_status", "raw_secret_material_allowed_count", "desktop_secret_material_exposed", "provider_key_visible_to_desktop", "desktop_source_of_truth", "validation_error_count"],
+          "properties": {
+            "secrets_broker_contract_status": { "const": "complete" },
+            "raw_secret_material_allowed_count": { "const": 0 },
+            "desktop_secret_material_exposed": { "const": false },
+            "provider_key_visible_to_desktop": { "const": false },
+            "desktop_source_of_truth": { "const": false },
+            "validation_error_count": { "const": 0 }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": [
+            "declares_read_only",
+            "declares_not_runtime_source_of_truth",
+            "declares_human_gate_for_mutation",
+            "blocks_artifact_or_diff_mutation",
+            "blocks_secret_or_provider_key_control"
+          ],
+          "properties": {
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true },
+            "declares_human_gate_for_mutation": { "const": true },
+            "blocks_artifact_or_diff_mutation": { "const": true },
+            "blocks_secret_or_provider_key_control": { "const": true }
+          }
+        }
+      }
+    },
+    "runtime_artifact_capture_contract": {
+      "type": "object",
+      "required": [
+        "capture_contract_id",
+        "contract_status",
+        "capture_status",
+        "capture_authority",
+        "source_of_truth",
+        "output_artifact_binding_required",
+        "generated_file_capture_required",
+        "diff_capture_required",
+        "stdout_stderr_capture_required",
+        "metadata_capture_required",
+        "runtime_self_report_trusted",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth"
+      ],
+      "properties": {
+        "capture_contract_id": { "const": "runtime-artifact-capture.default" },
+        "contract_status": { "const": "locked" },
+        "capture_status": { "const": "locked" },
+        "capture_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "runtime_agentrun_contract_freeze_and_agent_run_ledger" },
+        "output_artifact_binding_required": { "const": true },
+        "generated_file_capture_required": { "const": true },
+        "diff_capture_required": { "const": true },
+        "stdout_stderr_capture_required": { "const": true },
+        "metadata_capture_required": { "const": true },
+        "runtime_self_report_trusted": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false }
+      }
+    },
+    "artifact_capture_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "artifact_capture_record_id",
+          "capture_authority",
+          "capture_status",
+          "runtime_artifact_id",
+          "agent_run_artifact_reference_id",
+          "runtime_output_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "artifact_id",
+          "artifact_type",
+          "artifact_uri",
+          "content_hash",
+          "output_artifact_id",
+          "output_artifact_binding_status",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "capture_authority": { "const": "harness_control_plane" },
+          "capture_status": { "const": "bound" },
+          "content_hash": { "type": "string", "minLength": 16 },
+          "output_artifact_id": { "type": "string", "minLength": 1 },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "diff_capture_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "diff_capture_record_id",
+          "capture_authority",
+          "capture_status",
+          "diff_capture_kind",
+          "diff_gate_contract_id",
+          "runtime_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "output_artifact_id",
+          "output_artifact_binding_status",
+          "direct_apply_allowed",
+          "direct_merge_allowed",
+          "protected_path_write_allowed",
+          "human_review_required",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "capture_authority": { "const": "harness_control_plane" },
+          "capture_status": { "const": "bound" },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "direct_apply_allowed": { "const": false },
+          "direct_merge_allowed": { "const": false },
+          "protected_path_write_allowed": { "const": false },
+          "human_review_required": { "const": true },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "stream_capture_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "stream_capture_record_id",
+          "capture_authority",
+          "capture_status",
+          "stream_name",
+          "stream_ref",
+          "runtime_log_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "logs_ref",
+          "log_capture_status",
+          "output_artifact_id",
+          "output_artifact_binding_status",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "capture_authority": { "const": "harness_control_plane" },
+          "capture_status": { "const": "bound" },
+          "stream_name": { "enum": ["stdout", "stderr"] },
+          "log_capture_status": { "const": "captured" },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "metadata_capture_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "metadata_capture_record_id",
+          "capture_authority",
+          "capture_status",
+          "metadata_ref",
+          "metadata_key_count",
+          "runtime_artifact_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "artifact_id",
+          "output_artifact_id",
+          "output_artifact_binding_status",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "capture_authority": { "const": "harness_control_plane" },
+          "capture_status": { "const": "bound" },
+          "metadata_key_count": { "type": "integer", "minimum": 1 },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "output_artifact_capture_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "output_artifact_capture_binding_id",
+          "binding_authority",
+          "binding_status",
+          "source_capture_kind",
+          "source_capture_id",
+          "workflow_run_id",
+          "output_artifact_id",
+          "output_artifact_binding_status",
+          "runtime_self_report_trusted"
+        ],
+        "properties": {
+          "binding_authority": { "const": "harness_control_plane" },
+          "binding_status": { "const": "bound" },
+          "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+          "runtime_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "runtime_artifact_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "desktop_surface_policy",
+        "source_of_truth",
+        "desktop_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_execution_allowed",
+        "artifact_write_allowed",
+        "diff_apply_allowed",
+        "stream_write_allowed",
+        "metadata_edit_allowed",
+        "secret_material_exposed",
+        "provider_key_visible",
+        "installer_or_gateway_control",
+        "protected_mutation_route",
+        "human_gate_required_for_exception"
+      ],
+      "properties": {
+        "boundary_status": { "const": "locked" },
+        "desktop_surface_policy": { "const": "read_only_runtime_artifact_status" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "desktop_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "artifact_write_allowed": { "const": false },
+        "diff_apply_allowed": { "const": false },
+        "stream_write_allowed": { "const": false },
+        "metadata_edit_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "protected_mutation_route": { "const": "protected_action_request_only" },
+        "human_gate_required_for_exception": { "const": true }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "runtime_artifact_capture_status",
+        "contract_status",
+        "capture_authority",
+        "source_of_truth",
+        "runtime_self_report_trusted",
+        "artifact_capture_record_count",
+        "bound_artifact_capture_count",
+        "diff_capture_record_count",
+        "bound_diff_capture_count",
+        "stream_capture_record_count",
+        "stdout_capture_count",
+        "stderr_capture_count",
+        "bound_stream_capture_count",
+        "metadata_capture_record_count",
+        "bound_metadata_capture_count",
+        "output_artifact_capture_binding_count",
+        "bound_output_artifact_capture_binding_count",
+        "unbound_output_artifact_capture_binding_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth",
+        "artifact_write_allowed",
+        "diff_apply_allowed",
+        "stream_write_allowed",
+        "metadata_edit_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "runtime_artifact_capture_status": { "const": "complete" },
+        "contract_status": { "const": "locked" },
+        "capture_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "runtime_agentrun_contract_freeze_and_agent_run_ledger" },
+        "runtime_self_report_trusted": { "const": false },
+        "artifact_capture_record_count": { "type": "integer", "minimum": 1 },
+        "bound_artifact_capture_count": { "type": "integer", "minimum": 1 },
+        "diff_capture_record_count": { "type": "integer", "minimum": 2 },
+        "bound_diff_capture_count": { "type": "integer", "minimum": 2 },
+        "stream_capture_record_count": { "type": "integer", "minimum": 2 },
+        "stdout_capture_count": { "type": "integer", "minimum": 1 },
+        "stderr_capture_count": { "type": "integer", "minimum": 1 },
+        "bound_stream_capture_count": { "type": "integer", "minimum": 2 },
+        "metadata_capture_record_count": { "type": "integer", "minimum": 1 },
+        "bound_metadata_capture_count": { "type": "integer", "minimum": 1 },
+        "output_artifact_capture_binding_count": { "type": "integer", "minimum": 1 },
+        "bound_output_artifact_capture_binding_count": { "type": "integer", "minimum": 1 },
+        "unbound_output_artifact_capture_binding_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "artifact_write_allowed": { "const": false },
+        "diff_apply_allowed": { "const": false },
+        "stream_write_allowed": { "const": false },
+        "metadata_edit_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}

@@ -217,6 +217,7 @@
     "runtime:sandbox-policy-model": "node scripts/sandbox-policy-model.mjs",
     "runtime:backend-selector": "node scripts/docker-local-backend-selector.mjs",
     "runtime:secrets-broker": "node scripts/secrets-broker-contract.mjs",
+    "runtime:artifact-capture": "node scripts/runtime-artifact-capture.mjs",
     "worktree:manager-v2": "node scripts/worktree-manager-v2.mjs",
     "slice:run": "node scripts/run-vertical-slice.mjs",
     "worktree:prepare": "node scripts/worktree-manager.mjs",

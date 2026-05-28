@@ -5917,6 +5917,35 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 106개로 증가하고 secrets_broker_contract artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:secrets-broker -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 205 - Runtime Artifact Capture
+
+목표: Runtime/AgentRun freeze와 AgentRun ledger 위에 artifact capture ledger를 추가해 생성 파일, diff/patch, stdout/stderr, runtime metadata가 OutputArtifact v2와 연결되도록 고정한다. Runtime self-report가 아니라 harness control plane과 ledger projection을 source of truth로 삼고, Hermes Desktop은 capture status를 읽는 operator surface로만 유지한다.
+
+구현:
+
+- `src/runtime-artifact-capture.mjs`와 `scripts/runtime-artifact-capture.mjs`를 추가해 `npm run runtime:artifact-capture` slice를 등록
+- `schemas/runtime-artifact-capture.schema.json`으로 artifact capture, diff capture, stream capture, metadata capture, OutputArtifact binding, Desktop boundary를 검증
+- Runtime/AgentRun Contract Freeze, Agent Run Ledger, Output/Delivery Contract Freeze, Claude Code/Codex adapter diff gate, Secrets Broker Contract, Desktop Companion 설계 문서를 source contract로 연결
+- runtime artifact 7개를 AgentRun artifact reference와 OutputArtifact v2에 바인딩하고 content hash, delivery state, approval/gate 상태를 보존
+- Claude Code diff gate와 Codex patch gate를 diff capture record로 materialize하고 direct apply/merge/protected write는 false로 유지
+- runtime log 6개의 stdout/stderr stream capture row 12개를 생성하고 workflow/run 기준 OutputArtifact에 연결
+- artifact metadata capture row 7개와 capture-to-OutputArtifact binding row 28개를 생성해 generated file/diff/stream/metadata capture를 한 ledger로 묶음
+- Runtime Artifact Desktop boundary를 read-only로 고정하고 artifact write, diff apply, stream write, metadata edit, protected execution, source-of-truth 권한을 모두 false로 유지
+- Review Dashboard와 Review API에 `/api/runtime-artifact-capture`, `/api/artifact-capture-records`, `/api/diff-capture-records`, `/api/stream-capture-records`, `/api/metadata-capture-records`, `/api/output-artifact-capture-bindings`, `/api/runtime-artifact-desktop-boundary`, `/api/runtime-artifact-capture-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Runtime Artifact Capture를 연결
+
+완료 기준:
+
+- Runtime Artifact Capture가 validation error 없이 `complete` 상태가 됨
+- capture contract가 `locked`이고 capture authority가 `harness_control_plane`, source of truth가 `runtime_agentrun_contract_freeze_and_agent_run_ledger`임
+- runtime self-report trusted가 false이고 artifact/output binding이 필수로 유지됨
+- artifact capture 7/7, diff capture 2/2, stream capture 12/12, metadata capture 7/7이 OutputArtifact에 bound됨
+- stdout/stderr capture가 runtime log별로 생성되고 unbound OutputArtifact capture binding count가 0임
+- Desktop read-only는 true이고 Desktop mutation/protected execution/source-of-truth/artifact write/diff apply/stream write/metadata edit 권한은 모두 false
+- Review API와 dashboard가 Runtime Artifact Capture 상태를 read-only로 노출
+- Golden fixture 수가 107개로 증가하고 runtime_artifact_capture artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:artifact-capture -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5925,9 +5954,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 204이다.
+- 현재 완료 기준점은 Phase 205이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P205-P312, 총 108개다.
+- 남은 계획 슬롯은 P206-P312, 총 107개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

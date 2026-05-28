@@ -201,6 +201,7 @@ import { runWorktreeManagerV2 } from "../src/worktree-manager-v2.mjs";
 import { runSandboxPolicyModel } from "../src/sandbox-policy-model.mjs";
 import { runDockerLocalBackendSelector } from "../src/docker-local-backend-selector.mjs";
 import { runSecretsBrokerContract } from "../src/secrets-broker-contract.mjs";
+import { runRuntimeArtifactCapture } from "../src/runtime-artifact-capture.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1804,6 +1805,7 @@ describe("matter harness", () => {
         sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
         dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
         secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6888,6 +6890,50 @@ describe("matter harness", () => {
       assert.equal(secretsBrokerContract.secrets_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "secrets-broker", "summary.md"), "utf8"), /Secrets Broker Contract/);
 
+      const runtimeArtifactCapture = await runRuntimeArtifactCapture({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+        codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+        secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-artifact-capture"),
+        runAt: "2026-05-23T06:45:41.000Z",
+      });
+      const runtimeArtifactCaptureSchema = JSON.parse(await readFile("schemas/runtime-artifact-capture.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeArtifactCapture, runtimeArtifactCaptureSchema, {}, "runtime_artifact_capture"), []);
+      assert.equal(runtimeArtifactCapture.summary.runtime_artifact_capture_status, "complete");
+      assert.equal(runtimeArtifactCapture.summary.contract_status, "locked");
+      assert.equal(runtimeArtifactCapture.summary.capture_authority, "harness_control_plane");
+      assert.equal(runtimeArtifactCapture.summary.source_of_truth, "runtime_agentrun_contract_freeze_and_agent_run_ledger");
+      assert.equal(runtimeArtifactCapture.summary.runtime_self_report_trusted, false);
+      assert.equal(runtimeArtifactCapture.summary.artifact_capture_record_count, runtimeAgentRunContractFreeze.summary.runtime_artifact_count);
+      assert.equal(runtimeArtifactCapture.summary.bound_artifact_capture_count, runtimeArtifactCapture.summary.artifact_capture_record_count);
+      assert.equal(runtimeArtifactCapture.summary.diff_capture_record_count, 2);
+      assert.equal(runtimeArtifactCapture.summary.bound_diff_capture_count, 2);
+      assert.equal(runtimeArtifactCapture.summary.stream_capture_record_count, runtimeAgentRunContractFreeze.summary.runtime_log_count * 2);
+      assert.equal(runtimeArtifactCapture.summary.stdout_capture_count, runtimeAgentRunContractFreeze.summary.runtime_log_count);
+      assert.equal(runtimeArtifactCapture.summary.stderr_capture_count, runtimeAgentRunContractFreeze.summary.runtime_log_count);
+      assert.equal(runtimeArtifactCapture.summary.bound_stream_capture_count, runtimeArtifactCapture.summary.stream_capture_record_count);
+      assert.equal(runtimeArtifactCapture.summary.metadata_capture_record_count, runtimeArtifactCapture.summary.artifact_capture_record_count);
+      assert.equal(runtimeArtifactCapture.summary.bound_metadata_capture_count, runtimeArtifactCapture.summary.metadata_capture_record_count);
+      assert.equal(runtimeArtifactCapture.summary.unbound_output_artifact_capture_binding_count, 0);
+      assert.equal(runtimeArtifactCapture.summary.desktop_read_only, true);
+      assert.equal(runtimeArtifactCapture.summary.desktop_mutation_allowed, false);
+      assert.equal(runtimeArtifactCapture.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(runtimeArtifactCapture.summary.desktop_source_of_truth, false);
+      assert.equal(runtimeArtifactCapture.summary.artifact_write_allowed, false);
+      assert.equal(runtimeArtifactCapture.summary.diff_apply_allowed, false);
+      assert.equal(runtimeArtifactCapture.summary.stream_write_allowed, false);
+      assert.equal(runtimeArtifactCapture.summary.metadata_edit_allowed, false);
+      assert.ok(runtimeArtifactCapture.artifact_capture_records.every((record) => record.output_artifact_binding_status === "bound_to_output_artifact"));
+      assert.ok(runtimeArtifactCapture.diff_capture_records.every((record) => record.direct_apply_allowed === false && record.human_review_required === true));
+      assert.ok(runtimeArtifactCapture.stream_capture_records.some((record) => record.stream_name === "stdout"));
+      assert.ok(runtimeArtifactCapture.stream_capture_records.some((record) => record.stream_name === "stderr"));
+      assert.equal(runtimeArtifactCapture.runtime_artifact_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "runtime-artifact-capture", "summary.md"), "utf8"), /Runtime Artifact Capture/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7016,6 +7062,7 @@ describe("matter harness", () => {
           sandbox_policy_model: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
           docker_local_backend_selector: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
           secrets_broker_contract: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+          runtime_artifact_capture: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7067,8 +7114,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 106);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 106);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 107);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 107);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7214,6 +7261,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:sandbox-policy-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:backend-selector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:secrets-broker"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:artifact-capture"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7700,6 +7748,10 @@ describe("matter harness", () => {
       assert.equal(secretsBrokerContractCheckpoint?.acceptance_profile, "secrets_broker_contract_gate");
       assert.equal(secretsBrokerContractCheckpoint?.status, "passed");
       assert.equal(secretsBrokerContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runtimeArtifactCaptureCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-artifact-capture");
+      assert.equal(runtimeArtifactCaptureCheckpoint?.acceptance_profile, "runtime_artifact_capture_gate");
+      assert.equal(runtimeArtifactCaptureCheckpoint?.status, "passed");
+      assert.equal(runtimeArtifactCaptureCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -11164,6 +11216,14 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/secret-audit-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/secrets-broker-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-artifact-capture"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/artifact-capture-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/diff-capture-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/stream-capture-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/metadata-capture-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/output-artifact-capture-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-artifact-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-artifact-capture-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12268,6 +12328,38 @@ describe("matter harness", () => {
       const secretsBrokerValidations = JSON.parse((await buildReviewApiResponse("/api/secrets-broker-validations?status=passed", apiOptions)).body);
       assert.equal(secretsBrokerValidations.collection, "secrets_broker_validations");
       assert.equal(secretsBrokerValidations.count, secretsBrokerContract.summary.validation_item_count);
+
+      const runtimeArtifactCaptureResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-artifact-capture?runtime_artifact_capture_status=complete", apiOptions)).body);
+      assert.equal(runtimeArtifactCaptureResponse.collection, "runtime_artifact_capture");
+      assert.equal(runtimeArtifactCaptureResponse.count, 1);
+
+      const artifactCaptureRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/artifact-capture-records?output_artifact_binding_status=bound_to_output_artifact", apiOptions)).body);
+      assert.equal(artifactCaptureRecordsResponse.collection, "artifact_capture_records");
+      assert.equal(artifactCaptureRecordsResponse.count, runtimeArtifactCapture.summary.artifact_capture_record_count);
+
+      const diffCaptureRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-capture-records?human_review_required=true", apiOptions)).body);
+      assert.equal(diffCaptureRecordsResponse.collection, "diff_capture_records");
+      assert.equal(diffCaptureRecordsResponse.count, runtimeArtifactCapture.summary.diff_capture_record_count);
+
+      const streamCaptureRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/stream-capture-records?stream_name=stdout", apiOptions)).body);
+      assert.equal(streamCaptureRecordsResponse.collection, "stream_capture_records");
+      assert.equal(streamCaptureRecordsResponse.count, runtimeArtifactCapture.summary.stdout_capture_count);
+
+      const metadataCaptureRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/metadata-capture-records?metadata_scope=runtime_artifact_metadata", apiOptions)).body);
+      assert.equal(metadataCaptureRecordsResponse.collection, "metadata_capture_records");
+      assert.equal(metadataCaptureRecordsResponse.count, runtimeArtifactCapture.summary.metadata_capture_record_count);
+
+      const outputArtifactCaptureBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/output-artifact-capture-bindings?binding_status=bound", apiOptions)).body);
+      assert.equal(outputArtifactCaptureBindingsResponse.collection, "output_artifact_capture_bindings");
+      assert.equal(outputArtifactCaptureBindingsResponse.count, runtimeArtifactCapture.summary.output_artifact_capture_binding_count);
+
+      const runtimeArtifactDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-artifact-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(runtimeArtifactDesktopBoundaryResponse.collection, "runtime_artifact_desktop_boundary");
+      assert.equal(runtimeArtifactDesktopBoundaryResponse.count, 1);
+
+      const runtimeArtifactCaptureValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-artifact-capture-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeArtifactCaptureValidations.collection, "runtime_artifact_capture_validations");
+      assert.equal(runtimeArtifactCaptureValidations.count, runtimeArtifactCapture.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

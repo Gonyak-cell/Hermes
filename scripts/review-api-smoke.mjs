@@ -339,6 +339,14 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/secret-audit-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/secrets-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/secrets-broker-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-artifact-capture"));
+  assert.ok(index.routes.some((route) => route.path === "/api/artifact-capture-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/diff-capture-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/stream-capture-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/metadata-capture-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/output-artifact-capture-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-artifact-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-artifact-capture-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1624,6 +1632,38 @@ try {
   const secretsBrokerValidations = await fetchJson(`${url}/api/secrets-broker-validations?status=passed&limit=5`);
   assert.equal(secretsBrokerValidations.collection, "secrets_broker_validations");
   assert.ok(secretsBrokerValidations.count <= 5);
+
+  const runtimeArtifactCapture = await fetchJson(`${url}/api/runtime-artifact-capture?runtime_artifact_capture_status=complete&limit=1`);
+  assert.equal(runtimeArtifactCapture.collection, "runtime_artifact_capture");
+  assert.ok(runtimeArtifactCapture.count <= 1);
+
+  const artifactCaptureRecords = await fetchJson(`${url}/api/artifact-capture-records?output_artifact_binding_status=bound_to_output_artifact&limit=5`);
+  assert.equal(artifactCaptureRecords.collection, "artifact_capture_records");
+  assert.ok(artifactCaptureRecords.count <= 5);
+
+  const diffCaptureRecords = await fetchJson(`${url}/api/diff-capture-records?human_review_required=true&limit=5`);
+  assert.equal(diffCaptureRecords.collection, "diff_capture_records");
+  assert.ok(diffCaptureRecords.count <= 5);
+
+  const streamCaptureRecords = await fetchJson(`${url}/api/stream-capture-records?stream_name=stdout&limit=5`);
+  assert.equal(streamCaptureRecords.collection, "stream_capture_records");
+  assert.ok(streamCaptureRecords.count <= 5);
+
+  const metadataCaptureRecords = await fetchJson(`${url}/api/metadata-capture-records?metadata_scope=runtime_artifact_metadata&limit=5`);
+  assert.equal(metadataCaptureRecords.collection, "metadata_capture_records");
+  assert.ok(metadataCaptureRecords.count <= 5);
+
+  const outputArtifactCaptureBindings = await fetchJson(`${url}/api/output-artifact-capture-bindings?binding_status=bound&limit=5`);
+  assert.equal(outputArtifactCaptureBindings.collection, "output_artifact_capture_bindings");
+  assert.ok(outputArtifactCaptureBindings.count <= 5);
+
+  const runtimeArtifactDesktopBoundary = await fetchJson(`${url}/api/runtime-artifact-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(runtimeArtifactDesktopBoundary.collection, "runtime_artifact_desktop_boundary");
+  assert.ok(runtimeArtifactDesktopBoundary.count <= 1);
+
+  const runtimeArtifactCaptureValidations = await fetchJson(`${url}/api/runtime-artifact-capture-validations?status=passed&limit=5`);
+  assert.equal(runtimeArtifactCaptureValidations.collection, "runtime_artifact_capture_validations");
+  assert.ok(runtimeArtifactCaptureValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

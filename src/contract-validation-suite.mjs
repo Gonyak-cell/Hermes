@@ -78,6 +78,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:sandbox-policy-model",
   "runtime:backend-selector",
   "runtime:secrets-broker",
+  "runtime:artifact-capture",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

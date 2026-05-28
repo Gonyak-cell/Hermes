@@ -62,6 +62,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   sandboxPolicyModelPath: "artifacts/sandbox-policy-model/latest/sandbox-policy-model.json",
   dockerLocalBackendSelectorPath: "artifacts/docker-local-backend-selector/latest/docker-local-backend-selector.json",
   secretsBrokerContractPath: "artifacts/secrets-broker/latest/secrets-broker-contract.json",
+  runtimeArtifactCapturePath: "artifacts/runtime-artifact-capture/latest/runtime-artifact-capture.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -493,6 +494,11 @@ const SOURCE_DEFINITIONS = [
     option: "secretsBrokerContractPath",
     source_id: "secrets_broker_contract",
     label: "Secrets Broker Contract",
+  },
+  {
+    option: "runtimeArtifactCapturePath",
+    source_id: "runtime_artifact_capture",
+    label: "Runtime Artifact Capture",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1348,6 +1354,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "sandbox_policy_model") return data.summary ?? {};
   if (sourceId === "docker_local_backend_selector") return data.summary ?? {};
   if (sourceId === "secrets_broker_contract") return data.summary ?? {};
+  if (sourceId === "runtime_artifact_capture") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1632,6 +1639,7 @@ function buildStageStatuses(artifacts, sources) {
     buildSandboxPolicyModelStage(artifacts.sandbox_policy_model, sourceById.get("sandbox_policy_model")),
     buildDockerLocalBackendSelectorStage(artifacts.docker_local_backend_selector, sourceById.get("docker_local_backend_selector")),
     buildSecretsBrokerContractStage(artifacts.secrets_broker_contract, sourceById.get("secrets_broker_contract")),
+    buildRuntimeArtifactCaptureStage(artifacts.runtime_artifact_capture, sourceById.get("runtime_artifact_capture")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5043,6 +5051,83 @@ function buildSecretsBrokerContractStage(secretsArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? secretsArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRuntimeArtifactCaptureStage(captureArtifact, source) {
+  if (!captureArtifact) return missingStage("runtime_artifact_capture", "Runtime Artifact Capture", source);
+  const summary = captureArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.runtime_artifact_capture_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.runtime_self_report_trusted !== false
+    || summary.artifact_capture_record_count === 0
+    || summary.bound_artifact_capture_count !== summary.artifact_capture_record_count
+    || summary.diff_capture_record_count < 2
+    || summary.bound_diff_capture_count !== summary.diff_capture_record_count
+    || summary.stream_capture_record_count === 0
+    || summary.bound_stream_capture_count !== summary.stream_capture_record_count
+    || summary.metadata_capture_record_count === 0
+    || summary.bound_metadata_capture_count !== summary.metadata_capture_record_count
+    || summary.unbound_output_artifact_capture_binding_count !== 0
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.artifact_write_allowed === true
+    || summary.diff_apply_allowed === true
+    || summary.stream_write_allowed === true
+    || summary.metadata_edit_allowed === true
+    || captureArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "runtime_artifact_capture",
+    label: "Runtime Artifact Capture",
+    status,
+    message: `${summary.bound_artifact_capture_count ?? 0}/${summary.artifact_capture_record_count ?? 0} artifacts, ${summary.bound_diff_capture_count ?? 0}/${summary.diff_capture_record_count ?? 0} diffs, ${summary.bound_stream_capture_count ?? 0}/${summary.stream_capture_record_count ?? 0} streams bound to OutputArtifact.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      runtime_artifact_capture_status: summary.runtime_artifact_capture_status ?? "unknown",
+      capture_contract_id: summary.capture_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      capture_authority: summary.capture_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      output_artifact_binding_required: summary.output_artifact_binding_required ?? false,
+      generated_file_capture_required: summary.generated_file_capture_required ?? false,
+      diff_capture_required: summary.diff_capture_required ?? false,
+      stdout_stderr_capture_required: summary.stdout_stderr_capture_required ?? false,
+      metadata_capture_required: summary.metadata_capture_required ?? false,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? true,
+      artifact_capture_record_count: summary.artifact_capture_record_count ?? 0,
+      bound_artifact_capture_count: summary.bound_artifact_capture_count ?? 0,
+      generated_file_capture_count: summary.generated_file_capture_count ?? 0,
+      diff_capture_record_count: summary.diff_capture_record_count ?? 0,
+      bound_diff_capture_count: summary.bound_diff_capture_count ?? 0,
+      stream_capture_record_count: summary.stream_capture_record_count ?? 0,
+      stdout_capture_count: summary.stdout_capture_count ?? 0,
+      stderr_capture_count: summary.stderr_capture_count ?? 0,
+      bound_stream_capture_count: summary.bound_stream_capture_count ?? 0,
+      metadata_capture_record_count: summary.metadata_capture_record_count ?? 0,
+      bound_metadata_capture_count: summary.bound_metadata_capture_count ?? 0,
+      output_artifact_capture_binding_count: summary.output_artifact_capture_binding_count ?? 0,
+      bound_output_artifact_capture_binding_count: summary.bound_output_artifact_capture_binding_count ?? 0,
+      unbound_output_artifact_capture_binding_count: summary.unbound_output_artifact_capture_binding_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      artifact_write_allowed: summary.artifact_write_allowed ?? false,
+      diff_apply_allowed: summary.diff_apply_allowed ?? false,
+      stream_write_allowed: summary.stream_write_allowed ?? false,
+      metadata_edit_allowed: summary.metadata_edit_allowed ?? false,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? captureArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14227,6 +14312,32 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     secrets_broker_contract_desktop_provider_key_visible: artifacts.secrets_broker_contract?.summary?.desktop_provider_key_visible ?? false,
     secrets_broker_contract_desktop_source_of_truth: artifacts.secrets_broker_contract?.summary?.desktop_source_of_truth ?? false,
     secrets_broker_contract_validation_error_count: artifacts.secrets_broker_contract?.summary?.validation_error_count ?? artifacts.secrets_broker_contract?.validation?.errors?.length ?? 0,
+    runtime_artifact_capture_status: artifacts.runtime_artifact_capture?.summary?.runtime_artifact_capture_status ?? "unknown",
+    runtime_artifact_capture_contract_status: artifacts.runtime_artifact_capture?.summary?.contract_status ?? "unknown",
+    runtime_artifact_capture_authority: artifacts.runtime_artifact_capture?.summary?.capture_authority ?? "unknown",
+    runtime_artifact_capture_source_of_truth: artifacts.runtime_artifact_capture?.summary?.source_of_truth ?? "unknown",
+    runtime_artifact_capture_runtime_self_report_trusted: artifacts.runtime_artifact_capture?.summary?.runtime_self_report_trusted ?? true,
+    runtime_artifact_capture_artifact_record_count: artifacts.runtime_artifact_capture?.summary?.artifact_capture_record_count ?? 0,
+    runtime_artifact_capture_bound_artifact_count: artifacts.runtime_artifact_capture?.summary?.bound_artifact_capture_count ?? 0,
+    runtime_artifact_capture_diff_record_count: artifacts.runtime_artifact_capture?.summary?.diff_capture_record_count ?? 0,
+    runtime_artifact_capture_bound_diff_count: artifacts.runtime_artifact_capture?.summary?.bound_diff_capture_count ?? 0,
+    runtime_artifact_capture_stream_record_count: artifacts.runtime_artifact_capture?.summary?.stream_capture_record_count ?? 0,
+    runtime_artifact_capture_bound_stream_count: artifacts.runtime_artifact_capture?.summary?.bound_stream_capture_count ?? 0,
+    runtime_artifact_capture_stdout_count: artifacts.runtime_artifact_capture?.summary?.stdout_capture_count ?? 0,
+    runtime_artifact_capture_stderr_count: artifacts.runtime_artifact_capture?.summary?.stderr_capture_count ?? 0,
+    runtime_artifact_capture_metadata_record_count: artifacts.runtime_artifact_capture?.summary?.metadata_capture_record_count ?? 0,
+    runtime_artifact_capture_bound_metadata_count: artifacts.runtime_artifact_capture?.summary?.bound_metadata_capture_count ?? 0,
+    runtime_artifact_capture_binding_count: artifacts.runtime_artifact_capture?.summary?.output_artifact_capture_binding_count ?? 0,
+    runtime_artifact_capture_unbound_binding_count: artifacts.runtime_artifact_capture?.summary?.unbound_output_artifact_capture_binding_count ?? 0,
+    runtime_artifact_capture_desktop_read_only: artifacts.runtime_artifact_capture?.summary?.desktop_read_only ?? false,
+    runtime_artifact_capture_desktop_mutation_allowed: artifacts.runtime_artifact_capture?.summary?.desktop_mutation_allowed ?? false,
+    runtime_artifact_capture_desktop_protected_mutation_execution_allowed: artifacts.runtime_artifact_capture?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    runtime_artifact_capture_desktop_source_of_truth: artifacts.runtime_artifact_capture?.summary?.desktop_source_of_truth ?? false,
+    runtime_artifact_capture_artifact_write_allowed: artifacts.runtime_artifact_capture?.summary?.artifact_write_allowed ?? false,
+    runtime_artifact_capture_diff_apply_allowed: artifacts.runtime_artifact_capture?.summary?.diff_apply_allowed ?? false,
+    runtime_artifact_capture_stream_write_allowed: artifacts.runtime_artifact_capture?.summary?.stream_write_allowed ?? false,
+    runtime_artifact_capture_metadata_edit_allowed: artifacts.runtime_artifact_capture?.summary?.metadata_edit_allowed ?? false,
+    runtime_artifact_capture_validation_error_count: artifacts.runtime_artifact_capture?.summary?.validation_error_count ?? artifacts.runtime_artifact_capture?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15934,6 +16045,8 @@ function parseArgs(argv) {
     else if (arg === "--no-docker-local-backend-selector") parsed.dockerLocalBackendSelectorPath = false;
     else if (arg === "--secrets-broker-contract") parsed.secretsBrokerContractPath = argv[++index];
     else if (arg === "--no-secrets-broker-contract") parsed.secretsBrokerContractPath = false;
+    else if (arg === "--runtime-artifact-capture") parsed.runtimeArtifactCapturePath = argv[++index];
+    else if (arg === "--no-runtime-artifact-capture") parsed.runtimeArtifactCapturePath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -16396,6 +16509,9 @@ Options:
   --secrets-broker-contract <path>
                                   secrets-broker-contract.json path.
   --no-secrets-broker-contract   Do not include Secrets Broker Contract status.
+  --runtime-artifact-capture <path>
+                                  runtime-artifact-capture.json path.
+  --no-runtime-artifact-capture  Do not include Runtime Artifact Capture status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

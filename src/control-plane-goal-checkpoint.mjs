@@ -71,6 +71,7 @@ const GOAL_ITEMS = [
   sourceItem("hermes_runtime_adapter", "Hermes runtime adapter", "runtime", "hermes_runtime_adapter", "control-plane-hermes-runtime-adapter", { acceptance_profile: "hermes_runtime_adapter_gate" }),
   sourceItem("claude_code_adapter_contract", "Claude Code adapter contract", "runtime", "claude_code_adapter_contract", "control-plane-claude-code-adapter-contract", { acceptance_profile: "claude_code_adapter_contract_gate" }),
   sourceItem("codex_adapter_contract", "Codex adapter contract", "runtime", "codex_adapter_contract", "control-plane-codex-adapter-contract", { acceptance_profile: "codex_adapter_contract_gate" }),
+  sourceItem("local_script_adapter", "Local script adapter", "runtime", "local_script_adapter", "control-plane-local-script-adapter", { acceptance_profile: "local_script_adapter_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -501,6 +502,7 @@ function evaluateStageAcceptance(item, stage) {
     "hermes_runtime_adapter_gate",
     "claude_code_adapter_contract_gate",
     "codex_adapter_contract_gate",
+    "local_script_adapter_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1559,6 +1561,52 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_runtime_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Codex adapter contract keeps Codex output as an untrusted patch, binds it to AgentRun ledger collection, and requires protected file, diff review, test, and human gates before any mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "local_script_adapter_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.failed_validation_item_count ?? 0);
+    const executionCount = metrics.execution_contract_count ?? 0;
+    if (
+      errors === 0
+      && executionCount >= 1
+      && metrics.local_script_adapter_status === "complete"
+      && metrics.runtime_id === "local_script"
+      && metrics.adapter_id === "runtime.local_script.default"
+      && metrics.adapter_status === "locked"
+      && metrics.local_script_interface_bound === true
+      && metrics.local_script_runtime_execution_contract_bound === true
+      && metrics.local_script_command_binding_declared === true
+      && metrics.agent_run_ledger_bound === true
+      && metrics.execution_contract_locked_count === executionCount
+      && metrics.deterministic_validation_ready_count === executionCount
+      && metrics.network_access_allowed === false
+      && metrics.external_execution_allowed === false
+      && metrics.sandbox_required === true
+      && metrics.workspace_isolation_type === "temp_dir"
+      && metrics.prompt_delivery === "none"
+      && metrics.direct_final_delivery_allowed === false
+      && metrics.protected_path_write_allowed === false
+      && metrics.secret_material_allowed === false
+      && metrics.runtime_self_report_trusted === false
+      && metrics.renderer_preparation_only === true
+      && metrics.output_trust === "trusted_after_deterministic_validation"
+      && metrics.test_gate_required === true
+      && metrics.human_review_required === true
+      && metrics.output_capture_ready === true
+      && metrics.log_capture_ready === true
+      && metrics.artifact_capture_ready === true
+      && metrics.verification_capture_ready === true
+      && metrics.deterministic_validation_capture_ready === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_request_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_runtime_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Local script adapter keeps deterministic extractor and renderer-preparation scripts local-only, binds outputs to AgentRun ledger collection, and requires validation/test/human gates before final delivery.");
     }
   }
 

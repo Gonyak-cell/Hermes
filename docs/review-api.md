@@ -573,6 +573,11 @@ npm run api:serve
 - `GET /api/codex-agent-run-ledger-bindings`: Codex AgentRun ledger binding rows
 - `GET /api/codex-desktop-boundary`: Codex Desktop boundary row
 - `GET /api/codex-adapter-validations`: Codex Adapter Contract validation rows
+- `GET /api/local-script-adapter`: Local Script Adapter artifact
+- `GET /api/local-script-execution-contracts`: Local Script execution contract rows
+- `GET /api/local-script-agent-run-ledger-bindings`: Local Script AgentRun ledger binding rows
+- `GET /api/local-script-desktop-boundary`: Local Script Desktop boundary row
+- `GET /api/local-script-adapter-validations`: Local Script Adapter validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

@@ -304,6 +304,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/codex-agent-run-ledger-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/codex-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/codex-adapter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/local-script-adapter"));
+  assert.ok(index.routes.some((route) => route.path === "/api/local-script-execution-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/local-script-agent-run-ledger-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/local-script-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/local-script-adapter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1449,6 +1454,26 @@ try {
   const codexAdapterValidations = await fetchJson(`${url}/api/codex-adapter-validations?status=passed&limit=5`);
   assert.equal(codexAdapterValidations.collection, "codex_adapter_validations");
   assert.ok(codexAdapterValidations.count <= 5);
+
+  const localScriptAdapter = await fetchJson(`${url}/api/local-script-adapter?local_script_adapter_status=complete&limit=1`);
+  assert.equal(localScriptAdapter.collection, "local_script_adapter");
+  assert.ok(localScriptAdapter.count <= 1);
+
+  const localScriptExecutionContracts = await fetchJson(`${url}/api/local-script-execution-contracts?contract_status=locked&limit=5`);
+  assert.equal(localScriptExecutionContracts.collection, "local_script_execution_contracts");
+  assert.ok(localScriptExecutionContracts.count <= 5);
+
+  const localScriptAgentRunLedgerBindings = await fetchJson(`${url}/api/local-script-agent-run-ledger-bindings?binding_status=locked&limit=5`);
+  assert.equal(localScriptAgentRunLedgerBindings.collection, "local_script_agent_run_ledger_bindings");
+  assert.ok(localScriptAgentRunLedgerBindings.count <= 5);
+
+  const localScriptDesktopBoundary = await fetchJson(`${url}/api/local-script-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(localScriptDesktopBoundary.collection, "local_script_desktop_boundary");
+  assert.ok(localScriptDesktopBoundary.count <= 1);
+
+  const localScriptAdapterValidations = await fetchJson(`${url}/api/local-script-adapter-validations?status=passed&limit=5`);
+  assert.equal(localScriptAdapterValidations.collection, "local_script_adapter_validations");
+  assert.ok(localScriptAdapterValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

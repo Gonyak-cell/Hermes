@@ -5758,6 +5758,30 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 100개로 증가하고 codex adapter contract artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:codex-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 199 - Local Script Adapter
+
+목표: deterministic extractor, classifier, validator, renderer-preparation 스크립트를 local-only runtime adapter contract로 고정한다. Local Script output은 self-report가 아니라 output hash, logs, artifacts, deterministic validation, AgentRun ledger binding을 통해 검증되며, Desktop은 실행자가 아니라 read-only operator surface로만 소비한다.
+
+구현:
+
+- `src/local-script-adapter.mjs`와 `scripts/local-script-adapter.mjs`를 추가해 `npm run runtime:local-script-adapter` slice를 등록
+- `schemas/local-script-adapter.schema.json`으로 local script adapter contract, execution contract, AgentRun ledger binding, Desktop boundary를 검증
+- Runtime Adapter Interface v2의 Local Script interface, Runtime/AgentRun freeze의 Local Script execution contract, `binding.local_script.node.default`, AgentRun ledger sink를 하나의 locked artifact로 연결
+- Local Script execution을 `local_process`, `network_access_allowed=false`, `external_execution_allowed=false`, `workspace_isolation_type=temp_dir`, `prompt_delivery=none`으로 고정
+- deterministic execution policy가 direct final delivery, protected path write, secret material, runtime self-report trust를 모두 false로 설정하고 renderer는 preparation-only 단계로 유지
+- 현재 Local Script AgentRun 3건을 execution contract로 materialize하고 output hash/log/artifact/verification/deterministic validation capture를 ready 상태로 검증
+- Review Dashboard stage/summary, Review API routes, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Local Script Adapter가 validation error 없이 `complete` 상태가 됨
+- Local Script interface, runtime execution contract, command binding, AgentRun ledger sink가 모두 bound/locked 상태가 됨
+- execution contract 3건이 locked 상태이며 output hash, logs, artifacts, deterministic validation capture가 모두 ready/present/captured임
+- network/external execution, direct final delivery, protected path write, secret material, runtime self-report trust가 모두 false임
+- Review API가 `/api/local-script-adapter`, `/api/local-script-execution-contracts`, `/api/local-script-agent-run-ledger-bindings`, `/api/local-script-desktop-boundary`, `/api/local-script-adapter-validations`를 제공
+- Golden fixture 수가 101개로 증가하고 local script adapter artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:local-script-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5766,9 +5790,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 198이다.
+- 현재 완료 기준점은 Phase 199이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P199-P312, 총 114개다.
+- 남은 계획 슬롯은 P200-P312, 총 113개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

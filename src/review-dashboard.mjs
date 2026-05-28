@@ -56,6 +56,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   hermesRuntimeAdapterPath: "artifacts/hermes-runtime-adapter/latest/hermes-runtime-adapter.json",
   claudeCodeAdapterContractPath: "artifacts/claude-code-adapter-contract/latest/claude-code-adapter-contract.json",
   codexAdapterContractPath: "artifacts/codex-adapter-contract/latest/codex-adapter-contract.json",
+  localScriptAdapterPath: "artifacts/local-script-adapter/latest/local-script-adapter.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -457,6 +458,11 @@ const SOURCE_DEFINITIONS = [
     option: "codexAdapterContractPath",
     source_id: "codex_adapter_contract",
     label: "Codex Adapter Contract",
+  },
+  {
+    option: "localScriptAdapterPath",
+    source_id: "local_script_adapter",
+    label: "Local Script Adapter",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1306,6 +1312,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "hermes_runtime_adapter") return data.summary ?? {};
   if (sourceId === "claude_code_adapter_contract") return data.summary ?? {};
   if (sourceId === "codex_adapter_contract") return data.summary ?? {};
+  if (sourceId === "local_script_adapter") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1584,6 +1591,7 @@ function buildStageStatuses(artifacts, sources) {
     buildHermesRuntimeAdapterStage(artifacts.hermes_runtime_adapter, sourceById.get("hermes_runtime_adapter")),
     buildClaudeCodeAdapterContractStage(artifacts.claude_code_adapter_contract, sourceById.get("claude_code_adapter_contract")),
     buildCodexAdapterContractStage(artifacts.codex_adapter_contract, sourceById.get("codex_adapter_contract")),
+    buildLocalScriptAdapterStage(artifacts.local_script_adapter, sourceById.get("local_script_adapter")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4467,6 +4475,92 @@ function buildCodexAdapterContractStage(adapterArtifact, source) {
       artifact_capture_ready: summary.artifact_capture_ready ?? false,
       verification_capture_ready: summary.verification_capture_ready ?? false,
       patch_review_capture_ready: summary.patch_review_capture_ready ?? false,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? adapterArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildLocalScriptAdapterStage(adapterArtifact, source) {
+  if (!adapterArtifact) return missingStage("local_script_adapter", "Local Script Adapter", source);
+  const summary = adapterArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.network_access_allowed === true
+    || summary.external_execution_allowed === true
+    || summary.direct_final_delivery_allowed === true
+    || summary.protected_path_write_allowed === true
+    || summary.secret_material_allowed === true
+    || summary.runtime_self_report_trusted === true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_request_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_secret_material_exposed === true
+    || summary.desktop_installer_or_gateway_control === true
+    || summary.desktop_runtime_source_of_truth === true
+    || adapterArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "local_script_adapter",
+    label: "Local Script Adapter",
+    status,
+    message: `Local script adapter ${summary.adapter_status ?? "unknown"}; executions=${summary.execution_contract_count ?? 0}; network=${summary.network_access_allowed === true}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      local_script_adapter_status: summary.local_script_adapter_status ?? "unknown",
+      runtime_id: summary.runtime_id ?? "local_script",
+      adapter_id: summary.adapter_id ?? null,
+      adapter_status: summary.adapter_status ?? "unknown",
+      local_script_interface_bound: summary.local_script_interface_bound ?? false,
+      local_script_runtime_execution_contract_bound: summary.local_script_runtime_execution_contract_bound ?? false,
+      local_script_command_binding_declared: summary.local_script_command_binding_declared ?? false,
+      command_binding_id: summary.command_binding_id ?? null,
+      agent_run_ledger_bound: summary.agent_run_ledger_bound ?? false,
+      agent_run_ledger_status: summary.agent_run_ledger_status ?? "unknown",
+      current_agent_run_record_count: summary.current_agent_run_record_count ?? 0,
+      current_local_script_agent_run_record_count: summary.current_local_script_agent_run_record_count ?? 0,
+      execution_contract_count: summary.execution_contract_count ?? 0,
+      execution_contract_locked_count: summary.execution_contract_locked_count ?? 0,
+      deterministic_validation_ready_count: summary.deterministic_validation_ready_count ?? 0,
+      output_hash_present_count: summary.output_hash_present_count ?? 0,
+      log_capture_ready_count: summary.log_capture_ready_count ?? 0,
+      artifact_capture_ready_count: summary.artifact_capture_ready_count ?? 0,
+      network_access_allowed: summary.network_access_allowed ?? false,
+      external_execution_allowed: summary.external_execution_allowed ?? false,
+      sandbox_required: summary.sandbox_required ?? false,
+      workspace_isolation_type: summary.workspace_isolation_type ?? "unknown",
+      prompt_delivery: summary.prompt_delivery ?? "unknown",
+      execute_requires_git_worktree: summary.execute_requires_git_worktree ?? false,
+      direct_final_delivery_allowed: summary.direct_final_delivery_allowed ?? false,
+      protected_path_write_allowed: summary.protected_path_write_allowed ?? false,
+      secret_material_allowed: summary.secret_material_allowed ?? false,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? false,
+      renderer_preparation_only: summary.renderer_preparation_only ?? false,
+      output_trust: summary.output_trust ?? "unknown",
+      verification_required: summary.verification_required ?? false,
+      matter_access_gate_required: summary.matter_access_gate_required ?? false,
+      classification_gate_required: summary.classification_gate_required ?? false,
+      tool_permission_gate_required: summary.tool_permission_gate_required ?? false,
+      protected_file_gate_required: summary.protected_file_gate_required ?? false,
+      evidence_coverage_gate_required: summary.evidence_coverage_gate_required ?? false,
+      test_gate_required: summary.test_gate_required ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      gate_binding_status: summary.gate_binding_status ?? "unknown",
+      output_capture_ready: summary.output_capture_ready ?? false,
+      log_capture_ready: summary.log_capture_ready ?? false,
+      artifact_capture_ready: summary.artifact_capture_ready ?? false,
+      verification_capture_ready: summary.verification_capture_ready ?? false,
+      deterministic_validation_capture_ready: summary.deterministic_validation_capture_ready ?? false,
       desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
       desktop_read_only: summary.desktop_read_only ?? false,
       desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
@@ -13423,6 +13517,44 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     codex_adapter_contract_desktop_installer_or_gateway_control: artifacts.codex_adapter_contract?.summary?.desktop_installer_or_gateway_control ?? false,
     codex_adapter_contract_desktop_runtime_source_of_truth: artifacts.codex_adapter_contract?.summary?.desktop_runtime_source_of_truth ?? false,
     codex_adapter_contract_validation_error_count: artifacts.codex_adapter_contract?.summary?.validation_error_count ?? artifacts.codex_adapter_contract?.validation?.errors?.length ?? 0,
+    local_script_adapter_status: artifacts.local_script_adapter?.summary?.local_script_adapter_status ?? "unknown",
+    local_script_adapter_runtime_id: artifacts.local_script_adapter?.summary?.runtime_id ?? "local_script",
+    local_script_adapter_adapter_id: artifacts.local_script_adapter?.summary?.adapter_id ?? null,
+    local_script_adapter_adapter_status: artifacts.local_script_adapter?.summary?.adapter_status ?? "unknown",
+    local_script_adapter_interface_bound: artifacts.local_script_adapter?.summary?.local_script_interface_bound ?? false,
+    local_script_adapter_execution_contract_bound: artifacts.local_script_adapter?.summary?.local_script_runtime_execution_contract_bound ?? false,
+    local_script_adapter_command_binding_declared: artifacts.local_script_adapter?.summary?.local_script_command_binding_declared ?? false,
+    local_script_adapter_agent_run_ledger_bound: artifacts.local_script_adapter?.summary?.agent_run_ledger_bound ?? false,
+    local_script_adapter_current_agent_run_record_count: artifacts.local_script_adapter?.summary?.current_agent_run_record_count ?? 0,
+    local_script_adapter_current_local_script_agent_run_record_count: artifacts.local_script_adapter?.summary?.current_local_script_agent_run_record_count ?? 0,
+    local_script_adapter_execution_contract_count: artifacts.local_script_adapter?.summary?.execution_contract_count ?? 0,
+    local_script_adapter_execution_contract_locked_count: artifacts.local_script_adapter?.summary?.execution_contract_locked_count ?? 0,
+    local_script_adapter_deterministic_validation_ready_count: artifacts.local_script_adapter?.summary?.deterministic_validation_ready_count ?? 0,
+    local_script_adapter_output_hash_present_count: artifacts.local_script_adapter?.summary?.output_hash_present_count ?? 0,
+    local_script_adapter_log_capture_ready_count: artifacts.local_script_adapter?.summary?.log_capture_ready_count ?? 0,
+    local_script_adapter_artifact_capture_ready_count: artifacts.local_script_adapter?.summary?.artifact_capture_ready_count ?? 0,
+    local_script_adapter_network_access_allowed: artifacts.local_script_adapter?.summary?.network_access_allowed ?? false,
+    local_script_adapter_external_execution_allowed: artifacts.local_script_adapter?.summary?.external_execution_allowed ?? false,
+    local_script_adapter_sandbox_required: artifacts.local_script_adapter?.summary?.sandbox_required ?? false,
+    local_script_adapter_workspace_isolation_type: artifacts.local_script_adapter?.summary?.workspace_isolation_type ?? "unknown",
+    local_script_adapter_prompt_delivery: artifacts.local_script_adapter?.summary?.prompt_delivery ?? "unknown",
+    local_script_adapter_direct_final_delivery_allowed: artifacts.local_script_adapter?.summary?.direct_final_delivery_allowed ?? false,
+    local_script_adapter_protected_path_write_allowed: artifacts.local_script_adapter?.summary?.protected_path_write_allowed ?? false,
+    local_script_adapter_secret_material_allowed: artifacts.local_script_adapter?.summary?.secret_material_allowed ?? false,
+    local_script_adapter_runtime_self_report_trusted: artifacts.local_script_adapter?.summary?.runtime_self_report_trusted ?? false,
+    local_script_adapter_renderer_preparation_only: artifacts.local_script_adapter?.summary?.renderer_preparation_only ?? false,
+    local_script_adapter_output_trust: artifacts.local_script_adapter?.summary?.output_trust ?? "unknown",
+    local_script_adapter_test_gate_required: artifacts.local_script_adapter?.summary?.test_gate_required ?? false,
+    local_script_adapter_human_review_required: artifacts.local_script_adapter?.summary?.human_review_required ?? false,
+    local_script_adapter_deterministic_validation_capture_ready: artifacts.local_script_adapter?.summary?.deterministic_validation_capture_ready ?? false,
+    local_script_adapter_desktop_read_only: artifacts.local_script_adapter?.summary?.desktop_read_only ?? false,
+    local_script_adapter_desktop_mutation_allowed: artifacts.local_script_adapter?.summary?.desktop_mutation_allowed ?? false,
+    local_script_adapter_desktop_protected_mutation_request_allowed: artifacts.local_script_adapter?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    local_script_adapter_desktop_protected_mutation_execution_allowed: artifacts.local_script_adapter?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    local_script_adapter_desktop_secret_material_exposed: artifacts.local_script_adapter?.summary?.desktop_secret_material_exposed ?? false,
+    local_script_adapter_desktop_installer_or_gateway_control: artifacts.local_script_adapter?.summary?.desktop_installer_or_gateway_control ?? false,
+    local_script_adapter_desktop_runtime_source_of_truth: artifacts.local_script_adapter?.summary?.desktop_runtime_source_of_truth ?? false,
+    local_script_adapter_validation_error_count: artifacts.local_script_adapter?.summary?.validation_error_count ?? artifacts.local_script_adapter?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15118,6 +15250,8 @@ function parseArgs(argv) {
     else if (arg === "--no-claude-code-adapter-contract") parsed.claudeCodeAdapterContractPath = false;
     else if (arg === "--codex-adapter-contract") parsed.codexAdapterContractPath = argv[++index];
     else if (arg === "--no-codex-adapter-contract") parsed.codexAdapterContractPath = false;
+    else if (arg === "--local-script-adapter") parsed.localScriptAdapterPath = argv[++index];
+    else if (arg === "--no-local-script-adapter") parsed.localScriptAdapterPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15561,6 +15695,10 @@ Options:
                                   codex-adapter-contract.json path.
   --no-codex-adapter-contract
                                   Do not include Codex Adapter Contract status.
+  --local-script-adapter <path>
+                                  local-script-adapter.json path.
+  --no-local-script-adapter
+                                  Do not include Local Script Adapter status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

@@ -195,6 +195,7 @@ import { runRuntimeAdapterInterfaceV2 } from "../src/runtime-adapter-interface-v
 import { runHermesRuntimeAdapter } from "../src/hermes-runtime-adapter.mjs";
 import { runClaudeCodeAdapterContract } from "../src/claude-code-adapter-contract.mjs";
 import { runCodexAdapterContract } from "../src/codex-adapter-contract.mjs";
+import { runLocalScriptAdapter } from "../src/local-script-adapter.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1792,6 +1793,7 @@ describe("matter harness", () => {
         hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
         claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
         codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+        localScriptAdapterPath: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6563,6 +6565,64 @@ describe("matter harness", () => {
       assert.equal(codexAdapterContract.codex_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "codex-adapter-contract", "summary.md"), "utf8"), /Codex Adapter Contract/);
 
+      const localScriptAdapter = await runLocalScriptAdapter({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeCommandBindingsPath: "examples/core/runtime-command-bindings.json",
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        workflowGateFreezePath: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "local-script-adapter"),
+        runAt: "2026-05-23T06:41:39.000Z",
+      });
+      const localScriptAdapterSchema = JSON.parse(await readFile("schemas/local-script-adapter.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(localScriptAdapter, localScriptAdapterSchema, {}, "local_script_adapter"),
+        [],
+      );
+      assert.equal(localScriptAdapter.summary.local_script_adapter_status, "complete");
+      assert.equal(localScriptAdapter.summary.runtime_id, "local_script");
+      assert.equal(localScriptAdapter.summary.adapter_id, "runtime.local_script.default");
+      assert.equal(localScriptAdapter.summary.local_script_interface_bound, true);
+      assert.equal(localScriptAdapter.summary.local_script_runtime_execution_contract_bound, true);
+      assert.equal(localScriptAdapter.summary.local_script_command_binding_declared, true);
+      assert.equal(localScriptAdapter.summary.agent_run_ledger_bound, true);
+      assert.equal(localScriptAdapter.summary.current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(localScriptAdapter.summary.current_local_script_agent_run_record_count, 3);
+      assert.equal(localScriptAdapter.summary.execution_contract_count, 3);
+      assert.equal(localScriptAdapter.summary.execution_contract_locked_count, 3);
+      assert.equal(localScriptAdapter.summary.deterministic_validation_ready_count, 3);
+      assert.equal(localScriptAdapter.summary.output_hash_present_count, 3);
+      assert.equal(localScriptAdapter.summary.log_capture_ready_count, 3);
+      assert.equal(localScriptAdapter.summary.artifact_capture_ready_count, 3);
+      assert.equal(localScriptAdapter.summary.network_access_allowed, false);
+      assert.equal(localScriptAdapter.summary.external_execution_allowed, false);
+      assert.equal(localScriptAdapter.summary.sandbox_required, true);
+      assert.equal(localScriptAdapter.summary.workspace_isolation_type, "temp_dir");
+      assert.equal(localScriptAdapter.summary.prompt_delivery, "none");
+      assert.equal(localScriptAdapter.summary.direct_final_delivery_allowed, false);
+      assert.equal(localScriptAdapter.summary.protected_path_write_allowed, false);
+      assert.equal(localScriptAdapter.summary.secret_material_allowed, false);
+      assert.equal(localScriptAdapter.summary.runtime_self_report_trusted, false);
+      assert.equal(localScriptAdapter.summary.renderer_preparation_only, true);
+      assert.equal(localScriptAdapter.summary.output_trust, "trusted_after_deterministic_validation");
+      assert.equal(localScriptAdapter.summary.test_gate_required, true);
+      assert.equal(localScriptAdapter.summary.human_review_required, true);
+      assert.equal(localScriptAdapter.summary.deterministic_validation_capture_ready, true);
+      assert.equal(localScriptAdapter.summary.desktop_read_only, true);
+      assert.equal(localScriptAdapter.summary.desktop_mutation_allowed, false);
+      assert.equal(localScriptAdapter.summary.desktop_protected_mutation_request_allowed, false);
+      assert.equal(localScriptAdapter.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(localScriptAdapter.summary.desktop_secret_material_exposed, false);
+      assert.equal(localScriptAdapter.summary.desktop_installer_or_gateway_control, false);
+      assert.equal(localScriptAdapter.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(localScriptAdapter.summary.validation_error_count, 0);
+      assert.equal(localScriptAdapter.local_script_adapter_contract.deterministic_execution_policy.network_access_allowed, false);
+      assert.equal(localScriptAdapter.local_script_execution_contracts.length, 3);
+      assert.equal(localScriptAdapter.local_script_agent_run_ledger_bindings[0].sink_ledger_status, "complete");
+      assert.equal(localScriptAdapter.local_script_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "local-script-adapter", "summary.md"), "utf8"), /Local Script Adapter/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6685,6 +6745,7 @@ describe("matter harness", () => {
           hermes_runtime_adapter: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
           claude_code_adapter_contract: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
           codex_adapter_contract: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+          local_script_adapter: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6736,8 +6797,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 100);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 100);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 101);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 101);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6825,6 +6886,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "hermes_runtime_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "claude_code_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "codex_adapter_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_script_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6871,6 +6933,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:hermes-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:claude-code-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:codex-adapter"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:local-script-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7333,6 +7396,10 @@ describe("matter harness", () => {
       assert.equal(codexAdapterContractCheckpoint?.acceptance_profile, "codex_adapter_contract_gate");
       assert.equal(codexAdapterContractCheckpoint?.status, "passed");
       assert.equal(codexAdapterContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const localScriptAdapterCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-local-script-adapter");
+      assert.equal(localScriptAdapterCheckpoint?.acceptance_profile, "local_script_adapter_gate");
+      assert.equal(localScriptAdapterCheckpoint?.status, "passed");
+      assert.equal(localScriptAdapterCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9297,6 +9364,44 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.codex_adapter_contract_desktop_installer_or_gateway_control, false);
       assert.equal(dashboard.summary.codex_adapter_contract_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.codex_adapter_contract_validation_error_count, 0);
+      assert.equal(dashboard.summary.local_script_adapter_status, "complete");
+      assert.equal(dashboard.summary.local_script_adapter_runtime_id, "local_script");
+      assert.equal(dashboard.summary.local_script_adapter_adapter_id, "runtime.local_script.default");
+      assert.equal(dashboard.summary.local_script_adapter_adapter_status, "locked");
+      assert.equal(dashboard.summary.local_script_adapter_interface_bound, true);
+      assert.equal(dashboard.summary.local_script_adapter_execution_contract_bound, true);
+      assert.equal(dashboard.summary.local_script_adapter_command_binding_declared, true);
+      assert.equal(dashboard.summary.local_script_adapter_agent_run_ledger_bound, true);
+      assert.equal(dashboard.summary.local_script_adapter_current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.local_script_adapter_current_local_script_agent_run_record_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_execution_contract_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_execution_contract_locked_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_deterministic_validation_ready_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_output_hash_present_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_log_capture_ready_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_artifact_capture_ready_count, 3);
+      assert.equal(dashboard.summary.local_script_adapter_network_access_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_external_execution_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_sandbox_required, true);
+      assert.equal(dashboard.summary.local_script_adapter_workspace_isolation_type, "temp_dir");
+      assert.equal(dashboard.summary.local_script_adapter_prompt_delivery, "none");
+      assert.equal(dashboard.summary.local_script_adapter_direct_final_delivery_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_protected_path_write_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_secret_material_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_runtime_self_report_trusted, false);
+      assert.equal(dashboard.summary.local_script_adapter_renderer_preparation_only, true);
+      assert.equal(dashboard.summary.local_script_adapter_output_trust, "trusted_after_deterministic_validation");
+      assert.equal(dashboard.summary.local_script_adapter_test_gate_required, true);
+      assert.equal(dashboard.summary.local_script_adapter_human_review_required, true);
+      assert.equal(dashboard.summary.local_script_adapter_deterministic_validation_capture_ready, true);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_read_only, true);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_protected_mutation_request_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_secret_material_exposed, false);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_installer_or_gateway_control, false);
+      assert.equal(dashboard.summary.local_script_adapter_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.local_script_adapter_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -10120,6 +10225,15 @@ describe("matter harness", () => {
       assert.equal(codexAdapterContractStage?.metrics.direct_apply_allowed, false);
       assert.equal(codexAdapterContractStage?.metrics.diff_review_gate_required, true);
       assert.equal(codexAdapterContractStage?.metrics.desktop_runtime_source_of_truth, false);
+      const localScriptAdapterStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "local_script_adapter");
+      assert.equal(localScriptAdapterStage?.status, "passed");
+      assert.equal(localScriptAdapterStage?.metrics.local_script_adapter_status, "complete");
+      assert.equal(localScriptAdapterStage?.metrics.agent_run_ledger_bound, true);
+      assert.equal(localScriptAdapterStage?.metrics.execution_contract_count, 3);
+      assert.equal(localScriptAdapterStage?.metrics.network_access_allowed, false);
+      assert.equal(localScriptAdapterStage?.metrics.external_execution_allowed, false);
+      assert.equal(localScriptAdapterStage?.metrics.deterministic_validation_capture_ready, true);
+      assert.equal(localScriptAdapterStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10494,6 +10608,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-agent-run-ledger-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-adapter-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/local-script-adapter"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/local-script-execution-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/local-script-agent-run-ledger-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/local-script-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/local-script-adapter-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -11458,6 +11577,26 @@ describe("matter harness", () => {
       const codexAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/codex-adapter-validations?status=passed", apiOptions)).body);
       assert.equal(codexAdapterValidations.collection, "codex_adapter_validations");
       assert.equal(codexAdapterValidations.count, codexAdapterContract.summary.validation_item_count);
+
+      const localScriptAdapterResponse = JSON.parse((await buildReviewApiResponse("/api/local-script-adapter?local_script_adapter_status=complete", apiOptions)).body);
+      assert.equal(localScriptAdapterResponse.collection, "local_script_adapter");
+      assert.equal(localScriptAdapterResponse.count, 1);
+
+      const localScriptExecutionContracts = JSON.parse((await buildReviewApiResponse("/api/local-script-execution-contracts?contract_status=locked", apiOptions)).body);
+      assert.equal(localScriptExecutionContracts.collection, "local_script_execution_contracts");
+      assert.equal(localScriptExecutionContracts.count, localScriptAdapter.summary.execution_contract_count);
+
+      const localScriptAgentRunLedgerBindings = JSON.parse((await buildReviewApiResponse("/api/local-script-agent-run-ledger-bindings?binding_status=locked", apiOptions)).body);
+      assert.equal(localScriptAgentRunLedgerBindings.collection, "local_script_agent_run_ledger_bindings");
+      assert.equal(localScriptAgentRunLedgerBindings.count, localScriptAdapter.local_script_agent_run_ledger_bindings.length);
+
+      const localScriptDesktopBoundary = JSON.parse((await buildReviewApiResponse("/api/local-script-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(localScriptDesktopBoundary.collection, "local_script_desktop_boundary");
+      assert.equal(localScriptDesktopBoundary.count, 1);
+
+      const localScriptAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/local-script-adapter-validations?status=passed", apiOptions)).body);
+      assert.equal(localScriptAdapterValidations.collection, "local_script_adapter_validations");
+      assert.equal(localScriptAdapterValidations.count, localScriptAdapter.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

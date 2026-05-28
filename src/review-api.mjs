@@ -3645,6 +3645,53 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/local-script-adapter") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "local_script_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("local_script_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_script_adapter", [adapterResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/local-script-execution-contracts") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "local_script_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("local_script_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("local_script_execution_contracts", adapterResult.artifact.local_script_execution_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/local-script-agent-run-ledger-bindings") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "local_script_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("local_script_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("local_script_agent_run_ledger_bindings", adapterResult.artifact.local_script_agent_run_ledger_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/local-script-desktop-boundary") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "local_script_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("local_script_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_script_desktop_boundary", [adapterResult.artifact.local_script_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/local-script-adapter-validations") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "local_script_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("local_script_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("local_script_adapter_validations", adapterResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7779,6 +7826,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/codex-agent-run-ledger-bindings", "Codex AgentRun ledger bindings"),
       route("GET", "/api/codex-desktop-boundary", "Codex Desktop boundary"),
       route("GET", "/api/codex-adapter-validations", "Codex Adapter Contract validation rows"),
+      route("GET", "/api/local-script-adapter", "Local Script Adapter artifact"),
+      route("GET", "/api/local-script-execution-contracts", "Local Script execution contracts"),
+      route("GET", "/api/local-script-agent-run-ledger-bindings", "Local Script AgentRun ledger bindings"),
+      route("GET", "/api/local-script-desktop-boundary", "Local Script Desktop boundary"),
+      route("GET", "/api/local-script-adapter-validations", "Local Script Adapter validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8431,6 +8483,7 @@ function filterItems(items, searchParams) {
     "hermes_runtime_adapter_status",
     "claude_code_adapter_contract_status",
     "codex_adapter_contract_status",
+    "local_script_adapter_status",
     "interface_status",
     "operator_surface_policy_status",
     "desktop_surface_policy",
@@ -9694,6 +9747,7 @@ function readFilterValue(item, key) {
   if (key === "hermes_runtime_adapter_status") return item.summary?.hermes_runtime_adapter_status ?? item.hermes_runtime_adapter_status;
   if (key === "claude_code_adapter_contract_status") return item.summary?.claude_code_adapter_contract_status ?? item.claude_code_adapter_contract_status;
   if (key === "codex_adapter_contract_status") return item.summary?.codex_adapter_contract_status ?? item.codex_adapter_contract_status;
+  if (key === "local_script_adapter_status") return item.summary?.local_script_adapter_status ?? item.local_script_adapter_status;
   if (key === "interface_status") return item.interface_status;
   if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
   if (key === "desktop_surface_policy") return item.desktop_surface_policy;

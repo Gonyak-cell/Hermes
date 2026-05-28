@@ -71,6 +71,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:runtimes",
   "contracts:runtime-interface",
   "runtime:hermes-adapter",
+  "runtime:claude-code-adapter",
   "contracts:gates",
   "contracts:outputs",
   "contracts:events",

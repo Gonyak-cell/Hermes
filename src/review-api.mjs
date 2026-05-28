@@ -3551,6 +3551,53 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/claude-code-adapter-contract") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "claude_code_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("claude_code_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("claude_code_adapter_contract", [adapterResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/claude-code-diff-gate-contracts") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "claude_code_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("claude_code_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("claude_code_diff_gate_contracts", adapterResult.artifact.claude_code_diff_gate_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/claude-code-agent-run-ledger-bindings") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "claude_code_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("claude_code_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("claude_code_agent_run_ledger_bindings", adapterResult.artifact.claude_code_agent_run_ledger_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/claude-code-desktop-boundary") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "claude_code_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("claude_code_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("claude_code_desktop_boundary", [adapterResult.artifact.claude_code_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/claude-code-adapter-validations") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "claude_code_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("claude_code_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("claude_code_adapter_validations", adapterResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7675,6 +7722,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/hermes-agent-run-ledger-bindings", "Hermes AgentRun ledger bindings"),
       route("GET", "/api/hermes-runtime-desktop-boundary", "Hermes Desktop runtime boundary"),
       route("GET", "/api/hermes-runtime-adapter-validations", "Hermes Runtime Adapter validation rows"),
+      route("GET", "/api/claude-code-adapter-contract", "Claude Code Adapter Contract artifact"),
+      route("GET", "/api/claude-code-diff-gate-contracts", "Claude Code diff gate contracts"),
+      route("GET", "/api/claude-code-agent-run-ledger-bindings", "Claude Code AgentRun ledger bindings"),
+      route("GET", "/api/claude-code-desktop-boundary", "Claude Code Desktop boundary"),
+      route("GET", "/api/claude-code-adapter-validations", "Claude Code Adapter Contract validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8325,6 +8377,7 @@ function filterItems(items, searchParams) {
     "workflow_gate_freeze_status",
     "runtime_adapter_interface_status",
     "hermes_runtime_adapter_status",
+    "claude_code_adapter_contract_status",
     "interface_status",
     "operator_surface_policy_status",
     "desktop_surface_policy",
@@ -8333,6 +8386,7 @@ function filterItems(items, searchParams) {
     "binding_status",
     "boundary_status",
     "contract_status",
+    "diff_gate_binding_status",
     "workflow_gate_vertical_slice_status",
     "audit_binding_status",
     "state_machine_pass_status",
@@ -9585,6 +9639,7 @@ function readFilterValue(item, key) {
   if (key === "workflow_gate_freeze_status") return item.summary?.workflow_gate_freeze_status ?? item.workflow_gate_freeze_status;
   if (key === "runtime_adapter_interface_status") return item.summary?.runtime_adapter_interface_status ?? item.runtime_adapter_interface_status;
   if (key === "hermes_runtime_adapter_status") return item.summary?.hermes_runtime_adapter_status ?? item.hermes_runtime_adapter_status;
+  if (key === "claude_code_adapter_contract_status") return item.summary?.claude_code_adapter_contract_status ?? item.claude_code_adapter_contract_status;
   if (key === "interface_status") return item.interface_status;
   if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
   if (key === "desktop_surface_policy") return item.desktop_surface_policy;
@@ -9593,6 +9648,7 @@ function readFilterValue(item, key) {
   if (key === "binding_status") return item.binding_status;
   if (key === "boundary_status") return item.boundary_status;
   if (key === "contract_status") return item.contract_status;
+  if (key === "diff_gate_binding_status") return item.diff_gate_binding_status;
   if (key === "workflow_gate_vertical_slice_status") return item.workflow_gate_vertical_slice_status;
   if (key === "audit_binding_status") return item.audit_binding_status;
   if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;

@@ -563,6 +563,11 @@ npm run api:serve
 - `GET /api/hermes-agent-run-ledger-bindings`: Hermes AgentRun ledger binding rows
 - `GET /api/hermes-runtime-desktop-boundary`: Hermes Desktop companion boundary row
 - `GET /api/hermes-runtime-adapter-validations`: Hermes Runtime Adapter validation rows
+- `GET /api/claude-code-adapter-contract`: Claude Code Adapter Contract artifact
+- `GET /api/claude-code-diff-gate-contracts`: Claude Code diff gate contract rows
+- `GET /api/claude-code-agent-run-ledger-bindings`: Claude Code AgentRun ledger binding rows
+- `GET /api/claude-code-desktop-boundary`: Claude Code Desktop boundary row
+- `GET /api/claude-code-adapter-validations`: Claude Code Adapter Contract validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

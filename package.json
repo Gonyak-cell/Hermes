@@ -210,6 +210,7 @@
     "runtime:bindings": "node scripts/runtime-bindings.mjs",
     "runtime:invoke": "node scripts/runtime-invoker.mjs",
     "runtime:hermes-adapter": "node scripts/hermes-runtime-adapter.mjs",
+    "runtime:claude-code-adapter": "node scripts/claude-code-adapter-contract.mjs",
     "slice:run": "node scripts/run-vertical-slice.mjs",
     "worktree:prepare": "node scripts/worktree-manager.mjs",
     "validate:core": "node scripts/validate-core-contracts.mjs",

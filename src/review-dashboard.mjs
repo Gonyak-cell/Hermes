@@ -54,6 +54,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
   runtimeAdapterInterfaceV2Path: "artifacts/runtime-adapter-interface-v2/latest/runtime-adapter-interface-v2.json",
   hermesRuntimeAdapterPath: "artifacts/hermes-runtime-adapter/latest/hermes-runtime-adapter.json",
+  claudeCodeAdapterContractPath: "artifacts/claude-code-adapter-contract/latest/claude-code-adapter-contract.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -445,6 +446,11 @@ const SOURCE_DEFINITIONS = [
     option: "hermesRuntimeAdapterPath",
     source_id: "hermes_runtime_adapter",
     label: "Hermes Runtime Adapter",
+  },
+  {
+    option: "claudeCodeAdapterContractPath",
+    source_id: "claude_code_adapter_contract",
+    label: "Claude Code Adapter Contract",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1292,6 +1298,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_adapter_interface_v2") return data.summary ?? {};
   if (sourceId === "hermes_runtime_adapter") return data.summary ?? {};
+  if (sourceId === "claude_code_adapter_contract") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1568,6 +1575,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
     buildRuntimeAdapterInterfaceV2Stage(artifacts.runtime_adapter_interface_v2, sourceById.get("runtime_adapter_interface_v2")),
     buildHermesRuntimeAdapterStage(artifacts.hermes_runtime_adapter, sourceById.get("hermes_runtime_adapter")),
+    buildClaudeCodeAdapterContractStage(artifacts.claude_code_adapter_contract, sourceById.get("claude_code_adapter_contract")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4301,6 +4309,81 @@ function buildHermesRuntimeAdapterStage(adapterArtifact, source) {
       verification_required: summary.verification_required ?? false,
       execute_requires_human_gate: summary.execute_requires_human_gate ?? false,
       external_runtime_call_allowed_without_gate: summary.external_runtime_call_allowed_without_gate ?? false,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? adapterArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildClaudeCodeAdapterContractStage(adapterArtifact, source) {
+  if (!adapterArtifact) return missingStage("claude_code_adapter_contract", "Claude Code Adapter Contract", source);
+  const summary = adapterArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.unreviewed_auto_apply_count > 0
+    || summary.direct_apply_allowed === true
+    || summary.direct_merge_allowed === true
+    || summary.protected_path_write_allowed === true
+    || summary.external_runtime_call_allowed_without_gate === true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_request_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_secret_material_exposed === true
+    || summary.desktop_installer_or_gateway_control === true
+    || summary.desktop_runtime_source_of_truth === true
+    || adapterArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "claude_code_adapter_contract",
+    label: "Claude Code Adapter Contract",
+    status,
+    message: `Claude Code adapter ${summary.adapter_status ?? "unknown"}; diff gate=${summary.diff_gate_binding_status ?? "unknown"}; direct apply=${summary.direct_apply_allowed === true}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      claude_code_adapter_contract_status: summary.claude_code_adapter_contract_status ?? "unknown",
+      runtime_id: summary.runtime_id ?? "claude_code",
+      adapter_id: summary.adapter_id ?? null,
+      adapter_status: summary.adapter_status ?? "unknown",
+      claude_code_interface_bound: summary.claude_code_interface_bound ?? false,
+      claude_code_runtime_execution_contract_bound: summary.claude_code_runtime_execution_contract_bound ?? false,
+      claude_code_command_binding_declared: summary.claude_code_command_binding_declared ?? false,
+      command_binding_id: summary.command_binding_id ?? null,
+      agent_run_ledger_bound: summary.agent_run_ledger_bound ?? false,
+      agent_run_ledger_status: summary.agent_run_ledger_status ?? "unknown",
+      current_agent_run_record_count: summary.current_agent_run_record_count ?? 0,
+      current_claude_code_agent_run_record_count: summary.current_claude_code_agent_run_record_count ?? 0,
+      diff_gate_contract_count: summary.diff_gate_contract_count ?? 0,
+      diff_gate_binding_status: summary.diff_gate_binding_status ?? "unknown",
+      direct_apply_allowed: summary.direct_apply_allowed ?? false,
+      direct_merge_allowed: summary.direct_merge_allowed ?? false,
+      protected_path_write_allowed: summary.protected_path_write_allowed ?? false,
+      patch_materialized_as_untrusted_artifact: summary.patch_materialized_as_untrusted_artifact ?? false,
+      output_trust: summary.output_trust ?? "unknown",
+      patch_trust: summary.patch_trust ?? "unknown",
+      verification_required: summary.verification_required ?? false,
+      execute_requires_git_worktree: summary.execute_requires_git_worktree ?? false,
+      execute_requires_human_gate: summary.execute_requires_human_gate ?? false,
+      external_runtime_call_allowed_without_gate: summary.external_runtime_call_allowed_without_gate ?? false,
+      protected_file_gate_required: summary.protected_file_gate_required ?? false,
+      diff_review_gate_required: summary.diff_review_gate_required ?? false,
+      test_gate_required: summary.test_gate_required ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      unreviewed_auto_apply_count: summary.unreviewed_auto_apply_count ?? 0,
+      output_capture_ready: summary.output_capture_ready ?? false,
+      log_capture_ready: summary.log_capture_ready ?? false,
+      artifact_capture_ready: summary.artifact_capture_ready ?? false,
+      verification_capture_ready: summary.verification_capture_ready ?? false,
+      diff_review_capture_ready: summary.diff_review_capture_ready ?? false,
       desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
       desktop_read_only: summary.desktop_read_only ?? false,
       desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
@@ -13191,6 +13274,39 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     hermes_runtime_adapter_desktop_installer_or_gateway_control: artifacts.hermes_runtime_adapter?.summary?.desktop_installer_or_gateway_control ?? false,
     hermes_runtime_adapter_desktop_runtime_source_of_truth: artifacts.hermes_runtime_adapter?.summary?.desktop_runtime_source_of_truth ?? false,
     hermes_runtime_adapter_validation_error_count: artifacts.hermes_runtime_adapter?.summary?.validation_error_count ?? artifacts.hermes_runtime_adapter?.validation?.errors?.length ?? 0,
+    claude_code_adapter_contract_status: artifacts.claude_code_adapter_contract?.summary?.claude_code_adapter_contract_status ?? "unknown",
+    claude_code_adapter_contract_runtime_id: artifacts.claude_code_adapter_contract?.summary?.runtime_id ?? "claude_code",
+    claude_code_adapter_contract_adapter_id: artifacts.claude_code_adapter_contract?.summary?.adapter_id ?? null,
+    claude_code_adapter_contract_adapter_status: artifacts.claude_code_adapter_contract?.summary?.adapter_status ?? "unknown",
+    claude_code_adapter_contract_interface_bound: artifacts.claude_code_adapter_contract?.summary?.claude_code_interface_bound ?? false,
+    claude_code_adapter_contract_execution_contract_bound: artifacts.claude_code_adapter_contract?.summary?.claude_code_runtime_execution_contract_bound ?? false,
+    claude_code_adapter_contract_command_binding_declared: artifacts.claude_code_adapter_contract?.summary?.claude_code_command_binding_declared ?? false,
+    claude_code_adapter_contract_agent_run_ledger_bound: artifacts.claude_code_adapter_contract?.summary?.agent_run_ledger_bound ?? false,
+    claude_code_adapter_contract_current_agent_run_record_count: artifacts.claude_code_adapter_contract?.summary?.current_agent_run_record_count ?? 0,
+    claude_code_adapter_contract_current_claude_code_agent_run_record_count: artifacts.claude_code_adapter_contract?.summary?.current_claude_code_agent_run_record_count ?? 0,
+    claude_code_adapter_contract_diff_gate_contract_count: artifacts.claude_code_adapter_contract?.summary?.diff_gate_contract_count ?? 0,
+    claude_code_adapter_contract_diff_gate_binding_status: artifacts.claude_code_adapter_contract?.summary?.diff_gate_binding_status ?? "unknown",
+    claude_code_adapter_contract_direct_apply_allowed: artifacts.claude_code_adapter_contract?.summary?.direct_apply_allowed ?? false,
+    claude_code_adapter_contract_direct_merge_allowed: artifacts.claude_code_adapter_contract?.summary?.direct_merge_allowed ?? false,
+    claude_code_adapter_contract_protected_path_write_allowed: artifacts.claude_code_adapter_contract?.summary?.protected_path_write_allowed ?? false,
+    claude_code_adapter_contract_patch_materialized_as_untrusted_artifact: artifacts.claude_code_adapter_contract?.summary?.patch_materialized_as_untrusted_artifact ?? false,
+    claude_code_adapter_contract_execute_requires_git_worktree: artifacts.claude_code_adapter_contract?.summary?.execute_requires_git_worktree ?? false,
+    claude_code_adapter_contract_execute_requires_human_gate: artifacts.claude_code_adapter_contract?.summary?.execute_requires_human_gate ?? false,
+    claude_code_adapter_contract_external_runtime_call_allowed_without_gate: artifacts.claude_code_adapter_contract?.summary?.external_runtime_call_allowed_without_gate ?? false,
+    claude_code_adapter_contract_protected_file_gate_required: artifacts.claude_code_adapter_contract?.summary?.protected_file_gate_required ?? false,
+    claude_code_adapter_contract_diff_review_gate_required: artifacts.claude_code_adapter_contract?.summary?.diff_review_gate_required ?? false,
+    claude_code_adapter_contract_test_gate_required: artifacts.claude_code_adapter_contract?.summary?.test_gate_required ?? false,
+    claude_code_adapter_contract_human_review_required: artifacts.claude_code_adapter_contract?.summary?.human_review_required ?? false,
+    claude_code_adapter_contract_unreviewed_auto_apply_count: artifacts.claude_code_adapter_contract?.summary?.unreviewed_auto_apply_count ?? 0,
+    claude_code_adapter_contract_diff_review_capture_ready: artifacts.claude_code_adapter_contract?.summary?.diff_review_capture_ready ?? false,
+    claude_code_adapter_contract_desktop_read_only: artifacts.claude_code_adapter_contract?.summary?.desktop_read_only ?? false,
+    claude_code_adapter_contract_desktop_mutation_allowed: artifacts.claude_code_adapter_contract?.summary?.desktop_mutation_allowed ?? false,
+    claude_code_adapter_contract_desktop_protected_mutation_request_allowed: artifacts.claude_code_adapter_contract?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    claude_code_adapter_contract_desktop_protected_mutation_execution_allowed: artifacts.claude_code_adapter_contract?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    claude_code_adapter_contract_desktop_secret_material_exposed: artifacts.claude_code_adapter_contract?.summary?.desktop_secret_material_exposed ?? false,
+    claude_code_adapter_contract_desktop_installer_or_gateway_control: artifacts.claude_code_adapter_contract?.summary?.desktop_installer_or_gateway_control ?? false,
+    claude_code_adapter_contract_desktop_runtime_source_of_truth: artifacts.claude_code_adapter_contract?.summary?.desktop_runtime_source_of_truth ?? false,
+    claude_code_adapter_contract_validation_error_count: artifacts.claude_code_adapter_contract?.summary?.validation_error_count ?? artifacts.claude_code_adapter_contract?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -14882,6 +14998,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-adapter-interface-v2") parsed.runtimeAdapterInterfaceV2Path = false;
     else if (arg === "--hermes-runtime-adapter") parsed.hermesRuntimeAdapterPath = argv[++index];
     else if (arg === "--no-hermes-runtime-adapter") parsed.hermesRuntimeAdapterPath = false;
+    else if (arg === "--claude-code-adapter-contract") parsed.claudeCodeAdapterContractPath = argv[++index];
+    else if (arg === "--no-claude-code-adapter-contract") parsed.claudeCodeAdapterContractPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15317,6 +15435,10 @@ Options:
                                   hermes-runtime-adapter.json path.
   --no-hermes-runtime-adapter
                                   Do not include Hermes Runtime Adapter status.
+  --claude-code-adapter-contract <path>
+                                  claude-code-adapter-contract.json path.
+  --no-claude-code-adapter-contract
+                                  Do not include Claude Code Adapter Contract status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

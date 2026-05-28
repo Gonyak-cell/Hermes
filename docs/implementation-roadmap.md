@@ -5710,6 +5710,30 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 98개로 증가하고 hermes runtime adapter artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:hermes-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 197 - Claude Code Adapter Contract
+
+목표: Claude Code runtime lane을 직접 신뢰하거나 직접 적용하는 실행자가 아니라 untrusted diff/pr draft 산출물을 내는 adapter contract로 고정한다. 모든 patch는 AgentRun ledger와 diff/protected-file/test/human gate를 거쳐야 한다.
+
+구현:
+
+- `src/claude-code-adapter-contract.mjs`와 `scripts/claude-code-adapter-contract.mjs`를 추가해 `npm run runtime:claude-code-adapter` slice를 등록
+- `schemas/claude-code-adapter-contract.schema.json`으로 Claude Code adapter contract, diff gate contract, AgentRun ledger binding, Desktop boundary를 검증
+- Runtime Adapter Interface v2의 Claude Code interface, Runtime/AgentRun freeze의 Claude Code execution contract, `binding.claude_code.cli.default`, AgentRun ledger sink를 하나의 locked artifact로 연결
+- Claude Code output을 `diff_or_pr_draft_only`, `patch_trust=untrusted_until_reviewed`, `output_trust=untrusted_until_verified`로 고정하고 direct apply/merge/protected path write를 모두 false로 설정
+- Diff gate policy가 protected file gate, diff review gate, test gate, human approval gate를 요구하도록 lock
+- Desktop boundary를 `read_only_runtime_status`, `runtime_source_of_truth=false`, protected mutation request/execution false, secret/installer/gateway/SSH/cron/skill-install false로 검증
+- Review Dashboard stage/summary, Review API routes, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Claude Code Adapter Contract가 validation error 없이 `complete` 상태가 됨
+- Claude Code interface, runtime execution contract, command binding, AgentRun ledger sink가 모두 bound/locked 상태가 됨
+- diff gate binding status가 `ready`이고 direct apply/merge/protected path write가 false임
+- protected file, diff review, test, human review gate가 모두 required로 고정됨
+- Review API가 `/api/claude-code-adapter-contract`, `/api/claude-code-diff-gate-contracts`, `/api/claude-code-agent-run-ledger-bindings`, `/api/claude-code-desktop-boundary`, `/api/claude-code-adapter-validations`를 제공
+- Golden fixture 수가 99개로 증가하고 claude code adapter contract artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:claude-code-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5718,9 +5742,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 196이다.
+- 현재 완료 기준점은 Phase 197이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P197-P312, 총 116개다.
+- 남은 계획 슬롯은 P198-P312, 총 115개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

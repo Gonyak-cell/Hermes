@@ -294,6 +294,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/hermes-agent-run-ledger-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/hermes-runtime-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/hermes-runtime-adapter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/claude-code-adapter-contract"));
+  assert.ok(index.routes.some((route) => route.path === "/api/claude-code-diff-gate-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/claude-code-agent-run-ledger-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/claude-code-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/claude-code-adapter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1399,6 +1404,26 @@ try {
   const hermesRuntimeAdapterValidations = await fetchJson(`${url}/api/hermes-runtime-adapter-validations?status=passed&limit=5`);
   assert.equal(hermesRuntimeAdapterValidations.collection, "hermes_runtime_adapter_validations");
   assert.ok(hermesRuntimeAdapterValidations.count <= 5);
+
+  const claudeCodeAdapterContract = await fetchJson(`${url}/api/claude-code-adapter-contract?claude_code_adapter_contract_status=complete&limit=1`);
+  assert.equal(claudeCodeAdapterContract.collection, "claude_code_adapter_contract");
+  assert.ok(claudeCodeAdapterContract.count <= 1);
+
+  const claudeCodeDiffGateContracts = await fetchJson(`${url}/api/claude-code-diff-gate-contracts?contract_status=locked&limit=5`);
+  assert.equal(claudeCodeDiffGateContracts.collection, "claude_code_diff_gate_contracts");
+  assert.ok(claudeCodeDiffGateContracts.count <= 5);
+
+  const claudeCodeAgentRunLedgerBindings = await fetchJson(`${url}/api/claude-code-agent-run-ledger-bindings?binding_status=locked&limit=5`);
+  assert.equal(claudeCodeAgentRunLedgerBindings.collection, "claude_code_agent_run_ledger_bindings");
+  assert.ok(claudeCodeAgentRunLedgerBindings.count <= 5);
+
+  const claudeCodeDesktopBoundary = await fetchJson(`${url}/api/claude-code-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(claudeCodeDesktopBoundary.collection, "claude_code_desktop_boundary");
+  assert.ok(claudeCodeDesktopBoundary.count <= 1);
+
+  const claudeCodeAdapterValidations = await fetchJson(`${url}/api/claude-code-adapter-validations?status=passed&limit=5`);
+  assert.equal(claudeCodeAdapterValidations.collection, "claude_code_adapter_validations");
+  assert.ok(claudeCodeAdapterValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

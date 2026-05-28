@@ -193,6 +193,7 @@ import { runWorkflowGateFreeze } from "../src/workflow-gate-freeze.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runRuntimeAdapterInterfaceV2 } from "../src/runtime-adapter-interface-v2.mjs";
 import { runHermesRuntimeAdapter } from "../src/hermes-runtime-adapter.mjs";
+import { runClaudeCodeAdapterContract } from "../src/claude-code-adapter-contract.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1788,6 +1789,7 @@ describe("matter harness", () => {
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
         runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
         hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
+        claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6449,6 +6451,61 @@ describe("matter harness", () => {
       assert.equal(hermesRuntimeAdapter.hermes_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "hermes-runtime-adapter", "summary.md"), "utf8"), /Hermes Runtime Adapter/);
 
+      const claudeCodeAdapterContract = await runClaudeCodeAdapterContract({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeCommandBindingsPath: "examples/core/runtime-command-bindings.json",
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        workflowGateFreezePath: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "claude-code-adapter-contract"),
+        runAt: "2026-05-23T06:39:39.000Z",
+      });
+      const claudeCodeAdapterContractSchema = JSON.parse(await readFile("schemas/claude-code-adapter-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(claudeCodeAdapterContract, claudeCodeAdapterContractSchema, {}, "claude_code_adapter_contract"),
+        [],
+      );
+      assert.equal(claudeCodeAdapterContract.summary.claude_code_adapter_contract_status, "complete");
+      assert.equal(claudeCodeAdapterContract.summary.runtime_id, "claude_code");
+      assert.equal(claudeCodeAdapterContract.summary.adapter_id, "runtime.claude_code.default");
+      assert.equal(claudeCodeAdapterContract.summary.claude_code_interface_bound, true);
+      assert.equal(claudeCodeAdapterContract.summary.claude_code_runtime_execution_contract_bound, true);
+      assert.equal(claudeCodeAdapterContract.summary.claude_code_command_binding_declared, true);
+      assert.equal(claudeCodeAdapterContract.summary.agent_run_ledger_bound, true);
+      assert.equal(claudeCodeAdapterContract.summary.current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(claudeCodeAdapterContract.summary.current_claude_code_agent_run_record_count, 1);
+      assert.equal(claudeCodeAdapterContract.summary.diff_gate_contract_count, 1);
+      assert.equal(claudeCodeAdapterContract.summary.diff_gate_binding_status, "ready");
+      assert.equal(claudeCodeAdapterContract.summary.direct_apply_allowed, false);
+      assert.equal(claudeCodeAdapterContract.summary.direct_merge_allowed, false);
+      assert.equal(claudeCodeAdapterContract.summary.protected_path_write_allowed, false);
+      assert.equal(claudeCodeAdapterContract.summary.patch_materialized_as_untrusted_artifact, true);
+      assert.equal(claudeCodeAdapterContract.summary.output_trust, "untrusted_until_verified");
+      assert.equal(claudeCodeAdapterContract.summary.patch_trust, "untrusted_until_reviewed");
+      assert.equal(claudeCodeAdapterContract.summary.execute_requires_git_worktree, true);
+      assert.equal(claudeCodeAdapterContract.summary.execute_requires_human_gate, true);
+      assert.equal(claudeCodeAdapterContract.summary.external_runtime_call_allowed_without_gate, false);
+      assert.equal(claudeCodeAdapterContract.summary.protected_file_gate_required, true);
+      assert.equal(claudeCodeAdapterContract.summary.diff_review_gate_required, true);
+      assert.equal(claudeCodeAdapterContract.summary.test_gate_required, true);
+      assert.equal(claudeCodeAdapterContract.summary.human_review_required, true);
+      assert.equal(claudeCodeAdapterContract.summary.unreviewed_auto_apply_count, 0);
+      assert.equal(claudeCodeAdapterContract.summary.diff_review_capture_ready, true);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_read_only, true);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_mutation_allowed, false);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_protected_mutation_request_allowed, false);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_secret_material_exposed, false);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_installer_or_gateway_control, false);
+      assert.equal(claudeCodeAdapterContract.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(claudeCodeAdapterContract.summary.validation_error_count, 0);
+      assert.equal(claudeCodeAdapterContract.claude_code_adapter_contract.lane_policy.direct_apply_allowed, false);
+      assert.equal(claudeCodeAdapterContract.claude_code_adapter_contract.diff_gate_policy.merge_authority, "human_gate");
+      assert.equal(claudeCodeAdapterContract.claude_code_agent_run_ledger_bindings[0].sink_ledger_status, "complete");
+      assert.equal(claudeCodeAdapterContract.claude_code_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "claude-code-adapter-contract", "summary.md"), "utf8"), /Claude Code Adapter Contract/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6569,6 +6626,7 @@ describe("matter harness", () => {
           runtime_agentrun_contract_freeze: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
           runtime_adapter_interface_v2: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
           hermes_runtime_adapter: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
+          claude_code_adapter_contract: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6620,8 +6678,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 98);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 98);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 99);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 99);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6707,6 +6765,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_gate_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_adapter_interface_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "hermes_runtime_adapter"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "claude_code_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6751,6 +6810,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:hermes-adapter"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:claude-code-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7205,6 +7265,10 @@ describe("matter harness", () => {
       assert.equal(hermesRuntimeAdapterCheckpoint?.acceptance_profile, "hermes_runtime_adapter_gate");
       assert.equal(hermesRuntimeAdapterCheckpoint?.status, "passed");
       assert.equal(hermesRuntimeAdapterCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const claudeCodeAdapterContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-claude-code-adapter-contract");
+      assert.equal(claudeCodeAdapterContractCheckpoint?.acceptance_profile, "claude_code_adapter_contract_gate");
+      assert.equal(claudeCodeAdapterContractCheckpoint?.status, "passed");
+      assert.equal(claudeCodeAdapterContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9103,6 +9167,39 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_installer_or_gateway_control, false);
       assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.hermes_runtime_adapter_validation_error_count, 0);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_status, "complete");
+      assert.equal(dashboard.summary.claude_code_adapter_contract_runtime_id, "claude_code");
+      assert.equal(dashboard.summary.claude_code_adapter_contract_adapter_id, "runtime.claude_code.default");
+      assert.equal(dashboard.summary.claude_code_adapter_contract_adapter_status, "locked");
+      assert.equal(dashboard.summary.claude_code_adapter_contract_interface_bound, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_execution_contract_bound, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_command_binding_declared, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_agent_run_ledger_bound, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_current_claude_code_agent_run_record_count, 1);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_diff_gate_contract_count, 1);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_diff_gate_binding_status, "ready");
+      assert.equal(dashboard.summary.claude_code_adapter_contract_direct_apply_allowed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_direct_merge_allowed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_protected_path_write_allowed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_patch_materialized_as_untrusted_artifact, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_execute_requires_git_worktree, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_execute_requires_human_gate, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_external_runtime_call_allowed_without_gate, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_protected_file_gate_required, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_diff_review_gate_required, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_test_gate_required, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_human_review_required, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_unreviewed_auto_apply_count, 0);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_diff_review_capture_ready, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_read_only, true);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_protected_mutation_request_allowed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_secret_material_exposed, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_installer_or_gateway_control, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.claude_code_adapter_contract_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -9910,6 +10007,14 @@ describe("matter harness", () => {
       assert.equal(hermesRuntimeAdapterStage?.metrics.invocation_result_collection_status, "ready");
       assert.equal(hermesRuntimeAdapterStage?.metrics.desktop_read_only, true);
       assert.equal(hermesRuntimeAdapterStage?.metrics.desktop_runtime_source_of_truth, false);
+      const claudeCodeAdapterContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "claude_code_adapter_contract");
+      assert.equal(claudeCodeAdapterContractStage?.status, "passed");
+      assert.equal(claudeCodeAdapterContractStage?.metrics.claude_code_adapter_contract_status, "complete");
+      assert.equal(claudeCodeAdapterContractStage?.metrics.agent_run_ledger_bound, true);
+      assert.equal(claudeCodeAdapterContractStage?.metrics.diff_gate_binding_status, "ready");
+      assert.equal(claudeCodeAdapterContractStage?.metrics.direct_apply_allowed, false);
+      assert.equal(claudeCodeAdapterContractStage?.metrics.diff_review_gate_required, true);
+      assert.equal(claudeCodeAdapterContractStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10274,6 +10379,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-agent-run-ledger-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-runtime-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-runtime-adapter-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-adapter-contract"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-diff-gate-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-agent-run-ledger-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-adapter-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -11198,6 +11308,26 @@ describe("matter harness", () => {
       const hermesRuntimeAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/hermes-runtime-adapter-validations?status=passed", apiOptions)).body);
       assert.equal(hermesRuntimeAdapterValidations.collection, "hermes_runtime_adapter_validations");
       assert.equal(hermesRuntimeAdapterValidations.count, hermesRuntimeAdapter.summary.validation_item_count);
+
+      const claudeCodeAdapterContractResponse = JSON.parse((await buildReviewApiResponse("/api/claude-code-adapter-contract?claude_code_adapter_contract_status=complete", apiOptions)).body);
+      assert.equal(claudeCodeAdapterContractResponse.collection, "claude_code_adapter_contract");
+      assert.equal(claudeCodeAdapterContractResponse.count, 1);
+
+      const claudeCodeDiffGateContracts = JSON.parse((await buildReviewApiResponse("/api/claude-code-diff-gate-contracts?contract_status=locked", apiOptions)).body);
+      assert.equal(claudeCodeDiffGateContracts.collection, "claude_code_diff_gate_contracts");
+      assert.equal(claudeCodeDiffGateContracts.count, claudeCodeAdapterContract.summary.diff_gate_contract_count);
+
+      const claudeCodeAgentRunLedgerBindings = JSON.parse((await buildReviewApiResponse("/api/claude-code-agent-run-ledger-bindings?binding_status=locked", apiOptions)).body);
+      assert.equal(claudeCodeAgentRunLedgerBindings.collection, "claude_code_agent_run_ledger_bindings");
+      assert.equal(claudeCodeAgentRunLedgerBindings.count, claudeCodeAdapterContract.claude_code_agent_run_ledger_bindings.length);
+
+      const claudeCodeDesktopBoundary = JSON.parse((await buildReviewApiResponse("/api/claude-code-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(claudeCodeDesktopBoundary.collection, "claude_code_desktop_boundary");
+      assert.equal(claudeCodeDesktopBoundary.count, 1);
+
+      const claudeCodeAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/claude-code-adapter-validations?status=passed", apiOptions)).body);
+      assert.equal(claudeCodeAdapterValidations.collection, "claude_code_adapter_validations");
+      assert.equal(claudeCodeAdapterValidations.count, claudeCodeAdapterContract.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

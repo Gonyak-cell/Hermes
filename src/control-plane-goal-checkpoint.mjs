@@ -70,6 +70,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_adapter_interface_v2", "Runtime adapter interface v2", "runtime", "runtime_adapter_interface_v2", "control-plane-runtime-adapter-interface-v2", { acceptance_profile: "runtime_adapter_interface_v2_gate" }),
   sourceItem("hermes_runtime_adapter", "Hermes runtime adapter", "runtime", "hermes_runtime_adapter", "control-plane-hermes-runtime-adapter", { acceptance_profile: "hermes_runtime_adapter_gate" }),
   sourceItem("claude_code_adapter_contract", "Claude Code adapter contract", "runtime", "claude_code_adapter_contract", "control-plane-claude-code-adapter-contract", { acceptance_profile: "claude_code_adapter_contract_gate" }),
+  sourceItem("codex_adapter_contract", "Codex adapter contract", "runtime", "codex_adapter_contract", "control-plane-codex-adapter-contract", { acceptance_profile: "codex_adapter_contract_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -499,6 +500,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_adapter_interface_v2_gate",
     "hermes_runtime_adapter_gate",
     "claude_code_adapter_contract_gate",
+    "codex_adapter_contract_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1514,6 +1516,49 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_runtime_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Claude Code adapter contract keeps Claude Code output as an untrusted diff, binds it to AgentRun ledger collection, and requires protected file, diff review, test, and human gates before any mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "codex_adapter_contract_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.failed_validation_item_count ?? 0)
+      + (metrics.unreviewed_auto_apply_count ?? 0);
+    if (
+      errors === 0
+      && metrics.codex_adapter_contract_status === "complete"
+      && metrics.runtime_id === "codex"
+      && metrics.adapter_id === "runtime.codex.default"
+      && metrics.adapter_status === "locked"
+      && metrics.codex_interface_bound === true
+      && metrics.codex_runtime_execution_contract_bound === true
+      && metrics.codex_command_binding_declared === true
+      && metrics.agent_run_ledger_bound === true
+      && metrics.patch_gate_binding_status === "ready"
+      && metrics.direct_apply_allowed === false
+      && metrics.direct_merge_allowed === false
+      && metrics.protected_path_write_allowed === false
+      && metrics.patch_materialized_as_untrusted_artifact === true
+      && metrics.execute_requires_git_worktree === true
+      && metrics.execute_requires_human_gate === true
+      && metrics.external_runtime_call_allowed_without_gate === false
+      && metrics.protected_file_gate_required === true
+      && metrics.diff_review_gate_required === true
+      && metrics.test_gate_required === true
+      && metrics.human_review_required === true
+      && metrics.output_capture_ready === true
+      && metrics.log_capture_ready === true
+      && metrics.artifact_capture_ready === true
+      && metrics.verification_capture_ready === true
+      && metrics.patch_review_capture_ready === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_request_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_runtime_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Codex adapter contract keeps Codex output as an untrusted patch, binds it to AgentRun ledger collection, and requires protected file, diff review, test, and human gates before any mutation.");
     }
   }
 

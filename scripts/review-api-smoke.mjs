@@ -299,6 +299,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/claude-code-agent-run-ledger-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/claude-code-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/claude-code-adapter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/codex-adapter-contract"));
+  assert.ok(index.routes.some((route) => route.path === "/api/codex-patch-gate-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/codex-agent-run-ledger-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/codex-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/codex-adapter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1424,6 +1429,26 @@ try {
   const claudeCodeAdapterValidations = await fetchJson(`${url}/api/claude-code-adapter-validations?status=passed&limit=5`);
   assert.equal(claudeCodeAdapterValidations.collection, "claude_code_adapter_validations");
   assert.ok(claudeCodeAdapterValidations.count <= 5);
+
+  const codexAdapterContract = await fetchJson(`${url}/api/codex-adapter-contract?codex_adapter_contract_status=complete&limit=1`);
+  assert.equal(codexAdapterContract.collection, "codex_adapter_contract");
+  assert.ok(codexAdapterContract.count <= 1);
+
+  const codexPatchGateContracts = await fetchJson(`${url}/api/codex-patch-gate-contracts?contract_status=locked&limit=5`);
+  assert.equal(codexPatchGateContracts.collection, "codex_patch_gate_contracts");
+  assert.ok(codexPatchGateContracts.count <= 5);
+
+  const codexAgentRunLedgerBindings = await fetchJson(`${url}/api/codex-agent-run-ledger-bindings?binding_status=locked&limit=5`);
+  assert.equal(codexAgentRunLedgerBindings.collection, "codex_agent_run_ledger_bindings");
+  assert.ok(codexAgentRunLedgerBindings.count <= 5);
+
+  const codexDesktopBoundary = await fetchJson(`${url}/api/codex-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(codexDesktopBoundary.collection, "codex_desktop_boundary");
+  assert.ok(codexDesktopBoundary.count <= 1);
+
+  const codexAdapterValidations = await fetchJson(`${url}/api/codex-adapter-validations?status=passed&limit=5`);
+  assert.equal(codexAdapterValidations.collection, "codex_adapter_validations");
+  assert.ok(codexAdapterValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

@@ -3598,6 +3598,53 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/codex-adapter-contract") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "codex_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("codex_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("codex_adapter_contract", [adapterResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/codex-patch-gate-contracts") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "codex_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("codex_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("codex_patch_gate_contracts", adapterResult.artifact.codex_patch_gate_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/codex-agent-run-ledger-bindings") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "codex_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("codex_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("codex_agent_run_ledger_bindings", adapterResult.artifact.codex_agent_run_ledger_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/codex-desktop-boundary") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "codex_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("codex_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("codex_desktop_boundary", [adapterResult.artifact.codex_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/codex-adapter-validations") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "codex_adapter_contract");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("codex_adapter_contract_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("codex_adapter_validations", adapterResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7727,6 +7774,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/claude-code-agent-run-ledger-bindings", "Claude Code AgentRun ledger bindings"),
       route("GET", "/api/claude-code-desktop-boundary", "Claude Code Desktop boundary"),
       route("GET", "/api/claude-code-adapter-validations", "Claude Code Adapter Contract validation rows"),
+      route("GET", "/api/codex-adapter-contract", "Codex Adapter Contract artifact"),
+      route("GET", "/api/codex-patch-gate-contracts", "Codex patch gate contracts"),
+      route("GET", "/api/codex-agent-run-ledger-bindings", "Codex AgentRun ledger bindings"),
+      route("GET", "/api/codex-desktop-boundary", "Codex Desktop boundary"),
+      route("GET", "/api/codex-adapter-validations", "Codex Adapter Contract validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8378,6 +8430,7 @@ function filterItems(items, searchParams) {
     "runtime_adapter_interface_status",
     "hermes_runtime_adapter_status",
     "claude_code_adapter_contract_status",
+    "codex_adapter_contract_status",
     "interface_status",
     "operator_surface_policy_status",
     "desktop_surface_policy",
@@ -9640,6 +9693,7 @@ function readFilterValue(item, key) {
   if (key === "runtime_adapter_interface_status") return item.summary?.runtime_adapter_interface_status ?? item.runtime_adapter_interface_status;
   if (key === "hermes_runtime_adapter_status") return item.summary?.hermes_runtime_adapter_status ?? item.hermes_runtime_adapter_status;
   if (key === "claude_code_adapter_contract_status") return item.summary?.claude_code_adapter_contract_status ?? item.claude_code_adapter_contract_status;
+  if (key === "codex_adapter_contract_status") return item.summary?.codex_adapter_contract_status ?? item.codex_adapter_contract_status;
   if (key === "interface_status") return item.interface_status;
   if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
   if (key === "desktop_surface_policy") return item.desktop_surface_policy;

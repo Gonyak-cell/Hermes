@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/codex-adapter-contract.schema.json",
+  "title": "Hermes Codex Adapter Contract",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "adapter_projection_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "codex_adapter_contract",
+    "codex_patch_gate_contracts",
+    "codex_agent_run_ledger_bindings",
+    "codex_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "codex-adapter-contract.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "adapter_projection_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2_path",
+        "runtime_agentrun_contract_freeze_path",
+        "runtime_command_bindings_path",
+        "agent_run_ledger_path",
+        "workflow_gate_freeze_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2",
+        "runtime_agentrun_contract_freeze",
+        "runtime_command_bindings",
+        "agent_run_ledger",
+        "workflow_gate_freeze",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_adapter_interface_v2": {
+          "type": "object",
+          "required": ["runtime_adapter_interface_status", "codex_interface_status", "codex_operator_surface_policy_status"],
+          "properties": {
+            "runtime_adapter_interface_status": { "const": "complete" },
+            "codex_interface_status": { "const": "locked" },
+            "codex_operator_surface_policy_status": { "const": "locked" }
+          }
+        },
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "codex_runtime_adapter_found", "codex_runtime_execution_contract_found"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "codex_runtime_adapter_found": { "const": true },
+            "codex_runtime_execution_contract_found": { "const": true }
+          }
+        },
+        "runtime_command_bindings": {
+          "type": "object",
+          "required": ["schema_version", "codex_command_binding_found", "codex_prompt_delivery", "codex_execute_requires_git_worktree"],
+          "properties": {
+            "schema_version": { "const": "runtime-command-bindings.v1" },
+            "codex_command_binding_found": { "const": true },
+            "codex_prompt_delivery": { "const": "stdin" },
+            "codex_execute_requires_git_worktree": { "const": true }
+          }
+        },
+        "agent_run_ledger": {
+          "type": "object",
+          "required": ["agent_run_ledger_status", "current_codex_agent_run_record_count"],
+          "properties": {
+            "agent_run_ledger_status": { "const": "complete" },
+            "current_codex_agent_run_record_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "workflow_gate_freeze": {
+          "type": "object",
+          "required": ["workflow_gate_freeze_status"],
+          "properties": {
+            "workflow_gate_freeze_status": { "const": "complete" }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": ["declares_read_only", "declares_not_runtime_source_of_truth"],
+          "properties": {
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true }
+          }
+        }
+      }
+    },
+    "codex_adapter_contract": {
+      "type": "object",
+      "required": ["contract_id", "runtime_id", "adapter_id", "adapter_status", "output_trust", "patch_trust", "lane_policy", "patch_gate_policy", "collection_policy"],
+      "properties": {
+        "contract_id": { "const": "codex-adapter-contract.default" },
+        "runtime_id": { "const": "codex" },
+        "adapter_id": { "const": "runtime.codex.default" },
+        "adapter_status": { "const": "locked" },
+        "command_binding_id": { "const": "binding.codex.cli.default" },
+        "output_trust": { "const": "untrusted_until_verified" },
+        "patch_trust": { "const": "untrusted_until_reviewed" },
+        "lane_policy": {
+          "type": "object",
+          "required": [
+            "output_mode",
+            "direct_apply_allowed",
+            "direct_merge_allowed",
+            "protected_path_write_allowed",
+            "execute_requires_git_worktree",
+            "execute_requires_human_gate",
+            "patch_materialized_as_untrusted_artifact",
+            "external_runtime_call_allowed_without_gate"
+          ],
+          "properties": {
+            "output_mode": { "const": "patch_or_pr_draft_only" },
+            "direct_apply_allowed": { "const": false },
+            "direct_merge_allowed": { "const": false },
+            "protected_path_write_allowed": { "const": false },
+            "execute_requires_git_worktree": { "const": true },
+            "execute_requires_human_gate": { "const": true },
+            "patch_materialized_as_untrusted_artifact": { "const": true },
+            "external_runtime_call_allowed_without_gate": { "const": false }
+          }
+        },
+        "patch_gate_policy": {
+          "type": "object",
+          "required": ["gate_binding_status", "protected_file_gate_required", "diff_review_gate_required", "test_gate_required", "human_approval_gate_required"],
+          "properties": {
+            "gate_binding_status": { "const": "ready" },
+            "protected_file_gate_required": { "const": true },
+            "diff_review_gate_required": { "const": true },
+            "test_gate_required": { "const": true },
+            "human_approval_gate_required": { "const": true }
+          }
+        },
+        "collection_policy": {
+          "type": "object",
+          "required": ["sink_ledger", "collect_patch_review_status", "runtime_self_report_trusted", "collection_status"],
+          "properties": {
+            "sink_ledger": { "const": "agent_run_ledger" },
+            "collect_patch_review_status": { "const": true },
+            "runtime_self_report_trusted": { "const": false },
+            "collection_status": { "const": "ready" }
+          }
+        }
+      }
+    },
+    "codex_patch_gate_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["runtime_id", "adapter_id", "contract_status", "gate_binding_status", "direct_apply_allowed", "unreviewed_auto_apply_count"],
+        "properties": {
+          "runtime_id": { "const": "codex" },
+          "adapter_id": { "const": "runtime.codex.default" },
+          "contract_status": { "const": "locked" },
+          "gate_binding_status": { "const": "ready" },
+          "direct_apply_allowed": { "const": false },
+          "unreviewed_auto_apply_count": { "const": 0 }
+        }
+      }
+    },
+    "codex_agent_run_ledger_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["runtime_id", "adapter_id", "sink_ledger_status", "collection_status", "binding_status"],
+        "properties": {
+          "runtime_id": { "const": "codex" },
+          "adapter_id": { "const": "runtime.codex.default" },
+          "sink_ledger_status": { "const": "complete" },
+          "collection_status": { "const": "ready" },
+          "binding_status": { "const": "locked" }
+        }
+      }
+    },
+    "codex_desktop_boundary": {
+      "type": "object",
+      "required": ["runtime_id", "read_only", "mutation_allowed", "runtime_source_of_truth", "boundary_status"],
+      "properties": {
+        "runtime_id": { "const": "codex" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "runtime_source_of_truth": { "const": false },
+        "boundary_status": { "const": "locked" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "codex_adapter_contract_status",
+        "runtime_id",
+        "adapter_id",
+        "adapter_status",
+        "codex_interface_bound",
+        "codex_runtime_execution_contract_bound",
+        "codex_command_binding_declared",
+        "agent_run_ledger_bound",
+        "patch_gate_contract_count",
+        "patch_gate_binding_status",
+        "direct_apply_allowed",
+        "direct_merge_allowed",
+        "protected_path_write_allowed",
+        "patch_materialized_as_untrusted_artifact",
+        "execute_requires_git_worktree",
+        "execute_requires_human_gate",
+        "external_runtime_call_allowed_without_gate",
+        "protected_file_gate_required",
+        "diff_review_gate_required",
+        "test_gate_required",
+        "human_review_required",
+        "unreviewed_auto_apply_count",
+        "patch_review_capture_ready",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "codex_adapter_contract_status": { "const": "complete" },
+        "runtime_id": { "const": "codex" },
+        "adapter_id": { "const": "runtime.codex.default" },
+        "adapter_status": { "const": "locked" },
+        "codex_interface_bound": { "const": true },
+        "codex_runtime_execution_contract_bound": { "const": true },
+        "codex_command_binding_declared": { "const": true },
+        "agent_run_ledger_bound": { "const": true },
+        "patch_gate_contract_count": { "type": "integer", "minimum": 1 },
+        "patch_gate_binding_status": { "const": "ready" },
+        "direct_apply_allowed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "protected_path_write_allowed": { "const": false },
+        "patch_materialized_as_untrusted_artifact": { "const": true },
+        "execute_requires_git_worktree": { "const": true },
+        "execute_requires_human_gate": { "const": true },
+        "external_runtime_call_allowed_without_gate": { "const": false },
+        "protected_file_gate_required": { "const": true },
+        "diff_review_gate_required": { "const": true },
+        "test_gate_required": { "const": true },
+        "human_review_required": { "const": true },
+        "unreviewed_auto_apply_count": { "const": 0 },
+        "patch_review_capture_ready": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    }
+  }
+}

@@ -194,6 +194,7 @@ import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contra
 import { runRuntimeAdapterInterfaceV2 } from "../src/runtime-adapter-interface-v2.mjs";
 import { runHermesRuntimeAdapter } from "../src/hermes-runtime-adapter.mjs";
 import { runClaudeCodeAdapterContract } from "../src/claude-code-adapter-contract.mjs";
+import { runCodexAdapterContract } from "../src/codex-adapter-contract.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1790,6 +1791,7 @@ describe("matter harness", () => {
         runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
         hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
         claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+        codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6506,6 +6508,61 @@ describe("matter harness", () => {
       assert.equal(claudeCodeAdapterContract.claude_code_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "claude-code-adapter-contract", "summary.md"), "utf8"), /Claude Code Adapter Contract/);
 
+      const codexAdapterContract = await runCodexAdapterContract({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeCommandBindingsPath: "examples/core/runtime-command-bindings.json",
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        workflowGateFreezePath: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "codex-adapter-contract"),
+        runAt: "2026-05-23T06:40:39.000Z",
+      });
+      const codexAdapterContractSchema = JSON.parse(await readFile("schemas/codex-adapter-contract.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(codexAdapterContract, codexAdapterContractSchema, {}, "codex_adapter_contract"),
+        [],
+      );
+      assert.equal(codexAdapterContract.summary.codex_adapter_contract_status, "complete");
+      assert.equal(codexAdapterContract.summary.runtime_id, "codex");
+      assert.equal(codexAdapterContract.summary.adapter_id, "runtime.codex.default");
+      assert.equal(codexAdapterContract.summary.codex_interface_bound, true);
+      assert.equal(codexAdapterContract.summary.codex_runtime_execution_contract_bound, true);
+      assert.equal(codexAdapterContract.summary.codex_command_binding_declared, true);
+      assert.equal(codexAdapterContract.summary.agent_run_ledger_bound, true);
+      assert.equal(codexAdapterContract.summary.current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(codexAdapterContract.summary.current_codex_agent_run_record_count, 1);
+      assert.equal(codexAdapterContract.summary.patch_gate_contract_count, 1);
+      assert.equal(codexAdapterContract.summary.patch_gate_binding_status, "ready");
+      assert.equal(codexAdapterContract.summary.direct_apply_allowed, false);
+      assert.equal(codexAdapterContract.summary.direct_merge_allowed, false);
+      assert.equal(codexAdapterContract.summary.protected_path_write_allowed, false);
+      assert.equal(codexAdapterContract.summary.patch_materialized_as_untrusted_artifact, true);
+      assert.equal(codexAdapterContract.summary.output_trust, "untrusted_until_verified");
+      assert.equal(codexAdapterContract.summary.patch_trust, "untrusted_until_reviewed");
+      assert.equal(codexAdapterContract.summary.execute_requires_git_worktree, true);
+      assert.equal(codexAdapterContract.summary.execute_requires_human_gate, true);
+      assert.equal(codexAdapterContract.summary.external_runtime_call_allowed_without_gate, false);
+      assert.equal(codexAdapterContract.summary.protected_file_gate_required, true);
+      assert.equal(codexAdapterContract.summary.diff_review_gate_required, true);
+      assert.equal(codexAdapterContract.summary.test_gate_required, true);
+      assert.equal(codexAdapterContract.summary.human_review_required, true);
+      assert.equal(codexAdapterContract.summary.unreviewed_auto_apply_count, 0);
+      assert.equal(codexAdapterContract.summary.patch_review_capture_ready, true);
+      assert.equal(codexAdapterContract.summary.desktop_read_only, true);
+      assert.equal(codexAdapterContract.summary.desktop_mutation_allowed, false);
+      assert.equal(codexAdapterContract.summary.desktop_protected_mutation_request_allowed, false);
+      assert.equal(codexAdapterContract.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(codexAdapterContract.summary.desktop_secret_material_exposed, false);
+      assert.equal(codexAdapterContract.summary.desktop_installer_or_gateway_control, false);
+      assert.equal(codexAdapterContract.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(codexAdapterContract.summary.validation_error_count, 0);
+      assert.equal(codexAdapterContract.codex_adapter_contract.lane_policy.direct_apply_allowed, false);
+      assert.equal(codexAdapterContract.codex_adapter_contract.patch_gate_policy.merge_authority, "human_gate");
+      assert.equal(codexAdapterContract.codex_agent_run_ledger_bindings[0].sink_ledger_status, "complete");
+      assert.equal(codexAdapterContract.codex_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "codex-adapter-contract", "summary.md"), "utf8"), /Codex Adapter Contract/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6627,6 +6684,7 @@ describe("matter harness", () => {
           runtime_adapter_interface_v2: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
           hermes_runtime_adapter: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
           claude_code_adapter_contract: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+          codex_adapter_contract: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6678,8 +6736,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 99);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 99);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 100);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 100);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6766,6 +6824,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_adapter_interface_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "hermes_runtime_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "claude_code_adapter_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "codex_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6811,6 +6870,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:hermes-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:claude-code-adapter"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:codex-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7269,6 +7329,10 @@ describe("matter harness", () => {
       assert.equal(claudeCodeAdapterContractCheckpoint?.acceptance_profile, "claude_code_adapter_contract_gate");
       assert.equal(claudeCodeAdapterContractCheckpoint?.status, "passed");
       assert.equal(claudeCodeAdapterContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const codexAdapterContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-codex-adapter-contract");
+      assert.equal(codexAdapterContractCheckpoint?.acceptance_profile, "codex_adapter_contract_gate");
+      assert.equal(codexAdapterContractCheckpoint?.status, "passed");
+      assert.equal(codexAdapterContractCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9200,6 +9264,39 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_installer_or_gateway_control, false);
       assert.equal(dashboard.summary.claude_code_adapter_contract_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.claude_code_adapter_contract_validation_error_count, 0);
+      assert.equal(dashboard.summary.codex_adapter_contract_status, "complete");
+      assert.equal(dashboard.summary.codex_adapter_contract_runtime_id, "codex");
+      assert.equal(dashboard.summary.codex_adapter_contract_adapter_id, "runtime.codex.default");
+      assert.equal(dashboard.summary.codex_adapter_contract_adapter_status, "locked");
+      assert.equal(dashboard.summary.codex_adapter_contract_interface_bound, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_execution_contract_bound, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_command_binding_declared, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_agent_run_ledger_bound, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.codex_adapter_contract_current_codex_agent_run_record_count, 1);
+      assert.equal(dashboard.summary.codex_adapter_contract_patch_gate_contract_count, 1);
+      assert.equal(dashboard.summary.codex_adapter_contract_patch_gate_binding_status, "ready");
+      assert.equal(dashboard.summary.codex_adapter_contract_direct_apply_allowed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_direct_merge_allowed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_protected_path_write_allowed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_patch_materialized_as_untrusted_artifact, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_execute_requires_git_worktree, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_execute_requires_human_gate, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_external_runtime_call_allowed_without_gate, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_protected_file_gate_required, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_diff_review_gate_required, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_test_gate_required, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_human_review_required, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_unreviewed_auto_apply_count, 0);
+      assert.equal(dashboard.summary.codex_adapter_contract_patch_review_capture_ready, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_read_only, true);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_protected_mutation_request_allowed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_secret_material_exposed, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_installer_or_gateway_control, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.codex_adapter_contract_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -10015,6 +10112,14 @@ describe("matter harness", () => {
       assert.equal(claudeCodeAdapterContractStage?.metrics.direct_apply_allowed, false);
       assert.equal(claudeCodeAdapterContractStage?.metrics.diff_review_gate_required, true);
       assert.equal(claudeCodeAdapterContractStage?.metrics.desktop_runtime_source_of_truth, false);
+      const codexAdapterContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "codex_adapter_contract");
+      assert.equal(codexAdapterContractStage?.status, "passed");
+      assert.equal(codexAdapterContractStage?.metrics.codex_adapter_contract_status, "complete");
+      assert.equal(codexAdapterContractStage?.metrics.agent_run_ledger_bound, true);
+      assert.equal(codexAdapterContractStage?.metrics.patch_gate_binding_status, "ready");
+      assert.equal(codexAdapterContractStage?.metrics.direct_apply_allowed, false);
+      assert.equal(codexAdapterContractStage?.metrics.diff_review_gate_required, true);
+      assert.equal(codexAdapterContractStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10384,6 +10489,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-agent-run-ledger-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/claude-code-adapter-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-adapter-contract"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-patch-gate-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-agent-run-ledger-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/codex-adapter-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -11328,6 +11438,26 @@ describe("matter harness", () => {
       const claudeCodeAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/claude-code-adapter-validations?status=passed", apiOptions)).body);
       assert.equal(claudeCodeAdapterValidations.collection, "claude_code_adapter_validations");
       assert.equal(claudeCodeAdapterValidations.count, claudeCodeAdapterContract.summary.validation_item_count);
+
+      const codexAdapterContractResponse = JSON.parse((await buildReviewApiResponse("/api/codex-adapter-contract?codex_adapter_contract_status=complete", apiOptions)).body);
+      assert.equal(codexAdapterContractResponse.collection, "codex_adapter_contract");
+      assert.equal(codexAdapterContractResponse.count, 1);
+
+      const codexPatchGateContracts = JSON.parse((await buildReviewApiResponse("/api/codex-patch-gate-contracts?contract_status=locked", apiOptions)).body);
+      assert.equal(codexPatchGateContracts.collection, "codex_patch_gate_contracts");
+      assert.equal(codexPatchGateContracts.count, codexAdapterContract.summary.patch_gate_contract_count);
+
+      const codexAgentRunLedgerBindings = JSON.parse((await buildReviewApiResponse("/api/codex-agent-run-ledger-bindings?binding_status=locked", apiOptions)).body);
+      assert.equal(codexAgentRunLedgerBindings.collection, "codex_agent_run_ledger_bindings");
+      assert.equal(codexAgentRunLedgerBindings.count, codexAdapterContract.codex_agent_run_ledger_bindings.length);
+
+      const codexDesktopBoundary = JSON.parse((await buildReviewApiResponse("/api/codex-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(codexDesktopBoundary.collection, "codex_desktop_boundary");
+      assert.equal(codexDesktopBoundary.count, 1);
+
+      const codexAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/codex-adapter-validations?status=passed", apiOptions)).body);
+      assert.equal(codexAdapterValidations.collection, "codex_adapter_validations");
+      assert.equal(codexAdapterValidations.count, codexAdapterContract.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

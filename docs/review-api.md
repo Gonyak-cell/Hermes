@@ -568,6 +568,11 @@ npm run api:serve
 - `GET /api/claude-code-agent-run-ledger-bindings`: Claude Code AgentRun ledger binding rows
 - `GET /api/claude-code-desktop-boundary`: Claude Code Desktop boundary row
 - `GET /api/claude-code-adapter-validations`: Claude Code Adapter Contract validation rows
+- `GET /api/codex-adapter-contract`: Codex Adapter Contract artifact
+- `GET /api/codex-patch-gate-contracts`: Codex patch gate contract rows
+- `GET /api/codex-agent-run-ledger-bindings`: Codex AgentRun ledger binding rows
+- `GET /api/codex-desktop-boundary`: Codex Desktop boundary row
+- `GET /api/codex-adapter-validations`: Codex Adapter Contract validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

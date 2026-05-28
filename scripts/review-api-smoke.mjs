@@ -1884,6 +1884,38 @@ try {
   assert.equal(personalDevPackValidations.collection, "personal_dev_pack_validations");
   assert.ok(personalDevPackValidations.count <= 5);
 
+  const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
+  assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
+  assert.ok(repoProfileDetectors.count <= 1);
+
+  const repoProfiles = await fetchJson(`${url}/api/repo-profiles?repo_profile_status=complete&limit=1`);
+  assert.equal(repoProfiles.collection, "repo_profiles");
+  assert.ok(repoProfiles.count <= 1);
+
+  const repoProfileLanguages = await fetchJson(`${url}/api/repo-profile-languages?language_id=javascript&limit=5`);
+  assert.equal(repoProfileLanguages.collection, "repo_profile_languages");
+  assert.ok(repoProfileLanguages.count <= 5);
+
+  const repoProfileFrameworks = await fetchJson(`${url}/api/repo-profile-frameworks?framework_status=detected&limit=5`);
+  assert.equal(repoProfileFrameworks.collection, "repo_profile_frameworks");
+  assert.ok(repoProfileFrameworks.count <= 5);
+
+  const repoProfileCommands = await fetchJson(`${url}/api/repo-profile-commands?command_kind=test&command_status=detected&limit=5`);
+  assert.equal(repoProfileCommands.collection, "repo_profile_commands");
+  assert.ok(repoProfileCommands.count <= 5);
+
+  const repoProfileSignals = await fetchJson(`${url}/api/repo-profile-signals?signal_status=detected&limit=5`);
+  assert.equal(repoProfileSignals.collection, "repo_profile_signals");
+  assert.ok(repoProfileSignals.count <= 5);
+
+  const repoProfileDesktopBoundary = await fetchJson(`${url}/api/repo-profile-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(repoProfileDesktopBoundary.collection, "repo_profile_desktop_boundary");
+  assert.ok(repoProfileDesktopBoundary.count <= 1);
+
+  const repoProfileValidations = await fetchJson(`${url}/api/repo-profile-validations?status=passed&limit=5`);
+  assert.equal(repoProfileValidations.collection, "repo_profile_validations");
+  assert.ok(repoProfileValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

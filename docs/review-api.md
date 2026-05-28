@@ -726,6 +726,8 @@ Runtime Freeze route는 `runtime_freeze_status`, `runtime_freeze_source_status`,
 
 Personal Dev Pack Manifest route는 `personal_dev_pack_manifest_status`, `personal_dev_capability_registration_status`, `registration_status`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/personal-dev-pack-manifests`, `/api/personal-dev-pack-registration`, `/api/personal-dev-capability-registrations`, `/api/personal-dev-pack-boundary`, `/api/personal-dev-pack-validations`는 P213 personal-dev pack registration을 read-only로 노출하며 Hermes Desktop은 pack/capability/gate 상태를 조회할 수 있지만 core mutation, direct apply/merge, protected mutation execution, secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
 
+Repo Profile Detector route는 `repo_profile_detector_status`, `repo_profile_status`, `language_id`, `framework_id`, `framework_status`, `command_kind`, `command_status`, `signal_type`, `signal_status`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/repo-profile-detectors`, `/api/repo-profiles`, `/api/repo-profile-languages`, `/api/repo-profile-frameworks`, `/api/repo-profile-commands`, `/api/repo-profile-signals`, `/api/repo-profile-desktop-boundary`, `/api/repo-profile-validations`는 P214 repo language/framework/test-build-lint command catalog를 read-only로 노출하며 Hermes Desktop은 command status를 볼 수 있지만 command execution, direct mutation, source-of-truth role, secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
+
 ## 검증
 
 ```bash

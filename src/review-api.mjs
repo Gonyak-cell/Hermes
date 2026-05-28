@@ -4351,6 +4351,62 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("personal_dev_pack_validations", personalDevPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/repo-profile-detectors") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_detectors", [repoProfileDetectorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profiles") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profiles", repoProfileDetectorResult.artifact.repo_profiles ?? [repoProfileDetectorResult.artifact.repo_profile].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profile-languages") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_languages", repoProfileDetectorResult.artifact.language_profiles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profile-frameworks") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_frameworks", repoProfileDetectorResult.artifact.framework_profiles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profile-commands") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_commands", repoProfileDetectorResult.artifact.repo_command_profiles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profile-signals") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_signals", repoProfileDetectorResult.artifact.repo_detection_signals ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profile-desktop-boundary") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_desktop_boundary", [repoProfileDetectorResult.artifact.repo_profile_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/repo-profile-validations") {
+    const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
+    if (!repoProfileDetectorResult.available) {
+      return jsonResponse(503, buildError("repo_profile_detector_unavailable", repoProfileDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("repo_profile_validations", repoProfileDetectorResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8575,6 +8631,14 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/personal-dev-capability-registrations", "Personal-dev capability registration rows"),
       route("GET", "/api/personal-dev-pack-boundary", "Personal-dev Desktop/core mutation boundary"),
       route("GET", "/api/personal-dev-pack-validations", "Personal-dev pack manifest validation rows"),
+      route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
+      route("GET", "/api/repo-profiles", "Detected repository profile rows"),
+      route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
+      route("GET", "/api/repo-profile-frameworks", "Detected repository framework profiles"),
+      route("GET", "/api/repo-profile-commands", "Detected repository command catalog"),
+      route("GET", "/api/repo-profile-signals", "Repository detection signal rows"),
+      route("GET", "/api/repo-profile-desktop-boundary", "Repo profile Desktop read-only boundary"),
+      route("GET", "/api/repo-profile-validations", "Repo profile detector validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9249,6 +9313,15 @@ function filterItems(items, searchParams) {
     "runtime_freeze_loop_binding_status",
     "personal_dev_pack_manifest_status",
     "personal_dev_capability_registration_status",
+    "repo_profile_detector_status",
+    "repo_profile_status",
+    "language_id",
+    "framework_id",
+    "framework_status",
+    "command_kind",
+    "command_status",
+    "signal_type",
+    "signal_status",
     "registration_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
@@ -10594,6 +10667,15 @@ function readFilterValue(item, key) {
   if (key === "runtime_freeze_loop_binding_status") return item.runtime_freeze_loop_binding_status;
   if (key === "personal_dev_pack_manifest_status") return item.summary?.personal_dev_pack_manifest_status ?? item.personal_dev_pack_manifest_status;
   if (key === "personal_dev_capability_registration_status") return item.registration_status;
+  if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
+  if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
+  if (key === "language_id") return item.language_id ?? item.primary_language_id;
+  if (key === "framework_id") return item.framework_id ?? item.primary_framework_id;
+  if (key === "framework_status") return item.framework_status;
+  if (key === "command_kind") return item.command_kind;
+  if (key === "command_status") return item.command_status;
+  if (key === "signal_type") return item.signal_type;
+  if (key === "signal_status") return item.signal_status;
   if (key === "registration_status") return item.summary?.registration_status ?? item.registration_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;

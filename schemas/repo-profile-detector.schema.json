@@ -1,0 +1,341 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/repo-profile-detector.schema.json",
+  "title": "Repo Profile Detector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "repo_profile_detector_id",
+    "output_dir",
+    "repo_profile_detector_status",
+    "safe_handling",
+    "inputs",
+    "source_contracts",
+    "repo_profile_detector_contract",
+    "repo_profile",
+    "repo_profiles",
+    "language_profiles",
+    "framework_profiles",
+    "repo_command_profiles",
+    "repo_detection_signals",
+    "repo_profile_desktop_boundary",
+    "repo_profile_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "repo-profile-detector.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "repo_profile_detector_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "repo_profile_detector_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "repository_mutation_allowed",
+        "command_execution_performed",
+        "protected_mutation_executed",
+        "desktop_mutation_allowed",
+        "desktop_command_execution_allowed",
+        "desktop_source_of_truth",
+        "secret_material_exposed",
+        "provider_key_visible",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "repository_mutation_allowed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "protected_mutation_executed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "repo_profile_detector_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "pack_id",
+        "source_of_truth",
+        "detector_rule",
+        "command_rule",
+        "desktop_companion_rule",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-profile-detector-contract.v1" },
+        "contract_id": { "const": "repo-profile-detector.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "source_of_truth": { "const": "repository_files_and_package_scripts" }
+      },
+      "additionalProperties": true
+    },
+    "repo_profile": { "$ref": "#/$defs/repo_profile" },
+    "repo_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/repo_profile" }
+    },
+    "language_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/language_profile" }
+    },
+    "framework_profiles": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/framework_profile" }
+    },
+    "repo_command_profiles": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/command_profile" }
+    },
+    "repo_detection_signals": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/detection_signal" }
+    },
+    "repo_profile_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_id",
+        "pack_id",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_command_execution_allowed",
+        "desktop_source_of_truth",
+        "protected_mutations_require_human_gate",
+        "command_execution_requires_human_gate",
+        "command_execution_performed_count",
+        "raw_secret_material_exposed",
+        "provider_key_exposed",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control",
+        "boundary_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-profile-desktop-boundary.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "protected_mutations_require_human_gate": { "const": true },
+        "command_execution_requires_human_gate": { "const": true },
+        "command_execution_performed_count": { "const": 0 },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "boundary_status": { "const": "enforced" }
+      },
+      "additionalProperties": true
+    },
+    "repo_profile_checkpoints": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "repo_profile_detector_status",
+        "repo_profile_detector_contract_id",
+        "pack_id",
+        "source_of_truth",
+        "personal_dev_pack_manifest_status",
+        "repo_profile_status",
+        "primary_language_id",
+        "language_profile_count",
+        "framework_profile_count",
+        "command_profile_count",
+        "configured_command_count",
+        "missing_required_command_count",
+        "test_command_detected",
+        "build_command_detected",
+        "lint_command_detected",
+        "command_execution_performed_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_command_execution_allowed",
+        "desktop_source_of_truth",
+        "protected_mutations_require_human_gate",
+        "command_execution_requires_human_gate",
+        "raw_secret_material_exposed",
+        "provider_key_exposed",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control",
+        "validation_error_count"
+      ],
+      "properties": {
+        "repo_profile_detector_status": { "enum": ["complete", "blocked"] },
+        "repo_profile_detector_contract_id": { "const": "repo-profile-detector.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "source_of_truth": { "const": "repository_files_and_package_scripts" },
+        "personal_dev_pack_manifest_status": { "const": "complete" },
+        "repo_profile_status": { "enum": ["complete", "blocked"] },
+        "primary_language_id": { "type": "string", "minLength": 1 },
+        "test_command_detected": { "const": true },
+        "build_command_detected": { "const": true },
+        "lint_command_detected": { "const": true },
+        "command_execution_performed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "protected_mutations_require_human_gate": { "const": true },
+        "command_execution_requires_human_gate": { "const": true },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "repo_profile": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "repo_profile_id",
+        "repo_root",
+        "package_name",
+        "primary_language_id",
+        "language_profile_count",
+        "framework_profile_count",
+        "command_profile_count",
+        "command_execution_performed_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_command_execution_allowed",
+        "desktop_source_of_truth",
+        "profile_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-profile.v1" },
+        "command_execution_performed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "profile_status": { "enum": ["complete", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "language_profile": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "language_profile_id",
+        "language_id",
+        "file_count",
+        "primary_language",
+        "detection_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-language-profile.v1" },
+        "detection_status": { "const": "detected" }
+      },
+      "additionalProperties": true
+    },
+    "framework_profile": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "framework_profile_id",
+        "framework_id",
+        "display_name",
+        "framework_category",
+        "framework_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-framework-profile.v1" },
+        "framework_status": { "const": "detected" }
+      },
+      "additionalProperties": true
+    },
+    "command_profile": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "repo_command_profile_id",
+        "command_kind",
+        "command_status",
+        "execution_policy",
+        "execution_performed",
+        "desktop_read_only",
+        "desktop_command_execution_allowed",
+        "desktop_mutation_allowed",
+        "protected_mutation_requires_human_gate"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-command-profile.v1" },
+        "command_kind": { "enum": ["test", "build", "lint", "validate"] },
+        "command_status": { "enum": ["detected", "derived", "not_configured"] },
+        "execution_policy": { "const": "not_executed_by_repo_profile_detector" },
+        "execution_performed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "protected_mutation_requires_human_gate": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "detection_signal": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "repo_detection_signal_id",
+        "signal_type",
+        "source_path",
+        "evidence",
+        "signal_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "repo-detection-signal.v1" },
+        "signal_status": { "const": "detected" }
+      },
+      "additionalProperties": true
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "repo-profile-checkpoint.v1" },
+        "status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

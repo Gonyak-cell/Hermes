@@ -71,6 +71,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeApiDashboardPath: "artifacts/runtime-api-dashboard/latest/runtime-api-dashboard.json",
   runtimeFreezePath: "artifacts/runtime-freeze/latest/runtime-freeze.json",
   personalDevPackManifestPath: "artifacts/personal-dev-pack-manifest/latest/personal-dev-pack-manifest.json",
+  repoProfileDetectorPath: "artifacts/repo-profile-detector/latest/repo-profile-detector.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -547,6 +548,11 @@ const SOURCE_DEFINITIONS = [
     option: "personalDevPackManifestPath",
     source_id: "personal_dev_pack_manifest",
     label: "Personal Dev Pack Manifest",
+  },
+  {
+    option: "repoProfileDetectorPath",
+    source_id: "repo_profile_detector",
+    label: "Repo Profile Detector",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1699,6 +1705,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeApiDashboardStage(artifacts.runtime_api_dashboard, sourceById.get("runtime_api_dashboard")),
     buildRuntimeFreezeStage(artifacts.runtime_freeze, sourceById.get("runtime_freeze")),
     buildPersonalDevPackManifestStage(artifacts.personal_dev_pack_manifest, sourceById.get("personal_dev_pack_manifest")),
+    buildRepoProfileDetectorStage(artifacts.repo_profile_detector, sourceById.get("repo_profile_detector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5855,6 +5862,78 @@ function buildPersonalDevPackManifestStage(personalDevPackManifest, source) {
       failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? personalDevPackManifest.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRepoProfileDetectorStage(repoProfileDetector, source) {
+  if (!repoProfileDetector) return missingStage("repo_profile_detector", "Repo Profile Detector", source);
+  const summary = repoProfileDetector.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.repo_profile_detector_status !== "complete"
+    || summary.repo_profile_status !== "complete"
+    || summary.personal_dev_pack_manifest_status !== "complete"
+    || !summary.primary_language_id
+    || summary.framework_profile_count <= 0
+    || summary.test_command_detected !== true
+    || summary.build_command_detected !== true
+    || summary.lint_command_detected !== true
+    || summary.command_execution_performed_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_command_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.raw_secret_material_exposed === true
+    || summary.provider_key_exposed === true
+    || summary.installer_or_gateway_control === true
+    || summary.ssh_or_cron_control === true
+    || repoProfileDetector.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "repo_profile_detector",
+    label: "Repo Profile Detector",
+    status,
+    message: `${summary.primary_language_id ?? "unknown"} profile with ${summary.configured_command_count ?? 0} configured command(s); execution count ${summary.command_execution_performed_count ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      repo_profile_detector_status: summary.repo_profile_detector_status ?? "unknown",
+      repo_profile_detector_contract_id: summary.repo_profile_detector_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      personal_dev_pack_manifest_status: summary.personal_dev_pack_manifest_status ?? "unknown",
+      repo_profile_status: summary.repo_profile_status ?? "unknown",
+      scanned_file_count: summary.scanned_file_count ?? 0,
+      primary_language_id: summary.primary_language_id ?? null,
+      language_profile_count: summary.language_profile_count ?? 0,
+      framework_profile_count: summary.framework_profile_count ?? 0,
+      command_profile_count: summary.command_profile_count ?? 0,
+      configured_command_count: summary.configured_command_count ?? 0,
+      missing_required_command_count: summary.missing_required_command_count ?? 0,
+      missing_optional_command_count: summary.missing_optional_command_count ?? 0,
+      test_command_detected: summary.test_command_detected ?? false,
+      build_command_detected: summary.build_command_detected ?? false,
+      lint_command_detected: summary.lint_command_detected ?? false,
+      test_command: summary.test_command ?? null,
+      build_command: summary.build_command ?? null,
+      lint_command: summary.lint_command ?? null,
+      command_execution_performed_count: summary.command_execution_performed_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_command_execution_allowed: summary.desktop_command_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      protected_mutations_require_human_gate: summary.protected_mutations_require_human_gate ?? false,
+      command_execution_requires_human_gate: summary.command_execution_requires_human_gate ?? false,
+      raw_secret_material_exposed: summary.raw_secret_material_exposed ?? false,
+      provider_key_exposed: summary.provider_key_exposed ?? false,
+      installer_or_gateway_control: summary.installer_or_gateway_control ?? false,
+      ssh_or_cron_control: summary.ssh_or_cron_control ?? false,
+      checkpoint_count: summary.checkpoint_count ?? 0,
+      passed_checkpoint_count: summary.passed_checkpoint_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? repoProfileDetector.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -15324,6 +15403,39 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     personal_dev_pack_manifest_merge_requires_gate: artifacts.personal_dev_pack_manifest?.summary?.merge_requires_gate ?? false,
     personal_dev_pack_manifest_failed_checkpoint_count: artifacts.personal_dev_pack_manifest?.summary?.failed_checkpoint_count ?? 0,
     personal_dev_pack_manifest_validation_error_count: artifacts.personal_dev_pack_manifest?.summary?.validation_error_count ?? artifacts.personal_dev_pack_manifest?.validation?.errors?.length ?? 0,
+    repo_profile_detector_status: artifacts.repo_profile_detector?.summary?.repo_profile_detector_status ?? "unknown",
+    repo_profile_detector_contract_id: artifacts.repo_profile_detector?.summary?.repo_profile_detector_contract_id ?? null,
+    repo_profile_detector_pack_id: artifacts.repo_profile_detector?.summary?.pack_id ?? null,
+    repo_profile_detector_source_of_truth: artifacts.repo_profile_detector?.summary?.source_of_truth ?? "unknown",
+    repo_profile_detector_personal_dev_pack_manifest_status: artifacts.repo_profile_detector?.summary?.personal_dev_pack_manifest_status ?? "unknown",
+    repo_profile_detector_repo_profile_status: artifacts.repo_profile_detector?.summary?.repo_profile_status ?? "unknown",
+    repo_profile_detector_scanned_file_count: artifacts.repo_profile_detector?.summary?.scanned_file_count ?? 0,
+    repo_profile_detector_primary_language_id: artifacts.repo_profile_detector?.summary?.primary_language_id ?? null,
+    repo_profile_detector_language_profile_count: artifacts.repo_profile_detector?.summary?.language_profile_count ?? 0,
+    repo_profile_detector_framework_profile_count: artifacts.repo_profile_detector?.summary?.framework_profile_count ?? 0,
+    repo_profile_detector_command_profile_count: artifacts.repo_profile_detector?.summary?.command_profile_count ?? 0,
+    repo_profile_detector_configured_command_count: artifacts.repo_profile_detector?.summary?.configured_command_count ?? 0,
+    repo_profile_detector_missing_required_command_count: artifacts.repo_profile_detector?.summary?.missing_required_command_count ?? 0,
+    repo_profile_detector_missing_optional_command_count: artifacts.repo_profile_detector?.summary?.missing_optional_command_count ?? 0,
+    repo_profile_detector_test_command_detected: artifacts.repo_profile_detector?.summary?.test_command_detected ?? false,
+    repo_profile_detector_build_command_detected: artifacts.repo_profile_detector?.summary?.build_command_detected ?? false,
+    repo_profile_detector_lint_command_detected: artifacts.repo_profile_detector?.summary?.lint_command_detected ?? false,
+    repo_profile_detector_test_command: artifacts.repo_profile_detector?.summary?.test_command ?? null,
+    repo_profile_detector_build_command: artifacts.repo_profile_detector?.summary?.build_command ?? null,
+    repo_profile_detector_lint_command: artifacts.repo_profile_detector?.summary?.lint_command ?? null,
+    repo_profile_detector_command_execution_performed_count: artifacts.repo_profile_detector?.summary?.command_execution_performed_count ?? 0,
+    repo_profile_detector_desktop_read_only: artifacts.repo_profile_detector?.summary?.desktop_read_only ?? false,
+    repo_profile_detector_desktop_mutation_allowed: artifacts.repo_profile_detector?.summary?.desktop_mutation_allowed ?? false,
+    repo_profile_detector_desktop_command_execution_allowed: artifacts.repo_profile_detector?.summary?.desktop_command_execution_allowed ?? false,
+    repo_profile_detector_desktop_source_of_truth: artifacts.repo_profile_detector?.summary?.desktop_source_of_truth ?? false,
+    repo_profile_detector_protected_mutations_require_human_gate: artifacts.repo_profile_detector?.summary?.protected_mutations_require_human_gate ?? false,
+    repo_profile_detector_command_execution_requires_human_gate: artifacts.repo_profile_detector?.summary?.command_execution_requires_human_gate ?? false,
+    repo_profile_detector_raw_secret_material_exposed: artifacts.repo_profile_detector?.summary?.raw_secret_material_exposed ?? false,
+    repo_profile_detector_provider_key_exposed: artifacts.repo_profile_detector?.summary?.provider_key_exposed ?? false,
+    repo_profile_detector_installer_or_gateway_control: artifacts.repo_profile_detector?.summary?.installer_or_gateway_control ?? false,
+    repo_profile_detector_ssh_or_cron_control: artifacts.repo_profile_detector?.summary?.ssh_or_cron_control ?? false,
+    repo_profile_detector_failed_checkpoint_count: artifacts.repo_profile_detector?.summary?.failed_checkpoint_count ?? 0,
+    repo_profile_detector_validation_error_count: artifacts.repo_profile_detector?.summary?.validation_error_count ?? artifacts.repo_profile_detector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -17049,6 +17161,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-freeze") parsed.runtimeFreezePath = false;
     else if (arg === "--personal-dev-pack-manifest") parsed.personalDevPackManifestPath = argv[++index];
     else if (arg === "--no-personal-dev-pack-manifest") parsed.personalDevPackManifestPath = false;
+    else if (arg === "--repo-profile-detector") parsed.repoProfileDetectorPath = argv[++index];
+    else if (arg === "--no-repo-profile-detector") parsed.repoProfileDetectorPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

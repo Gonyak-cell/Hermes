@@ -86,6 +86,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_api_dashboard", "Runtime API dashboard", "api", "runtime_api_dashboard", "control-plane-runtime-api-dashboard", { acceptance_profile: "runtime_api_dashboard_gate" }),
   sourceItem("runtime_freeze", "Runtime freeze", "runtime", "runtime_freeze", "control-plane-runtime-freeze", { acceptance_profile: "runtime_freeze_gate" }),
   sourceItem("personal_dev_pack_manifest", "Personal-dev pack manifest", "personal_dev", "personal_dev_pack_manifest", "control-plane-personal-dev-pack-manifest", { acceptance_profile: "personal_dev_pack_manifest_gate" }),
+  sourceItem("repo_profile_detector", "Repo profile detector", "personal_dev", "repo_profile_detector", "control-plane-repo-profile-detector", { acceptance_profile: "repo_profile_detector_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -531,6 +532,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_api_dashboard_gate",
     "runtime_freeze_gate",
     "personal_dev_pack_manifest_gate",
+    "repo_profile_detector_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2178,6 +2180,39 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Personal-dev pack manifest is registered through the domain-pack registry and Desktop exposes only read-only pack/capability status without core mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "repo_profile_detector_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.repo_profile_detector_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.personal_dev_pack_manifest_status === "complete"
+      && metrics.repo_profile_status === "complete"
+      && Boolean(metrics.primary_language_id)
+      && metrics.language_profile_count > 0
+      && metrics.framework_profile_count > 0
+      && metrics.command_profile_count >= 3
+      && metrics.configured_command_count >= 3
+      && metrics.missing_required_command_count === 0
+      && metrics.test_command_detected === true
+      && metrics.build_command_detected === true
+      && metrics.lint_command_detected === true
+      && metrics.command_execution_performed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.protected_mutations_require_human_gate === true
+      && metrics.command_execution_requires_human_gate === true
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Repo Profile Detector records language, framework, and test/build/lint command profile metadata without executing commands; Desktop remains a read-only operator surface.");
     }
   }
 

@@ -167,6 +167,7 @@
     "packs:registry": "node scripts/domain-pack-registry.mjs",
     "packs:validate": "node scripts/domain-pack-registry.mjs --check",
     "personal-dev:pack-manifest": "node scripts/personal-dev-pack-manifest.mjs",
+    "personal-dev:repo-profile": "node scripts/repo-profile-detector.mjs",
     "personal-dev:slice": "node scripts/run-personal-dev-slice.mjs",
     "workflows:state-model": "node scripts/workflow-dsl-state-model.mjs",
     "workflows:runner": "node scripts/workflow-state-machine-runner.mjs",

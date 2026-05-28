@@ -210,6 +210,7 @@ import { runCanonicalTestRunner } from "../src/canonical-test-runner.mjs";
 import { runRuntimeApiDashboard } from "../src/runtime-api-dashboard.mjs";
 import { runRuntimeFreeze } from "../src/runtime-freeze.mjs";
 import { runPersonalDevPackManifest } from "../src/personal-dev-pack-manifest.mjs";
+import { runRepoProfileDetector } from "../src/repo-profile-detector.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1822,6 +1823,7 @@ describe("matter harness", () => {
         runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
         runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
         personalDevPackManifestPath: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7384,6 +7386,38 @@ describe("matter harness", () => {
       assert.ok(personalDevPackManifest.personal_dev_capability_registrations.every((registration) => registration.registration_status === "registered" && registration.core_registration_required === false && registration.desktop_mutation_allowed === false));
       assert.match(await readFile(path.join(outDir, "personal-dev-pack-manifest", "summary.md"), "utf8"), /Personal Dev Pack Manifest/);
 
+      const repoProfileDetector = await runRepoProfileDetector({
+        repoRoot: ".",
+        personalDevPackManifestPath: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "repo-profile-detector"),
+        runAt: "2026-05-23T06:45:50.000Z",
+      });
+      const repoProfileDetectorSchema = JSON.parse(await readFile("schemas/repo-profile-detector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(repoProfileDetector, repoProfileDetectorSchema, {}, "repo_profile_detector"), []);
+      assert.equal(repoProfileDetector.summary.repo_profile_detector_status, "complete");
+      assert.equal(repoProfileDetector.summary.pack_id, "personal-dev");
+      assert.equal(repoProfileDetector.summary.personal_dev_pack_manifest_status, "complete");
+      assert.equal(repoProfileDetector.summary.repo_profile_status, "complete");
+      assert.equal(repoProfileDetector.summary.primary_language_id, "javascript");
+      assert.ok(repoProfileDetector.summary.framework_profile_count >= 3);
+      assert.equal(repoProfileDetector.summary.test_command_detected, true);
+      assert.equal(repoProfileDetector.summary.build_command_detected, true);
+      assert.equal(repoProfileDetector.summary.lint_command_detected, true);
+      assert.equal(repoProfileDetector.summary.test_command, "npm test");
+      assert.equal(repoProfileDetector.summary.build_command, "npm run dashboard:build");
+      assert.ok(repoProfileDetector.summary.lint_command === "npm run validate:core" || repoProfileDetector.summary.lint_command === "npm run validate");
+      assert.equal(repoProfileDetector.summary.command_execution_performed_count, 0);
+      assert.equal(repoProfileDetector.summary.desktop_read_only, true);
+      assert.equal(repoProfileDetector.summary.desktop_mutation_allowed, false);
+      assert.equal(repoProfileDetector.summary.desktop_command_execution_allowed, false);
+      assert.equal(repoProfileDetector.summary.desktop_source_of_truth, false);
+      assert.equal(repoProfileDetector.summary.protected_mutations_require_human_gate, true);
+      assert.equal(repoProfileDetector.summary.command_execution_requires_human_gate, true);
+      assert.ok(repoProfileDetector.repo_command_profiles.every((command) => command.execution_performed === false && command.desktop_command_execution_allowed === false));
+      assert.match(await readFile(path.join(outDir, "repo-profile-detector", "summary.md"), "utf8"), /Repo Profile Detector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7521,6 +7555,7 @@ describe("matter harness", () => {
           runtime_api_dashboard: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
           runtime_freeze: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
           personal_dev_pack_manifest: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
+          repo_profile_detector: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7572,8 +7607,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 115);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 115);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 116);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 116);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7676,6 +7711,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_api_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_pack_manifest"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "repo_profile_detector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7747,6 +7783,8 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "observability:freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:repo-profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:queue-retry"));
@@ -8255,6 +8293,10 @@ describe("matter harness", () => {
       assert.equal(personalDevPackManifestCheckpoint?.acceptance_profile, "personal_dev_pack_manifest_gate");
       assert.equal(personalDevPackManifestCheckpoint?.status, "passed");
       assert.equal(personalDevPackManifestCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const repoProfileDetectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-repo-profile-detector");
+      assert.equal(repoProfileDetectorCheckpoint?.acceptance_profile, "repo_profile_detector_gate");
+      assert.equal(repoProfileDetectorCheckpoint?.status, "passed");
+      assert.equal(repoProfileDetectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10516,6 +10558,22 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.personal_dev_pack_manifest_agent_outputs_trusted, false);
       assert.equal(dashboard.summary.personal_dev_pack_manifest_merge_requires_gate, true);
       assert.equal(dashboard.summary.personal_dev_pack_manifest_validation_error_count, 0);
+      assert.equal(dashboard.summary.repo_profile_detector_status, "complete");
+      assert.equal(dashboard.summary.repo_profile_detector_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.repo_profile_detector_personal_dev_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.repo_profile_detector_repo_profile_status, "complete");
+      assert.equal(dashboard.summary.repo_profile_detector_primary_language_id, "javascript");
+      assert.equal(dashboard.summary.repo_profile_detector_framework_profile_count, repoProfileDetector.summary.framework_profile_count);
+      assert.equal(dashboard.summary.repo_profile_detector_configured_command_count, repoProfileDetector.summary.configured_command_count);
+      assert.equal(dashboard.summary.repo_profile_detector_test_command_detected, true);
+      assert.equal(dashboard.summary.repo_profile_detector_build_command_detected, true);
+      assert.equal(dashboard.summary.repo_profile_detector_lint_command_detected, true);
+      assert.equal(dashboard.summary.repo_profile_detector_command_execution_performed_count, 0);
+      assert.equal(dashboard.summary.repo_profile_detector_desktop_read_only, true);
+      assert.equal(dashboard.summary.repo_profile_detector_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.repo_profile_detector_desktop_command_execution_allowed, false);
+      assert.equal(dashboard.summary.repo_profile_detector_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.repo_profile_detector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11468,6 +11526,20 @@ describe("matter harness", () => {
       assert.equal(personalDevPackManifestStage?.metrics.desktop_read_only, true);
       assert.equal(personalDevPackManifestStage?.metrics.desktop_mutation_allowed, false);
       assert.equal(personalDevPackManifestStage?.metrics.desktop_runtime_source_of_truth, false);
+      const repoProfileDetectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "repo_profile_detector");
+      assert.equal(repoProfileDetectorStage?.status, "passed");
+      assert.equal(repoProfileDetectorStage?.metrics.repo_profile_detector_status, "complete");
+      assert.equal(repoProfileDetectorStage?.metrics.pack_id, "personal-dev");
+      assert.equal(repoProfileDetectorStage?.metrics.repo_profile_status, "complete");
+      assert.equal(repoProfileDetectorStage?.metrics.primary_language_id, "javascript");
+      assert.equal(repoProfileDetectorStage?.metrics.test_command_detected, true);
+      assert.equal(repoProfileDetectorStage?.metrics.build_command_detected, true);
+      assert.equal(repoProfileDetectorStage?.metrics.lint_command_detected, true);
+      assert.equal(repoProfileDetectorStage?.metrics.command_execution_performed_count, 0);
+      assert.equal(repoProfileDetectorStage?.metrics.desktop_read_only, true);
+      assert.equal(repoProfileDetectorStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(repoProfileDetectorStage?.metrics.desktop_command_execution_allowed, false);
+      assert.equal(repoProfileDetectorStage?.metrics.desktop_source_of_truth, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -13244,6 +13316,38 @@ describe("matter harness", () => {
       const personalDevPackValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-pack-validations?status=passed", apiOptions)).body);
       assert.equal(personalDevPackValidationsResponse.collection, "personal_dev_pack_validations");
       assert.equal(personalDevPackValidationsResponse.count, personalDevPackManifest.summary.validation_item_count);
+
+      const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
+      assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");
+      assert.equal(repoProfileDetectorsResponse.count, 1);
+
+      const repoProfilesResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profiles?repo_profile_status=complete", apiOptions)).body);
+      assert.equal(repoProfilesResponse.collection, "repo_profiles");
+      assert.equal(repoProfilesResponse.count, 1);
+
+      const repoProfileLanguagesResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-languages?language_id=javascript", apiOptions)).body);
+      assert.equal(repoProfileLanguagesResponse.collection, "repo_profile_languages");
+      assert.equal(repoProfileLanguagesResponse.count, 1);
+
+      const repoProfileFrameworksResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-frameworks?framework_status=detected", apiOptions)).body);
+      assert.equal(repoProfileFrameworksResponse.collection, "repo_profile_frameworks");
+      assert.equal(repoProfileFrameworksResponse.count, repoProfileDetector.summary.framework_profile_count);
+
+      const repoProfileCommandsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-commands?command_kind=test&command_status=detected", apiOptions)).body);
+      assert.equal(repoProfileCommandsResponse.collection, "repo_profile_commands");
+      assert.equal(repoProfileCommandsResponse.count, 1);
+
+      const repoProfileSignalsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-signals?signal_status=detected", apiOptions)).body);
+      assert.equal(repoProfileSignalsResponse.collection, "repo_profile_signals");
+      assert.equal(repoProfileSignalsResponse.count, repoProfileDetector.repo_detection_signals.length);
+
+      const repoProfileDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(repoProfileDesktopBoundaryResponse.collection, "repo_profile_desktop_boundary");
+      assert.equal(repoProfileDesktopBoundaryResponse.count, 1);
+
+      const repoProfileValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-validations?status=passed", apiOptions)).body);
+      assert.equal(repoProfileValidationsResponse.collection, "repo_profile_validations");
+      assert.equal(repoProfileValidationsResponse.count, repoProfileDetector.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

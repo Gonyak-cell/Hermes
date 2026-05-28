@@ -112,6 +112,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "capabilities:registry-api",
   "packs:compatibility",
   "personal-dev:pack-manifest",
+  "personal-dev:instructions",
   "personal-dev:repo-profile",
   "workflows:state-model",
   "workflows:runner",

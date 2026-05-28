@@ -87,6 +87,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_freeze", "Runtime freeze", "runtime", "runtime_freeze", "control-plane-runtime-freeze", { acceptance_profile: "runtime_freeze_gate" }),
   sourceItem("personal_dev_pack_manifest", "Personal-dev pack manifest", "personal_dev", "personal_dev_pack_manifest", "control-plane-personal-dev-pack-manifest", { acceptance_profile: "personal_dev_pack_manifest_gate" }),
   sourceItem("repo_profile_detector", "Repo profile detector", "personal_dev", "repo_profile_detector", "control-plane-repo-profile-detector", { acceptance_profile: "repo_profile_detector_gate" }),
+  sourceItem("agent_instruction_registry", "Agent instruction registry", "personal_dev", "agent_instruction_registry", "control-plane-agent-instruction-registry", { acceptance_profile: "agent_instruction_registry_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -533,6 +534,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_freeze_gate",
     "personal_dev_pack_manifest_gate",
     "repo_profile_detector_gate",
+    "agent_instruction_registry_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2213,6 +2215,41 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Repo Profile Detector records language, framework, and test/build/lint command profile metadata without executing commands; Desktop remains a read-only operator surface.");
+    }
+  }
+
+  if (item.acceptance_profile === "agent_instruction_registry_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.agent_instruction_registry_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.repo_profile_detector_status === "complete"
+      && metrics.instruction_source_count >= 3
+      && metrics.present_instruction_source_count >= 1
+      && metrics.derived_instruction_source_count >= 2
+      && metrics.missing_instruction_source_count === 0
+      && metrics.instruction_version_count >= 3
+      && metrics.locked_instruction_version_count === metrics.instruction_version_count
+      && metrics.runtime_instruction_binding_count >= 4
+      && metrics.bound_runtime_instruction_binding_count === metrics.runtime_instruction_binding_count
+      && metrics.agent_runtime_instruction_binding_count === 3
+      && metrics.agent_runtime_instruction_applied_count === 3
+      && metrics.deterministic_runtime_tracked_count >= 1
+      && metrics.runtime_execution_performed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_instruction_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.protected_mutations_require_human_gate === true
+      && metrics.instruction_file_mutation_requires_human_gate === true
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Agent instruction registry locks AGENTS-derived instruction versions and binds Hermes, Claude Code, Codex, and local_script without writing instruction files or executing runtimes.");
     }
   }
 

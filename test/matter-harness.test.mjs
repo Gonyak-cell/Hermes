@@ -211,6 +211,7 @@ import { runRuntimeApiDashboard } from "../src/runtime-api-dashboard.mjs";
 import { runRuntimeFreeze } from "../src/runtime-freeze.mjs";
 import { runPersonalDevPackManifest } from "../src/personal-dev-pack-manifest.mjs";
 import { runRepoProfileDetector } from "../src/repo-profile-detector.mjs";
+import { runAgentInstructionRegistry } from "../src/agent-instruction-registry.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1824,6 +1825,7 @@ describe("matter harness", () => {
         runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
         personalDevPackManifestPath: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
         repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        agentInstructionRegistryPath: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7418,6 +7420,57 @@ describe("matter harness", () => {
       assert.ok(repoProfileDetector.repo_command_profiles.every((command) => command.execution_performed === false && command.desktop_command_execution_allowed === false));
       assert.match(await readFile(path.join(outDir, "repo-profile-detector", "summary.md"), "utf8"), /Repo Profile Detector/);
 
+      const agentInstructionRegistry = await runAgentInstructionRegistry({
+        repoRoot: ".",
+        agentsPath: "AGENTS.md",
+        claudePath: "CLAUDE.md",
+        codexPath: "Codex.md",
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
+        claudeCodeAdapterPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+        codexAdapterPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+        localScriptAdapterPath: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "agent-instruction-registry"),
+        runAt: "2026-05-23T06:45:51.000Z",
+      });
+      const agentInstructionRegistrySchema = JSON.parse(await readFile("schemas/agent-instruction-registry.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(agentInstructionRegistry, agentInstructionRegistrySchema, {}, "agent_instruction_registry"), []);
+      assert.equal(agentInstructionRegistry.summary.agent_instruction_registry_status, "complete");
+      assert.equal(agentInstructionRegistry.summary.pack_id, "personal-dev");
+      assert.equal(agentInstructionRegistry.summary.repo_profile_detector_status, "complete");
+      assert.equal(agentInstructionRegistry.summary.instruction_source_count, 3);
+      assert.equal(agentInstructionRegistry.summary.present_instruction_source_count, 1);
+      assert.equal(agentInstructionRegistry.summary.derived_instruction_source_count, 2);
+      assert.equal(agentInstructionRegistry.summary.missing_instruction_source_count, 0);
+      assert.equal(agentInstructionRegistry.summary.instruction_version_count, 3);
+      assert.equal(agentInstructionRegistry.summary.locked_instruction_version_count, 3);
+      assert.equal(agentInstructionRegistry.summary.runtime_instruction_binding_count, 4);
+      assert.equal(agentInstructionRegistry.summary.bound_runtime_instruction_binding_count, 4);
+      assert.equal(agentInstructionRegistry.summary.agent_runtime_instruction_binding_count, 3);
+      assert.equal(agentInstructionRegistry.summary.agent_runtime_instruction_applied_count, 3);
+      assert.equal(agentInstructionRegistry.summary.deterministic_runtime_tracked_count, 1);
+      assert.equal(agentInstructionRegistry.summary.runtime_execution_performed_count, 0);
+      assert.equal(agentInstructionRegistry.summary.desktop_read_only, true);
+      assert.equal(agentInstructionRegistry.summary.desktop_mutation_allowed, false);
+      assert.equal(agentInstructionRegistry.summary.desktop_instruction_write_allowed, false);
+      assert.equal(agentInstructionRegistry.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(agentInstructionRegistry.summary.desktop_source_of_truth, false);
+      assert.equal(agentInstructionRegistry.summary.protected_mutations_require_human_gate, true);
+      assert.equal(agentInstructionRegistry.summary.instruction_file_mutation_requires_human_gate, true);
+      assert.equal(agentInstructionRegistry.summary.raw_secret_material_exposed, false);
+      assert.equal(agentInstructionRegistry.summary.provider_key_exposed, false);
+      assert.equal(agentInstructionRegistry.summary.installer_or_gateway_control, false);
+      assert.equal(agentInstructionRegistry.summary.ssh_or_cron_control, false);
+      assert.equal(agentInstructionRegistry.summary.validation_error_count, 0);
+      assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "agents")?.instruction_source_status, "present");
+      assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "claude_code")?.instruction_source_status, "derived_from_agents");
+      assert.equal(agentInstructionRegistry.agent_instruction_sources.find((source) => source.instruction_kind === "codex")?.instruction_source_status, "derived_from_agents");
+      assert.ok(agentInstructionRegistry.runtime_instruction_bindings.filter((binding) => binding.runtime_kind === "agent_runtime").every((binding) => binding.instruction_application_status === "applied" && binding.binding_status === "bound"));
+      assert.equal(agentInstructionRegistry.runtime_instruction_bindings.find((binding) => binding.runtime_id === "local_script")?.instruction_application_status, "tracked_not_prompted");
+      assert.match(await readFile(path.join(outDir, "agent-instruction-registry", "summary.md"), "utf8"), /Agent Instruction Registry/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7556,6 +7609,7 @@ describe("matter harness", () => {
           runtime_freeze: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
           personal_dev_pack_manifest: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
           repo_profile_detector: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+          agent_instruction_registry: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7607,8 +7661,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 116);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 116);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 117);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 117);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7712,6 +7766,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_pack_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "repo_profile_detector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "agent_instruction_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7784,6 +7839,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:instructions"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:repo-profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
@@ -8297,6 +8353,10 @@ describe("matter harness", () => {
       assert.equal(repoProfileDetectorCheckpoint?.acceptance_profile, "repo_profile_detector_gate");
       assert.equal(repoProfileDetectorCheckpoint?.status, "passed");
       assert.equal(repoProfileDetectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const agentInstructionRegistryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-agent-instruction-registry");
+      assert.equal(agentInstructionRegistryCheckpoint?.acceptance_profile, "agent_instruction_registry_gate");
+      assert.equal(agentInstructionRegistryCheckpoint?.status, "passed");
+      assert.equal(agentInstructionRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10574,6 +10634,29 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.repo_profile_detector_desktop_command_execution_allowed, false);
       assert.equal(dashboard.summary.repo_profile_detector_desktop_source_of_truth, false);
       assert.equal(dashboard.summary.repo_profile_detector_validation_error_count, 0);
+      assert.equal(dashboard.summary.agent_instruction_registry_status, "complete");
+      assert.equal(dashboard.summary.agent_instruction_registry_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.agent_instruction_registry_repo_profile_detector_status, "complete");
+      assert.equal(dashboard.summary.agent_instruction_registry_instruction_source_count, agentInstructionRegistry.summary.instruction_source_count);
+      assert.equal(dashboard.summary.agent_instruction_registry_present_instruction_source_count, 1);
+      assert.equal(dashboard.summary.agent_instruction_registry_derived_instruction_source_count, 2);
+      assert.equal(dashboard.summary.agent_instruction_registry_missing_instruction_source_count, 0);
+      assert.equal(dashboard.summary.agent_instruction_registry_instruction_version_count, 3);
+      assert.equal(dashboard.summary.agent_instruction_registry_locked_instruction_version_count, 3);
+      assert.equal(dashboard.summary.agent_instruction_registry_runtime_instruction_binding_count, 4);
+      assert.equal(dashboard.summary.agent_instruction_registry_bound_runtime_instruction_binding_count, 4);
+      assert.equal(dashboard.summary.agent_instruction_registry_agent_runtime_instruction_binding_count, 3);
+      assert.equal(dashboard.summary.agent_instruction_registry_agent_runtime_instruction_applied_count, 3);
+      assert.equal(dashboard.summary.agent_instruction_registry_deterministic_runtime_tracked_count, 1);
+      assert.equal(dashboard.summary.agent_instruction_registry_runtime_execution_performed_count, 0);
+      assert.equal(dashboard.summary.agent_instruction_registry_desktop_read_only, true);
+      assert.equal(dashboard.summary.agent_instruction_registry_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.agent_instruction_registry_desktop_instruction_write_allowed, false);
+      assert.equal(dashboard.summary.agent_instruction_registry_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.agent_instruction_registry_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.agent_instruction_registry_protected_mutations_require_human_gate, true);
+      assert.equal(dashboard.summary.agent_instruction_registry_instruction_file_mutation_requires_human_gate, true);
+      assert.equal(dashboard.summary.agent_instruction_registry_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11540,6 +11623,22 @@ describe("matter harness", () => {
       assert.equal(repoProfileDetectorStage?.metrics.desktop_mutation_allowed, false);
       assert.equal(repoProfileDetectorStage?.metrics.desktop_command_execution_allowed, false);
       assert.equal(repoProfileDetectorStage?.metrics.desktop_source_of_truth, false);
+      const agentInstructionRegistryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "agent_instruction_registry");
+      assert.equal(agentInstructionRegistryStage?.status, "passed");
+      assert.equal(agentInstructionRegistryStage?.metrics.agent_instruction_registry_status, "complete");
+      assert.equal(agentInstructionRegistryStage?.metrics.pack_id, "personal-dev");
+      assert.equal(agentInstructionRegistryStage?.metrics.repo_profile_detector_status, "complete");
+      assert.equal(agentInstructionRegistryStage?.metrics.instruction_source_count, 3);
+      assert.equal(agentInstructionRegistryStage?.metrics.derived_instruction_source_count, 2);
+      assert.equal(agentInstructionRegistryStage?.metrics.missing_instruction_source_count, 0);
+      assert.equal(agentInstructionRegistryStage?.metrics.runtime_instruction_binding_count, 4);
+      assert.equal(agentInstructionRegistryStage?.metrics.bound_runtime_instruction_binding_count, 4);
+      assert.equal(agentInstructionRegistryStage?.metrics.runtime_execution_performed_count, 0);
+      assert.equal(agentInstructionRegistryStage?.metrics.desktop_read_only, true);
+      assert.equal(agentInstructionRegistryStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(agentInstructionRegistryStage?.metrics.desktop_instruction_write_allowed, false);
+      assert.equal(agentInstructionRegistryStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(agentInstructionRegistryStage?.metrics.desktop_source_of_truth, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -13348,6 +13447,34 @@ describe("matter harness", () => {
       const repoProfileValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-validations?status=passed", apiOptions)).body);
       assert.equal(repoProfileValidationsResponse.collection, "repo_profile_validations");
       assert.equal(repoProfileValidationsResponse.count, repoProfileDetector.summary.validation_item_count);
+
+      const agentInstructionRegistriesResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-registries?agent_instruction_registry_status=complete", apiOptions)).body);
+      assert.equal(agentInstructionRegistriesResponse.collection, "agent_instruction_registries");
+      assert.equal(agentInstructionRegistriesResponse.count, 1);
+
+      const agentInstructionSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-sources?instruction_source_status=present&instruction_kind=agents", apiOptions)).body);
+      assert.equal(agentInstructionSourcesResponse.collection, "agent_instruction_sources");
+      assert.equal(agentInstructionSourcesResponse.count, 1);
+
+      const agentInstructionVersionsResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-versions?version_status=locked", apiOptions)).body);
+      assert.equal(agentInstructionVersionsResponse.collection, "agent_instruction_versions");
+      assert.equal(agentInstructionVersionsResponse.count, agentInstructionRegistry.summary.instruction_version_count);
+
+      const runtimeInstructionBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-instruction-bindings?runtime_instruction_binding_status=bound", apiOptions)).body);
+      assert.equal(runtimeInstructionBindingsResponse.collection, "runtime_instruction_bindings");
+      assert.equal(runtimeInstructionBindingsResponse.count, agentInstructionRegistry.summary.runtime_instruction_binding_count);
+
+      const agentInstructionSectionsResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-sections?section_status=tracked", apiOptions)).body);
+      assert.equal(agentInstructionSectionsResponse.collection, "agent_instruction_sections");
+      assert.equal(agentInstructionSectionsResponse.count, agentInstructionRegistry.summary.instruction_section_count);
+
+      const agentInstructionDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(agentInstructionDesktopBoundaryResponse.collection, "agent_instruction_desktop_boundary");
+      assert.equal(agentInstructionDesktopBoundaryResponse.count, 1);
+
+      const agentInstructionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-validations?status=passed", apiOptions)).body);
+      assert.equal(agentInstructionValidationsResponse.collection, "agent_instruction_validations");
+      assert.equal(agentInstructionValidationsResponse.count, agentInstructionRegistry.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

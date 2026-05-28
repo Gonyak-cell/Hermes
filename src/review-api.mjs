@@ -4407,6 +4407,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("repo_profile_validations", repoProfileDetectorResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/agent-instruction-registries") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_instruction_registries", [instructionRegistryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-instruction-sources") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_instruction_sources", instructionRegistryResult.artifact.agent_instruction_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-instruction-versions") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_instruction_versions", instructionRegistryResult.artifact.agent_instruction_versions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-instruction-bindings") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_instruction_bindings", instructionRegistryResult.artifact.runtime_instruction_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-instruction-sections") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_instruction_sections", instructionRegistryResult.artifact.agent_instruction_sections ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-instruction-desktop-boundary") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_instruction_desktop_boundary", [instructionRegistryResult.artifact.agent_instruction_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-instruction-validations") {
+    const instructionRegistryResult = await readDashboardSourceArtifact(dashboard, "agent_instruction_registry");
+    if (!instructionRegistryResult.available) {
+      return jsonResponse(503, buildError("agent_instruction_registry_unavailable", instructionRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("agent_instruction_validations", instructionRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8639,6 +8688,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/repo-profile-signals", "Repository detection signal rows"),
       route("GET", "/api/repo-profile-desktop-boundary", "Repo profile Desktop read-only boundary"),
       route("GET", "/api/repo-profile-validations", "Repo profile detector validation rows"),
+      route("GET", "/api/agent-instruction-registries", "Agent instruction registry artifact"),
+      route("GET", "/api/agent-instruction-sources", "Agent instruction source rows"),
+      route("GET", "/api/agent-instruction-versions", "Agent instruction version rows"),
+      route("GET", "/api/runtime-instruction-bindings", "Runtime instruction binding rows"),
+      route("GET", "/api/agent-instruction-sections", "Agent instruction markdown section rows"),
+      route("GET", "/api/agent-instruction-desktop-boundary", "Agent instruction Desktop read-only boundary"),
+      route("GET", "/api/agent-instruction-validations", "Agent instruction registry validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9322,6 +9378,16 @@ function filterItems(items, searchParams) {
     "command_status",
     "signal_type",
     "signal_status",
+    "agent_instruction_registry_status",
+    "instruction_source_status",
+    "instruction_kind",
+    "instruction_version_status",
+    "version_status",
+    "runtime_instruction_binding_status",
+    "binding_status",
+    "runtime_kind",
+    "instruction_application_status",
+    "section_status",
     "registration_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
@@ -10676,6 +10742,16 @@ function readFilterValue(item, key) {
   if (key === "command_status") return item.command_status;
   if (key === "signal_type") return item.signal_type;
   if (key === "signal_status") return item.signal_status;
+  if (key === "agent_instruction_registry_status") return item.summary?.agent_instruction_registry_status ?? item.agent_instruction_registry_status;
+  if (key === "instruction_source_status") return item.instruction_source_status;
+  if (key === "instruction_kind") return item.instruction_kind;
+  if (key === "instruction_version_status") return item.version_status;
+  if (key === "version_status") return item.version_status;
+  if (key === "runtime_instruction_binding_status") return item.binding_status;
+  if (key === "binding_status") return item.binding_status;
+  if (key === "runtime_kind") return item.runtime_kind;
+  if (key === "instruction_application_status") return item.instruction_application_status;
+  if (key === "section_status") return item.section_status;
   if (key === "registration_status") return item.summary?.registration_status ?? item.registration_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;

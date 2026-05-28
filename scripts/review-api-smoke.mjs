@@ -1916,6 +1916,34 @@ try {
   assert.equal(repoProfileValidations.collection, "repo_profile_validations");
   assert.ok(repoProfileValidations.count <= 5);
 
+  const agentInstructionRegistries = await fetchJson(`${url}/api/agent-instruction-registries?agent_instruction_registry_status=complete&limit=1`);
+  assert.equal(agentInstructionRegistries.collection, "agent_instruction_registries");
+  assert.ok(agentInstructionRegistries.count <= 1);
+
+  const agentInstructionSources = await fetchJson(`${url}/api/agent-instruction-sources?instruction_source_status=present&instruction_kind=agents&limit=5`);
+  assert.equal(agentInstructionSources.collection, "agent_instruction_sources");
+  assert.ok(agentInstructionSources.count <= 5);
+
+  const agentInstructionVersions = await fetchJson(`${url}/api/agent-instruction-versions?version_status=locked&limit=5`);
+  assert.equal(agentInstructionVersions.collection, "agent_instruction_versions");
+  assert.ok(agentInstructionVersions.count <= 5);
+
+  const runtimeInstructionBindings = await fetchJson(`${url}/api/runtime-instruction-bindings?runtime_instruction_binding_status=bound&runtime_kind=agent_runtime&limit=5`);
+  assert.equal(runtimeInstructionBindings.collection, "runtime_instruction_bindings");
+  assert.ok(runtimeInstructionBindings.count <= 5);
+
+  const agentInstructionSections = await fetchJson(`${url}/api/agent-instruction-sections?section_status=tracked&limit=5`);
+  assert.equal(agentInstructionSections.collection, "agent_instruction_sections");
+  assert.ok(agentInstructionSections.count <= 5);
+
+  const agentInstructionDesktopBoundary = await fetchJson(`${url}/api/agent-instruction-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(agentInstructionDesktopBoundary.collection, "agent_instruction_desktop_boundary");
+  assert.ok(agentInstructionDesktopBoundary.count <= 1);
+
+  const agentInstructionValidations = await fetchJson(`${url}/api/agent-instruction-validations?status=passed&limit=5`);
+  assert.equal(agentInstructionValidations.collection, "agent_instruction_validations");
+  assert.ok(agentInstructionValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

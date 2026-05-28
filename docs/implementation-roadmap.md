@@ -6196,6 +6196,31 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 116개로 증가하고 repo_profile_detector artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run personal-dev:repo-profile -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 215 - Agent Instruction Registry
+
+목표: P215 Personal Dev Domain Pack에서 repository agent instruction source와 runtime 적용 상태를 deterministic ledger로 고정한다. AGENTS.md를 canonical source로 content-hash versioning하고, CLAUDE.md/Codex.md가 없을 때는 명시적으로 AGENTS-derived source로 추적한다. Hermes Desktop은 이 상태를 read-only operator surface로만 조회한다.
+
+구현:
+
+- `src/agent-instruction-registry.mjs`와 `scripts/agent-instruction-registry.mjs`를 추가해 `npm run personal-dev:instructions` slice를 등록
+- `schemas/agent-instruction-registry.schema.json`으로 instruction source, locked version, runtime binding, section inventory, Desktop boundary, checkpoint를 검증
+- P214 Repo Profile Detector와 Hermes/Claude Code/Codex/local_script runtime adapter artifact를 source contract로 연결
+- AGENTS.md는 present source로, CLAUDE.md와 Codex.md는 derived_from_agents source로 기록하고 각 instruction version을 content hash로 잠금
+- Hermes, Claude Code, Codex는 `applied` runtime instruction binding으로, local_script는 deterministic `tracked_not_prompted` binding으로 기록
+- Review Dashboard와 Review API에 `/api/agent-instruction-registries`, `/api/agent-instruction-sources`, `/api/agent-instruction-versions`, `/api/runtime-instruction-bindings`, `/api/agent-instruction-sections`, `/api/agent-instruction-desktop-boundary`, `/api/agent-instruction-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Agent Instruction Registry를 연결
+
+완료 기준:
+
+- Agent Instruction Registry가 validation error 없이 `complete` 상태가 됨
+- instruction source 3개와 locked instruction version 3개가 생성되고 missing source는 0으로 유지됨
+- Hermes/Claude Code/Codex/local_script runtime binding 4개가 모두 bound 상태이며 agent runtime 3개는 applied, local_script는 tracked_not_prompted 상태임
+- runtime execution performed count가 0이며 artifact는 instruction file write나 runtime execution을 수행하지 않음
+- Desktop read-only는 true이고 Desktop mutation/instruction write/runtime execution/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Review API와 dashboard가 instruction source/version/runtime binding 상태를 read-only로 노출
+- Golden fixture 수가 117개로 증가하고 agent_instruction_registry artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:instructions -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6204,9 +6229,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 214이다.
+- 현재 완료 기준점은 Phase 215이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P215-P312, 총 98개다.
+- 남은 계획 슬롯은 P216-P312, 총 97개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

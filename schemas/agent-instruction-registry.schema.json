@@ -1,0 +1,348 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/agent-instruction-registry.schema.json",
+  "title": "Agent Instruction Registry",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "agent_instruction_registry_id",
+    "output_dir",
+    "agent_instruction_registry_status",
+    "safe_handling",
+    "inputs",
+    "source_contracts",
+    "agent_instruction_registry_contract",
+    "agent_instruction_sources",
+    "agent_instruction_versions",
+    "runtime_instruction_bindings",
+    "agent_instruction_sections",
+    "agent_instruction_desktop_boundary",
+    "agent_instruction_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "agent-instruction-registry.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "agent_instruction_registry_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "agent_instruction_registry_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "instruction_file_mutation_allowed",
+        "runtime_execution_performed",
+        "protected_mutation_executed",
+        "desktop_mutation_allowed",
+        "desktop_instruction_write_allowed",
+        "desktop_runtime_execution_allowed",
+        "desktop_source_of_truth",
+        "secret_material_exposed",
+        "provider_key_visible",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "instruction_file_mutation_allowed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "protected_mutation_executed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_instruction_write_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "agent_instruction_registry_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "pack_id",
+        "source_of_truth",
+        "registry_rule",
+        "version_rule",
+        "runtime_rule",
+        "desktop_companion_rule",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-instruction-registry-contract.v1" },
+        "contract_id": { "const": "agent-instruction-registry.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "source_of_truth": { "const": "repository_agent_instruction_files" }
+      },
+      "additionalProperties": true
+    },
+    "agent_instruction_sources": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/instruction_source" }
+    },
+    "agent_instruction_versions": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/instruction_version" }
+    },
+    "runtime_instruction_bindings": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/runtime_binding" }
+    },
+    "agent_instruction_sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/instruction_section" }
+    },
+    "agent_instruction_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_id",
+        "pack_id",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_instruction_write_allowed",
+        "desktop_runtime_execution_allowed",
+        "desktop_source_of_truth",
+        "protected_mutations_require_human_gate",
+        "instruction_file_mutation_requires_human_gate",
+        "runtime_instruction_binding_count",
+        "runtime_execution_performed_count",
+        "raw_secret_material_exposed",
+        "provider_key_exposed",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control",
+        "boundary_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-instruction-desktop-boundary.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_instruction_write_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "protected_mutations_require_human_gate": { "const": true },
+        "instruction_file_mutation_requires_human_gate": { "const": true },
+        "runtime_execution_performed_count": { "const": 0 },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "boundary_status": { "const": "enforced" }
+      },
+      "additionalProperties": true
+    },
+    "agent_instruction_checkpoints": {
+      "type": "array",
+      "minItems": 10,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "agent_instruction_registry_status",
+        "agent_instruction_registry_contract_id",
+        "pack_id",
+        "source_of_truth",
+        "repo_profile_detector_status",
+        "instruction_source_count",
+        "present_instruction_source_count",
+        "derived_instruction_source_count",
+        "missing_instruction_source_count",
+        "instruction_version_count",
+        "locked_instruction_version_count",
+        "runtime_instruction_binding_count",
+        "bound_runtime_instruction_binding_count",
+        "agent_runtime_instruction_binding_count",
+        "agent_runtime_instruction_applied_count",
+        "deterministic_runtime_tracked_count",
+        "runtime_execution_performed_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_instruction_write_allowed",
+        "desktop_runtime_execution_allowed",
+        "desktop_source_of_truth",
+        "protected_mutations_require_human_gate",
+        "instruction_file_mutation_requires_human_gate",
+        "raw_secret_material_exposed",
+        "provider_key_exposed",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control",
+        "validation_error_count"
+      ],
+      "properties": {
+        "agent_instruction_registry_status": { "enum": ["complete", "blocked"] },
+        "agent_instruction_registry_contract_id": { "const": "agent-instruction-registry.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "source_of_truth": { "const": "repository_agent_instruction_files" },
+        "repo_profile_detector_status": { "const": "complete" },
+        "missing_instruction_source_count": { "const": 0 },
+        "runtime_execution_performed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_instruction_write_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "protected_mutations_require_human_gate": { "const": true },
+        "instruction_file_mutation_requires_human_gate": { "const": true },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "$defs": {
+    "instruction_source": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "agent_instruction_source_id",
+        "instruction_kind",
+        "display_name",
+        "declared_path",
+        "source_file_present",
+        "instruction_source_status",
+        "content_hash",
+        "instruction_version_id",
+        "instruction_version",
+        "applies_to_runtime_ids",
+        "write_allowed",
+        "mutation_allowed",
+        "runtime_execution_allowed",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "source_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-instruction-source.v1" },
+        "instruction_kind": { "enum": ["agents", "claude_code", "codex"] },
+        "instruction_source_status": { "enum": ["present", "derived_from_agents", "missing"] },
+        "write_allowed": { "const": false },
+        "mutation_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "source_status": { "enum": ["locked", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "instruction_version": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "agent_instruction_version_id",
+        "instruction_source_id",
+        "instruction_kind",
+        "instruction_version",
+        "content_hash",
+        "version_status",
+        "applies_to_runtime_ids",
+        "mutation_allowed",
+        "desktop_read_only",
+        "desktop_mutation_allowed"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-instruction-version.v1" },
+        "version_status": { "const": "locked" },
+        "mutation_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "runtime_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "runtime_instruction_binding_id",
+        "runtime_id",
+        "runtime_kind",
+        "adapter_status",
+        "instruction_source_id",
+        "instruction_kind",
+        "instruction_source_status",
+        "instruction_version_id",
+        "instruction_version",
+        "instruction_application_status",
+        "instruction_delivery_mode",
+        "instruction_applied_to_runtime",
+        "runtime_execution_performed",
+        "instruction_write_allowed",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth",
+        "binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-instruction-binding.v1" },
+        "runtime_id": { "enum": ["hermes", "claude_code", "codex", "local_script"] },
+        "runtime_kind": { "enum": ["agent_runtime", "deterministic_runtime"] },
+        "instruction_application_status": { "enum": ["applied", "tracked_not_prompted"] },
+        "runtime_execution_performed": { "const": false },
+        "instruction_write_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "binding_status": { "enum": ["bound", "blocked"] }
+      },
+      "additionalProperties": true
+    },
+    "instruction_section": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "agent_instruction_section_id",
+        "instruction_source_id",
+        "instruction_version_id",
+        "section_index",
+        "section_title",
+        "section_level",
+        "section_status",
+        "content_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "agent-instruction-section.v1" },
+        "section_status": { "const": "tracked" }
+      },
+      "additionalProperties": true
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "agent-instruction-checkpoint.v1" },
+        "status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

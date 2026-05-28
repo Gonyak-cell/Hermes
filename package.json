@@ -166,6 +166,7 @@
     "packs:compatibility": "node scripts/pack-manifest-compatibility.mjs",
     "packs:registry": "node scripts/domain-pack-registry.mjs",
     "packs:validate": "node scripts/domain-pack-registry.mjs --check",
+    "personal-dev:instructions": "node scripts/agent-instruction-registry.mjs",
     "personal-dev:pack-manifest": "node scripts/personal-dev-pack-manifest.mjs",
     "personal-dev:repo-profile": "node scripts/repo-profile-detector.mjs",
     "personal-dev:slice": "node scripts/run-personal-dev-slice.mjs",

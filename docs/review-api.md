@@ -728,6 +728,8 @@ Personal Dev Pack Manifest route는 `personal_dev_pack_manifest_status`, `person
 
 Repo Profile Detector route는 `repo_profile_detector_status`, `repo_profile_status`, `language_id`, `framework_id`, `framework_status`, `command_kind`, `command_status`, `signal_type`, `signal_status`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/repo-profile-detectors`, `/api/repo-profiles`, `/api/repo-profile-languages`, `/api/repo-profile-frameworks`, `/api/repo-profile-commands`, `/api/repo-profile-signals`, `/api/repo-profile-desktop-boundary`, `/api/repo-profile-validations`는 P214 repo language/framework/test-build-lint command catalog를 read-only로 노출하며 Hermes Desktop은 command status를 볼 수 있지만 command execution, direct mutation, source-of-truth role, secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
 
+Agent Instruction Registry route는 `agent_instruction_registry_status`, `instruction_source_status`, `instruction_kind`, `instruction_version_status`, `version_status`, `runtime_instruction_binding_status`, `binding_status`, `runtime_kind`, `instruction_application_status`, `section_status`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/agent-instruction-registries`, `/api/agent-instruction-sources`, `/api/agent-instruction-versions`, `/api/runtime-instruction-bindings`, `/api/agent-instruction-sections`, `/api/agent-instruction-desktop-boundary`, `/api/agent-instruction-validations`는 P215 AGENTS/CLAUDE/Codex instruction source와 Hermes/Claude Code/Codex/local_script runtime binding 상태를 read-only로 노출하며 Hermes Desktop은 instruction version과 적용 상태를 볼 수 있지만 instruction file write, runtime execution, source-of-truth role, secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
+
 ## 검증
 
 ```bash

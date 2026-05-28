@@ -72,6 +72,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeFreezePath: "artifacts/runtime-freeze/latest/runtime-freeze.json",
   personalDevPackManifestPath: "artifacts/personal-dev-pack-manifest/latest/personal-dev-pack-manifest.json",
   repoProfileDetectorPath: "artifacts/repo-profile-detector/latest/repo-profile-detector.json",
+  agentInstructionRegistryPath: "artifacts/agent-instruction-registry/latest/agent-instruction-registry.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -553,6 +554,11 @@ const SOURCE_DEFINITIONS = [
     option: "repoProfileDetectorPath",
     source_id: "repo_profile_detector",
     label: "Repo Profile Detector",
+  },
+  {
+    option: "agentInstructionRegistryPath",
+    source_id: "agent_instruction_registry",
+    label: "Agent Instruction Registry",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1706,6 +1712,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeFreezeStage(artifacts.runtime_freeze, sourceById.get("runtime_freeze")),
     buildPersonalDevPackManifestStage(artifacts.personal_dev_pack_manifest, sourceById.get("personal_dev_pack_manifest")),
     buildRepoProfileDetectorStage(artifacts.repo_profile_detector, sourceById.get("repo_profile_detector")),
+    buildAgentInstructionRegistryStage(artifacts.agent_instruction_registry, sourceById.get("agent_instruction_registry")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5934,6 +5941,82 @@ function buildRepoProfileDetectorStage(repoProfileDetector, source) {
       failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? repoProfileDetector.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildAgentInstructionRegistryStage(agentInstructionRegistry, source) {
+  if (!agentInstructionRegistry) return missingStage("agent_instruction_registry", "Agent Instruction Registry", source);
+  const summary = agentInstructionRegistry.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.agent_instruction_registry_status !== "complete"
+    || summary.repo_profile_detector_status !== "complete"
+    || summary.instruction_source_count < 3
+    || summary.present_instruction_source_count < 1
+    || summary.derived_instruction_source_count < 2
+    || summary.missing_instruction_source_count !== 0
+    || summary.instruction_version_count < 3
+    || summary.locked_instruction_version_count !== summary.instruction_version_count
+    || summary.runtime_instruction_binding_count < 4
+    || summary.bound_runtime_instruction_binding_count !== summary.runtime_instruction_binding_count
+    || summary.agent_runtime_instruction_binding_count !== 3
+    || summary.agent_runtime_instruction_applied_count !== 3
+    || summary.deterministic_runtime_tracked_count < 1
+    || summary.runtime_execution_performed_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_instruction_write_allowed === true
+    || summary.desktop_runtime_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.raw_secret_material_exposed === true
+    || summary.provider_key_exposed === true
+    || summary.installer_or_gateway_control === true
+    || summary.ssh_or_cron_control === true
+    || agentInstructionRegistry.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "agent_instruction_registry",
+    label: "Agent Instruction Registry",
+    status,
+    message: `${summary.locked_instruction_version_count ?? 0}/${summary.instruction_version_count ?? 0} instruction version(s), ${summary.bound_runtime_instruction_binding_count ?? 0}/${summary.runtime_instruction_binding_count ?? 0} runtime binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      agent_instruction_registry_status: summary.agent_instruction_registry_status ?? "unknown",
+      agent_instruction_registry_contract_id: summary.agent_instruction_registry_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      repo_profile_detector_status: summary.repo_profile_detector_status ?? "unknown",
+      instruction_source_count: summary.instruction_source_count ?? 0,
+      present_instruction_source_count: summary.present_instruction_source_count ?? 0,
+      derived_instruction_source_count: summary.derived_instruction_source_count ?? 0,
+      missing_instruction_source_count: summary.missing_instruction_source_count ?? 0,
+      instruction_version_count: summary.instruction_version_count ?? 0,
+      locked_instruction_version_count: summary.locked_instruction_version_count ?? 0,
+      instruction_section_count: summary.instruction_section_count ?? 0,
+      runtime_instruction_binding_count: summary.runtime_instruction_binding_count ?? 0,
+      bound_runtime_instruction_binding_count: summary.bound_runtime_instruction_binding_count ?? 0,
+      agent_runtime_instruction_binding_count: summary.agent_runtime_instruction_binding_count ?? 0,
+      agent_runtime_instruction_applied_count: summary.agent_runtime_instruction_applied_count ?? 0,
+      deterministic_runtime_tracked_count: summary.deterministic_runtime_tracked_count ?? 0,
+      runtime_execution_performed_count: summary.runtime_execution_performed_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_instruction_write_allowed: summary.desktop_instruction_write_allowed ?? false,
+      desktop_runtime_execution_allowed: summary.desktop_runtime_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      protected_mutations_require_human_gate: summary.protected_mutations_require_human_gate ?? false,
+      instruction_file_mutation_requires_human_gate: summary.instruction_file_mutation_requires_human_gate ?? false,
+      raw_secret_material_exposed: summary.raw_secret_material_exposed ?? false,
+      provider_key_exposed: summary.provider_key_exposed ?? false,
+      installer_or_gateway_control: summary.installer_or_gateway_control ?? false,
+      ssh_or_cron_control: summary.ssh_or_cron_control ?? false,
+      checkpoint_count: summary.checkpoint_count ?? 0,
+      passed_checkpoint_count: summary.passed_checkpoint_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? agentInstructionRegistry.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -15436,6 +15519,37 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     repo_profile_detector_ssh_or_cron_control: artifacts.repo_profile_detector?.summary?.ssh_or_cron_control ?? false,
     repo_profile_detector_failed_checkpoint_count: artifacts.repo_profile_detector?.summary?.failed_checkpoint_count ?? 0,
     repo_profile_detector_validation_error_count: artifacts.repo_profile_detector?.summary?.validation_error_count ?? artifacts.repo_profile_detector?.validation?.errors?.length ?? 0,
+    agent_instruction_registry_status: artifacts.agent_instruction_registry?.summary?.agent_instruction_registry_status ?? "unknown",
+    agent_instruction_registry_contract_id: artifacts.agent_instruction_registry?.summary?.agent_instruction_registry_contract_id ?? null,
+    agent_instruction_registry_pack_id: artifacts.agent_instruction_registry?.summary?.pack_id ?? null,
+    agent_instruction_registry_source_of_truth: artifacts.agent_instruction_registry?.summary?.source_of_truth ?? "unknown",
+    agent_instruction_registry_repo_profile_detector_status: artifacts.agent_instruction_registry?.summary?.repo_profile_detector_status ?? "unknown",
+    agent_instruction_registry_instruction_source_count: artifacts.agent_instruction_registry?.summary?.instruction_source_count ?? 0,
+    agent_instruction_registry_present_instruction_source_count: artifacts.agent_instruction_registry?.summary?.present_instruction_source_count ?? 0,
+    agent_instruction_registry_derived_instruction_source_count: artifacts.agent_instruction_registry?.summary?.derived_instruction_source_count ?? 0,
+    agent_instruction_registry_missing_instruction_source_count: artifacts.agent_instruction_registry?.summary?.missing_instruction_source_count ?? 0,
+    agent_instruction_registry_instruction_version_count: artifacts.agent_instruction_registry?.summary?.instruction_version_count ?? 0,
+    agent_instruction_registry_locked_instruction_version_count: artifacts.agent_instruction_registry?.summary?.locked_instruction_version_count ?? 0,
+    agent_instruction_registry_instruction_section_count: artifacts.agent_instruction_registry?.summary?.instruction_section_count ?? 0,
+    agent_instruction_registry_runtime_instruction_binding_count: artifacts.agent_instruction_registry?.summary?.runtime_instruction_binding_count ?? 0,
+    agent_instruction_registry_bound_runtime_instruction_binding_count: artifacts.agent_instruction_registry?.summary?.bound_runtime_instruction_binding_count ?? 0,
+    agent_instruction_registry_agent_runtime_instruction_binding_count: artifacts.agent_instruction_registry?.summary?.agent_runtime_instruction_binding_count ?? 0,
+    agent_instruction_registry_agent_runtime_instruction_applied_count: artifacts.agent_instruction_registry?.summary?.agent_runtime_instruction_applied_count ?? 0,
+    agent_instruction_registry_deterministic_runtime_tracked_count: artifacts.agent_instruction_registry?.summary?.deterministic_runtime_tracked_count ?? 0,
+    agent_instruction_registry_runtime_execution_performed_count: artifacts.agent_instruction_registry?.summary?.runtime_execution_performed_count ?? 0,
+    agent_instruction_registry_desktop_read_only: artifacts.agent_instruction_registry?.summary?.desktop_read_only ?? false,
+    agent_instruction_registry_desktop_mutation_allowed: artifacts.agent_instruction_registry?.summary?.desktop_mutation_allowed ?? false,
+    agent_instruction_registry_desktop_instruction_write_allowed: artifacts.agent_instruction_registry?.summary?.desktop_instruction_write_allowed ?? false,
+    agent_instruction_registry_desktop_runtime_execution_allowed: artifacts.agent_instruction_registry?.summary?.desktop_runtime_execution_allowed ?? false,
+    agent_instruction_registry_desktop_source_of_truth: artifacts.agent_instruction_registry?.summary?.desktop_source_of_truth ?? false,
+    agent_instruction_registry_protected_mutations_require_human_gate: artifacts.agent_instruction_registry?.summary?.protected_mutations_require_human_gate ?? false,
+    agent_instruction_registry_instruction_file_mutation_requires_human_gate: artifacts.agent_instruction_registry?.summary?.instruction_file_mutation_requires_human_gate ?? false,
+    agent_instruction_registry_raw_secret_material_exposed: artifacts.agent_instruction_registry?.summary?.raw_secret_material_exposed ?? false,
+    agent_instruction_registry_provider_key_exposed: artifacts.agent_instruction_registry?.summary?.provider_key_exposed ?? false,
+    agent_instruction_registry_installer_or_gateway_control: artifacts.agent_instruction_registry?.summary?.installer_or_gateway_control ?? false,
+    agent_instruction_registry_ssh_or_cron_control: artifacts.agent_instruction_registry?.summary?.ssh_or_cron_control ?? false,
+    agent_instruction_registry_failed_checkpoint_count: artifacts.agent_instruction_registry?.summary?.failed_checkpoint_count ?? 0,
+    agent_instruction_registry_validation_error_count: artifacts.agent_instruction_registry?.summary?.validation_error_count ?? artifacts.agent_instruction_registry?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -17163,6 +17277,8 @@ function parseArgs(argv) {
     else if (arg === "--no-personal-dev-pack-manifest") parsed.personalDevPackManifestPath = false;
     else if (arg === "--repo-profile-detector") parsed.repoProfileDetectorPath = argv[++index];
     else if (arg === "--no-repo-profile-detector") parsed.repoProfileDetectorPath = false;
+    else if (arg === "--agent-instruction-registry") parsed.agentInstructionRegistryPath = argv[++index];
+    else if (arg === "--no-agent-instruction-registry") parsed.agentInstructionRegistryPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

@@ -289,6 +289,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-adapter-interface-fields"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-operator-surface-policies"));
   assert.ok(index.routes.some((route) => route.path === "/api/runtime-adapter-interface-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/hermes-runtime-adapter"));
+  assert.ok(index.routes.some((route) => route.path === "/api/hermes-invocation-result-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/hermes-agent-run-ledger-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/hermes-runtime-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/hermes-runtime-adapter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1374,6 +1379,26 @@ try {
   const runtimeAdapterInterfaceValidations = await fetchJson(`${url}/api/runtime-adapter-interface-validations?status=passed&limit=5`);
   assert.equal(runtimeAdapterInterfaceValidations.collection, "runtime_adapter_interface_validations");
   assert.ok(runtimeAdapterInterfaceValidations.count <= 5);
+
+  const hermesRuntimeAdapter = await fetchJson(`${url}/api/hermes-runtime-adapter?hermes_runtime_adapter_status=complete&limit=1`);
+  assert.equal(hermesRuntimeAdapter.collection, "hermes_runtime_adapter");
+  assert.ok(hermesRuntimeAdapter.count <= 1);
+
+  const hermesInvocationResultContracts = await fetchJson(`${url}/api/hermes-invocation-result-contracts?collection_status=ready&limit=5`);
+  assert.equal(hermesInvocationResultContracts.collection, "hermes_invocation_result_contracts");
+  assert.ok(hermesInvocationResultContracts.count <= 5);
+
+  const hermesAgentRunLedgerBindings = await fetchJson(`${url}/api/hermes-agent-run-ledger-bindings?binding_status=locked&limit=5`);
+  assert.equal(hermesAgentRunLedgerBindings.collection, "hermes_agent_run_ledger_bindings");
+  assert.ok(hermesAgentRunLedgerBindings.count <= 5);
+
+  const hermesRuntimeDesktopBoundary = await fetchJson(`${url}/api/hermes-runtime-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(hermesRuntimeDesktopBoundary.collection, "hermes_runtime_desktop_boundary");
+  assert.ok(hermesRuntimeDesktopBoundary.count <= 1);
+
+  const hermesRuntimeAdapterValidations = await fetchJson(`${url}/api/hermes-runtime-adapter-validations?status=passed&limit=5`);
+  assert.equal(hermesRuntimeAdapterValidations.collection, "hermes_runtime_adapter_validations");
+  assert.ok(hermesRuntimeAdapterValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

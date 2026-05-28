@@ -5687,6 +5687,29 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 97개로 증가하고 runtime adapter interface artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run contracts:runtime-interface -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 196 - Hermes Runtime Adapter
+
+목표: Hermes runtime을 harness runtime/source-of-truth가 아니라 bounded runtime adapter로 고정하고, Hermes 호출 결과가 AgentRun ledger 필드로 수집되는 계약을 만든다. Hermes Desktop은 계속 read-only Desktop Companion/operator surface로 남긴다.
+
+구현:
+
+- `src/hermes-runtime-adapter.mjs`와 `scripts/hermes-runtime-adapter.mjs`를 추가해 `npm run runtime:hermes-adapter` slice를 등록
+- `schemas/hermes-runtime-adapter.schema.json`으로 Hermes runtime adapter contract, invocation result contract, AgentRun ledger binding, Desktop boundary를 검증
+- Runtime Adapter Interface v2의 Hermes interface와 Runtime/AgentRun freeze의 Hermes execution contract, `binding.hermes.cli.default`, AgentRun ledger sink를 하나의 locked adapter artifact로 연결
+- Hermes invocation result contract가 `runtime_invocation_id`, `agent_run_id`, `workflow_run_id`, output/log/artifact/verification 필드를 AgentRun ledger reference model로 수집하도록 고정
+- Desktop boundary를 `read_only_runtime_status`, `runtime_source_of_truth=false`, `desktop_source_of_truth=false`, protected mutation request/execution false, secret/installer/gateway/SSH/cron/skill-install false로 검증
+- Review Dashboard stage/summary, Review API routes, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Hermes Runtime Adapter가 validation error 없이 `complete` 상태가 됨
+- Hermes interface, runtime execution contract, command binding, AgentRun ledger sink가 모두 bound/locked 상태가 됨
+- invocation result collection status가 `ready`이고 uncollected invocation count가 0임
+- execute mode는 human gate와 policy snapshot 없이는 허용되지 않으며 external runtime call without gate가 false임
+- Review API가 `/api/hermes-runtime-adapter`, `/api/hermes-invocation-result-contracts`, `/api/hermes-agent-run-ledger-bindings`, `/api/hermes-runtime-desktop-boundary`, `/api/hermes-runtime-adapter-validations`를 제공
+- Golden fixture 수가 98개로 증가하고 hermes runtime adapter artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:hermes-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5695,9 +5718,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 195이다.
+- 현재 완료 기준점은 Phase 196이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P196-P312, 총 117개다.
+- 남은 계획 슬롯은 P197-P312, 총 116개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

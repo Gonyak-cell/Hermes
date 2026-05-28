@@ -558,6 +558,11 @@ npm run api:serve
 - `GET /api/runtime-adapter-interface-fields`: runtime adapter interface field groups
 - `GET /api/runtime-operator-surface-policies`: runtime operator/Desktop surface policy rows
 - `GET /api/runtime-adapter-interface-validations`: Runtime Adapter Interface v2 validation rows
+- `GET /api/hermes-runtime-adapter`: Hermes Runtime Adapter artifact
+- `GET /api/hermes-invocation-result-contracts`: Hermes invocation result collection contracts
+- `GET /api/hermes-agent-run-ledger-bindings`: Hermes AgentRun ledger binding rows
+- `GET /api/hermes-runtime-desktop-boundary`: Hermes Desktop companion boundary row
+- `GET /api/hermes-runtime-adapter-validations`: Hermes Runtime Adapter validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

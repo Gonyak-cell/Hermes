@@ -192,6 +192,7 @@ import { runWorkflowGoldenCases } from "../src/workflow-golden-cases.mjs";
 import { runWorkflowGateFreeze } from "../src/workflow-gate-freeze.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runRuntimeAdapterInterfaceV2 } from "../src/runtime-adapter-interface-v2.mjs";
+import { runHermesRuntimeAdapter } from "../src/hermes-runtime-adapter.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1786,6 +1787,7 @@ describe("matter harness", () => {
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
         runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6399,6 +6401,54 @@ describe("matter harness", () => {
       assert.ok(runtimeAdapterInterfaceV2.runtime_adapter_interface_contract.operator_surface_policies.every((policy) => policy.desktop_surface_policy === "read_only_runtime_status" && policy.protected_mutation_request_allowed === false));
       assert.match(await readFile(path.join(outDir, "runtime-adapter-interface-v2", "summary.md"), "utf8"), /Runtime Adapter Interface v2/);
 
+      const hermesRuntimeAdapter = await runHermesRuntimeAdapter({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeCommandBindingsPath: "examples/core/runtime-command-bindings.json",
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "hermes-runtime-adapter"),
+        runAt: "2026-05-23T06:38:39.000Z",
+      });
+      const hermesRuntimeAdapterSchema = JSON.parse(await readFile("schemas/hermes-runtime-adapter.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(hermesRuntimeAdapter, hermesRuntimeAdapterSchema, {}, "hermes_runtime_adapter"),
+        [],
+      );
+      assert.equal(hermesRuntimeAdapter.summary.hermes_runtime_adapter_status, "complete");
+      assert.equal(hermesRuntimeAdapter.summary.runtime_id, "hermes");
+      assert.equal(hermesRuntimeAdapter.summary.adapter_id, "runtime.hermes.default");
+      assert.equal(hermesRuntimeAdapter.summary.hermes_interface_bound, true);
+      assert.equal(hermesRuntimeAdapter.summary.hermes_runtime_execution_contract_bound, true);
+      assert.equal(hermesRuntimeAdapter.summary.hermes_command_binding_declared, true);
+      assert.equal(hermesRuntimeAdapter.summary.agent_run_ledger_bound, true);
+      assert.equal(hermesRuntimeAdapter.summary.current_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(hermesRuntimeAdapter.summary.current_hermes_agent_run_record_count, 0);
+      assert.equal(hermesRuntimeAdapter.summary.invocation_result_contract_count, 1);
+      assert.equal(hermesRuntimeAdapter.summary.invocation_result_collection_status, "ready");
+      assert.equal(hermesRuntimeAdapter.summary.uncollected_invocation_count, 0);
+      assert.equal(hermesRuntimeAdapter.summary.output_capture_ready, true);
+      assert.equal(hermesRuntimeAdapter.summary.log_capture_ready, true);
+      assert.equal(hermesRuntimeAdapter.summary.artifact_capture_ready, true);
+      assert.equal(hermesRuntimeAdapter.summary.verification_capture_ready, true);
+      assert.equal(hermesRuntimeAdapter.summary.output_trust, "untrusted_until_verified");
+      assert.equal(hermesRuntimeAdapter.summary.verification_required, true);
+      assert.equal(hermesRuntimeAdapter.summary.execute_requires_human_gate, true);
+      assert.equal(hermesRuntimeAdapter.summary.external_runtime_call_allowed_without_gate, false);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_read_only, true);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_mutation_allowed, false);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_protected_mutation_request_allowed, false);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_secret_material_exposed, false);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_installer_or_gateway_control, false);
+      assert.equal(hermesRuntimeAdapter.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(hermesRuntimeAdapter.summary.validation_error_count, 0);
+      assert.equal(hermesRuntimeAdapter.hermes_runtime_adapter_contract.collection_policy.sink_ledger, "agent_run_ledger");
+      assert.equal(hermesRuntimeAdapter.hermes_runtime_adapter_contract.collection_policy.runtime_self_report_trusted, false);
+      assert.equal(hermesRuntimeAdapter.hermes_agent_run_ledger_bindings[0].sink_ledger_status, "complete");
+      assert.equal(hermesRuntimeAdapter.hermes_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "hermes-runtime-adapter", "summary.md"), "utf8"), /Hermes Runtime Adapter/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6518,6 +6568,7 @@ describe("matter harness", () => {
           capability_workflow_contract_freeze: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
           runtime_agentrun_contract_freeze: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
           runtime_adapter_interface_v2: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+          hermes_runtime_adapter: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6569,8 +6620,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 97);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 97);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 98);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 98);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6655,6 +6706,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_golden_cases"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_gate_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_adapter_interface_v2"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "hermes_runtime_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6698,6 +6750,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:hermes-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7148,6 +7201,10 @@ describe("matter harness", () => {
       assert.equal(runtimeAdapterInterfaceV2Checkpoint?.acceptance_profile, "runtime_adapter_interface_v2_gate");
       assert.equal(runtimeAdapterInterfaceV2Checkpoint?.status, "passed");
       assert.equal(runtimeAdapterInterfaceV2Checkpoint?.implementation_status, "passed_with_operational_gate");
+      const hermesRuntimeAdapterCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-hermes-runtime-adapter");
+      assert.equal(hermesRuntimeAdapterCheckpoint?.acceptance_profile, "hermes_runtime_adapter_gate");
+      assert.equal(hermesRuntimeAdapterCheckpoint?.status, "passed");
+      assert.equal(hermesRuntimeAdapterCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9021,6 +9078,31 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.runtime_adapter_interface_v2_installer_or_gateway_control_count, 0);
       assert.equal(dashboard.summary.runtime_adapter_interface_v2_runtime_source_of_truth_count, 0);
       assert.equal(dashboard.summary.runtime_adapter_interface_v2_validation_error_count, 0);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_status, "complete");
+      assert.equal(dashboard.summary.hermes_runtime_adapter_runtime_id, "hermes");
+      assert.equal(dashboard.summary.hermes_runtime_adapter_adapter_id, "runtime.hermes.default");
+      assert.equal(dashboard.summary.hermes_runtime_adapter_adapter_status, "locked");
+      assert.equal(dashboard.summary.hermes_runtime_adapter_interface_bound, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_execution_contract_bound, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_command_binding_declared, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_agent_run_ledger_bound, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_invocation_result_contract_count, 1);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_invocation_result_collection_status, "ready");
+      assert.equal(dashboard.summary.hermes_runtime_adapter_uncollected_invocation_count, 0);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_output_capture_ready, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_log_capture_ready, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_artifact_capture_ready, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_verification_capture_ready, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_execute_requires_human_gate, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_external_runtime_call_allowed_without_gate, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_read_only, true);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_protected_mutation_request_allowed, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_secret_material_exposed, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_installer_or_gateway_control, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.hermes_runtime_adapter_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -9821,6 +9903,13 @@ describe("matter harness", () => {
       assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.runtime_adapter_interface_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
       assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.read_only_policy_count, runtimeAdapterInterfaceV2.summary.read_only_policy_count);
       assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.protected_mutation_request_allowed_count, 0);
+      const hermesRuntimeAdapterStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "hermes_runtime_adapter");
+      assert.equal(hermesRuntimeAdapterStage?.status, "passed");
+      assert.equal(hermesRuntimeAdapterStage?.metrics.hermes_runtime_adapter_status, "complete");
+      assert.equal(hermesRuntimeAdapterStage?.metrics.agent_run_ledger_bound, true);
+      assert.equal(hermesRuntimeAdapterStage?.metrics.invocation_result_collection_status, "ready");
+      assert.equal(hermesRuntimeAdapterStage?.metrics.desktop_read_only, true);
+      assert.equal(hermesRuntimeAdapterStage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10180,6 +10269,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-adapter-interface-fields"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-operator-surface-policies"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-adapter-interface-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-runtime-adapter"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-invocation-result-contracts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-agent-run-ledger-bindings"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-runtime-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/hermes-runtime-adapter-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -11084,6 +11178,26 @@ describe("matter harness", () => {
       const runtimeAdapterInterfaceValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-adapter-interface-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeAdapterInterfaceValidations.collection, "runtime_adapter_interface_validations");
       assert.equal(runtimeAdapterInterfaceValidations.count, runtimeAdapterInterfaceV2.summary.validation_item_count);
+
+      const hermesRuntimeAdapterResponse = JSON.parse((await buildReviewApiResponse("/api/hermes-runtime-adapter?hermes_runtime_adapter_status=complete", apiOptions)).body);
+      assert.equal(hermesRuntimeAdapterResponse.collection, "hermes_runtime_adapter");
+      assert.equal(hermesRuntimeAdapterResponse.count, 1);
+
+      const hermesInvocationResultContracts = JSON.parse((await buildReviewApiResponse("/api/hermes-invocation-result-contracts?collection_status=ready", apiOptions)).body);
+      assert.equal(hermesInvocationResultContracts.collection, "hermes_invocation_result_contracts");
+      assert.equal(hermesInvocationResultContracts.count, hermesRuntimeAdapter.summary.invocation_result_contract_count);
+
+      const hermesAgentRunLedgerBindings = JSON.parse((await buildReviewApiResponse("/api/hermes-agent-run-ledger-bindings?binding_status=locked", apiOptions)).body);
+      assert.equal(hermesAgentRunLedgerBindings.collection, "hermes_agent_run_ledger_bindings");
+      assert.equal(hermesAgentRunLedgerBindings.count, hermesRuntimeAdapter.hermes_agent_run_ledger_bindings.length);
+
+      const hermesRuntimeDesktopBoundary = JSON.parse((await buildReviewApiResponse("/api/hermes-runtime-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(hermesRuntimeDesktopBoundary.collection, "hermes_runtime_desktop_boundary");
+      assert.equal(hermesRuntimeDesktopBoundary.count, 1);
+
+      const hermesRuntimeAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/hermes-runtime-adapter-validations?status=passed", apiOptions)).body);
+      assert.equal(hermesRuntimeAdapterValidations.collection, "hermes_runtime_adapter_validations");
+      assert.equal(hermesRuntimeAdapterValidations.count, hermesRuntimeAdapter.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

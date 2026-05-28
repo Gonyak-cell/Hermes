@@ -3504,6 +3504,53 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/hermes-runtime-adapter") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "hermes_runtime_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("hermes_runtime_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("hermes_runtime_adapter", [adapterResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/hermes-invocation-result-contracts") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "hermes_runtime_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("hermes_runtime_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("hermes_invocation_result_contracts", adapterResult.artifact.hermes_invocation_result_contracts ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/hermes-agent-run-ledger-bindings") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "hermes_runtime_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("hermes_runtime_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("hermes_agent_run_ledger_bindings", adapterResult.artifact.hermes_agent_run_ledger_bindings ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/hermes-runtime-desktop-boundary") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "hermes_runtime_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("hermes_runtime_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("hermes_runtime_desktop_boundary", [adapterResult.artifact.hermes_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/hermes-runtime-adapter-validations") {
+    const adapterResult = await readDashboardSourceArtifact(dashboard, "hermes_runtime_adapter");
+    if (!adapterResult.available) {
+      return jsonResponse(503, buildError("hermes_runtime_adapter_unavailable", adapterResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("hermes_runtime_adapter_validations", adapterResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7623,6 +7670,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-adapter-interface-fields", "Runtime adapter interface field groups"),
       route("GET", "/api/runtime-operator-surface-policies", "Runtime operator surface policies"),
       route("GET", "/api/runtime-adapter-interface-validations", "Runtime adapter interface validation rows"),
+      route("GET", "/api/hermes-runtime-adapter", "Hermes Runtime Adapter artifact"),
+      route("GET", "/api/hermes-invocation-result-contracts", "Hermes invocation result collection contracts"),
+      route("GET", "/api/hermes-agent-run-ledger-bindings", "Hermes AgentRun ledger bindings"),
+      route("GET", "/api/hermes-runtime-desktop-boundary", "Hermes Desktop runtime boundary"),
+      route("GET", "/api/hermes-runtime-adapter-validations", "Hermes Runtime Adapter validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8272,10 +8324,15 @@ function filterItems(items, searchParams) {
     "workflow_golden_case_status",
     "workflow_gate_freeze_status",
     "runtime_adapter_interface_status",
+    "hermes_runtime_adapter_status",
     "interface_status",
     "operator_surface_policy_status",
     "desktop_surface_policy",
     "policy_status",
+    "collection_status",
+    "binding_status",
+    "boundary_status",
+    "contract_status",
     "workflow_gate_vertical_slice_status",
     "audit_binding_status",
     "state_machine_pass_status",
@@ -9527,10 +9584,15 @@ function readFilterValue(item, key) {
   if (key === "workflow_golden_case_status") return item.summary?.workflow_golden_case_status ?? item.workflow_golden_case_status;
   if (key === "workflow_gate_freeze_status") return item.summary?.workflow_gate_freeze_status ?? item.workflow_gate_freeze_status;
   if (key === "runtime_adapter_interface_status") return item.summary?.runtime_adapter_interface_status ?? item.runtime_adapter_interface_status;
+  if (key === "hermes_runtime_adapter_status") return item.summary?.hermes_runtime_adapter_status ?? item.hermes_runtime_adapter_status;
   if (key === "interface_status") return item.interface_status;
   if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
   if (key === "desktop_surface_policy") return item.desktop_surface_policy;
   if (key === "policy_status") return item.policy_status;
+  if (key === "collection_status") return item.collection_status ?? item.summary?.invocation_result_collection_status;
+  if (key === "binding_status") return item.binding_status;
+  if (key === "boundary_status") return item.boundary_status;
+  if (key === "contract_status") return item.contract_status;
   if (key === "workflow_gate_vertical_slice_status") return item.workflow_gate_vertical_slice_status;
   if (key === "audit_binding_status") return item.audit_binding_status;
   if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;

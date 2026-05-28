@@ -53,6 +53,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
   runtimeAdapterInterfaceV2Path: "artifacts/runtime-adapter-interface-v2/latest/runtime-adapter-interface-v2.json",
+  hermesRuntimeAdapterPath: "artifacts/hermes-runtime-adapter/latest/hermes-runtime-adapter.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -439,6 +440,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeAdapterInterfaceV2Path",
     source_id: "runtime_adapter_interface_v2",
     label: "Runtime Adapter Interface v2",
+  },
+  {
+    option: "hermesRuntimeAdapterPath",
+    source_id: "hermes_runtime_adapter",
+    label: "Hermes Runtime Adapter",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1285,6 +1291,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_adapter_interface_v2") return data.summary ?? {};
+  if (sourceId === "hermes_runtime_adapter") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1560,6 +1567,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
     buildRuntimeAdapterInterfaceV2Stage(artifacts.runtime_adapter_interface_v2, sourceById.get("runtime_adapter_interface_v2")),
+    buildHermesRuntimeAdapterStage(artifacts.hermes_runtime_adapter, sourceById.get("hermes_runtime_adapter")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4243,6 +4251,67 @@ function buildRuntimeAdapterInterfaceV2Stage(interfaceArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? interfaceArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildHermesRuntimeAdapterStage(adapterArtifact, source) {
+  if (!adapterArtifact) return missingStage("hermes_runtime_adapter", "Hermes Runtime Adapter", source);
+  const summary = adapterArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.uncollected_invocation_count > 0
+    || summary.external_runtime_call_allowed_without_gate === true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_request_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_secret_material_exposed === true
+    || summary.desktop_installer_or_gateway_control === true
+    || summary.desktop_runtime_source_of_truth === true
+    || adapterArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "hermes_runtime_adapter",
+    label: "Hermes Runtime Adapter",
+    status,
+    message: `Hermes adapter ${summary.adapter_status ?? "unknown"}; AgentRun ledger bound=${summary.agent_run_ledger_bound === true}; Desktop read-only=${summary.desktop_read_only === true}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      hermes_runtime_adapter_status: summary.hermes_runtime_adapter_status ?? "unknown",
+      runtime_id: summary.runtime_id ?? "hermes",
+      adapter_id: summary.adapter_id ?? null,
+      adapter_status: summary.adapter_status ?? "unknown",
+      hermes_interface_bound: summary.hermes_interface_bound ?? false,
+      hermes_runtime_execution_contract_bound: summary.hermes_runtime_execution_contract_bound ?? false,
+      hermes_command_binding_declared: summary.hermes_command_binding_declared ?? false,
+      command_binding_id: summary.command_binding_id ?? null,
+      agent_run_ledger_bound: summary.agent_run_ledger_bound ?? false,
+      agent_run_ledger_status: summary.agent_run_ledger_status ?? "unknown",
+      current_agent_run_record_count: summary.current_agent_run_record_count ?? 0,
+      current_hermes_agent_run_record_count: summary.current_hermes_agent_run_record_count ?? 0,
+      invocation_result_contract_count: summary.invocation_result_contract_count ?? 0,
+      invocation_result_collection_status: summary.invocation_result_collection_status ?? "unknown",
+      uncollected_invocation_count: summary.uncollected_invocation_count ?? 0,
+      output_capture_ready: summary.output_capture_ready ?? false,
+      log_capture_ready: summary.log_capture_ready ?? false,
+      artifact_capture_ready: summary.artifact_capture_ready ?? false,
+      verification_capture_ready: summary.verification_capture_ready ?? false,
+      output_trust: summary.output_trust ?? "unknown",
+      verification_required: summary.verification_required ?? false,
+      execute_requires_human_gate: summary.execute_requires_human_gate ?? false,
+      external_runtime_call_allowed_without_gate: summary.external_runtime_call_allowed_without_gate ?? false,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? adapterArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -13097,6 +13166,31 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_adapter_interface_v2_installer_or_gateway_control_count: artifacts.runtime_adapter_interface_v2?.summary?.installer_or_gateway_control_count ?? 0,
     runtime_adapter_interface_v2_runtime_source_of_truth_count: artifacts.runtime_adapter_interface_v2?.summary?.runtime_source_of_truth_count ?? 0,
     runtime_adapter_interface_v2_validation_error_count: artifacts.runtime_adapter_interface_v2?.summary?.validation_error_count ?? artifacts.runtime_adapter_interface_v2?.validation?.errors?.length ?? 0,
+    hermes_runtime_adapter_status: artifacts.hermes_runtime_adapter?.summary?.hermes_runtime_adapter_status ?? "unknown",
+    hermes_runtime_adapter_runtime_id: artifacts.hermes_runtime_adapter?.summary?.runtime_id ?? "hermes",
+    hermes_runtime_adapter_adapter_id: artifacts.hermes_runtime_adapter?.summary?.adapter_id ?? null,
+    hermes_runtime_adapter_adapter_status: artifacts.hermes_runtime_adapter?.summary?.adapter_status ?? "unknown",
+    hermes_runtime_adapter_interface_bound: artifacts.hermes_runtime_adapter?.summary?.hermes_interface_bound ?? false,
+    hermes_runtime_adapter_execution_contract_bound: artifacts.hermes_runtime_adapter?.summary?.hermes_runtime_execution_contract_bound ?? false,
+    hermes_runtime_adapter_command_binding_declared: artifacts.hermes_runtime_adapter?.summary?.hermes_command_binding_declared ?? false,
+    hermes_runtime_adapter_agent_run_ledger_bound: artifacts.hermes_runtime_adapter?.summary?.agent_run_ledger_bound ?? false,
+    hermes_runtime_adapter_invocation_result_contract_count: artifacts.hermes_runtime_adapter?.summary?.invocation_result_contract_count ?? 0,
+    hermes_runtime_adapter_invocation_result_collection_status: artifacts.hermes_runtime_adapter?.summary?.invocation_result_collection_status ?? "unknown",
+    hermes_runtime_adapter_uncollected_invocation_count: artifacts.hermes_runtime_adapter?.summary?.uncollected_invocation_count ?? 0,
+    hermes_runtime_adapter_output_capture_ready: artifacts.hermes_runtime_adapter?.summary?.output_capture_ready ?? false,
+    hermes_runtime_adapter_log_capture_ready: artifacts.hermes_runtime_adapter?.summary?.log_capture_ready ?? false,
+    hermes_runtime_adapter_artifact_capture_ready: artifacts.hermes_runtime_adapter?.summary?.artifact_capture_ready ?? false,
+    hermes_runtime_adapter_verification_capture_ready: artifacts.hermes_runtime_adapter?.summary?.verification_capture_ready ?? false,
+    hermes_runtime_adapter_execute_requires_human_gate: artifacts.hermes_runtime_adapter?.summary?.execute_requires_human_gate ?? false,
+    hermes_runtime_adapter_external_runtime_call_allowed_without_gate: artifacts.hermes_runtime_adapter?.summary?.external_runtime_call_allowed_without_gate ?? false,
+    hermes_runtime_adapter_desktop_read_only: artifacts.hermes_runtime_adapter?.summary?.desktop_read_only ?? false,
+    hermes_runtime_adapter_desktop_mutation_allowed: artifacts.hermes_runtime_adapter?.summary?.desktop_mutation_allowed ?? false,
+    hermes_runtime_adapter_desktop_protected_mutation_request_allowed: artifacts.hermes_runtime_adapter?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    hermes_runtime_adapter_desktop_protected_mutation_execution_allowed: artifacts.hermes_runtime_adapter?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    hermes_runtime_adapter_desktop_secret_material_exposed: artifacts.hermes_runtime_adapter?.summary?.desktop_secret_material_exposed ?? false,
+    hermes_runtime_adapter_desktop_installer_or_gateway_control: artifacts.hermes_runtime_adapter?.summary?.desktop_installer_or_gateway_control ?? false,
+    hermes_runtime_adapter_desktop_runtime_source_of_truth: artifacts.hermes_runtime_adapter?.summary?.desktop_runtime_source_of_truth ?? false,
+    hermes_runtime_adapter_validation_error_count: artifacts.hermes_runtime_adapter?.summary?.validation_error_count ?? artifacts.hermes_runtime_adapter?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -14786,6 +14880,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-agentrun-contract-freeze") parsed.runtimeAgentRunContractFreezePath = false;
     else if (arg === "--runtime-adapter-interface-v2") parsed.runtimeAdapterInterfaceV2Path = argv[++index];
     else if (arg === "--no-runtime-adapter-interface-v2") parsed.runtimeAdapterInterfaceV2Path = false;
+    else if (arg === "--hermes-runtime-adapter") parsed.hermesRuntimeAdapterPath = argv[++index];
+    else if (arg === "--no-hermes-runtime-adapter") parsed.hermesRuntimeAdapterPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15217,6 +15313,10 @@ Options:
                                   runtime-adapter-interface-v2.json path.
   --no-runtime-adapter-interface-v2
                                   Do not include Runtime Adapter Interface v2 status.
+  --hermes-runtime-adapter <path>
+                                  hermes-runtime-adapter.json path.
+  --no-hermes-runtime-adapter
+                                  Do not include Hermes Runtime Adapter status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

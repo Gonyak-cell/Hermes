@@ -1,0 +1,423 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/hermes-runtime-adapter.schema.json",
+  "title": "Hermes Runtime Adapter",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "adapter_projection_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "hermes_runtime_adapter_contract",
+    "hermes_invocation_result_contracts",
+    "hermes_agent_run_ledger_bindings",
+    "hermes_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "hermes-runtime-adapter.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "adapter_projection_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2_path",
+        "runtime_agentrun_contract_freeze_path",
+        "runtime_command_bindings_path",
+        "agent_run_ledger_path",
+        "desktop_companion_integration_path"
+      ],
+      "properties": {
+        "runtime_adapter_interface_v2_path": { "type": "string" },
+        "runtime_agentrun_contract_freeze_path": { "type": "string" },
+        "runtime_command_bindings_path": { "type": "string" },
+        "agent_run_ledger_path": { "type": "string" },
+        "desktop_companion_integration_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2",
+        "runtime_agentrun_contract_freeze",
+        "runtime_command_bindings",
+        "agent_run_ledger",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_adapter_interface_v2": {
+          "type": "object",
+          "required": ["runtime_adapter_interface_status", "hermes_interface_status", "hermes_operator_surface_policy_status"],
+          "properties": {
+            "schema_version": { "type": ["string", "null"] },
+            "runtime_adapter_interface_status": { "const": "complete" },
+            "hermes_interface_status": { "const": "locked" },
+            "hermes_operator_surface_policy_status": { "const": "locked" }
+          }
+        },
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "hermes_runtime_adapter_found", "hermes_runtime_execution_contract_found"],
+          "properties": {
+            "schema_version": { "type": ["string", "null"] },
+            "freeze_status": { "const": "complete" },
+            "hermes_runtime_adapter_found": { "const": true },
+            "hermes_runtime_execution_contract_found": { "const": true },
+            "current_hermes_agent_run_contract_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "runtime_command_bindings": {
+          "type": "object",
+          "required": ["binding_registry_id", "hermes_command_binding_found", "hermes_prompt_delivery", "hermes_candidate_command_count"],
+          "properties": {
+            "schema_version": { "const": "runtime-command-bindings.v1" },
+            "binding_registry_id": { "type": ["string", "null"] },
+            "hermes_command_binding_found": { "const": true },
+            "hermes_prompt_delivery": { "const": "stdin" },
+            "hermes_candidate_command_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "agent_run_ledger": {
+          "type": "object",
+          "required": ["agent_run_ledger_status", "agent_run_record_count", "current_hermes_agent_run_record_count"],
+          "properties": {
+            "schema_version": { "type": ["string", "null"] },
+            "agent_run_ledger_id": { "type": ["string", "null"] },
+            "agent_run_ledger_status": { "const": "complete" },
+            "agent_run_record_count": { "type": "integer", "minimum": 0 },
+            "current_hermes_agent_run_record_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": ["declares_read_only", "declares_not_runtime_source_of_truth"],
+          "properties": {
+            "document_path": { "type": "string" },
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true }
+          }
+        }
+      }
+    },
+    "hermes_runtime_adapter_contract": { "$ref": "#/$defs/hermes_runtime_adapter_contract" },
+    "hermes_invocation_result_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/hermes_invocation_result_contract" }
+    },
+    "hermes_agent_run_ledger_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/hermes_agent_run_ledger_binding" }
+    },
+    "hermes_desktop_boundary": { "$ref": "#/$defs/hermes_desktop_boundary" },
+    "summary": {
+      "type": "object",
+      "required": [
+        "hermes_runtime_adapter_status",
+        "runtime_id",
+        "adapter_id",
+        "adapter_status",
+        "hermes_interface_bound",
+        "hermes_runtime_execution_contract_bound",
+        "hermes_command_binding_declared",
+        "agent_run_ledger_bound",
+        "invocation_result_contract_count",
+        "invocation_result_collection_status",
+        "uncollected_invocation_count",
+        "output_capture_ready",
+        "log_capture_ready",
+        "artifact_capture_ready",
+        "verification_capture_ready",
+        "output_trust",
+        "verification_required",
+        "execute_requires_human_gate",
+        "external_runtime_call_allowed_without_gate",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_protected_mutation_request_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_secret_material_exposed",
+        "desktop_installer_or_gateway_control",
+        "desktop_runtime_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "hermes_runtime_adapter_status": { "const": "complete" },
+        "runtime_id": { "const": "hermes" },
+        "adapter_id": { "const": "runtime.hermes.default" },
+        "adapter_status": { "const": "locked" },
+        "hermes_interface_bound": { "const": true },
+        "hermes_runtime_execution_contract_bound": { "const": true },
+        "hermes_command_binding_declared": { "const": true },
+        "command_binding_id": { "const": "binding.hermes.cli.default" },
+        "agent_run_ledger_bound": { "const": true },
+        "agent_run_ledger_status": { "const": "complete" },
+        "current_agent_run_record_count": { "type": "integer", "minimum": 0 },
+        "current_hermes_agent_run_record_count": { "type": "integer", "minimum": 0 },
+        "invocation_result_contract_count": { "type": "integer", "minimum": 1 },
+        "invocation_result_collection_status": { "const": "ready" },
+        "uncollected_invocation_count": { "const": 0 },
+        "output_capture_ready": { "const": true },
+        "log_capture_ready": { "const": true },
+        "artifact_capture_ready": { "const": true },
+        "verification_capture_ready": { "const": true },
+        "output_trust": { "const": "untrusted_until_verified" },
+        "verification_required": { "const": true },
+        "execute_requires_human_gate": { "const": true },
+        "external_runtime_call_allowed_without_gate": { "const": false },
+        "desktop_surface_policy": { "const": "read_only_runtime_status" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_request_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_secret_material_exposed": { "const": false },
+        "desktop_installer_or_gateway_control": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "validation_item_count": { "type": "integer", "minimum": 1 },
+        "failed_validation_item_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "hermes_runtime_adapter_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_id",
+        "runtime_id",
+        "adapter_id",
+        "adapter_interface_id",
+        "runtime_execution_contract_id",
+        "command_binding_id",
+        "adapter_status",
+        "execution_authority",
+        "source_of_truth",
+        "output_trust",
+        "verification_required",
+        "invocation_policy",
+        "collection_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-runtime-adapter-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "contract_id": { "type": "string" },
+        "runtime_id": { "const": "hermes" },
+        "adapter_id": { "const": "runtime.hermes.default" },
+        "adapter_interface_id": { "type": "string" },
+        "runtime_execution_contract_id": { "type": "string" },
+        "command_binding_id": { "const": "binding.hermes.cli.default" },
+        "adapter_status": { "const": "locked" },
+        "execution_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "agent_run_ledger" },
+        "output_trust": { "const": "untrusted_until_verified" },
+        "verification_required": { "const": true },
+        "required_gates": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "allowed_context_modes": { "type": "array", "items": { "type": "string" } },
+        "forbidden_context_modes": { "type": "array", "items": { "type": "string" } },
+        "invocation_policy": {
+          "type": "object",
+          "required": [
+            "default_mode",
+            "execute_requires_human_gate",
+            "execute_requires_policy_snapshot",
+            "execute_requires_agent_run_ledger_sink",
+            "external_runtime_call_allowed_without_gate",
+            "prompt_delivery"
+          ],
+          "properties": {
+            "schema_version": { "const": "hermes-invocation-policy.v1" },
+            "default_mode": { "const": "dry_run_until_human_gate" },
+            "execute_requires_human_gate": { "const": true },
+            "execute_requires_policy_snapshot": { "const": true },
+            "execute_requires_agent_run_ledger_sink": { "const": true },
+            "external_runtime_call_allowed_without_gate": { "const": false },
+            "prompt_delivery": { "const": "stdin" },
+            "command_resolution_required": { "const": true },
+            "command_availability_status": { "type": "string" },
+            "max_retries": { "type": "integer", "minimum": 0 },
+            "timeout_seconds": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "collection_policy": {
+          "type": "object",
+          "required": [
+            "sink_ledger",
+            "collect_runtime_invocation_id",
+            "collect_output_hash",
+            "collect_logs_ref",
+            "collect_artifact_refs",
+            "collect_runtime_verification",
+            "ledger_write_owner",
+            "runtime_self_report_trusted",
+            "collection_status"
+          ],
+          "properties": {
+            "schema_version": { "const": "hermes-agent-run-collection-policy.v1" },
+            "sink_ledger": { "const": "agent_run_ledger" },
+            "sink_ledger_contract_id": { "const": "agent-run-ledger.v1" },
+            "collect_runtime_invocation_id": { "const": true },
+            "collect_workflow_run_id": { "const": true },
+            "collect_input_ref": { "const": true },
+            "collect_output_ref": { "const": true },
+            "collect_output_hash": { "const": true },
+            "collect_logs_ref": { "const": true },
+            "collect_artifact_refs": { "const": true },
+            "collect_runtime_verification": { "const": true },
+            "collect_cost_trace": { "const": true },
+            "ledger_write_owner": { "const": "harness_control_plane" },
+            "runtime_self_report_trusted": { "const": false },
+            "collection_status": { "const": "ready" }
+          }
+        },
+        "desktop_boundary_ref": { "type": "string" }
+      }
+    },
+    "hermes_invocation_result_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "result_contract_id",
+        "runtime_id",
+        "adapter_id",
+        "accepted_result_sources",
+        "result_fields",
+        "agent_run_record_mapping",
+        "collection_status",
+        "uncollected_invocation_count",
+        "output_trust",
+        "verification_required",
+        "contract_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-invocation-result-contract.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "result_contract_id": { "type": "string" },
+        "runtime_id": { "const": "hermes" },
+        "adapter_id": { "const": "runtime.hermes.default" },
+        "accepted_result_sources": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "result_fields": { "type": "array", "minItems": 8, "items": { "type": "string" } },
+        "agent_run_record_mapping": { "type": "object" },
+        "collection_status": { "const": "ready" },
+        "current_collected_hermes_agent_run_count": { "type": "integer", "minimum": 0 },
+        "uncollected_invocation_count": { "const": 0 },
+        "output_trust": { "const": "untrusted_until_verified" },
+        "verification_required": { "const": true },
+        "contract_status": { "const": "locked" }
+      }
+    },
+    "hermes_agent_run_ledger_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "binding_id",
+        "runtime_id",
+        "adapter_id",
+        "source_result_contract_id",
+        "sink_ledger_contract_id",
+        "sink_ledger_status",
+        "collection_status",
+        "output_capture_status",
+        "log_capture_status",
+        "artifact_capture_status",
+        "verification_capture_status",
+        "ledger_write_owner",
+        "runtime_self_report_trusted",
+        "binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-agent-run-ledger-binding.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "binding_id": { "type": "string" },
+        "runtime_id": { "const": "hermes" },
+        "adapter_id": { "const": "runtime.hermes.default" },
+        "command_binding_id": { "const": "binding.hermes.cli.default" },
+        "source_result_contract_id": { "type": "string" },
+        "sink_ledger_id": { "type": ["string", "null"] },
+        "sink_ledger_contract_id": { "const": "agent-run-ledger.v1" },
+        "sink_ledger_status": { "const": "complete" },
+        "current_agent_run_record_count": { "type": "integer", "minimum": 0 },
+        "current_hermes_agent_run_record_count": { "type": "integer", "minimum": 0 },
+        "collection_status": { "const": "ready" },
+        "output_capture_status": { "const": "ready" },
+        "log_capture_status": { "const": "ready" },
+        "artifact_capture_status": { "const": "ready" },
+        "verification_capture_status": { "const": "ready" },
+        "ledger_write_owner": { "const": "harness_control_plane" },
+        "runtime_self_report_trusted": { "const": false },
+        "binding_status": { "const": "locked" }
+      }
+    },
+    "hermes_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "desktop_boundary_id",
+        "runtime_id",
+        "desktop_surface_policy",
+        "source_of_truth",
+        "runtime_source_of_truth",
+        "desktop_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_execution_allowed",
+        "secret_material_exposed",
+        "installer_or_gateway_control",
+        "human_gate_required_for_execution",
+        "boundary_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "hermes-desktop-boundary.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "desktop_boundary_id": { "type": "string" },
+        "runtime_id": { "const": "hermes" },
+        "desktop_surface_policy": { "const": "read_only_runtime_status" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "runtime_source_of_truth": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "auto_update_control": { "const": false },
+        "skill_install_control": { "const": false },
+        "allowed_operator_actions": { "type": "array", "items": { "type": "string" } },
+        "denied_operator_actions": { "type": "array", "items": { "type": "string" } },
+        "human_gate_required_for_execution": { "const": true },
+        "protected_mutation_route": { "const": "receipt_draft_or_human_gate_only" },
+        "integration_doc_declares_read_only": { "const": true },
+        "boundary_status": { "const": "locked" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

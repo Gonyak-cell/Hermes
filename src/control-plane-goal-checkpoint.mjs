@@ -68,6 +68,7 @@ const GOAL_ITEMS = [
   sourceItem("capability_workflow_contract_freeze", "Capability, workflow, run, gate, runtime, and IO v2 contract freeze", "contracts", "capability_workflow_contract_freeze", "control-plane-capability-workflow-contract-freeze", { acceptance_profile: "capability_workflow_contract_freeze_gate" }),
   sourceItem("runtime_agentrun_contract_freeze", "Runtime adapter and AgentRun runtime v2 contract freeze", "runtime", "runtime_agentrun_contract_freeze", "control-plane-runtime-agentrun-contract-freeze", { acceptance_profile: "runtime_agentrun_contract_freeze_gate" }),
   sourceItem("runtime_adapter_interface_v2", "Runtime adapter interface v2", "runtime", "runtime_adapter_interface_v2", "control-plane-runtime-adapter-interface-v2", { acceptance_profile: "runtime_adapter_interface_v2_gate" }),
+  sourceItem("hermes_runtime_adapter", "Hermes runtime adapter", "runtime", "hermes_runtime_adapter", "control-plane-hermes-runtime-adapter", { acceptance_profile: "hermes_runtime_adapter_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -495,6 +496,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_golden_cases_gate",
     "workflow_gate_freeze_gate",
     "runtime_adapter_interface_v2_gate",
+    "hermes_runtime_adapter_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1434,6 +1436,39 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.read_only_policy_count ?? 0) === policyCount
     ) {
       return passedWithOperationalGate(stage, "Runtime Adapter Interface v2 locks input, output, artifact, log, risk, and verification fields for every runtime and keeps Desktop Companion as a read-only operator surface with no protected mutation, secret, installer, gateway, or source-of-truth authority.");
+    }
+  }
+
+  if (item.acceptance_profile === "hermes_runtime_adapter_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.failed_validation_item_count ?? 0)
+      + (metrics.uncollected_invocation_count ?? 0);
+    if (
+      errors === 0
+      && metrics.hermes_runtime_adapter_status === "complete"
+      && metrics.runtime_id === "hermes"
+      && metrics.adapter_id === "runtime.hermes.default"
+      && metrics.adapter_status === "locked"
+      && metrics.hermes_interface_bound === true
+      && metrics.hermes_runtime_execution_contract_bound === true
+      && metrics.hermes_command_binding_declared === true
+      && metrics.agent_run_ledger_bound === true
+      && metrics.invocation_result_collection_status === "ready"
+      && metrics.output_capture_ready === true
+      && metrics.log_capture_ready === true
+      && metrics.artifact_capture_ready === true
+      && metrics.verification_capture_ready === true
+      && metrics.execute_requires_human_gate === true
+      && metrics.external_runtime_call_allowed_without_gate === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_request_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_runtime_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Hermes runtime adapter is locked to the Hermes runtime contract, collects invocation results through AgentRun ledger references, and keeps Hermes Desktop as a read-only companion surface rather than a runtime source of truth.");
     }
   }
 

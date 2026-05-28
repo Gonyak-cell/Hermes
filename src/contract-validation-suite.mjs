@@ -113,6 +113,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "packs:compatibility",
   "personal-dev:pack-manifest",
   "personal-dev:instructions",
+  "personal-dev:issue-intake",
   "personal-dev:repo-profile",
   "workflows:state-model",
   "workflows:runner",

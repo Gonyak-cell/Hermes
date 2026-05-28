@@ -4456,6 +4456,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("agent_instruction_validations", instructionRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/issue-intake-adapters") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_intake_adapters", [issueIntakeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-intake-sources") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_intake_sources", issueIntakeResult.artifact.issue_intake_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-intake-records") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_intake_records", issueIntakeResult.artifact.issue_intake_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/normalized-task-contracts") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("normalized_task_contracts", issueIntakeResult.artifact.normalized_task_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-task-bindings") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_task_bindings", issueIntakeResult.artifact.issue_task_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-intake-desktop-boundary") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_intake_desktop_boundary", [issueIntakeResult.artifact.issue_intake_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/issue-intake-validations") {
+    const issueIntakeResult = await readDashboardSourceArtifact(dashboard, "issue_intake_adapter");
+    if (!issueIntakeResult.available) {
+      return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("issue_intake_validations", issueIntakeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8695,6 +8744,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/agent-instruction-sections", "Agent instruction markdown section rows"),
       route("GET", "/api/agent-instruction-desktop-boundary", "Agent instruction Desktop read-only boundary"),
       route("GET", "/api/agent-instruction-validations", "Agent instruction registry validation rows"),
+      route("GET", "/api/issue-intake-adapters", "Issue intake adapter artifact"),
+      route("GET", "/api/issue-intake-sources", "Issue intake source rows"),
+      route("GET", "/api/issue-intake-records", "Issue intake record rows"),
+      route("GET", "/api/normalized-task-contracts", "Normalized task contract rows"),
+      route("GET", "/api/issue-task-bindings", "Issue to task binding rows"),
+      route("GET", "/api/issue-intake-desktop-boundary", "Issue intake Desktop read-only boundary"),
+      route("GET", "/api/issue-intake-validations", "Issue intake adapter validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9388,6 +9444,17 @@ function filterItems(items, searchParams) {
     "runtime_kind",
     "instruction_application_status",
     "section_status",
+    "issue_intake_status",
+    "issue_source_status",
+    "source_system",
+    "issue_record_status",
+    "issue_status",
+    "issue_kind",
+    "normalized_task_status",
+    "task_status",
+    "task_priority",
+    "priority",
+    "issue_task_binding_status",
     "registration_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
@@ -10752,6 +10819,16 @@ function readFilterValue(item, key) {
   if (key === "runtime_kind") return item.runtime_kind;
   if (key === "instruction_application_status") return item.instruction_application_status;
   if (key === "section_status") return item.section_status;
+  if (key === "issue_intake_status") return item.summary?.issue_intake_status ?? item.issue_intake_status;
+  if (key === "issue_source_status") return item.source_status;
+  if (key === "source_system") return item.source_system;
+  if (key === "issue_record_status") return item.issue_record_status;
+  if (key === "issue_status") return item.issue_status;
+  if (key === "issue_kind") return item.issue_kind ?? item.task_kind;
+  if (key === "normalized_task_status") return item.normalized_task_status;
+  if (key === "task_status") return item.task_status ?? item.normalized_task_status;
+  if (key === "task_priority") return item.task_priority ?? item.priority;
+  if (key === "issue_task_binding_status") return item.binding_status;
   if (key === "registration_status") return item.summary?.registration_status ?? item.registration_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;

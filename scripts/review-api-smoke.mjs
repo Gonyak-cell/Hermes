@@ -1944,6 +1944,34 @@ try {
   assert.equal(agentInstructionValidations.collection, "agent_instruction_validations");
   assert.ok(agentInstructionValidations.count <= 5);
 
+  const issueIntakeAdapters = await fetchJson(`${url}/api/issue-intake-adapters?issue_intake_status=complete&limit=1`);
+  assert.equal(issueIntakeAdapters.collection, "issue_intake_adapters");
+  assert.ok(issueIntakeAdapters.count <= 1);
+
+  const issueIntakeSources = await fetchJson(`${url}/api/issue-intake-sources?issue_source_status=ready&source_system=github&limit=5`);
+  assert.equal(issueIntakeSources.collection, "issue_intake_sources");
+  assert.ok(issueIntakeSources.count <= 5);
+
+  const issueIntakeRecords = await fetchJson(`${url}/api/issue-intake-records?issue_record_status=normalized&source_system=plane&limit=5`);
+  assert.equal(issueIntakeRecords.collection, "issue_intake_records");
+  assert.ok(issueIntakeRecords.count <= 5);
+
+  const normalizedTaskContracts = await fetchJson(`${url}/api/normalized-task-contracts?normalized_task_status=ready_for_workflow&source_system=local&limit=5`);
+  assert.equal(normalizedTaskContracts.collection, "normalized_task_contracts");
+  assert.ok(normalizedTaskContracts.count <= 5);
+
+  const issueTaskBindings = await fetchJson(`${url}/api/issue-task-bindings?issue_task_binding_status=bound&source_system=github&limit=5`);
+  assert.equal(issueTaskBindings.collection, "issue_task_bindings");
+  assert.ok(issueTaskBindings.count <= 5);
+
+  const issueIntakeDesktopBoundary = await fetchJson(`${url}/api/issue-intake-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(issueIntakeDesktopBoundary.collection, "issue_intake_desktop_boundary");
+  assert.ok(issueIntakeDesktopBoundary.count <= 1);
+
+  const issueIntakeValidations = await fetchJson(`${url}/api/issue-intake-validations?status=passed&limit=5`);
+  assert.equal(issueIntakeValidations.collection, "issue_intake_validations");
+  assert.ok(issueIntakeValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

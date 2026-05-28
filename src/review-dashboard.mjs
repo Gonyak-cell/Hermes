@@ -73,6 +73,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   personalDevPackManifestPath: "artifacts/personal-dev-pack-manifest/latest/personal-dev-pack-manifest.json",
   repoProfileDetectorPath: "artifacts/repo-profile-detector/latest/repo-profile-detector.json",
   agentInstructionRegistryPath: "artifacts/agent-instruction-registry/latest/agent-instruction-registry.json",
+  issueIntakeAdapterPath: "artifacts/issue-intake-adapter/latest/issue-intake-adapter.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -559,6 +560,11 @@ const SOURCE_DEFINITIONS = [
     option: "agentInstructionRegistryPath",
     source_id: "agent_instruction_registry",
     label: "Agent Instruction Registry",
+  },
+  {
+    option: "issueIntakeAdapterPath",
+    source_id: "issue_intake_adapter",
+    label: "Issue Intake Adapter",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1713,6 +1719,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPersonalDevPackManifestStage(artifacts.personal_dev_pack_manifest, sourceById.get("personal_dev_pack_manifest")),
     buildRepoProfileDetectorStage(artifacts.repo_profile_detector, sourceById.get("repo_profile_detector")),
     buildAgentInstructionRegistryStage(artifacts.agent_instruction_registry, sourceById.get("agent_instruction_registry")),
+    buildIssueIntakeAdapterStage(artifacts.issue_intake_adapter, sourceById.get("issue_intake_adapter")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -6017,6 +6024,97 @@ function buildAgentInstructionRegistryStage(agentInstructionRegistry, source) {
       failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
       validation_item_count: summary.validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? agentInstructionRegistry.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildIssueIntakeAdapterStage(issueIntakeAdapter, source) {
+  if (!issueIntakeAdapter) return missingStage("issue_intake_adapter", "Issue Intake Adapter", source);
+  const summary = issueIntakeAdapter.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.issue_intake_status !== "complete"
+    || summary.repo_profile_detector_status !== "complete"
+    || summary.agent_instruction_registry_status !== "complete"
+    || summary.issue_source_count !== 3
+    || summary.github_issue_source_count !== 1
+    || summary.plane_issue_source_count !== 1
+    || summary.local_issue_source_count !== 1
+    || summary.issue_record_count !== 3
+    || summary.normalized_issue_record_count !== summary.issue_record_count
+    || summary.normalized_task_count !== summary.issue_record_count
+    || summary.ready_normalized_task_count !== summary.normalized_task_count
+    || summary.issue_task_binding_count !== summary.issue_record_count
+    || summary.bound_issue_task_binding_count !== summary.issue_task_binding_count
+    || summary.unresolved_issue_count !== 0
+    || summary.duplicate_task_id_count !== 0
+    || summary.external_fetch_performed_count !== 0
+    || summary.issue_mutation_performed_count !== 0
+    || summary.command_execution_performed_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_issue_write_allowed === true
+    || summary.desktop_task_state_write_allowed === true
+    || summary.desktop_runtime_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.raw_secret_material_exposed === true
+    || summary.provider_key_exposed === true
+    || summary.installer_or_gateway_control === true
+    || summary.ssh_or_cron_control === true
+    || issueIntakeAdapter.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "issue_intake_adapter",
+    label: "Issue Intake Adapter",
+    status,
+    message: `${summary.normalized_task_count ?? 0}/${summary.issue_record_count ?? 0} issue record(s) mapped to task contract(s); issue mutations ${summary.issue_mutation_performed_count ?? "unknown"}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      issue_intake_status: summary.issue_intake_status ?? "unknown",
+      issue_intake_contract_id: summary.issue_intake_contract_id ?? null,
+      pack_id: summary.pack_id ?? null,
+      capability_id: summary.capability_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      repo_profile_detector_status: summary.repo_profile_detector_status ?? "unknown",
+      agent_instruction_registry_status: summary.agent_instruction_registry_status ?? "unknown",
+      issue_source_count: summary.issue_source_count ?? 0,
+      github_issue_source_count: summary.github_issue_source_count ?? 0,
+      plane_issue_source_count: summary.plane_issue_source_count ?? 0,
+      local_issue_source_count: summary.local_issue_source_count ?? 0,
+      issue_record_count: summary.issue_record_count ?? 0,
+      normalized_issue_record_count: summary.normalized_issue_record_count ?? 0,
+      github_issue_record_count: summary.github_issue_record_count ?? 0,
+      plane_issue_record_count: summary.plane_issue_record_count ?? 0,
+      local_issue_record_count: summary.local_issue_record_count ?? 0,
+      normalized_task_count: summary.normalized_task_count ?? 0,
+      ready_normalized_task_count: summary.ready_normalized_task_count ?? 0,
+      issue_task_binding_count: summary.issue_task_binding_count ?? 0,
+      bound_issue_task_binding_count: summary.bound_issue_task_binding_count ?? 0,
+      unbound_issue_task_binding_count: summary.unbound_issue_task_binding_count ?? 0,
+      unresolved_issue_count: summary.unresolved_issue_count ?? 0,
+      duplicate_task_id_count: summary.duplicate_task_id_count ?? 0,
+      external_fetch_performed_count: summary.external_fetch_performed_count ?? 0,
+      issue_mutation_performed_count: summary.issue_mutation_performed_count ?? 0,
+      command_execution_performed_count: summary.command_execution_performed_count ?? 0,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_issue_write_allowed: summary.desktop_issue_write_allowed ?? false,
+      desktop_task_state_write_allowed: summary.desktop_task_state_write_allowed ?? false,
+      desktop_runtime_execution_allowed: summary.desktop_runtime_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      protected_mutations_require_human_gate: summary.protected_mutations_require_human_gate ?? false,
+      issue_mutations_require_human_gate: summary.issue_mutations_require_human_gate ?? false,
+      external_fetch_allowed: summary.external_fetch_allowed ?? false,
+      raw_secret_material_exposed: summary.raw_secret_material_exposed ?? false,
+      provider_key_exposed: summary.provider_key_exposed ?? false,
+      installer_or_gateway_control: summary.installer_or_gateway_control ?? false,
+      ssh_or_cron_control: summary.ssh_or_cron_control ?? false,
+      checkpoint_count: summary.checkpoint_count ?? 0,
+      passed_checkpoint_count: summary.passed_checkpoint_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? issueIntakeAdapter.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -15550,6 +15648,43 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     agent_instruction_registry_ssh_or_cron_control: artifacts.agent_instruction_registry?.summary?.ssh_or_cron_control ?? false,
     agent_instruction_registry_failed_checkpoint_count: artifacts.agent_instruction_registry?.summary?.failed_checkpoint_count ?? 0,
     agent_instruction_registry_validation_error_count: artifacts.agent_instruction_registry?.summary?.validation_error_count ?? artifacts.agent_instruction_registry?.validation?.errors?.length ?? 0,
+    issue_intake_status: artifacts.issue_intake_adapter?.summary?.issue_intake_status ?? "unknown",
+    issue_intake_contract_id: artifacts.issue_intake_adapter?.summary?.issue_intake_contract_id ?? null,
+    issue_intake_pack_id: artifacts.issue_intake_adapter?.summary?.pack_id ?? null,
+    issue_intake_capability_id: artifacts.issue_intake_adapter?.summary?.capability_id ?? null,
+    issue_intake_source_of_truth: artifacts.issue_intake_adapter?.summary?.source_of_truth ?? "unknown",
+    issue_intake_repo_profile_detector_status: artifacts.issue_intake_adapter?.summary?.repo_profile_detector_status ?? "unknown",
+    issue_intake_agent_instruction_registry_status: artifacts.issue_intake_adapter?.summary?.agent_instruction_registry_status ?? "unknown",
+    issue_intake_issue_source_count: artifacts.issue_intake_adapter?.summary?.issue_source_count ?? 0,
+    issue_intake_github_issue_source_count: artifacts.issue_intake_adapter?.summary?.github_issue_source_count ?? 0,
+    issue_intake_plane_issue_source_count: artifacts.issue_intake_adapter?.summary?.plane_issue_source_count ?? 0,
+    issue_intake_local_issue_source_count: artifacts.issue_intake_adapter?.summary?.local_issue_source_count ?? 0,
+    issue_intake_issue_record_count: artifacts.issue_intake_adapter?.summary?.issue_record_count ?? 0,
+    issue_intake_normalized_issue_record_count: artifacts.issue_intake_adapter?.summary?.normalized_issue_record_count ?? 0,
+    issue_intake_github_issue_record_count: artifacts.issue_intake_adapter?.summary?.github_issue_record_count ?? 0,
+    issue_intake_plane_issue_record_count: artifacts.issue_intake_adapter?.summary?.plane_issue_record_count ?? 0,
+    issue_intake_local_issue_record_count: artifacts.issue_intake_adapter?.summary?.local_issue_record_count ?? 0,
+    issue_intake_normalized_task_count: artifacts.issue_intake_adapter?.summary?.normalized_task_count ?? 0,
+    issue_intake_ready_normalized_task_count: artifacts.issue_intake_adapter?.summary?.ready_normalized_task_count ?? 0,
+    issue_intake_issue_task_binding_count: artifacts.issue_intake_adapter?.summary?.issue_task_binding_count ?? 0,
+    issue_intake_bound_issue_task_binding_count: artifacts.issue_intake_adapter?.summary?.bound_issue_task_binding_count ?? 0,
+    issue_intake_unbound_issue_task_binding_count: artifacts.issue_intake_adapter?.summary?.unbound_issue_task_binding_count ?? 0,
+    issue_intake_unresolved_issue_count: artifacts.issue_intake_adapter?.summary?.unresolved_issue_count ?? 0,
+    issue_intake_duplicate_task_id_count: artifacts.issue_intake_adapter?.summary?.duplicate_task_id_count ?? 0,
+    issue_intake_external_fetch_performed_count: artifacts.issue_intake_adapter?.summary?.external_fetch_performed_count ?? 0,
+    issue_intake_issue_mutation_performed_count: artifacts.issue_intake_adapter?.summary?.issue_mutation_performed_count ?? 0,
+    issue_intake_command_execution_performed_count: artifacts.issue_intake_adapter?.summary?.command_execution_performed_count ?? 0,
+    issue_intake_desktop_read_only: artifacts.issue_intake_adapter?.summary?.desktop_read_only ?? false,
+    issue_intake_desktop_mutation_allowed: artifacts.issue_intake_adapter?.summary?.desktop_mutation_allowed ?? false,
+    issue_intake_desktop_issue_write_allowed: artifacts.issue_intake_adapter?.summary?.desktop_issue_write_allowed ?? false,
+    issue_intake_desktop_task_state_write_allowed: artifacts.issue_intake_adapter?.summary?.desktop_task_state_write_allowed ?? false,
+    issue_intake_desktop_runtime_execution_allowed: artifacts.issue_intake_adapter?.summary?.desktop_runtime_execution_allowed ?? false,
+    issue_intake_desktop_source_of_truth: artifacts.issue_intake_adapter?.summary?.desktop_source_of_truth ?? false,
+    issue_intake_protected_mutations_require_human_gate: artifacts.issue_intake_adapter?.summary?.protected_mutations_require_human_gate ?? false,
+    issue_intake_issue_mutations_require_human_gate: artifacts.issue_intake_adapter?.summary?.issue_mutations_require_human_gate ?? false,
+    issue_intake_external_fetch_allowed: artifacts.issue_intake_adapter?.summary?.external_fetch_allowed ?? false,
+    issue_intake_failed_checkpoint_count: artifacts.issue_intake_adapter?.summary?.failed_checkpoint_count ?? 0,
+    issue_intake_validation_error_count: artifacts.issue_intake_adapter?.summary?.validation_error_count ?? artifacts.issue_intake_adapter?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -17279,6 +17414,8 @@ function parseArgs(argv) {
     else if (arg === "--no-repo-profile-detector") parsed.repoProfileDetectorPath = false;
     else if (arg === "--agent-instruction-registry") parsed.agentInstructionRegistryPath = argv[++index];
     else if (arg === "--no-agent-instruction-registry") parsed.agentInstructionRegistryPath = false;
+    else if (arg === "--issue-intake-adapter") parsed.issueIntakeAdapterPath = argv[++index];
+    else if (arg === "--no-issue-intake-adapter") parsed.issueIntakeAdapterPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

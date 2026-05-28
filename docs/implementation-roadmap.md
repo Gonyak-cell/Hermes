@@ -6221,6 +6221,31 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 117개로 증가하고 agent_instruction_registry artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run personal-dev:instructions -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 216 - Issue Intake Adapter
+
+목표: P216 Personal Dev Domain Pack에서 GitHub/Plane/local issue payload를 동일한 normalized task contract로 변환하는 deterministic intake adapter를 추가한다. Hermes Desktop은 issue source, issue record, task contract, binding 상태를 read-only operator surface로만 조회하고 issue write나 task state mutation은 human gate 뒤에 둔다.
+
+구현:
+
+- `src/issue-intake-adapter.mjs`와 `scripts/issue-intake-adapter.mjs`를 추가해 `npm run personal-dev:issue-intake` slice를 등록
+- `schemas/issue-intake-adapter.schema.json`으로 issue source, issue record, normalized task contract, issue-task binding, Desktop boundary, checkpoint를 검증
+- P214 Repo Profile Detector와 P215 Agent Instruction Registry를 source contract로 연결
+- GitHub/Plane/local issue source 3개를 deterministic fixture로 대표하고 외부 API fetch나 issue tracker mutation은 수행하지 않음
+- issue record 3개를 `personal_dev.codex.worktree_patch` capability의 normalized task contract 3개와 issue-task binding 3개로 변환
+- Review Dashboard와 Review API에 `/api/issue-intake-adapters`, `/api/issue-intake-sources`, `/api/issue-intake-records`, `/api/normalized-task-contracts`, `/api/issue-task-bindings`, `/api/issue-intake-desktop-boundary`, `/api/issue-intake-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Issue Intake Adapter를 연결
+
+완료 기준:
+
+- Issue Intake Adapter가 validation error 없이 `complete` 상태가 됨
+- GitHub/Plane/local issue source가 각각 1개씩 기록되고 issue record 3개가 normalized 상태임
+- normalized task contract 3개와 issue-task binding 3개가 생성되고 duplicate task id, unresolved issue, unbound binding은 0임
+- external fetch, issue mutation, command execution performed count가 모두 0임
+- Desktop read-only는 true이고 Desktop mutation/issue write/task state write/runtime execution/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Review API와 dashboard가 issue intake source/record/task/binding 상태를 read-only로 노출
+- Golden fixture 수가 118개로 증가하고 issue_intake_adapter artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:issue-intake -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6229,9 +6254,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 215이다.
+- 현재 완료 기준점은 Phase 216이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P216-P312, 총 97개다.
+- 남은 계획 슬롯은 P217-P312, 총 96개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

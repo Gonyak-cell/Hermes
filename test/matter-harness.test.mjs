@@ -212,6 +212,7 @@ import { runRuntimeFreeze } from "../src/runtime-freeze.mjs";
 import { runPersonalDevPackManifest } from "../src/personal-dev-pack-manifest.mjs";
 import { runRepoProfileDetector } from "../src/repo-profile-detector.mjs";
 import { runAgentInstructionRegistry } from "../src/agent-instruction-registry.mjs";
+import { runIssueIntakeAdapter } from "../src/issue-intake-adapter.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1826,6 +1827,7 @@ describe("matter harness", () => {
         personalDevPackManifestPath: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
         repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
         agentInstructionRegistryPath: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
+        issueIntakeAdapterPath: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7471,6 +7473,55 @@ describe("matter harness", () => {
       assert.equal(agentInstructionRegistry.runtime_instruction_bindings.find((binding) => binding.runtime_id === "local_script")?.instruction_application_status, "tracked_not_prompted");
       assert.match(await readFile(path.join(outDir, "agent-instruction-registry", "summary.md"), "utf8"), /Agent Instruction Registry/);
 
+      const issueIntakeAdapter = await runIssueIntakeAdapter({
+        repoRoot: ".",
+        devProjectsPath: "examples/dev-projects.json",
+        agentInstructionRegistryPath: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "issue-intake-adapter"),
+        runAt: "2026-05-23T06:45:52.000Z",
+      });
+      const issueIntakeAdapterSchema = JSON.parse(await readFile("schemas/issue-intake-adapter.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(issueIntakeAdapter, issueIntakeAdapterSchema, {}, "issue_intake_adapter"), []);
+      assert.equal(issueIntakeAdapter.summary.issue_intake_status, "complete");
+      assert.equal(issueIntakeAdapter.summary.pack_id, "personal-dev");
+      assert.equal(issueIntakeAdapter.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(issueIntakeAdapter.summary.repo_profile_detector_status, "complete");
+      assert.equal(issueIntakeAdapter.summary.agent_instruction_registry_status, "complete");
+      assert.equal(issueIntakeAdapter.summary.issue_source_count, 3);
+      assert.equal(issueIntakeAdapter.summary.github_issue_source_count, 1);
+      assert.equal(issueIntakeAdapter.summary.plane_issue_source_count, 1);
+      assert.equal(issueIntakeAdapter.summary.local_issue_source_count, 1);
+      assert.equal(issueIntakeAdapter.summary.issue_record_count, 3);
+      assert.equal(issueIntakeAdapter.summary.normalized_issue_record_count, 3);
+      assert.equal(issueIntakeAdapter.summary.normalized_task_count, 3);
+      assert.equal(issueIntakeAdapter.summary.ready_normalized_task_count, 3);
+      assert.equal(issueIntakeAdapter.summary.issue_task_binding_count, 3);
+      assert.equal(issueIntakeAdapter.summary.bound_issue_task_binding_count, 3);
+      assert.equal(issueIntakeAdapter.summary.unbound_issue_task_binding_count, 0);
+      assert.equal(issueIntakeAdapter.summary.unresolved_issue_count, 0);
+      assert.equal(issueIntakeAdapter.summary.duplicate_task_id_count, 0);
+      assert.equal(issueIntakeAdapter.summary.external_fetch_performed_count, 0);
+      assert.equal(issueIntakeAdapter.summary.issue_mutation_performed_count, 0);
+      assert.equal(issueIntakeAdapter.summary.command_execution_performed_count, 0);
+      assert.equal(issueIntakeAdapter.summary.desktop_read_only, true);
+      assert.equal(issueIntakeAdapter.summary.desktop_mutation_allowed, false);
+      assert.equal(issueIntakeAdapter.summary.desktop_issue_write_allowed, false);
+      assert.equal(issueIntakeAdapter.summary.desktop_task_state_write_allowed, false);
+      assert.equal(issueIntakeAdapter.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(issueIntakeAdapter.summary.desktop_source_of_truth, false);
+      assert.equal(issueIntakeAdapter.summary.protected_mutations_require_human_gate, true);
+      assert.equal(issueIntakeAdapter.summary.issue_mutations_require_human_gate, true);
+      assert.equal(issueIntakeAdapter.summary.validation_error_count, 0);
+      assert.deepEqual(new Set(issueIntakeAdapter.issue_intake_sources.map((source) => source.source_system)), new Set(["github", "plane", "local"]));
+      assert.ok(issueIntakeAdapter.issue_intake_records.every((record) => record.issue_record_status === "normalized" && record.external_fetch_performed === false && record.issue_mutation_performed === false));
+      assert.ok(issueIntakeAdapter.normalized_task_contracts.every((task) => task.normalized_task_status === "ready_for_workflow" && task.desktop_read_only === true && task.desktop_mutation_allowed === false));
+      assert.equal(new Set(issueIntakeAdapter.normalized_task_contracts.map((task) => task.task_id)).size, issueIntakeAdapter.normalized_task_contracts.length);
+      assert.ok(issueIntakeAdapter.issue_task_bindings.every((binding) => binding.binding_status === "bound"));
+      assert.match(await readFile(path.join(outDir, "issue-intake-adapter", "summary.md"), "utf8"), /Issue Intake Adapter/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7610,6 +7661,7 @@ describe("matter harness", () => {
           personal_dev_pack_manifest: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
           repo_profile_detector: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
           agent_instruction_registry: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
+          issue_intake_adapter: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7661,8 +7713,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 117);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 117);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 118);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 118);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7767,6 +7819,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_pack_manifest"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "repo_profile_detector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "agent_instruction_registry"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_intake_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7840,6 +7893,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:instructions"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:issue-intake"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:repo-profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
@@ -8357,6 +8411,10 @@ describe("matter harness", () => {
       assert.equal(agentInstructionRegistryCheckpoint?.acceptance_profile, "agent_instruction_registry_gate");
       assert.equal(agentInstructionRegistryCheckpoint?.status, "passed");
       assert.equal(agentInstructionRegistryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const issueIntakeAdapterCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-issue-intake-adapter");
+      assert.equal(issueIntakeAdapterCheckpoint?.acceptance_profile, "issue_intake_adapter_gate");
+      assert.equal(issueIntakeAdapterCheckpoint?.status, "passed");
+      assert.equal(issueIntakeAdapterCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10657,6 +10715,32 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.agent_instruction_registry_protected_mutations_require_human_gate, true);
       assert.equal(dashboard.summary.agent_instruction_registry_instruction_file_mutation_requires_human_gate, true);
       assert.equal(dashboard.summary.agent_instruction_registry_validation_error_count, 0);
+      assert.equal(dashboard.summary.issue_intake_status, "complete");
+      assert.equal(dashboard.summary.issue_intake_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.issue_intake_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.issue_intake_repo_profile_detector_status, "complete");
+      assert.equal(dashboard.summary.issue_intake_agent_instruction_registry_status, "complete");
+      assert.equal(dashboard.summary.issue_intake_issue_source_count, 3);
+      assert.equal(dashboard.summary.issue_intake_github_issue_source_count, 1);
+      assert.equal(dashboard.summary.issue_intake_plane_issue_source_count, 1);
+      assert.equal(dashboard.summary.issue_intake_local_issue_source_count, 1);
+      assert.equal(dashboard.summary.issue_intake_issue_record_count, issueIntakeAdapter.summary.issue_record_count);
+      assert.equal(dashboard.summary.issue_intake_normalized_task_count, issueIntakeAdapter.summary.normalized_task_count);
+      assert.equal(dashboard.summary.issue_intake_ready_normalized_task_count, 3);
+      assert.equal(dashboard.summary.issue_intake_issue_task_binding_count, issueIntakeAdapter.summary.issue_task_binding_count);
+      assert.equal(dashboard.summary.issue_intake_bound_issue_task_binding_count, 3);
+      assert.equal(dashboard.summary.issue_intake_unresolved_issue_count, 0);
+      assert.equal(dashboard.summary.issue_intake_duplicate_task_id_count, 0);
+      assert.equal(dashboard.summary.issue_intake_external_fetch_performed_count, 0);
+      assert.equal(dashboard.summary.issue_intake_issue_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.issue_intake_command_execution_performed_count, 0);
+      assert.equal(dashboard.summary.issue_intake_desktop_read_only, true);
+      assert.equal(dashboard.summary.issue_intake_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.issue_intake_desktop_issue_write_allowed, false);
+      assert.equal(dashboard.summary.issue_intake_desktop_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.issue_intake_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.issue_intake_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.issue_intake_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -13475,6 +13559,34 @@ describe("matter harness", () => {
       const agentInstructionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/agent-instruction-validations?status=passed", apiOptions)).body);
       assert.equal(agentInstructionValidationsResponse.collection, "agent_instruction_validations");
       assert.equal(agentInstructionValidationsResponse.count, agentInstructionRegistry.summary.validation_item_count);
+
+      const issueIntakeAdaptersResponse = JSON.parse((await buildReviewApiResponse("/api/issue-intake-adapters?issue_intake_status=complete", apiOptions)).body);
+      assert.equal(issueIntakeAdaptersResponse.collection, "issue_intake_adapters");
+      assert.equal(issueIntakeAdaptersResponse.count, 1);
+
+      const issueIntakeSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/issue-intake-sources?issue_source_status=ready", apiOptions)).body);
+      assert.equal(issueIntakeSourcesResponse.collection, "issue_intake_sources");
+      assert.equal(issueIntakeSourcesResponse.count, issueIntakeAdapter.summary.issue_source_count);
+
+      const issueIntakeRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/issue-intake-records?issue_record_status=normalized", apiOptions)).body);
+      assert.equal(issueIntakeRecordsResponse.collection, "issue_intake_records");
+      assert.equal(issueIntakeRecordsResponse.count, issueIntakeAdapter.summary.issue_record_count);
+
+      const normalizedTaskContractsResponse = JSON.parse((await buildReviewApiResponse("/api/normalized-task-contracts?normalized_task_status=ready_for_workflow", apiOptions)).body);
+      assert.equal(normalizedTaskContractsResponse.collection, "normalized_task_contracts");
+      assert.equal(normalizedTaskContractsResponse.count, issueIntakeAdapter.summary.normalized_task_count);
+
+      const issueTaskBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/issue-task-bindings?issue_task_binding_status=bound", apiOptions)).body);
+      assert.equal(issueTaskBindingsResponse.collection, "issue_task_bindings");
+      assert.equal(issueTaskBindingsResponse.count, issueIntakeAdapter.summary.issue_task_binding_count);
+
+      const issueIntakeDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/issue-intake-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(issueIntakeDesktopBoundaryResponse.collection, "issue_intake_desktop_boundary");
+      assert.equal(issueIntakeDesktopBoundaryResponse.count, 1);
+
+      const issueIntakeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/issue-intake-validations?status=passed", apiOptions)).body);
+      assert.equal(issueIntakeValidationsResponse.collection, "issue_intake_validations");
+      assert.equal(issueIntakeValidationsResponse.count, issueIntakeAdapter.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

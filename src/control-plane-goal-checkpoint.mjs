@@ -88,6 +88,7 @@ const GOAL_ITEMS = [
   sourceItem("personal_dev_pack_manifest", "Personal-dev pack manifest", "personal_dev", "personal_dev_pack_manifest", "control-plane-personal-dev-pack-manifest", { acceptance_profile: "personal_dev_pack_manifest_gate" }),
   sourceItem("repo_profile_detector", "Repo profile detector", "personal_dev", "repo_profile_detector", "control-plane-repo-profile-detector", { acceptance_profile: "repo_profile_detector_gate" }),
   sourceItem("agent_instruction_registry", "Agent instruction registry", "personal_dev", "agent_instruction_registry", "control-plane-agent-instruction-registry", { acceptance_profile: "agent_instruction_registry_gate" }),
+  sourceItem("issue_intake_adapter", "Issue intake adapter", "personal_dev", "issue_intake_adapter", "control-plane-issue-intake-adapter", { acceptance_profile: "issue_intake_adapter_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -535,6 +536,7 @@ function evaluateStageAcceptance(item, stage) {
     "personal_dev_pack_manifest_gate",
     "repo_profile_detector_gate",
     "agent_instruction_registry_gate",
+    "issue_intake_adapter_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2250,6 +2252,48 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Agent instruction registry locks AGENTS-derived instruction versions and binds Hermes, Claude Code, Codex, and local_script without writing instruction files or executing runtimes.");
+    }
+  }
+
+  if (item.acceptance_profile === "issue_intake_adapter_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.issue_intake_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.repo_profile_detector_status === "complete"
+      && metrics.agent_instruction_registry_status === "complete"
+      && metrics.issue_source_count === 3
+      && metrics.github_issue_source_count === 1
+      && metrics.plane_issue_source_count === 1
+      && metrics.local_issue_source_count === 1
+      && metrics.issue_record_count === 3
+      && metrics.normalized_issue_record_count === metrics.issue_record_count
+      && metrics.normalized_task_count === metrics.issue_record_count
+      && metrics.ready_normalized_task_count === metrics.normalized_task_count
+      && metrics.issue_task_binding_count === metrics.issue_record_count
+      && metrics.bound_issue_task_binding_count === metrics.issue_task_binding_count
+      && metrics.unresolved_issue_count === 0
+      && metrics.duplicate_task_id_count === 0
+      && metrics.external_fetch_performed_count === 0
+      && metrics.issue_mutation_performed_count === 0
+      && metrics.command_execution_performed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_issue_write_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.protected_mutations_require_human_gate === true
+      && metrics.issue_mutations_require_human_gate === true
+      && metrics.external_fetch_allowed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Issue intake adapter maps GitHub, Plane, and local issue payloads to one task contract while keeping Desktop read-only and all issue mutations behind human gates.");
     }
   }
 

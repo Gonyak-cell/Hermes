@@ -187,6 +187,7 @@ import { runWorkflowInRunGateFramework } from "../src/workflow-in-run-gate-frame
 import { runWorkflowPostRunGateFramework } from "../src/workflow-post-run-gate-framework.mjs";
 import { runGateResultAggregator } from "../src/gate-result-aggregator.mjs";
 import { runCapabilityRegistryApi } from "../src/capability-registry-api.mjs";
+import { runWorkflowRunDashboard } from "../src/workflow-run-dashboard.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
@@ -1826,6 +1827,7 @@ describe("matter harness", () => {
         workflowPostRunGateFrameworkPath: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
         gateResultAggregatorPath: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
         capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        workflowRunDashboardPath: path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json"),
         budgetAlertLedgerPath: path.join(outDir, "budget-alerts", "budget-alert-ledger.json"),
         domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
         outputArtifactCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
@@ -6166,6 +6168,65 @@ describe("matter harness", () => {
       assert.ok(capabilityRegistryApi.desktop_companion_route_groups.every((group) => group.read_only_route_count === group.route_count && group.mutation_route_count === 0 && group.secret_material_route_count === 0 && group.installer_or_gateway_route_count === 0));
       assert.match(await readFile(path.join(outDir, "capability-registry-api", "summary.md"), "utf8"), /Capability Registry API/);
 
+      const workflowRunDashboard = await runWorkflowRunDashboard({
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        workflowDslStateModelPath: path.join(outDir, "workflow-dsl-state-model", "workflow-dsl-state-model.json"),
+        workflowStateMachineRunnerPath: path.join(outDir, "workflow-state-machine-runner", "workflow-state-machine-runner.json"),
+        workflowQueueRetryBackoffPath: path.join(outDir, "workflow-queue-retry-backoff", "workflow-queue-retry-backoff-contract.json"),
+        workflowIdempotencyLedgerPath: path.join(outDir, "workflow-idempotency", "workflow-idempotency-ledger.json"),
+        workflowResumeCancelContractPath: path.join(outDir, "workflow-resume-cancel", "workflow-resume-cancel-contract.json"),
+        gateResultAggregatorPath: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        protectedDeliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        outDir: path.join(outDir, "workflow-run-dashboard"),
+        runAt: "2026-05-23T06:37:28.759Z",
+      });
+      const workflowRunDashboardSchema = JSON.parse(await readFile("schemas/workflow-run-dashboard.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(workflowRunDashboard, workflowRunDashboardSchema, {}, "workflow_run_dashboard"),
+        [],
+      );
+      assert.equal(workflowRunDashboard.summary.workflow_run_dashboard_status, "complete");
+      assert.equal(workflowRunDashboard.summary.workflow_run_dashboard_contract_id, "workflow-run-dashboard.v1");
+      assert.equal(workflowRunDashboard.summary.desktop_companion_readiness_status, "read_only_ready");
+      assert.equal(workflowRunDashboard.summary.source_workflow_run_ledger_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_workflow_dsl_state_model_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_workflow_state_machine_runner_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_workflow_queue_retry_backoff_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_workflow_idempotency_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_workflow_resume_cancel_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_gate_result_aggregator_status, "complete");
+      assert.equal(workflowRunDashboard.summary.source_capability_registry_api_status, "complete");
+      assert.equal(workflowRunDashboard.summary.workflow_run_dashboard_panel_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunDashboard.summary.workflow_run_state_card_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunDashboard.summary.workflow_run_queue_card_count, workflowQueueRetryBackoff.summary.workflow_queue_record_count);
+      assert.equal(workflowRunDashboard.summary.workflow_run_gate_card_count, gateResultAggregator.summary.workflow_gate_status_count);
+      assert.equal(workflowRunDashboard.summary.workflow_run_output_card_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunDashboard.summary.human_review_required_panel_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(workflowRunDashboard.summary.manual_review_required_panel_count, gateResultAggregator.summary.manual_review_required_workflow_count);
+      assert.equal(workflowRunDashboard.summary.held_queue_panel_count, workflowQueueRetryBackoff.summary.held_queue_record_count);
+      assert.equal(workflowRunDashboard.summary.waiting_state_panel_count, workflowDslStateModel.summary.waiting_run_count);
+      assert.equal(workflowRunDashboard.summary.output_artifact_count, outputCatalog.summary.artifact_count);
+      assert.equal(workflowRunDashboard.summary.delivery_action_count, deliveryQueue.summary.delivery_action_count);
+      assert.equal(workflowRunDashboard.summary.read_only_route_count, workflowRunDashboard.summary.workflow_run_dashboard_route_count);
+      assert.equal(workflowRunDashboard.summary.mutation_route_count, 0);
+      assert.equal(workflowRunDashboard.summary.protected_mutation_request_route_count, 0);
+      assert.equal(workflowRunDashboard.summary.secret_material_route_count, 0);
+      assert.equal(workflowRunDashboard.summary.installer_or_gateway_route_count, 0);
+      assert.equal(workflowRunDashboard.summary.auto_dequeue_allowed_count, 0);
+      assert.equal(workflowRunDashboard.summary.auto_retry_scheduled_count, 0);
+      assert.equal(workflowRunDashboard.summary.auto_resume_allowed_count, 0);
+      assert.equal(workflowRunDashboard.summary.auto_cancel_allowed_count, 0);
+      assert.equal(workflowRunDashboard.summary.protected_action_executed_count, 0);
+      assert.equal(workflowRunDashboard.summary.final_action_executed_count, 0);
+      assert.equal(workflowRunDashboard.summary.validation_error_count, 0);
+      assert.ok(workflowRunDashboard.workflow_run_dashboard_panels.every((panel) => panel.read_only === true && panel.mutation_allowed === false && panel.desktop_card_status === "human_review_required"));
+      assert.ok(workflowRunDashboard.workflow_run_queue_cards.every((card) => card.read_only === true && card.mutation_allowed === false && card.queue_status === "held_for_human_review"));
+      assert.ok(workflowRunDashboard.workflow_run_gate_cards.every((card) => card.workflow_gate_status === "manual_review_required" && card.ready_for_execution === false && card.final_action_executed === false));
+      assert.ok(workflowRunDashboard.workflow_run_output_cards.every((card) => card.read_only === true && card.mutation_allowed === false && card.delivered_action_count === 0));
+      assert.match(await readFile(path.join(outDir, "workflow-run-dashboard", "summary.md"), "utf8"), /Workflow Run Dashboard/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6321,6 +6382,7 @@ describe("matter harness", () => {
           workflow_post_run_gate_framework: path.join(outDir, "workflow-post-run-gates", "workflow-post-run-gate-framework.json"),
           gate_result_aggregator: path.join(outDir, "gate-result-aggregator", "gate-result-aggregator.json"),
           capability_registry_api: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+          workflow_run_dashboard: path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json"),
           error_cost_observability_contract_freeze: path.join(outDir, "error-cost-observability-contract-freeze", "error-cost-observability-contract-freeze.json"),
         },
         outDir: path.join(outDir, "contract-golden-fixtures"),
@@ -6332,8 +6394,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 93);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 93);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 94);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 94);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6414,6 +6476,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_post_run_gate_framework"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "gate_result_aggregator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "capability_registry_api"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6482,6 +6545,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:in-run-gates"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:post-run-gates"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:gate-results"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:run-dashboard"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:registry-api"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:exhibit-map"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:custody-events"));
@@ -6863,6 +6927,10 @@ describe("matter harness", () => {
       assert.equal(capabilityRegistryApiCheckpoint?.acceptance_profile, "capability_registry_api_gate");
       assert.equal(capabilityRegistryApiCheckpoint?.status, "passed");
       assert.equal(capabilityRegistryApiCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const workflowRunDashboardCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-workflow-run-dashboard");
+      assert.equal(workflowRunDashboardCheckpoint?.acceptance_profile, "workflow_run_dashboard_gate");
+      assert.equal(workflowRunDashboardCheckpoint?.status, "passed");
+      assert.equal(workflowRunDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
       const resourceContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-resource-contract-freeze");
       assert.equal(resourceContractFreezeCheckpoint?.acceptance_profile, "resource_contract_freeze_gate");
       assert.equal(resourceContractFreezeCheckpoint?.status, "passed");
@@ -8625,6 +8693,37 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.capability_registry_api_secret_material_route_count, 0);
       assert.equal(dashboard.summary.capability_registry_api_installer_or_gateway_route_count, 0);
       assert.equal(dashboard.summary.capability_registry_api_validation_error_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_contract_id, "workflow-run-dashboard.v1");
+      assert.equal(dashboard.summary.workflow_run_dashboard_desktop_companion_readiness_status, "read_only_ready");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_dsl_state_model_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_state_machine_runner_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_queue_retry_backoff_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_idempotency_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_resume_cancel_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_gate_result_aggregator_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_capability_registry_api_status, "complete");
+      assert.equal(dashboard.summary.workflow_run_dashboard_source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_panel_count, workflowRunDashboard.summary.workflow_run_dashboard_panel_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_state_card_count, workflowRunDashboard.summary.workflow_run_state_card_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_queue_card_count, workflowRunDashboard.summary.workflow_run_queue_card_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_gate_card_count, workflowRunDashboard.summary.workflow_run_gate_card_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_output_card_count, workflowRunDashboard.summary.workflow_run_output_card_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_human_review_required_panel_count, workflowRunDashboard.summary.human_review_required_panel_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_held_queue_panel_count, workflowRunDashboard.summary.held_queue_panel_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_auto_dequeue_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_auto_retry_scheduled_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_auto_resume_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_auto_cancel_allowed_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_final_action_executed_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_route_count, workflowRunDashboard.summary.workflow_run_dashboard_route_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_read_only_route_count, workflowRunDashboard.summary.workflow_run_dashboard_route_count);
+      assert.equal(dashboard.summary.workflow_run_dashboard_mutation_route_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_secret_material_route_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_installer_or_gateway_route_count, 0);
+      assert.equal(dashboard.summary.workflow_run_dashboard_validation_error_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_adapter_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_runtime_execution_contract_count, runtimeAgentRunContractFreeze.summary.runtime_execution_contract_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_used_runtime_count, runtimeAgentRunContractFreeze.summary.used_runtime_count);
@@ -9334,6 +9433,21 @@ describe("matter harness", () => {
       assert.equal(capabilityRegistryApiStage?.metrics.mutation_route_count, 0);
       assert.equal(capabilityRegistryApiStage?.metrics.secret_material_route_count, 0);
       assert.equal(capabilityRegistryApiStage?.metrics.installer_or_gateway_route_count, 0);
+      assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "workflow_run_dashboard"));
+      const workflowRunDashboardStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "workflow_run_dashboard");
+      assert.equal(workflowRunDashboardStage?.status, "passed");
+      assert.equal(workflowRunDashboardStage?.metrics.workflow_run_dashboard_panel_count, workflowRunDashboard.summary.workflow_run_dashboard_panel_count);
+      assert.equal(workflowRunDashboardStage?.metrics.workflow_run_state_card_count, workflowRunDashboard.summary.workflow_run_state_card_count);
+      assert.equal(workflowRunDashboardStage?.metrics.workflow_run_queue_card_count, workflowRunDashboard.summary.workflow_run_queue_card_count);
+      assert.equal(workflowRunDashboardStage?.metrics.workflow_run_gate_card_count, workflowRunDashboard.summary.workflow_run_gate_card_count);
+      assert.equal(workflowRunDashboardStage?.metrics.workflow_run_output_card_count, workflowRunDashboard.summary.workflow_run_output_card_count);
+      assert.equal(workflowRunDashboardStage?.metrics.human_review_required_panel_count, workflowRunDashboard.summary.human_review_required_panel_count);
+      assert.equal(workflowRunDashboardStage?.metrics.auto_dequeue_allowed_count, 0);
+      assert.equal(workflowRunDashboardStage?.metrics.auto_retry_scheduled_count, 0);
+      assert.equal(workflowRunDashboardStage?.metrics.auto_resume_allowed_count, 0);
+      assert.equal(workflowRunDashboardStage?.metrics.auto_cancel_allowed_count, 0);
+      assert.equal(workflowRunDashboardStage?.metrics.protected_action_executed_count, 0);
+      assert.equal(workflowRunDashboardStage?.metrics.final_action_executed_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "budget_alert_ledger"));
       assert.equal(dashboard.summary.law_firm_issue_count, 1);
       assert.equal(dashboard.summary.law_firm_citation_count, 1);
@@ -10262,6 +10376,37 @@ describe("matter harness", () => {
       const capabilityRegistryApiValidations = JSON.parse((await buildReviewApiResponse("/api/capability-registry-api-validations?status=passed", apiOptions)).body);
       assert.equal(capabilityRegistryApiValidations.collection, "capability_registry_api_validations");
       assert.equal(capabilityRegistryApiValidations.count, capabilityRegistryApi.summary.validation_item_count);
+
+      const workflowRunDashboards = JSON.parse((await buildReviewApiResponse("/api/workflow-run-dashboards?workflow_run_dashboard_status=complete", apiOptions)).body);
+      assert.equal(workflowRunDashboards.collection, "workflow_run_dashboards");
+      assert.equal(workflowRunDashboards.count, 1);
+
+      const workflowRunDashboardPanels = JSON.parse((await buildReviewApiResponse("/api/workflow-run-dashboard-panels?desktop_card_status=human_review_required", apiOptions)).body);
+      assert.equal(workflowRunDashboardPanels.collection, "workflow_run_dashboard_panels");
+      assert.equal(workflowRunDashboardPanels.count, workflowRunDashboard.summary.workflow_run_dashboard_panel_count);
+
+      const workflowRunStateCards = JSON.parse((await buildReviewApiResponse("/api/workflow-run-state-cards?dsl_current_state=waiting", apiOptions)).body);
+      assert.equal(workflowRunStateCards.collection, "workflow_run_state_cards");
+      assert.equal(workflowRunStateCards.count, workflowRunDashboard.summary.workflow_run_state_card_count);
+
+      const workflowRunQueueCards = JSON.parse((await buildReviewApiResponse("/api/workflow-run-queue-cards?queue_status=held_for_human_review", apiOptions)).body);
+      assert.equal(workflowRunQueueCards.collection, "workflow_run_queue_cards");
+      assert.equal(workflowRunQueueCards.count, workflowRunDashboard.summary.workflow_run_queue_card_count);
+
+      const workflowRunGateCards = JSON.parse((await buildReviewApiResponse("/api/workflow-run-gate-cards?workflow_gate_status=manual_review_required", apiOptions)).body);
+      assert.equal(workflowRunGateCards.collection, "workflow_run_gate_cards");
+      assert.equal(workflowRunGateCards.count, workflowRunDashboard.summary.workflow_run_gate_card_count);
+
+      const workflowRunOutputCards = JSON.parse((await buildReviewApiResponse("/api/workflow-run-output-cards?domain_pack=law-firm", apiOptions)).body);
+      assert.equal(workflowRunOutputCards.collection, "workflow_run_output_cards");
+      assert.equal(
+        workflowRunOutputCards.count,
+        workflowRunDashboard.workflow_run_output_cards.filter((card) => card.domain_pack === "law-firm").length,
+      );
+
+      const workflowRunDashboardValidations = JSON.parse((await buildReviewApiResponse("/api/workflow-run-dashboard-validations?status=passed", apiOptions)).body);
+      assert.equal(workflowRunDashboardValidations.collection, "workflow_run_dashboard_validations");
+      assert.equal(workflowRunDashboardValidations.count, workflowRunDashboard.summary.validation_item_count);
 
       const workflowDslStateModels = JSON.parse((await buildReviewApiResponse("/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete", apiOptions)).body);
       assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");

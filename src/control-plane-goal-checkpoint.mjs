@@ -113,6 +113,7 @@ const GOAL_ITEMS = [
   sourceItem("workflow_post_run_gate_framework", "Workflow post-run gate framework", "workflow", "workflow_post_run_gate_framework", "control-plane-workflow-post-run-gate-framework", { acceptance_profile: "workflow_post_run_gate_framework_gate" }),
   sourceItem("gate_result_aggregator", "Gate result aggregator", "workflow", "gate_result_aggregator", "control-plane-gate-result-aggregator", { acceptance_profile: "gate_result_aggregator_gate" }),
   sourceItem("capability_registry_api", "Capability registry API and Desktop Companion read-only surface", "api", "capability_registry_api", "control-plane-capability-registry-api", { acceptance_profile: "capability_registry_api_gate" }),
+  sourceItem("workflow_run_dashboard", "Workflow run dashboard and Desktop Companion run panels", "api", "workflow_run_dashboard", "control-plane-workflow-run-dashboard", { acceptance_profile: "workflow_run_dashboard_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -487,6 +488,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_post_run_gate_framework_gate",
     "gate_result_aggregator_gate",
     "capability_registry_api_gate",
+    "workflow_run_dashboard_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1275,6 +1277,48 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.read_only_route_count ?? 0) === (metrics.desktop_companion_route_count ?? 0)
     ) {
       return passedWithOperationalGate(stage, "Capability registry API exposes pack, capability, version, and gate cards plus Desktop Companion route groups as a read-only operator surface, with no mutation, secret, installer, gateway, SSH, cron, or auto-update control.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_run_dashboard_gate") {
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.mutation_route_count ?? 0)
+      + (metrics.protected_mutation_request_route_count ?? 0)
+      + (metrics.secret_material_route_count ?? 0)
+      + (metrics.installer_or_gateway_route_count ?? 0)
+      + (metrics.auto_dequeue_allowed_count ?? 0)
+      + (metrics.auto_retry_scheduled_count ?? 0)
+      + (metrics.auto_resume_allowed_count ?? 0)
+      + (metrics.auto_cancel_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0)
+      + (metrics.final_action_executed_count ?? 0);
+    const sourceRunCount = metrics.source_workflow_run_record_count ?? 0;
+    if (
+      errors === 0
+      && metrics.workflow_run_dashboard_status === "complete"
+      && metrics.workflow_run_dashboard_contract_id === "workflow-run-dashboard.v1"
+      && metrics.desktop_companion_readiness_status === "read_only_ready"
+      && metrics.source_workflow_run_ledger_status === "complete"
+      && metrics.source_workflow_dsl_state_model_status === "complete"
+      && metrics.source_workflow_state_machine_runner_status === "complete"
+      && metrics.source_workflow_queue_retry_backoff_status === "complete"
+      && metrics.source_workflow_idempotency_status === "complete"
+      && metrics.source_workflow_resume_cancel_status === "complete"
+      && metrics.source_gate_result_aggregator_status === "complete"
+      && metrics.source_capability_registry_api_status === "complete"
+      && sourceRunCount > 0
+      && (metrics.workflow_run_dashboard_panel_count ?? 0) === sourceRunCount
+      && (metrics.workflow_run_state_card_count ?? 0) === sourceRunCount
+      && (metrics.workflow_run_queue_card_count ?? 0) === sourceRunCount
+      && (metrics.workflow_run_gate_card_count ?? 0) === sourceRunCount
+      && (metrics.workflow_run_output_card_count ?? 0) === sourceRunCount
+      && (metrics.human_review_required_panel_count ?? 0) === sourceRunCount
+      && (metrics.held_queue_panel_count ?? 0) === sourceRunCount
+      && (metrics.waiting_state_panel_count ?? 0) === sourceRunCount
+      && (metrics.workflow_run_dashboard_route_count ?? 0) > 0
+      && (metrics.read_only_route_count ?? 0) === (metrics.workflow_run_dashboard_route_count ?? 0)
+    ) {
+      return passedWithOperationalGate(stage, "Workflow run dashboard composes run, state, queue, retry, idempotency, resume/cancel, gate, and output status into read-only Desktop Companion panels without authorizing retry, resume, cancel, delivery, or final action.");
     }
   }
 

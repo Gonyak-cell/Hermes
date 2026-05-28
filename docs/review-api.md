@@ -474,6 +474,13 @@ npm run api:serve
 - `GET /api/capability-registry-gates`: Desktop-ready gate requirement cards
 - `GET /api/desktop-companion-route-groups`: read-only Desktop Companion route groups
 - `GET /api/capability-registry-api-validations`: capability registry API validation rows
+- `GET /api/workflow-run-dashboards`: workflow run dashboard artifact
+- `GET /api/workflow-run-dashboard-panels`: Desktop-ready workflow run panels
+- `GET /api/workflow-run-state-cards`: workflow run state summary cards
+- `GET /api/workflow-run-queue-cards`: queue/retry/idempotency/resume/cancel summary cards
+- `GET /api/workflow-run-gate-cards`: workflow gate status cards
+- `GET /api/workflow-run-output-cards`: output and delivery status cards
+- `GET /api/workflow-run-dashboard-validations`: workflow run dashboard validation rows
 - `GET /api/workflow-dsl-state-models`: workflow DSL state model artifact
 - `GET /api/workflow-dsl-states`: started/waiting/gated/approved/failed/completed state definitions
 - `GET /api/workflow-dsl-transition-rules`: workflow DSL transition rule rows

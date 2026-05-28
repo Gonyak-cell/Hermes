@@ -107,6 +107,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowInRunGateFrameworkPath: "artifacts/workflow-in-run-gates/latest/workflow-in-run-gate-framework.json",
   workflowPostRunGateFrameworkPath: "artifacts/workflow-post-run-gates/latest/workflow-post-run-gate-framework.json",
   gateResultAggregatorPath: "artifacts/gate-result-aggregator/latest/gate-result-aggregator.json",
+  workflowRunDashboardPath: "artifacts/workflow-run-dashboard/latest/workflow-run-dashboard.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -705,6 +706,11 @@ const SOURCE_DEFINITIONS = [
     option: "capabilityRegistryApiPath",
     source_id: "capability_registry_api",
     label: "Capability Registry API",
+  },
+  {
+    option: "workflowRunDashboardPath",
+    source_id: "workflow_run_dashboard",
+    label: "Workflow Run Dashboard",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1315,6 +1321,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "workflow_post_run_gate_framework") return data.summary ?? {};
   if (sourceId === "gate_result_aggregator") return data.summary ?? {};
   if (sourceId === "capability_registry_api") return data.summary ?? {};
+  if (sourceId === "workflow_run_dashboard") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1586,6 +1593,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWorkflowPostRunGateFrameworkStage(artifacts.workflow_post_run_gate_framework, sourceById.get("workflow_post_run_gate_framework")),
     buildGateResultAggregatorStage(artifacts.gate_result_aggregator, sourceById.get("gate_result_aggregator")),
     buildCapabilityRegistryApiStage(artifacts.capability_registry_api, sourceById.get("capability_registry_api")),
+    buildWorkflowRunDashboardStage(artifacts.workflow_run_dashboard, sourceById.get("workflow_run_dashboard")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6666,6 +6674,101 @@ function buildCapabilityRegistryApiStage(registryApi, source) {
       ready_gate_requirement_card_count: summary.ready_gate_requirement_card_count ?? 0,
       attention_gate_requirement_card_count: summary.attention_gate_requirement_card_count ?? 0,
       validation_error_count: summary.validation_error_count ?? registryApi.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowRunDashboardStage(dashboardArtifact, source) {
+  if (!dashboardArtifact) return missingStage("workflow_run_dashboard", "Workflow Run Dashboard", source);
+  const summary = dashboardArtifact.summary ?? {};
+  const blockers = (summary.validation_error_count ?? dashboardArtifact.validation?.errors?.length ?? 0)
+    + Math.max(0, (summary.source_workflow_run_record_count ?? 0) - (summary.workflow_run_dashboard_panel_count ?? 0))
+    + Math.max(0, (summary.source_workflow_run_record_count ?? 0) - (summary.workflow_run_state_card_count ?? 0))
+    + Math.max(0, (summary.source_workflow_run_record_count ?? 0) - (summary.workflow_run_queue_card_count ?? 0))
+    + Math.max(0, (summary.source_workflow_run_record_count ?? 0) - (summary.workflow_run_gate_card_count ?? 0))
+    + Math.max(0, (summary.source_workflow_run_record_count ?? 0) - (summary.workflow_run_output_card_count ?? 0))
+    + (summary.mutation_route_count ?? 0)
+    + (summary.protected_mutation_request_route_count ?? 0)
+    + (summary.secret_material_route_count ?? 0)
+    + (summary.installer_or_gateway_route_count ?? 0)
+    + (summary.auto_dequeue_allowed_count ?? 0)
+    + (summary.auto_retry_scheduled_count ?? 0)
+    + (summary.auto_resume_allowed_count ?? 0)
+    + (summary.auto_cancel_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0)
+    + (summary.final_action_executed_count ?? 0);
+  const status = summary.workflow_run_dashboard_status === "complete"
+    && summary.workflow_run_dashboard_contract_id === "workflow-run-dashboard.v1"
+    && summary.desktop_companion_readiness_status === "read_only_ready"
+    && blockers === 0
+    && (summary.workflow_run_dashboard_panel_count ?? 0) === (summary.source_workflow_run_record_count ?? 0)
+    && (summary.workflow_run_dashboard_panel_count ?? 0) > 0
+    && (summary.workflow_run_dashboard_route_count ?? 0) > 0
+    && (summary.read_only_route_count ?? 0) === (summary.workflow_run_dashboard_route_count ?? 0)
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "workflow_run_dashboard",
+    label: "Workflow Run Dashboard",
+    status,
+    message: status === "passed"
+      ? `${summary.workflow_run_dashboard_panel_count ?? 0} workflow run panel(s), ${summary.human_review_required_panel_count ?? 0} human-review hold(s).`
+      : `${blockers} workflow run dashboard blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_run_dashboard_status: summary.workflow_run_dashboard_status ?? "unknown",
+      workflow_run_dashboard_contract_id: summary.workflow_run_dashboard_contract_id ?? null,
+      desktop_companion_readiness_status: summary.desktop_companion_readiness_status ?? "unknown",
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_workflow_dsl_state_model_status: summary.source_workflow_dsl_state_model_status ?? "unknown",
+      source_workflow_state_machine_runner_status: summary.source_workflow_state_machine_runner_status ?? "unknown",
+      source_workflow_queue_retry_backoff_status: summary.source_workflow_queue_retry_backoff_status ?? "unknown",
+      source_workflow_idempotency_status: summary.source_workflow_idempotency_status ?? "unknown",
+      source_workflow_resume_cancel_status: summary.source_workflow_resume_cancel_status ?? "unknown",
+      source_gate_result_aggregator_status: summary.source_gate_result_aggregator_status ?? "unknown",
+      source_capability_registry_api_status: summary.source_capability_registry_api_status ?? "unknown",
+      source_workflow_run_record_count: summary.source_workflow_run_record_count ?? 0,
+      source_workflow_state_projection_count: summary.source_workflow_state_projection_count ?? 0,
+      source_runner_plan_count: summary.source_runner_plan_count ?? 0,
+      source_workflow_queue_record_count: summary.source_workflow_queue_record_count ?? 0,
+      source_retry_classification_count: summary.source_retry_classification_count ?? 0,
+      source_backoff_policy_count: summary.source_backoff_policy_count ?? 0,
+      source_idempotency_key_count: summary.source_idempotency_key_count ?? 0,
+      source_resume_cursor_count: summary.source_resume_cursor_count ?? 0,
+      source_cancel_request_count: summary.source_cancel_request_count ?? 0,
+      source_workflow_gate_status_count: summary.source_workflow_gate_status_count ?? 0,
+      source_output_artifact_count: summary.source_output_artifact_count ?? 0,
+      source_delivery_action_count: summary.source_delivery_action_count ?? 0,
+      workflow_run_dashboard_panel_count: summary.workflow_run_dashboard_panel_count ?? 0,
+      workflow_run_state_card_count: summary.workflow_run_state_card_count ?? 0,
+      workflow_run_queue_card_count: summary.workflow_run_queue_card_count ?? 0,
+      workflow_run_gate_card_count: summary.workflow_run_gate_card_count ?? 0,
+      workflow_run_output_card_count: summary.workflow_run_output_card_count ?? 0,
+      human_review_required_panel_count: summary.human_review_required_panel_count ?? 0,
+      manual_review_required_panel_count: summary.manual_review_required_panel_count ?? 0,
+      held_queue_panel_count: summary.held_queue_panel_count ?? 0,
+      waiting_state_panel_count: summary.waiting_state_panel_count ?? 0,
+      output_artifact_panel_count: summary.output_artifact_panel_count ?? 0,
+      output_artifact_count: summary.output_artifact_count ?? 0,
+      delivery_action_count: summary.delivery_action_count ?? 0,
+      ready_delivery_action_count: summary.ready_delivery_action_count ?? 0,
+      delivered_action_count: summary.delivered_action_count ?? 0,
+      auto_dequeue_allowed_count: summary.auto_dequeue_allowed_count ?? 0,
+      auto_retry_scheduled_count: summary.auto_retry_scheduled_count ?? 0,
+      auto_resume_allowed_count: summary.auto_resume_allowed_count ?? 0,
+      auto_cancel_allowed_count: summary.auto_cancel_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      delivery_ready_count: summary.delivery_ready_count ?? 0,
+      final_action_executed_count: summary.final_action_executed_count ?? 0,
+      workflow_run_dashboard_route_count: summary.workflow_run_dashboard_route_count ?? 0,
+      declared_route_count: summary.declared_route_count ?? 0,
+      missing_route_count: summary.missing_route_count ?? 0,
+      read_only_route_count: summary.read_only_route_count ?? 0,
+      mutation_route_count: summary.mutation_route_count ?? 0,
+      protected_mutation_request_route_count: summary.protected_mutation_request_route_count ?? 0,
+      secret_material_route_count: summary.secret_material_route_count ?? 0,
+      installer_or_gateway_route_count: summary.installer_or_gateway_route_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? dashboardArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -12562,6 +12665,44 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     capability_registry_api_secret_material_route_count: artifacts.capability_registry_api?.summary?.secret_material_route_count ?? 0,
     capability_registry_api_installer_or_gateway_route_count: artifacts.capability_registry_api?.summary?.installer_or_gateway_route_count ?? 0,
     capability_registry_api_validation_error_count: artifacts.capability_registry_api?.summary?.validation_error_count ?? artifacts.capability_registry_api?.validation?.errors?.length ?? 0,
+    workflow_run_dashboard_status: artifacts.workflow_run_dashboard?.summary?.workflow_run_dashboard_status ?? "unknown",
+    workflow_run_dashboard_contract_id: artifacts.workflow_run_dashboard?.summary?.workflow_run_dashboard_contract_id ?? null,
+    workflow_run_dashboard_desktop_companion_readiness_status: artifacts.workflow_run_dashboard?.summary?.desktop_companion_readiness_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_run_ledger_status: artifacts.workflow_run_dashboard?.summary?.source_workflow_run_ledger_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_dsl_state_model_status: artifacts.workflow_run_dashboard?.summary?.source_workflow_dsl_state_model_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_state_machine_runner_status: artifacts.workflow_run_dashboard?.summary?.source_workflow_state_machine_runner_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_queue_retry_backoff_status: artifacts.workflow_run_dashboard?.summary?.source_workflow_queue_retry_backoff_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_idempotency_status: artifacts.workflow_run_dashboard?.summary?.source_workflow_idempotency_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_resume_cancel_status: artifacts.workflow_run_dashboard?.summary?.source_workflow_resume_cancel_status ?? "unknown",
+    workflow_run_dashboard_source_gate_result_aggregator_status: artifacts.workflow_run_dashboard?.summary?.source_gate_result_aggregator_status ?? "unknown",
+    workflow_run_dashboard_source_capability_registry_api_status: artifacts.workflow_run_dashboard?.summary?.source_capability_registry_api_status ?? "unknown",
+    workflow_run_dashboard_source_workflow_run_record_count: artifacts.workflow_run_dashboard?.summary?.source_workflow_run_record_count ?? 0,
+    workflow_run_dashboard_panel_count: artifacts.workflow_run_dashboard?.summary?.workflow_run_dashboard_panel_count ?? 0,
+    workflow_run_dashboard_state_card_count: artifacts.workflow_run_dashboard?.summary?.workflow_run_state_card_count ?? 0,
+    workflow_run_dashboard_queue_card_count: artifacts.workflow_run_dashboard?.summary?.workflow_run_queue_card_count ?? 0,
+    workflow_run_dashboard_gate_card_count: artifacts.workflow_run_dashboard?.summary?.workflow_run_gate_card_count ?? 0,
+    workflow_run_dashboard_output_card_count: artifacts.workflow_run_dashboard?.summary?.workflow_run_output_card_count ?? 0,
+    workflow_run_dashboard_human_review_required_panel_count: artifacts.workflow_run_dashboard?.summary?.human_review_required_panel_count ?? 0,
+    workflow_run_dashboard_manual_review_required_panel_count: artifacts.workflow_run_dashboard?.summary?.manual_review_required_panel_count ?? 0,
+    workflow_run_dashboard_held_queue_panel_count: artifacts.workflow_run_dashboard?.summary?.held_queue_panel_count ?? 0,
+    workflow_run_dashboard_waiting_state_panel_count: artifacts.workflow_run_dashboard?.summary?.waiting_state_panel_count ?? 0,
+    workflow_run_dashboard_output_artifact_count: artifacts.workflow_run_dashboard?.summary?.output_artifact_count ?? 0,
+    workflow_run_dashboard_delivery_action_count: artifacts.workflow_run_dashboard?.summary?.delivery_action_count ?? 0,
+    workflow_run_dashboard_ready_delivery_action_count: artifacts.workflow_run_dashboard?.summary?.ready_delivery_action_count ?? 0,
+    workflow_run_dashboard_delivered_action_count: artifacts.workflow_run_dashboard?.summary?.delivered_action_count ?? 0,
+    workflow_run_dashboard_auto_dequeue_allowed_count: artifacts.workflow_run_dashboard?.summary?.auto_dequeue_allowed_count ?? 0,
+    workflow_run_dashboard_auto_retry_scheduled_count: artifacts.workflow_run_dashboard?.summary?.auto_retry_scheduled_count ?? 0,
+    workflow_run_dashboard_auto_resume_allowed_count: artifacts.workflow_run_dashboard?.summary?.auto_resume_allowed_count ?? 0,
+    workflow_run_dashboard_auto_cancel_allowed_count: artifacts.workflow_run_dashboard?.summary?.auto_cancel_allowed_count ?? 0,
+    workflow_run_dashboard_protected_action_executed_count: artifacts.workflow_run_dashboard?.summary?.protected_action_executed_count ?? 0,
+    workflow_run_dashboard_final_action_executed_count: artifacts.workflow_run_dashboard?.summary?.final_action_executed_count ?? 0,
+    workflow_run_dashboard_route_count: artifacts.workflow_run_dashboard?.summary?.workflow_run_dashboard_route_count ?? 0,
+    workflow_run_dashboard_declared_route_count: artifacts.workflow_run_dashboard?.summary?.declared_route_count ?? 0,
+    workflow_run_dashboard_read_only_route_count: artifacts.workflow_run_dashboard?.summary?.read_only_route_count ?? 0,
+    workflow_run_dashboard_mutation_route_count: artifacts.workflow_run_dashboard?.summary?.mutation_route_count ?? 0,
+    workflow_run_dashboard_secret_material_route_count: artifacts.workflow_run_dashboard?.summary?.secret_material_route_count ?? 0,
+    workflow_run_dashboard_installer_or_gateway_route_count: artifacts.workflow_run_dashboard?.summary?.installer_or_gateway_route_count ?? 0,
+    workflow_run_dashboard_validation_error_count: artifacts.workflow_run_dashboard?.summary?.validation_error_count ?? artifacts.workflow_run_dashboard?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -14376,6 +14517,8 @@ function parseArgs(argv) {
     else if (arg === "--no-workflow-post-run-gates") parsed.workflowPostRunGateFrameworkPath = false;
     else if (arg === "--gate-result-aggregator") parsed.gateResultAggregatorPath = argv[++index];
     else if (arg === "--no-gate-result-aggregator") parsed.gateResultAggregatorPath = false;
+    else if (arg === "--workflow-run-dashboard") parsed.workflowRunDashboardPath = argv[++index];
+    else if (arg === "--no-workflow-run-dashboard") parsed.workflowRunDashboardPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -14782,6 +14925,9 @@ Options:
   --capability-registry-api <path>
                                   capability-registry-api.json path.
   --no-capability-registry-api    Do not include Capability Registry API status.
+  --workflow-run-dashboard <path>
+                                  workflow-run-dashboard.json path.
+  --no-workflow-run-dashboard     Do not include Workflow Run Dashboard status.
   --workflow-dsl-state-model <path>
                                   workflow-dsl-state-model.json path.
   --no-workflow-dsl-state-model

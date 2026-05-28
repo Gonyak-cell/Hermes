@@ -4,8 +4,8 @@
 
 운영 규칙:
 
-- 현재 완료 기준점은 Phase 191이다.
-- 남은 planned slot은 P192-P312, 총 121개다.
+- 현재 완료 기준점은 Phase 192이다.
+- 남은 planned slot은 P193-P312, 총 120개다.
 - 각 slot은 `검증 -> 보강 -> 구현 -> 검증 -> commit -> roadmap 승격` 순서로 처리한다.
 - 모든 slot은 가능하면 `npm run validate`, `npm test`, 해당 slice command, `npm run control-plane:loop`, API/dashboard smoke 중 관련 검증을 통과해야 한다.
 - 미래 planned slot은 구현 완료처럼 계산되지 않도록 `P089` 형식으로만 표기한다.

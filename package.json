@@ -171,6 +171,7 @@
     "workflows:in-run-gates": "node scripts/workflow-in-run-gate-framework.mjs",
     "workflows:post-run-gates": "node scripts/workflow-post-run-gate-framework.mjs",
     "workflows:gate-results": "node scripts/gate-result-aggregator.mjs",
+    "workflows:run-dashboard": "node scripts/workflow-run-dashboard.mjs",
     "policy:catalog": "node scripts/policy-matrix-catalog.mjs",
     "policy:surface": "node scripts/policy-operations-surface.mjs",
     "policy:snapshots": "node scripts/policy-snapshot-ledger.mjs",

@@ -981,6 +981,34 @@ try {
   assert.equal(capabilityRegistryApiValidations.collection, "capability_registry_api_validations");
   assert.ok(capabilityRegistryApiValidations.count <= 5);
 
+  const workflowRunDashboards = await fetchJson(`${url}/api/workflow-run-dashboards?workflow_run_dashboard_status=complete&limit=1`);
+  assert.equal(workflowRunDashboards.collection, "workflow_run_dashboards");
+  assert.ok(workflowRunDashboards.count <= 1);
+
+  const workflowRunDashboardPanels = await fetchJson(`${url}/api/workflow-run-dashboard-panels?desktop_card_status=human_review_required&limit=5`);
+  assert.equal(workflowRunDashboardPanels.collection, "workflow_run_dashboard_panels");
+  assert.ok(workflowRunDashboardPanels.count <= 5);
+
+  const workflowRunStateCards = await fetchJson(`${url}/api/workflow-run-state-cards?dsl_current_state=waiting&limit=5`);
+  assert.equal(workflowRunStateCards.collection, "workflow_run_state_cards");
+  assert.ok(workflowRunStateCards.count <= 5);
+
+  const workflowRunQueueCards = await fetchJson(`${url}/api/workflow-run-queue-cards?queue_status=held_for_human_review&limit=5`);
+  assert.equal(workflowRunQueueCards.collection, "workflow_run_queue_cards");
+  assert.ok(workflowRunQueueCards.count <= 5);
+
+  const workflowRunGateCards = await fetchJson(`${url}/api/workflow-run-gate-cards?workflow_gate_status=manual_review_required&limit=5`);
+  assert.equal(workflowRunGateCards.collection, "workflow_run_gate_cards");
+  assert.ok(workflowRunGateCards.count <= 5);
+
+  const workflowRunOutputCards = await fetchJson(`${url}/api/workflow-run-output-cards?domain_pack=law-firm&limit=5`);
+  assert.equal(workflowRunOutputCards.collection, "workflow_run_output_cards");
+  assert.ok(workflowRunOutputCards.count <= 5);
+
+  const workflowRunDashboardValidations = await fetchJson(`${url}/api/workflow-run-dashboard-validations?status=passed&limit=5`);
+  assert.equal(workflowRunDashboardValidations.collection, "workflow_run_dashboard_validations");
+  assert.ok(workflowRunDashboardValidations.count <= 5);
+
   const workflowDslStateModels = await fetchJson(`${url}/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete&limit=1`);
   assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");
   assert.ok(workflowDslStateModels.count <= 1);

@@ -3203,6 +3203,79 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-run-dashboards") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_run_dashboards", [workflowRunDashboardResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-run-dashboard-panels") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_dashboard_panels", workflowRunDashboardResult.artifact.workflow_run_dashboard_panels ?? workflowRunDashboardResult.artifact.workflow_run_dashboard_catalog?.workflow_run_dashboard_panels ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-state-cards") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_state_cards", workflowRunDashboardResult.artifact.workflow_run_state_cards ?? workflowRunDashboardResult.artifact.workflow_run_dashboard_catalog?.workflow_run_state_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-queue-cards") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_queue_cards", workflowRunDashboardResult.artifact.workflow_run_queue_cards ?? workflowRunDashboardResult.artifact.workflow_run_dashboard_catalog?.workflow_run_queue_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-gate-cards") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_gate_cards", workflowRunDashboardResult.artifact.workflow_run_gate_cards ?? workflowRunDashboardResult.artifact.workflow_run_dashboard_catalog?.workflow_run_gate_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-output-cards") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_output_cards", workflowRunDashboardResult.artifact.workflow_run_output_cards ?? workflowRunDashboardResult.artifact.workflow_run_dashboard_catalog?.workflow_run_output_cards ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-run-dashboard-validations") {
+    const workflowRunDashboardResult = await readDashboardSourceArtifact(dashboard, "workflow_run_dashboard");
+    if (!workflowRunDashboardResult.available) {
+      return jsonResponse(503, buildError("workflow_run_dashboard_unavailable", workflowRunDashboardResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_run_dashboard_validations", workflowRunDashboardResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7324,6 +7397,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/capability-registry-gates", "Desktop-ready gate requirement cards"),
       route("GET", "/api/desktop-companion-route-groups", "Read-only Desktop Companion route groups"),
       route("GET", "/api/capability-registry-api-validations", "Capability registry API validation rows"),
+      route("GET", "/api/workflow-run-dashboards", "Workflow run dashboard artifacts"),
+      route("GET", "/api/workflow-run-dashboard-panels", "Desktop-ready workflow run panels"),
+      route("GET", "/api/workflow-run-state-cards", "Workflow run state summary cards"),
+      route("GET", "/api/workflow-run-queue-cards", "Workflow queue, retry, idempotency, resume, and cancel cards"),
+      route("GET", "/api/workflow-run-gate-cards", "Workflow gate status cards"),
+      route("GET", "/api/workflow-run-output-cards", "Workflow output status cards"),
+      route("GET", "/api/workflow-run-dashboard-validations", "Workflow run dashboard validation rows"),
       route("GET", "/api/workflow-dsl-state-models", "Workflow DSL state model artifacts"),
       route("GET", "/api/workflow-dsl-states", "Workflow DSL state definitions"),
       route("GET", "/api/workflow-dsl-transition-rules", "Workflow DSL transition rules"),
@@ -8040,6 +8120,7 @@ function filterItems(items, searchParams) {
     "post_run_guard_status",
     "gate_result_aggregator_status",
     "capability_registry_api_status",
+    "workflow_run_dashboard_status",
     "desktop_companion_readiness_status",
     "desktop_surface",
     "desktop_card_status",
@@ -8084,6 +8165,11 @@ function filterItems(items, searchParams) {
     "capability_api_card_id",
     "capability_version_api_card_id",
     "gate_requirement_api_card_id",
+    "workflow_run_dashboard_panel_id",
+    "workflow_run_state_card_id",
+    "workflow_run_queue_card_id",
+    "workflow_run_gate_card_id",
+    "workflow_run_output_card_id",
     "gate_type",
     "tool_invocation_id",
     "tool_id",
@@ -9275,6 +9361,7 @@ function readFilterValue(item, key) {
   if (key === "gate_result_aggregator_status") return item.summary?.gate_result_aggregator_status ?? item.gate_result_aggregator_status;
   if (key === "gate_result_aggregator_contract_id") return item.summary?.gate_result_aggregator_contract_id ?? item.gate_result_aggregator_contract_id;
   if (key === "capability_registry_api_status") return item.summary?.capability_registry_api_status ?? item.capability_registry_api_status;
+  if (key === "workflow_run_dashboard_status") return item.summary?.workflow_run_dashboard_status ?? item.workflow_run_dashboard_status;
   if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;
   if (key === "desktop_surface") return item.desktop_surface;
   if (key === "desktop_card_status") return item.desktop_card_status;
@@ -9313,6 +9400,11 @@ function readFilterValue(item, key) {
   if (key === "capability_api_card_id") return item.capability_api_card_id;
   if (key === "capability_version_api_card_id") return item.capability_version_api_card_id;
   if (key === "gate_requirement_api_card_id") return item.gate_requirement_api_card_id;
+  if (key === "workflow_run_dashboard_panel_id") return item.workflow_run_dashboard_panel_id;
+  if (key === "workflow_run_state_card_id") return item.workflow_run_state_card_id;
+  if (key === "workflow_run_queue_card_id") return item.workflow_run_queue_card_id;
+  if (key === "workflow_run_gate_card_id") return item.workflow_run_gate_card_id;
+  if (key === "workflow_run_output_card_id") return item.workflow_run_output_card_id;
   if (key === "gate_type") return item.gate_type ?? item.aggregate_gate_type ?? item.gate_id;
   if (key === "tool_invocation_id") return item.tool_invocation_id;
   if (key === "tool_id") return item.tool_id;

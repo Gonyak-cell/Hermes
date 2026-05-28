@@ -578,6 +578,11 @@ npm run api:serve
 - `GET /api/local-script-agent-run-ledger-bindings`: Local Script AgentRun ledger binding rows
 - `GET /api/local-script-desktop-boundary`: Local Script Desktop boundary row
 - `GET /api/local-script-adapter-validations`: Local Script Adapter validation rows
+- `GET /api/document-renderer-adapter`: Document Renderer Adapter artifact
+- `GET /api/document-renderer-output-contracts`: Document Renderer output contract rows
+- `GET /api/document-renderer-agent-run-ledger-bindings`: Document Renderer AgentRun ledger binding rows
+- `GET /api/document-renderer-desktop-boundary`: Document Renderer Desktop boundary row
+- `GET /api/document-renderer-adapter-validations`: Document Renderer Adapter validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

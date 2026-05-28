@@ -5782,6 +5782,32 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 101개로 증가하고 local script adapter artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:local-script-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 200 - Document Renderer Adapter
+
+목표: Document Renderer를 DOCX/PPTX/PDF draft renderer adapter contract로 고정하고, 생성 로그, output hash, rendered artifacts, Output Delivery binding, AgentRun ledger sink를 하나의 read-only 운영 projection으로 연결한다. Desktop은 renderer 실행자가 아니라 상태, 로그, artifacts, verification만 보는 operator surface로 유지한다.
+
+구현:
+
+- `src/document-renderer-adapter.mjs`와 `scripts/document-renderer-adapter.mjs`를 추가해 `npm run runtime:document-renderer-adapter` slice를 등록
+- `schemas/document-renderer-adapter.schema.json`으로 renderer adapter contract, output contract, AgentRun ledger binding, Desktop boundary를 검증
+- Runtime Adapter schema와 `examples/core/runtime-adapters.json`의 Document Renderer output artifact target에 `pdf`를 추가해 P200의 DOCX/PPTX/PDF renderer 범위를 contract source에 반영
+- Runtime Adapter Interface v2의 `document_renderer` interface, Runtime/AgentRun freeze의 Docker execution contract, AgentRun ledger record, Output Delivery binding을 하나의 locked artifact로 연결
+- renderer execution을 `docker`, `network_access_allowed=false`, `external_execution_allowed=false`, `workspace_isolation_type=docker_container`, `draft_only_output_required=true`로 고정
+- 현재 Document Renderer AgentRun 1건의 output hash, captured log, rendered artifact 3건, rendered document artifact 1건, output delivery binding 3건을 collection-ready 상태로 검증
+- DOCX/PPTX/PDF target capture matrix를 materialize해 현재 artifact가 없는 target도 supported/ready 상태로 추적
+- Review Dashboard stage/summary, Review API routes, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Document Renderer Adapter가 validation error 없이 `complete` 상태가 됨
+- Document Renderer interface, runtime execution contract, AgentRun ledger sink, Output Delivery binding이 모두 bound/locked 상태가 됨
+- required render target이 `docx`, `pptx`, `pdf`로 고정되고 세 target 모두 supported 상태임
+- output contract 1건이 locked 상태이며 output hash, logs, artifacts, target capture matrix, output delivery binding capture가 ready/present/captured임
+- network/external execution, direct final delivery, protected path write, secret material, runtime self-report trust가 모두 false임
+- Review API가 `/api/document-renderer-adapter`, `/api/document-renderer-output-contracts`, `/api/document-renderer-agent-run-ledger-bindings`, `/api/document-renderer-desktop-boundary`, `/api/document-renderer-adapter-validations`를 제공
+- Golden fixture 수가 102개로 증가하고 document renderer adapter artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:document-renderer-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5790,9 +5816,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 199이다.
+- 현재 완료 기준점은 Phase 200이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P200-P312, 총 113개다.
+- 남은 계획 슬롯은 P201-P312, 총 112개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

@@ -176,7 +176,7 @@
         "artifact_types": {
           "type": "array",
           "items": {
-            "enum": ["markdown", "docx", "pptx", "email_draft", "pr_draft", "json", "task_update", "erp_billing_draft", "public_content"]
+            "enum": ["markdown", "docx", "pptx", "pdf", "email_draft", "pr_draft", "json", "task_update", "erp_billing_draft", "public_content"]
           }
         },
         "output_trust": {

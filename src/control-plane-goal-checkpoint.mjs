@@ -72,6 +72,7 @@ const GOAL_ITEMS = [
   sourceItem("claude_code_adapter_contract", "Claude Code adapter contract", "runtime", "claude_code_adapter_contract", "control-plane-claude-code-adapter-contract", { acceptance_profile: "claude_code_adapter_contract_gate" }),
   sourceItem("codex_adapter_contract", "Codex adapter contract", "runtime", "codex_adapter_contract", "control-plane-codex-adapter-contract", { acceptance_profile: "codex_adapter_contract_gate" }),
   sourceItem("local_script_adapter", "Local script adapter", "runtime", "local_script_adapter", "control-plane-local-script-adapter", { acceptance_profile: "local_script_adapter_gate" }),
+  sourceItem("document_renderer_adapter", "Document renderer adapter", "runtime", "document_renderer_adapter", "control-plane-document-renderer-adapter", { acceptance_profile: "document_renderer_adapter_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -503,6 +504,7 @@ function evaluateStageAcceptance(item, stage) {
     "claude_code_adapter_contract_gate",
     "codex_adapter_contract_gate",
     "local_script_adapter_gate",
+    "document_renderer_adapter_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1607,6 +1609,61 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_runtime_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Local script adapter keeps deterministic extractor and renderer-preparation scripts local-only, binds outputs to AgentRun ledger collection, and requires validation/test/human gates before final delivery.");
+    }
+  }
+
+  if (item.acceptance_profile === "document_renderer_adapter_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.failed_validation_item_count ?? 0);
+    const outputContractCount = metrics.output_contract_count ?? 0;
+    if (
+      errors === 0
+      && outputContractCount >= 1
+      && metrics.document_renderer_adapter_status === "complete"
+      && metrics.runtime_id === "document_renderer"
+      && metrics.adapter_id === "runtime.document_renderer.default"
+      && metrics.adapter_status === "locked"
+      && metrics.document_renderer_interface_bound === true
+      && metrics.document_renderer_runtime_execution_contract_bound === true
+      && metrics.document_renderer_command_binding_required === false
+      && metrics.agent_run_ledger_bound === true
+      && metrics.output_contract_locked_count === outputContractCount
+      && metrics.docx_target_supported === true
+      && metrics.pptx_target_supported === true
+      && metrics.pdf_target_supported === true
+      && metrics.rendered_artifact_count >= 1
+      && metrics.rendered_document_artifact_count >= 1
+      && metrics.output_delivery_binding_count >= metrics.rendered_document_artifact_count
+      && metrics.output_hash_present_count === outputContractCount
+      && metrics.log_capture_ready_count === outputContractCount
+      && metrics.artifact_capture_ready_count === outputContractCount
+      && metrics.target_capture_matrix_ready_count === outputContractCount
+      && metrics.network_access_allowed === false
+      && metrics.external_execution_allowed === false
+      && metrics.sandbox_required === true
+      && metrics.workspace_isolation_type === "docker_container"
+      && metrics.direct_final_delivery_allowed === false
+      && metrics.protected_path_write_allowed === false
+      && metrics.secret_material_allowed === false
+      && metrics.runtime_self_report_trusted === false
+      && metrics.draft_only_output_required === true
+      && metrics.output_trust === "draft_only"
+      && metrics.citation_gate_required === true
+      && metrics.format_validation_gate_required === true
+      && metrics.human_review_required === true
+      && metrics.output_capture_ready === true
+      && metrics.log_capture_ready === true
+      && metrics.artifact_capture_ready === true
+      && metrics.verification_capture_ready === true
+      && metrics.output_delivery_binding_capture_ready === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_request_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_runtime_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Document renderer adapter keeps DOCX/PPTX/PDF draft rendering behind sandboxed execution, captures output hash/log/artifact/delivery bindings into the AgentRun ledger, and leaves Desktop read-only.");
     }
   }
 

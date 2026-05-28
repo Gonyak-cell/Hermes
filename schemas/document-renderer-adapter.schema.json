@@ -1,0 +1,395 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/document-renderer-adapter.schema.json",
+  "title": "Hermes Document Renderer Adapter",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "adapter_projection_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "document_renderer_adapter_contract",
+    "document_renderer_output_contracts",
+    "document_renderer_agent_run_ledger_bindings",
+    "document_renderer_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "document-renderer-adapter.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "adapter_projection_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2_path",
+        "runtime_agentrun_contract_freeze_path",
+        "agent_run_ledger_path",
+        "output_delivery_contract_freeze_path",
+        "workflow_gate_freeze_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2",
+        "runtime_agentrun_contract_freeze",
+        "agent_run_ledger",
+        "output_delivery_contract_freeze",
+        "workflow_gate_freeze",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_adapter_interface_v2": {
+          "type": "object",
+          "required": ["runtime_adapter_interface_status", "document_renderer_interface_status", "document_renderer_operator_surface_policy_status", "document_renderer_supported_render_targets"],
+          "properties": {
+            "runtime_adapter_interface_status": { "const": "complete" },
+            "document_renderer_interface_status": { "const": "locked" },
+            "document_renderer_operator_surface_policy_status": { "const": "locked" },
+            "document_renderer_supported_render_targets": {
+              "type": "array",
+              "contains": { "const": "pdf" }
+            }
+          }
+        },
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "document_renderer_runtime_adapter_found", "document_renderer_runtime_execution_contract_found", "current_document_renderer_agent_run_contract_count"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "document_renderer_runtime_adapter_found": { "const": true },
+            "document_renderer_runtime_execution_contract_found": { "const": true },
+            "current_document_renderer_agent_run_contract_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "agent_run_ledger": {
+          "type": "object",
+          "required": ["agent_run_ledger_status", "current_document_renderer_agent_run_record_count"],
+          "properties": {
+            "agent_run_ledger_status": { "const": "complete" },
+            "current_document_renderer_agent_run_record_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "output_delivery_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "renderer_output_artifact_count", "renderer_output_delivery_binding_count"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "renderer_output_artifact_count": { "type": "integer", "minimum": 1 },
+            "renderer_output_delivery_binding_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "workflow_gate_freeze": {
+          "type": "object",
+          "required": ["workflow_gate_freeze_status"],
+          "properties": {
+            "workflow_gate_freeze_status": { "const": "complete" }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": ["declares_read_only", "declares_not_runtime_source_of_truth"],
+          "properties": {
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true }
+          }
+        }
+      }
+    },
+    "document_renderer_adapter_contract": {
+      "type": "object",
+      "required": ["contract_id", "runtime_id", "adapter_id", "adapter_status", "output_trust", "supported_render_targets", "required_render_targets", "renderer_execution_policy", "gate_policy", "collection_policy"],
+      "properties": {
+        "contract_id": { "const": "document-renderer-adapter.default" },
+        "runtime_id": { "const": "document_renderer" },
+        "adapter_id": { "const": "runtime.document_renderer.default" },
+        "command_binding_required": { "const": false },
+        "adapter_status": { "const": "locked" },
+        "output_trust": { "const": "draft_only" },
+        "supported_render_targets": {
+          "type": "array",
+          "allOf": [
+            { "contains": { "const": "docx" } },
+            { "contains": { "const": "pptx" } },
+            { "contains": { "const": "pdf" } }
+          ]
+        },
+        "required_render_targets": {
+          "type": "array",
+          "prefixItems": [
+            { "const": "docx" },
+            { "const": "pptx" },
+            { "const": "pdf" }
+          ],
+          "minItems": 3
+        },
+        "renderer_execution_policy": {
+          "type": "object",
+          "required": [
+            "execution_mode",
+            "network_policy",
+            "network_access_allowed",
+            "external_execution_allowed",
+            "sandbox_required",
+            "workspace_isolation_type",
+            "direct_final_delivery_allowed",
+            "protected_path_write_allowed",
+            "secret_material_allowed",
+            "runtime_self_report_trusted",
+            "draft_only_output_required",
+            "docx_target_supported",
+            "pptx_target_supported",
+            "pdf_target_supported"
+          ],
+          "properties": {
+            "execution_mode": { "const": "docker" },
+            "network_policy": { "const": "disabled" },
+            "network_access_allowed": { "const": false },
+            "external_execution_allowed": { "const": false },
+            "sandbox_required": { "const": true },
+            "workspace_isolation_type": { "const": "docker_container" },
+            "direct_final_delivery_allowed": { "const": false },
+            "protected_path_write_allowed": { "const": false },
+            "secret_material_allowed": { "const": false },
+            "runtime_self_report_trusted": { "const": false },
+            "draft_only_output_required": { "const": true },
+            "docx_target_supported": { "const": true },
+            "pptx_target_supported": { "const": true },
+            "pdf_target_supported": { "const": true }
+          }
+        },
+        "gate_policy": {
+          "type": "object",
+          "required": [
+            "gate_binding_status",
+            "classification_gate_required",
+            "tool_permission_gate_required",
+            "evidence_coverage_gate_required",
+            "citation_gate_required",
+            "format_validation_gate_required",
+            "human_approval_gate_required"
+          ],
+          "properties": {
+            "gate_binding_status": { "const": "ready" },
+            "classification_gate_required": { "const": true },
+            "tool_permission_gate_required": { "const": true },
+            "evidence_coverage_gate_required": { "const": true },
+            "citation_gate_required": { "const": true },
+            "format_validation_gate_required": { "const": true },
+            "human_approval_gate_required": { "const": true }
+          }
+        },
+        "collection_policy": {
+          "type": "object",
+          "required": ["sink_ledger", "collect_output_delivery_bindings", "collect_render_target_matrix", "runtime_self_report_trusted", "collection_status"],
+          "properties": {
+            "sink_ledger": { "const": "agent_run_ledger" },
+            "collect_output_delivery_bindings": { "const": true },
+            "collect_render_target_matrix": { "const": true },
+            "runtime_self_report_trusted": { "const": false },
+            "collection_status": { "const": "ready" }
+          }
+        }
+      }
+    },
+    "document_renderer_output_contracts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "runtime_id",
+          "adapter_id",
+          "execution_mode",
+          "network_access_allowed",
+          "external_execution_allowed",
+          "sandbox_required",
+          "output_hash_status",
+          "log_capture_status",
+          "rendered_artifact_count",
+          "target_capture_matrix",
+          "output_delivery_binding_count",
+          "human_approval_gate_required",
+          "direct_final_delivery_allowed",
+          "protected_path_write_allowed",
+          "secret_material_allowed",
+          "runtime_self_report_trusted",
+          "contract_status"
+        ],
+        "properties": {
+          "runtime_id": { "const": "document_renderer" },
+          "adapter_id": { "const": "runtime.document_renderer.default" },
+          "execution_mode": { "const": "docker" },
+          "network_access_allowed": { "const": false },
+          "external_execution_allowed": { "const": false },
+          "sandbox_required": { "const": true },
+          "output_hash_status": { "const": "present" },
+          "log_capture_status": { "const": "captured" },
+          "rendered_artifact_count": { "type": "integer", "minimum": 1 },
+          "rendered_document_artifact_count": { "type": "integer", "minimum": 1 },
+          "target_capture_matrix": {
+            "type": "array",
+            "minItems": 3,
+            "items": {
+              "type": "object",
+              "required": ["artifact_type", "supported_by_runtime_contract", "collection_status"],
+              "properties": {
+                "artifact_type": { "enum": ["docx", "pptx", "pdf"] },
+                "supported_by_runtime_contract": { "const": true },
+                "collection_status": { "enum": ["captured", "ready"] }
+              }
+            }
+          },
+          "output_delivery_binding_count": { "type": "integer", "minimum": 1 },
+          "human_approval_gate_required": { "const": true },
+          "direct_final_delivery_allowed": { "const": false },
+          "protected_path_write_allowed": { "const": false },
+          "secret_material_allowed": { "const": false },
+          "runtime_self_report_trusted": { "const": false },
+          "contract_status": { "const": "locked" }
+        }
+      }
+    },
+    "document_renderer_agent_run_ledger_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["runtime_id", "adapter_id", "sink_ledger_status", "collection_status", "output_delivery_binding_capture_status", "binding_status"],
+        "properties": {
+          "runtime_id": { "const": "document_renderer" },
+          "adapter_id": { "const": "runtime.document_renderer.default" },
+          "sink_ledger_status": { "const": "complete" },
+          "collection_status": { "const": "ready" },
+          "output_delivery_binding_capture_status": { "const": "ready" },
+          "binding_status": { "const": "locked" }
+        }
+      }
+    },
+    "document_renderer_desktop_boundary": {
+      "type": "object",
+      "required": ["runtime_id", "read_only", "mutation_allowed", "runtime_source_of_truth", "boundary_status"],
+      "properties": {
+        "runtime_id": { "const": "document_renderer" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "runtime_source_of_truth": { "const": false },
+        "boundary_status": { "const": "locked" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "document_renderer_adapter_status",
+        "runtime_id",
+        "adapter_id",
+        "adapter_status",
+        "document_renderer_interface_bound",
+        "document_renderer_runtime_execution_contract_bound",
+        "document_renderer_command_binding_required",
+        "agent_run_ledger_bound",
+        "output_contract_count",
+        "docx_target_supported",
+        "pptx_target_supported",
+        "pdf_target_supported",
+        "rendered_artifact_count",
+        "rendered_document_artifact_count",
+        "output_delivery_binding_count",
+        "network_access_allowed",
+        "external_execution_allowed",
+        "sandbox_required",
+        "workspace_isolation_type",
+        "direct_final_delivery_allowed",
+        "protected_path_write_allowed",
+        "secret_material_allowed",
+        "runtime_self_report_trusted",
+        "draft_only_output_required",
+        "output_trust",
+        "human_review_required",
+        "output_capture_ready",
+        "log_capture_ready",
+        "artifact_capture_ready",
+        "verification_capture_ready",
+        "output_delivery_binding_capture_ready",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "document_renderer_adapter_status": { "const": "complete" },
+        "runtime_id": { "const": "document_renderer" },
+        "adapter_id": { "const": "runtime.document_renderer.default" },
+        "adapter_status": { "const": "locked" },
+        "document_renderer_interface_bound": { "const": true },
+        "document_renderer_runtime_execution_contract_bound": { "const": true },
+        "document_renderer_command_binding_required": { "const": false },
+        "agent_run_ledger_bound": { "const": true },
+        "output_contract_count": { "type": "integer", "minimum": 1 },
+        "docx_target_supported": { "const": true },
+        "pptx_target_supported": { "const": true },
+        "pdf_target_supported": { "const": true },
+        "rendered_artifact_count": { "type": "integer", "minimum": 1 },
+        "rendered_document_artifact_count": { "type": "integer", "minimum": 1 },
+        "output_delivery_binding_count": { "type": "integer", "minimum": 1 },
+        "network_access_allowed": { "const": false },
+        "external_execution_allowed": { "const": false },
+        "sandbox_required": { "const": true },
+        "workspace_isolation_type": { "const": "docker_container" },
+        "direct_final_delivery_allowed": { "const": false },
+        "protected_path_write_allowed": { "const": false },
+        "secret_material_allowed": { "const": false },
+        "runtime_self_report_trusted": { "const": false },
+        "draft_only_output_required": { "const": true },
+        "output_trust": { "const": "draft_only" },
+        "human_review_required": { "const": true },
+        "output_capture_ready": { "const": true },
+        "log_capture_ready": { "const": true },
+        "artifact_capture_ready": { "const": true },
+        "verification_capture_ready": { "const": true },
+        "output_delivery_binding_capture_ready": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": {
+          "type": "array",
+          "maxItems": 0
+        }
+      }
+    }
+  },
+  "$defs": {
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

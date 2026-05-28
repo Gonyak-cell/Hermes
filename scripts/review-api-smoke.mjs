@@ -309,6 +309,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/local-script-agent-run-ledger-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/local-script-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/local-script-adapter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-adapter"));
+  assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-output-contracts"));
+  assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-agent-run-ledger-bindings"));
+  assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-adapter-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1474,6 +1479,26 @@ try {
   const localScriptAdapterValidations = await fetchJson(`${url}/api/local-script-adapter-validations?status=passed&limit=5`);
   assert.equal(localScriptAdapterValidations.collection, "local_script_adapter_validations");
   assert.ok(localScriptAdapterValidations.count <= 5);
+
+  const documentRendererAdapter = await fetchJson(`${url}/api/document-renderer-adapter?document_renderer_adapter_status=complete&limit=1`);
+  assert.equal(documentRendererAdapter.collection, "document_renderer_adapter");
+  assert.ok(documentRendererAdapter.count <= 1);
+
+  const documentRendererOutputContracts = await fetchJson(`${url}/api/document-renderer-output-contracts?contract_status=locked&limit=5`);
+  assert.equal(documentRendererOutputContracts.collection, "document_renderer_output_contracts");
+  assert.ok(documentRendererOutputContracts.count <= 5);
+
+  const documentRendererAgentRunLedgerBindings = await fetchJson(`${url}/api/document-renderer-agent-run-ledger-bindings?binding_status=locked&limit=5`);
+  assert.equal(documentRendererAgentRunLedgerBindings.collection, "document_renderer_agent_run_ledger_bindings");
+  assert.ok(documentRendererAgentRunLedgerBindings.count <= 5);
+
+  const documentRendererDesktopBoundary = await fetchJson(`${url}/api/document-renderer-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(documentRendererDesktopBoundary.collection, "document_renderer_desktop_boundary");
+  assert.ok(documentRendererDesktopBoundary.count <= 1);
+
+  const documentRendererAdapterValidations = await fetchJson(`${url}/api/document-renderer-adapter-validations?status=passed&limit=5`);
+  assert.equal(documentRendererAdapterValidations.collection, "document_renderer_adapter_validations");
+  assert.ok(documentRendererAdapterValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

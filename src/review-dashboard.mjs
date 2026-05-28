@@ -57,6 +57,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   claudeCodeAdapterContractPath: "artifacts/claude-code-adapter-contract/latest/claude-code-adapter-contract.json",
   codexAdapterContractPath: "artifacts/codex-adapter-contract/latest/codex-adapter-contract.json",
   localScriptAdapterPath: "artifacts/local-script-adapter/latest/local-script-adapter.json",
+  documentRendererAdapterPath: "artifacts/document-renderer-adapter/latest/document-renderer-adapter.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -463,6 +464,11 @@ const SOURCE_DEFINITIONS = [
     option: "localScriptAdapterPath",
     source_id: "local_script_adapter",
     label: "Local Script Adapter",
+  },
+  {
+    option: "documentRendererAdapterPath",
+    source_id: "document_renderer_adapter",
+    label: "Document Renderer Adapter",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1313,6 +1319,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "claude_code_adapter_contract") return data.summary ?? {};
   if (sourceId === "codex_adapter_contract") return data.summary ?? {};
   if (sourceId === "local_script_adapter") return data.summary ?? {};
+  if (sourceId === "document_renderer_adapter") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1592,6 +1599,7 @@ function buildStageStatuses(artifacts, sources) {
     buildClaudeCodeAdapterContractStage(artifacts.claude_code_adapter_contract, sourceById.get("claude_code_adapter_contract")),
     buildCodexAdapterContractStage(artifacts.codex_adapter_contract, sourceById.get("codex_adapter_contract")),
     buildLocalScriptAdapterStage(artifacts.local_script_adapter, sourceById.get("local_script_adapter")),
+    buildDocumentRendererAdapterStage(artifacts.document_renderer_adapter, sourceById.get("document_renderer_adapter")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4561,6 +4569,104 @@ function buildLocalScriptAdapterStage(adapterArtifact, source) {
       artifact_capture_ready: summary.artifact_capture_ready ?? false,
       verification_capture_ready: summary.verification_capture_ready ?? false,
       deterministic_validation_capture_ready: summary.deterministic_validation_capture_ready ?? false,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_secret_material_exposed: summary.desktop_secret_material_exposed ?? false,
+      desktop_installer_or_gateway_control: summary.desktop_installer_or_gateway_control ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? adapterArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildDocumentRendererAdapterStage(adapterArtifact, source) {
+  if (!adapterArtifact) return missingStage("document_renderer_adapter", "Document Renderer Adapter", source);
+  const summary = adapterArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.network_access_allowed === true
+    || summary.external_execution_allowed === true
+    || summary.direct_final_delivery_allowed === true
+    || summary.protected_path_write_allowed === true
+    || summary.secret_material_allowed === true
+    || summary.runtime_self_report_trusted === true
+    || summary.docx_target_supported !== true
+    || summary.pptx_target_supported !== true
+    || summary.pdf_target_supported !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_request_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_secret_material_exposed === true
+    || summary.desktop_installer_or_gateway_control === true
+    || summary.desktop_runtime_source_of_truth === true
+    || adapterArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "document_renderer_adapter",
+    label: "Document Renderer Adapter",
+    status,
+    message: `Document renderer ${summary.adapter_status ?? "unknown"}; outputs=${summary.output_contract_count ?? 0}; targets=${(summary.required_render_targets ?? []).join("/")}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      document_renderer_adapter_status: summary.document_renderer_adapter_status ?? "unknown",
+      runtime_id: summary.runtime_id ?? "document_renderer",
+      adapter_id: summary.adapter_id ?? null,
+      adapter_status: summary.adapter_status ?? "unknown",
+      document_renderer_interface_bound: summary.document_renderer_interface_bound ?? false,
+      document_renderer_runtime_execution_contract_bound: summary.document_renderer_runtime_execution_contract_bound ?? false,
+      document_renderer_command_binding_required: summary.document_renderer_command_binding_required ?? true,
+      command_binding_id: summary.command_binding_id ?? null,
+      agent_run_ledger_bound: summary.agent_run_ledger_bound ?? false,
+      agent_run_ledger_status: summary.agent_run_ledger_status ?? "unknown",
+      current_agent_run_record_count: summary.current_agent_run_record_count ?? 0,
+      current_document_renderer_agent_run_record_count: summary.current_document_renderer_agent_run_record_count ?? 0,
+      output_contract_count: summary.output_contract_count ?? 0,
+      output_contract_locked_count: summary.output_contract_locked_count ?? 0,
+      supported_render_targets: summary.supported_render_targets ?? [],
+      required_render_targets: summary.required_render_targets ?? [],
+      docx_target_supported: summary.docx_target_supported ?? false,
+      pptx_target_supported: summary.pptx_target_supported ?? false,
+      pdf_target_supported: summary.pdf_target_supported ?? false,
+      rendered_artifact_count: summary.rendered_artifact_count ?? 0,
+      rendered_document_artifact_count: summary.rendered_document_artifact_count ?? 0,
+      rendered_docx_artifact_count: summary.rendered_docx_artifact_count ?? 0,
+      rendered_pptx_artifact_count: summary.rendered_pptx_artifact_count ?? 0,
+      rendered_pdf_artifact_count: summary.rendered_pdf_artifact_count ?? 0,
+      output_delivery_binding_count: summary.output_delivery_binding_count ?? 0,
+      output_hash_present_count: summary.output_hash_present_count ?? 0,
+      log_capture_ready_count: summary.log_capture_ready_count ?? 0,
+      artifact_capture_ready_count: summary.artifact_capture_ready_count ?? 0,
+      target_capture_matrix_ready_count: summary.target_capture_matrix_ready_count ?? 0,
+      draft_only_delivery_action_count: summary.draft_only_delivery_action_count ?? 0,
+      network_access_allowed: summary.network_access_allowed ?? false,
+      external_execution_allowed: summary.external_execution_allowed ?? false,
+      sandbox_required: summary.sandbox_required ?? false,
+      workspace_isolation_type: summary.workspace_isolation_type ?? "unknown",
+      direct_final_delivery_allowed: summary.direct_final_delivery_allowed ?? false,
+      protected_path_write_allowed: summary.protected_path_write_allowed ?? false,
+      secret_material_allowed: summary.secret_material_allowed ?? false,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? false,
+      draft_only_output_required: summary.draft_only_output_required ?? false,
+      output_trust: summary.output_trust ?? "unknown",
+      verification_required: summary.verification_required ?? false,
+      classification_gate_required: summary.classification_gate_required ?? false,
+      tool_permission_gate_required: summary.tool_permission_gate_required ?? false,
+      evidence_coverage_gate_required: summary.evidence_coverage_gate_required ?? false,
+      citation_gate_required: summary.citation_gate_required ?? false,
+      format_validation_gate_required: summary.format_validation_gate_required ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      gate_binding_status: summary.gate_binding_status ?? "unknown",
+      output_capture_ready: summary.output_capture_ready ?? false,
+      log_capture_ready: summary.log_capture_ready ?? false,
+      artifact_capture_ready: summary.artifact_capture_ready ?? false,
+      verification_capture_ready: summary.verification_capture_ready ?? false,
+      output_delivery_binding_capture_ready: summary.output_delivery_binding_capture_ready ?? false,
       desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
       desktop_read_only: summary.desktop_read_only ?? false,
       desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
@@ -13555,6 +13661,53 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     local_script_adapter_desktop_installer_or_gateway_control: artifacts.local_script_adapter?.summary?.desktop_installer_or_gateway_control ?? false,
     local_script_adapter_desktop_runtime_source_of_truth: artifacts.local_script_adapter?.summary?.desktop_runtime_source_of_truth ?? false,
     local_script_adapter_validation_error_count: artifacts.local_script_adapter?.summary?.validation_error_count ?? artifacts.local_script_adapter?.validation?.errors?.length ?? 0,
+    document_renderer_adapter_status: artifacts.document_renderer_adapter?.summary?.document_renderer_adapter_status ?? "unknown",
+    document_renderer_adapter_runtime_id: artifacts.document_renderer_adapter?.summary?.runtime_id ?? "document_renderer",
+    document_renderer_adapter_adapter_id: artifacts.document_renderer_adapter?.summary?.adapter_id ?? null,
+    document_renderer_adapter_adapter_status: artifacts.document_renderer_adapter?.summary?.adapter_status ?? "unknown",
+    document_renderer_adapter_interface_bound: artifacts.document_renderer_adapter?.summary?.document_renderer_interface_bound ?? false,
+    document_renderer_adapter_execution_contract_bound: artifacts.document_renderer_adapter?.summary?.document_renderer_runtime_execution_contract_bound ?? false,
+    document_renderer_adapter_command_binding_required: artifacts.document_renderer_adapter?.summary?.document_renderer_command_binding_required ?? true,
+    document_renderer_adapter_agent_run_ledger_bound: artifacts.document_renderer_adapter?.summary?.agent_run_ledger_bound ?? false,
+    document_renderer_adapter_current_agent_run_record_count: artifacts.document_renderer_adapter?.summary?.current_agent_run_record_count ?? 0,
+    document_renderer_adapter_current_document_renderer_agent_run_record_count: artifacts.document_renderer_adapter?.summary?.current_document_renderer_agent_run_record_count ?? 0,
+    document_renderer_adapter_output_contract_count: artifacts.document_renderer_adapter?.summary?.output_contract_count ?? 0,
+    document_renderer_adapter_output_contract_locked_count: artifacts.document_renderer_adapter?.summary?.output_contract_locked_count ?? 0,
+    document_renderer_adapter_docx_target_supported: artifacts.document_renderer_adapter?.summary?.docx_target_supported ?? false,
+    document_renderer_adapter_pptx_target_supported: artifacts.document_renderer_adapter?.summary?.pptx_target_supported ?? false,
+    document_renderer_adapter_pdf_target_supported: artifacts.document_renderer_adapter?.summary?.pdf_target_supported ?? false,
+    document_renderer_adapter_rendered_artifact_count: artifacts.document_renderer_adapter?.summary?.rendered_artifact_count ?? 0,
+    document_renderer_adapter_rendered_document_artifact_count: artifacts.document_renderer_adapter?.summary?.rendered_document_artifact_count ?? 0,
+    document_renderer_adapter_rendered_docx_artifact_count: artifacts.document_renderer_adapter?.summary?.rendered_docx_artifact_count ?? 0,
+    document_renderer_adapter_rendered_pptx_artifact_count: artifacts.document_renderer_adapter?.summary?.rendered_pptx_artifact_count ?? 0,
+    document_renderer_adapter_rendered_pdf_artifact_count: artifacts.document_renderer_adapter?.summary?.rendered_pdf_artifact_count ?? 0,
+    document_renderer_adapter_output_delivery_binding_count: artifacts.document_renderer_adapter?.summary?.output_delivery_binding_count ?? 0,
+    document_renderer_adapter_output_hash_present_count: artifacts.document_renderer_adapter?.summary?.output_hash_present_count ?? 0,
+    document_renderer_adapter_log_capture_ready_count: artifacts.document_renderer_adapter?.summary?.log_capture_ready_count ?? 0,
+    document_renderer_adapter_artifact_capture_ready_count: artifacts.document_renderer_adapter?.summary?.artifact_capture_ready_count ?? 0,
+    document_renderer_adapter_target_capture_matrix_ready_count: artifacts.document_renderer_adapter?.summary?.target_capture_matrix_ready_count ?? 0,
+    document_renderer_adapter_network_access_allowed: artifacts.document_renderer_adapter?.summary?.network_access_allowed ?? false,
+    document_renderer_adapter_external_execution_allowed: artifacts.document_renderer_adapter?.summary?.external_execution_allowed ?? false,
+    document_renderer_adapter_sandbox_required: artifacts.document_renderer_adapter?.summary?.sandbox_required ?? false,
+    document_renderer_adapter_workspace_isolation_type: artifacts.document_renderer_adapter?.summary?.workspace_isolation_type ?? "unknown",
+    document_renderer_adapter_direct_final_delivery_allowed: artifacts.document_renderer_adapter?.summary?.direct_final_delivery_allowed ?? false,
+    document_renderer_adapter_protected_path_write_allowed: artifacts.document_renderer_adapter?.summary?.protected_path_write_allowed ?? false,
+    document_renderer_adapter_secret_material_allowed: artifacts.document_renderer_adapter?.summary?.secret_material_allowed ?? false,
+    document_renderer_adapter_runtime_self_report_trusted: artifacts.document_renderer_adapter?.summary?.runtime_self_report_trusted ?? false,
+    document_renderer_adapter_draft_only_output_required: artifacts.document_renderer_adapter?.summary?.draft_only_output_required ?? false,
+    document_renderer_adapter_output_trust: artifacts.document_renderer_adapter?.summary?.output_trust ?? "unknown",
+    document_renderer_adapter_citation_gate_required: artifacts.document_renderer_adapter?.summary?.citation_gate_required ?? false,
+    document_renderer_adapter_format_validation_gate_required: artifacts.document_renderer_adapter?.summary?.format_validation_gate_required ?? false,
+    document_renderer_adapter_human_review_required: artifacts.document_renderer_adapter?.summary?.human_review_required ?? false,
+    document_renderer_adapter_output_delivery_binding_capture_ready: artifacts.document_renderer_adapter?.summary?.output_delivery_binding_capture_ready ?? false,
+    document_renderer_adapter_desktop_read_only: artifacts.document_renderer_adapter?.summary?.desktop_read_only ?? false,
+    document_renderer_adapter_desktop_mutation_allowed: artifacts.document_renderer_adapter?.summary?.desktop_mutation_allowed ?? false,
+    document_renderer_adapter_desktop_protected_mutation_request_allowed: artifacts.document_renderer_adapter?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    document_renderer_adapter_desktop_protected_mutation_execution_allowed: artifacts.document_renderer_adapter?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    document_renderer_adapter_desktop_secret_material_exposed: artifacts.document_renderer_adapter?.summary?.desktop_secret_material_exposed ?? false,
+    document_renderer_adapter_desktop_installer_or_gateway_control: artifacts.document_renderer_adapter?.summary?.desktop_installer_or_gateway_control ?? false,
+    document_renderer_adapter_desktop_runtime_source_of_truth: artifacts.document_renderer_adapter?.summary?.desktop_runtime_source_of_truth ?? false,
+    document_renderer_adapter_validation_error_count: artifacts.document_renderer_adapter?.summary?.validation_error_count ?? artifacts.document_renderer_adapter?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15252,6 +15405,8 @@ function parseArgs(argv) {
     else if (arg === "--no-codex-adapter-contract") parsed.codexAdapterContractPath = false;
     else if (arg === "--local-script-adapter") parsed.localScriptAdapterPath = argv[++index];
     else if (arg === "--no-local-script-adapter") parsed.localScriptAdapterPath = false;
+    else if (arg === "--document-renderer-adapter") parsed.documentRendererAdapterPath = argv[++index];
+    else if (arg === "--no-document-renderer-adapter") parsed.documentRendererAdapterPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15699,6 +15854,10 @@ Options:
                                   local-script-adapter.json path.
   --no-local-script-adapter
                                   Do not include Local Script Adapter status.
+  --document-renderer-adapter <path>
+                                  document-renderer-adapter.json path.
+  --no-document-renderer-adapter
+                                  Do not include Document Renderer Adapter status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

@@ -349,7 +349,7 @@
       "runtime_id": "document_renderer",
       "version": "0.1.0",
       "display_name": "Document Renderer",
-      "description": "Renders DOCX, PPTX, markdown, and structured output drafts from approved templates and evidence bindings.",
+    "description": "Renders DOCX, PPTX, PDF, markdown, and structured output drafts from approved templates and evidence bindings.",
       "risk_level": "medium",
       "execution_environment": {
         "execution_mode": "docker",
@@ -366,7 +366,7 @@
       },
       "output_contract": {
         "schema_ref": "governance-output.v1",
-        "artifact_types": ["docx", "pptx", "markdown", "json"],
+        "artifact_types": ["docx", "pptx", "pdf", "markdown", "json"],
         "output_trust": "draft_only"
       },
       "workspace_policy": {

@@ -213,6 +213,7 @@
     "runtime:claude-code-adapter": "node scripts/claude-code-adapter-contract.mjs",
     "runtime:codex-adapter": "node scripts/codex-adapter-contract.mjs",
     "runtime:local-script-adapter": "node scripts/local-script-adapter.mjs",
+    "runtime:document-renderer-adapter": "node scripts/document-renderer-adapter.mjs",
     "slice:run": "node scripts/run-vertical-slice.mjs",
     "worktree:prepare": "node scripts/worktree-manager.mjs",
     "validate:core": "node scripts/validate-core-contracts.mjs",

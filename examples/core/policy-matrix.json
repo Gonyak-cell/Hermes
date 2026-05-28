@@ -237,6 +237,13 @@
       "metadata": {}
     },
     {
+      "artifact_type": "pdf",
+      "default_status": "pending_review",
+      "required_gates": ["evidence_coverage_gate", "citation_gate", "format_validation_gate", "output_destination_gate", "human_approval_gate"],
+      "delivery_policy": "approval_required",
+      "metadata": {}
+    },
+    {
       "artifact_type": "email_draft",
       "default_status": "draft",
       "required_gates": ["output_destination_gate", "human_approval_gate"],

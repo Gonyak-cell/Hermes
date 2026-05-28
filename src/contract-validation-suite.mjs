@@ -74,6 +74,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:claude-code-adapter",
   "runtime:codex-adapter",
   "runtime:local-script-adapter",
+  "runtime:document-renderer-adapter",
   "contracts:gates",
   "contracts:outputs",
   "contracts:events",

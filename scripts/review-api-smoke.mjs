@@ -372,6 +372,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/protected-file-approval-requirements"));
   assert.ok(index.routes.some((route) => route.path === "/api/protected-file-gate-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/protected-file-gate-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/canonical-test-runner"));
+  assert.ok(index.routes.some((route) => route.path === "/api/canonical-test-plans"));
+  assert.ok(index.routes.some((route) => route.path === "/api/canonical-test-executions"));
+  assert.ok(index.routes.some((route) => route.path === "/api/canonical-test-gate-results"));
+  assert.ok(index.routes.some((route) => route.path === "/api/canonical-test-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/canonical-test-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1789,6 +1795,30 @@ try {
   const protectedFileGateValidations = await fetchJson(`${url}/api/protected-file-gate-validations?status=passed&limit=5`);
   assert.equal(protectedFileGateValidations.collection, "protected_file_gate_validations");
   assert.ok(protectedFileGateValidations.count <= 5);
+
+  const canonicalTestRunner = await fetchJson(`${url}/api/canonical-test-runner?canonical_test_runner_status=complete&limit=1`);
+  assert.equal(canonicalTestRunner.collection, "canonical_test_runner");
+  assert.ok(canonicalTestRunner.count <= 1);
+
+  const canonicalTestPlans = await fetchJson(`${url}/api/canonical-test-plans?canonical_test_plan_status=ready&agent_self_report_trusted=false&limit=5`);
+  assert.equal(canonicalTestPlans.collection, "canonical_test_plans");
+  assert.ok(canonicalTestPlans.count <= 5);
+
+  const canonicalTestExecutions = await fetchJson(`${url}/api/canonical-test-executions?canonical_test_execution_status=passed&execution_source=harness_rerun&limit=5`);
+  assert.equal(canonicalTestExecutions.collection, "canonical_test_executions");
+  assert.ok(canonicalTestExecutions.count <= 5);
+
+  const canonicalTestGateResults = await fetchJson(`${url}/api/canonical-test-gate-results?test_gate_status=passed&limit=5`);
+  assert.equal(canonicalTestGateResults.collection, "canonical_test_gate_results");
+  assert.ok(canonicalTestGateResults.count <= 5);
+
+  const canonicalTestDesktopBoundary = await fetchJson(`${url}/api/canonical-test-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(canonicalTestDesktopBoundary.collection, "canonical_test_desktop_boundary");
+  assert.ok(canonicalTestDesktopBoundary.count <= 1);
+
+  const canonicalTestValidations = await fetchJson(`${url}/api/canonical-test-validations?status=passed&limit=5`);
+  assert.equal(canonicalTestValidations.collection, "canonical_test_validations");
+  assert.ok(canonicalTestValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

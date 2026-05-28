@@ -67,6 +67,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   runtimeTimeoutHeartbeatPath: "artifacts/runtime-timeout-heartbeat/latest/runtime-timeout-heartbeat.json",
   runtimeControlCommandsPath: "artifacts/runtime-control-commands/latest/runtime-control-commands.json",
   protectedFileGatePath: "artifacts/protected-file-gate/latest/protected-file-gate.json",
+  canonicalTestRunnerPath: "artifacts/canonical-test-runner/latest/canonical-test-runner.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -523,6 +524,11 @@ const SOURCE_DEFINITIONS = [
     option: "protectedFileGatePath",
     source_id: "protected_file_gate",
     label: "Protected File Gate",
+  },
+  {
+    option: "canonicalTestRunnerPath",
+    source_id: "canonical_test_runner",
+    label: "Canonical Test Runner",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1671,6 +1677,7 @@ function buildStageStatuses(artifacts, sources) {
     buildRuntimeTimeoutHeartbeatStage(artifacts.runtime_timeout_heartbeat, sourceById.get("runtime_timeout_heartbeat")),
     buildRuntimeControlCommandsStage(artifacts.runtime_control_commands, sourceById.get("runtime_control_commands")),
     buildProtectedFileGateStage(artifacts.protected_file_gate, sourceById.get("protected_file_gate")),
+    buildCanonicalTestRunnerStage(artifacts.canonical_test_runner, sourceById.get("canonical_test_runner")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -5493,6 +5500,89 @@ function buildProtectedFileGateStage(gateArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? gateArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildCanonicalTestRunnerStage(runner, source) {
+  if (!runner) return missingStage("canonical_test_runner", "Canonical Test Runner", source);
+  const summary = runner.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.canonical_test_runner_status !== "complete"
+    || summary.contract_status !== "locked"
+    || summary.test_runner_authority !== "harness_control_plane"
+    || summary.agent_self_report_trusted !== false
+    || summary.harness_reexecution_required !== true
+    || summary.canonical_test_plan_count === 0
+    || summary.canonical_test_execution_count === 0
+    || summary.passed_execution_count !== summary.canonical_test_execution_count
+    || summary.failed_execution_count !== 0
+    || summary.timed_out_execution_count !== 0
+    || summary.agent_report_used_as_source_of_truth !== false
+    || summary.gate_result_count !== summary.canonical_test_plan_count
+    || summary.passed_gate_result_count !== summary.gate_result_count
+    || summary.merge_ready_count !== 0
+    || summary.direct_merge_allowed_count !== 0
+    || summary.direct_apply_allowed_count !== 0
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_canonical_test_execution_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_source_of_truth === true
+    || runner.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "canonical_test_runner",
+    label: "Canonical Test Runner",
+    status,
+    message: `${summary.passed_execution_count ?? 0}/${summary.canonical_test_execution_count ?? 0} harness-rerun command(s) passed; agent self-report trusted=${summary.agent_self_report_trusted ?? true}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      canonical_test_runner_status: summary.canonical_test_runner_status ?? "unknown",
+      canonical_test_runner_contract_id: summary.canonical_test_runner_contract_id ?? null,
+      contract_status: summary.contract_status ?? "unknown",
+      test_runner_authority: summary.test_runner_authority ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      execution_source: summary.execution_source ?? "unknown",
+      agent_self_report_trusted: summary.agent_self_report_trusted ?? true,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? true,
+      harness_reexecution_required: summary.harness_reexecution_required ?? false,
+      canonical_command_count: summary.canonical_command_count ?? 0,
+      canonical_test_plan_count: summary.canonical_test_plan_count ?? 0,
+      canonical_test_execution_count: summary.canonical_test_execution_count ?? 0,
+      passed_execution_count: summary.passed_execution_count ?? 0,
+      failed_execution_count: summary.failed_execution_count ?? 0,
+      timed_out_execution_count: summary.timed_out_execution_count ?? 0,
+      skipped_execution_count: summary.skipped_execution_count ?? 0,
+      command_execution_allowed_count: summary.command_execution_allowed_count ?? 0,
+      execution_performed_count: summary.execution_performed_count ?? 0,
+      agent_reported_command_count: summary.agent_reported_command_count ?? 0,
+      agent_report_used_as_source_of_truth: summary.agent_report_used_as_source_of_truth ?? true,
+      agent_reported_status: summary.agent_reported_status ?? "unknown",
+      gate_result_count: summary.gate_result_count ?? 0,
+      passed_gate_result_count: summary.passed_gate_result_count ?? 0,
+      blocked_gate_result_count: summary.blocked_gate_result_count ?? 0,
+      human_approval_required_count: summary.human_approval_required_count ?? 0,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      merge_ready_count: summary.merge_ready_count ?? 0,
+      direct_merge_allowed_count: summary.direct_merge_allowed_count ?? 0,
+      direct_apply_allowed_count: summary.direct_apply_allowed_count ?? 0,
+      protected_file_gate_status: summary.protected_file_gate_status ?? "unknown",
+      protected_file_gate_required: summary.protected_file_gate_required ?? false,
+      diff_review_gate_required: summary.diff_review_gate_required ?? false,
+      human_approval_gate_required: summary.human_approval_gate_required ?? false,
+      desktop_surface_policy: summary.desktop_surface_policy ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_canonical_test_rerun_request_allowed: summary.desktop_canonical_test_rerun_request_allowed ?? false,
+      desktop_canonical_test_execution_allowed: summary.desktop_canonical_test_execution_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? runner.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -14825,6 +14915,41 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     protected_file_gate_rule_edit_allowed: artifacts.protected_file_gate?.summary?.rule_edit_allowed ?? false,
     protected_file_gate_runtime_process_control_allowed: artifacts.protected_file_gate?.summary?.runtime_process_control_allowed ?? false,
     protected_file_gate_validation_error_count: artifacts.protected_file_gate?.summary?.validation_error_count ?? artifacts.protected_file_gate?.validation?.errors?.length ?? 0,
+    canonical_test_runner_status: artifacts.canonical_test_runner?.summary?.canonical_test_runner_status ?? "unknown",
+    canonical_test_runner_contract_status: artifacts.canonical_test_runner?.summary?.contract_status ?? "unknown",
+    canonical_test_runner_authority: artifacts.canonical_test_runner?.summary?.test_runner_authority ?? "unknown",
+    canonical_test_runner_source_of_truth: artifacts.canonical_test_runner?.summary?.source_of_truth ?? "unknown",
+    canonical_test_runner_execution_source: artifacts.canonical_test_runner?.summary?.execution_source ?? "unknown",
+    canonical_test_runner_agent_self_report_trusted: artifacts.canonical_test_runner?.summary?.agent_self_report_trusted ?? true,
+    canonical_test_runner_harness_reexecution_required: artifacts.canonical_test_runner?.summary?.harness_reexecution_required ?? false,
+    canonical_test_command_count: artifacts.canonical_test_runner?.summary?.canonical_command_count ?? 0,
+    canonical_test_plan_count: artifacts.canonical_test_runner?.summary?.canonical_test_plan_count ?? 0,
+    canonical_test_execution_count: artifacts.canonical_test_runner?.summary?.canonical_test_execution_count ?? 0,
+    canonical_test_passed_execution_count: artifacts.canonical_test_runner?.summary?.passed_execution_count ?? 0,
+    canonical_test_failed_execution_count: artifacts.canonical_test_runner?.summary?.failed_execution_count ?? 0,
+    canonical_test_timed_out_execution_count: artifacts.canonical_test_runner?.summary?.timed_out_execution_count ?? 0,
+    canonical_test_skipped_execution_count: artifacts.canonical_test_runner?.summary?.skipped_execution_count ?? 0,
+    canonical_test_command_execution_allowed_count: artifacts.canonical_test_runner?.summary?.command_execution_allowed_count ?? 0,
+    canonical_test_execution_performed_count: artifacts.canonical_test_runner?.summary?.execution_performed_count ?? 0,
+    canonical_test_agent_reported_command_count: artifacts.canonical_test_runner?.summary?.agent_reported_command_count ?? 0,
+    canonical_test_agent_report_used_as_source_of_truth: artifacts.canonical_test_runner?.summary?.agent_report_used_as_source_of_truth ?? true,
+    canonical_test_gate_result_count: artifacts.canonical_test_runner?.summary?.gate_result_count ?? 0,
+    canonical_test_passed_gate_result_count: artifacts.canonical_test_runner?.summary?.passed_gate_result_count ?? 0,
+    canonical_test_blocked_gate_result_count: artifacts.canonical_test_runner?.summary?.blocked_gate_result_count ?? 0,
+    canonical_test_human_approval_required_count: artifacts.canonical_test_runner?.summary?.human_approval_required_count ?? 0,
+    canonical_test_human_review_required_count: artifacts.canonical_test_runner?.summary?.human_review_required_count ?? 0,
+    canonical_test_merge_ready_count: artifacts.canonical_test_runner?.summary?.merge_ready_count ?? 0,
+    canonical_test_direct_merge_allowed_count: artifacts.canonical_test_runner?.summary?.direct_merge_allowed_count ?? 0,
+    canonical_test_direct_apply_allowed_count: artifacts.canonical_test_runner?.summary?.direct_apply_allowed_count ?? 0,
+    canonical_test_protected_file_gate_status: artifacts.canonical_test_runner?.summary?.protected_file_gate_status ?? "unknown",
+    canonical_test_desktop_surface_policy: artifacts.canonical_test_runner?.summary?.desktop_surface_policy ?? "unknown",
+    canonical_test_desktop_read_only: artifacts.canonical_test_runner?.summary?.desktop_read_only ?? false,
+    canonical_test_desktop_mutation_allowed: artifacts.canonical_test_runner?.summary?.desktop_mutation_allowed ?? false,
+    canonical_test_desktop_rerun_request_allowed: artifacts.canonical_test_runner?.summary?.desktop_canonical_test_rerun_request_allowed ?? false,
+    canonical_test_desktop_execution_allowed: artifacts.canonical_test_runner?.summary?.desktop_canonical_test_execution_allowed ?? false,
+    canonical_test_desktop_protected_mutation_execution_allowed: artifacts.canonical_test_runner?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    canonical_test_desktop_source_of_truth: artifacts.canonical_test_runner?.summary?.desktop_source_of_truth ?? false,
+    canonical_test_validation_error_count: artifacts.canonical_test_runner?.summary?.validation_error_count ?? artifacts.canonical_test_runner?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -16542,6 +16667,8 @@ function parseArgs(argv) {
     else if (arg === "--no-runtime-control-commands") parsed.runtimeControlCommandsPath = false;
     else if (arg === "--protected-file-gate") parsed.protectedFileGatePath = argv[++index];
     else if (arg === "--no-protected-file-gate") parsed.protectedFileGatePath = false;
+    else if (arg === "--canonical-test-runner") parsed.canonicalTestRunnerPath = argv[++index];
+    else if (arg === "--no-canonical-test-runner") parsed.canonicalTestRunnerPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -17381,6 +17508,8 @@ Options:
   --creative-document-summary <path>
                                   Creative Document summary.json path.
   --no-creative-document-summary Do not include Creative Document slice status.
+  --canonical-test-runner <path> canonical-test-runner.json path.
+  --no-canonical-test-runner     Do not include Canonical Test Runner status.
   --out-dir <folder>             Output directory.
   --run-at <iso>                 Deterministic generated_at timestamp.
   -h, --help                     Show this help.

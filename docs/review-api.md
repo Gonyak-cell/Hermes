@@ -641,6 +641,12 @@ npm run api:serve
 - `GET /api/protected-file-approval-requirements`: pending explicit approval rows for protected file changes
 - `GET /api/protected-file-gate-desktop-boundary`: Protected File Gate Desktop boundary row
 - `GET /api/protected-file-gate-validations`: Protected File Gate validation rows
+- `GET /api/canonical-test-runner`: Canonical Test Runner artifact
+- `GET /api/canonical-test-plans`: canonical test plan rows
+- `GET /api/canonical-test-executions`: harness-rerun canonical test execution rows
+- `GET /api/canonical-test-gate-results`: canonical test gate result rows
+- `GET /api/canonical-test-desktop-boundary`: Canonical Test Runner Desktop boundary row
+- `GET /api/canonical-test-validations`: Canonical Test Runner validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

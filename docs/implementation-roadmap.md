@@ -6060,6 +6060,38 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 111개로 증가하고 protected_file_gate artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run gates:protected-files -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 210 - Canonical Test Runner
+
+목표: agent가 보고한 test 결과를 source of truth로 쓰지 않고, harness가 Personal Dev slice의 canonical command를 직접 재실행해 test gate 판단과 human review 진입 조건을 결정적으로 기록한다. Hermes Desktop은 canonical test 상태를 읽기 전용으로 볼 수 있고 rerun request draft만 만들 수 있으며, 직접 test 실행, pass 표시, diff apply, merge, protected mutation execution은 할 수 없다.
+
+구현:
+
+- `src/canonical-test-runner.mjs`와 `scripts/canonical-test-runner.mjs`를 추가해 `npm run test:canonical` slice를 등록
+- `schemas/canonical-test-runner.schema.json`으로 canonical test runner contract, plan, execution, gate result, Desktop boundary를 검증
+- Runtime Artifact Capture, Runtime/AgentRun Contract Freeze, Protected File Gate, Personal Dev slice/plan/test-result, Policy Matrix, package scripts, Desktop Companion 설계 문서를 source contract로 연결
+- Personal Dev plan의 `npm run dev:validate`, `npm run dev:brief`를 canonical command로 해석하고 package script 존재를 확인
+- Runtime Artifact Capture의 test-gated diff capture 2개 각각에 canonical test plan을 만들고 harness authority로 command 4건을 재실행
+- agent-reported test result는 reference-only로 보존하되 `agent_self_report_trusted=false`, `agent_report_used_as_source_of_truth=false`로 고정
+- 모든 canonical execution이 `execution_source=harness_rerun`, `harness_status=passed`로 기록되고 stdout/stderr/output hash와 preview를 남김
+- test gate result는 통과 후에도 `merge_ready=false`, `direct_merge_allowed=false`, `direct_apply_allowed=false`, `human_review_required=true`로 유지
+- Canonical Test Runner Desktop boundary를 read-only로 고정하고 rerun request draft만 허용하며 Desktop direct test execution/protected mutation/source-of-truth 권한을 false로 유지
+- Review Dashboard와 Review API에 `/api/canonical-test-runner`, `/api/canonical-test-plans`, `/api/canonical-test-executions`, `/api/canonical-test-gate-results`, `/api/canonical-test-desktop-boundary`, `/api/canonical-test-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Canonical Test Runner를 연결
+
+완료 기준:
+
+- Canonical Test Runner가 validation error 없이 `complete` 상태가 됨
+- test runner contract가 `locked`이고 authority가 `harness_control_plane`, source of truth가 `harness_executed_canonical_tests_and_runtime_verification_contracts`, execution source가 `harness_rerun`임
+- canonical command 2개와 test-gated plan 2개에서 harness execution 4건이 생성되고 모두 passed 상태임
+- failed, timed out, skipped execution count가 모두 0이고 command execution allowed/performed count가 execution count와 일치함
+- agent self-report trusted와 agent report source-of-truth가 모두 false임
+- test gate result 2건은 passed지만 merge/direct apply/direct merge는 모두 0이고 human review/approval gate가 요구됨
+- Protected File Gate가 complete 상태로 선행되고 canonical test 결과도 Desktop read-only boundary로 노출됨
+- Desktop read-only는 true이고 Desktop mutation/test execution/protected mutation execution/source-of-truth 권한은 false
+- Review API와 dashboard가 Canonical Test Runner 상태를 read-only로 노출
+- Golden fixture 수가 112개로 증가하고 canonical_test_runner artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run test:canonical -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6068,9 +6100,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 209이다.
+- 현재 완료 기준점은 Phase 210이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P210-P312, 총 103개다.
+- 남은 계획 슬롯은 P211-P312, 총 102개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

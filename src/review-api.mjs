@@ -4197,6 +4197,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("protected_file_gate_validations", protectedFileGateResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/canonical-test-runner") {
+    const canonicalTestResult = await readDashboardSourceArtifact(dashboard, "canonical_test_runner");
+    if (!canonicalTestResult.available) {
+      return jsonResponse(503, buildError("canonical_test_runner_unavailable", canonicalTestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_runner", [canonicalTestResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-plans") {
+    const canonicalTestResult = await readDashboardSourceArtifact(dashboard, "canonical_test_runner");
+    if (!canonicalTestResult.available) {
+      return jsonResponse(503, buildError("canonical_test_runner_unavailable", canonicalTestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_plans", canonicalTestResult.artifact.canonical_test_plans ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-executions") {
+    const canonicalTestResult = await readDashboardSourceArtifact(dashboard, "canonical_test_runner");
+    if (!canonicalTestResult.available) {
+      return jsonResponse(503, buildError("canonical_test_runner_unavailable", canonicalTestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_executions", canonicalTestResult.artifact.canonical_test_executions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-gate-results") {
+    const canonicalTestResult = await readDashboardSourceArtifact(dashboard, "canonical_test_runner");
+    if (!canonicalTestResult.available) {
+      return jsonResponse(503, buildError("canonical_test_runner_unavailable", canonicalTestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_gate_results", canonicalTestResult.artifact.canonical_test_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-desktop-boundary") {
+    const canonicalTestResult = await readDashboardSourceArtifact(dashboard, "canonical_test_runner");
+    if (!canonicalTestResult.available) {
+      return jsonResponse(503, buildError("canonical_test_runner_unavailable", canonicalTestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_desktop_boundary", [canonicalTestResult.artifact.canonical_test_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-validations") {
+    const canonicalTestResult = await readDashboardSourceArtifact(dashboard, "canonical_test_runner");
+    if (!canonicalTestResult.available) {
+      return jsonResponse(503, buildError("canonical_test_runner_unavailable", canonicalTestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_validations", canonicalTestResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8399,6 +8441,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/protected-file-approval-requirements", "Protected file approval requirement rows"),
       route("GET", "/api/protected-file-gate-desktop-boundary", "Protected File Gate Desktop boundary"),
       route("GET", "/api/protected-file-gate-validations", "Protected File Gate validation rows"),
+      route("GET", "/api/canonical-test-runner", "Canonical Test Runner artifact"),
+      route("GET", "/api/canonical-test-plans", "Canonical test plan rows"),
+      route("GET", "/api/canonical-test-executions", "Canonical test execution rows"),
+      route("GET", "/api/canonical-test-gate-results", "Canonical test gate result rows"),
+      route("GET", "/api/canonical-test-desktop-boundary", "Canonical Test Runner Desktop boundary"),
+      route("GET", "/api/canonical-test-validations", "Canonical Test Runner validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9062,6 +9110,14 @@ function filterItems(items, searchParams) {
     "runtime_timeout_heartbeat_status",
     "runtime_control_command_status",
     "protected_file_gate_status",
+    "canonical_test_runner_status",
+    "canonical_test_plan_status",
+    "canonical_test_execution_status",
+    "test_gate_status",
+    "execution_authority",
+    "execution_source",
+    "agent_self_report_trusted",
+    "command_id",
     "control_command_kind",
     "request_status",
     "result_status",
@@ -10382,6 +10438,14 @@ function readFilterValue(item, key) {
   if (key === "runtime_timeout_heartbeat_status") return item.summary?.runtime_timeout_heartbeat_status ?? item.runtime_timeout_heartbeat_status;
   if (key === "runtime_control_command_status") return item.summary?.runtime_control_command_status ?? item.runtime_control_command_status;
   if (key === "protected_file_gate_status") return item.summary?.protected_file_gate_status ?? item.protected_file_gate_status;
+  if (key === "canonical_test_runner_status") return item.summary?.canonical_test_runner_status ?? item.canonical_test_runner_status;
+  if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
+  if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;
+  if (key === "test_gate_status") return item.summary?.test_gate_status ?? item.test_gate_status;
+  if (key === "execution_authority") return item.summary?.test_runner_authority ?? item.execution_authority;
+  if (key === "execution_source") return item.summary?.execution_source ?? item.execution_source;
+  if (key === "agent_self_report_trusted") return String(Boolean(item.summary?.agent_self_report_trusted ?? item.agent_self_report_trusted));
+  if (key === "command_id") return item.command_id;
   if (key === "control_command_kind") return item.control_command_kind;
   if (key === "request_status") return item.request_status;
   if (key === "result_status") return item.result_status;

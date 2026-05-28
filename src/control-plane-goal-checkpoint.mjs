@@ -82,6 +82,7 @@ const GOAL_ITEMS = [
   sourceItem("runtime_timeout_heartbeat", "Runtime timeout/heartbeat", "runtime", "runtime_timeout_heartbeat", "control-plane-runtime-timeout-heartbeat", { acceptance_profile: "runtime_timeout_heartbeat_gate" }),
   sourceItem("runtime_control_commands", "Runtime control commands", "runtime", "runtime_control_commands", "control-plane-runtime-control-commands", { acceptance_profile: "runtime_control_commands_gate" }),
   sourceItem("protected_file_gate", "Protected file gate", "gate_approval", "protected_file_gate", "control-plane-protected-file-gate", { acceptance_profile: "protected_file_gate_gate" }),
+  sourceItem("canonical_test_runner", "Canonical test runner", "gate_approval", "canonical_test_runner", "control-plane-canonical-test-runner", { acceptance_profile: "canonical_test_runner_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -523,6 +524,7 @@ function evaluateStageAcceptance(item, stage) {
     "runtime_timeout_heartbeat_gate",
     "runtime_control_commands_gate",
     "protected_file_gate_gate",
+    "canonical_test_runner_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2011,6 +2013,45 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.runtime_process_control_allowed === false
     ) {
       return passedWithOperationalGate(stage, "Protected File Gate blocks secret, config, migration, and production file changes before explicit human approval while keeping Desktop read-only and request-draft only.");
+    }
+  }
+
+  if (item.acceptance_profile === "canonical_test_runner_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.canonical_test_runner_status === "complete"
+      && metrics.contract_status === "locked"
+      && metrics.test_runner_authority === "harness_control_plane"
+      && metrics.source_of_truth === "harness_executed_canonical_tests_and_runtime_verification_contracts"
+      && metrics.execution_source === "harness_rerun"
+      && metrics.agent_self_report_trusted === false
+      && metrics.harness_reexecution_required === true
+      && metrics.canonical_command_count > 0
+      && metrics.canonical_test_plan_count > 0
+      && metrics.canonical_test_execution_count === metrics.canonical_test_plan_count * metrics.canonical_command_count
+      && metrics.passed_execution_count === metrics.canonical_test_execution_count
+      && metrics.failed_execution_count === 0
+      && metrics.timed_out_execution_count === 0
+      && metrics.skipped_execution_count === 0
+      && metrics.command_execution_allowed_count === metrics.canonical_test_execution_count
+      && metrics.execution_performed_count === metrics.canonical_test_execution_count
+      && metrics.agent_report_used_as_source_of_truth === false
+      && metrics.gate_result_count === metrics.canonical_test_plan_count
+      && metrics.passed_gate_result_count === metrics.gate_result_count
+      && metrics.blocked_gate_result_count === 0
+      && metrics.human_approval_required_count === metrics.gate_result_count
+      && metrics.human_review_required_count === metrics.gate_result_count
+      && metrics.merge_ready_count === 0
+      && metrics.direct_merge_allowed_count === 0
+      && metrics.direct_apply_allowed_count === 0
+      && metrics.protected_file_gate_status === "complete"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_canonical_test_execution_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Canonical Test Runner reruns Personal Dev canonical commands under harness authority, uses agent reports only as reference, and advances passed tests only to human review.");
     }
   }
 

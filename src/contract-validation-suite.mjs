@@ -83,6 +83,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:timeout-heartbeat",
   "runtime:control-commands",
   "gates:protected-files",
+  "test:canonical",
   "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",

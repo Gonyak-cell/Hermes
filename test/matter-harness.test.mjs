@@ -206,6 +206,7 @@ import { runRuntimeLogNormalization } from "../src/runtime-log-normalization.mjs
 import { runRuntimeTimeoutHeartbeat } from "../src/runtime-timeout-heartbeat.mjs";
 import { runRuntimeControlCommands } from "../src/runtime-control-commands.mjs";
 import { runProtectedFileGate } from "../src/protected-file-gate.mjs";
+import { runCanonicalTestRunner } from "../src/canonical-test-runner.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1814,6 +1815,7 @@ describe("matter harness", () => {
         runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
         runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
         protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7143,6 +7145,57 @@ describe("matter harness", () => {
       assert.equal(protectedFileGate.protected_file_gate_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "protected-file-gate", "summary.md"), "utf8"), /Protected File Gate/);
 
+      const canonicalTestRunner = await runCanonicalTestRunner({
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        personalDevSlicePath: path.join(outDir, "personal-dev", "personal-dev-slice.json"),
+        personalDevPlanPath: path.join(outDir, "personal-dev", "plan.json"),
+        personalDevTestResultPath: path.join(outDir, "personal-dev", "test-result.json"),
+        policyMatrixPath: "examples/core/policy-matrix.json",
+        packagePath: "package.json",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "canonical-test-runner"),
+        runAt: "2026-05-23T06:45:46.000Z",
+      });
+      const canonicalTestRunnerSchema = JSON.parse(await readFile("schemas/canonical-test-runner.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(canonicalTestRunner, canonicalTestRunnerSchema, {}, "canonical_test_runner"), []);
+      assert.equal(canonicalTestRunner.summary.canonical_test_runner_status, "complete");
+      assert.equal(canonicalTestRunner.summary.contract_status, "locked");
+      assert.equal(canonicalTestRunner.summary.test_runner_authority, "harness_control_plane");
+      assert.equal(canonicalTestRunner.summary.source_of_truth, "harness_executed_canonical_tests_and_runtime_verification_contracts");
+      assert.equal(canonicalTestRunner.summary.execution_source, "harness_rerun");
+      assert.equal(canonicalTestRunner.summary.agent_self_report_trusted, false);
+      assert.equal(canonicalTestRunner.summary.harness_reexecution_required, true);
+      assert.equal(canonicalTestRunner.summary.canonical_command_count, 2);
+      assert.equal(canonicalTestRunner.summary.canonical_test_plan_count, runtimeArtifactCapture.summary.diff_capture_record_count);
+      assert.equal(canonicalTestRunner.summary.canonical_test_execution_count, canonicalTestRunner.summary.canonical_test_plan_count * canonicalTestRunner.summary.canonical_command_count);
+      assert.equal(canonicalTestRunner.summary.passed_execution_count, canonicalTestRunner.summary.canonical_test_execution_count);
+      assert.equal(canonicalTestRunner.summary.failed_execution_count, 0);
+      assert.equal(canonicalTestRunner.summary.timed_out_execution_count, 0);
+      assert.equal(canonicalTestRunner.summary.skipped_execution_count, 0);
+      assert.equal(canonicalTestRunner.summary.command_execution_allowed_count, canonicalTestRunner.summary.canonical_test_execution_count);
+      assert.equal(canonicalTestRunner.summary.execution_performed_count, canonicalTestRunner.summary.canonical_test_execution_count);
+      assert.equal(canonicalTestRunner.summary.agent_report_used_as_source_of_truth, false);
+      assert.equal(canonicalTestRunner.summary.gate_result_count, canonicalTestRunner.summary.canonical_test_plan_count);
+      assert.equal(canonicalTestRunner.summary.passed_gate_result_count, canonicalTestRunner.summary.gate_result_count);
+      assert.equal(canonicalTestRunner.summary.blocked_gate_result_count, 0);
+      assert.equal(canonicalTestRunner.summary.human_approval_required_count, canonicalTestRunner.summary.gate_result_count);
+      assert.equal(canonicalTestRunner.summary.human_review_required_count, canonicalTestRunner.summary.gate_result_count);
+      assert.equal(canonicalTestRunner.summary.merge_ready_count, 0);
+      assert.equal(canonicalTestRunner.summary.direct_merge_allowed_count, 0);
+      assert.equal(canonicalTestRunner.summary.direct_apply_allowed_count, 0);
+      assert.equal(canonicalTestRunner.summary.desktop_read_only, true);
+      assert.equal(canonicalTestRunner.summary.desktop_mutation_allowed, false);
+      assert.equal(canonicalTestRunner.summary.desktop_canonical_test_execution_allowed, false);
+      assert.equal(canonicalTestRunner.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(canonicalTestRunner.summary.desktop_source_of_truth, false);
+      assert.ok(canonicalTestRunner.canonical_test_plans.every((plan) => plan.test_gate_required === true && plan.agent_self_report_trusted === false));
+      assert.ok(canonicalTestRunner.canonical_test_executions.every((execution) => execution.execution_source === "harness_rerun" && execution.harness_status === "passed" && execution.agent_self_report_trusted === false));
+      assert.ok(canonicalTestRunner.canonical_test_gate_results.every((gateResult) => gateResult.test_gate_status === "passed" && gateResult.merge_ready === false && gateResult.human_review_required === true));
+      assert.equal(canonicalTestRunner.canonical_test_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "canonical-test-runner", "summary.md"), "utf8"), /Canonical Test Runner/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7276,6 +7329,7 @@ describe("matter harness", () => {
           runtime_timeout_heartbeat: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
           runtime_control_commands: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
           protected_file_gate: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+          canonical_test_runner: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7327,8 +7381,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 111);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 111);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 112);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 112);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7427,6 +7481,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_timeout_heartbeat"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_control_commands"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "protected_file_gate"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "canonical_test_runner"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7990,6 +8045,10 @@ describe("matter harness", () => {
       assert.equal(protectedFileGateCheckpoint?.acceptance_profile, "protected_file_gate_gate");
       assert.equal(protectedFileGateCheckpoint?.status, "passed");
       assert.equal(protectedFileGateCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const canonicalTestRunnerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-canonical-test-runner");
+      assert.equal(canonicalTestRunnerCheckpoint?.acceptance_profile, "canonical_test_runner_gate");
+      assert.equal(canonicalTestRunnerCheckpoint?.status, "passed");
+      assert.equal(canonicalTestRunnerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10145,6 +10204,44 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.secrets_broker_contract_desktop_provider_key_visible, false);
       assert.equal(dashboard.summary.secrets_broker_contract_desktop_source_of_truth, false);
       assert.equal(dashboard.summary.secrets_broker_contract_validation_error_count, 0);
+      assert.equal(dashboard.summary.protected_file_gate_status, "complete");
+      assert.equal(dashboard.summary.protected_file_gate_contract_status, "locked");
+      assert.equal(dashboard.summary.protected_file_gate_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.protected_file_gate_runtime_self_report_trusted, false);
+      assert.equal(dashboard.summary.protected_file_gate_protected_file_detected_count, protectedFileGate.summary.protected_file_detected_count);
+      assert.equal(dashboard.summary.protected_file_gate_blocked_before_approval_count, protectedFileGate.summary.blocked_before_approval_count);
+      assert.equal(dashboard.summary.protected_file_gate_direct_apply_allowed_count, 0);
+      assert.equal(dashboard.summary.protected_file_gate_direct_merge_allowed_count, 0);
+      assert.equal(dashboard.summary.protected_file_gate_desktop_read_only, true);
+      assert.equal(dashboard.summary.protected_file_gate_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.protected_file_gate_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.protected_file_gate_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.protected_file_gate_validation_error_count, 0);
+      assert.equal(dashboard.summary.canonical_test_runner_status, "complete");
+      assert.equal(dashboard.summary.canonical_test_runner_contract_status, "locked");
+      assert.equal(dashboard.summary.canonical_test_runner_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.canonical_test_runner_source_of_truth, "harness_executed_canonical_tests_and_runtime_verification_contracts");
+      assert.equal(dashboard.summary.canonical_test_runner_execution_source, "harness_rerun");
+      assert.equal(dashboard.summary.canonical_test_runner_agent_self_report_trusted, false);
+      assert.equal(dashboard.summary.canonical_test_runner_harness_reexecution_required, true);
+      assert.equal(dashboard.summary.canonical_test_command_count, canonicalTestRunner.summary.canonical_command_count);
+      assert.equal(dashboard.summary.canonical_test_plan_count, canonicalTestRunner.summary.canonical_test_plan_count);
+      assert.equal(dashboard.summary.canonical_test_execution_count, canonicalTestRunner.summary.canonical_test_execution_count);
+      assert.equal(dashboard.summary.canonical_test_passed_execution_count, canonicalTestRunner.summary.passed_execution_count);
+      assert.equal(dashboard.summary.canonical_test_failed_execution_count, 0);
+      assert.equal(dashboard.summary.canonical_test_timed_out_execution_count, 0);
+      assert.equal(dashboard.summary.canonical_test_agent_report_used_as_source_of_truth, false);
+      assert.equal(dashboard.summary.canonical_test_gate_result_count, canonicalTestRunner.summary.gate_result_count);
+      assert.equal(dashboard.summary.canonical_test_passed_gate_result_count, canonicalTestRunner.summary.passed_gate_result_count);
+      assert.equal(dashboard.summary.canonical_test_blocked_gate_result_count, 0);
+      assert.equal(dashboard.summary.canonical_test_direct_merge_allowed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_direct_apply_allowed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_desktop_read_only, true);
+      assert.equal(dashboard.summary.canonical_test_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_desktop_execution_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.canonical_test_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11045,6 +11142,26 @@ describe("matter harness", () => {
       assert.equal(secretsBrokerContractStage?.metrics.desktop_secret_material_exposed_count, 0);
       assert.equal(secretsBrokerContractStage?.metrics.desktop_mutation_allowed, false);
       assert.equal(secretsBrokerContractStage?.metrics.desktop_source_of_truth, false);
+      const protectedFileGateStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "protected_file_gate");
+      assert.equal(protectedFileGateStage?.status, "passed");
+      assert.equal(protectedFileGateStage?.metrics.protected_file_gate_status, "complete");
+      assert.equal(protectedFileGateStage?.metrics.gate_authority, "harness_control_plane");
+      assert.equal(protectedFileGateStage?.metrics.protected_file_detected_count, protectedFileGate.summary.protected_file_detected_count);
+      assert.equal(protectedFileGateStage?.metrics.direct_apply_allowed_count, 0);
+      assert.equal(protectedFileGateStage?.metrics.desktop_read_only, true);
+      assert.equal(protectedFileGateStage?.metrics.desktop_source_of_truth, false);
+      const canonicalTestRunnerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "canonical_test_runner");
+      assert.equal(canonicalTestRunnerStage?.status, "passed");
+      assert.equal(canonicalTestRunnerStage?.metrics.canonical_test_runner_status, "complete");
+      assert.equal(canonicalTestRunnerStage?.metrics.test_runner_authority, "harness_control_plane");
+      assert.equal(canonicalTestRunnerStage?.metrics.source_of_truth, "harness_executed_canonical_tests_and_runtime_verification_contracts");
+      assert.equal(canonicalTestRunnerStage?.metrics.execution_source, "harness_rerun");
+      assert.equal(canonicalTestRunnerStage?.metrics.agent_self_report_trusted, false);
+      assert.equal(canonicalTestRunnerStage?.metrics.passed_execution_count, canonicalTestRunner.summary.passed_execution_count);
+      assert.equal(canonicalTestRunnerStage?.metrics.direct_merge_allowed_count, 0);
+      assert.equal(canonicalTestRunnerStage?.metrics.desktop_read_only, true);
+      assert.equal(canonicalTestRunnerStage?.metrics.desktop_canonical_test_execution_allowed, false);
+      assert.equal(canonicalTestRunnerStage?.metrics.desktop_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -11487,6 +11604,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-approval-requirements"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-gate-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/protected-file-gate-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/canonical-test-runner"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/canonical-test-plans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/canonical-test-executions"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/canonical-test-gate-results"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/canonical-test-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/canonical-test-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -12723,6 +12846,30 @@ describe("matter harness", () => {
       const protectedFileGateValidations = JSON.parse((await buildReviewApiResponse("/api/protected-file-gate-validations?status=passed", apiOptions)).body);
       assert.equal(protectedFileGateValidations.collection, "protected_file_gate_validations");
       assert.equal(protectedFileGateValidations.count, protectedFileGate.summary.validation_item_count);
+
+      const canonicalTestRunnerResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-runner?canonical_test_runner_status=complete", apiOptions)).body);
+      assert.equal(canonicalTestRunnerResponse.collection, "canonical_test_runner");
+      assert.equal(canonicalTestRunnerResponse.count, 1);
+
+      const canonicalTestPlansResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-plans?canonical_test_plan_status=ready&agent_self_report_trusted=false", apiOptions)).body);
+      assert.equal(canonicalTestPlansResponse.collection, "canonical_test_plans");
+      assert.equal(canonicalTestPlansResponse.count, canonicalTestRunner.summary.canonical_test_plan_count);
+
+      const canonicalTestExecutionsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-executions?canonical_test_execution_status=passed&execution_source=harness_rerun", apiOptions)).body);
+      assert.equal(canonicalTestExecutionsResponse.collection, "canonical_test_executions");
+      assert.equal(canonicalTestExecutionsResponse.count, canonicalTestRunner.summary.passed_execution_count);
+
+      const canonicalTestGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-gate-results?test_gate_status=passed", apiOptions)).body);
+      assert.equal(canonicalTestGateResultsResponse.collection, "canonical_test_gate_results");
+      assert.equal(canonicalTestGateResultsResponse.count, canonicalTestRunner.summary.passed_gate_result_count);
+
+      const canonicalTestDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(canonicalTestDesktopBoundaryResponse.collection, "canonical_test_desktop_boundary");
+      assert.equal(canonicalTestDesktopBoundaryResponse.count, 1);
+
+      const canonicalTestValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-validations?status=passed", apiOptions)).body);
+      assert.equal(canonicalTestValidationsResponse.collection, "canonical_test_validations");
+      assert.equal(canonicalTestValidationsResponse.count, canonicalTestRunner.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

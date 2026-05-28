@@ -32,6 +32,10 @@ P191은 `capabilities:registry-api` slice로 Desktop Companion이 처음 소비�
 
 Desktop v1은 실행 버튼을 제공하지 않는다. 사용자가 Desktop에서 어떤 변경이나 실행을 요구하는 경우에도 core API는 바로 실행하지 않고 receipt draft 또는 protected action request를 생성하는 방향으로 확장한다. 실제 mutation은 Human Gate, approval authority, policy snapshot binding, audit event를 통과한 뒤 별도 runtime adapter가 수행한다.
 
+## P210 Canonical Test Runner 경계
+
+Canonical Test Runner는 agent self-report를 source of truth로 쓰지 않고 harness가 `npm run` canonical command를 직접 재실행한 결과만 test gate 판단에 사용한다. Desktop Companion은 canonical test status, command preview, gate result, validation row를 읽을 수 있지만 test 실행, pass 표시, diff apply, merge, protected mutation execution을 직접 수행하지 않는다. Desktop에서 재실행이 필요하면 rerun request draft만 만들고 실제 실행은 control-plane/human gate 경로로 들어간다.
+
 ## Core naming generalization
 
 현재 core에는 `matter_id` 잔상이 남아 있다. Desktop Companion은 새 core 필드명을 선도하지 않고 pack/capability/readiness/route group 같은 중립 UI 언어만 사용한다. `matter_id`를 `scope_id` 또는 `workspace_id`로 올리고 law-firm pack에서 `matter_id` alias를 제공할지는 별도 core naming/generalization phase에서 다룬다.

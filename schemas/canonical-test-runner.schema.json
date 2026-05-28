@@ -1,0 +1,270 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/canonical-test-runner.schema.json",
+  "title": "Hermes Canonical Test Runner",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "canonical_test_runner_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "canonical_test_runner_contract",
+    "canonical_test_plans",
+    "canonical_test_executions",
+    "canonical_test_gate_results",
+    "canonical_test_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "canonical-test-runner.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "canonical_test_runner_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_artifact_capture_path",
+        "runtime_agentrun_contract_freeze_path",
+        "protected_file_gate_path",
+        "personal_dev_slice_path",
+        "personal_dev_plan_path",
+        "personal_dev_test_result_path",
+        "policy_matrix_path",
+        "package_json_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_artifact_capture",
+        "runtime_agentrun_contract_freeze",
+        "protected_file_gate",
+        "personal_dev_slice",
+        "personal_dev_plan",
+        "personal_dev_test_result",
+        "policy_matrix",
+        "package_json",
+        "desktop_companion_integration"
+      ]
+    },
+    "canonical_test_runner_contract": {
+      "type": "object",
+      "required": [
+        "canonical_test_runner_contract_id",
+        "contract_status",
+        "test_runner_authority",
+        "source_of_truth",
+        "execution_source",
+        "agent_self_report_trusted",
+        "harness_reexecution_required",
+        "direct_merge_allowed",
+        "direct_apply_allowed",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_canonical_test_execution_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_source_of_truth"
+      ],
+      "properties": {
+        "canonical_test_runner_contract_id": { "const": "canonical-test-runner.default" },
+        "contract_status": { "const": "locked" },
+        "test_runner_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "harness_executed_canonical_tests_and_runtime_verification_contracts" },
+        "execution_source": { "const": "harness_rerun" },
+        "agent_self_report_trusted": { "const": false },
+        "runtime_self_report_trusted": { "const": false },
+        "harness_reexecution_required": { "const": true },
+        "direct_merge_allowed": { "const": false },
+        "direct_apply_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_canonical_test_execution_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false }
+      }
+    },
+    "canonical_test_plans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "canonical_test_plan_id",
+          "plan_status",
+          "execution_authority",
+          "source_diff_capture_record_id",
+          "runtime_id",
+          "adapter_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "required_gates",
+          "test_gate_required",
+          "protected_file_gate_required",
+          "diff_review_gate_required",
+          "human_approval_gate_required",
+          "agent_self_report_trusted",
+          "canonical_test_commands",
+          "command_count"
+        ],
+        "properties": {
+          "plan_status": { "const": "ready" },
+          "execution_authority": { "const": "harness_control_plane" },
+          "required_gates": { "type": "array", "contains": { "const": "test_gate" } },
+          "test_gate_required": { "const": true },
+          "protected_file_gate_required": { "const": true },
+          "diff_review_gate_required": { "const": true },
+          "human_approval_gate_required": { "const": true },
+          "agent_self_report_trusted": { "const": false },
+          "runtime_self_report_trusted": { "const": false },
+          "canonical_test_commands": { "type": "array", "minItems": 1 },
+          "command_count": { "type": "number", "minimum": 1 }
+        }
+      }
+    },
+    "canonical_test_executions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "canonical_test_execution_id",
+          "canonical_test_plan_id",
+          "command_id",
+          "command",
+          "execution_authority",
+          "execution_source",
+          "agent_self_report_trusted",
+          "agent_reported_status",
+          "harness_status",
+          "harness_exit_code",
+          "timed_out",
+          "command_execution_allowed",
+          "execution_performed",
+          "stdout_hash",
+          "stderr_hash",
+          "output_hash"
+        ],
+        "properties": {
+          "execution_authority": { "const": "harness_control_plane" },
+          "execution_source": { "const": "harness_rerun" },
+          "agent_self_report_trusted": { "const": false },
+          "harness_status": { "enum": ["passed", "failed", "timed_out", "skipped"] },
+          "timed_out": { "type": "boolean" },
+          "command_execution_allowed": { "type": "boolean" },
+          "execution_performed": { "type": "boolean" },
+          "stdout_hash": { "type": "string", "pattern": "^sha256:" },
+          "stderr_hash": { "type": "string", "pattern": "^sha256:" },
+          "output_hash": { "type": "string", "pattern": "^sha256:" }
+        }
+      }
+    },
+    "canonical_test_gate_results": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "canonical_test_gate_result_id",
+          "canonical_test_plan_id",
+          "test_gate_status",
+          "test_gate_decision",
+          "human_review_required",
+          "human_gate_required",
+          "merge_ready",
+          "direct_merge_allowed",
+          "direct_apply_allowed",
+          "agent_self_report_trusted"
+        ],
+        "properties": {
+          "test_gate_status": { "enum": ["passed", "blocked"] },
+          "human_review_required": { "const": true },
+          "human_gate_required": { "const": true },
+          "merge_ready": { "const": false },
+          "direct_merge_allowed": { "const": false },
+          "direct_apply_allowed": { "const": false },
+          "agent_self_report_trusted": { "const": false }
+        }
+      }
+    },
+    "canonical_test_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "desktop_surface_policy",
+        "desktop_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "canonical_test_rerun_request_allowed",
+        "canonical_test_execution_allowed",
+        "protected_mutation_execution_allowed",
+        "direct_merge_allowed",
+        "direct_apply_allowed",
+        "agent_self_report_trusted"
+      ],
+      "properties": {
+        "boundary_status": { "const": "locked" },
+        "desktop_surface_policy": { "const": "read_only_test_status_with_rerun_request_drafts" },
+        "desktop_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "canonical_test_rerun_request_allowed": { "const": true },
+        "canonical_test_execution_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "direct_apply_allowed": { "const": false },
+        "agent_self_report_trusted": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "canonical_test_runner_status",
+        "contract_status",
+        "test_runner_authority",
+        "source_of_truth",
+        "agent_self_report_trusted",
+        "harness_reexecution_required",
+        "canonical_test_plan_count",
+        "canonical_test_execution_count",
+        "passed_execution_count",
+        "failed_execution_count",
+        "timed_out_execution_count",
+        "agent_report_used_as_source_of_truth",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_canonical_test_execution_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "desktop_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "canonical_test_runner_status": { "enum": ["complete", "blocked"] },
+        "contract_status": { "const": "locked" },
+        "test_runner_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "harness_executed_canonical_tests_and_runtime_verification_contracts" },
+        "agent_self_report_trusted": { "const": false },
+        "harness_reexecution_required": { "const": true },
+        "agent_report_used_as_source_of_truth": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_canonical_test_execution_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false }
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    }
+  }
+}

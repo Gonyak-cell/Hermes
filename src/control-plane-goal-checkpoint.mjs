@@ -67,6 +67,7 @@ const GOAL_ITEMS = [
   sourceItem("evidence_contract_freeze", "Evidence, fact, issue, citation, and lineage v2 contract freeze", "resource_evidence", "evidence_contract_freeze", "control-plane-evidence-contract-freeze", { acceptance_profile: "evidence_contract_freeze_gate" }),
   sourceItem("capability_workflow_contract_freeze", "Capability, workflow, run, gate, runtime, and IO v2 contract freeze", "contracts", "capability_workflow_contract_freeze", "control-plane-capability-workflow-contract-freeze", { acceptance_profile: "capability_workflow_contract_freeze_gate" }),
   sourceItem("runtime_agentrun_contract_freeze", "Runtime adapter and AgentRun runtime v2 contract freeze", "runtime", "runtime_agentrun_contract_freeze", "control-plane-runtime-agentrun-contract-freeze", { acceptance_profile: "runtime_agentrun_contract_freeze_gate" }),
+  sourceItem("runtime_adapter_interface_v2", "Runtime adapter interface v2", "runtime", "runtime_adapter_interface_v2", "control-plane-runtime-adapter-interface-v2", { acceptance_profile: "runtime_adapter_interface_v2_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -493,6 +494,7 @@ function evaluateStageAcceptance(item, stage) {
     "workflow_run_dashboard_gate",
     "workflow_golden_cases_gate",
     "workflow_gate_freeze_gate",
+    "runtime_adapter_interface_v2_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1399,6 +1401,39 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.passed_checkpoint_count ?? 0) === (metrics.freeze_checkpoint_count ?? 0)
     ) {
       return passedWithOperationalGate(stage, "Workflow/Gate freeze locks the capability-to-workflow-to-gate-to-audit vertical slice for representative domain packs and keeps Desktop Companion access read-only with no protected or final action execution.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_adapter_interface_v2_gate") {
+    const interfaceCount = metrics.runtime_adapter_interface_count ?? 0;
+    const policyCount = metrics.operator_surface_policy_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.failed_validation_item_count ?? 0)
+      + (metrics.mutation_allowed_count ?? 0)
+      + (metrics.protected_mutation_request_allowed_count ?? 0)
+      + (metrics.protected_mutation_execution_allowed_count ?? 0)
+      + (metrics.secret_material_exposed_count ?? 0)
+      + (metrics.installer_or_gateway_control_count ?? 0)
+      + (metrics.runtime_source_of_truth_count ?? 0);
+    if (
+      errors === 0
+      && metrics.runtime_adapter_interface_status === "complete"
+      && metrics.runtime_adapter_interface_contract_version === "runtime-adapter-interface-contract.v2"
+      && interfaceCount > 0
+      && policyCount === interfaceCount
+      && (metrics.locked_runtime_adapter_interface_count ?? 0) === interfaceCount
+      && (metrics.locked_field_group_count ?? 0) === (metrics.field_group_count ?? 0)
+      && (metrics.input_contract_locked_count ?? 0) === interfaceCount
+      && (metrics.output_contract_locked_count ?? 0) === interfaceCount
+      && (metrics.artifact_contract_locked_count ?? 0) === interfaceCount
+      && (metrics.log_contract_locked_count ?? 0) === interfaceCount
+      && (metrics.risk_contract_locked_count ?? 0) === interfaceCount
+      && (metrics.verification_contract_locked_count ?? 0) === interfaceCount
+      && (metrics.runtime_execution_contract_bound_count ?? 0) === interfaceCount
+      && (metrics.locked_operator_surface_policy_count ?? 0) === policyCount
+      && (metrics.read_only_policy_count ?? 0) === policyCount
+    ) {
+      return passedWithOperationalGate(stage, "Runtime Adapter Interface v2 locks input, output, artifact, log, risk, and verification fields for every runtime and keeps Desktop Companion as a read-only operator surface with no protected mutation, secret, installer, gateway, or source-of-truth authority.");
     }
   }
 

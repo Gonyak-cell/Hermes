@@ -284,6 +284,11 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-vertical-slices"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-loop-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/workflow-gate-freeze-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-adapter-interface-v2"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-adapter-interfaces"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-adapter-interface-fields"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-operator-surface-policies"));
+  assert.ok(index.routes.some((route) => route.path === "/api/runtime-adapter-interface-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1349,6 +1354,26 @@ try {
   const runtimeAgentRunValidations = await fetchJson(`${url}/api/runtime-agentrun-contract-validations?status=passed&limit=5`);
   assert.equal(runtimeAgentRunValidations.collection, "runtime_agentrun_contract_validations");
   assert.ok(runtimeAgentRunValidations.count <= 5);
+
+  const runtimeAdapterInterfaceV2 = await fetchJson(`${url}/api/runtime-adapter-interface-v2?runtime_adapter_interface_status=complete&limit=1`);
+  assert.equal(runtimeAdapterInterfaceV2.collection, "runtime_adapter_interface_v2");
+  assert.ok(runtimeAdapterInterfaceV2.count <= 1);
+
+  const runtimeAdapterInterfaces = await fetchJson(`${url}/api/runtime-adapter-interfaces?interface_status=locked&limit=5`);
+  assert.equal(runtimeAdapterInterfaces.collection, "runtime_adapter_interfaces");
+  assert.ok(runtimeAdapterInterfaces.count <= 5);
+
+  const runtimeAdapterInterfaceFields = await fetchJson(`${url}/api/runtime-adapter-interface-fields?lock_status=locked&limit=5`);
+  assert.equal(runtimeAdapterInterfaceFields.collection, "runtime_adapter_interface_fields");
+  assert.ok(runtimeAdapterInterfaceFields.count <= 5);
+
+  const runtimeOperatorSurfacePolicies = await fetchJson(`${url}/api/runtime-operator-surface-policies?desktop_surface_policy=read_only_runtime_status&read_only=true&limit=5`);
+  assert.equal(runtimeOperatorSurfacePolicies.collection, "runtime_operator_surface_policies");
+  assert.ok(runtimeOperatorSurfacePolicies.count <= 5);
+
+  const runtimeAdapterInterfaceValidations = await fetchJson(`${url}/api/runtime-adapter-interface-validations?status=passed&limit=5`);
+  assert.equal(runtimeAdapterInterfaceValidations.collection, "runtime_adapter_interface_validations");
+  assert.ok(runtimeAdapterInterfaceValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

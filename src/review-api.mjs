@@ -3453,6 +3453,57 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/runtime-adapter-interface-v2") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "runtime_adapter_interface_v2");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("runtime_adapter_interface_v2_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_adapter_interface_v2", [interfaceResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-adapter-interfaces") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "runtime_adapter_interface_v2");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("runtime_adapter_interface_v2_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_adapter_interfaces", interfaceResult.artifact.runtime_adapter_interface_contract?.runtime_adapter_interfaces ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-adapter-interface-fields") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "runtime_adapter_interface_v2");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("runtime_adapter_interface_v2_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_adapter_interface_fields", interfaceResult.artifact.runtime_adapter_interface_contract?.field_groups ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-operator-surface-policies") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "runtime_adapter_interface_v2");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("runtime_adapter_interface_v2_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_operator_surface_policies", interfaceResult.artifact.runtime_adapter_interface_contract?.operator_surface_policies ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/runtime-adapter-interface-validations") {
+    const interfaceResult = await readDashboardSourceArtifact(dashboard, "runtime_adapter_interface_v2");
+    if (!interfaceResult.available) {
+      return jsonResponse(503, buildError("runtime_adapter_interface_v2_unavailable", interfaceResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("runtime_adapter_interface_validations", interfaceResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7567,6 +7618,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-artifact-contracts", "Runtime artifact contract fixtures"),
       route("GET", "/api/runtime-verification-contracts", "Runtime verification contract fixtures"),
       route("GET", "/api/runtime-agentrun-contract-validations", "Runtime/AgentRun contract validation rows"),
+      route("GET", "/api/runtime-adapter-interface-v2", "Runtime Adapter Interface v2 artifacts"),
+      route("GET", "/api/runtime-adapter-interfaces", "Runtime adapter interface rows"),
+      route("GET", "/api/runtime-adapter-interface-fields", "Runtime adapter interface field groups"),
+      route("GET", "/api/runtime-operator-surface-policies", "Runtime operator surface policies"),
+      route("GET", "/api/runtime-adapter-interface-validations", "Runtime adapter interface validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8215,6 +8271,11 @@ function filterItems(items, searchParams) {
     "workflow_run_dashboard_status",
     "workflow_golden_case_status",
     "workflow_gate_freeze_status",
+    "runtime_adapter_interface_status",
+    "interface_status",
+    "operator_surface_policy_status",
+    "desktop_surface_policy",
+    "policy_status",
     "workflow_gate_vertical_slice_status",
     "audit_binding_status",
     "state_machine_pass_status",
@@ -9465,6 +9526,11 @@ function readFilterValue(item, key) {
   if (key === "workflow_run_dashboard_status") return item.summary?.workflow_run_dashboard_status ?? item.workflow_run_dashboard_status;
   if (key === "workflow_golden_case_status") return item.summary?.workflow_golden_case_status ?? item.workflow_golden_case_status;
   if (key === "workflow_gate_freeze_status") return item.summary?.workflow_gate_freeze_status ?? item.workflow_gate_freeze_status;
+  if (key === "runtime_adapter_interface_status") return item.summary?.runtime_adapter_interface_status ?? item.runtime_adapter_interface_status;
+  if (key === "interface_status") return item.interface_status;
+  if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
+  if (key === "desktop_surface_policy") return item.desktop_surface_policy;
+  if (key === "policy_status") return item.policy_status;
   if (key === "workflow_gate_vertical_slice_status") return item.workflow_gate_vertical_slice_status;
   if (key === "audit_binding_status") return item.audit_binding_status;
   if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;

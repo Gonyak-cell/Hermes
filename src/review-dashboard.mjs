@@ -52,6 +52,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   evidenceContractFreezePath: "artifacts/evidence-contract-freeze/latest/evidence-contract-freeze.json",
   capabilityWorkflowContractFreezePath: "artifacts/capability-workflow-contract-freeze/latest/capability-workflow-contract-freeze.json",
   runtimeAgentRunContractFreezePath: "artifacts/runtime-agentrun-contract-freeze/latest/runtime-agentrun-contract-freeze.json",
+  runtimeAdapterInterfaceV2Path: "artifacts/runtime-adapter-interface-v2/latest/runtime-adapter-interface-v2.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -433,6 +434,11 @@ const SOURCE_DEFINITIONS = [
     option: "runtimeAgentRunContractFreezePath",
     source_id: "runtime_agentrun_contract_freeze",
     label: "Runtime AgentRun Contract Freeze",
+  },
+  {
+    option: "runtimeAdapterInterfaceV2Path",
+    source_id: "runtime_adapter_interface_v2",
+    label: "Runtime Adapter Interface v2",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1278,6 +1284,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "evidence_contract_freeze") return data.summary ?? {};
   if (sourceId === "capability_workflow_contract_freeze") return data.summary ?? {};
   if (sourceId === "runtime_agentrun_contract_freeze") return data.summary ?? {};
+  if (sourceId === "runtime_adapter_interface_v2") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1552,6 +1559,7 @@ function buildStageStatuses(artifacts, sources) {
     buildEvidenceContractFreezeStage(artifacts.evidence_contract_freeze, sourceById.get("evidence_contract_freeze")),
     buildCapabilityWorkflowContractFreezeStage(artifacts.capability_workflow_contract_freeze, sourceById.get("capability_workflow_contract_freeze")),
     buildRuntimeAgentRunContractFreezeStage(artifacts.runtime_agentrun_contract_freeze, sourceById.get("runtime_agentrun_contract_freeze")),
+    buildRuntimeAdapterInterfaceV2Stage(artifacts.runtime_adapter_interface_v2, sourceById.get("runtime_adapter_interface_v2")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4183,6 +4191,58 @@ function buildRuntimeAgentRunContractFreezeStage(freeze, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? freeze.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildRuntimeAdapterInterfaceV2Stage(interfaceArtifact, source) {
+  if (!interfaceArtifact) return missingStage("runtime_adapter_interface_v2", "Runtime Adapter Interface v2", source);
+  const summary = interfaceArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.mutation_allowed_count > 0
+    || summary.protected_mutation_request_allowed_count > 0
+    || summary.protected_mutation_execution_allowed_count > 0
+    || summary.secret_material_exposed_count > 0
+    || summary.installer_or_gateway_control_count > 0
+    || summary.runtime_source_of_truth_count > 0
+    || interfaceArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "runtime_adapter_interface_v2",
+    label: "Runtime Adapter Interface v2",
+    status,
+    message: `${summary.locked_runtime_adapter_interface_count ?? 0}/${summary.runtime_adapter_interface_count ?? 0} runtime interface(s) locked; ${summary.read_only_policy_count ?? 0}/${summary.operator_surface_policy_count ?? 0} Desktop operator surface policie(s) read-only.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      runtime_adapter_interface_status: summary.runtime_adapter_interface_status ?? "unknown",
+      runtime_adapter_interface_contract_version: summary.runtime_adapter_interface_contract_version ?? null,
+      runtime_adapter_interface_count: summary.runtime_adapter_interface_count ?? 0,
+      locked_runtime_adapter_interface_count: summary.locked_runtime_adapter_interface_count ?? 0,
+      field_group_count: summary.field_group_count ?? 0,
+      locked_field_group_count: summary.locked_field_group_count ?? 0,
+      input_contract_locked_count: summary.input_contract_locked_count ?? 0,
+      output_contract_locked_count: summary.output_contract_locked_count ?? 0,
+      artifact_contract_locked_count: summary.artifact_contract_locked_count ?? 0,
+      log_contract_locked_count: summary.log_contract_locked_count ?? 0,
+      risk_contract_locked_count: summary.risk_contract_locked_count ?? 0,
+      verification_contract_locked_count: summary.verification_contract_locked_count ?? 0,
+      runtime_execution_contract_bound_count: summary.runtime_execution_contract_bound_count ?? 0,
+      operator_surface_policy_count: summary.operator_surface_policy_count ?? 0,
+      locked_operator_surface_policy_count: summary.locked_operator_surface_policy_count ?? 0,
+      read_only_policy_count: summary.read_only_policy_count ?? 0,
+      mutation_allowed_count: summary.mutation_allowed_count ?? 0,
+      protected_mutation_request_allowed_count: summary.protected_mutation_request_allowed_count ?? 0,
+      protected_mutation_execution_allowed_count: summary.protected_mutation_execution_allowed_count ?? 0,
+      secret_material_exposed_count: summary.secret_material_exposed_count ?? 0,
+      installer_or_gateway_control_count: summary.installer_or_gateway_control_count ?? 0,
+      runtime_source_of_truth_count: summary.runtime_source_of_truth_count ?? 0,
+      high_risk_runtime_interface_count: summary.high_risk_runtime_interface_count ?? 0,
+      verification_required_runtime_interface_count: summary.verification_required_runtime_interface_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? interfaceArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -13016,6 +13076,27 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     runtime_agentrun_contract_freeze_verification_required_agent_run_count: artifacts.runtime_agentrun_contract_freeze?.summary?.verification_required_agent_run_count ?? 0,
     runtime_agentrun_contract_freeze_failed_validation_item_count: artifacts.runtime_agentrun_contract_freeze?.summary?.failed_validation_item_count ?? 0,
     runtime_agentrun_contract_freeze_validation_error_count: artifacts.runtime_agentrun_contract_freeze?.summary?.validation_error_count ?? artifacts.runtime_agentrun_contract_freeze?.validation?.errors?.length ?? 0,
+    runtime_adapter_interface_v2_status: artifacts.runtime_adapter_interface_v2?.summary?.runtime_adapter_interface_status ?? "unknown",
+    runtime_adapter_interface_v2_interface_count: artifacts.runtime_adapter_interface_v2?.summary?.runtime_adapter_interface_count ?? 0,
+    runtime_adapter_interface_v2_locked_interface_count: artifacts.runtime_adapter_interface_v2?.summary?.locked_runtime_adapter_interface_count ?? 0,
+    runtime_adapter_interface_v2_field_group_count: artifacts.runtime_adapter_interface_v2?.summary?.field_group_count ?? 0,
+    runtime_adapter_interface_v2_locked_field_group_count: artifacts.runtime_adapter_interface_v2?.summary?.locked_field_group_count ?? 0,
+    runtime_adapter_interface_v2_input_contract_locked_count: artifacts.runtime_adapter_interface_v2?.summary?.input_contract_locked_count ?? 0,
+    runtime_adapter_interface_v2_output_contract_locked_count: artifacts.runtime_adapter_interface_v2?.summary?.output_contract_locked_count ?? 0,
+    runtime_adapter_interface_v2_artifact_contract_locked_count: artifacts.runtime_adapter_interface_v2?.summary?.artifact_contract_locked_count ?? 0,
+    runtime_adapter_interface_v2_log_contract_locked_count: artifacts.runtime_adapter_interface_v2?.summary?.log_contract_locked_count ?? 0,
+    runtime_adapter_interface_v2_risk_contract_locked_count: artifacts.runtime_adapter_interface_v2?.summary?.risk_contract_locked_count ?? 0,
+    runtime_adapter_interface_v2_verification_contract_locked_count: artifacts.runtime_adapter_interface_v2?.summary?.verification_contract_locked_count ?? 0,
+    runtime_adapter_interface_v2_runtime_execution_contract_bound_count: artifacts.runtime_adapter_interface_v2?.summary?.runtime_execution_contract_bound_count ?? 0,
+    runtime_adapter_interface_v2_operator_surface_policy_count: artifacts.runtime_adapter_interface_v2?.summary?.operator_surface_policy_count ?? 0,
+    runtime_adapter_interface_v2_read_only_policy_count: artifacts.runtime_adapter_interface_v2?.summary?.read_only_policy_count ?? 0,
+    runtime_adapter_interface_v2_mutation_allowed_count: artifacts.runtime_adapter_interface_v2?.summary?.mutation_allowed_count ?? 0,
+    runtime_adapter_interface_v2_protected_mutation_request_allowed_count: artifacts.runtime_adapter_interface_v2?.summary?.protected_mutation_request_allowed_count ?? 0,
+    runtime_adapter_interface_v2_protected_mutation_execution_allowed_count: artifacts.runtime_adapter_interface_v2?.summary?.protected_mutation_execution_allowed_count ?? 0,
+    runtime_adapter_interface_v2_secret_material_exposed_count: artifacts.runtime_adapter_interface_v2?.summary?.secret_material_exposed_count ?? 0,
+    runtime_adapter_interface_v2_installer_or_gateway_control_count: artifacts.runtime_adapter_interface_v2?.summary?.installer_or_gateway_control_count ?? 0,
+    runtime_adapter_interface_v2_runtime_source_of_truth_count: artifacts.runtime_adapter_interface_v2?.summary?.runtime_source_of_truth_count ?? 0,
+    runtime_adapter_interface_v2_validation_error_count: artifacts.runtime_adapter_interface_v2?.summary?.validation_error_count ?? artifacts.runtime_adapter_interface_v2?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -14703,6 +14784,8 @@ function parseArgs(argv) {
     else if (arg === "--no-capability-workflow-contract-freeze") parsed.capabilityWorkflowContractFreezePath = false;
     else if (arg === "--runtime-agentrun-contract-freeze") parsed.runtimeAgentRunContractFreezePath = argv[++index];
     else if (arg === "--no-runtime-agentrun-contract-freeze") parsed.runtimeAgentRunContractFreezePath = false;
+    else if (arg === "--runtime-adapter-interface-v2") parsed.runtimeAdapterInterfaceV2Path = argv[++index];
+    else if (arg === "--no-runtime-adapter-interface-v2") parsed.runtimeAdapterInterfaceV2Path = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15126,6 +15209,14 @@ Options:
                                   capability-workflow-contract-freeze.json path.
   --no-capability-workflow-contract-freeze
                                   Do not include Capability Workflow Contract Freeze status.
+  --runtime-agentrun-contract-freeze <path>
+                                  runtime-agentrun-contract-freeze.json path.
+  --no-runtime-agentrun-contract-freeze
+                                  Do not include Runtime AgentRun Contract Freeze status.
+  --runtime-adapter-interface-v2 <path>
+                                  runtime-adapter-interface-v2.json path.
+  --no-runtime-adapter-interface-v2
+                                  Do not include Runtime Adapter Interface v2 status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

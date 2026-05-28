@@ -553,6 +553,11 @@ npm run api:serve
 - `GET /api/gate-aggregate-records`: normalized pass/warn/manual/fail gate aggregate rows
 - `GET /api/workflow-gate-statuses`: workflow-level gate status rows
 - `GET /api/gate-result-aggregate-validations`: gate result aggregate validation rows
+- `GET /api/runtime-adapter-interface-v2`: Runtime Adapter Interface v2 artifact
+- `GET /api/runtime-adapter-interfaces`: runtime adapter interface rows
+- `GET /api/runtime-adapter-interface-fields`: runtime adapter interface field groups
+- `GET /api/runtime-operator-surface-policies`: runtime operator/Desktop surface policy rows
+- `GET /api/runtime-adapter-interface-validations`: Runtime Adapter Interface v2 validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

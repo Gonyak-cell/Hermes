@@ -5666,6 +5666,27 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 96개로 증가하고 workflow gate freeze artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:gate-freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 195 - Runtime Adapter Interface v2
+
+목표: Phase 104 Runtime/AgentRun v2 contract freeze를 P195-P212 runtime adapter 작업의 실행 전 인터페이스로 승격하고, Hermes Desktop은 runtime/source of truth가 아니라 read-only operator surface라는 경계를 고정한다.
+
+구현:
+
+- `src/runtime-adapter-interface-v2.mjs`와 `scripts/runtime-adapter-interface-v2.mjs`를 추가해 `npm run contracts:runtime-interface` slice를 등록
+- `schemas/runtime-adapter-interface-v2.schema.json`으로 runtime adapter interface, required field group, operator surface policy, validation summary 계약을 검증
+- Runtime/AgentRun contract freeze의 9개 runtime adapter를 input, output, artifact, log, risk, verification field group에 매핑하고 모든 interface를 `locked` 상태로 고정
+- Desktop/operator surface policy를 runtime별로 생성해 `read_only_runtime_status`, `mutation_allowed=false`, `protected_mutation_request_allowed=false`, `protected_mutation_execution_allowed=false`, `secret_material_exposed=false`, `installer_or_gateway_control=false`, `runtime_source_of_truth=false`를 확정
+- Review Dashboard stage/summary, Review API route, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Runtime Adapter Interface v2가 validation error 없이 `complete` 상태가 됨
+- runtime 9개 interface가 모두 input/output/artifact/log/risk/verification contract를 lock하고 runtime execution contract에 binding됨
+- operator surface policy 9개가 모두 read-only이며 mutation/protected mutation request/protected execution/secret/installer/gateway/source-of-truth count가 0임
+- Review API가 `/api/runtime-adapter-interface-v2`, `/api/runtime-adapter-interfaces`, `/api/runtime-adapter-interface-fields`, `/api/runtime-operator-surface-policies`, `/api/runtime-adapter-interface-validations`를 제공
+- Golden fixture 수가 97개로 증가하고 runtime adapter interface artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run contracts:runtime-interface -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5674,9 +5695,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 194이다.
+- 현재 완료 기준점은 Phase 195이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P195-P312, 총 118개다.
+- 남은 계획 슬롯은 P196-P312, 총 117개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

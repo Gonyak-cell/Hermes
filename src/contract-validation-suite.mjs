@@ -69,6 +69,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "contracts:evidence",
   "contracts:capabilities",
   "contracts:runtimes",
+  "contracts:runtime-interface",
   "contracts:gates",
   "contracts:outputs",
   "contracts:events",

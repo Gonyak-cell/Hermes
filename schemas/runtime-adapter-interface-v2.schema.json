@@ -1,0 +1,333 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/runtime-adapter-interface-v2.schema.json",
+  "title": "Hermes Runtime Adapter Interface v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "interface_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "runtime_adapter_interface_contract",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "runtime-adapter-interface-v2.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "interface_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_agentrun_contract_freeze_path",
+        "capability_registry_api_path",
+        "workflow_gate_freeze_path",
+        "desktop_companion_integration_path"
+      ],
+      "properties": {
+        "runtime_agentrun_contract_freeze_path": { "type": "string" },
+        "capability_registry_api_path": { "type": "string" },
+        "workflow_gate_freeze_path": { "type": "string" },
+        "desktop_companion_integration_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_agentrun_contract_freeze",
+        "capability_registry_api",
+        "workflow_gate_freeze",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "runtime_adapter_count", "runtime_execution_contract_count"],
+          "properties": {
+            "schema_version": { "type": "string" },
+            "freeze_id": { "type": "string" },
+            "freeze_status": { "const": "complete" },
+            "runtime_adapter_count": { "type": "integer", "minimum": 1 },
+            "runtime_execution_contract_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "capability_registry_api": {
+          "type": "object",
+          "required": ["registry_api_status", "desktop_companion_readiness_status"],
+          "properties": {
+            "schema_version": { "type": "string" },
+            "registry_api_status": { "const": "complete" },
+            "desktop_companion_readiness_status": { "const": "read_only_ready" },
+            "route_group_count": { "type": "integer", "minimum": 0 }
+          }
+        },
+        "workflow_gate_freeze": {
+          "type": "object",
+          "required": ["workflow_gate_freeze_status", "desktop_companion_readiness_status"],
+          "properties": {
+            "schema_version": { "type": "string" },
+            "workflow_gate_freeze_status": { "const": "complete" },
+            "desktop_companion_readiness_status": { "const": "read_only_ready" }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": ["declares_operator_surface", "declares_read_only_v1", "declares_not_runtime_source_of_truth"],
+          "properties": {
+            "document_path": { "type": "string" },
+            "declares_operator_surface": { "const": true },
+            "declares_read_only_v1": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true }
+          }
+        }
+      }
+    },
+    "runtime_adapter_interface_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "field_groups",
+        "runtime_adapter_interfaces",
+        "operator_surface_policies"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-adapter-interface-contract.v2" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "field_groups": {
+          "type": "array",
+          "minItems": 7,
+          "items": { "$ref": "#/$defs/field_group" }
+        },
+        "runtime_adapter_interfaces": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/runtime_adapter_interface" }
+        },
+        "operator_surface_policies": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/operator_surface_policy" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_status",
+        "runtime_adapter_interface_contract_version",
+        "runtime_adapter_interface_count",
+        "locked_runtime_adapter_interface_count",
+        "field_group_count",
+        "locked_field_group_count",
+        "input_contract_locked_count",
+        "output_contract_locked_count",
+        "artifact_contract_locked_count",
+        "log_contract_locked_count",
+        "risk_contract_locked_count",
+        "verification_contract_locked_count",
+        "runtime_execution_contract_bound_count",
+        "operator_surface_policy_count",
+        "locked_operator_surface_policy_count",
+        "read_only_policy_count",
+        "mutation_allowed_count",
+        "protected_mutation_request_allowed_count",
+        "protected_mutation_execution_allowed_count",
+        "secret_material_exposed_count",
+        "installer_or_gateway_control_count",
+        "runtime_source_of_truth_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "runtime_adapter_interface_status": { "const": "complete" },
+        "runtime_adapter_interface_contract_version": { "const": "runtime-adapter-interface-contract.v2" },
+        "runtime_adapter_interface_count": { "type": "integer", "minimum": 1 },
+        "locked_runtime_adapter_interface_count": { "type": "integer", "minimum": 1 },
+        "field_group_count": { "type": "integer", "minimum": 7 },
+        "locked_field_group_count": { "type": "integer", "minimum": 7 },
+        "input_contract_locked_count": { "type": "integer", "minimum": 1 },
+        "output_contract_locked_count": { "type": "integer", "minimum": 1 },
+        "artifact_contract_locked_count": { "type": "integer", "minimum": 1 },
+        "log_contract_locked_count": { "type": "integer", "minimum": 1 },
+        "risk_contract_locked_count": { "type": "integer", "minimum": 1 },
+        "verification_contract_locked_count": { "type": "integer", "minimum": 1 },
+        "runtime_execution_contract_bound_count": { "type": "integer", "minimum": 1 },
+        "operator_surface_policy_count": { "type": "integer", "minimum": 1 },
+        "locked_operator_surface_policy_count": { "type": "integer", "minimum": 1 },
+        "read_only_policy_count": { "type": "integer", "minimum": 1 },
+        "mutation_allowed_count": { "const": 0 },
+        "protected_mutation_request_allowed_count": { "const": 0 },
+        "protected_mutation_execution_allowed_count": { "const": 0 },
+        "secret_material_exposed_count": { "const": 0 },
+        "installer_or_gateway_control_count": { "const": 0 },
+        "runtime_source_of_truth_count": { "const": 0 },
+        "high_risk_runtime_interface_count": { "type": "integer", "minimum": 0 },
+        "verification_required_runtime_interface_count": { "type": "integer", "minimum": 0 },
+        "validation_item_count": { "type": "integer", "minimum": 0 },
+        "failed_validation_item_count": { "const": 0 },
+        "validation_error_count": { "const": 0 },
+        "by_runtime_id": { "type": "object" },
+        "by_risk_level": { "type": "object" },
+        "by_desktop_surface_policy": { "type": "object" }
+      }
+    },
+    "validation_items": { "type": "array", "items": { "$ref": "#/$defs/validation_item" } },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "field_group": {
+      "type": "object",
+      "required": ["field_group_id", "label", "required_fields", "lock_status", "compatibility_floor", "created_at"],
+      "properties": {
+        "field_group_id": { "type": "string" },
+        "label": { "type": "string" },
+        "required_fields": { "type": "array", "items": { "type": "string" } },
+        "lock_status": { "const": "locked" },
+        "compatibility_floor": { "const": "runtime-adapter.v2" },
+        "created_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "runtime_adapter_interface": {
+      "type": "object",
+      "required": [
+        "interface_id",
+        "schema_version",
+        "adapter_id",
+        "runtime_id",
+        "risk_level",
+        "runtime_execution_contract_bound",
+        "input_contract_status",
+        "output_contract_status",
+        "artifact_contract_status",
+        "log_contract_status",
+        "risk_contract_status",
+        "verification_contract_status",
+        "operator_surface_policy_status",
+        "desktop_surface_policy",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_execution_allowed",
+        "secret_material_exposed",
+        "installer_or_gateway_control",
+        "runtime_source_of_truth",
+        "interface_status"
+      ],
+      "properties": {
+        "interface_id": { "type": "string" },
+        "schema_version": { "const": "runtime-adapter-interface.v2" },
+        "adapter_id": { "type": "string" },
+        "runtime_id": { "type": "string" },
+        "runtime_display_name": { "type": ["string", "null"] },
+        "risk_level": { "enum": ["low", "medium", "high", "critical"] },
+        "execution_contract_id": { "type": ["string", "null"] },
+        "runtime_execution_contract_bound": { "const": true },
+        "input_contract_status": { "const": "locked" },
+        "output_contract_status": { "const": "locked" },
+        "artifact_contract_status": { "const": "locked" },
+        "log_contract_status": { "const": "locked" },
+        "risk_contract_status": { "const": "locked" },
+        "verification_contract_status": { "const": "locked" },
+        "operator_surface_policy_id": { "type": ["string", "null"] },
+        "operator_surface_policy_status": { "const": "locked" },
+        "desktop_surface_policy": { "const": "read_only_runtime_status" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "protected_mutation_request_policy": { "const": "disabled_in_desktop_v1_receipt_or_human_gate_required" },
+        "secret_material_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "runtime_source_of_truth": { "const": false },
+        "output_trust": { "type": ["string", "null"] },
+        "verification_required": { "type": "boolean" },
+        "logs_required": { "type": "boolean" },
+        "artifact_capture_required": { "type": "boolean" },
+        "runtime_artifact_contract_count": { "type": "integer", "minimum": 0 },
+        "runtime_log_contract_count": { "type": "integer", "minimum": 0 },
+        "runtime_verification_contract_count": { "type": "integer", "minimum": 0 },
+        "interface_status": { "const": "locked" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "operator_surface_policy": {
+      "type": "object",
+      "required": [
+        "operator_surface_policy_id",
+        "schema_version",
+        "runtime_id",
+        "adapter_id",
+        "desktop_surface",
+        "desktop_surface_policy",
+        "source_of_truth",
+        "runtime_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_request_policy",
+        "protected_mutation_execution_allowed",
+        "secret_material_exposed",
+        "provider_key_visible",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control",
+        "auto_update_control",
+        "skill_install_control",
+        "allowed_operator_actions",
+        "denied_operator_actions",
+        "policy_status"
+      ],
+      "properties": {
+        "operator_surface_policy_id": { "type": "string" },
+        "schema_version": { "const": "operator-surface-policy.v1" },
+        "runtime_id": { "type": "string" },
+        "adapter_id": { "type": "string" },
+        "desktop_surface": { "const": "runtime_adapters" },
+        "desktop_surface_policy": { "const": "read_only_runtime_status" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "runtime_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_request_policy": { "const": "disabled_in_desktop_v1_receipt_or_human_gate_required" },
+        "protected_mutation_execution_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false },
+        "auto_update_control": { "const": false },
+        "skill_install_control": { "const": false },
+        "allowed_operator_actions": { "type": "array", "items": { "type": "string" } },
+        "denied_operator_actions": { "type": "array", "items": { "type": "string" } },
+        "route_group_refs": { "type": "array", "items": { "type": "string" } },
+        "workflow_gate_vertical_slice_refs": { "type": "array", "items": { "type": "string" } },
+        "desktop_companion_contract_ref": { "type": "string" },
+        "policy_status": { "const": "locked" },
+        "created_at": { "type": "string", "format": "date-time" },
+        "metadata": { "type": "object" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" },
+        "details": { "type": "object" }
+      }
+    }
+  }
+}

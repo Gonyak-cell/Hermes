@@ -191,6 +191,7 @@ import { runWorkflowRunDashboard } from "../src/workflow-run-dashboard.mjs";
 import { runWorkflowGoldenCases } from "../src/workflow-golden-cases.mjs";
 import { runWorkflowGateFreeze } from "../src/workflow-gate-freeze.mjs";
 import { runRuntimeAgentRunContractFreeze } from "../src/runtime-agentrun-contract-freeze.mjs";
+import { runRuntimeAdapterInterfaceV2 } from "../src/runtime-adapter-interface-v2.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1784,6 +1785,7 @@ describe("matter harness", () => {
         evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
         capabilityWorkflowContractFreezePath: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
         runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6359,6 +6361,44 @@ describe("matter harness", () => {
       assert.ok(workflowGateFreeze.workflow_gate_freeze_checkpoints.every((checkpoint) => checkpoint.checkpoint_status === "passed"));
       assert.match(await readFile(path.join(outDir, "workflow-gate-freeze", "summary.md"), "utf8"), /Workflow\/Gate Freeze/);
 
+      const runtimeAdapterInterfaceV2 = await runRuntimeAdapterInterfaceV2({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        workflowGateFreezePath: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-adapter-interface-v2"),
+        runAt: "2026-05-23T06:37:39.000Z",
+      });
+      const runtimeAdapterInterfaceV2Schema = JSON.parse(await readFile("schemas/runtime-adapter-interface-v2.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(runtimeAdapterInterfaceV2, runtimeAdapterInterfaceV2Schema, {}, "runtime_adapter_interface_v2"),
+        [],
+      );
+      assert.equal(runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_status, "complete");
+      assert.equal(runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count, runtimeAgentRunContractFreeze.summary.runtime_adapter_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.locked_runtime_adapter_interface_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.field_group_count, 7);
+      assert.equal(runtimeAdapterInterfaceV2.summary.locked_field_group_count, 7);
+      assert.equal(runtimeAdapterInterfaceV2.summary.input_contract_locked_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.output_contract_locked_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.artifact_contract_locked_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.log_contract_locked_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.risk_contract_locked_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.verification_contract_locked_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.runtime_execution_contract_bound_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.operator_surface_policy_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.read_only_policy_count, runtimeAdapterInterfaceV2.summary.operator_surface_policy_count);
+      assert.equal(runtimeAdapterInterfaceV2.summary.mutation_allowed_count, 0);
+      assert.equal(runtimeAdapterInterfaceV2.summary.protected_mutation_request_allowed_count, 0);
+      assert.equal(runtimeAdapterInterfaceV2.summary.protected_mutation_execution_allowed_count, 0);
+      assert.equal(runtimeAdapterInterfaceV2.summary.secret_material_exposed_count, 0);
+      assert.equal(runtimeAdapterInterfaceV2.summary.installer_or_gateway_control_count, 0);
+      assert.equal(runtimeAdapterInterfaceV2.summary.runtime_source_of_truth_count, 0);
+      assert.equal(runtimeAdapterInterfaceV2.summary.validation_error_count, 0);
+      assert.ok(runtimeAdapterInterfaceV2.runtime_adapter_interface_contract.runtime_adapter_interfaces.every((item) => item.interface_status === "locked" && item.read_only === true && item.mutation_allowed === false));
+      assert.ok(runtimeAdapterInterfaceV2.runtime_adapter_interface_contract.operator_surface_policies.every((policy) => policy.desktop_surface_policy === "read_only_runtime_status" && policy.protected_mutation_request_allowed === false));
+      assert.match(await readFile(path.join(outDir, "runtime-adapter-interface-v2", "summary.md"), "utf8"), /Runtime Adapter Interface v2/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6477,6 +6517,7 @@ describe("matter harness", () => {
           evidence_contract_freeze: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
           capability_workflow_contract_freeze: path.join(outDir, "capability-workflow-contract-freeze", "capability-workflow-contract-freeze.json"),
           runtime_agentrun_contract_freeze: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+          runtime_adapter_interface_v2: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6528,8 +6569,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 96);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 96);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 97);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 97);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6613,6 +6654,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_run_dashboard"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_golden_cases"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "workflow_gate_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_adapter_interface_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -6655,6 +6697,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.fixture_validation_results.every((result) => result.regression_status === "passed"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:validate"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7101,6 +7144,10 @@ describe("matter harness", () => {
       assert.equal(runtimeAgentRunContractFreezeCheckpoint?.acceptance_profile, "runtime_agentrun_contract_freeze_gate");
       assert.equal(runtimeAgentRunContractFreezeCheckpoint?.status, "passed");
       assert.equal(runtimeAgentRunContractFreezeCheckpoint?.implementation_status, "passed");
+      const runtimeAdapterInterfaceV2Checkpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-adapter-interface-v2");
+      assert.equal(runtimeAdapterInterfaceV2Checkpoint?.acceptance_profile, "runtime_adapter_interface_v2_gate");
+      assert.equal(runtimeAdapterInterfaceV2Checkpoint?.status, "passed");
+      assert.equal(runtimeAdapterInterfaceV2Checkpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -8953,6 +9000,27 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_verification_required_agent_run_count, runtimeAgentRunContractFreeze.summary.verification_required_agent_run_count);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_failed_validation_item_count, 0);
       assert.equal(dashboard.summary.runtime_agentrun_contract_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_status, "complete");
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_interface_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_locked_interface_count, runtimeAdapterInterfaceV2.summary.locked_runtime_adapter_interface_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_field_group_count, runtimeAdapterInterfaceV2.summary.field_group_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_locked_field_group_count, runtimeAdapterInterfaceV2.summary.locked_field_group_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_input_contract_locked_count, runtimeAdapterInterfaceV2.summary.input_contract_locked_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_output_contract_locked_count, runtimeAdapterInterfaceV2.summary.output_contract_locked_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_artifact_contract_locked_count, runtimeAdapterInterfaceV2.summary.artifact_contract_locked_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_log_contract_locked_count, runtimeAdapterInterfaceV2.summary.log_contract_locked_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_risk_contract_locked_count, runtimeAdapterInterfaceV2.summary.risk_contract_locked_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_verification_contract_locked_count, runtimeAdapterInterfaceV2.summary.verification_contract_locked_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_runtime_execution_contract_bound_count, runtimeAdapterInterfaceV2.summary.runtime_execution_contract_bound_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_operator_surface_policy_count, runtimeAdapterInterfaceV2.summary.operator_surface_policy_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_read_only_policy_count, runtimeAdapterInterfaceV2.summary.read_only_policy_count);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_mutation_allowed_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_protected_mutation_request_allowed_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_protected_mutation_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_secret_material_exposed_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_installer_or_gateway_control_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_runtime_source_of_truth_count, 0);
+      assert.equal(dashboard.summary.runtime_adapter_interface_v2_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -9747,6 +9815,12 @@ describe("matter harness", () => {
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "evidence_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "capability_workflow_contract_freeze"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "runtime_agentrun_contract_freeze"));
+      const runtimeAdapterInterfaceV2Stage = dashboard.stage_statuses.find((stage) => stage.stage_id === "runtime_adapter_interface_v2");
+      assert.equal(runtimeAdapterInterfaceV2Stage?.status, "passed");
+      assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.runtime_adapter_interface_status, "complete");
+      assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.runtime_adapter_interface_count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+      assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.read_only_policy_count, runtimeAdapterInterfaceV2.summary.read_only_policy_count);
+      assert.equal(runtimeAdapterInterfaceV2Stage?.metrics.protected_mutation_request_allowed_count, 0);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10101,6 +10175,11 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-vertical-slices"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-loop-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/workflow-gate-freeze-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-adapter-interface-v2"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-adapter-interfaces"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-adapter-interface-fields"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-operator-surface-policies"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/runtime-adapter-interface-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -10985,6 +11064,26 @@ describe("matter harness", () => {
       const runtimeAgentRunContractValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-agentrun-contract-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeAgentRunContractValidations.collection, "runtime_agentrun_contract_validations");
       assert.equal(runtimeAgentRunContractValidations.count, runtimeAgentRunContractFreeze.summary.validation_item_count);
+
+      const runtimeAdapterInterfaceV2Response = JSON.parse((await buildReviewApiResponse("/api/runtime-adapter-interface-v2?runtime_adapter_interface_status=complete", apiOptions)).body);
+      assert.equal(runtimeAdapterInterfaceV2Response.collection, "runtime_adapter_interface_v2");
+      assert.equal(runtimeAdapterInterfaceV2Response.count, 1);
+
+      const lockedRuntimeAdapterInterfaces = JSON.parse((await buildReviewApiResponse("/api/runtime-adapter-interfaces?interface_status=locked", apiOptions)).body);
+      assert.equal(lockedRuntimeAdapterInterfaces.collection, "runtime_adapter_interfaces");
+      assert.equal(lockedRuntimeAdapterInterfaces.count, runtimeAdapterInterfaceV2.summary.runtime_adapter_interface_count);
+
+      const lockedRuntimeAdapterInterfaceFields = JSON.parse((await buildReviewApiResponse("/api/runtime-adapter-interface-fields?lock_status=locked", apiOptions)).body);
+      assert.equal(lockedRuntimeAdapterInterfaceFields.collection, "runtime_adapter_interface_fields");
+      assert.equal(lockedRuntimeAdapterInterfaceFields.count, runtimeAdapterInterfaceV2.summary.field_group_count);
+
+      const readOnlyRuntimeOperatorSurfacePolicies = JSON.parse((await buildReviewApiResponse("/api/runtime-operator-surface-policies?desktop_surface_policy=read_only_runtime_status&read_only=true", apiOptions)).body);
+      assert.equal(readOnlyRuntimeOperatorSurfacePolicies.collection, "runtime_operator_surface_policies");
+      assert.equal(readOnlyRuntimeOperatorSurfacePolicies.count, runtimeAdapterInterfaceV2.summary.read_only_policy_count);
+
+      const runtimeAdapterInterfaceValidations = JSON.parse((await buildReviewApiResponse("/api/runtime-adapter-interface-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeAdapterInterfaceValidations.collection, "runtime_adapter_interface_validations");
+      assert.equal(runtimeAdapterInterfaceValidations.count, runtimeAdapterInterfaceV2.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

@@ -1,0 +1,324 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/schemas/runtime-freeze.schema.json",
+  "title": "Hermes Runtime Freeze",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "runtime_freeze_id",
+    "output_dir",
+    "runtime_freeze_status",
+    "safe_handling",
+    "freeze_scope",
+    "inputs",
+    "source_contracts",
+    "runtime_freeze_contract",
+    "runtime_freeze_sources",
+    "runtime_freeze_slices",
+    "runtime_freeze_loop_bindings",
+    "runtime_freeze_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "runtime-freeze.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "runtime_freeze_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "runtime_freeze_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "freeze_report_only",
+        "source_artifact_mutation_allowed",
+        "protected_actions_executed",
+        "runtime_execution_performed",
+        "runtime_process_control_executed",
+        "canonical_test_execution_performed_by_freeze",
+        "external_runtime_call_executed",
+        "external_delivery_executed",
+        "secret_material_exposed",
+        "provider_key_visible",
+        "installer_or_gateway_control",
+        "ssh_or_cron_control"
+      ],
+      "properties": {
+        "freeze_report_only": { "const": true },
+        "source_artifact_mutation_allowed": { "const": false },
+        "protected_actions_executed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "runtime_process_control_executed": { "const": false },
+        "canonical_test_execution_performed_by_freeze": { "const": false },
+        "external_runtime_call_executed": { "const": false },
+        "external_delivery_executed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "provider_key_visible": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "ssh_or_cron_control": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "freeze_scope": {
+      "type": "object",
+      "required": [
+        "track",
+        "frozen_slots",
+        "source_phase_range",
+        "representative_runtime_ids",
+        "next_planned_slot",
+        "next_track"
+      ],
+      "properties": {
+        "track": { "const": "Runtime Adapter, Sandbox, Worktree, Secrets" },
+        "frozen_slots": { "type": "array", "minItems": 18, "items": { "type": "string" } },
+        "source_phase_range": { "type": "string" },
+        "representative_runtime_ids": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "enum": ["hermes", "codex", "local_script"] }
+        },
+        "next_planned_slot": { "const": "P213" },
+        "next_track": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "runtime_freeze_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "runtime_freeze_contract_id",
+        "generated_at",
+        "freeze_scope",
+        "source_of_truth",
+        "representative_runtime_ids",
+        "acceptance_rule",
+        "desktop_companion_rule",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-freeze-contract.v1" },
+        "runtime_freeze_contract_id": { "const": "runtime-freeze.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "freeze_scope": { "const": "runtime_adapter_sandbox_worktree_secrets" },
+        "source_of_truth": { "const": "runtime_adapter_artifacts_agent_run_ledger_gates_and_runtime_api_dashboard" },
+        "representative_runtime_ids": { "type": "array", "minItems": 3 },
+        "acceptance_rule": { "type": "string" },
+        "desktop_companion_rule": { "type": "string" },
+        "mutation_policy": { "const": "read_only_freeze_no_runtime_execution" }
+      },
+      "additionalProperties": true
+    },
+    "runtime_freeze_sources": {
+      "type": "array",
+      "minItems": 20,
+      "items": { "$ref": "#/$defs/runtime_freeze_source" }
+    },
+    "runtime_freeze_slices": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/runtime_freeze_slice" }
+    },
+    "runtime_freeze_loop_bindings": {
+      "type": "array",
+      "minItems": 17,
+      "items": { "$ref": "#/$defs/runtime_freeze_loop_binding" }
+    },
+    "runtime_freeze_checkpoints": {
+      "type": "array",
+      "minItems": 8,
+      "items": { "$ref": "#/$defs/runtime_freeze_checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "runtime_freeze_source": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "source_id",
+        "label",
+        "planned_slot",
+        "source_group",
+        "path",
+        "available",
+        "expected_status",
+        "observed_status",
+        "validation_error_count",
+        "runtime_freeze_source_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-freeze-source.v1" },
+        "source_id": { "type": "string" },
+        "label": { "type": "string" },
+        "planned_slot": { "type": "string" },
+        "source_group": { "type": "string" },
+        "path": { "type": "string" },
+        "available": { "type": "boolean" },
+        "source_schema_version": { "type": ["string", "null"] },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" },
+        "status_key": { "type": ["string", "null"] },
+        "expected_status": { "type": "string" },
+        "observed_status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "runtime_freeze_source_status": { "enum": ["passed", "failed"] },
+        "content_hash": { "type": ["string", "null"] },
+        "error": { "type": ["string", "null"] }
+      },
+      "additionalProperties": true
+    },
+    "runtime_freeze_slice": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "runtime_freeze_slice_id",
+        "runtime_id",
+        "slice_kind",
+        "adapter_source_id",
+        "agent_run_count",
+        "agent_run_required",
+        "adapter_status",
+        "ledger_binding_status",
+        "agent_run_ledger_status",
+        "artifact_capture_status",
+        "log_capture_status",
+        "lifecycle_status",
+        "control_request_status",
+        "gate_status",
+        "canonical_test_status",
+        "human_gate_required",
+        "direct_apply_allowed",
+        "direct_merge_allowed",
+        "protected_path_write_allowed",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_runtime_execution_allowed",
+        "desktop_runtime_control_allowed",
+        "desktop_source_of_truth",
+        "pass_checks",
+        "runtime_freeze_slice_status",
+        "freeze_note",
+        "recorded_at",
+        "runtime_freeze_slice_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-freeze-slice.v1" },
+        "runtime_id": { "enum": ["hermes", "codex", "local_script"] },
+        "slice_kind": { "type": "string" },
+        "agent_run_count": { "type": "integer", "minimum": 0 },
+        "agent_run_required": { "type": "boolean" },
+        "human_gate_required": { "type": "boolean" },
+        "direct_apply_allowed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "protected_path_write_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "desktop_runtime_control_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "pass_checks": { "type": "object" },
+        "runtime_freeze_slice_status": { "enum": ["passed", "failed"] },
+        "recorded_at": { "type": "string", "format": "date-time" }
+      },
+      "additionalProperties": true
+    },
+    "runtime_freeze_loop_binding": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "runtime_freeze_loop_binding_id",
+        "loop_step_id",
+        "loop_status",
+        "artifact_missing_count",
+        "protected_action_count",
+        "runtime_freeze_loop_binding_status"
+      ],
+      "properties": {
+        "schema_version": { "const": "runtime-freeze-loop-binding.v1" },
+        "loop_step_id": { "type": "string" },
+        "loop_status": { "type": "string" },
+        "artifact_missing_count": { "type": "integer", "minimum": 0 },
+        "protected_action_count": { "type": "integer", "minimum": 0 },
+        "runtime_freeze_loop_binding_status": { "enum": ["passed", "failed"] }
+      },
+      "additionalProperties": true
+    },
+    "runtime_freeze_checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "status", "passed", "message"],
+      "properties": {
+        "schema_version": { "const": "runtime-freeze-checkpoint.v1" },
+        "checkpoint_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "check_id", "status", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "item_count", "error_count", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "item_count": { "type": "integer", "minimum": 0 },
+        "error_count": { "type": "integer", "minimum": 0 },
+        "errors": { "type": "array" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "runtime_freeze_status",
+        "runtime_freeze_contract_id",
+        "source_of_truth",
+        "desktop_surface_policy",
+        "runtime_freeze_source_count",
+        "passed_source_count",
+        "runtime_freeze_slice_count",
+        "passed_runtime_slice_count",
+        "runtime_freeze_loop_binding_count",
+        "passed_loop_binding_count",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "runtime_freeze_status": { "enum": ["complete", "blocked"] },
+        "runtime_freeze_contract_id": { "const": "runtime-freeze.v1" },
+        "source_of_truth": { "const": "runtime_adapter_artifacts_agent_run_ledger_gates_and_runtime_api_dashboard" },
+        "desktop_surface_policy": { "const": "read_only_runtime_operations_dashboard" },
+        "runtime_freeze_source_count": { "type": "integer", "minimum": 20 },
+        "passed_source_count": { "type": "integer", "minimum": 0 },
+        "runtime_freeze_slice_count": { "type": "integer", "minimum": 3 },
+        "passed_runtime_slice_count": { "type": "integer", "minimum": 0 },
+        "runtime_freeze_loop_binding_count": { "type": "integer", "minimum": 17 },
+        "passed_loop_binding_count": { "type": "integer", "minimum": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

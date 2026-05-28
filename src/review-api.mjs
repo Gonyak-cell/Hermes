@@ -4281,6 +4281,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("runtime_api_dashboard_validations", runtimeApiResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/runtime-freezes") {
+    const runtimeFreezeResult = await readDashboardSourceArtifact(dashboard, "runtime_freeze");
+    if (!runtimeFreezeResult.available) {
+      return jsonResponse(503, buildError("runtime_freeze_unavailable", runtimeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_freezes", [runtimeFreezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-freeze-sources") {
+    const runtimeFreezeResult = await readDashboardSourceArtifact(dashboard, "runtime_freeze");
+    if (!runtimeFreezeResult.available) {
+      return jsonResponse(503, buildError("runtime_freeze_unavailable", runtimeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_freeze_sources", runtimeFreezeResult.artifact.runtime_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-freeze-slices") {
+    const runtimeFreezeResult = await readDashboardSourceArtifact(dashboard, "runtime_freeze");
+    if (!runtimeFreezeResult.available) {
+      return jsonResponse(503, buildError("runtime_freeze_unavailable", runtimeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_freeze_slices", runtimeFreezeResult.artifact.runtime_freeze_slices ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-freeze-loop-bindings") {
+    const runtimeFreezeResult = await readDashboardSourceArtifact(dashboard, "runtime_freeze");
+    if (!runtimeFreezeResult.available) {
+      return jsonResponse(503, buildError("runtime_freeze_unavailable", runtimeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_freeze_loop_bindings", runtimeFreezeResult.artifact.runtime_freeze_loop_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/runtime-freeze-validations") {
+    const runtimeFreezeResult = await readDashboardSourceArtifact(dashboard, "runtime_freeze");
+    if (!runtimeFreezeResult.available) {
+      return jsonResponse(503, buildError("runtime_freeze_unavailable", runtimeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("runtime_freeze_validations", runtimeFreezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -8495,6 +8530,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/runtime-status-cards", "Runtime status card rows"),
       route("GET", "/api/runtime-api-desktop-boundary", "Runtime API Dashboard Desktop boundary"),
       route("GET", "/api/runtime-api-dashboard-validations", "Runtime API Dashboard validation rows"),
+      route("GET", "/api/runtime-freezes", "Runtime freeze artifact"),
+      route("GET", "/api/runtime-freeze-sources", "Runtime freeze source rows"),
+      route("GET", "/api/runtime-freeze-slices", "Runtime freeze representative slice rows"),
+      route("GET", "/api/runtime-freeze-loop-bindings", "Runtime freeze control-plane loop bindings"),
+      route("GET", "/api/runtime-freeze-validations", "Runtime freeze validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9163,6 +9203,10 @@ function filterItems(items, searchParams) {
     "runtime_api_route_group_status",
     "runtime_dashboard_panel_status",
     "runtime_status_card_status",
+    "runtime_freeze_status",
+    "runtime_freeze_source_status",
+    "runtime_freeze_slice_status",
+    "runtime_freeze_loop_binding_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
     "test_gate_status",
@@ -10501,6 +10545,10 @@ function readFilterValue(item, key) {
   if (key === "runtime_api_route_group_status") return item.route_group_status;
   if (key === "runtime_dashboard_panel_status") return item.panel_status;
   if (key === "runtime_status_card_status") return item.source_status;
+  if (key === "runtime_freeze_status") return item.summary?.runtime_freeze_status ?? item.runtime_freeze_status;
+  if (key === "runtime_freeze_source_status") return item.runtime_freeze_source_status;
+  if (key === "runtime_freeze_slice_status") return item.runtime_freeze_slice_status;
+  if (key === "runtime_freeze_loop_binding_status") return item.runtime_freeze_loop_binding_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;
   if (key === "test_gate_status") return item.summary?.test_gate_status ?? item.test_gate_status;

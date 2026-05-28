@@ -647,6 +647,11 @@ npm run api:serve
 - `GET /api/canonical-test-gate-results`: canonical test gate result rows
 - `GET /api/canonical-test-desktop-boundary`: Canonical Test Runner Desktop boundary row
 - `GET /api/canonical-test-validations`: Canonical Test Runner validation rows
+- `GET /api/runtime-freezes`: Runtime Freeze artifact
+- `GET /api/runtime-freeze-sources`: Runtime Freeze source status rows
+- `GET /api/runtime-freeze-slices`: Hermes, Codex, local_script representative runtime slice rows
+- `GET /api/runtime-freeze-loop-bindings`: P195-P211 control-plane loop binding rows
+- `GET /api/runtime-freeze-validations`: Runtime Freeze validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows
@@ -716,6 +721,8 @@ Secrets broker route는 `secrets_broker_contract_status`, `broker_status`, `secr
 Capability registry API route는 `capability_registry_api_status`, `desktop_companion_readiness_status`, `pack_api_card_id`, `capability_api_card_id`, `capability_version_api_card_id`, `gate_requirement_api_card_id`, `pack_id`, `domain_pack`, `capability_id`, `version_status`, `gate_id`, `gate_phase`, `desktop_surface`, `desktop_card_status`, `desktop_route_group_id`, `route_group_id`, `route_path`, `route_method`, `read_only`, `mutation_allowed`, `protected_mutation_request_allowed`, `secret_material_exposed`, `installer_or_gateway_control`, `status`, `limit` query를 지원한다. Desktop Companion route group은 v1에서 모두 GET/read-only이며 mutation, secret, installer, gateway, SSH, cron, auto-update control을 노출하지 않는다.
 
 Runtime API Dashboard route는 `runtime_api_dashboard_status`, `runtime_api_route_group_status`, `runtime_dashboard_panel_status`, `runtime_status_card_status`, `route_group_kind`, `panel_kind`, `card_kind`, `source_artifact_id`, `boundary_status`, `read_only`, `status`, `limit` query를 지원한다. `/api/runtime-api-dashboard`, `/api/runtime-api-route-groups`, `/api/runtime-dashboard-panels`, `/api/runtime-status-cards`, `/api/runtime-api-desktop-boundary`, `/api/runtime-api-dashboard-validations`는 adapter/worktree/sandbox/secrets/artifact/log/heartbeat/control/gate/test 상태를 Desktop Companion read-only operator surface로 묶어 제공하며 runtime execution, process control, test execution, file write, direct apply/merge, secret/provider key, installer/gateway/SSH/cron control을 노출하지 않는다.
+
+Runtime Freeze route는 `runtime_freeze_status`, `runtime_freeze_source_status`, `runtime_freeze_slice_status`, `runtime_freeze_loop_binding_status`, `runtime_id`, `status`, `limit` query를 지원한다. `/api/runtime-freezes`, `/api/runtime-freeze-sources`, `/api/runtime-freeze-slices`, `/api/runtime-freeze-loop-bindings`, `/api/runtime-freeze-validations`는 P195-P211 runtime track을 freeze report로 노출하며 Hermes Desktop은 readiness, blocked reason, loop binding 상태만 읽고 runtime execution/control/test/secret/provider key/installer/gateway/SSH/cron control은 수행하지 않는다.
 
 ## 검증
 

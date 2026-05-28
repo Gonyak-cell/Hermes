@@ -6119,6 +6119,34 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 113개로 증가하고 runtime_api_dashboard artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:api-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 212 - Runtime Freeze
+
+목표: P195-P211 Runtime Adapter, Sandbox, Worktree, Secrets 트랙을 하나의 회귀 고정 보고서로 닫고 Personal Dev Domain Pack 트랙으로 넘어갈 기준선을 만든다. Hermes Desktop은 계속 runtime source of truth가 아니라 read-only operator surface로 유지하며 protected mutation은 human gate 뒤의 request/receipt metadata로만 남긴다.
+
+구현:
+
+- `src/runtime-freeze.mjs`와 `scripts/runtime-freeze.mjs`를 추가해 `npm run runtime:freeze` slice를 등록
+- `schemas/runtime-freeze.schema.json`으로 runtime freeze contract, source status, representative runtime slice, control-plane loop binding, checkpoint, Desktop boundary를 검증
+- Runtime/AgentRun Contract Freeze, Runtime Adapter Interface v2, Hermes/Claude Code/Codex/local script/document renderer adapter, Worktree Manager v2, Sandbox Policy Model, Docker/local Backend Selector, Secrets Broker, Runtime Artifact Capture, Runtime Log Normalization, Runtime Timeout/Heartbeat, Runtime Control Commands, Protected File Gate, Canonical Test Runner, Runtime API Dashboard, Workflow/Agent/Audit ledger, Control Plane Loop를 source contract로 연결
+- Hermes, Codex, local_script 대표 runtime slice를 생성해 adapter 상태, AgentRun ledger binding, artifact/log capture, lifecycle/control receipt, gate/test status, direct apply/merge/protected path write 차단, Desktop read-only boundary를 한 번에 검증
+- P195-P211 control-plane loop step 17개를 freeze loop binding으로 고정하고 missing/failed/protected action count를 검증
+- Review Dashboard와 Review API에 `/api/runtime-freezes`, `/api/runtime-freeze-sources`, `/api/runtime-freeze-slices`, `/api/runtime-freeze-loop-bindings`, `/api/runtime-freeze-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Runtime Freeze를 연결
+
+완료 기준:
+
+- Runtime Freeze가 validation error 없이 `complete` 상태가 됨
+- freeze contract가 `runtime-freeze.v1`이고 source of truth가 `runtime_adapter_artifacts_agent_run_ledger_gates_and_runtime_api_dashboard`임
+- P195-P211 source artifact와 Workflow/Agent/Audit ledger, control-plane loop source가 모두 expected status와 validation-clean 상태를 유지함
+- Hermes slice는 external runtime launch 없이 adapter-ready/human-gated 상태로 통과함
+- Codex slice는 untrusted PR/diff lane으로 protected file gate, canonical test, human review gate가 요구되고 direct apply/merge/protected path write가 모두 false임
+- local_script slice는 deterministic, sandboxed, network-disabled lane으로 artifact/log/lifecycle/control receipt가 ledger에 묶이고 runtime process control execution은 0임
+- Runtime API Dashboard가 complete 상태이고 mutation route, runtime execution/control/test/secret/provider key exposure count가 모두 0임
+- Desktop read-only는 true이고 Desktop mutation/protected mutation execution/runtime source-of-truth/runtime execution/runtime control/test execution/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Review API와 dashboard가 Runtime Freeze 상태를 read-only로 노출
+- Golden fixture 수가 114개로 증가하고 runtime_freeze artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run runtime:freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6127,9 +6155,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 211이다.
+- 현재 완료 기준점은 Phase 212이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P212-P312, 총 101개다.
+- 남은 계획 슬롯은 P213-P312, 총 100개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

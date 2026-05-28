@@ -42,6 +42,12 @@ Runtime API Dashboard는 Hermes Desktop이 runtime 운영 상태를 하나의 op
 
 P211의 route group은 모두 Review API `GET` route로 고정된다. Protected mutation request route는 cancel/resume, worktree, gate, rerun 같은 의도를 보여주는 draft/receipt metadata일 뿐이며 protected action execution은 Human Gate와 control-plane runtime adapter가 별도로 처리한다.
 
+## P212 Runtime Freeze 경계
+
+Runtime Freeze는 P195-P211 runtime track을 Desktop-ready 상태로 잠그는 회귀 보고서다. Hermes, Codex, local_script 대표 slice가 adapter, AgentRun ledger, artifact/log capture, lifecycle/control receipt, protected file gate, canonical test, Runtime API Dashboard를 통과하는지 확인하되 freeze 자체는 runtime 실행, process control, test 실행, file write, secret/provider key 조회를 수행하지 않는다.
+
+Desktop Companion은 P212 이후 `/api/runtime-freezes`, `/api/runtime-freeze-sources`, `/api/runtime-freeze-slices`, `/api/runtime-freeze-loop-bindings`, `/api/runtime-freeze-validations`를 읽어서 runtime readiness와 blocked reason을 표시할 수 있다. 이 route들은 운영 가시성 surface이며 source of truth는 runtime artifacts, ledgers, gates, Runtime API Dashboard에 남는다.
+
 ## Core naming generalization
 
 현재 core에는 `matter_id` 잔상이 남아 있다. Desktop Companion은 새 core 필드명을 선도하지 않고 pack/capability/readiness/route group 같은 중립 UI 언어만 사용한다. `matter_id`를 `scope_id` 또는 `workspace_id`로 올리고 law-firm pack에서 `matter_id` alias를 제공할지는 별도 core naming/generalization phase에서 다룬다.

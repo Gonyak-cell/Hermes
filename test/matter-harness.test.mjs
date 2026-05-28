@@ -208,6 +208,7 @@ import { runRuntimeControlCommands } from "../src/runtime-control-commands.mjs";
 import { runProtectedFileGate } from "../src/protected-file-gate.mjs";
 import { runCanonicalTestRunner } from "../src/canonical-test-runner.mjs";
 import { runRuntimeApiDashboard } from "../src/runtime-api-dashboard.mjs";
+import { runRuntimeFreeze } from "../src/runtime-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1818,6 +1819,7 @@ describe("matter harness", () => {
         protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
         canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
         runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7262,6 +7264,91 @@ describe("matter harness", () => {
       assert.equal(runtimeApiDashboard.runtime_api_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "runtime-api-dashboard", "summary.md"), "utf8"), /Runtime API Dashboard/);
 
+      const runtimeFreezeLoopSteps = [
+        ["runtime_adapter_interface_v2", "Runtime Adapter Interface v2", "adapter", path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json")],
+        ["hermes_runtime_adapter", "Hermes Runtime Adapter", "adapter", path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json")],
+        ["claude_code_adapter_contract", "Claude Code Adapter Contract", "adapter", path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json")],
+        ["codex_adapter_contract", "Codex Adapter Contract", "adapter", path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json")],
+        ["local_script_adapter", "Local Script Adapter", "adapter", path.join(outDir, "local-script-adapter", "local-script-adapter.json")],
+        ["document_renderer_adapter", "Document Renderer Adapter", "adapter", path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json")],
+        ["worktree_manager_v2", "Worktree Manager v2", "runtime", path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json")],
+        ["sandbox_policy_model", "Sandbox Policy Model", "runtime", path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json")],
+        ["docker_local_backend_selector", "Docker/local Backend Selector", "runtime", path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json")],
+        ["secrets_broker_contract", "Secrets Broker Contract", "runtime", path.join(outDir, "secrets-broker", "secrets-broker-contract.json")],
+        ["runtime_artifact_capture", "Runtime Artifact Capture", "runtime", path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json")],
+        ["runtime_log_normalization", "Runtime Log Normalization", "runtime", path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json")],
+        ["runtime_timeout_heartbeat", "Runtime Timeout/Heartbeat", "runtime", path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json")],
+        ["runtime_control_commands", "Runtime Control Commands", "runtime", path.join(outDir, "runtime-control-commands", "runtime-control-commands.json")],
+        ["protected_file_gate", "Protected File Gate", "gate", path.join(outDir, "protected-file-gate", "protected-file-gate.json")],
+        ["canonical_test_runner", "Canonical Test Runner", "gate", path.join(outDir, "canonical-test-runner", "canonical-test-runner.json")],
+        ["runtime_api_dashboard", "Runtime API Dashboard", "api", path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json")],
+      ];
+      const runtimeFreezeControlPlaneLoop = await runControlPlaneLoop({
+        outDir: path.join(outDir, "runtime-freeze-control-plane-loop"),
+        runAt: "2026-05-23T06:45:47.500Z",
+        steps: runtimeFreezeLoopSteps.map(([stepId, label, category, artifactPath]) => ({
+          step_id: stepId,
+          label,
+          category,
+          command: [process.execPath, "-e", `console.log(${JSON.stringify(`${stepId} freeze fixture`)})`],
+          expected_artifacts: [artifactPath],
+        })),
+      });
+      assert.equal(runtimeFreezeControlPlaneLoop.loop_status, "passed");
+      assert.equal(runtimeFreezeControlPlaneLoop.summary.passed_step_count, runtimeFreezeLoopSteps.length);
+
+      const runtimeFreeze = await runRuntimeFreeze({
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        hermesRuntimeAdapterPath: path.join(outDir, "hermes-runtime-adapter", "hermes-runtime-adapter.json"),
+        claudeCodeAdapterContractPath: path.join(outDir, "claude-code-adapter-contract", "claude-code-adapter-contract.json"),
+        codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
+        localScriptAdapterPath: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
+        documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
+        sandboxPolicyModelPath: path.join(outDir, "sandbox-policy-model", "sandbox-policy-model.json"),
+        dockerLocalBackendSelectorPath: path.join(outDir, "docker-local-backend-selector", "docker-local-backend-selector.json"),
+        secretsBrokerContractPath: path.join(outDir, "secrets-broker", "secrets-broker-contract.json"),
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        runtimeLogNormalizationPath: path.join(outDir, "runtime-log-normalization", "runtime-log-normalization.json"),
+        runtimeTimeoutHeartbeatPath: path.join(outDir, "runtime-timeout-heartbeat", "runtime-timeout-heartbeat.json"),
+        runtimeControlCommandsPath: path.join(outDir, "runtime-control-commands", "runtime-control-commands.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
+        runtimeApiDashboardPath: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        controlPlaneLoopPath: path.join(outDir, "runtime-freeze-control-plane-loop", "control-plane-loop.json"),
+        packagePath: "package.json",
+        reviewApiPath: "src/review-api.mjs",
+        reviewDashboardPath: "src/review-dashboard.mjs",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "runtime-freeze"),
+        runAt: "2026-05-23T06:45:48.000Z",
+      });
+      const runtimeFreezeSchema = JSON.parse(await readFile("schemas/runtime-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runtimeFreeze, runtimeFreezeSchema, {}, "runtime_freeze"), []);
+      assert.equal(runtimeFreeze.summary.runtime_freeze_status, "complete");
+      assert.equal(runtimeFreeze.summary.passed_source_count, runtimeFreeze.summary.runtime_freeze_source_count);
+      assert.equal(runtimeFreeze.summary.passed_runtime_slice_count, 3);
+      assert.equal(runtimeFreeze.summary.hermes_slice_status, "passed");
+      assert.equal(runtimeFreeze.summary.codex_slice_status, "passed");
+      assert.equal(runtimeFreeze.summary.local_script_slice_status, "passed");
+      assert.equal(runtimeFreeze.summary.passed_loop_binding_count, runtimeFreeze.summary.runtime_freeze_loop_binding_count);
+      assert.equal(runtimeFreeze.summary.runtime_api_mutation_route_count, 0);
+      assert.equal(runtimeFreeze.summary.runtime_control_execution_performed_count, 0);
+      assert.equal(runtimeFreeze.summary.raw_secret_material_exposed_count, 0);
+      assert.equal(runtimeFreeze.summary.provider_key_exposed_count, 0);
+      assert.equal(runtimeFreeze.summary.desktop_read_only, true);
+      assert.equal(runtimeFreeze.summary.desktop_mutation_allowed, false);
+      assert.equal(runtimeFreeze.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(runtimeFreeze.summary.desktop_runtime_control_allowed, false);
+      assert.equal(runtimeFreeze.summary.desktop_test_execution_allowed, false);
+      assert.ok(runtimeFreeze.runtime_freeze_slices.every((slice) => slice.runtime_freeze_slice_status === "passed" && slice.desktop_read_only === true && slice.desktop_mutation_allowed === false));
+      assert.match(await readFile(path.join(outDir, "runtime-freeze", "summary.md"), "utf8"), /Runtime Freeze/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7397,6 +7484,7 @@ describe("matter harness", () => {
           protected_file_gate: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
           canonical_test_runner: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
           runtime_api_dashboard: path.join(outDir, "runtime-api-dashboard", "runtime-api-dashboard.json"),
+          runtime_freeze: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7448,8 +7536,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 113);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 113);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 114);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 114);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7550,6 +7638,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "protected_file_gate"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "canonical_test_runner"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_api_dashboard"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "runtime_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -8121,6 +8210,10 @@ describe("matter harness", () => {
       assert.equal(runtimeApiDashboardCheckpoint?.acceptance_profile, "runtime_api_dashboard_gate");
       assert.equal(runtimeApiDashboardCheckpoint?.status, "passed");
       assert.equal(runtimeApiDashboardCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runtimeFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-runtime-freeze");
+      assert.equal(runtimeFreezeCheckpoint?.acceptance_profile, "runtime_freeze_gate");
+      assert.equal(runtimeFreezeCheckpoint?.status, "passed");
+      assert.equal(runtimeFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10342,6 +10435,27 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.runtime_api_dashboard_desktop_installer_or_gateway_control, false);
       assert.equal(dashboard.summary.runtime_api_dashboard_desktop_ssh_or_cron_control, false);
       assert.equal(dashboard.summary.runtime_api_dashboard_validation_error_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.runtime_freeze_source_count, runtimeFreeze.summary.runtime_freeze_source_count);
+      assert.equal(dashboard.summary.runtime_freeze_passed_source_count, runtimeFreeze.summary.passed_source_count);
+      assert.equal(dashboard.summary.runtime_freeze_failed_source_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_slice_count, runtimeFreeze.summary.runtime_freeze_slice_count);
+      assert.equal(dashboard.summary.runtime_freeze_passed_runtime_slice_count, 3);
+      assert.equal(dashboard.summary.runtime_freeze_failed_runtime_slice_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_hermes_slice_status, "passed");
+      assert.equal(dashboard.summary.runtime_freeze_codex_slice_status, "passed");
+      assert.equal(dashboard.summary.runtime_freeze_local_script_slice_status, "passed");
+      assert.equal(dashboard.summary.runtime_freeze_passed_loop_binding_count, runtimeFreeze.summary.passed_loop_binding_count);
+      assert.equal(dashboard.summary.runtime_freeze_runtime_api_mutation_route_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_runtime_control_execution_performed_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_raw_secret_material_exposed_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_provider_key_exposed_count, 0);
+      assert.equal(dashboard.summary.runtime_freeze_desktop_read_only, true);
+      assert.equal(dashboard.summary.runtime_freeze_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.runtime_freeze_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.runtime_freeze_desktop_runtime_control_allowed, false);
+      assert.equal(dashboard.summary.runtime_freeze_desktop_test_execution_allowed, false);
+      assert.equal(dashboard.summary.runtime_freeze_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11273,6 +11387,16 @@ describe("matter harness", () => {
       assert.equal(runtimeApiDashboardStage?.metrics.runtime_execution_allowed_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.runtime_control_allowed_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.secret_material_exposed_count, 0);
+      const runtimeFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "runtime_freeze");
+      assert.equal(runtimeFreezeStage?.status, "passed");
+      assert.equal(runtimeFreezeStage?.metrics.runtime_freeze_status, "complete");
+      assert.equal(runtimeFreezeStage?.metrics.passed_runtime_slice_count, 3);
+      assert.equal(runtimeFreezeStage?.metrics.hermes_slice_status, "passed");
+      assert.equal(runtimeFreezeStage?.metrics.codex_slice_status, "passed");
+      assert.equal(runtimeFreezeStage?.metrics.local_script_slice_status, "passed");
+      assert.equal(runtimeFreezeStage?.metrics.runtime_control_execution_performed_count, 0);
+      assert.equal(runtimeFreezeStage?.metrics.desktop_read_only, true);
+      assert.equal(runtimeFreezeStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -13009,6 +13133,26 @@ describe("matter harness", () => {
       const runtimeApiDashboardValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-api-dashboard-validations?status=passed", apiOptions)).body);
       assert.equal(runtimeApiDashboardValidationsResponse.collection, "runtime_api_dashboard_validations");
       assert.equal(runtimeApiDashboardValidationsResponse.count, runtimeApiDashboard.summary.validation_item_count);
+
+      const runtimeFreezesResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-freezes?runtime_freeze_status=complete", apiOptions)).body);
+      assert.equal(runtimeFreezesResponse.collection, "runtime_freezes");
+      assert.equal(runtimeFreezesResponse.count, 1);
+
+      const runtimeFreezeSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-freeze-sources?runtime_freeze_source_status=passed", apiOptions)).body);
+      assert.equal(runtimeFreezeSourcesResponse.collection, "runtime_freeze_sources");
+      assert.equal(runtimeFreezeSourcesResponse.count, runtimeFreeze.summary.passed_source_count);
+
+      const runtimeFreezeSlicesResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-freeze-slices?runtime_freeze_slice_status=passed", apiOptions)).body);
+      assert.equal(runtimeFreezeSlicesResponse.collection, "runtime_freeze_slices");
+      assert.equal(runtimeFreezeSlicesResponse.count, runtimeFreeze.summary.passed_runtime_slice_count);
+
+      const runtimeFreezeLoopBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-freeze-loop-bindings?runtime_freeze_loop_binding_status=passed", apiOptions)).body);
+      assert.equal(runtimeFreezeLoopBindingsResponse.collection, "runtime_freeze_loop_bindings");
+      assert.equal(runtimeFreezeLoopBindingsResponse.count, runtimeFreeze.summary.passed_loop_binding_count);
+
+      const runtimeFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/runtime-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(runtimeFreezeValidationsResponse.collection, "runtime_freeze_validations");
+      assert.equal(runtimeFreezeValidationsResponse.count, runtimeFreeze.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

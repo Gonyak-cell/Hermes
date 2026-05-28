@@ -1844,6 +1844,26 @@ try {
   assert.equal(runtimeApiDashboardValidations.collection, "runtime_api_dashboard_validations");
   assert.ok(runtimeApiDashboardValidations.count <= 5);
 
+  const runtimeFreezes = await fetchJson(`${url}/api/runtime-freezes?runtime_freeze_status=complete&limit=1`);
+  assert.equal(runtimeFreezes.collection, "runtime_freezes");
+  assert.ok(runtimeFreezes.count <= 1);
+
+  const runtimeFreezeSources = await fetchJson(`${url}/api/runtime-freeze-sources?runtime_freeze_source_status=passed&limit=5`);
+  assert.equal(runtimeFreezeSources.collection, "runtime_freeze_sources");
+  assert.ok(runtimeFreezeSources.count <= 5);
+
+  const runtimeFreezeSlices = await fetchJson(`${url}/api/runtime-freeze-slices?runtime_freeze_slice_status=passed&runtime_id=codex&limit=5`);
+  assert.equal(runtimeFreezeSlices.collection, "runtime_freeze_slices");
+  assert.ok(runtimeFreezeSlices.count <= 5);
+
+  const runtimeFreezeLoopBindings = await fetchJson(`${url}/api/runtime-freeze-loop-bindings?runtime_freeze_loop_binding_status=passed&limit=5`);
+  assert.equal(runtimeFreezeLoopBindings.collection, "runtime_freeze_loop_bindings");
+  assert.ok(runtimeFreezeLoopBindings.count <= 5);
+
+  const runtimeFreezeValidations = await fetchJson(`${url}/api/runtime-freeze-validations?status=passed&limit=5`);
+  assert.equal(runtimeFreezeValidations.collection, "runtime_freeze_validations");
+  assert.ok(runtimeFreezeValidations.count <= 5);
+
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");
   assert.ok(gateApprovalContractFreezes.count <= 1);

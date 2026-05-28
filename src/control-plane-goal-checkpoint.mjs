@@ -84,6 +84,7 @@ const GOAL_ITEMS = [
   sourceItem("protected_file_gate", "Protected file gate", "gate_approval", "protected_file_gate", "control-plane-protected-file-gate", { acceptance_profile: "protected_file_gate_gate" }),
   sourceItem("canonical_test_runner", "Canonical test runner", "gate_approval", "canonical_test_runner", "control-plane-canonical-test-runner", { acceptance_profile: "canonical_test_runner_gate" }),
   sourceItem("runtime_api_dashboard", "Runtime API dashboard", "api", "runtime_api_dashboard", "control-plane-runtime-api-dashboard", { acceptance_profile: "runtime_api_dashboard_gate" }),
+  sourceItem("runtime_freeze", "Runtime freeze", "runtime", "runtime_freeze", "control-plane-runtime-freeze", { acceptance_profile: "runtime_freeze_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -527,6 +528,7 @@ function evaluateStageAcceptance(item, stage) {
     "protected_file_gate_gate",
     "canonical_test_runner_gate",
     "runtime_api_dashboard_gate",
+    "runtime_freeze_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2094,6 +2096,49 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_ssh_or_cron_control === false
     ) {
       return passedWithOperationalGate(stage, "Runtime API Dashboard exposes adapter, worktree, log, artifact, heartbeat, control request, gate, and canonical test status as read-only Desktop Companion API routes.");
+    }
+  }
+
+  if (item.acceptance_profile === "runtime_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.runtime_freeze_status === "complete"
+      && metrics.source_of_truth === "runtime_adapter_artifacts_agent_run_ledger_gates_and_runtime_api_dashboard"
+      && metrics.desktop_surface_policy === "read_only_runtime_operations_dashboard"
+      && metrics.runtime_freeze_source_count > 0
+      && metrics.passed_source_count === metrics.runtime_freeze_source_count
+      && metrics.failed_source_count === 0
+      && metrics.runtime_freeze_slice_count === 3
+      && metrics.passed_runtime_slice_count === metrics.runtime_freeze_slice_count
+      && metrics.failed_runtime_slice_count === 0
+      && metrics.hermes_slice_status === "passed"
+      && metrics.codex_slice_status === "passed"
+      && metrics.local_script_slice_status === "passed"
+      && metrics.runtime_freeze_loop_binding_count >= 17
+      && metrics.passed_loop_binding_count === metrics.runtime_freeze_loop_binding_count
+      && metrics.failed_loop_binding_count === 0
+      && metrics.runtime_api_dashboard_status === "complete"
+      && metrics.runtime_api_mutation_route_count === 0
+      && metrics.runtime_api_missing_route_count === 0
+      && metrics.runtime_control_execution_performed_count === 0
+      && metrics.runtime_process_control_allowed_count === 0
+      && metrics.protected_action_executed_count === 0
+      && metrics.canonical_test_failed_execution_count === 0
+      && metrics.raw_secret_material_exposed_count === 0
+      && metrics.provider_key_exposed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_runtime_control_allowed === false
+      && metrics.desktop_test_execution_allowed === false
+      && metrics.desktop_secret_material_exposed === false
+      && metrics.desktop_provider_key_visible === false
+      && metrics.desktop_installer_or_gateway_control === false
+      && metrics.desktop_ssh_or_cron_control === false
+    ) {
+      return passedWithOperationalGate(stage, "Runtime Freeze closes P195-P211 by proving Hermes, Codex, and local_script representative slices pass adapter, gate, ledger, capture, and read-only Desktop boundary checks.");
     }
   }
 

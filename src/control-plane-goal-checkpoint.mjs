@@ -114,6 +114,7 @@ const GOAL_ITEMS = [
   sourceItem("gate_result_aggregator", "Gate result aggregator", "workflow", "gate_result_aggregator", "control-plane-gate-result-aggregator", { acceptance_profile: "gate_result_aggregator_gate" }),
   sourceItem("capability_registry_api", "Capability registry API and Desktop Companion read-only surface", "api", "capability_registry_api", "control-plane-capability-registry-api", { acceptance_profile: "capability_registry_api_gate" }),
   sourceItem("workflow_run_dashboard", "Workflow run dashboard and Desktop Companion run panels", "api", "workflow_run_dashboard", "control-plane-workflow-run-dashboard", { acceptance_profile: "workflow_run_dashboard_gate" }),
+  sourceItem("workflow_golden_cases", "Workflow golden cases", "workflow", "workflow_golden_cases", "control-plane-workflow-golden-cases", { acceptance_profile: "workflow_golden_cases_gate" }),
   sourceItem("domain_pack_registry", "Plugin-style domain packs", "domain_packs", "domain_pack_registry", "control-plane-domain-packs"),
   sourceItem("resource_expansion", "Resource expansion", "resource_evidence", "resource_expansion", "control-plane-resource-expansion"),
   sourceItem("resource_ingest", "Resource/Evidence ingest gate", "resource_evidence", "resource_ingest", "control-plane-resource-ingest"),
@@ -489,6 +490,7 @@ function evaluateStageAcceptance(item, stage) {
     "gate_result_aggregator_gate",
     "capability_registry_api_gate",
     "workflow_run_dashboard_gate",
+    "workflow_golden_cases_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1319,6 +1321,47 @@ function evaluateStageAcceptance(item, stage) {
       && (metrics.read_only_route_count ?? 0) === (metrics.workflow_run_dashboard_route_count ?? 0)
     ) {
       return passedWithOperationalGate(stage, "Workflow run dashboard composes run, state, queue, retry, idempotency, resume/cancel, gate, and output status into read-only Desktop Companion panels without authorizing retry, resume, cancel, delivery, or final action.");
+    }
+  }
+
+  if (item.acceptance_profile === "workflow_golden_cases_gate") {
+    const caseCount = metrics.workflow_golden_case_count ?? 0;
+    const errors = (metrics.validation_error_count ?? 0)
+      + (metrics.source_validation_error_count ?? 0)
+      + (metrics.missing_required_domain_pack_count ?? 0)
+      + (metrics.mismatch_case_count ?? 0)
+      + (metrics.state_machine_failed_case_count ?? 0)
+      + (metrics.failed_step_count ?? 0)
+      + (metrics.auto_transition_allowed_count ?? 0)
+      + (metrics.protected_action_executed_count ?? 0)
+      + (metrics.final_action_executed_count ?? 0);
+    if (
+      errors === 0
+      && metrics.workflow_golden_case_status === "complete"
+      && metrics.workflow_golden_case_contract_id === "workflow-golden-cases.v1"
+      && (metrics.required_domain_pack_count ?? 0) === 3
+      && (metrics.represented_domain_pack_count ?? 0) === 3
+      && caseCount === 3
+      && (metrics.locked_case_count ?? 0) === caseCount
+      && (metrics.state_machine_passed_case_count ?? 0) === caseCount
+      && (metrics.manual_review_required_case_count ?? 0) === caseCount
+      && (metrics.law_firm_case_count ?? 0) === 1
+      && (metrics.personal_dev_case_count ?? 0) === 1
+      && (metrics.creative_document_case_count ?? 0) === 1
+      && (metrics.runner_plan_bound_case_count ?? 0) === caseCount
+      && (metrics.transition_guard_bound_case_count ?? 0) === caseCount
+      && (metrics.queue_bound_case_count ?? 0) === caseCount
+      && (metrics.idempotency_bound_case_count ?? 0) === caseCount
+      && (metrics.resume_cancel_bound_case_count ?? 0) === caseCount
+      && (metrics.gate_status_bound_case_count ?? 0) === caseCount
+      && (metrics.dashboard_panel_bound_case_count ?? 0) === caseCount
+      && (metrics.capability_manifest_bound_case_count ?? 0) === caseCount
+      && (metrics.passed_step_count ?? 0) === (metrics.workflow_golden_case_step_count ?? 0)
+      && (metrics.workflow_golden_case_step_count ?? 0) >= caseCount * 5
+      && (metrics.regression_hash_count ?? 0) === caseCount
+      && (metrics.locked_regression_hash_count ?? 0) === caseCount
+    ) {
+      return passedWithOperationalGate(stage, "Workflow golden cases lock representative law-firm, personal-dev, and creative-document workflows against the deterministic state machine while preserving human review holds and prohibiting auto mutation, protected action execution, delivery, or final action.");
     }
   }
 

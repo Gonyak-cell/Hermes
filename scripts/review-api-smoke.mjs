@@ -267,6 +267,17 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-gates"));
   assert.ok(index.routes.some((route) => route.path === "/api/desktop-companion-route-groups"));
   assert.ok(index.routes.some((route) => route.path === "/api/capability-registry-api-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-dashboards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-dashboard-panels"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-state-cards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-queue-cards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-gate-cards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-output-cards"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-run-dashboard-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-case-suites"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-cases"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-case-steps"));
+  assert.ok(index.routes.some((route) => route.path === "/api/workflow-golden-case-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1008,6 +1019,22 @@ try {
   const workflowRunDashboardValidations = await fetchJson(`${url}/api/workflow-run-dashboard-validations?status=passed&limit=5`);
   assert.equal(workflowRunDashboardValidations.collection, "workflow_run_dashboard_validations");
   assert.ok(workflowRunDashboardValidations.count <= 5);
+
+  const workflowGoldenCaseSuites = await fetchJson(`${url}/api/workflow-golden-case-suites?workflow_golden_case_status=complete&limit=1`);
+  assert.equal(workflowGoldenCaseSuites.collection, "workflow_golden_case_suites");
+  assert.ok(workflowGoldenCaseSuites.count <= 1);
+
+  const workflowGoldenCases = await fetchJson(`${url}/api/workflow-golden-cases?state_machine_pass_status=passed&limit=5`);
+  assert.equal(workflowGoldenCases.collection, "workflow_golden_cases");
+  assert.ok(workflowGoldenCases.count <= 5);
+
+  const workflowGoldenCaseSteps = await fetchJson(`${url}/api/workflow-golden-case-steps?state_machine_step_status=passed&limit=5`);
+  assert.equal(workflowGoldenCaseSteps.collection, "workflow_golden_case_steps");
+  assert.ok(workflowGoldenCaseSteps.count <= 5);
+
+  const workflowGoldenCaseValidations = await fetchJson(`${url}/api/workflow-golden-case-validations?status=passed&limit=5`);
+  assert.equal(workflowGoldenCaseValidations.collection, "workflow_golden_case_validations");
+  assert.ok(workflowGoldenCaseValidations.count <= 5);
 
   const workflowDslStateModels = await fetchJson(`${url}/api/workflow-dsl-state-models?workflow_dsl_state_model_status=complete&limit=1`);
   assert.equal(workflowDslStateModels.collection, "workflow_dsl_state_models");

@@ -106,6 +106,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "workflows:post-run-gates",
   "workflows:gate-results",
   "workflows:run-dashboard",
+  "workflows:golden-cases",
   "contracts:observability",
 ];
 

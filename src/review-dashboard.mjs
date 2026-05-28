@@ -108,6 +108,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   workflowPostRunGateFrameworkPath: "artifacts/workflow-post-run-gates/latest/workflow-post-run-gate-framework.json",
   gateResultAggregatorPath: "artifacts/gate-result-aggregator/latest/gate-result-aggregator.json",
   workflowRunDashboardPath: "artifacts/workflow-run-dashboard/latest/workflow-run-dashboard.json",
+  workflowGoldenCasesPath: "artifacts/workflow-golden-cases/latest/workflow-golden-cases.json",
   budgetAlertLedgerPath: "artifacts/budget-alerts/latest/budget-alert-ledger.json",
   domainPackRegistryPath: "artifacts/domain-packs/latest/domain-pack-registry.json",
   outputArtifactCatalogPath: "artifacts/output-catalog/latest/output-catalog.json",
@@ -711,6 +712,11 @@ const SOURCE_DEFINITIONS = [
     option: "workflowRunDashboardPath",
     source_id: "workflow_run_dashboard",
     label: "Workflow Run Dashboard",
+  },
+  {
+    option: "workflowGoldenCasesPath",
+    source_id: "workflow_golden_cases",
+    label: "Workflow Golden Cases",
   },
   {
     option: "budgetAlertLedgerPath",
@@ -1322,6 +1328,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "gate_result_aggregator") return data.summary ?? {};
   if (sourceId === "capability_registry_api") return data.summary ?? {};
   if (sourceId === "workflow_run_dashboard") return data.summary ?? {};
+  if (sourceId === "workflow_golden_cases") return data.summary ?? {};
   if (sourceId === "budget_alert_ledger") return data.summary ?? {};
   if (sourceId === "domain_pack_registry") {
     return {
@@ -1594,6 +1601,7 @@ function buildStageStatuses(artifacts, sources) {
     buildGateResultAggregatorStage(artifacts.gate_result_aggregator, sourceById.get("gate_result_aggregator")),
     buildCapabilityRegistryApiStage(artifacts.capability_registry_api, sourceById.get("capability_registry_api")),
     buildWorkflowRunDashboardStage(artifacts.workflow_run_dashboard, sourceById.get("workflow_run_dashboard")),
+    buildWorkflowGoldenCasesStage(artifacts.workflow_golden_cases, sourceById.get("workflow_golden_cases")),
     buildBudgetAlertLedgerStage(artifacts.budget_alert_ledger, sourceById.get("budget_alert_ledger")),
     buildDomainPackRegistryStage(artifacts.domain_pack_registry, sourceById.get("domain_pack_registry")),
     buildOutputArtifactCatalogStage(artifacts.output_artifact_catalog, sourceById.get("output_artifact_catalog")),
@@ -6769,6 +6777,96 @@ function buildWorkflowRunDashboardStage(dashboardArtifact, source) {
       secret_material_route_count: summary.secret_material_route_count ?? 0,
       installer_or_gateway_route_count: summary.installer_or_gateway_route_count ?? 0,
       validation_error_count: summary.validation_error_count ?? dashboardArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorkflowGoldenCasesStage(goldenCases, source) {
+  if (!goldenCases) return missingStage("workflow_golden_cases", "Workflow Golden Cases", source);
+  const summary = goldenCases.summary ?? {};
+  const caseCount = summary.workflow_golden_case_count ?? 0;
+  const blockers = (summary.validation_error_count ?? goldenCases.validation?.errors?.length ?? 0)
+    + (summary.missing_required_domain_pack_count ?? 0)
+    + (summary.mismatch_case_count ?? 0)
+    + (summary.state_machine_failed_case_count ?? 0)
+    + (summary.failed_step_count ?? 0)
+    + (summary.auto_transition_allowed_count ?? 0)
+    + (summary.protected_action_executed_count ?? 0)
+    + (summary.final_action_executed_count ?? 0);
+  const status = summary.workflow_golden_case_status === "complete"
+    && summary.workflow_golden_case_contract_id === "workflow-golden-cases.v1"
+    && blockers === 0
+    && (summary.source_validation_error_count ?? 0) === 0
+    && caseCount === (summary.required_domain_pack_count ?? 0)
+    && (summary.represented_domain_pack_count ?? 0) === (summary.required_domain_pack_count ?? 0)
+    && (summary.locked_case_count ?? 0) === caseCount
+    && (summary.state_machine_passed_case_count ?? 0) === caseCount
+    && (summary.manual_review_required_case_count ?? 0) === caseCount
+    && (summary.runner_plan_bound_case_count ?? 0) === caseCount
+    && (summary.transition_guard_bound_case_count ?? 0) === caseCount
+    && (summary.queue_bound_case_count ?? 0) === caseCount
+    && (summary.idempotency_bound_case_count ?? 0) === caseCount
+    && (summary.resume_cancel_bound_case_count ?? 0) === caseCount
+    && (summary.gate_status_bound_case_count ?? 0) === caseCount
+    && (summary.dashboard_panel_bound_case_count ?? 0) === caseCount
+    && (summary.capability_manifest_bound_case_count ?? 0) === caseCount
+    && (summary.passed_step_count ?? 0) === (summary.workflow_golden_case_step_count ?? 0)
+    && (summary.locked_regression_hash_count ?? 0) === caseCount
+    ? "passed"
+    : "blocked";
+  return {
+    stage_id: "workflow_golden_cases",
+    label: "Workflow Golden Cases",
+    status,
+    message: status === "passed"
+      ? `${caseCount} workflow golden case(s) passed across ${summary.represented_domain_pack_count ?? 0} domain pack(s).`
+      : `${blockers} workflow golden case blocker(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      workflow_golden_case_status: summary.workflow_golden_case_status ?? "unknown",
+      workflow_golden_case_contract_id: summary.workflow_golden_case_contract_id ?? null,
+      source_capability_manifest_v2_status: summary.source_capability_manifest_v2_status ?? "unknown",
+      source_workflow_dsl_state_model_status: summary.source_workflow_dsl_state_model_status ?? "unknown",
+      source_workflow_state_machine_runner_status: summary.source_workflow_state_machine_runner_status ?? "unknown",
+      source_workflow_queue_retry_backoff_status: summary.source_workflow_queue_retry_backoff_status ?? "unknown",
+      source_workflow_idempotency_status: summary.source_workflow_idempotency_status ?? "unknown",
+      source_workflow_resume_cancel_status: summary.source_workflow_resume_cancel_status ?? "unknown",
+      source_gate_result_aggregator_status: summary.source_gate_result_aggregator_status ?? "unknown",
+      source_workflow_run_dashboard_status: summary.source_workflow_run_dashboard_status ?? "unknown",
+      source_validation_error_count: summary.source_validation_error_count ?? 0,
+      required_domain_pack_count: summary.required_domain_pack_count ?? 0,
+      represented_domain_pack_count: summary.represented_domain_pack_count ?? 0,
+      missing_required_domain_pack_count: summary.missing_required_domain_pack_count ?? 0,
+      workflow_golden_case_count: caseCount,
+      locked_case_count: summary.locked_case_count ?? 0,
+      mismatch_case_count: summary.mismatch_case_count ?? 0,
+      state_machine_passed_case_count: summary.state_machine_passed_case_count ?? 0,
+      state_machine_failed_case_count: summary.state_machine_failed_case_count ?? 0,
+      manual_review_required_case_count: summary.manual_review_required_case_count ?? 0,
+      law_firm_case_count: summary.law_firm_case_count ?? 0,
+      personal_dev_case_count: summary.personal_dev_case_count ?? 0,
+      creative_document_case_count: summary.creative_document_case_count ?? 0,
+      runner_plan_bound_case_count: summary.runner_plan_bound_case_count ?? 0,
+      transition_guard_bound_case_count: summary.transition_guard_bound_case_count ?? 0,
+      queue_bound_case_count: summary.queue_bound_case_count ?? 0,
+      idempotency_bound_case_count: summary.idempotency_bound_case_count ?? 0,
+      resume_cancel_bound_case_count: summary.resume_cancel_bound_case_count ?? 0,
+      gate_status_bound_case_count: summary.gate_status_bound_case_count ?? 0,
+      dashboard_panel_bound_case_count: summary.dashboard_panel_bound_case_count ?? 0,
+      capability_manifest_bound_case_count: summary.capability_manifest_bound_case_count ?? 0,
+      workflow_golden_case_step_count: summary.workflow_golden_case_step_count ?? 0,
+      passed_step_count: summary.passed_step_count ?? 0,
+      failed_step_count: summary.failed_step_count ?? 0,
+      human_review_hold_step_count: summary.human_review_hold_step_count ?? 0,
+      post_human_release_terminal_step_count: summary.post_human_release_terminal_step_count ?? 0,
+      auto_transition_allowed_count: summary.auto_transition_allowed_count ?? 0,
+      protected_action_executed_count: summary.protected_action_executed_count ?? 0,
+      final_action_executed_count: summary.final_action_executed_count ?? 0,
+      regression_hash_count: summary.regression_hash_count ?? 0,
+      locked_regression_hash_count: summary.locked_regression_hash_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? goldenCases.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -12703,6 +12801,46 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     workflow_run_dashboard_secret_material_route_count: artifacts.workflow_run_dashboard?.summary?.secret_material_route_count ?? 0,
     workflow_run_dashboard_installer_or_gateway_route_count: artifacts.workflow_run_dashboard?.summary?.installer_or_gateway_route_count ?? 0,
     workflow_run_dashboard_validation_error_count: artifacts.workflow_run_dashboard?.summary?.validation_error_count ?? artifacts.workflow_run_dashboard?.validation?.errors?.length ?? 0,
+    workflow_golden_case_status: artifacts.workflow_golden_cases?.summary?.workflow_golden_case_status ?? "unknown",
+    workflow_golden_case_contract_id: artifacts.workflow_golden_cases?.summary?.workflow_golden_case_contract_id ?? null,
+    workflow_golden_source_capability_manifest_v2_status: artifacts.workflow_golden_cases?.summary?.source_capability_manifest_v2_status ?? "unknown",
+    workflow_golden_source_workflow_dsl_state_model_status: artifacts.workflow_golden_cases?.summary?.source_workflow_dsl_state_model_status ?? "unknown",
+    workflow_golden_source_workflow_state_machine_runner_status: artifacts.workflow_golden_cases?.summary?.source_workflow_state_machine_runner_status ?? "unknown",
+    workflow_golden_source_workflow_queue_retry_backoff_status: artifacts.workflow_golden_cases?.summary?.source_workflow_queue_retry_backoff_status ?? "unknown",
+    workflow_golden_source_workflow_idempotency_status: artifacts.workflow_golden_cases?.summary?.source_workflow_idempotency_status ?? "unknown",
+    workflow_golden_source_workflow_resume_cancel_status: artifacts.workflow_golden_cases?.summary?.source_workflow_resume_cancel_status ?? "unknown",
+    workflow_golden_source_gate_result_aggregator_status: artifacts.workflow_golden_cases?.summary?.source_gate_result_aggregator_status ?? "unknown",
+    workflow_golden_source_workflow_run_dashboard_status: artifacts.workflow_golden_cases?.summary?.source_workflow_run_dashboard_status ?? "unknown",
+    workflow_golden_required_domain_pack_count: artifacts.workflow_golden_cases?.summary?.required_domain_pack_count ?? 0,
+    workflow_golden_represented_domain_pack_count: artifacts.workflow_golden_cases?.summary?.represented_domain_pack_count ?? 0,
+    workflow_golden_missing_required_domain_pack_count: artifacts.workflow_golden_cases?.summary?.missing_required_domain_pack_count ?? 0,
+    workflow_golden_case_count: artifacts.workflow_golden_cases?.summary?.workflow_golden_case_count ?? 0,
+    workflow_golden_locked_case_count: artifacts.workflow_golden_cases?.summary?.locked_case_count ?? 0,
+    workflow_golden_mismatch_case_count: artifacts.workflow_golden_cases?.summary?.mismatch_case_count ?? 0,
+    workflow_golden_state_machine_passed_case_count: artifacts.workflow_golden_cases?.summary?.state_machine_passed_case_count ?? 0,
+    workflow_golden_state_machine_failed_case_count: artifacts.workflow_golden_cases?.summary?.state_machine_failed_case_count ?? 0,
+    workflow_golden_manual_review_required_case_count: artifacts.workflow_golden_cases?.summary?.manual_review_required_case_count ?? 0,
+    workflow_golden_law_firm_case_count: artifacts.workflow_golden_cases?.summary?.law_firm_case_count ?? 0,
+    workflow_golden_personal_dev_case_count: artifacts.workflow_golden_cases?.summary?.personal_dev_case_count ?? 0,
+    workflow_golden_creative_document_case_count: artifacts.workflow_golden_cases?.summary?.creative_document_case_count ?? 0,
+    workflow_golden_runner_plan_bound_case_count: artifacts.workflow_golden_cases?.summary?.runner_plan_bound_case_count ?? 0,
+    workflow_golden_transition_guard_bound_case_count: artifacts.workflow_golden_cases?.summary?.transition_guard_bound_case_count ?? 0,
+    workflow_golden_queue_bound_case_count: artifacts.workflow_golden_cases?.summary?.queue_bound_case_count ?? 0,
+    workflow_golden_idempotency_bound_case_count: artifacts.workflow_golden_cases?.summary?.idempotency_bound_case_count ?? 0,
+    workflow_golden_resume_cancel_bound_case_count: artifacts.workflow_golden_cases?.summary?.resume_cancel_bound_case_count ?? 0,
+    workflow_golden_gate_status_bound_case_count: artifacts.workflow_golden_cases?.summary?.gate_status_bound_case_count ?? 0,
+    workflow_golden_dashboard_panel_bound_case_count: artifacts.workflow_golden_cases?.summary?.dashboard_panel_bound_case_count ?? 0,
+    workflow_golden_capability_manifest_bound_case_count: artifacts.workflow_golden_cases?.summary?.capability_manifest_bound_case_count ?? 0,
+    workflow_golden_case_step_count: artifacts.workflow_golden_cases?.summary?.workflow_golden_case_step_count ?? 0,
+    workflow_golden_passed_step_count: artifacts.workflow_golden_cases?.summary?.passed_step_count ?? 0,
+    workflow_golden_failed_step_count: artifacts.workflow_golden_cases?.summary?.failed_step_count ?? 0,
+    workflow_golden_human_review_hold_step_count: artifacts.workflow_golden_cases?.summary?.human_review_hold_step_count ?? 0,
+    workflow_golden_auto_transition_allowed_count: artifacts.workflow_golden_cases?.summary?.auto_transition_allowed_count ?? 0,
+    workflow_golden_protected_action_executed_count: artifacts.workflow_golden_cases?.summary?.protected_action_executed_count ?? 0,
+    workflow_golden_final_action_executed_count: artifacts.workflow_golden_cases?.summary?.final_action_executed_count ?? 0,
+    workflow_golden_regression_hash_count: artifacts.workflow_golden_cases?.summary?.regression_hash_count ?? 0,
+    workflow_golden_locked_regression_hash_count: artifacts.workflow_golden_cases?.summary?.locked_regression_hash_count ?? 0,
+    workflow_golden_validation_error_count: artifacts.workflow_golden_cases?.summary?.validation_error_count ?? artifacts.workflow_golden_cases?.validation?.errors?.length ?? 0,
     runtime_agentrun_contract_freeze_runtime_adapter_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_adapter_count ?? 0,
     runtime_agentrun_contract_freeze_runtime_execution_contract_count: artifacts.runtime_agentrun_contract_freeze?.summary?.runtime_execution_contract_count ?? 0,
     runtime_agentrun_contract_freeze_used_runtime_count: artifacts.runtime_agentrun_contract_freeze?.summary?.used_runtime_count ?? 0,
@@ -14519,6 +14657,8 @@ function parseArgs(argv) {
     else if (arg === "--no-gate-result-aggregator") parsed.gateResultAggregatorPath = false;
     else if (arg === "--workflow-run-dashboard") parsed.workflowRunDashboardPath = argv[++index];
     else if (arg === "--no-workflow-run-dashboard") parsed.workflowRunDashboardPath = false;
+    else if (arg === "--workflow-golden-cases") parsed.workflowGoldenCasesPath = argv[++index];
+    else if (arg === "--no-workflow-golden-cases") parsed.workflowGoldenCasesPath = false;
     else if (arg === "--budget-alert-ledger") parsed.budgetAlertLedgerPath = argv[++index];
     else if (arg === "--no-budget-alert-ledger") parsed.budgetAlertLedgerPath = false;
     else if (arg === "--domain-pack-registry") parsed.domainPackRegistryPath = argv[++index];
@@ -14928,6 +15068,9 @@ Options:
   --workflow-run-dashboard <path>
                                   workflow-run-dashboard.json path.
   --no-workflow-run-dashboard     Do not include Workflow Run Dashboard status.
+  --workflow-golden-cases <path>
+                                  workflow-golden-cases.json path.
+  --no-workflow-golden-cases      Do not include Workflow Golden Cases status.
   --workflow-dsl-state-model <path>
                                   workflow-dsl-state-model.json path.
   --no-workflow-dsl-state-model

@@ -5621,6 +5621,28 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 94개로 증가하고 workflow run dashboard artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run workflows:run-dashboard -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 193 - Workflow Golden Cases
+
+목표: law-firm, personal-dev, creative-document 대표 workflow를 fixture suite로 고정하고 DSL state machine, runner, queue/retry, idempotency, resume/cancel, gate, dashboard panel binding이 함께 통과하는지 검증한다.
+
+구현:
+
+- `src/workflow-golden-cases.mjs`와 `scripts/workflow-golden-cases.mjs`를 추가해 `npm run workflows:golden-cases` slice를 등록
+- `schemas/workflow-golden-cases.schema.json`로 suite, golden case, state-machine step, regression manifest, summary 계약을 검증
+- 각 domain pack에서 대표 workflow를 1개씩 선택해 expected state path와 observed/guarded state path를 비교
+- runner plan, transition guard, queue record, idempotency key, resume/cancel record, gate status, capability manifest, workflow run dashboard panel binding을 case별로 고정
+- `approved` 단계는 human review hold, `completed` 단계는 post-human-release terminal step으로 다루며 auto transition, protected action, delivery, final action 실행은 모두 0건으로 유지
+- Review Dashboard stage와 summary metric, Review API route, API smoke, control-plane loop/checkpoint, golden fixture, contract validation suite에 연결
+
+완료 기준:
+
+- Workflow Golden Cases가 validation error 없이 `complete` 상태가 됨
+- law-firm, personal-dev, creative-document 대표 case 3개가 모두 locked 상태와 `state_machine_pass_status=passed`를 가짐
+- state-machine step 15개가 모두 passed 상태이며 mutation/protected/final action 실행이 모두 0건임
+- Review API가 `/api/workflow-golden-case-suites`, `/api/workflow-golden-cases`, `/api/workflow-golden-case-steps`, `/api/workflow-golden-case-validations`를 제공
+- Golden fixture 수가 95개로 증가하고 workflow golden cases artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run workflows:golden-cases -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5629,9 +5651,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 192이다.
+- 현재 완료 기준점은 Phase 193이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P193-P312, 총 120개다.
+- 남은 계획 슬롯은 P194-P312, 총 119개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

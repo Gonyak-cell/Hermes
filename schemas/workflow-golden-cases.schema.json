@@ -1,0 +1,379 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/workflow-golden-cases.schema.json",
+  "title": "Hermes Workflow Golden Cases",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "workflow_golden_case_suite_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "workflow_golden_case_contract",
+    "workflow_golden_case_catalog",
+    "workflow_golden_cases",
+    "workflow_golden_case_steps",
+    "workflow_golden_case_regression_manifest",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "workflow-golden-cases.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "workflow_golden_case_suite_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "capability_manifest_v2_path",
+        "workflow_dsl_state_model_path",
+        "workflow_state_machine_runner_path",
+        "workflow_queue_retry_backoff_path",
+        "workflow_idempotency_ledger_path",
+        "workflow_resume_cancel_contract_path",
+        "gate_result_aggregator_path",
+        "workflow_run_dashboard_path",
+        "package_path",
+        "roadmap_path"
+      ],
+      "properties": {
+        "capability_manifest_v2_path": { "type": "string" },
+        "workflow_dsl_state_model_path": { "type": "string" },
+        "workflow_state_machine_runner_path": { "type": "string" },
+        "workflow_queue_retry_backoff_path": { "type": "string" },
+        "workflow_idempotency_ledger_path": { "type": "string" },
+        "workflow_resume_cancel_contract_path": { "type": "string" },
+        "gate_result_aggregator_path": { "type": "string" },
+        "workflow_run_dashboard_path": { "type": "string" },
+        "package_path": { "type": "string" },
+        "roadmap_path": { "type": "string" }
+      }
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "capability_manifest_v2",
+        "workflow_dsl_state_model",
+        "workflow_state_machine_runner",
+        "workflow_queue_retry_backoff",
+        "workflow_idempotency",
+        "workflow_resume_cancel",
+        "gate_result_aggregator",
+        "workflow_run_dashboard"
+      ],
+      "additionalProperties": { "$ref": "#/$defs/source_contract" }
+    },
+    "workflow_golden_case_contract": { "$ref": "#/$defs/workflow_golden_case_contract" },
+    "workflow_golden_case_catalog": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "workflow_golden_cases",
+        "workflow_golden_case_steps",
+        "workflow_golden_case_regression_manifest"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-golden-case-catalog.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "workflow_golden_cases": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "$ref": "#/$defs/workflow_golden_case" }
+        },
+        "workflow_golden_case_steps": {
+          "type": "array",
+          "minItems": 15,
+          "items": { "$ref": "#/$defs/workflow_golden_case_step" }
+        },
+        "workflow_golden_case_regression_manifest": { "$ref": "#/$defs/regression_manifest" }
+      }
+    },
+    "workflow_golden_cases": {
+      "type": "array",
+      "minItems": 3,
+      "items": { "$ref": "#/$defs/workflow_golden_case" }
+    },
+    "workflow_golden_case_steps": {
+      "type": "array",
+      "minItems": 15,
+      "items": { "$ref": "#/$defs/workflow_golden_case_step" }
+    },
+    "workflow_golden_case_regression_manifest": { "$ref": "#/$defs/regression_manifest" },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "source_contract": {
+      "type": "object",
+      "required": ["schema_version", "status", "validation_error_count", "generated_at"],
+      "properties": {
+        "schema_version": { "type": ["string", "null"] },
+        "status": { "type": "string" },
+        "validation_error_count": { "type": "integer", "minimum": 0 },
+        "generated_at": { "type": ["string", "null"], "format": "date-time" }
+      }
+    },
+    "workflow_golden_case_contract": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_golden_case_contract_id",
+        "generated_at",
+        "required_domain_packs",
+        "source_of_truth",
+        "state_machine_pass_rule",
+        "human_gate_rule",
+        "mutation_policy"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-golden-case-contract.v1" },
+        "workflow_golden_case_contract_id": { "const": "workflow-golden-cases.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "required_domain_packs": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "enum": ["law-firm", "personal-dev", "creative-document"] }
+        },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "state_machine_pass_rule": { "type": "string" },
+        "human_gate_rule": { "type": "string" },
+        "mutation_policy": { "const": "read_only_fixture_no_mutation" }
+      }
+    },
+    "workflow_golden_case": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_golden_case_id",
+        "domain_pack",
+        "workflow_run_id",
+        "workflow_id",
+        "capability_id",
+        "expected_state_path",
+        "observed_state_path",
+        "current_dsl_state",
+        "next_dsl_state",
+        "transition_guard_status",
+        "runner_plan_status",
+        "workflow_gate_status",
+        "queue_status",
+        "human_review_required",
+        "law_firm_human_review_required",
+        "state_machine_passed",
+        "state_machine_pass_status",
+        "case_status",
+        "source_bindings",
+        "pass_checks",
+        "state_machine_steps",
+        "human_review_note",
+        "captured_at",
+        "regression_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-golden-case.v1" },
+        "workflow_golden_case_id": { "type": "string" },
+        "domain_pack": { "enum": ["law-firm", "personal-dev", "creative-document"] },
+        "workflow_run_id": { "type": "string" },
+        "workflow_id": { "type": "string" },
+        "capability_id": { "type": "string" },
+        "capability_display_name": { "type": ["string", "null"] },
+        "expected_state_path": {
+          "type": "array",
+          "minItems": 5,
+          "items": { "type": "string" }
+        },
+        "observed_state_path": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string" }
+        },
+        "current_dsl_state": { "type": "string" },
+        "next_dsl_state": { "type": ["string", "null"] },
+        "transition_guard_status": { "type": "string" },
+        "runner_plan_status": { "type": "string" },
+        "workflow_gate_status": { "type": "string" },
+        "queue_status": { "type": "string" },
+        "human_review_required": { "const": true },
+        "law_firm_human_review_required": { "type": "boolean" },
+        "state_machine_passed": { "const": true },
+        "state_machine_pass_status": { "const": "passed" },
+        "case_status": { "const": "locked" },
+        "source_bindings": { "$ref": "#/$defs/source_bindings" },
+        "pass_checks": { "$ref": "#/$defs/pass_checks" },
+        "state_machine_steps": {
+          "type": "array",
+          "minItems": 5,
+          "items": { "$ref": "#/$defs/workflow_golden_case_step" }
+        },
+        "human_review_note": { "type": "string" },
+        "captured_at": { "type": "string", "format": "date-time" },
+        "regression_hash": { "type": "string" }
+      }
+    },
+    "source_bindings": {
+      "type": "object",
+      "required": [
+        "workflow_run_dashboard_panel_id",
+        "workflow_run_state_projection_id",
+        "workflow_runner_plan_id",
+        "transition_guard_id",
+        "workflow_queue_record_id",
+        "idempotency_key_record_id",
+        "resume_cursor_record_id",
+        "cancel_request_record_id",
+        "workflow_gate_status_id",
+        "capability_manifest_id"
+      ],
+      "properties": {
+        "workflow_run_dashboard_panel_id": { "type": "string" },
+        "workflow_run_state_projection_id": { "type": "string" },
+        "workflow_runner_plan_id": { "type": "string" },
+        "transition_guard_id": { "type": "string" },
+        "workflow_queue_record_id": { "type": "string" },
+        "idempotency_key_record_id": { "type": "string" },
+        "resume_cursor_record_id": { "type": "string" },
+        "cancel_request_record_id": { "type": "string" },
+        "workflow_gate_status_id": { "type": "string" },
+        "capability_manifest_id": { "type": "string" }
+      }
+    },
+    "pass_checks": {
+      "type": "object",
+      "additionalProperties": { "const": true }
+    },
+    "workflow_golden_case_step": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "workflow_golden_case_step_id",
+        "workflow_golden_case_id",
+        "workflow_run_id",
+        "domain_pack",
+        "step_index",
+        "dsl_state",
+        "next_dsl_state",
+        "observed_in_projection",
+        "transition_guard_id",
+        "step_boundary",
+        "state_machine_step_status",
+        "mutation_allowed",
+        "protected_action_executed",
+        "final_action_executed",
+        "generated_at"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-golden-case-step.v1" },
+        "workflow_golden_case_step_id": { "type": "string" },
+        "workflow_golden_case_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "domain_pack": { "type": "string" },
+        "step_index": { "type": "integer", "minimum": 1 },
+        "dsl_state": { "type": "string" },
+        "next_dsl_state": { "type": ["string", "null"] },
+        "observed_in_projection": { "type": "boolean" },
+        "transition_guard_id": { "type": ["string", "null"] },
+        "step_boundary": { "enum": ["observed_projection", "human_review_hold", "post_human_release_terminal"] },
+        "state_machine_step_status": { "const": "passed" },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "final_action_executed": { "const": false },
+        "generated_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "regression_manifest": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "generated_at",
+        "fixture_set_id",
+        "required_domain_packs",
+        "regression_hash_count",
+        "locked_regression_hash_count",
+        "case_hashes",
+        "manifest_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "workflow-golden-case-regression-manifest.v1" },
+        "generated_at": { "type": "string", "format": "date-time" },
+        "fixture_set_id": { "const": "workflow-golden-cases.v1" },
+        "required_domain_packs": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "string" }
+        },
+        "regression_hash_count": { "type": "integer", "minimum": 3 },
+        "locked_regression_hash_count": { "type": "integer", "minimum": 3 },
+        "case_hashes": {
+          "type": "array",
+          "minItems": 3,
+          "items": { "type": "object" }
+        },
+        "manifest_hash": { "type": "string" }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "code", "status", "passed", "message"],
+      "properties": {
+        "path": { "type": "string" },
+        "code": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "passed": { "type": "boolean" },
+        "message": { "type": "string" }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array", "items": { "type": "object" } }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "workflow_golden_case_status",
+        "workflow_golden_case_contract_id",
+        "required_domain_pack_count",
+        "represented_domain_pack_count",
+        "workflow_golden_case_count",
+        "locked_case_count",
+        "state_machine_passed_case_count",
+        "workflow_golden_case_step_count",
+        "passed_step_count",
+        "auto_transition_allowed_count",
+        "protected_action_executed_count",
+        "final_action_executed_count",
+        "regression_hash_count",
+        "locked_regression_hash_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "workflow_golden_case_status": { "const": "complete" },
+        "workflow_golden_case_contract_id": { "const": "workflow-golden-cases.v1" },
+        "required_domain_pack_count": { "const": 3 },
+        "represented_domain_pack_count": { "const": 3 },
+        "workflow_golden_case_count": { "const": 3 },
+        "locked_case_count": { "const": 3 },
+        "state_machine_passed_case_count": { "const": 3 },
+        "workflow_golden_case_step_count": { "type": "integer", "minimum": 15 },
+        "passed_step_count": { "type": "integer", "minimum": 15 },
+        "auto_transition_allowed_count": { "const": 0 },
+        "protected_action_executed_count": { "const": 0 },
+        "final_action_executed_count": { "const": 0 },
+        "regression_hash_count": { "const": 3 },
+        "locked_regression_hash_count": { "const": 3 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  }
+}

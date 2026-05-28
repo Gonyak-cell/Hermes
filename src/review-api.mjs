@@ -3276,6 +3276,46 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/workflow-golden-case-suites") {
+    const workflowGoldenCasesResult = await readDashboardSourceArtifact(dashboard, "workflow_golden_cases");
+    if (!workflowGoldenCasesResult.available) {
+      return jsonResponse(503, buildError("workflow_golden_cases_unavailable", workflowGoldenCasesResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("workflow_golden_case_suites", [workflowGoldenCasesResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/workflow-golden-cases") {
+    const workflowGoldenCasesResult = await readDashboardSourceArtifact(dashboard, "workflow_golden_cases");
+    if (!workflowGoldenCasesResult.available) {
+      return jsonResponse(503, buildError("workflow_golden_cases_unavailable", workflowGoldenCasesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_golden_cases", workflowGoldenCasesResult.artifact.workflow_golden_cases ?? workflowGoldenCasesResult.artifact.workflow_golden_case_catalog?.workflow_golden_cases ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-golden-case-steps") {
+    const workflowGoldenCasesResult = await readDashboardSourceArtifact(dashboard, "workflow_golden_cases");
+    if (!workflowGoldenCasesResult.available) {
+      return jsonResponse(503, buildError("workflow_golden_cases_unavailable", workflowGoldenCasesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_golden_case_steps", workflowGoldenCasesResult.artifact.workflow_golden_case_steps ?? workflowGoldenCasesResult.artifact.workflow_golden_case_catalog?.workflow_golden_case_steps ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/workflow-golden-case-validations") {
+    const workflowGoldenCasesResult = await readDashboardSourceArtifact(dashboard, "workflow_golden_cases");
+    if (!workflowGoldenCasesResult.available) {
+      return jsonResponse(503, buildError("workflow_golden_cases_unavailable", workflowGoldenCasesResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("workflow_golden_case_validations", workflowGoldenCasesResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/runtime-agentrun-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "runtime_agentrun_contract_freeze");
     if (!freezeResult.available) {
@@ -7404,6 +7444,10 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/workflow-run-gate-cards", "Workflow gate status cards"),
       route("GET", "/api/workflow-run-output-cards", "Workflow output status cards"),
       route("GET", "/api/workflow-run-dashboard-validations", "Workflow run dashboard validation rows"),
+      route("GET", "/api/workflow-golden-case-suites", "Workflow golden case suite artifacts"),
+      route("GET", "/api/workflow-golden-cases", "Representative workflow golden cases"),
+      route("GET", "/api/workflow-golden-case-steps", "Workflow golden case state-machine steps"),
+      route("GET", "/api/workflow-golden-case-validations", "Workflow golden case validation rows"),
       route("GET", "/api/workflow-dsl-state-models", "Workflow DSL state model artifacts"),
       route("GET", "/api/workflow-dsl-states", "Workflow DSL state definitions"),
       route("GET", "/api/workflow-dsl-transition-rules", "Workflow DSL transition rules"),
@@ -8121,6 +8165,10 @@ function filterItems(items, searchParams) {
     "gate_result_aggregator_status",
     "capability_registry_api_status",
     "workflow_run_dashboard_status",
+    "workflow_golden_case_status",
+    "state_machine_pass_status",
+    "state_machine_step_status",
+    "step_boundary",
     "desktop_companion_readiness_status",
     "desktop_surface",
     "desktop_card_status",
@@ -8170,6 +8218,8 @@ function filterItems(items, searchParams) {
     "workflow_run_queue_card_id",
     "workflow_run_gate_card_id",
     "workflow_run_output_card_id",
+    "workflow_golden_case_id",
+    "workflow_golden_case_step_id",
     "gate_type",
     "tool_invocation_id",
     "tool_id",
@@ -9362,6 +9412,7 @@ function readFilterValue(item, key) {
   if (key === "gate_result_aggregator_contract_id") return item.summary?.gate_result_aggregator_contract_id ?? item.gate_result_aggregator_contract_id;
   if (key === "capability_registry_api_status") return item.summary?.capability_registry_api_status ?? item.capability_registry_api_status;
   if (key === "workflow_run_dashboard_status") return item.summary?.workflow_run_dashboard_status ?? item.workflow_run_dashboard_status;
+  if (key === "workflow_golden_case_status") return item.summary?.workflow_golden_case_status ?? item.workflow_golden_case_status;
   if (key === "desktop_companion_readiness_status") return item.summary?.desktop_companion_readiness_status ?? item.desktop_companion_readiness_status;
   if (key === "desktop_surface") return item.desktop_surface;
   if (key === "desktop_card_status") return item.desktop_card_status;

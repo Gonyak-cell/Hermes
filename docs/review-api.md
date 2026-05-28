@@ -481,6 +481,10 @@ npm run api:serve
 - `GET /api/workflow-run-gate-cards`: workflow gate status cards
 - `GET /api/workflow-run-output-cards`: output and delivery status cards
 - `GET /api/workflow-run-dashboard-validations`: workflow run dashboard validation rows
+- `GET /api/workflow-golden-case-suites`: workflow golden case suite artifact
+- `GET /api/workflow-golden-cases`: representative law-firm, personal-dev, and creative-document workflow golden cases
+- `GET /api/workflow-golden-case-steps`: workflow golden case state-machine step rows
+- `GET /api/workflow-golden-case-validations`: workflow golden case validation rows
 - `GET /api/workflow-dsl-state-models`: workflow DSL state model artifact
 - `GET /api/workflow-dsl-states`: started/waiting/gated/approved/failed/completed state definitions
 - `GET /api/workflow-dsl-transition-rules`: workflow DSL transition rule rows

@@ -73,6 +73,7 @@ const GOAL_ITEMS = [
   sourceItem("codex_adapter_contract", "Codex adapter contract", "runtime", "codex_adapter_contract", "control-plane-codex-adapter-contract", { acceptance_profile: "codex_adapter_contract_gate" }),
   sourceItem("local_script_adapter", "Local script adapter", "runtime", "local_script_adapter", "control-plane-local-script-adapter", { acceptance_profile: "local_script_adapter_gate" }),
   sourceItem("document_renderer_adapter", "Document renderer adapter", "runtime", "document_renderer_adapter", "control-plane-document-renderer-adapter", { acceptance_profile: "document_renderer_adapter_gate" }),
+  sourceItem("worktree_manager_v2", "Worktree Manager v2", "runtime", "worktree_manager_v2", "control-plane-worktree-manager-v2", { acceptance_profile: "worktree_manager_v2_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -505,6 +506,7 @@ function evaluateStageAcceptance(item, stage) {
     "codex_adapter_contract_gate",
     "local_script_adapter_gate",
     "document_renderer_adapter_gate",
+    "worktree_manager_v2_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -1664,6 +1666,46 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.desktop_runtime_source_of_truth === false
     ) {
       return passedWithOperationalGate(stage, "Document renderer adapter keeps DOCX/PPTX/PDF draft rendering behind sandboxed execution, captures output hash/log/artifact/delivery bindings into the AgentRun ledger, and leaves Desktop read-only.");
+    }
+  }
+
+  if (item.acceptance_profile === "worktree_manager_v2_gate") {
+    const errors = (metrics.validation_error_count ?? 0) + (metrics.failed_validation_item_count ?? 0);
+    const planCount = metrics.agent_worktree_plan_count ?? 0;
+    if (
+      errors === 0
+      && metrics.worktree_manager_v2_status === "complete"
+      && metrics.manager_status === "locked"
+      && metrics.branch_prefix === "codex/"
+      && metrics.worktree_root === ".hermes/worktrees"
+      && metrics.claude_code_worktree_required === true
+      && metrics.codex_worktree_required === true
+      && planCount >= 2
+      && metrics.status_record_count === planCount
+      && metrics.cleanup_record_count === planCount
+      && metrics.agent_scoped_plan_count === planCount
+      && metrics.branch_name_compliant_count === planCount
+      && metrics.worktree_path_declared_count === planCount
+      && metrics.branch_creation_tracked_count === planCount
+      && metrics.worktree_creation_tracked_count === planCount
+      && metrics.status_tracking_ready_count === planCount
+      && metrics.cleanup_tracking_ready_count === planCount
+      && metrics.auto_cleanup_allowed_count === 0
+      && metrics.delete_requires_human_gate_count === planCount
+      && metrics.protected_mutation_route === "protected_action_request_only"
+      && metrics.human_gate_required_for_create === true
+      && metrics.human_gate_required_for_cleanup === true
+      && metrics.runtime_self_report_trusted === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.desktop_create_worktree_allowed === false
+      && metrics.desktop_delete_worktree_allowed === false
+      && metrics.desktop_delete_branch_allowed === false
+      && metrics.desktop_cleanup_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+    ) {
+      return passedWithOperationalGate(stage, "Worktree Manager v2 binds Claude Code and Codex AgentRuns to tracked branch/worktree/status/cleanup records while leaving Desktop as a read-only operator surface.");
     }
   }
 

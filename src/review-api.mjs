@@ -3739,6 +3739,64 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       method,
     );
   }
+  if (pathname === "/api/worktree-manager-v2") {
+    const worktreeResult = await readDashboardSourceArtifact(dashboard, "worktree_manager_v2");
+    if (!worktreeResult.available) {
+      return jsonResponse(503, buildError("worktree_manager_v2_unavailable", worktreeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("worktree_manager_v2", [worktreeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/agent-worktree-plans") {
+    const worktreeResult = await readDashboardSourceArtifact(dashboard, "worktree_manager_v2");
+    if (!worktreeResult.available) {
+      return jsonResponse(503, buildError("worktree_manager_v2_unavailable", worktreeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("agent_worktree_plans", worktreeResult.artifact.agent_worktree_plans ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/worktree-status-records") {
+    const worktreeResult = await readDashboardSourceArtifact(dashboard, "worktree_manager_v2");
+    if (!worktreeResult.available) {
+      return jsonResponse(503, buildError("worktree_manager_v2_unavailable", worktreeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("worktree_status_records", worktreeResult.artifact.worktree_status_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/worktree-cleanup-records") {
+    const worktreeResult = await readDashboardSourceArtifact(dashboard, "worktree_manager_v2");
+    if (!worktreeResult.available) {
+      return jsonResponse(503, buildError("worktree_manager_v2_unavailable", worktreeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("worktree_cleanup_records", worktreeResult.artifact.worktree_cleanup_records ?? [], url, generatedAt),
+      method,
+    );
+  }
+  if (pathname === "/api/worktree-desktop-boundary") {
+    const worktreeResult = await readDashboardSourceArtifact(dashboard, "worktree_manager_v2");
+    if (!worktreeResult.available) {
+      return jsonResponse(503, buildError("worktree_manager_v2_unavailable", worktreeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("worktree_desktop_boundary", [worktreeResult.artifact.worktree_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/worktree-manager-v2-validations") {
+    const worktreeResult = await readDashboardSourceArtifact(dashboard, "worktree_manager_v2");
+    if (!worktreeResult.available) {
+      return jsonResponse(503, buildError("worktree_manager_v2_unavailable", worktreeResult.error), method);
+    }
+    return jsonResponse(
+      200,
+      buildCollectionResponse("worktree_manager_v2_validations", worktreeResult.artifact.validation_items ?? [], url, generatedAt),
+      method,
+    );
+  }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
     if (!freezeResult.available) {
@@ -7883,6 +7941,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/document-renderer-agent-run-ledger-bindings", "Document Renderer AgentRun ledger bindings"),
       route("GET", "/api/document-renderer-desktop-boundary", "Document Renderer Desktop boundary"),
       route("GET", "/api/document-renderer-adapter-validations", "Document Renderer Adapter validation rows"),
+      route("GET", "/api/worktree-manager-v2", "Worktree Manager v2 artifact"),
+      route("GET", "/api/agent-worktree-plans", "Agent worktree plan rows"),
+      route("GET", "/api/worktree-status-records", "Worktree status records"),
+      route("GET", "/api/worktree-cleanup-records", "Worktree cleanup records"),
+      route("GET", "/api/worktree-desktop-boundary", "Worktree Manager Desktop boundary"),
+      route("GET", "/api/worktree-manager-v2-validations", "Worktree Manager v2 validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -8537,6 +8601,7 @@ function filterItems(items, searchParams) {
     "codex_adapter_contract_status",
     "local_script_adapter_status",
     "document_renderer_adapter_status",
+    "worktree_manager_v2_status",
     "interface_status",
     "operator_surface_policy_status",
     "desktop_surface_policy",
@@ -8544,6 +8609,11 @@ function filterItems(items, searchParams) {
     "collection_status",
     "binding_status",
     "boundary_status",
+    "plan_status",
+    "current_status",
+    "cleanup_status",
+    "status_tracking_status",
+    "cleanup_tracking_status",
     "contract_status",
     "diff_gate_binding_status",
     "workflow_gate_vertical_slice_status",
@@ -9802,6 +9872,7 @@ function readFilterValue(item, key) {
   if (key === "codex_adapter_contract_status") return item.summary?.codex_adapter_contract_status ?? item.codex_adapter_contract_status;
   if (key === "local_script_adapter_status") return item.summary?.local_script_adapter_status ?? item.local_script_adapter_status;
   if (key === "document_renderer_adapter_status") return item.summary?.document_renderer_adapter_status ?? item.document_renderer_adapter_status;
+  if (key === "worktree_manager_v2_status") return item.summary?.worktree_manager_v2_status ?? item.worktree_manager_v2_status;
   if (key === "interface_status") return item.interface_status;
   if (key === "operator_surface_policy_status") return item.operator_surface_policy_status;
   if (key === "desktop_surface_policy") return item.desktop_surface_policy;
@@ -9809,6 +9880,11 @@ function readFilterValue(item, key) {
   if (key === "collection_status") return item.collection_status ?? item.summary?.invocation_result_collection_status;
   if (key === "binding_status") return item.binding_status;
   if (key === "boundary_status") return item.boundary_status;
+  if (key === "plan_status") return item.plan_status;
+  if (key === "current_status") return item.current_status;
+  if (key === "cleanup_status") return item.cleanup_status;
+  if (key === "status_tracking_status") return item.status_tracking_status;
+  if (key === "cleanup_tracking_status") return item.cleanup_tracking_status;
   if (key === "contract_status") return item.contract_status;
   if (key === "diff_gate_binding_status") return item.diff_gate_binding_status;
   if (key === "workflow_gate_vertical_slice_status") return item.workflow_gate_vertical_slice_status;

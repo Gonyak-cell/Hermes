@@ -583,6 +583,12 @@ npm run api:serve
 - `GET /api/document-renderer-agent-run-ledger-bindings`: Document Renderer AgentRun ledger binding rows
 - `GET /api/document-renderer-desktop-boundary`: Document Renderer Desktop boundary row
 - `GET /api/document-renderer-adapter-validations`: Document Renderer Adapter validation rows
+- `GET /api/worktree-manager-v2`: Worktree Manager v2 artifact
+- `GET /api/agent-worktree-plans`: Agent worktree plan rows
+- `GET /api/worktree-status-records`: Worktree status records
+- `GET /api/worktree-cleanup-records`: Worktree cleanup records
+- `GET /api/worktree-desktop-boundary`: Worktree Manager Desktop boundary row
+- `GET /api/worktree-manager-v2-validations`: Worktree Manager v2 validation rows
 - `GET /api/policy-snapshot-event-bindings`: policy snapshot event binding artifact
 - `GET /api/event-run-gate-policy-bindings`: event/run/gate execution-time policy snapshot binding rows
 - `GET /api/event-policy-snapshot-bindings`: event and audit event policy snapshot binding rows

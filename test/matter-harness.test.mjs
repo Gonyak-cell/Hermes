@@ -197,6 +197,7 @@ import { runClaudeCodeAdapterContract } from "../src/claude-code-adapter-contrac
 import { runCodexAdapterContract } from "../src/codex-adapter-contract.mjs";
 import { runLocalScriptAdapter } from "../src/local-script-adapter.mjs";
 import { runDocumentRendererAdapter } from "../src/document-renderer-adapter.mjs";
+import { runWorktreeManagerV2 } from "../src/worktree-manager-v2.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1796,6 +1797,7 @@ describe("matter harness", () => {
         codexAdapterContractPath: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
         localScriptAdapterPath: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
         documentRendererAdapterPath: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+        worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6691,6 +6693,60 @@ describe("matter harness", () => {
       assert.equal(documentRendererAdapter.document_renderer_desktop_boundary.boundary_status, "locked");
       assert.match(await readFile(path.join(outDir, "document-renderer-adapter", "summary.md"), "utf8"), /Document Renderer Adapter/);
 
+      const worktreeManagerV2 = await runWorktreeManagerV2({
+        runtimeAdapterInterfaceV2Path: path.join(outDir, "runtime-adapter-interface-v2", "runtime-adapter-interface-v2.json"),
+        runtimeAgentRunContractFreezePath: path.join(outDir, "runtime-agentrun-contract-freeze", "runtime-agentrun-contract-freeze.json"),
+        runtimeCommandBindingsPath: "examples/core/runtime-command-bindings.json",
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        workflowGateFreezePath: path.join(outDir, "workflow-gate-freeze", "workflow-gate-freeze.json"),
+        desktopCompanionIntegrationPath: "docs/desktop-companion-integration.md",
+        outDir: path.join(outDir, "worktree-manager-v2"),
+        runAt: "2026-05-23T06:43:39.000Z",
+      });
+      const worktreeManagerV2Schema = JSON.parse(await readFile("schemas/worktree-manager-v2.schema.json", "utf8"));
+      assert.deepEqual(
+        validateAgainstSchema(worktreeManagerV2, worktreeManagerV2Schema, {}, "worktree_manager_v2"),
+        [],
+      );
+      assert.equal(worktreeManagerV2.summary.worktree_manager_v2_status, "complete");
+      assert.equal(worktreeManagerV2.summary.manager_status, "locked");
+      assert.equal(worktreeManagerV2.summary.branch_prefix, "codex/");
+      assert.equal(worktreeManagerV2.summary.worktree_root, ".hermes/worktrees");
+      assert.equal(worktreeManagerV2.summary.claude_code_worktree_required, true);
+      assert.equal(worktreeManagerV2.summary.codex_worktree_required, true);
+      assert.equal(worktreeManagerV2.summary.worktree_required_runtime_count, 2);
+      assert.equal(worktreeManagerV2.summary.agent_worktree_plan_count, 2);
+      assert.equal(worktreeManagerV2.summary.status_record_count, 2);
+      assert.equal(worktreeManagerV2.summary.cleanup_record_count, 2);
+      assert.equal(worktreeManagerV2.summary.agent_scoped_plan_count, 2);
+      assert.equal(worktreeManagerV2.summary.branch_name_compliant_count, 2);
+      assert.equal(worktreeManagerV2.summary.worktree_path_declared_count, 2);
+      assert.equal(worktreeManagerV2.summary.branch_creation_tracked_count, 2);
+      assert.equal(worktreeManagerV2.summary.worktree_creation_tracked_count, 2);
+      assert.equal(worktreeManagerV2.summary.status_tracking_ready_count, 2);
+      assert.equal(worktreeManagerV2.summary.cleanup_tracking_ready_count, 2);
+      assert.equal(worktreeManagerV2.summary.auto_cleanup_allowed_count, 0);
+      assert.equal(worktreeManagerV2.summary.delete_requires_human_gate_count, 2);
+      assert.equal(worktreeManagerV2.summary.protected_mutation_route, "protected_action_request_only");
+      assert.equal(worktreeManagerV2.summary.human_gate_required_for_create, true);
+      assert.equal(worktreeManagerV2.summary.human_gate_required_for_cleanup, true);
+      assert.equal(worktreeManagerV2.summary.runtime_self_report_trusted, false);
+      assert.equal(worktreeManagerV2.summary.desktop_read_only, true);
+      assert.equal(worktreeManagerV2.summary.desktop_mutation_allowed, false);
+      assert.equal(worktreeManagerV2.summary.desktop_protected_mutation_execution_allowed, false);
+      assert.equal(worktreeManagerV2.summary.desktop_create_worktree_allowed, false);
+      assert.equal(worktreeManagerV2.summary.desktop_delete_worktree_allowed, false);
+      assert.equal(worktreeManagerV2.summary.desktop_delete_branch_allowed, false);
+      assert.equal(worktreeManagerV2.summary.desktop_cleanup_allowed, false);
+      assert.equal(worktreeManagerV2.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(worktreeManagerV2.summary.validation_error_count, 0);
+      assert.deepEqual(worktreeManagerV2.worktree_manager_contract.worktree_required_runtime_ids, ["claude_code", "codex"]);
+      assert.ok(worktreeManagerV2.agent_worktree_plans.every((plan) => plan.branch_name.startsWith("codex/")));
+      assert.ok(worktreeManagerV2.worktree_status_records.every((record) => record.status_tracking_status === "ready"));
+      assert.ok(worktreeManagerV2.worktree_cleanup_records.every((record) => record.auto_cleanup_allowed === false));
+      assert.equal(worktreeManagerV2.worktree_desktop_boundary.boundary_status, "locked");
+      assert.match(await readFile(path.join(outDir, "worktree-manager-v2", "summary.md"), "utf8"), /Worktree Manager v2/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -6815,6 +6871,7 @@ describe("matter harness", () => {
           codex_adapter_contract: path.join(outDir, "codex-adapter-contract", "codex-adapter-contract.json"),
           local_script_adapter: path.join(outDir, "local-script-adapter", "local-script-adapter.json"),
           document_renderer_adapter: path.join(outDir, "document-renderer-adapter", "document-renderer-adapter.json"),
+          worktree_manager_v2: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -6866,8 +6923,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 102);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 102);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 103);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 103);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -6957,6 +7014,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "codex_adapter_contract"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_script_adapter"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "document_renderer_adapter"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "worktree_manager_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7005,6 +7063,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:codex-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:local-script-adapter"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "runtime:document-renderer-adapter"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "worktree:manager-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "events:tool-invocations"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-coverage"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:evidence-flags"));
@@ -7475,6 +7534,10 @@ describe("matter harness", () => {
       assert.equal(documentRendererAdapterCheckpoint?.acceptance_profile, "document_renderer_adapter_gate");
       assert.equal(documentRendererAdapterCheckpoint?.status, "passed");
       assert.equal(documentRendererAdapterCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const worktreeManagerV2Checkpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-worktree-manager-v2");
+      assert.equal(worktreeManagerV2Checkpoint?.acceptance_profile, "worktree_manager_v2_gate");
+      assert.equal(worktreeManagerV2Checkpoint?.status, "passed");
+      assert.equal(worktreeManagerV2Checkpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -9522,6 +9585,38 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.document_renderer_adapter_desktop_installer_or_gateway_control, false);
       assert.equal(dashboard.summary.document_renderer_adapter_desktop_runtime_source_of_truth, false);
       assert.equal(dashboard.summary.document_renderer_adapter_validation_error_count, 0);
+      assert.equal(dashboard.summary.worktree_manager_v2_status, "complete");
+      assert.equal(dashboard.summary.worktree_manager_v2_manager_status, "locked");
+      assert.equal(dashboard.summary.worktree_manager_v2_branch_prefix, "codex/");
+      assert.equal(dashboard.summary.worktree_manager_v2_worktree_root, ".hermes/worktrees");
+      assert.equal(dashboard.summary.worktree_manager_v2_required_runtime_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_claude_code_required, true);
+      assert.equal(dashboard.summary.worktree_manager_v2_codex_required, true);
+      assert.equal(dashboard.summary.worktree_manager_v2_agent_worktree_plan_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_status_record_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_cleanup_record_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_agent_scoped_plan_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_branch_name_compliant_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_worktree_path_declared_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_branch_creation_tracked_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_worktree_creation_tracked_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_status_tracking_ready_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_cleanup_tracking_ready_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_auto_cleanup_allowed_count, 0);
+      assert.equal(dashboard.summary.worktree_manager_v2_delete_requires_human_gate_count, 2);
+      assert.equal(dashboard.summary.worktree_manager_v2_protected_mutation_route, "protected_action_request_only");
+      assert.equal(dashboard.summary.worktree_manager_v2_human_gate_required_for_create, true);
+      assert.equal(dashboard.summary.worktree_manager_v2_human_gate_required_for_cleanup, true);
+      assert.equal(dashboard.summary.worktree_manager_v2_runtime_self_report_trusted, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_read_only, true);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_create_worktree_allowed, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_delete_worktree_allowed, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_delete_branch_allowed, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_cleanup_allowed, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.worktree_manager_v2_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -10368,6 +10463,19 @@ describe("matter harness", () => {
       assert.equal(documentRendererAdapterStage?.metrics.external_execution_allowed, false);
       assert.equal(documentRendererAdapterStage?.metrics.output_delivery_binding_capture_ready, true);
       assert.equal(documentRendererAdapterStage?.metrics.desktop_runtime_source_of_truth, false);
+      const worktreeManagerV2Stage = dashboard.stage_statuses.find((stage) => stage.stage_id === "worktree_manager_v2");
+      assert.equal(worktreeManagerV2Stage?.status, "passed");
+      assert.equal(worktreeManagerV2Stage?.metrics.worktree_manager_v2_status, "complete");
+      assert.equal(worktreeManagerV2Stage?.metrics.manager_status, "locked");
+      assert.equal(worktreeManagerV2Stage?.metrics.branch_prefix, "codex/");
+      assert.equal(worktreeManagerV2Stage?.metrics.agent_worktree_plan_count, 2);
+      assert.equal(worktreeManagerV2Stage?.metrics.status_record_count, 2);
+      assert.equal(worktreeManagerV2Stage?.metrics.cleanup_record_count, 2);
+      assert.equal(worktreeManagerV2Stage?.metrics.branch_name_compliant_count, 2);
+      assert.equal(worktreeManagerV2Stage?.metrics.status_tracking_ready_count, 2);
+      assert.equal(worktreeManagerV2Stage?.metrics.cleanup_tracking_ready_count, 2);
+      assert.equal(worktreeManagerV2Stage?.metrics.auto_cleanup_allowed_count, 0);
+      assert.equal(worktreeManagerV2Stage?.metrics.desktop_runtime_source_of_truth, false);
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "ledger_api_dashboard"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_audit_trail"));
       assert.ok(dashboard.stage_statuses.some((stage) => stage.stage_id === "control_plane_health"));
@@ -10752,6 +10860,12 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/document-renderer-agent-run-ledger-bindings"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/document-renderer-desktop-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/document-renderer-adapter-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-manager-v2"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/agent-worktree-plans"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-status-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-cleanup-records"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-desktop-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/worktree-manager-v2-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-ledgers"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-routing-decisions"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/model-policy-enforcements"));
@@ -11756,6 +11870,30 @@ describe("matter harness", () => {
       const documentRendererAdapterValidations = JSON.parse((await buildReviewApiResponse("/api/document-renderer-adapter-validations?status=passed", apiOptions)).body);
       assert.equal(documentRendererAdapterValidations.collection, "document_renderer_adapter_validations");
       assert.equal(documentRendererAdapterValidations.count, documentRendererAdapter.summary.validation_item_count);
+
+      const worktreeManagerV2Response = JSON.parse((await buildReviewApiResponse("/api/worktree-manager-v2?worktree_manager_v2_status=complete", apiOptions)).body);
+      assert.equal(worktreeManagerV2Response.collection, "worktree_manager_v2");
+      assert.equal(worktreeManagerV2Response.count, 1);
+
+      const agentWorktreePlansResponse = JSON.parse((await buildReviewApiResponse("/api/agent-worktree-plans?plan_status=ready", apiOptions)).body);
+      assert.equal(agentWorktreePlansResponse.collection, "agent_worktree_plans");
+      assert.equal(agentWorktreePlansResponse.count, worktreeManagerV2.summary.agent_worktree_plan_count);
+
+      const worktreeStatusRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/worktree-status-records?status_tracking_status=ready", apiOptions)).body);
+      assert.equal(worktreeStatusRecordsResponse.collection, "worktree_status_records");
+      assert.equal(worktreeStatusRecordsResponse.count, worktreeManagerV2.summary.status_record_count);
+
+      const worktreeCleanupRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/worktree-cleanup-records?cleanup_status=tracked", apiOptions)).body);
+      assert.equal(worktreeCleanupRecordsResponse.collection, "worktree_cleanup_records");
+      assert.equal(worktreeCleanupRecordsResponse.count, worktreeManagerV2.summary.cleanup_record_count);
+
+      const worktreeDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/worktree-desktop-boundary?boundary_status=locked&read_only=true", apiOptions)).body);
+      assert.equal(worktreeDesktopBoundaryResponse.collection, "worktree_desktop_boundary");
+      assert.equal(worktreeDesktopBoundaryResponse.count, 1);
+
+      const worktreeManagerV2Validations = JSON.parse((await buildReviewApiResponse("/api/worktree-manager-v2-validations?status=passed", apiOptions)).body);
+      assert.equal(worktreeManagerV2Validations.collection, "worktree_manager_v2_validations");
+      assert.equal(worktreeManagerV2Validations.count, worktreeManagerV2.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

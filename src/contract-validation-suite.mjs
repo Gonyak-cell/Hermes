@@ -75,6 +75,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "runtime:codex-adapter",
   "runtime:local-script-adapter",
   "runtime:document-renderer-adapter",
+  "worktree:manager-v2",
   "contracts:gates",
   "contracts:outputs",
   "contracts:events",

@@ -5808,6 +5808,31 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 102개로 증가하고 document renderer adapter artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run runtime:document-renderer-adapter -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
 
+## Phase 201 - Worktree Manager v2
+
+목표: Claude Code와 Codex AgentRun이 같은 checkout을 직접 공유하지 않도록 agent별 branch/worktree plan, status record, cleanup record를 control-plane 계약으로 고정한다. 실제 `git worktree` 생성은 기존 `worktree:prepare` helper나 human-gated protected action이 수행하고, Desktop Companion은 worktree 상태를 읽는 operator surface로만 남긴다.
+
+구현:
+
+- `src/worktree-manager-v2.mjs`와 `scripts/worktree-manager-v2.mjs`를 추가해 `npm run worktree:manager-v2` slice를 등록
+- `schemas/worktree-manager-v2.schema.json`으로 Worktree Manager v2 contract, agent worktree plan, status record, cleanup record, Desktop boundary를 검증
+- Runtime Adapter Interface v2, Runtime/AgentRun freeze, runtime command bindings, AgentRun ledger, Workflow/Gate freeze, Desktop Companion 설계 문서를 source contract로 연결
+- `claude_code`와 `codex` runtime을 `git_worktree` 필수 lane으로 탐지하고 두 AgentRun에 대해 `codex/` prefix branch와 `.hermes/worktrees` worktree path를 계획
+- status/cleanup record를 plan과 1:1로 연결하고 auto cleanup false, branch/worktree deletion human gate required, runtime self-report untrusted를 고정
+- Review Dashboard와 Review API에 `/api/worktree-manager-v2`, `/api/agent-worktree-plans`, `/api/worktree-status-records`, `/api/worktree-cleanup-records`, `/api/worktree-desktop-boundary`, `/api/worktree-manager-v2-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Worktree Manager v2를 연결
+
+완료 기준:
+
+- Worktree Manager v2가 validation error 없이 `complete` 상태가 됨
+- Claude Code와 Codex가 worktree-required runtime으로 잡히고 AgentRun별 plan/status/cleanup record가 각각 2건 생성됨
+- 모든 branch가 `codex/` prefix를 사용하고 모든 worktree path가 `.hermes/worktrees` root 아래에 선언됨
+- branch/worktree creation tracking, status tracking, cleanup tracking이 ready 상태이며 auto cleanup은 0건
+- cleanup/delete worktree/delete branch는 human gate required로 고정되고 Desktop mutation/execution/create/delete/cleanup 권한은 모두 false
+- Review API와 dashboard가 Worktree Manager v2 상태를 read-only로 노출
+- Golden fixture 수가 103개로 증가하고 worktree_manager_v2 artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run worktree:manager-v2 -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:loop`가 통과함
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -5816,9 +5841,9 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 200이다.
+- 현재 완료 기준점은 Phase 201이다.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P201-P312, 총 112개다.
+- 남은 계획 슬롯은 P202-P312, 총 111개다.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.

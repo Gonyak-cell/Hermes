@@ -1,0 +1,409 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/worktree-manager-v2.schema.json",
+  "title": "Hermes Worktree Manager v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "worktree_manager_v2_id",
+    "output_dir",
+    "inputs",
+    "source_contracts",
+    "worktree_manager_contract",
+    "agent_worktree_plans",
+    "worktree_status_records",
+    "worktree_cleanup_records",
+    "worktree_desktop_boundary",
+    "summary",
+    "validation_items",
+    "validation"
+  ],
+  "properties": {
+    "schema_version": { "const": "worktree-manager-v2.v1" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "worktree_manager_v2_id": { "type": "string" },
+    "output_dir": { "type": "string" },
+    "inputs": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2_path",
+        "runtime_agentrun_contract_freeze_path",
+        "runtime_command_bindings_path",
+        "agent_run_ledger_path",
+        "workflow_gate_freeze_path",
+        "desktop_companion_integration_path"
+      ]
+    },
+    "source_contracts": {
+      "type": "object",
+      "required": [
+        "runtime_adapter_interface_v2",
+        "runtime_agentrun_contract_freeze",
+        "runtime_command_bindings",
+        "agent_run_ledger",
+        "workflow_gate_freeze",
+        "desktop_companion_integration"
+      ],
+      "properties": {
+        "runtime_adapter_interface_v2": {
+          "type": "object",
+          "required": ["runtime_adapter_interface_status", "worktree_runtime_operator_policy_count"],
+          "properties": {
+            "runtime_adapter_interface_status": { "const": "complete" },
+            "worktree_runtime_operator_policy_count": { "type": "integer", "minimum": 2 }
+          }
+        },
+        "runtime_agentrun_contract_freeze": {
+          "type": "object",
+          "required": ["freeze_status", "worktree_runtime_adapter_count", "worktree_agent_run_contract_count"],
+          "properties": {
+            "freeze_status": { "const": "complete" },
+            "worktree_runtime_adapter_count": { "type": "integer", "minimum": 2 },
+            "worktree_agent_run_contract_count": { "type": "integer", "minimum": 2 }
+          }
+        },
+        "runtime_command_bindings": {
+          "type": "object",
+          "required": ["binding_count", "git_worktree_required_binding_count"],
+          "properties": {
+            "binding_count": { "type": "integer", "minimum": 1 },
+            "git_worktree_required_binding_count": { "type": "integer", "minimum": 2 }
+          }
+        },
+        "agent_run_ledger": {
+          "type": "object",
+          "required": ["agent_run_ledger_status", "worktree_agent_run_record_count"],
+          "properties": {
+            "agent_run_ledger_status": { "const": "complete" },
+            "worktree_agent_run_record_count": { "type": "integer", "minimum": 2 }
+          }
+        },
+        "workflow_gate_freeze": {
+          "type": "object",
+          "required": ["workflow_gate_freeze_status", "personal_dev_worktree_slice_count"],
+          "properties": {
+            "workflow_gate_freeze_status": { "const": "complete" },
+            "personal_dev_worktree_slice_count": { "type": "integer", "minimum": 1 }
+          }
+        },
+        "desktop_companion_integration": {
+          "type": "object",
+          "required": ["declares_read_only", "declares_not_runtime_source_of_truth", "declares_human_gate_for_mutation"],
+          "properties": {
+            "declares_read_only": { "const": true },
+            "declares_not_runtime_source_of_truth": { "const": true },
+            "declares_human_gate_for_mutation": { "const": true }
+          }
+        }
+      }
+    },
+    "worktree_manager_contract": {
+      "type": "object",
+      "required": [
+        "contract_id",
+        "manager_status",
+        "source_of_truth",
+        "branch_prefix",
+        "worktree_root",
+        "worktree_required_runtime_ids",
+        "agent_scoped_worktrees_required",
+        "status_tracking_required",
+        "cleanup_tracking_required",
+        "branch_creation_tracked",
+        "worktree_creation_tracked",
+        "protected_mutation_route",
+        "desktop_can_create_worktree",
+        "desktop_can_delete_worktree",
+        "desktop_can_delete_branch",
+        "human_gate_required_for_create",
+        "human_gate_required_for_cleanup",
+        "runtime_self_report_trusted"
+      ],
+      "properties": {
+        "contract_id": { "const": "worktree-manager-v2.default" },
+        "manager_status": { "const": "locked" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "branch_prefix": { "const": "codex/" },
+        "worktree_root": { "const": ".hermes/worktrees" },
+        "worktree_required_runtime_ids": {
+          "type": "array",
+          "allOf": [
+            { "contains": { "const": "claude_code" } },
+            { "contains": { "const": "codex" } }
+          ]
+        },
+        "agent_scoped_worktrees_required": { "const": true },
+        "status_tracking_required": { "const": true },
+        "cleanup_tracking_required": { "const": true },
+        "branch_creation_tracked": { "const": true },
+        "worktree_creation_tracked": { "const": true },
+        "protected_mutation_route": { "const": "protected_action_request_only" },
+        "protected_mutation_request_required": { "const": true },
+        "desktop_can_create_worktree": { "const": false },
+        "desktop_can_delete_worktree": { "const": false },
+        "desktop_can_delete_branch": { "const": false },
+        "human_gate_required_for_create": { "const": true },
+        "human_gate_required_for_cleanup": { "const": true },
+        "runtime_self_report_trusted": { "const": false },
+        "plan_artifact_count": { "type": "integer", "minimum": 2 },
+        "status_record_count": { "type": "integer", "minimum": 2 },
+        "cleanup_record_count": { "type": "integer", "minimum": 2 }
+      }
+    },
+    "agent_worktree_plans": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "agent_worktree_plan_id",
+          "agent_run_id",
+          "workflow_run_id",
+          "runtime_id",
+          "capability_id",
+          "domain_pack",
+          "branch_prefix",
+          "branch_name",
+          "worktree_root",
+          "worktree_path",
+          "requested_isolation",
+          "isolation_required",
+          "execute_requires_git_worktree",
+          "create_status",
+          "creation_tracked",
+          "branch_creation_tracked",
+          "worktree_creation_tracked",
+          "create_action_allowed_from_desktop",
+          "protected_mutation_route",
+          "protected_mutation_request_required",
+          "human_gate_required",
+          "source_of_truth",
+          "runtime_source_of_truth",
+          "status_record_id",
+          "cleanup_record_id",
+          "plan_status"
+        ],
+        "properties": {
+          "runtime_id": { "enum": ["claude_code", "codex"] },
+          "domain_pack": { "const": "personal-dev" },
+          "branch_prefix": { "const": "codex/" },
+          "branch_name": { "type": "string", "pattern": "^codex/" },
+          "worktree_root": { "const": ".hermes/worktrees" },
+          "worktree_path": { "type": "string", "pattern": "^\\.hermes/worktrees/" },
+          "requested_isolation": { "const": "git_worktree" },
+          "isolation_required": { "const": true },
+          "execute_requires_git_worktree": { "const": true },
+          "create_status": { "const": "planned" },
+          "creation_tracked": { "const": true },
+          "branch_creation_tracked": { "const": true },
+          "worktree_creation_tracked": { "const": true },
+          "create_action_allowed_from_desktop": { "const": false },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "protected_mutation_request_required": { "const": true },
+          "human_gate_required": { "const": true },
+          "source_of_truth": { "const": "harness_control_plane" },
+          "runtime_source_of_truth": { "const": false },
+          "plan_status": { "const": "ready" }
+        }
+      }
+    },
+    "worktree_status_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "status_record_id",
+          "agent_worktree_plan_id",
+          "agent_run_id",
+          "runtime_id",
+          "branch_name",
+          "worktree_path",
+          "requested_isolation",
+          "current_status",
+          "branch_status",
+          "worktree_status",
+          "status_tracking_status",
+          "creation_tracked",
+          "branch_creation_tracked",
+          "worktree_creation_tracked",
+          "source_of_truth",
+          "runtime_self_report_trusted",
+          "desktop_read_only",
+          "desktop_mutation_allowed"
+        ],
+        "properties": {
+          "runtime_id": { "enum": ["claude_code", "codex"] },
+          "branch_name": { "type": "string", "pattern": "^codex/" },
+          "worktree_path": { "type": "string", "pattern": "^\\.hermes/worktrees/" },
+          "requested_isolation": { "const": "git_worktree" },
+          "current_status": { "const": "planned" },
+          "branch_status": { "const": "planned" },
+          "worktree_status": { "const": "planned" },
+          "status_tracking_status": { "const": "ready" },
+          "creation_tracked": { "const": true },
+          "branch_creation_tracked": { "const": true },
+          "worktree_creation_tracked": { "const": true },
+          "source_of_truth": { "const": "harness_control_plane" },
+          "runtime_self_report_trusted": { "const": false },
+          "desktop_read_only": { "const": true },
+          "desktop_mutation_allowed": { "const": false }
+        }
+      }
+    },
+    "worktree_cleanup_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [
+          "cleanup_record_id",
+          "agent_worktree_plan_id",
+          "agent_run_id",
+          "runtime_id",
+          "branch_name",
+          "worktree_path",
+          "cleanup_policy",
+          "cleanup_status",
+          "cleanup_tracking_status",
+          "auto_cleanup_allowed",
+          "delete_worktree_requires_human_gate",
+          "delete_branch_requires_human_gate",
+          "artifact_retention_required",
+          "audit_retention_required",
+          "protected_mutation_route",
+          "source_of_truth",
+          "desktop_read_only",
+          "desktop_mutation_allowed"
+        ],
+        "properties": {
+          "runtime_id": { "enum": ["claude_code", "codex"] },
+          "branch_name": { "type": "string", "pattern": "^codex/" },
+          "worktree_path": { "type": "string", "pattern": "^\\.hermes/worktrees/" },
+          "cleanup_policy": { "const": "retain_for_audit" },
+          "cleanup_status": { "const": "tracked" },
+          "cleanup_tracking_status": { "const": "ready" },
+          "auto_cleanup_allowed": { "const": false },
+          "delete_worktree_requires_human_gate": { "const": true },
+          "delete_branch_requires_human_gate": { "const": true },
+          "artifact_retention_required": { "const": true },
+          "audit_retention_required": { "const": true },
+          "protected_mutation_route": { "const": "protected_action_request_only" },
+          "source_of_truth": { "const": "harness_control_plane" },
+          "desktop_read_only": { "const": true },
+          "desktop_mutation_allowed": { "const": false }
+        }
+      }
+    },
+    "worktree_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_id",
+        "boundary_status",
+        "desktop_surface",
+        "desktop_surface_policy",
+        "source_of_truth",
+        "runtime_source_of_truth",
+        "read_only",
+        "mutation_allowed",
+        "protected_mutation_request_allowed",
+        "protected_mutation_execution_allowed",
+        "create_worktree_allowed",
+        "delete_worktree_allowed",
+        "delete_branch_allowed",
+        "cleanup_allowed",
+        "secret_material_exposed",
+        "installer_or_gateway_control",
+        "protected_mutation_route"
+      ],
+      "properties": {
+        "boundary_id": { "const": "worktree-manager-v2.desktop-boundary" },
+        "boundary_status": { "const": "locked" },
+        "desktop_surface": { "const": "worktree_manager" },
+        "desktop_surface_policy": { "const": "read_only_worktree_status" },
+        "source_of_truth": { "const": "harness_control_plane" },
+        "runtime_source_of_truth": { "const": false },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "protected_mutation_request_allowed": { "const": false },
+        "protected_mutation_execution_allowed": { "const": false },
+        "create_worktree_allowed": { "const": false },
+        "delete_worktree_allowed": { "const": false },
+        "delete_branch_allowed": { "const": false },
+        "cleanup_allowed": { "const": false },
+        "secret_material_exposed": { "const": false },
+        "installer_or_gateway_control": { "const": false },
+        "protected_mutation_route": { "const": "protected_action_request_only" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "worktree_manager_v2_status",
+        "worktree_manager_contract_id",
+        "manager_status",
+        "branch_prefix",
+        "worktree_root",
+        "worktree_required_runtime_count",
+        "claude_code_worktree_required",
+        "codex_worktree_required",
+        "agent_worktree_plan_count",
+        "status_record_count",
+        "cleanup_record_count",
+        "branch_name_compliant_count",
+        "status_tracking_ready_count",
+        "cleanup_tracking_ready_count",
+        "auto_cleanup_allowed_count",
+        "delete_requires_human_gate_count",
+        "protected_mutation_route",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_protected_mutation_execution_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "worktree_manager_v2_status": { "const": "complete" },
+        "manager_status": { "const": "locked" },
+        "branch_prefix": { "const": "codex/" },
+        "worktree_root": { "const": ".hermes/worktrees" },
+        "worktree_required_runtime_count": { "type": "integer", "minimum": 2 },
+        "claude_code_worktree_required": { "const": true },
+        "codex_worktree_required": { "const": true },
+        "agent_worktree_plan_count": { "type": "integer", "minimum": 2 },
+        "status_record_count": { "type": "integer", "minimum": 2 },
+        "cleanup_record_count": { "type": "integer", "minimum": 2 },
+        "branch_name_compliant_count": { "type": "integer", "minimum": 2 },
+        "status_tracking_ready_count": { "type": "integer", "minimum": 2 },
+        "cleanup_tracking_ready_count": { "type": "integer", "minimum": 2 },
+        "auto_cleanup_allowed_count": { "const": 0 },
+        "delete_requires_human_gate_count": { "type": "integer", "minimum": 2 },
+        "protected_mutation_route": { "const": "protected_action_request_only" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_protected_mutation_execution_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scope", "check_id", "status", "message"],
+        "properties": {
+          "status": { "const": "passed" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    }
+  }
+}

@@ -58,6 +58,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   codexAdapterContractPath: "artifacts/codex-adapter-contract/latest/codex-adapter-contract.json",
   localScriptAdapterPath: "artifacts/local-script-adapter/latest/local-script-adapter.json",
   documentRendererAdapterPath: "artifacts/document-renderer-adapter/latest/document-renderer-adapter.json",
+  worktreeManagerV2Path: "artifacts/worktree-manager-v2/latest/worktree-manager-v2.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -469,6 +470,11 @@ const SOURCE_DEFINITIONS = [
     option: "documentRendererAdapterPath",
     source_id: "document_renderer_adapter",
     label: "Document Renderer Adapter",
+  },
+  {
+    option: "worktreeManagerV2Path",
+    source_id: "worktree_manager_v2",
+    label: "Worktree Manager v2",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1320,6 +1326,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "codex_adapter_contract") return data.summary ?? {};
   if (sourceId === "local_script_adapter") return data.summary ?? {};
   if (sourceId === "document_renderer_adapter") return data.summary ?? {};
+  if (sourceId === "worktree_manager_v2") return data.summary ?? {};
   if (sourceId === "gate_approval_contract_freeze") return data.summary ?? {};
   if (sourceId === "output_delivery_contract_freeze") return data.summary ?? {};
   if (sourceId === "event_audit_run_contract_freeze") return data.summary ?? {};
@@ -1600,6 +1607,7 @@ function buildStageStatuses(artifacts, sources) {
     buildCodexAdapterContractStage(artifacts.codex_adapter_contract, sourceById.get("codex_adapter_contract")),
     buildLocalScriptAdapterStage(artifacts.local_script_adapter, sourceById.get("local_script_adapter")),
     buildDocumentRendererAdapterStage(artifacts.document_renderer_adapter, sourceById.get("document_renderer_adapter")),
+    buildWorktreeManagerV2Stage(artifacts.worktree_manager_v2, sourceById.get("worktree_manager_v2")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -4678,6 +4686,83 @@ function buildDocumentRendererAdapterStage(adapterArtifact, source) {
       validation_item_count: summary.validation_item_count ?? 0,
       failed_validation_item_count: summary.failed_validation_item_count ?? 0,
       validation_error_count: summary.validation_error_count ?? adapterArtifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
+function buildWorktreeManagerV2Stage(worktreeArtifact, source) {
+  if (!worktreeArtifact) return missingStage("worktree_manager_v2", "Worktree Manager v2", source);
+  const summary = worktreeArtifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.failed_validation_item_count > 0
+    || summary.claude_code_worktree_required !== true
+    || summary.codex_worktree_required !== true
+    || summary.agent_worktree_plan_count < 2
+    || summary.status_record_count !== summary.agent_worktree_plan_count
+    || summary.cleanup_record_count !== summary.agent_worktree_plan_count
+    || summary.branch_name_compliant_count !== summary.agent_worktree_plan_count
+    || summary.status_tracking_ready_count !== summary.agent_worktree_plan_count
+    || summary.cleanup_tracking_ready_count !== summary.agent_worktree_plan_count
+    || summary.auto_cleanup_allowed_count !== 0
+    || summary.delete_requires_human_gate_count !== summary.agent_worktree_plan_count
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_protected_mutation_execution_allowed === true
+    || summary.desktop_create_worktree_allowed === true
+    || summary.desktop_delete_worktree_allowed === true
+    || summary.desktop_delete_branch_allowed === true
+    || summary.desktop_cleanup_allowed === true
+    || summary.desktop_runtime_source_of_truth === true
+    || worktreeArtifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "worktree_manager_v2",
+    label: "Worktree Manager v2",
+    status,
+    message: `Worktree manager ${summary.manager_status ?? "unknown"}; plans=${summary.agent_worktree_plan_count ?? 0}; cleanup=${summary.cleanup_record_count ?? 0}.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      worktree_manager_v2_status: summary.worktree_manager_v2_status ?? "unknown",
+      worktree_manager_contract_id: summary.worktree_manager_contract_id ?? null,
+      manager_status: summary.manager_status ?? "unknown",
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      branch_prefix: summary.branch_prefix ?? "unknown",
+      worktree_root: summary.worktree_root ?? "unknown",
+      worktree_required_runtime_ids: summary.worktree_required_runtime_ids ?? [],
+      worktree_required_runtime_count: summary.worktree_required_runtime_count ?? 0,
+      claude_code_worktree_required: summary.claude_code_worktree_required ?? false,
+      codex_worktree_required: summary.codex_worktree_required ?? false,
+      agent_worktree_plan_count: summary.agent_worktree_plan_count ?? 0,
+      status_record_count: summary.status_record_count ?? 0,
+      cleanup_record_count: summary.cleanup_record_count ?? 0,
+      agent_scoped_plan_count: summary.agent_scoped_plan_count ?? 0,
+      branch_name_compliant_count: summary.branch_name_compliant_count ?? 0,
+      worktree_path_declared_count: summary.worktree_path_declared_count ?? 0,
+      create_status_planned_count: summary.create_status_planned_count ?? 0,
+      branch_creation_tracked_count: summary.branch_creation_tracked_count ?? 0,
+      worktree_creation_tracked_count: summary.worktree_creation_tracked_count ?? 0,
+      status_tracking_ready_count: summary.status_tracking_ready_count ?? 0,
+      cleanup_tracking_ready_count: summary.cleanup_tracking_ready_count ?? 0,
+      auto_cleanup_allowed_count: summary.auto_cleanup_allowed_count ?? 0,
+      delete_requires_human_gate_count: summary.delete_requires_human_gate_count ?? 0,
+      artifact_retention_required_count: summary.artifact_retention_required_count ?? 0,
+      protected_mutation_route: summary.protected_mutation_route ?? "unknown",
+      protected_mutation_request_required: summary.protected_mutation_request_required ?? false,
+      human_gate_required_for_create: summary.human_gate_required_for_create ?? false,
+      human_gate_required_for_cleanup: summary.human_gate_required_for_cleanup ?? false,
+      runtime_self_report_trusted: summary.runtime_self_report_trusted ?? false,
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_protected_mutation_request_allowed: summary.desktop_protected_mutation_request_allowed ?? false,
+      desktop_protected_mutation_execution_allowed: summary.desktop_protected_mutation_execution_allowed ?? false,
+      desktop_create_worktree_allowed: summary.desktop_create_worktree_allowed ?? false,
+      desktop_delete_worktree_allowed: summary.desktop_delete_worktree_allowed ?? false,
+      desktop_delete_branch_allowed: summary.desktop_delete_branch_allowed ?? false,
+      desktop_cleanup_allowed: summary.desktop_cleanup_allowed ?? false,
+      desktop_runtime_source_of_truth: summary.desktop_runtime_source_of_truth ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_validation_item_count: summary.failed_validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? worktreeArtifact.validation?.errors?.length ?? 0,
     },
   };
 }
@@ -13708,6 +13793,41 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     document_renderer_adapter_desktop_installer_or_gateway_control: artifacts.document_renderer_adapter?.summary?.desktop_installer_or_gateway_control ?? false,
     document_renderer_adapter_desktop_runtime_source_of_truth: artifacts.document_renderer_adapter?.summary?.desktop_runtime_source_of_truth ?? false,
     document_renderer_adapter_validation_error_count: artifacts.document_renderer_adapter?.summary?.validation_error_count ?? artifacts.document_renderer_adapter?.validation?.errors?.length ?? 0,
+    worktree_manager_v2_status: artifacts.worktree_manager_v2?.summary?.worktree_manager_v2_status ?? "unknown",
+    worktree_manager_v2_contract_id: artifacts.worktree_manager_v2?.summary?.worktree_manager_contract_id ?? null,
+    worktree_manager_v2_manager_status: artifacts.worktree_manager_v2?.summary?.manager_status ?? "unknown",
+    worktree_manager_v2_source_of_truth: artifacts.worktree_manager_v2?.summary?.source_of_truth ?? "unknown",
+    worktree_manager_v2_branch_prefix: artifacts.worktree_manager_v2?.summary?.branch_prefix ?? "unknown",
+    worktree_manager_v2_worktree_root: artifacts.worktree_manager_v2?.summary?.worktree_root ?? "unknown",
+    worktree_manager_v2_required_runtime_count: artifacts.worktree_manager_v2?.summary?.worktree_required_runtime_count ?? 0,
+    worktree_manager_v2_claude_code_required: artifacts.worktree_manager_v2?.summary?.claude_code_worktree_required ?? false,
+    worktree_manager_v2_codex_required: artifacts.worktree_manager_v2?.summary?.codex_worktree_required ?? false,
+    worktree_manager_v2_agent_worktree_plan_count: artifacts.worktree_manager_v2?.summary?.agent_worktree_plan_count ?? 0,
+    worktree_manager_v2_status_record_count: artifacts.worktree_manager_v2?.summary?.status_record_count ?? 0,
+    worktree_manager_v2_cleanup_record_count: artifacts.worktree_manager_v2?.summary?.cleanup_record_count ?? 0,
+    worktree_manager_v2_agent_scoped_plan_count: artifacts.worktree_manager_v2?.summary?.agent_scoped_plan_count ?? 0,
+    worktree_manager_v2_branch_name_compliant_count: artifacts.worktree_manager_v2?.summary?.branch_name_compliant_count ?? 0,
+    worktree_manager_v2_worktree_path_declared_count: artifacts.worktree_manager_v2?.summary?.worktree_path_declared_count ?? 0,
+    worktree_manager_v2_branch_creation_tracked_count: artifacts.worktree_manager_v2?.summary?.branch_creation_tracked_count ?? 0,
+    worktree_manager_v2_worktree_creation_tracked_count: artifacts.worktree_manager_v2?.summary?.worktree_creation_tracked_count ?? 0,
+    worktree_manager_v2_status_tracking_ready_count: artifacts.worktree_manager_v2?.summary?.status_tracking_ready_count ?? 0,
+    worktree_manager_v2_cleanup_tracking_ready_count: artifacts.worktree_manager_v2?.summary?.cleanup_tracking_ready_count ?? 0,
+    worktree_manager_v2_auto_cleanup_allowed_count: artifacts.worktree_manager_v2?.summary?.auto_cleanup_allowed_count ?? 0,
+    worktree_manager_v2_delete_requires_human_gate_count: artifacts.worktree_manager_v2?.summary?.delete_requires_human_gate_count ?? 0,
+    worktree_manager_v2_protected_mutation_route: artifacts.worktree_manager_v2?.summary?.protected_mutation_route ?? "unknown",
+    worktree_manager_v2_human_gate_required_for_create: artifacts.worktree_manager_v2?.summary?.human_gate_required_for_create ?? false,
+    worktree_manager_v2_human_gate_required_for_cleanup: artifacts.worktree_manager_v2?.summary?.human_gate_required_for_cleanup ?? false,
+    worktree_manager_v2_runtime_self_report_trusted: artifacts.worktree_manager_v2?.summary?.runtime_self_report_trusted ?? false,
+    worktree_manager_v2_desktop_read_only: artifacts.worktree_manager_v2?.summary?.desktop_read_only ?? false,
+    worktree_manager_v2_desktop_mutation_allowed: artifacts.worktree_manager_v2?.summary?.desktop_mutation_allowed ?? false,
+    worktree_manager_v2_desktop_protected_mutation_request_allowed: artifacts.worktree_manager_v2?.summary?.desktop_protected_mutation_request_allowed ?? false,
+    worktree_manager_v2_desktop_protected_mutation_execution_allowed: artifacts.worktree_manager_v2?.summary?.desktop_protected_mutation_execution_allowed ?? false,
+    worktree_manager_v2_desktop_create_worktree_allowed: artifacts.worktree_manager_v2?.summary?.desktop_create_worktree_allowed ?? false,
+    worktree_manager_v2_desktop_delete_worktree_allowed: artifacts.worktree_manager_v2?.summary?.desktop_delete_worktree_allowed ?? false,
+    worktree_manager_v2_desktop_delete_branch_allowed: artifacts.worktree_manager_v2?.summary?.desktop_delete_branch_allowed ?? false,
+    worktree_manager_v2_desktop_cleanup_allowed: artifacts.worktree_manager_v2?.summary?.desktop_cleanup_allowed ?? false,
+    worktree_manager_v2_desktop_runtime_source_of_truth: artifacts.worktree_manager_v2?.summary?.desktop_runtime_source_of_truth ?? false,
+    worktree_manager_v2_validation_error_count: artifacts.worktree_manager_v2?.summary?.validation_error_count ?? artifacts.worktree_manager_v2?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -15407,6 +15527,8 @@ function parseArgs(argv) {
     else if (arg === "--no-local-script-adapter") parsed.localScriptAdapterPath = false;
     else if (arg === "--document-renderer-adapter") parsed.documentRendererAdapterPath = argv[++index];
     else if (arg === "--no-document-renderer-adapter") parsed.documentRendererAdapterPath = false;
+    else if (arg === "--worktree-manager-v2") parsed.worktreeManagerV2Path = argv[++index];
+    else if (arg === "--no-worktree-manager-v2") parsed.worktreeManagerV2Path = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];
@@ -15858,6 +15980,8 @@ Options:
                                   document-renderer-adapter.json path.
   --no-document-renderer-adapter
                                   Do not include Document Renderer Adapter status.
+  --worktree-manager-v2 <path>    worktree-manager-v2.json path.
+  --no-worktree-manager-v2        Do not include Worktree Manager v2 status.
   --event-envelope-ledger <path> event-envelope-ledger.json path.
   --no-event-envelope-ledger     Do not include Event Envelope Ledger status.
   --event-type-registry <path>   event-type-registry.json path.

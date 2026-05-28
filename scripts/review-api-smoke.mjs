@@ -314,6 +314,12 @@ try {
   assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-agent-run-ledger-bindings"));
   assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-desktop-boundary"));
   assert.ok(index.routes.some((route) => route.path === "/api/document-renderer-adapter-validations"));
+  assert.ok(index.routes.some((route) => route.path === "/api/worktree-manager-v2"));
+  assert.ok(index.routes.some((route) => route.path === "/api/agent-worktree-plans"));
+  assert.ok(index.routes.some((route) => route.path === "/api/worktree-status-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/worktree-cleanup-records"));
+  assert.ok(index.routes.some((route) => route.path === "/api/worktree-desktop-boundary"));
+  assert.ok(index.routes.some((route) => route.path === "/api/worktree-manager-v2-validations"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-ledgers"));
   assert.ok(index.routes.some((route) => route.path === "/api/budget-alert-records"));
   assert.ok(index.routes.some((route) => route.path === "/api/evidence-review-drafts"));
@@ -1499,6 +1505,30 @@ try {
   const documentRendererAdapterValidations = await fetchJson(`${url}/api/document-renderer-adapter-validations?status=passed&limit=5`);
   assert.equal(documentRendererAdapterValidations.collection, "document_renderer_adapter_validations");
   assert.ok(documentRendererAdapterValidations.count <= 5);
+
+  const worktreeManagerV2 = await fetchJson(`${url}/api/worktree-manager-v2?worktree_manager_v2_status=complete&limit=1`);
+  assert.equal(worktreeManagerV2.collection, "worktree_manager_v2");
+  assert.ok(worktreeManagerV2.count <= 1);
+
+  const agentWorktreePlans = await fetchJson(`${url}/api/agent-worktree-plans?plan_status=ready&limit=5`);
+  assert.equal(agentWorktreePlans.collection, "agent_worktree_plans");
+  assert.ok(agentWorktreePlans.count <= 5);
+
+  const worktreeStatusRecords = await fetchJson(`${url}/api/worktree-status-records?status_tracking_status=ready&limit=5`);
+  assert.equal(worktreeStatusRecords.collection, "worktree_status_records");
+  assert.ok(worktreeStatusRecords.count <= 5);
+
+  const worktreeCleanupRecords = await fetchJson(`${url}/api/worktree-cleanup-records?cleanup_status=tracked&limit=5`);
+  assert.equal(worktreeCleanupRecords.collection, "worktree_cleanup_records");
+  assert.ok(worktreeCleanupRecords.count <= 5);
+
+  const worktreeDesktopBoundary = await fetchJson(`${url}/api/worktree-desktop-boundary?boundary_status=locked&read_only=true&limit=1`);
+  assert.equal(worktreeDesktopBoundary.collection, "worktree_desktop_boundary");
+  assert.ok(worktreeDesktopBoundary.count <= 1);
+
+  const worktreeManagerV2Validations = await fetchJson(`${url}/api/worktree-manager-v2-validations?status=passed&limit=5`);
+  assert.equal(worktreeManagerV2Validations.collection, "worktree_manager_v2_validations");
+  assert.ok(worktreeManagerV2Validations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

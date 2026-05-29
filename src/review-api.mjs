@@ -4834,6 +4834,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("version_comparator_validations", versionComparatorResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/design-system-profiles") {
+    const designSystemProfileResult = await readDashboardSourceArtifact(dashboard, "design_system_profile");
+    if (!designSystemProfileResult.available) {
+      return jsonResponse(503, buildError("design_system_profile_unavailable", designSystemProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("design_system_profiles", designSystemProfileResult.artifact.design_system_profiles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/design-system-rules") {
+    const designSystemProfileResult = await readDashboardSourceArtifact(dashboard, "design_system_profile");
+    if (!designSystemProfileResult.available) {
+      return jsonResponse(503, buildError("design_system_profile_unavailable", designSystemProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("design_system_rules", designSystemProfileResult.artifact.design_system_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-design-bindings") {
+    const designSystemProfileResult = await readDashboardSourceArtifact(dashboard, "design_system_profile");
+    if (!designSystemProfileResult.available) {
+      return jsonResponse(503, buildError("design_system_profile_unavailable", designSystemProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_design_bindings", designSystemProfileResult.artifact.template_design_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/asset-design-bindings") {
+    const designSystemProfileResult = await readDashboardSourceArtifact(dashboard, "design_system_profile");
+    if (!designSystemProfileResult.available) {
+      return jsonResponse(503, buildError("design_system_profile_unavailable", designSystemProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("asset_design_bindings", designSystemProfileResult.artifact.asset_design_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/design-review-packets") {
+    const designSystemProfileResult = await readDashboardSourceArtifact(dashboard, "design_system_profile");
+    if (!designSystemProfileResult.available) {
+      return jsonResponse(503, buildError("design_system_profile_unavailable", designSystemProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("design_review_packets", designSystemProfileResult.artifact.design_review_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/design-system-profile-validations") {
+    const designSystemProfileResult = await readDashboardSourceArtifact(dashboard, "design_system_profile");
+    if (!designSystemProfileResult.available) {
+      return jsonResponse(503, buildError("design_system_profile_unavailable", designSystemProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("design_system_profile_validations", designSystemProfileResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11129,6 +11171,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/document-change-records", "Document change record rows"),
       route("GET", "/api/document-comparison-packets", "Document comparison packet rows"),
       route("GET", "/api/version-comparator-validations", "Version comparator validation rows"),
+      route("GET", "/api/design-system-profiles", "Design system profile rows"),
+      route("GET", "/api/design-system-rules", "Design system rule rows"),
+      route("GET", "/api/template-design-bindings", "Template design binding rows"),
+      route("GET", "/api/asset-design-bindings", "Asset design binding rows"),
+      route("GET", "/api/design-review-packets", "Design review packet rows"),
+      route("GET", "/api/design-system-profile-validations", "Design system profile validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12152,6 +12200,13 @@ function filterItems(items, searchParams) {
     "document_change_type",
     "document_comparison_packet_status",
     "document_comparison_format",
+    "design_system_profile_status",
+    "design_rule_status",
+    "design_rule_type",
+    "template_design_binding_status",
+    "asset_design_binding_status",
+    "design_review_packet_status",
+    "design_system_format",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13903,6 +13958,13 @@ function readFilterValue(item, key) {
   if (key === "document_change_type") return item.change_type;
   if (key === "document_comparison_packet_status") return item.comparison_packet_status;
   if (key === "document_comparison_format") return item.output_format;
+  if (key === "design_system_profile_status") return item.summary?.design_system_profile_status ?? item.design_system_profile_status;
+  if (key === "design_rule_status") return item.design_rule_status;
+  if (key === "design_rule_type") return item.design_rule_type;
+  if (key === "template_design_binding_status") return item.design_binding_status;
+  if (key === "asset_design_binding_status") return item.asset_design_binding_status;
+  if (key === "design_review_packet_status") return item.design_review_packet_status;
+  if (key === "design_system_format") return item.design_system_format;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

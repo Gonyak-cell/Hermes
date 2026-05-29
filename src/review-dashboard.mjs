@@ -98,6 +98,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   layoutValidatorPath: "artifacts/layout-validator/latest/layout-validator.json",
   citationRendererPath: "artifacts/citation-renderer/latest/citation-renderer.json",
   versionComparatorPath: "artifacts/version-comparator/latest/version-comparator.json",
+  designSystemProfilePath: "artifacts/design-system-profile/latest/design-system-profile.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -731,6 +732,11 @@ const SOURCE_DEFINITIONS = [
     option: "versionComparatorPath",
     source_id: "version_comparator",
     label: "Version Comparator",
+  },
+  {
+    option: "designSystemProfilePath",
+    source_id: "design_system_profile",
+    label: "Design System Profile",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1698,6 +1704,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "layout_validator") return data.summary ?? {};
   if (sourceId === "citation_renderer") return data.summary ?? {};
   if (sourceId === "version_comparator") return data.summary ?? {};
+  if (sourceId === "design_system_profile") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2077,6 +2084,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLayoutValidatorStage(artifacts.layout_validator, sourceById.get("layout_validator")),
     buildCitationRendererStage(artifacts.citation_renderer, sourceById.get("citation_renderer")),
     buildVersionComparatorStage(artifacts.version_comparator, sourceById.get("version_comparator")),
+    buildDesignSystemProfileStage(artifacts.design_system_profile, sourceById.get("design_system_profile")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11480,6 +11488,115 @@ function buildVersionComparatorStage(artifact, source) {
   };
 }
 
+function buildDesignSystemProfileStage(artifact, source) {
+  if (!artifact) return missingStage("design_system_profile", "Design System Profile", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.design_system_profile_status !== "complete"
+    || summary.source_template_registry_status !== "complete"
+    || summary.source_style_registry_status !== "complete"
+    || summary.source_asset_registry_status !== "complete"
+    || summary.source_pptx_renderer_status !== "complete"
+    || summary.source_version_comparator_status !== "complete"
+    || summary.pptx_template_count < 1
+    || summary.pptx_style_profile_count < 1
+    || summary.design_system_profile_count !== summary.pptx_style_profile_count
+    || summary.design_system_rule_count < summary.required_design_rule_type_count
+    || summary.linked_design_system_rule_count !== summary.design_system_rule_count
+    || summary.covered_design_rule_type_count !== summary.required_design_rule_type_count
+    || summary.template_design_binding_count !== summary.pptx_template_count
+    || summary.bound_template_design_binding_count !== summary.template_design_binding_count
+    || summary.asset_design_binding_count < summary.template_design_binding_count
+    || summary.linked_asset_design_binding_count !== summary.asset_design_binding_count
+    || summary.design_review_packet_count !== summary.template_design_binding_count
+    || summary.ready_for_review_packet_count !== summary.design_review_packet_count
+    || summary.human_review_required_packet_count !== summary.design_review_packet_count
+    || summary.attorney_review_required_packet_count !== summary.design_review_packet_count
+    || summary.format_validation_required_packet_count !== summary.design_review_packet_count
+    || summary.layout_validation_required_packet_count !== summary.design_review_packet_count
+    || summary.source_attribution_required_packet_count !== summary.design_review_packet_count
+    || summary.citation_review_required_packet_count !== summary.design_review_packet_count
+    || summary.design_profile_metadata_only !== true
+    || summary.design_system_profile_report_only !== true
+    || summary.template_mutation_allowed === true
+    || summary.style_mutation_allowed === true
+    || summary.asset_mutation_allowed === true
+    || summary.document_runtime_mutation_allowed === true
+    || summary.renderer_execution_allowed === true
+    || summary.external_renderer_execution_allowed === true
+    || summary.network_access_allowed === true
+    || summary.artifact_write_allowed !== true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "design_system_profile",
+    label: "Design System Profile",
+    status,
+    message: `${summary.design_system_profile_count ?? 0} profile(s), ${summary.design_system_rule_count ?? 0} rule(s), ${summary.design_review_packet_count ?? 0} review packet(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      design_system_profile_status: summary.design_system_profile_status ?? "unknown",
+      design_system_profile_contract_id: summary.design_system_profile_contract_id ?? null,
+      source_template_registry_status: summary.source_template_registry_status ?? "unknown",
+      source_style_registry_status: summary.source_style_registry_status ?? "unknown",
+      source_asset_registry_status: summary.source_asset_registry_status ?? "unknown",
+      source_pptx_renderer_status: summary.source_pptx_renderer_status ?? "unknown",
+      source_version_comparator_status: summary.source_version_comparator_status ?? "unknown",
+      source_pptx_design_system_capability_id: summary.source_pptx_design_system_capability_id ?? null,
+      pptx_template_count: summary.pptx_template_count ?? 0,
+      pptx_style_profile_count: summary.pptx_style_profile_count ?? 0,
+      design_system_profile_count: summary.design_system_profile_count ?? 0,
+      complete_design_system_profile_count: summary.complete_design_system_profile_count ?? 0,
+      required_design_rule_type_count: summary.required_design_rule_type_count ?? 0,
+      design_system_rule_count: summary.design_system_rule_count ?? 0,
+      linked_design_system_rule_count: summary.linked_design_system_rule_count ?? 0,
+      covered_design_rule_type_count: summary.covered_design_rule_type_count ?? 0,
+      template_design_binding_count: summary.template_design_binding_count ?? 0,
+      bound_template_design_binding_count: summary.bound_template_design_binding_count ?? 0,
+      asset_design_binding_count: summary.asset_design_binding_count ?? 0,
+      linked_asset_design_binding_count: summary.linked_asset_design_binding_count ?? 0,
+      design_review_packet_count: summary.design_review_packet_count ?? 0,
+      ready_for_review_packet_count: summary.ready_for_review_packet_count ?? 0,
+      human_review_required_packet_count: summary.human_review_required_packet_count ?? 0,
+      attorney_review_required_packet_count: summary.attorney_review_required_packet_count ?? 0,
+      format_validation_required_packet_count: summary.format_validation_required_packet_count ?? 0,
+      layout_validation_required_packet_count: summary.layout_validation_required_packet_count ?? 0,
+      source_attribution_required_packet_count: summary.source_attribution_required_packet_count ?? 0,
+      citation_review_required_packet_count: summary.citation_review_required_packet_count ?? 0,
+      design_profile_metadata_only: summary.design_profile_metadata_only ?? false,
+      design_system_profile_report_only: summary.design_system_profile_report_only ?? false,
+      template_mutation_allowed: summary.template_mutation_allowed ?? false,
+      style_mutation_allowed: summary.style_mutation_allowed ?? false,
+      asset_mutation_allowed: summary.asset_mutation_allowed ?? false,
+      document_runtime_mutation_allowed: summary.document_runtime_mutation_allowed ?? false,
+      renderer_execution_allowed: summary.renderer_execution_allowed ?? false,
+      external_renderer_execution_allowed: summary.external_renderer_execution_allowed ?? false,
+      network_access_allowed: summary.network_access_allowed ?? false,
+      artifact_write_allowed: summary.artifact_write_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -17696,6 +17813,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.design_system_profile?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "design_system_profile";
+    items.push({
+      action_item_id: `dashboard.action.design_system_profile.${slugify(subjectId)}`,
+      source_stage: "design_system_profile",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix design system profile",
+      subject_ref: {
+        subject_type: "design_system_profile_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_design_system_profile", "rerun_design_system_profile", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -23565,6 +23700,50 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     version_comparator_metadata_hash_count: artifacts.version_comparator?.summary?.metadata_hash_count ?? 0,
     version_comparator_failed_checkpoint_count: artifacts.version_comparator?.summary?.failed_checkpoint_count ?? 0,
     version_comparator_validation_error_count: artifacts.version_comparator?.summary?.validation_error_count ?? artifacts.version_comparator?.validation?.errors?.length ?? 0,
+    design_system_profile_status: artifacts.design_system_profile?.summary?.design_system_profile_status ?? "unknown",
+    design_system_profile_contract_id: artifacts.design_system_profile?.summary?.design_system_profile_contract_id ?? null,
+    design_system_profile_source_template_registry_status: artifacts.design_system_profile?.summary?.source_template_registry_status ?? "unknown",
+    design_system_profile_source_style_registry_status: artifacts.design_system_profile?.summary?.source_style_registry_status ?? "unknown",
+    design_system_profile_source_asset_registry_status: artifacts.design_system_profile?.summary?.source_asset_registry_status ?? "unknown",
+    design_system_profile_source_pptx_renderer_status: artifacts.design_system_profile?.summary?.source_pptx_renderer_status ?? "unknown",
+    design_system_profile_source_version_comparator_status: artifacts.design_system_profile?.summary?.source_version_comparator_status ?? "unknown",
+    design_system_profile_pptx_template_count: artifacts.design_system_profile?.summary?.pptx_template_count ?? 0,
+    design_system_profile_pptx_style_profile_count: artifacts.design_system_profile?.summary?.pptx_style_profile_count ?? 0,
+    design_system_profile_profile_count: artifacts.design_system_profile?.summary?.design_system_profile_count ?? 0,
+    design_system_profile_rule_count: artifacts.design_system_profile?.summary?.design_system_rule_count ?? 0,
+    design_system_profile_linked_rule_count: artifacts.design_system_profile?.summary?.linked_design_system_rule_count ?? 0,
+    design_system_profile_template_design_binding_count: artifacts.design_system_profile?.summary?.template_design_binding_count ?? 0,
+    design_system_profile_bound_template_design_binding_count: artifacts.design_system_profile?.summary?.bound_template_design_binding_count ?? 0,
+    design_system_profile_asset_design_binding_count: artifacts.design_system_profile?.summary?.asset_design_binding_count ?? 0,
+    design_system_profile_linked_asset_design_binding_count: artifacts.design_system_profile?.summary?.linked_asset_design_binding_count ?? 0,
+    design_system_profile_review_packet_count: artifacts.design_system_profile?.summary?.design_review_packet_count ?? 0,
+    design_system_profile_ready_for_review_packet_count: artifacts.design_system_profile?.summary?.ready_for_review_packet_count ?? 0,
+    design_system_profile_human_review_required_packet_count: artifacts.design_system_profile?.summary?.human_review_required_packet_count ?? 0,
+    design_system_profile_attorney_review_required_packet_count: artifacts.design_system_profile?.summary?.attorney_review_required_packet_count ?? 0,
+    design_system_profile_format_validation_required_packet_count: artifacts.design_system_profile?.summary?.format_validation_required_packet_count ?? 0,
+    design_system_profile_layout_validation_required_packet_count: artifacts.design_system_profile?.summary?.layout_validation_required_packet_count ?? 0,
+    design_system_profile_source_attribution_required_packet_count: artifacts.design_system_profile?.summary?.source_attribution_required_packet_count ?? 0,
+    design_system_profile_citation_review_required_packet_count: artifacts.design_system_profile?.summary?.citation_review_required_packet_count ?? 0,
+    design_system_profile_metadata_only: artifacts.design_system_profile?.summary?.design_profile_metadata_only ?? false,
+    design_system_profile_report_only: artifacts.design_system_profile?.summary?.design_system_profile_report_only ?? false,
+    design_system_profile_template_mutation_allowed: artifacts.design_system_profile?.summary?.template_mutation_allowed ?? false,
+    design_system_profile_style_mutation_allowed: artifacts.design_system_profile?.summary?.style_mutation_allowed ?? false,
+    design_system_profile_asset_mutation_allowed: artifacts.design_system_profile?.summary?.asset_mutation_allowed ?? false,
+    design_system_profile_document_runtime_mutation_allowed: artifacts.design_system_profile?.summary?.document_runtime_mutation_allowed ?? false,
+    design_system_profile_renderer_execution_allowed: artifacts.design_system_profile?.summary?.renderer_execution_allowed ?? false,
+    design_system_profile_external_renderer_execution_allowed: artifacts.design_system_profile?.summary?.external_renderer_execution_allowed ?? false,
+    design_system_profile_network_access_allowed: artifacts.design_system_profile?.summary?.network_access_allowed ?? false,
+    design_system_profile_artifact_write_allowed: artifacts.design_system_profile?.summary?.artifact_write_allowed ?? false,
+    design_system_profile_delivery_execution_allowed: artifacts.design_system_profile?.summary?.delivery_execution_allowed ?? false,
+    design_system_profile_delivery_execution_performed: artifacts.design_system_profile?.summary?.delivery_execution_performed ?? false,
+    design_system_profile_protected_action_allowed: artifacts.design_system_profile?.summary?.protected_action_allowed ?? false,
+    design_system_profile_protected_action_executed: artifacts.design_system_profile?.summary?.protected_action_executed ?? false,
+    design_system_profile_legal_advice_generated: artifacts.design_system_profile?.summary?.legal_advice_generated ?? false,
+    design_system_profile_client_facing_output_generated: artifacts.design_system_profile?.summary?.client_facing_output_generated ?? false,
+    design_system_profile_client_facing_ready_count: artifacts.design_system_profile?.summary?.client_facing_ready_count ?? 0,
+    design_system_profile_metadata_hash_count: artifacts.design_system_profile?.summary?.metadata_hash_count ?? 0,
+    design_system_profile_failed_checkpoint_count: artifacts.design_system_profile?.summary?.failed_checkpoint_count ?? 0,
+    design_system_profile_validation_error_count: artifacts.design_system_profile?.summary?.validation_error_count ?? artifacts.design_system_profile?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -25344,6 +25523,8 @@ function parseArgs(argv) {
     else if (arg === "--no-citation-renderer") parsed.citationRendererPath = false;
     else if (arg === "--version-comparator") parsed.versionComparatorPath = argv[++index];
     else if (arg === "--no-version-comparator") parsed.versionComparatorPath = false;
+    else if (arg === "--design-system-profile") parsed.designSystemProfilePath = argv[++index];
+    else if (arg === "--no-design-system-profile") parsed.designSystemProfilePath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

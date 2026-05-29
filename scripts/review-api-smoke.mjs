@@ -2160,6 +2160,30 @@ try {
   assert.equal(versionComparatorValidations.collection, "version_comparator_validations");
   assert.ok(versionComparatorValidations.count <= 5);
 
+  const designSystemProfiles = await fetchJson(`${url}/api/design-system-profiles?design_system_profile_status=complete&design_system_format=pptx&limit=1`);
+  assert.equal(designSystemProfiles.collection, "design_system_profiles");
+  assert.ok(designSystemProfiles.count <= 1);
+
+  const designSystemRules = await fetchJson(`${url}/api/design-system-rules?design_rule_status=linked&design_rule_type=layout&limit=5`);
+  assert.equal(designSystemRules.collection, "design_system_rules");
+  assert.ok(designSystemRules.count <= 5);
+
+  const templateDesignBindings = await fetchJson(`${url}/api/template-design-bindings?template_design_binding_status=bound_for_review&design_system_format=pptx&limit=5`);
+  assert.equal(templateDesignBindings.collection, "template_design_bindings");
+  assert.ok(templateDesignBindings.count <= 5);
+
+  const assetDesignBindings = await fetchJson(`${url}/api/asset-design-bindings?asset_design_binding_status=linked_for_review&asset_type=image&limit=5`);
+  assert.equal(assetDesignBindings.collection, "asset_design_bindings");
+  assert.ok(assetDesignBindings.count <= 5);
+
+  const designReviewPackets = await fetchJson(`${url}/api/design-review-packets?design_review_packet_status=ready_for_attorney_review&design_system_format=pptx&limit=5`);
+  assert.equal(designReviewPackets.collection, "design_review_packets");
+  assert.ok(designReviewPackets.count <= 5);
+
+  const designSystemProfileValidations = await fetchJson(`${url}/api/design-system-profile-validations?status=passed&limit=5`);
+  assert.equal(designSystemProfileValidations.collection, "design_system_profile_validations");
+  assert.ok(designSystemProfileValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

@@ -144,6 +144,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:layout-validator",
   "creative-document:citation-renderer",
   "creative-document:version-comparator",
+  "creative-document:design-system-profile",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

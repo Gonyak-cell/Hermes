@@ -62,6 +62,7 @@ import { runPdfHtmlRenderer } from "../src/creative-document-pdf-html-renderer.m
 import { runLayoutValidator } from "../src/creative-document-layout-validator.mjs";
 import { runCitationRenderer } from "../src/creative-document-citation-renderer.mjs";
 import { runVersionComparator } from "../src/creative-document-version-comparator.mjs";
+import { runDesignSystemProfile } from "../src/creative-document-design-system-profile.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1919,6 +1920,7 @@ describe("matter harness", () => {
         layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
         citationRendererPath: path.join(outDir, "citation-renderer", "citation-renderer.json"),
         versionComparatorPath: path.join(outDir, "version-comparator", "version-comparator.json"),
+        designSystemProfilePath: path.join(outDir, "design-system-profile", "design-system-profile.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10456,6 +10458,73 @@ describe("matter harness", () => {
       assert.ok(versionComparator.comparison_packets.every((packet) => packet.comparison_packet_status === "ready_for_attorney_review" && packet.change_record_count === 4 && packet.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "version-comparator", "summary.md"), "utf8"), /Version Comparator/);
 
+      const designSystemProfile = await runDesignSystemProfile({
+        templateRegistryPath: path.join(outDir, "template-registry", "template-registry.json"),
+        styleRegistryPath: path.join(outDir, "style-registry", "style-registry.json"),
+        assetRegistryPath: path.join(outDir, "asset-registry", "asset-registry.json"),
+        pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+        versionComparatorPath: path.join(outDir, "version-comparator", "version-comparator.json"),
+        pptxDesignSystemCapabilityPath: "packs/creative-document/capabilities/pptx-design-system.json",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "design-system-profile"),
+        runAt: "2026-05-23T07:04:23.000Z",
+      });
+      const designSystemProfileSchema = JSON.parse(await readFile("schemas/design-system-profile.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(designSystemProfile, designSystemProfileSchema, {}, "design_system_profile"), []);
+      assert.equal(designSystemProfile.summary.design_system_profile_status, "complete");
+      assert.equal(designSystemProfile.summary.design_system_profile_contract_id, "design-system-profile.v1");
+      assert.equal(designSystemProfile.summary.source_template_registry_status, "complete");
+      assert.equal(designSystemProfile.summary.source_style_registry_status, "complete");
+      assert.equal(designSystemProfile.summary.source_asset_registry_status, "complete");
+      assert.equal(designSystemProfile.summary.source_pptx_renderer_status, "complete");
+      assert.equal(designSystemProfile.summary.source_version_comparator_status, "complete");
+      assert.equal(designSystemProfile.summary.source_pptx_design_system_capability_id, "creative_document.pptx.design_system");
+      assert.equal(designSystemProfile.summary.pptx_template_count, templateRegistry.summary.pptx_template_count);
+      assert.equal(designSystemProfile.summary.pptx_style_profile_count, styleRegistry.summary.pptx_style_profile_count);
+      assert.equal(designSystemProfile.summary.design_system_profile_count, designSystemProfile.summary.pptx_style_profile_count);
+      assert.equal(designSystemProfile.summary.required_design_rule_type_count, 9);
+      assert.equal(designSystemProfile.summary.design_system_rule_count, 9);
+      assert.equal(designSystemProfile.summary.linked_design_system_rule_count, designSystemProfile.summary.design_system_rule_count);
+      assert.equal(designSystemProfile.summary.covered_design_rule_type_count, designSystemProfile.summary.required_design_rule_type_count);
+      assert.equal(designSystemProfile.summary.template_design_binding_count, designSystemProfile.summary.pptx_template_count);
+      assert.equal(designSystemProfile.summary.bound_template_design_binding_count, designSystemProfile.summary.template_design_binding_count);
+      assert.equal(designSystemProfile.summary.asset_design_binding_count, designSystemProfile.summary.pptx_template_count * 5);
+      assert.equal(designSystemProfile.summary.linked_asset_design_binding_count, designSystemProfile.summary.asset_design_binding_count);
+      assert.equal(designSystemProfile.summary.design_review_packet_count, designSystemProfile.summary.template_design_binding_count);
+      assert.equal(designSystemProfile.summary.ready_for_review_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.human_review_required_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.attorney_review_required_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.format_validation_required_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.layout_validation_required_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.source_attribution_required_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.citation_review_required_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfile.summary.design_profile_metadata_only, true);
+      assert.equal(designSystemProfile.summary.design_system_profile_report_only, true);
+      assert.equal(designSystemProfile.summary.template_mutation_allowed, false);
+      assert.equal(designSystemProfile.summary.style_mutation_allowed, false);
+      assert.equal(designSystemProfile.summary.asset_mutation_allowed, false);
+      assert.equal(designSystemProfile.summary.document_runtime_mutation_allowed, false);
+      assert.equal(designSystemProfile.summary.renderer_execution_allowed, false);
+      assert.equal(designSystemProfile.summary.external_renderer_execution_allowed, false);
+      assert.equal(designSystemProfile.summary.network_access_allowed, false);
+      assert.equal(designSystemProfile.summary.artifact_write_allowed, true);
+      assert.equal(designSystemProfile.summary.delivery_execution_allowed, false);
+      assert.equal(designSystemProfile.summary.delivery_execution_performed, false);
+      assert.equal(designSystemProfile.summary.protected_action_allowed, false);
+      assert.equal(designSystemProfile.summary.protected_action_executed, false);
+      assert.equal(designSystemProfile.summary.legal_advice_generated, false);
+      assert.equal(designSystemProfile.summary.client_facing_output_generated, false);
+      assert.equal(designSystemProfile.summary.client_facing_ready_count, 0);
+      assert.equal(designSystemProfile.summary.failed_checkpoint_count, 0);
+      assert.equal(designSystemProfile.summary.validation_error_count, 0);
+      assert.ok(designSystemProfile.design_system_profiles.every((profile) => profile.design_system_profile_status === "complete" && profile.design_system_format === "pptx" && profile.metadata_hash.startsWith("sha256:") && profile.human_review_required && profile.attorney_review_required && profile.client_facing_ready === false));
+      assert.ok(designSystemProfile.design_system_rules.every((rule) => rule.design_rule_status === "linked" && rule.design_system_format === "pptx" && rule.metadata_hash.startsWith("sha256:") && rule.human_review_required && rule.attorney_review_required && rule.client_facing_ready === false));
+      assert.ok(designSystemProfile.template_design_bindings.every((binding) => binding.design_binding_status === "bound_for_review" && binding.pptx_render_job_status === "complete" && binding.comparison_packet_status === "ready_for_attorney_review" && binding.design_rule_ids.length === 9 && binding.client_facing_ready === false));
+      assert.ok(designSystemProfile.asset_design_bindings.every((binding) => binding.asset_design_binding_status === "linked_for_review" && binding.design_system_format === "pptx" && binding.source_attribution_required && binding.license_review_required && binding.accessibility_text_required && binding.client_facing_ready === false));
+      assert.ok(designSystemProfile.design_review_packets.every((packet) => packet.design_review_packet_status === "ready_for_attorney_review" && packet.design_rule_count === 9 && packet.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "design-system-profile", "summary.md"), "utf8"), /Design System Profile/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10642,6 +10711,7 @@ describe("matter harness", () => {
           layout_validator: path.join(outDir, "layout-validator", "layout-validator.json"),
           citation_renderer: path.join(outDir, "citation-renderer", "citation-renderer.json"),
           version_comparator: path.join(outDir, "version-comparator", "version-comparator.json"),
+          design_system_profile: path.join(outDir, "design-system-profile", "design-system-profile.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10693,8 +10763,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 164);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 164);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 165);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 165);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10846,6 +10916,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "layout_validator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "version_comparator"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "design_system_profile"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10931,6 +11002,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:layout-validator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:citation-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:version-comparator"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:design-system-profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11661,6 +11733,10 @@ describe("matter harness", () => {
       assert.equal(versionComparatorCheckpoint?.acceptance_profile, "version_comparator_gate");
       assert.equal(versionComparatorCheckpoint?.status, "passed");
       assert.equal(versionComparatorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const designSystemProfileCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-design-system-profile");
+      assert.equal(designSystemProfileCheckpoint?.acceptance_profile, "design_system_profile_gate");
+      assert.equal(designSystemProfileCheckpoint?.status, "passed");
+      assert.equal(designSystemProfileCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15777,6 +15853,49 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.version_comparator_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.version_comparator_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.version_comparator_validation_error_count, 0);
+      assert.equal(dashboard.summary.design_system_profile_status, "complete");
+      assert.equal(dashboard.summary.design_system_profile_contract_id, designSystemProfile.summary.design_system_profile_contract_id);
+      assert.equal(dashboard.summary.design_system_profile_source_template_registry_status, "complete");
+      assert.equal(dashboard.summary.design_system_profile_source_style_registry_status, "complete");
+      assert.equal(dashboard.summary.design_system_profile_source_asset_registry_status, "complete");
+      assert.equal(dashboard.summary.design_system_profile_source_pptx_renderer_status, "complete");
+      assert.equal(dashboard.summary.design_system_profile_source_version_comparator_status, "complete");
+      assert.equal(dashboard.summary.design_system_profile_pptx_template_count, designSystemProfile.summary.pptx_template_count);
+      assert.equal(dashboard.summary.design_system_profile_pptx_style_profile_count, designSystemProfile.summary.pptx_style_profile_count);
+      assert.equal(dashboard.summary.design_system_profile_profile_count, designSystemProfile.summary.design_system_profile_count);
+      assert.equal(dashboard.summary.design_system_profile_rule_count, designSystemProfile.summary.design_system_rule_count);
+      assert.equal(dashboard.summary.design_system_profile_linked_rule_count, designSystemProfile.summary.linked_design_system_rule_count);
+      assert.equal(dashboard.summary.design_system_profile_template_design_binding_count, designSystemProfile.summary.template_design_binding_count);
+      assert.equal(dashboard.summary.design_system_profile_bound_template_design_binding_count, designSystemProfile.summary.bound_template_design_binding_count);
+      assert.equal(dashboard.summary.design_system_profile_asset_design_binding_count, designSystemProfile.summary.asset_design_binding_count);
+      assert.equal(dashboard.summary.design_system_profile_linked_asset_design_binding_count, designSystemProfile.summary.linked_asset_design_binding_count);
+      assert.equal(dashboard.summary.design_system_profile_review_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_ready_for_review_packet_count, designSystemProfile.summary.ready_for_review_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_human_review_required_packet_count, designSystemProfile.summary.human_review_required_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_attorney_review_required_packet_count, designSystemProfile.summary.attorney_review_required_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_format_validation_required_packet_count, designSystemProfile.summary.format_validation_required_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_layout_validation_required_packet_count, designSystemProfile.summary.layout_validation_required_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_source_attribution_required_packet_count, designSystemProfile.summary.source_attribution_required_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_citation_review_required_packet_count, designSystemProfile.summary.citation_review_required_packet_count);
+      assert.equal(dashboard.summary.design_system_profile_metadata_only, true);
+      assert.equal(dashboard.summary.design_system_profile_report_only, true);
+      assert.equal(dashboard.summary.design_system_profile_template_mutation_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_style_mutation_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_asset_mutation_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_document_runtime_mutation_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_external_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_network_access_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_artifact_write_allowed, true);
+      assert.equal(dashboard.summary.design_system_profile_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.design_system_profile_protected_action_allowed, false);
+      assert.equal(dashboard.summary.design_system_profile_protected_action_executed, false);
+      assert.equal(dashboard.summary.design_system_profile_legal_advice_generated, false);
+      assert.equal(dashboard.summary.design_system_profile_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.design_system_profile_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.design_system_profile_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.design_system_profile_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -18321,6 +18440,52 @@ describe("matter harness", () => {
       assert.equal(versionComparatorStage?.metrics.client_facing_ready_count, 0);
       assert.equal(versionComparatorStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(versionComparatorStage?.metrics.validation_error_count, 0);
+      const designSystemProfileStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "design_system_profile");
+      assert.equal(designSystemProfileStage?.status, "passed");
+      assert.equal(designSystemProfileStage?.metrics.design_system_profile_status, "complete");
+      assert.equal(designSystemProfileStage?.metrics.design_system_profile_contract_id, designSystemProfile.summary.design_system_profile_contract_id);
+      assert.equal(designSystemProfileStage?.metrics.source_template_registry_status, "complete");
+      assert.equal(designSystemProfileStage?.metrics.source_style_registry_status, "complete");
+      assert.equal(designSystemProfileStage?.metrics.source_asset_registry_status, "complete");
+      assert.equal(designSystemProfileStage?.metrics.source_pptx_renderer_status, "complete");
+      assert.equal(designSystemProfileStage?.metrics.source_version_comparator_status, "complete");
+      assert.equal(designSystemProfileStage?.metrics.pptx_template_count, designSystemProfile.summary.pptx_template_count);
+      assert.equal(designSystemProfileStage?.metrics.pptx_style_profile_count, designSystemProfile.summary.pptx_style_profile_count);
+      assert.equal(designSystemProfileStage?.metrics.design_system_profile_count, designSystemProfile.summary.design_system_profile_count);
+      assert.equal(designSystemProfileStage?.metrics.design_system_rule_count, designSystemProfile.summary.design_system_rule_count);
+      assert.equal(designSystemProfileStage?.metrics.linked_design_system_rule_count, designSystemProfile.summary.linked_design_system_rule_count);
+      assert.equal(designSystemProfileStage?.metrics.covered_design_rule_type_count, designSystemProfile.summary.covered_design_rule_type_count);
+      assert.equal(designSystemProfileStage?.metrics.template_design_binding_count, designSystemProfile.summary.template_design_binding_count);
+      assert.equal(designSystemProfileStage?.metrics.bound_template_design_binding_count, designSystemProfile.summary.bound_template_design_binding_count);
+      assert.equal(designSystemProfileStage?.metrics.asset_design_binding_count, designSystemProfile.summary.asset_design_binding_count);
+      assert.equal(designSystemProfileStage?.metrics.linked_asset_design_binding_count, designSystemProfile.summary.linked_asset_design_binding_count);
+      assert.equal(designSystemProfileStage?.metrics.design_review_packet_count, designSystemProfile.summary.design_review_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.ready_for_review_packet_count, designSystemProfile.summary.ready_for_review_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.human_review_required_packet_count, designSystemProfile.summary.human_review_required_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.attorney_review_required_packet_count, designSystemProfile.summary.attorney_review_required_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.format_validation_required_packet_count, designSystemProfile.summary.format_validation_required_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.layout_validation_required_packet_count, designSystemProfile.summary.layout_validation_required_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.source_attribution_required_packet_count, designSystemProfile.summary.source_attribution_required_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.citation_review_required_packet_count, designSystemProfile.summary.citation_review_required_packet_count);
+      assert.equal(designSystemProfileStage?.metrics.design_profile_metadata_only, true);
+      assert.equal(designSystemProfileStage?.metrics.design_system_profile_report_only, true);
+      assert.equal(designSystemProfileStage?.metrics.template_mutation_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.style_mutation_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.asset_mutation_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.document_runtime_mutation_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.renderer_execution_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.external_renderer_execution_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.network_access_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.artifact_write_allowed, true);
+      assert.equal(designSystemProfileStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.delivery_execution_performed, false);
+      assert.equal(designSystemProfileStage?.metrics.protected_action_allowed, false);
+      assert.equal(designSystemProfileStage?.metrics.protected_action_executed, false);
+      assert.equal(designSystemProfileStage?.metrics.legal_advice_generated, false);
+      assert.equal(designSystemProfileStage?.metrics.client_facing_output_generated, false);
+      assert.equal(designSystemProfileStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(designSystemProfileStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(designSystemProfileStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20397,6 +20562,30 @@ describe("matter harness", () => {
       const versionComparatorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/version-comparator-validations?status=passed", apiOptions)).body);
       assert.equal(versionComparatorValidationsResponse.collection, "version_comparator_validations");
       assert.equal(versionComparatorValidationsResponse.count, versionComparator.summary.validation_item_count);
+
+      const designSystemProfilesResponse = JSON.parse((await buildReviewApiResponse("/api/design-system-profiles?design_system_profile_status=complete&design_system_format=pptx", apiOptions)).body);
+      assert.equal(designSystemProfilesResponse.collection, "design_system_profiles");
+      assert.equal(designSystemProfilesResponse.count, designSystemProfile.summary.design_system_profile_count);
+
+      const designSystemRulesResponse = JSON.parse((await buildReviewApiResponse("/api/design-system-rules?design_rule_status=linked&design_rule_type=layout", apiOptions)).body);
+      assert.equal(designSystemRulesResponse.collection, "design_system_rules");
+      assert.equal(designSystemRulesResponse.count, 1);
+
+      const templateDesignBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/template-design-bindings?template_design_binding_status=bound_for_review&design_system_format=pptx", apiOptions)).body);
+      assert.equal(templateDesignBindingsResponse.collection, "template_design_bindings");
+      assert.equal(templateDesignBindingsResponse.count, designSystemProfile.summary.template_design_binding_count);
+
+      const assetDesignBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/asset-design-bindings?asset_design_binding_status=linked_for_review&asset_type=image", apiOptions)).body);
+      assert.equal(assetDesignBindingsResponse.collection, "asset_design_bindings");
+      assert.equal(assetDesignBindingsResponse.count, designSystemProfile.asset_design_bindings.filter((binding) => binding.asset_type === "image").length);
+
+      const designReviewPacketsResponse = JSON.parse((await buildReviewApiResponse("/api/design-review-packets?design_review_packet_status=ready_for_attorney_review&design_system_format=pptx", apiOptions)).body);
+      assert.equal(designReviewPacketsResponse.collection, "design_review_packets");
+      assert.equal(designReviewPacketsResponse.count, designSystemProfile.summary.design_review_packet_count);
+
+      const designSystemProfileValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/design-system-profile-validations?status=passed", apiOptions)).body);
+      assert.equal(designSystemProfileValidationsResponse.collection, "design_system_profile_validations");
+      assert.equal(designSystemProfileValidationsResponse.count, designSystemProfile.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

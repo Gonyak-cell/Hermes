@@ -106,6 +106,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   lddReportDraftPath: "artifacts/ldd-report-draft/latest/ldd-report-draft.json",
   litigationBriefDraftPath: "artifacts/litigation-brief-draft/latest/litigation-brief-draft.json",
   meetingMinutesWorkflowPath: "artifacts/meeting-minutes-workflow/latest/meeting-minutes-workflow.json",
+  contractDraftWorkflowPath: "artifacts/contract-draft-workflow/latest/contract-draft-workflow.json",
   gateApprovalContractFreezePath: "artifacts/gate-approval-contract-freeze/latest/gate-approval-contract-freeze.json",
   outputDeliveryContractFreezePath: "artifacts/output-delivery-contract-freeze/latest/output-delivery-contract-freeze.json",
   eventAuditRunContractFreezePath: "artifacts/event-audit-run-contract-freeze/latest/event-audit-run-contract-freeze.json",
@@ -757,6 +758,11 @@ const SOURCE_DEFINITIONS = [
     option: "meetingMinutesWorkflowPath",
     source_id: "meeting_minutes_workflow",
     label: "Meeting Minutes Workflow",
+  },
+  {
+    option: "contractDraftWorkflowPath",
+    source_id: "contract_draft_workflow",
+    label: "Contract Draft Workflow",
   },
   {
     option: "gateApprovalContractFreezePath",
@@ -1600,6 +1606,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "ldd_report_draft") return data.summary ?? {};
   if (sourceId === "litigation_brief_draft") return data.summary ?? {};
   if (sourceId === "meeting_minutes_workflow") return data.summary ?? {};
+  if (sourceId === "contract_draft_workflow") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -1965,6 +1972,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLddReportDraftStage(artifacts.ldd_report_draft, sourceById.get("ldd_report_draft")),
     buildLitigationBriefDraftStage(artifacts.litigation_brief_draft, sourceById.get("litigation_brief_draft")),
     buildMeetingMinutesWorkflowStage(artifacts.meeting_minutes_workflow, sourceById.get("meeting_minutes_workflow")),
+    buildContractDraftWorkflowStage(artifacts.contract_draft_workflow, sourceById.get("contract_draft_workflow")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -9900,6 +9908,110 @@ function buildMeetingMinutesWorkflowStage(artifact, source) {
   };
 }
 
+function buildContractDraftWorkflowStage(artifact, source) {
+  if (!artifact) return missingStage("contract_draft_workflow", "Contract Draft Workflow", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.contract_draft_workflow_status !== "complete"
+    || summary.source_matter_status !== "complete"
+    || summary.source_ldd_rfi_generator_status !== "complete"
+    || summary.source_ldd_rfi_generator_phase_status !== "complete"
+    || summary.source_meeting_minutes_workflow_status !== "complete"
+    || summary.source_meeting_minutes_workflow_phase_status !== "complete"
+    || (summary.contract_draft_rule_count ?? 0) < 6
+    || summary.draft_packet_count !== 1
+    || summary.clause_draft_count !== summary.source_negotiation_point_count
+    || summary.client_position_count !== summary.clause_draft_count
+    || summary.consistency_check_count !== summary.clause_draft_count
+    || summary.attorney_review_gate_count !== summary.clause_draft_count
+    || summary.issue_link_count < summary.clause_draft_count
+    || summary.clause_with_client_position_count !== summary.clause_draft_count
+    || summary.clause_with_consistency_check_count !== summary.clause_draft_count
+    || summary.clause_with_attorney_review_gate_count !== summary.clause_draft_count
+    || summary.clause_with_issue_link_count !== summary.clause_draft_count
+    || summary.consistency_passed_count !== summary.consistency_check_count
+    || summary.attorney_review_required_clause_count !== summary.clause_draft_count
+    || summary.human_review_required_clause_count !== summary.clause_draft_count
+    || summary.client_facing_ready_count !== 0
+    || summary.contract_delivery_ready_count !== 0
+    || summary.legal_conclusion_asserted_count !== 0
+    || summary.legal_advice_provided === true
+    || summary.client_facing_output_generated === true
+    || summary.desktop_boundary_status !== "enforced"
+    || summary.desktop_read_only !== true
+    || summary.desktop_mutation_allowed === true
+    || summary.desktop_source_of_truth === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.runtime_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_allowed_without_attorney_review === true
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "contract_draft_workflow",
+    label: "Contract Draft Workflow",
+    status,
+    message: `${summary.clause_draft_count ?? 0} clause draft(s), ${summary.client_position_count ?? 0} client position(s), ${summary.consistency_check_count ?? 0} consistency check(s), ${summary.attorney_review_gate_count ?? 0} review gate(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      contract_draft_workflow_status: summary.contract_draft_workflow_status ?? "unknown",
+      contract_draft_workflow_contract_id: summary.contract_draft_workflow_contract_id ?? null,
+      source_of_truth: summary.source_of_truth ?? "unknown",
+      source_matter_status: summary.source_matter_status ?? "unknown",
+      source_matter_id: summary.source_matter_id ?? null,
+      source_ldd_rfi_generator_status: summary.source_ldd_rfi_generator_status ?? "unknown",
+      source_ldd_rfi_generator_phase_status: summary.source_ldd_rfi_generator_phase_status ?? "unknown",
+      source_ldd_rfi_question_count: summary.source_ldd_rfi_question_count ?? 0,
+      source_meeting_minutes_workflow_status: summary.source_meeting_minutes_workflow_status ?? "unknown",
+      source_meeting_minutes_workflow_phase_status: summary.source_meeting_minutes_workflow_phase_status ?? "unknown",
+      source_meeting_action_item_count: summary.source_meeting_action_item_count ?? 0,
+      source_negotiation_point_count: summary.source_negotiation_point_count ?? 0,
+      source_contract_document_count: summary.source_contract_document_count ?? 0,
+      source_qa_item_count: summary.source_qa_item_count ?? 0,
+      contract_draft_rule_count: summary.contract_draft_rule_count ?? 0,
+      draft_packet_count: summary.draft_packet_count ?? 0,
+      clause_draft_count: summary.clause_draft_count ?? 0,
+      client_position_count: summary.client_position_count ?? 0,
+      consistency_check_count: summary.consistency_check_count ?? 0,
+      attorney_review_gate_count: summary.attorney_review_gate_count ?? 0,
+      issue_link_count: summary.issue_link_count ?? 0,
+      matter_count: summary.matter_count ?? 0,
+      clause_with_client_position_count: summary.clause_with_client_position_count ?? 0,
+      clause_with_consistency_check_count: summary.clause_with_consistency_check_count ?? 0,
+      clause_with_attorney_review_gate_count: summary.clause_with_attorney_review_gate_count ?? 0,
+      clause_with_issue_link_count: summary.clause_with_issue_link_count ?? 0,
+      consistency_passed_count: summary.consistency_passed_count ?? 0,
+      attorney_review_required_clause_count: summary.attorney_review_required_clause_count ?? 0,
+      human_review_required_clause_count: summary.human_review_required_clause_count ?? 0,
+      deterministic_contract_draft_generation_count: summary.deterministic_contract_draft_generation_count ?? 0,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      contract_delivery_ready_count: summary.contract_delivery_ready_count ?? 0,
+      legal_conclusion_asserted_count: summary.legal_conclusion_asserted_count ?? 0,
+      legal_advice_provided: summary.legal_advice_provided ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      desktop_boundary_status: summary.desktop_boundary_status ?? "unknown",
+      desktop_read_only: summary.desktop_read_only ?? false,
+      desktop_mutation_allowed: summary.desktop_mutation_allowed ?? false,
+      desktop_source_of_truth: summary.desktop_source_of_truth ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? false,
+      runtime_execution_allowed: summary.runtime_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_allowed_without_attorney_review: summary.client_facing_output_allowed_without_attorney_review ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -15864,6 +15976,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.contract_draft_workflow?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "contract_draft_workflow";
+    items.push({
+      action_item_id: `dashboard.action.contract_draft_workflow.${slugify(subjectId)}`,
+      source_stage: "contract_draft_workflow",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix contract draft workflow",
+      subject_ref: {
+        subject_type: "contract_draft_workflow_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_contract_draft_workflow", "rerun_contract_draft_workflow", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -21093,6 +21223,49 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     meeting_minutes_workflow_protected_action_allowed: artifacts.meeting_minutes_workflow?.summary?.protected_action_allowed ?? false,
     meeting_minutes_workflow_failed_checkpoint_count: artifacts.meeting_minutes_workflow?.summary?.failed_checkpoint_count ?? 0,
     meeting_minutes_workflow_validation_error_count: artifacts.meeting_minutes_workflow?.summary?.validation_error_count ?? artifacts.meeting_minutes_workflow?.validation?.errors?.length ?? 0,
+    contract_draft_workflow_status: artifacts.contract_draft_workflow?.summary?.contract_draft_workflow_status ?? "unknown",
+    contract_draft_workflow_contract_id: artifacts.contract_draft_workflow?.summary?.contract_draft_workflow_contract_id ?? null,
+    contract_draft_workflow_source_matter_status: artifacts.contract_draft_workflow?.summary?.source_matter_status ?? "unknown",
+    contract_draft_workflow_source_matter_id: artifacts.contract_draft_workflow?.summary?.source_matter_id ?? null,
+    contract_draft_workflow_source_ldd_rfi_generator_status: artifacts.contract_draft_workflow?.summary?.source_ldd_rfi_generator_status ?? "unknown",
+    contract_draft_workflow_source_ldd_rfi_generator_phase_status: artifacts.contract_draft_workflow?.summary?.source_ldd_rfi_generator_phase_status ?? "unknown",
+    contract_draft_workflow_source_ldd_rfi_question_count: artifacts.contract_draft_workflow?.summary?.source_ldd_rfi_question_count ?? 0,
+    contract_draft_workflow_source_meeting_minutes_workflow_status: artifacts.contract_draft_workflow?.summary?.source_meeting_minutes_workflow_status ?? "unknown",
+    contract_draft_workflow_source_meeting_minutes_workflow_phase_status: artifacts.contract_draft_workflow?.summary?.source_meeting_minutes_workflow_phase_status ?? "unknown",
+    contract_draft_workflow_source_meeting_action_item_count: artifacts.contract_draft_workflow?.summary?.source_meeting_action_item_count ?? 0,
+    contract_draft_workflow_source_negotiation_point_count: artifacts.contract_draft_workflow?.summary?.source_negotiation_point_count ?? 0,
+    contract_draft_workflow_source_contract_document_count: artifacts.contract_draft_workflow?.summary?.source_contract_document_count ?? 0,
+    contract_draft_workflow_source_qa_item_count: artifacts.contract_draft_workflow?.summary?.source_qa_item_count ?? 0,
+    contract_draft_workflow_rule_count: artifacts.contract_draft_workflow?.summary?.contract_draft_rule_count ?? 0,
+    contract_draft_workflow_draft_packet_count: artifacts.contract_draft_workflow?.summary?.draft_packet_count ?? 0,
+    contract_draft_workflow_clause_draft_count: artifacts.contract_draft_workflow?.summary?.clause_draft_count ?? 0,
+    contract_draft_workflow_client_position_count: artifacts.contract_draft_workflow?.summary?.client_position_count ?? 0,
+    contract_draft_workflow_consistency_check_count: artifacts.contract_draft_workflow?.summary?.consistency_check_count ?? 0,
+    contract_draft_workflow_attorney_review_gate_count: artifacts.contract_draft_workflow?.summary?.attorney_review_gate_count ?? 0,
+    contract_draft_workflow_issue_link_count: artifacts.contract_draft_workflow?.summary?.issue_link_count ?? 0,
+    contract_draft_workflow_clause_with_client_position_count: artifacts.contract_draft_workflow?.summary?.clause_with_client_position_count ?? 0,
+    contract_draft_workflow_clause_with_consistency_check_count: artifacts.contract_draft_workflow?.summary?.clause_with_consistency_check_count ?? 0,
+    contract_draft_workflow_clause_with_attorney_review_gate_count: artifacts.contract_draft_workflow?.summary?.clause_with_attorney_review_gate_count ?? 0,
+    contract_draft_workflow_clause_with_issue_link_count: artifacts.contract_draft_workflow?.summary?.clause_with_issue_link_count ?? 0,
+    contract_draft_workflow_consistency_passed_count: artifacts.contract_draft_workflow?.summary?.consistency_passed_count ?? 0,
+    contract_draft_workflow_attorney_review_required_clause_count: artifacts.contract_draft_workflow?.summary?.attorney_review_required_clause_count ?? 0,
+    contract_draft_workflow_human_review_required_clause_count: artifacts.contract_draft_workflow?.summary?.human_review_required_clause_count ?? 0,
+    contract_draft_workflow_client_facing_ready_count: artifacts.contract_draft_workflow?.summary?.client_facing_ready_count ?? 0,
+    contract_draft_workflow_contract_delivery_ready_count: artifacts.contract_draft_workflow?.summary?.contract_delivery_ready_count ?? 0,
+    contract_draft_workflow_legal_advice_provided: artifacts.contract_draft_workflow?.summary?.legal_advice_provided ?? false,
+    contract_draft_workflow_client_facing_output_generated: artifacts.contract_draft_workflow?.summary?.client_facing_output_generated ?? false,
+    contract_draft_workflow_legal_conclusion_asserted_count: artifacts.contract_draft_workflow?.summary?.legal_conclusion_asserted_count ?? 0,
+    contract_draft_workflow_desktop_boundary_status: artifacts.contract_draft_workflow?.summary?.desktop_boundary_status ?? "unknown",
+    contract_draft_workflow_desktop_read_only: artifacts.contract_draft_workflow?.summary?.desktop_read_only ?? false,
+    contract_draft_workflow_desktop_mutation_allowed: artifacts.contract_draft_workflow?.summary?.desktop_mutation_allowed ?? false,
+    contract_draft_workflow_matter_data_write_allowed: artifacts.contract_draft_workflow?.summary?.matter_data_write_allowed ?? false,
+    contract_draft_workflow_task_state_write_allowed: artifacts.contract_draft_workflow?.summary?.task_state_write_allowed ?? false,
+    contract_draft_workflow_workflow_transition_allowed: artifacts.contract_draft_workflow?.summary?.workflow_transition_allowed ?? false,
+    contract_draft_workflow_runtime_execution_allowed: artifacts.contract_draft_workflow?.summary?.runtime_execution_allowed ?? false,
+    contract_draft_workflow_delivery_execution_allowed: artifacts.contract_draft_workflow?.summary?.delivery_execution_allowed ?? false,
+    contract_draft_workflow_protected_action_allowed: artifacts.contract_draft_workflow?.summary?.protected_action_allowed ?? false,
+    contract_draft_workflow_failed_checkpoint_count: artifacts.contract_draft_workflow?.summary?.failed_checkpoint_count ?? 0,
+    contract_draft_workflow_validation_error_count: artifacts.contract_draft_workflow?.summary?.validation_error_count ?? artifacts.contract_draft_workflow?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -22888,6 +23061,8 @@ function parseArgs(argv) {
     else if (arg === "--no-litigation-brief-draft") parsed.litigationBriefDraftPath = false;
     else if (arg === "--meeting-minutes-workflow") parsed.meetingMinutesWorkflowPath = argv[++index];
     else if (arg === "--no-meeting-minutes-workflow") parsed.meetingMinutesWorkflowPath = false;
+    else if (arg === "--contract-draft-workflow") parsed.contractDraftWorkflowPath = argv[++index];
+    else if (arg === "--no-contract-draft-workflow") parsed.contractDraftWorkflowPath = false;
     else if (arg === "--gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = argv[++index];
     else if (arg === "--no-gate-approval-contract-freeze") parsed.gateApprovalContractFreezePath = false;
     else if (arg === "--output-delivery-contract-freeze") parsed.outputDeliveryContractFreezePath = argv[++index];

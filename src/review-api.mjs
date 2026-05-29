@@ -5268,6 +5268,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("meeting_minutes_workflow_validations", minutesResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/contract-draft-workflow-artifacts") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_workflow_artifacts", [contractDraftResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-draft-rules") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_rules", contractDraftResult.artifact.contract_draft_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-draft-packets") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_packets", contractDraftResult.artifact.contract_draft_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-clause-drafts") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_clause_drafts", contractDraftResult.artifact.contract_clause_drafts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-client-positions") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_client_positions", contractDraftResult.artifact.contract_client_positions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-clause-consistency-checks") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_clause_consistency_checks", contractDraftResult.artifact.contract_clause_consistency_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-attorney-review-gates") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_attorney_review_gates", contractDraftResult.artifact.contract_attorney_review_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-draft-issue-links") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_issue_links", contractDraftResult.artifact.contract_draft_issue_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-draft-matter-summaries") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_matter_summaries", contractDraftResult.artifact.contract_draft_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-draft-workflow-boundary") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_workflow_boundary", [contractDraftResult.artifact.contract_draft_workflow_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/contract-draft-workflow-validations") {
+    const contractDraftResult = await readDashboardSourceArtifact(dashboard, "contract_draft_workflow");
+    if (!contractDraftResult.available) {
+      return jsonResponse(503, buildError("contract_draft_workflow_unavailable", contractDraftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("contract_draft_workflow_validations", contractDraftResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10498,6 +10575,17 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/meeting-minutes-matter-summaries", "Meeting minutes matter summary rows"),
       route("GET", "/api/meeting-minutes-workflow-boundary", "Meeting minutes workflow Desktop boundary"),
       route("GET", "/api/meeting-minutes-workflow-validations", "Meeting minutes workflow validation rows"),
+      route("GET", "/api/contract-draft-workflow-artifacts", "Contract draft workflow artifact"),
+      route("GET", "/api/contract-draft-rules", "Contract draft workflow rule rows"),
+      route("GET", "/api/contract-draft-packets", "Contract draft packet rows"),
+      route("GET", "/api/contract-clause-drafts", "Contract clause draft rows"),
+      route("GET", "/api/contract-client-positions", "Contract client position rows"),
+      route("GET", "/api/contract-clause-consistency-checks", "Contract clause consistency check rows"),
+      route("GET", "/api/contract-attorney-review-gates", "Contract attorney review gate rows"),
+      route("GET", "/api/contract-draft-issue-links", "Contract draft issue link rows"),
+      route("GET", "/api/contract-draft-matter-summaries", "Contract draft matter summary rows"),
+      route("GET", "/api/contract-draft-workflow-boundary", "Contract draft workflow Desktop boundary"),
+      route("GET", "/api/contract-draft-workflow-validations", "Contract draft workflow validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11475,6 +11563,25 @@ function filterItems(items, searchParams) {
     "meeting_minutes_decision_id",
     "meeting_minutes_action_item_id",
     "meeting_minutes_evidence_link_id",
+    "contract_draft_workflow_status",
+    "contract_draft_matter_status",
+    "contract_draft_rule_type",
+    "draft_packet_status",
+    "clause_draft_status",
+    "clause_type",
+    "client_position_status",
+    "consistency_check_status",
+    "clause_consistency_passed",
+    "review_gate_status",
+    "contract_issue_link_status",
+    "contract_delivery_ready",
+    "deterministic_contract_draft_generation_performed",
+    "contract_clause_draft_id",
+    "contract_client_position_id",
+    "contract_clause_consistency_check_id",
+    "contract_attorney_review_gate_id",
+    "contract_draft_issue_link_id",
+    "negotiation_point_id",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -13111,6 +13218,25 @@ function readFilterValue(item, key) {
   if (key === "meeting_minutes_decision_id") return item.meeting_minutes_decision_id;
   if (key === "meeting_minutes_action_item_id") return item.meeting_minutes_action_item_id;
   if (key === "meeting_minutes_evidence_link_id") return item.meeting_minutes_evidence_link_id;
+  if (key === "contract_draft_workflow_status") return item.summary?.contract_draft_workflow_status ?? item.contract_draft_workflow_status;
+  if (key === "contract_draft_matter_status") return item.contract_draft_matter_status;
+  if (key === "contract_draft_rule_type") return item.contract_draft_rule_type;
+  if (key === "draft_packet_status") return item.draft_packet_status;
+  if (key === "clause_draft_status") return item.clause_draft_status;
+  if (key === "clause_type") return item.clause_type;
+  if (key === "client_position_status") return item.client_position_status;
+  if (key === "consistency_check_status") return item.consistency_check_status;
+  if (key === "clause_consistency_passed") return String(Boolean(item.clause_consistency_passed));
+  if (key === "review_gate_status") return item.review_gate_status;
+  if (key === "contract_issue_link_status") return item.contract_issue_link_status;
+  if (key === "contract_delivery_ready") return String(Boolean(item.contract_delivery_ready));
+  if (key === "deterministic_contract_draft_generation_performed") return String(Boolean(item.deterministic_contract_draft_generation_performed));
+  if (key === "contract_clause_draft_id") return item.contract_clause_draft_id;
+  if (key === "contract_client_position_id") return item.contract_client_position_id;
+  if (key === "contract_clause_consistency_check_id") return item.contract_clause_consistency_check_id;
+  if (key === "contract_attorney_review_gate_id") return item.contract_attorney_review_gate_id;
+  if (key === "contract_draft_issue_link_id") return item.contract_draft_issue_link_id;
+  if (key === "negotiation_point_id") return item.negotiation_point_id;
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

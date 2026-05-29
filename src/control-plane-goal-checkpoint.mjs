@@ -121,6 +121,7 @@ const GOAL_ITEMS = [
   sourceItem("ldd_report_draft", "LDD report draft", "law_firm", "ldd_report_draft", "control-plane-ldd-report-draft", { acceptance_profile: "ldd_report_draft_gate" }),
   sourceItem("litigation_brief_draft", "Litigation brief draft", "law_firm", "litigation_brief_draft", "control-plane-litigation-brief-draft", { acceptance_profile: "litigation_brief_draft_gate" }),
   sourceItem("meeting_minutes_workflow", "Meeting minutes workflow", "law_firm", "meeting_minutes_workflow", "control-plane-meeting-minutes-workflow", { acceptance_profile: "meeting_minutes_workflow_gate" }),
+  sourceItem("contract_draft_workflow", "Contract draft workflow", "law_firm", "contract_draft_workflow", "control-plane-contract-draft-workflow", { acceptance_profile: "contract_draft_workflow_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -601,6 +602,7 @@ function evaluateStageAcceptance(item, stage) {
     "ldd_report_draft_gate",
     "litigation_brief_draft_gate",
     "meeting_minutes_workflow_gate",
+    "contract_draft_workflow_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -3942,6 +3944,51 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Meeting Minutes Workflow records agenda, decision, action, and evidence-link rows without legal/client-facing output or state mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "contract_draft_workflow_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.contract_draft_workflow_status === "complete"
+      && metrics.source_matter_status === "complete"
+      && metrics.source_ldd_rfi_generator_status === "complete"
+      && metrics.source_ldd_rfi_generator_phase_status === "complete"
+      && metrics.source_meeting_minutes_workflow_status === "complete"
+      && metrics.source_meeting_minutes_workflow_phase_status === "complete"
+      && (metrics.contract_draft_rule_count ?? 0) >= 6
+      && metrics.draft_packet_count === 1
+      && metrics.clause_draft_count === metrics.source_negotiation_point_count
+      && metrics.client_position_count === metrics.clause_draft_count
+      && metrics.consistency_check_count === metrics.clause_draft_count
+      && metrics.attorney_review_gate_count === metrics.clause_draft_count
+      && metrics.issue_link_count >= metrics.clause_draft_count
+      && metrics.clause_with_client_position_count === metrics.clause_draft_count
+      && metrics.clause_with_consistency_check_count === metrics.clause_draft_count
+      && metrics.clause_with_attorney_review_gate_count === metrics.clause_draft_count
+      && metrics.clause_with_issue_link_count === metrics.clause_draft_count
+      && metrics.consistency_passed_count === metrics.consistency_check_count
+      && metrics.attorney_review_required_clause_count === metrics.clause_draft_count
+      && metrics.human_review_required_clause_count === metrics.clause_draft_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.contract_delivery_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Contract Draft Workflow records draft-only clause, client-position, consistency, issue-link, and attorney-review rows without legal/client-facing output or state mutation.");
     }
   }
 

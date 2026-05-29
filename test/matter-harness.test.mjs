@@ -48,6 +48,7 @@ import { runLddRfiGenerator } from "../src/ldd-rfi-generator.mjs";
 import { runLddReportDraft } from "../src/ldd-report-draft.mjs";
 import { runLitigationBriefDraft } from "../src/litigation-brief-draft.mjs";
 import { runMeetingMinutesWorkflow } from "../src/meeting-minutes-workflow.mjs";
+import { runContractDraftWorkflow } from "../src/contract-draft-workflow.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -9529,6 +9530,66 @@ describe("matter harness", () => {
       assert.ok(meetingMinutesWorkflow.meeting_minutes_evidence_links.every((link) => link.source_ref_count > 0 && link.attorney_review_required && link.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "meeting-minutes-workflow", "summary.md"), "utf8"), /Meeting Minutes Workflow/);
 
+      const contractDraftWorkflow = await runContractDraftWorkflow({
+        matterPath: "examples/project-alpha-matter.json",
+        lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
+        meetingMinutesWorkflowPath: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "contract-draft-workflow"),
+        runAt: "2026-05-23T07:00:08.000Z",
+      });
+      const contractDraftWorkflowSchema = JSON.parse(await readFile("schemas/contract-draft-workflow.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(contractDraftWorkflow, contractDraftWorkflowSchema, {}, "contract_draft_workflow"), []);
+      assert.equal(contractDraftWorkflow.summary.contract_draft_workflow_status, "complete");
+      assert.equal(contractDraftWorkflow.summary.source_matter_status, "complete");
+      assert.equal(contractDraftWorkflow.summary.source_matter_id, "MNA-2026-ALPHA");
+      assert.equal(contractDraftWorkflow.summary.source_ldd_rfi_generator_status, "complete");
+      assert.equal(contractDraftWorkflow.summary.source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(contractDraftWorkflow.summary.source_meeting_minutes_workflow_status, "complete");
+      assert.equal(contractDraftWorkflow.summary.source_meeting_minutes_workflow_phase_status, "complete");
+      assert.equal(contractDraftWorkflow.summary.source_negotiation_point_count, 2);
+      assert.equal(contractDraftWorkflow.summary.source_contract_document_count, 1);
+      assert.equal(contractDraftWorkflow.summary.source_qa_item_count, 2);
+      assert.equal(contractDraftWorkflow.summary.source_meeting_action_item_count, meetingMinutesWorkflow.summary.action_item_count);
+      assert.equal(contractDraftWorkflow.summary.contract_draft_rule_count, 6);
+      assert.equal(contractDraftWorkflow.summary.draft_packet_count, 1);
+      assert.equal(contractDraftWorkflow.summary.clause_draft_count, contractDraftWorkflow.summary.source_negotiation_point_count);
+      assert.equal(contractDraftWorkflow.summary.client_position_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.consistency_check_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.attorney_review_gate_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.ok(contractDraftWorkflow.summary.issue_link_count >= contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.clause_with_client_position_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.clause_with_consistency_check_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.clause_with_attorney_review_gate_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.clause_with_issue_link_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.consistency_passed_count, contractDraftWorkflow.summary.consistency_check_count);
+      assert.equal(contractDraftWorkflow.summary.attorney_review_required_clause_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.human_review_required_clause_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflow.summary.client_facing_ready_count, 0);
+      assert.equal(contractDraftWorkflow.summary.contract_delivery_ready_count, 0);
+      assert.equal(contractDraftWorkflow.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(contractDraftWorkflow.summary.legal_advice_provided, false);
+      assert.equal(contractDraftWorkflow.summary.client_facing_output_generated, false);
+      assert.equal(contractDraftWorkflow.summary.desktop_boundary_status, "enforced");
+      assert.equal(contractDraftWorkflow.summary.desktop_read_only, true);
+      assert.equal(contractDraftWorkflow.summary.desktop_mutation_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.desktop_source_of_truth, false);
+      assert.equal(contractDraftWorkflow.summary.matter_data_write_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.task_state_write_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.workflow_transition_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.runtime_execution_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.delivery_execution_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.protected_action_allowed, false);
+      assert.equal(contractDraftWorkflow.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(contractDraftWorkflow.summary.validation_error_count, 0);
+      assert.ok(contractDraftWorkflow.contract_clause_drafts.every((draft) => draft.source_ref_count > 0 && draft.client_position_id && draft.consistency_check_id && draft.attorney_review_gate_id && draft.issue_link_count > 0 && draft.client_facing_ready === false && draft.contract_delivery_ready === false));
+      assert.ok(contractDraftWorkflow.contract_client_positions.every((position) => position.source_ref_count > 0 && position.client_position_status === "captured_pending_attorney_review" && position.client_facing_ready === false));
+      assert.ok(contractDraftWorkflow.contract_clause_consistency_checks.every((check) => check.clause_consistency_passed && check.consistency_check_status === "passed_pending_attorney_review" && check.client_facing_ready === false));
+      assert.ok(contractDraftWorkflow.contract_attorney_review_gates.every((gate) => gate.review_gate_status === "pending_attorney_review" && gate.contract_delivery_ready === false && gate.client_facing_ready === false));
+      assert.ok(contractDraftWorkflow.contract_draft_issue_links.every((link) => link.source_ref_count > 0 && link.contract_issue_link_status === "linked_pending_attorney_review" && link.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "contract-draft-workflow", "summary.md"), "utf8"), /Contract Draft Workflow/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9701,6 +9762,7 @@ describe("matter harness", () => {
           ldd_report_draft: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
           litigation_brief_draft: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
           meeting_minutes_workflow: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
+          contract_draft_workflow: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9752,8 +9814,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 150);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 150);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 151);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 151);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -9891,6 +9953,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_report_draft"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "litigation_brief_draft"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "meeting_minutes_workflow"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "contract_draft_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10026,6 +10089,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:issue-detection"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:rfi-generator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:report-draft"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:contract-draft"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-data"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:export-bundle"));
@@ -10636,6 +10700,10 @@ describe("matter harness", () => {
       assert.equal(meetingMinutesWorkflowCheckpoint?.acceptance_profile, "meeting_minutes_workflow_gate");
       assert.equal(meetingMinutesWorkflowCheckpoint?.status, "passed");
       assert.equal(meetingMinutesWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const contractDraftWorkflowCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-contract-draft-workflow");
+      assert.equal(contractDraftWorkflowCheckpoint?.acceptance_profile, "contract_draft_workflow_gate");
+      assert.equal(contractDraftWorkflowCheckpoint?.status, "passed");
+      assert.equal(contractDraftWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14154,6 +14222,46 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.meeting_minutes_workflow_protected_action_allowed, false);
       assert.equal(dashboard.summary.meeting_minutes_workflow_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.meeting_minutes_workflow_validation_error_count, 0);
+      assert.equal(dashboard.summary.contract_draft_workflow_status, "complete");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_matter_status, "complete");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_matter_id, "MNA-2026-ALPHA");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_ldd_rfi_generator_status, "complete");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_meeting_minutes_workflow_status, "complete");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_meeting_minutes_workflow_phase_status, "complete");
+      assert.equal(dashboard.summary.contract_draft_workflow_source_negotiation_point_count, contractDraftWorkflow.summary.source_negotiation_point_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_source_contract_document_count, contractDraftWorkflow.summary.source_contract_document_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_source_qa_item_count, contractDraftWorkflow.summary.source_qa_item_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_rule_count, contractDraftWorkflow.summary.contract_draft_rule_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_draft_packet_count, contractDraftWorkflow.summary.draft_packet_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_clause_draft_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_client_position_count, contractDraftWorkflow.summary.client_position_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_consistency_check_count, contractDraftWorkflow.summary.consistency_check_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_attorney_review_gate_count, contractDraftWorkflow.summary.attorney_review_gate_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_issue_link_count, contractDraftWorkflow.summary.issue_link_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_clause_with_client_position_count, contractDraftWorkflow.summary.clause_with_client_position_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_clause_with_consistency_check_count, contractDraftWorkflow.summary.clause_with_consistency_check_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_clause_with_attorney_review_gate_count, contractDraftWorkflow.summary.clause_with_attorney_review_gate_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_clause_with_issue_link_count, contractDraftWorkflow.summary.clause_with_issue_link_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_consistency_passed_count, contractDraftWorkflow.summary.consistency_passed_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_attorney_review_required_clause_count, contractDraftWorkflow.summary.attorney_review_required_clause_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_human_review_required_clause_count, contractDraftWorkflow.summary.human_review_required_clause_count);
+      assert.equal(dashboard.summary.contract_draft_workflow_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.contract_draft_workflow_contract_delivery_ready_count, 0);
+      assert.equal(dashboard.summary.contract_draft_workflow_legal_advice_provided, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.contract_draft_workflow_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.contract_draft_workflow_desktop_read_only, true);
+      assert.equal(dashboard.summary.contract_draft_workflow_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_protected_action_allowed, false);
+      assert.equal(dashboard.summary.contract_draft_workflow_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.contract_draft_workflow_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -16119,6 +16227,45 @@ describe("matter harness", () => {
       assert.equal(meetingMinutesWorkflowStage?.metrics.protected_action_allowed, false);
       assert.equal(meetingMinutesWorkflowStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
       assert.equal(meetingMinutesWorkflowStage?.metrics.validation_error_count, 0);
+      const contractDraftWorkflowStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "contract_draft_workflow");
+      assert.equal(contractDraftWorkflowStage?.status, "passed");
+      assert.equal(contractDraftWorkflowStage?.metrics.contract_draft_workflow_status, "complete");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_matter_status, "complete");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_matter_id, "MNA-2026-ALPHA");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_ldd_rfi_generator_status, "complete");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_ldd_rfi_generator_phase_status, "complete");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_meeting_minutes_workflow_status, "complete");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_meeting_minutes_workflow_phase_status, "complete");
+      assert.equal(contractDraftWorkflowStage?.metrics.source_negotiation_point_count, contractDraftWorkflow.summary.source_negotiation_point_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.contract_draft_rule_count, contractDraftWorkflow.summary.contract_draft_rule_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.draft_packet_count, contractDraftWorkflow.summary.draft_packet_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.clause_draft_count, contractDraftWorkflow.summary.clause_draft_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.client_position_count, contractDraftWorkflow.summary.client_position_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.consistency_check_count, contractDraftWorkflow.summary.consistency_check_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.attorney_review_gate_count, contractDraftWorkflow.summary.attorney_review_gate_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.issue_link_count, contractDraftWorkflow.summary.issue_link_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.clause_with_client_position_count, contractDraftWorkflow.summary.clause_with_client_position_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.clause_with_consistency_check_count, contractDraftWorkflow.summary.clause_with_consistency_check_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.clause_with_attorney_review_gate_count, contractDraftWorkflow.summary.clause_with_attorney_review_gate_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.clause_with_issue_link_count, contractDraftWorkflow.summary.clause_with_issue_link_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.consistency_passed_count, contractDraftWorkflow.summary.consistency_passed_count);
+      assert.equal(contractDraftWorkflowStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(contractDraftWorkflowStage?.metrics.contract_delivery_ready_count, 0);
+      assert.equal(contractDraftWorkflowStage?.metrics.legal_advice_provided, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.client_facing_output_generated, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(contractDraftWorkflowStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(contractDraftWorkflowStage?.metrics.desktop_read_only, true);
+      assert.equal(contractDraftWorkflowStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.task_state_write_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.protected_action_allowed, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(contractDraftWorkflowStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -18431,6 +18578,50 @@ describe("matter harness", () => {
       const meetingMinutesWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/meeting-minutes-workflow-validations?status=passed", apiOptions)).body);
       assert.equal(meetingMinutesWorkflowValidationsResponse.collection, "meeting_minutes_workflow_validations");
       assert.equal(meetingMinutesWorkflowValidationsResponse.count, meetingMinutesWorkflow.summary.validation_item_count);
+
+      const contractDraftWorkflowArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-workflow-artifacts?contract_draft_workflow_status=complete", apiOptions)).body);
+      assert.equal(contractDraftWorkflowArtifactsResponse.collection, "contract_draft_workflow_artifacts");
+      assert.equal(contractDraftWorkflowArtifactsResponse.count, 1);
+
+      const contractDraftRulesResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-rules?contract_draft_rule_type=clause_draft_scaffold", apiOptions)).body);
+      assert.equal(contractDraftRulesResponse.collection, "contract_draft_rules");
+      assert.equal(contractDraftRulesResponse.count, 1);
+
+      const contractDraftPacketsResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-packets?draft_packet_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(contractDraftPacketsResponse.collection, "contract_draft_packets");
+      assert.equal(contractDraftPacketsResponse.count, contractDraftWorkflow.summary.draft_packet_count);
+
+      const contractClauseDraftsResponse = JSON.parse((await buildReviewApiResponse("/api/contract-clause-drafts?clause_draft_status=draft_pending_attorney_review&deterministic_contract_draft_generation_performed=true", apiOptions)).body);
+      assert.equal(contractClauseDraftsResponse.collection, "contract_clause_drafts");
+      assert.equal(contractClauseDraftsResponse.count, contractDraftWorkflow.summary.clause_draft_count);
+
+      const contractClientPositionsResponse = JSON.parse((await buildReviewApiResponse("/api/contract-client-positions?client_position_status=captured_pending_attorney_review", apiOptions)).body);
+      assert.equal(contractClientPositionsResponse.collection, "contract_client_positions");
+      assert.equal(contractClientPositionsResponse.count, contractDraftWorkflow.summary.client_position_count);
+
+      const contractConsistencyChecksResponse = JSON.parse((await buildReviewApiResponse("/api/contract-clause-consistency-checks?consistency_check_status=passed_pending_attorney_review&clause_consistency_passed=true", apiOptions)).body);
+      assert.equal(contractConsistencyChecksResponse.collection, "contract_clause_consistency_checks");
+      assert.equal(contractConsistencyChecksResponse.count, contractDraftWorkflow.summary.consistency_check_count);
+
+      const contractAttorneyReviewGatesResponse = JSON.parse((await buildReviewApiResponse("/api/contract-attorney-review-gates?review_gate_status=pending_attorney_review&contract_delivery_ready=false", apiOptions)).body);
+      assert.equal(contractAttorneyReviewGatesResponse.collection, "contract_attorney_review_gates");
+      assert.equal(contractAttorneyReviewGatesResponse.count, contractDraftWorkflow.summary.attorney_review_gate_count);
+
+      const contractDraftIssueLinksResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-issue-links?contract_issue_link_status=linked_pending_attorney_review", apiOptions)).body);
+      assert.equal(contractDraftIssueLinksResponse.collection, "contract_draft_issue_links");
+      assert.equal(contractDraftIssueLinksResponse.count, contractDraftWorkflow.summary.issue_link_count);
+
+      const contractDraftMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-matter-summaries?contract_draft_matter_status=draft_pending_attorney_review&contract_delivery_ready=false", apiOptions)).body);
+      assert.equal(contractDraftMatterSummariesResponse.collection, "contract_draft_matter_summaries");
+      assert.equal(contractDraftMatterSummariesResponse.count, contractDraftWorkflow.summary.matter_count);
+
+      const contractDraftWorkflowBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-workflow-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(contractDraftWorkflowBoundaryResponse.collection, "contract_draft_workflow_boundary");
+      assert.equal(contractDraftWorkflowBoundaryResponse.count, 1);
+
+      const contractDraftWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-workflow-validations?status=passed", apiOptions)).body);
+      assert.equal(contractDraftWorkflowValidationsResponse.collection, "contract_draft_workflow_validations");
+      assert.equal(contractDraftWorkflowValidationsResponse.count, contractDraftWorkflow.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

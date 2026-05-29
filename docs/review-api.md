@@ -24,6 +24,12 @@ Meeting Minutes Workflow routes expose read-only agenda, operational decision, d
 
 Routes: `/api/meeting-minutes-workflow-artifacts`, `/api/meeting-minutes-rules`, `/api/meeting-minutes-sources`, `/api/meeting-minutes-agenda-items`, `/api/meeting-minutes-decisions`, `/api/meeting-minutes-action-items`, `/api/meeting-minutes-evidence-links`, `/api/meeting-minutes-matter-summaries`, `/api/meeting-minutes-workflow-boundary`, `/api/meeting-minutes-workflow-validations`.
 
+## P249 Contract Draft Workflow Routes
+
+Contract Draft Workflow routes expose read-only, draft-only contract clause scaffolds, captured client positions, consistency checks, attorney review gates, source issue links, matter summaries, and validation/boundary rows. Supported filters include `contract_draft_workflow_status`, `contract_draft_matter_status`, `contract_draft_rule_type`, `draft_packet_status`, `clause_draft_status`, `clause_type`, `client_position_status`, `consistency_check_status`, `clause_consistency_passed`, `review_gate_status`, `contract_issue_link_status`, `contract_delivery_ready`, `deterministic_contract_draft_generation_performed`, `contract_clause_draft_id`, `contract_client_position_id`, `contract_clause_consistency_check_id`, `contract_attorney_review_gate_id`, `contract_draft_issue_link_id`, `negotiation_point_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/contract-draft-workflow-artifacts`, `/api/contract-draft-rules`, `/api/contract-draft-packets`, `/api/contract-clause-drafts`, `/api/contract-client-positions`, `/api/contract-clause-consistency-checks`, `/api/contract-attorney-review-gates`, `/api/contract-draft-issue-links`, `/api/contract-draft-matter-summaries`, `/api/contract-draft-workflow-boundary`, `/api/contract-draft-workflow-validations`.
+
 ## P244 LDD Issue Detection Routes
 
 LDD Issue Detection routes expose read-only deterministic issue candidate rows, red/yellow operational flags, follow-up rows, severity summaries, matter summaries, and validation/boundary rows. Supported filters include `ldd_issue_detection_status`, `ldd_issue_matter_status`, `issue_type`, `issue_status`, `issue_severity`, `issue_flag`, `source_gap`, `follow_up_status`, `follow_up_owner`, `deterministic_issue_detection_performed`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

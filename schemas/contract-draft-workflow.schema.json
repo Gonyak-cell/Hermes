@@ -1,0 +1,465 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://amic.local/hermes/contract-draft-workflow.schema.json",
+  "title": "Contract Draft Workflow",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "contract_draft_workflow_id",
+    "contract_draft_workflow_status",
+    "safe_handling",
+    "source_contracts",
+    "contract_draft_workflow_contract",
+    "contract_draft_rules",
+    "contract_draft_packets",
+    "contract_clause_drafts",
+    "contract_client_positions",
+    "contract_clause_consistency_checks",
+    "contract_attorney_review_gates",
+    "contract_draft_issue_links",
+    "contract_draft_matter_summaries",
+    "contract_draft_workflow_desktop_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "contract-draft-workflow.v1" },
+    "generated_at": { "type": "string" },
+    "contract_draft_workflow_id": { "type": "string", "minLength": 1 },
+    "output_dir": { "type": "string" },
+    "contract_draft_workflow_status": { "enum": ["complete", "attention"] },
+    "safe_handling": { "$ref": "#/$defs/safe_handling" },
+    "inputs": { "type": "object" },
+    "source_contracts": { "type": "object" },
+    "contract_draft_workflow_contract": { "type": "object" },
+    "contract_draft_rules": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/$defs/rule" }
+    },
+    "contract_draft_packets": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/packet" }
+    },
+    "contract_clause_drafts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/clause_draft" }
+    },
+    "contract_client_positions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/client_position" }
+    },
+    "contract_clause_consistency_checks": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/consistency_check" }
+    },
+    "contract_attorney_review_gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/review_gate" }
+    },
+    "contract_draft_issue_links": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/issue_link" }
+    },
+    "contract_draft_matter_summaries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/matter_summary" }
+    },
+    "contract_draft_workflow_desktop_boundary": { "$ref": "#/$defs/desktop_boundary" },
+    "contract_draft_workflow_checkpoints": { "type": "array" },
+    "validation_items": { "type": "array" },
+    "validation": { "$ref": "#/$defs/validation" },
+    "summary": { "$ref": "#/$defs/summary" }
+  },
+  "$defs": {
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "draft_only",
+        "deterministic_contract_draft_generation_performed",
+        "legal_conclusion_asserted",
+        "legal_advice_provided",
+        "client_facing_ready",
+        "client_facing_output_generated",
+        "attorney_review_required",
+        "human_review_required",
+        "partner_approval_required_before_client_use",
+        "matter_data_write_allowed",
+        "task_state_write_allowed",
+        "workflow_transition_allowed",
+        "runtime_execution_performed",
+        "delivery_execution_performed",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth",
+        "protected_mutation_executed"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "draft_only": { "const": true },
+        "deterministic_contract_draft_generation_performed": { "const": true },
+        "legal_conclusion_asserted": { "const": false },
+        "legal_advice_provided": { "const": false },
+        "client_facing_ready": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "attorney_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "partner_approval_required_before_client_use": { "const": true },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "workflow_transition_allowed": { "const": false },
+        "runtime_execution_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "protected_mutation_executed": { "const": false }
+      }
+    },
+    "source_ref": {
+      "type": "object",
+      "required": ["source_kind", "source_id", "source_field"],
+      "properties": {
+        "source_kind": { "type": "string" },
+        "source_id": { "type": "string" },
+        "source_field": { "type": "string" }
+      }
+    },
+    "common_review_fields": {
+      "type": "object",
+      "required": [
+        "attorney_review_required",
+        "human_review_required",
+        "client_facing_ready",
+        "legal_conclusion_asserted",
+        "legal_advice_provided"
+      ],
+      "properties": {
+        "source_refs": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/source_ref" } },
+        "source_ref_count": { "type": "integer", "minimum": 1 },
+        "attorney_review_required": { "const": true },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false },
+        "legal_conclusion_asserted": { "const": false },
+        "legal_advice_provided": { "const": false }
+      }
+    },
+    "rule": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "contract_draft_rule_id",
+        "contract_draft_rule_type",
+        "rule_status",
+        "deterministic_only",
+        "attorney_review_required",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "contract-draft-rule.v1" },
+        "contract_draft_rule_id": { "type": "string" },
+        "contract_draft_rule_type": { "type": "string" },
+        "rule_status": { "const": "active" },
+        "deterministic_only": { "const": true },
+        "attorney_review_required": { "const": true },
+        "human_review_required": { "const": true }
+      }
+    },
+    "packet": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_draft_packet_id",
+            "matter_id",
+            "document_id",
+            "draft_packet_status",
+            "contract_delivery_ready",
+            "client_facing_output_generated"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-draft-packet.v1" },
+            "contract_draft_packet_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "document_id": { "type": "string" },
+            "draft_packet_status": { "const": "draft_pending_attorney_review" },
+            "contract_delivery_ready": { "const": false },
+            "client_facing_output_generated": { "const": false }
+          }
+        }
+      ]
+    },
+    "clause_draft": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_clause_draft_id",
+            "matter_id",
+            "negotiation_point_id",
+            "clause_draft_status",
+            "draft_clause_text",
+            "client_position_id",
+            "consistency_check_id",
+            "attorney_review_gate_id",
+            "issue_link_count",
+            "draft_only",
+            "deterministic_contract_draft_generation_performed",
+            "contract_delivery_ready",
+            "client_facing_output_generated",
+            "matter_data_write_allowed",
+            "task_state_write_allowed",
+            "workflow_transition_allowed",
+            "runtime_execution_allowed",
+            "delivery_execution_allowed",
+            "protected_action_allowed"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-clause-draft.v1" },
+            "contract_clause_draft_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "negotiation_point_id": { "type": "string" },
+            "clause_draft_status": { "const": "draft_pending_attorney_review" },
+            "draft_clause_text": { "type": "string", "minLength": 1 },
+            "client_position_id": { "type": "string" },
+            "consistency_check_id": { "type": "string" },
+            "attorney_review_gate_id": { "type": "string" },
+            "issue_link_count": { "type": "integer", "minimum": 1 },
+            "draft_only": { "const": true },
+            "deterministic_contract_draft_generation_performed": { "const": true },
+            "contract_delivery_ready": { "const": false },
+            "client_facing_output_generated": { "const": false },
+            "matter_data_write_allowed": { "const": false },
+            "task_state_write_allowed": { "const": false },
+            "workflow_transition_allowed": { "const": false },
+            "runtime_execution_allowed": { "const": false },
+            "delivery_execution_allowed": { "const": false },
+            "protected_action_allowed": { "const": false }
+          }
+        }
+      ]
+    },
+    "client_position": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_client_position_id",
+            "matter_id",
+            "negotiation_point_id",
+            "client_position_text",
+            "open_issue_text",
+            "client_position_status"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-client-position.v1" },
+            "contract_client_position_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "negotiation_point_id": { "type": "string" },
+            "client_position_text": { "type": "string", "minLength": 1 },
+            "open_issue_text": { "type": "string", "minLength": 1 },
+            "client_position_status": { "const": "captured_pending_attorney_review" }
+          }
+        }
+      ]
+    },
+    "consistency_check": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_clause_consistency_check_id",
+            "matter_id",
+            "contract_clause_draft_id",
+            "contract_client_position_id",
+            "consistency_check_status",
+            "clause_consistency_passed"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-clause-consistency-check.v1" },
+            "contract_clause_consistency_check_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "contract_clause_draft_id": { "type": "string" },
+            "contract_client_position_id": { "type": "string" },
+            "consistency_check_status": { "const": "passed_pending_attorney_review" },
+            "clause_consistency_passed": { "const": true }
+          }
+        }
+      ]
+    },
+    "review_gate": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_attorney_review_gate_id",
+            "matter_id",
+            "contract_clause_draft_id",
+            "review_gate_status",
+            "contract_delivery_ready"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-attorney-review-gate.v1" },
+            "contract_attorney_review_gate_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "contract_clause_draft_id": { "type": "string" },
+            "review_gate_status": { "const": "pending_attorney_review" },
+            "contract_delivery_ready": { "const": false }
+          }
+        }
+      ]
+    },
+    "issue_link": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_draft_issue_link_id",
+            "matter_id",
+            "contract_clause_draft_id",
+            "contract_issue_link_status"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-draft-issue-link.v1" },
+            "contract_draft_issue_link_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "contract_clause_draft_id": { "type": "string" },
+            "contract_issue_link_status": { "const": "linked_pending_attorney_review" }
+          }
+        }
+      ]
+    },
+    "matter_summary": {
+      "allOf": [
+        { "$ref": "#/$defs/common_review_fields" },
+        {
+          "type": "object",
+          "required": [
+            "schema_version",
+            "contract_draft_matter_summary_id",
+            "matter_id",
+            "contract_draft_matter_status",
+            "draft_only",
+            "contract_delivery_ready"
+          ],
+          "properties": {
+            "schema_version": { "const": "contract-draft-matter-summary.v1" },
+            "contract_draft_matter_summary_id": { "type": "string" },
+            "matter_id": { "type": "string" },
+            "contract_draft_matter_status": { "const": "draft_pending_attorney_review" },
+            "draft_only": { "const": true },
+            "contract_delivery_ready": { "const": false }
+          }
+        }
+      ]
+    },
+    "desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "desktop_mutation_allowed",
+        "desktop_source_of_truth",
+        "matter_data_write_allowed",
+        "task_state_write_allowed",
+        "workflow_transition_allowed",
+        "runtime_execution_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_allowed_without_attorney_review"
+      ],
+      "properties": {
+        "schema_version": { "const": "contract-draft-workflow-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "workflow_transition_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_allowed_without_attorney_review": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "contract_draft_workflow_status",
+        "source_matter_status",
+        "source_ldd_rfi_generator_status",
+        "source_meeting_minutes_workflow_status",
+        "contract_draft_rule_count",
+        "draft_packet_count",
+        "clause_draft_count",
+        "client_position_count",
+        "consistency_check_count",
+        "attorney_review_gate_count",
+        "issue_link_count",
+        "client_facing_ready_count",
+        "contract_delivery_ready_count",
+        "legal_conclusion_asserted_count",
+        "legal_advice_provided",
+        "client_facing_output_generated",
+        "desktop_boundary_status",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "contract_draft_workflow_status": { "enum": ["complete", "attention"] },
+        "source_matter_status": { "type": "string" },
+        "source_ldd_rfi_generator_status": { "type": "string" },
+        "source_meeting_minutes_workflow_status": { "type": "string" },
+        "contract_draft_rule_count": { "type": "integer", "minimum": 6 },
+        "draft_packet_count": { "type": "integer", "minimum": 1 },
+        "clause_draft_count": { "type": "integer", "minimum": 1 },
+        "client_position_count": { "type": "integer", "minimum": 1 },
+        "consistency_check_count": { "type": "integer", "minimum": 1 },
+        "attorney_review_gate_count": { "type": "integer", "minimum": 1 },
+        "issue_link_count": { "type": "integer", "minimum": 1 },
+        "client_facing_ready_count": { "const": 0 },
+        "contract_delivery_ready_count": { "const": 0 },
+        "legal_conclusion_asserted_count": { "const": 0 },
+        "legal_advice_provided": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "desktop_boundary_status": { "const": "enforced" },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

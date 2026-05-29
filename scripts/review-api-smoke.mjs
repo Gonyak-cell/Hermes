@@ -2416,6 +2416,50 @@ try {
   assert.equal(meetingMinutesWorkflowValidations.collection, "meeting_minutes_workflow_validations");
   assert.ok(meetingMinutesWorkflowValidations.count <= 5);
 
+  const contractDraftWorkflowArtifacts = await fetchJson(`${url}/api/contract-draft-workflow-artifacts?contract_draft_workflow_status=complete&limit=1`);
+  assert.equal(contractDraftWorkflowArtifacts.collection, "contract_draft_workflow_artifacts");
+  assert.ok(contractDraftWorkflowArtifacts.count <= 1);
+
+  const contractDraftRules = await fetchJson(`${url}/api/contract-draft-rules?contract_draft_rule_type=clause_draft_scaffold&limit=5`);
+  assert.equal(contractDraftRules.collection, "contract_draft_rules");
+  assert.ok(contractDraftRules.count <= 5);
+
+  const contractDraftPackets = await fetchJson(`${url}/api/contract-draft-packets?draft_packet_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(contractDraftPackets.collection, "contract_draft_packets");
+  assert.ok(contractDraftPackets.count <= 5);
+
+  const contractClauseDrafts = await fetchJson(`${url}/api/contract-clause-drafts?clause_draft_status=draft_pending_attorney_review&deterministic_contract_draft_generation_performed=true&limit=5`);
+  assert.equal(contractClauseDrafts.collection, "contract_clause_drafts");
+  assert.ok(contractClauseDrafts.count <= 5);
+
+  const contractClientPositions = await fetchJson(`${url}/api/contract-client-positions?client_position_status=captured_pending_attorney_review&limit=5`);
+  assert.equal(contractClientPositions.collection, "contract_client_positions");
+  assert.ok(contractClientPositions.count <= 5);
+
+  const contractConsistencyChecks = await fetchJson(`${url}/api/contract-clause-consistency-checks?consistency_check_status=passed_pending_attorney_review&clause_consistency_passed=true&limit=5`);
+  assert.equal(contractConsistencyChecks.collection, "contract_clause_consistency_checks");
+  assert.ok(contractConsistencyChecks.count <= 5);
+
+  const contractAttorneyReviewGates = await fetchJson(`${url}/api/contract-attorney-review-gates?review_gate_status=pending_attorney_review&contract_delivery_ready=false&limit=5`);
+  assert.equal(contractAttorneyReviewGates.collection, "contract_attorney_review_gates");
+  assert.ok(contractAttorneyReviewGates.count <= 5);
+
+  const contractDraftIssueLinks = await fetchJson(`${url}/api/contract-draft-issue-links?contract_issue_link_status=linked_pending_attorney_review&limit=5`);
+  assert.equal(contractDraftIssueLinks.collection, "contract_draft_issue_links");
+  assert.ok(contractDraftIssueLinks.count <= 5);
+
+  const contractDraftMatterSummaries = await fetchJson(`${url}/api/contract-draft-matter-summaries?contract_draft_matter_status=draft_pending_attorney_review&contract_delivery_ready=false&limit=5`);
+  assert.equal(contractDraftMatterSummaries.collection, "contract_draft_matter_summaries");
+  assert.ok(contractDraftMatterSummaries.count <= 5);
+
+  const contractDraftWorkflowBoundary = await fetchJson(`${url}/api/contract-draft-workflow-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(contractDraftWorkflowBoundary.collection, "contract_draft_workflow_boundary");
+  assert.ok(contractDraftWorkflowBoundary.count <= 1);
+
+  const contractDraftWorkflowValidations = await fetchJson(`${url}/api/contract-draft-workflow-validations?status=passed&limit=5`);
+  assert.equal(contractDraftWorkflowValidations.collection, "contract_draft_workflow_validations");
+  assert.ok(contractDraftWorkflowValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

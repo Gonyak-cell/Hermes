@@ -157,6 +157,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     ldd_report_draft: "artifacts/ldd-report-draft/latest/ldd-report-draft.json",
     litigation_brief_draft: "artifacts/litigation-brief-draft/latest/litigation-brief-draft.json",
     meeting_minutes_workflow: "artifacts/meeting-minutes-workflow/latest/meeting-minutes-workflow.json",
+    contract_draft_workflow: "artifacts/contract-draft-workflow/latest/contract-draft-workflow.json",
   },
 };
 
@@ -307,6 +308,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("ldd_report_draft", "LDD Report Draft", "law_firm", "ldd-report-draft.schema.json"),
   fixtureDefinition("litigation_brief_draft", "Litigation Brief Draft", "law_firm", "litigation-brief-draft.schema.json"),
   fixtureDefinition("meeting_minutes_workflow", "Meeting Minutes Workflow", "law_firm", "meeting-minutes-workflow.schema.json"),
+  fixtureDefinition("contract_draft_workflow", "Contract Draft Workflow", "law_firm", "contract-draft-workflow.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

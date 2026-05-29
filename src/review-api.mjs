@@ -6421,6 +6421,83 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("source_span_inspector_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/run-ledger-viewer-artifacts") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_ledger_viewer_artifacts", [result.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-ledger-viewer-panels") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_ledger_viewer_panels", result.artifact.run_ledger_viewer_panels ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/desktop-session-views") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("desktop_session_views", result.artifact.desktop_session_views ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-progress-views") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_progress_views", result.artifact.run_progress_views ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-history-views") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_history_views", result.artifact.run_history_views ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-agent-activity-views") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_agent_activity_views", result.artifact.run_agent_activity_views ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-tool-activity-views") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_tool_activity_views", result.artifact.run_tool_activity_views ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-log-artifact-views") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_log_artifact_views", result.artifact.run_log_artifact_views ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-ledger-viewer-boundary") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_ledger_viewer_boundary", [result.artifact.run_ledger_viewer_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/run-ledger-viewer-checks") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_ledger_viewer_checks", result.artifact.run_ledger_viewer_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/run-ledger-viewer-validations") {
+    const result = await readDashboardSourceArtifact(dashboard, "run_ledger_viewer");
+    if (!result.available) {
+      return jsonResponse(503, buildError("run_ledger_viewer_unavailable", result.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("run_ledger_viewer_validations", result.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -12942,6 +13019,17 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/source-span-inspector-boundary", "Source Span Inspector read-only boundary"),
       route("GET", "/api/source-span-inspector-checks", "Source Span Inspector check rows"),
       route("GET", "/api/source-span-inspector-validations", "Source Span Inspector validation rows"),
+      route("GET", "/api/run-ledger-viewer-artifacts", "Run Ledger Viewer artifact"),
+      route("GET", "/api/run-ledger-viewer-panels", "Run Ledger Viewer panel rows"),
+      route("GET", "/api/desktop-session-views", "Run Ledger Viewer Desktop session rows"),
+      route("GET", "/api/run-progress-views", "Run Ledger Viewer progress rows"),
+      route("GET", "/api/run-history-views", "Run Ledger Viewer event history rows"),
+      route("GET", "/api/run-agent-activity-views", "Run Ledger Viewer agent activity rows"),
+      route("GET", "/api/run-tool-activity-views", "Run Ledger Viewer tool activity rows"),
+      route("GET", "/api/run-log-artifact-views", "Run Ledger Viewer log/artifact reference rows"),
+      route("GET", "/api/run-ledger-viewer-boundary", "Run Ledger Viewer read-only boundary"),
+      route("GET", "/api/run-ledger-viewer-checks", "Run Ledger Viewer check rows"),
+      route("GET", "/api/run-ledger-viewer-validations", "Run Ledger Viewer validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -14160,6 +14248,18 @@ function filterItems(items, searchParams) {
     "normalized_text_comparison_status",
     "extracted_fact_comparison_status",
     "preview_match_status",
+    "run_ledger_viewer_status",
+    "run_ledger_viewer_panel_status",
+    "desktop_session_status",
+    "run_progress_status",
+    "run_history_status",
+    "agent_activity_status",
+    "tool_activity_status",
+    "log_artifact_view_status",
+    "reference_kind",
+    "workflow_run_id",
+    "agent_run_id",
+    "runtime_id",
     "preview_only",
     "boundary_status",
     "path_kind",
@@ -16115,6 +16215,18 @@ function readFilterValue(item, key) {
   if (key === "normalized_text_comparison_status") return item.normalized_text_comparison_status;
   if (key === "extracted_fact_comparison_status") return item.extracted_fact_comparison_status;
   if (key === "preview_match_status") return item.preview_match_status;
+  if (key === "run_ledger_viewer_status") return item.summary?.run_ledger_viewer_status ?? item.run_ledger_viewer_status;
+  if (key === "run_ledger_viewer_panel_status") return item.panel_status;
+  if (key === "desktop_session_status") return item.desktop_session_status;
+  if (key === "run_progress_status") return item.run_progress_status;
+  if (key === "run_history_status") return item.run_history_status;
+  if (key === "agent_activity_status") return item.agent_activity_status;
+  if (key === "tool_activity_status") return item.tool_activity_status;
+  if (key === "log_artifact_view_status") return item.log_artifact_view_status;
+  if (key === "reference_kind") return item.reference_kind;
+  if (key === "workflow_run_id") return item.workflow_run_id;
+  if (key === "agent_run_id") return item.agent_run_id;
+  if (key === "runtime_id") return item.runtime_id ?? item.runtime_ids ?? item.metadata?.runtime_id;
   if (key === "path_kind") return item.path_kind;
   if (key === "gate_id") return item.gate_id;
   if (key === "thread_status") return item.thread_status;

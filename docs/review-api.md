@@ -30,6 +30,12 @@ Source Span Inspector routes expose the read-only source span inspector artifact
 
 Routes: `/api/source-span-inspector-artifacts`, `/api/source-span-inspector-panels`, `/api/source-span-inspector-rows`, `/api/source-span-location-comparisons`, `/api/normalized-text-comparisons`, `/api/extracted-fact-comparisons`, `/api/source-span-inspector-boundary`, `/api/source-span-inspector-checks`, `/api/source-span-inspector-validations`.
 
+## P292 Run Ledger Viewer Routes
+
+Run Ledger Viewer routes expose the read-only run ledger viewer artifact, panel rows, Desktop session rows, workflow progress rows, event-backed history rows, agent activity rows, tool activity rows, log/artifact reference rows, checks, boundary, and validation rows. Supported filters include `run_ledger_viewer_status`, `run_ledger_viewer_panel_status`, `desktop_session_status`, `run_progress_status`, `run_history_status`, `agent_activity_status`, `tool_activity_status`, `log_artifact_view_status`, `workflow_run_id`, `agent_run_id`, `tool_invocation_id`, `runtime_id`, `tool_id`, `read_only`, `preview_only`, `boundary_status`, `status`, and `limit`.
+
+Routes: `/api/run-ledger-viewer-artifacts`, `/api/run-ledger-viewer-panels`, `/api/desktop-session-views`, `/api/run-progress-views`, `/api/run-history-views`, `/api/run-agent-activity-views`, `/api/run-tool-activity-views`, `/api/run-log-artifact-views`, `/api/run-ledger-viewer-boundary`, `/api/run-ledger-viewer-checks`, `/api/run-ledger-viewer-validations`.
+
 ## P245 LDD RFI Generator Routes
 
 LDD RFI Generator routes expose read-only draft-only RFI packets, draft questions, missing-material links, issue links, matter summaries, and validation/boundary rows. Supported filters include `ldd_rfi_generator_status`, `ldd_rfi_matter_status`, `rfi_rule_type`, `rfi_draft_status`, `rfi_question_type`, `rfi_question_priority`, `rfi_question_status`, `rfi_missing_material_status`, `rfi_issue_link_status`, `deterministic_rfi_generation_performed`, `ldd_rfi_question_id`, `ldd_issue_record_id`, `ldd_vdr_missing_data_record_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

@@ -1,0 +1,343 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hermes Run Ledger Viewer",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "run_ledger_viewer_id",
+    "run_ledger_viewer_status",
+    "phase_slot",
+    "previous_phase_slot",
+    "next_phase_slot",
+    "run_ledger_viewer_panels",
+    "desktop_session_views",
+    "run_progress_views",
+    "run_history_views",
+    "run_agent_activity_views",
+    "run_tool_activity_views",
+    "run_log_artifact_views",
+    "run_ledger_viewer_boundary",
+    "run_ledger_viewer_checks",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "run-ledger-viewer.v1" },
+    "generated_at": { "type": "string" },
+    "run_ledger_viewer_id": { "type": "string" },
+    "run_ledger_viewer_status": { "enum": ["complete", "attention"] },
+    "capability_id": { "const": "desktop.run_ledger_viewer" },
+    "phase_slot": { "const": "P292" },
+    "previous_phase_slot": { "const": "P291" },
+    "next_phase_slot": { "const": "P293" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "source_contracts": {
+      "type": "array",
+      "items": { "type": "object" }
+    },
+    "run_ledger_viewer_contract": { "type": "object" },
+    "run_ledger_viewer_panels": {
+      "type": "array",
+      "minItems": 6,
+      "items": { "$ref": "#/definitions/panel" }
+    },
+    "desktop_session_views": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/desktop_session_view" }
+    },
+    "run_progress_views": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/run_progress_view" }
+    },
+    "run_history_views": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/run_history_view" }
+    },
+    "run_agent_activity_views": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/run_agent_activity_view" }
+    },
+    "run_tool_activity_views": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/run_tool_activity_view" }
+    },
+    "run_log_artifact_views": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/run_log_artifact_view" }
+    },
+    "run_ledger_viewer_boundary": { "$ref": "#/definitions/boundary" },
+    "run_ledger_viewer_checks": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/check" }
+    },
+    "validation_items": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/check" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": { "$ref": "#/definitions/summary" },
+    "summary_markdown": { "type": "string" }
+  },
+  "definitions": {
+    "panel": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "panel_key",
+        "panel_status",
+        "row_count",
+        "read_only",
+        "preview_only",
+        "desktop_projection_only",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "schema_version": { "const": "run-ledger-viewer-panel.v1" },
+        "panel_key": {
+          "enum": [
+            "desktop_sessions",
+            "workflow_progress",
+            "run_history",
+            "agent_activity",
+            "tool_activity",
+            "logs_artifacts"
+          ]
+        },
+        "panel_status": { "enum": ["ready", "attention"] },
+        "row_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "desktop_projection_only": { "const": true },
+        "human_review_required": { "const": true },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "desktop_session_view": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "desktop_session_status",
+        "workflow_run_id",
+        "run_ledger_id",
+        "progress_status",
+        "agent_run_count",
+        "tool_invocation_count",
+        "read_only",
+        "preview_only",
+        "desktop_projection_only",
+        "human_review_required",
+        "client_facing_ready"
+      ],
+      "properties": {
+        "schema_version": { "const": "desktop-session-view.v1" },
+        "desktop_session_status": { "enum": ["ready", "attention"] },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": "string" },
+        "progress_status": { "type": "string" },
+        "agent_run_count": { "type": "integer", "minimum": 0 },
+        "tool_invocation_count": { "type": "integer", "minimum": 0 },
+        "log_reference_count": { "type": "integer", "minimum": 0 },
+        "artifact_reference_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "desktop_projection_only": { "const": true },
+        "human_review_required": { "type": "boolean" },
+        "client_facing_ready": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "run_progress_view": {
+      "type": "object",
+      "required": ["schema_version", "run_progress_status", "workflow_run_id", "run_ledger_id", "read_only", "preview_only"],
+      "properties": {
+        "schema_version": { "const": "run-progress-view.v1" },
+        "run_progress_status": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": "string" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "run_history_view": {
+      "type": "object",
+      "required": ["schema_version", "run_history_status", "workflow_run_id", "run_ledger_id", "binding_status", "read_only", "preview_only"],
+      "properties": {
+        "schema_version": { "const": "run-history-view.v1" },
+        "run_history_status": { "enum": ["linked", "attention"] },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": "string" },
+        "binding_status": { "type": "string" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "run_agent_activity_view": {
+      "type": "object",
+      "required": ["schema_version", "agent_activity_status", "agent_run_id", "workflow_run_id", "run_ledger_id", "read_only", "preview_only"],
+      "properties": {
+        "schema_version": { "const": "run-agent-activity-view.v1" },
+        "agent_activity_status": { "enum": ["ready", "attention"] },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": "string" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "run_tool_activity_view": {
+      "type": "object",
+      "required": ["schema_version", "tool_activity_status", "tool_invocation_id", "agent_run_id", "workflow_run_id", "run_ledger_id", "read_only", "preview_only"],
+      "properties": {
+        "schema_version": { "const": "run-tool-activity-view.v1" },
+        "tool_activity_status": { "enum": ["ready", "attention"] },
+        "tool_invocation_id": { "type": "string" },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "run_ledger_id": { "type": "string" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "execution_performed": { "const": false },
+        "protected_action_executed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "run_log_artifact_view": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "log_artifact_view_status",
+        "reference_kind",
+        "agent_run_id",
+        "workflow_run_id",
+        "read_only",
+        "preview_only",
+        "log_content_read_performed",
+        "artifact_content_read_performed"
+      ],
+      "properties": {
+        "schema_version": { "const": "run-log-artifact-view.v1" },
+        "log_artifact_view_status": { "enum": ["ready", "attention"] },
+        "reference_kind": { "enum": ["log", "artifact"] },
+        "agent_run_id": { "type": "string" },
+        "workflow_run_id": { "type": "string" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "log_content_read_performed": { "const": false },
+        "artifact_content_read_performed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "preview_only",
+        "desktop_projection_only",
+        "log_content_read_performed",
+        "artifact_content_read_performed",
+        "route_execution_performed",
+        "server_started",
+        "mutation_allowed",
+        "protected_action_executed",
+        "output_delivery_performed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "windows_baseline_stability_preserved",
+        "mac_windows_completion_instability_guard"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "desktop_projection_only": { "const": true },
+        "log_content_read_performed": { "const": false },
+        "artifact_content_read_performed": { "const": false },
+        "route_execution_performed": { "const": false },
+        "server_started": { "const": false },
+        "mutation_allowed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "windows_baseline_stability_preserved": { "const": true },
+        "mac_windows_completion_instability_guard": { "const": true }
+      },
+      "additionalProperties": true
+    },
+    "check": {
+      "type": "object",
+      "required": ["schema_version", "validation_id", "check_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "run-ledger-viewer-check.v1" },
+        "validation_id": { "type": "string" },
+        "check_id": { "type": "string" },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "run_ledger_viewer_status",
+        "phase_slot",
+        "previous_phase_slot",
+        "next_phase_slot",
+        "source_workflow_run_ledger_status",
+        "source_agent_run_ledger_status",
+        "source_tool_invocation_ledger_status",
+        "source_audit_event_ledger_status",
+        "run_ledger_viewer_panel_count",
+        "desktop_session_view_count",
+        "run_progress_view_count",
+        "run_history_view_count",
+        "run_agent_activity_view_count",
+        "run_tool_activity_view_count",
+        "run_log_artifact_view_count",
+        "read_only",
+        "preview_only",
+        "desktop_projection_only",
+        "validation_error_count"
+      ],
+      "properties": {
+        "run_ledger_viewer_status": { "enum": ["complete", "attention"] },
+        "phase_slot": { "const": "P292" },
+        "previous_phase_slot": { "const": "P291" },
+        "next_phase_slot": { "const": "P293" },
+        "source_workflow_run_ledger_status": { "type": "string" },
+        "source_agent_run_ledger_status": { "type": "string" },
+        "source_tool_invocation_ledger_status": { "type": "string" },
+        "source_audit_event_ledger_status": { "type": "string" },
+        "run_ledger_viewer_panel_count": { "type": "integer", "minimum": 0 },
+        "desktop_session_view_count": { "type": "integer", "minimum": 0 },
+        "run_progress_view_count": { "type": "integer", "minimum": 0 },
+        "run_history_view_count": { "type": "integer", "minimum": 0 },
+        "run_agent_activity_view_count": { "type": "integer", "minimum": 0 },
+        "run_tool_activity_view_count": { "type": "integer", "minimum": 0 },
+        "run_log_artifact_view_count": { "type": "integer", "minimum": 0 },
+        "read_only": { "const": true },
+        "preview_only": { "const": true },
+        "desktop_projection_only": { "const": true },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

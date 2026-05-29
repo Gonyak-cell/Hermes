@@ -164,6 +164,7 @@ const GOAL_ITEMS = [
   sourceItem("approval_queue_ui", "Approval Queue UI", "api", "approval_queue_ui", "control-plane-approval-queue-ui", { acceptance_profile: "approval_queue_ui_gate" }),
   sourceItem("evidence_viewer_ui", "Evidence Viewer UI", "api", "evidence_viewer_ui", "control-plane-evidence-viewer-ui", { acceptance_profile: "evidence_viewer_ui_gate" }),
   sourceItem("source_span_inspector", "Source Span Inspector", "api", "source_span_inspector", "control-plane-source-span-inspector", { acceptance_profile: "source_span_inspector_gate" }),
+  sourceItem("run_ledger_viewer", "Run Ledger Viewer", "api", "run_ledger_viewer", "control-plane-run-ledger-viewer", { acceptance_profile: "run_ledger_viewer_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -687,6 +688,7 @@ function evaluateStageAcceptance(item, stage) {
     "approval_queue_ui_gate",
     "evidence_viewer_ui_gate",
     "source_span_inspector_gate",
+    "run_ledger_viewer_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -6115,6 +6117,62 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.mac_windows_completion_instability_guard === true
     ) {
       return passedWithOperationalGate(stage, "Source Span Inspector locks P291 source location, normalized text, and extracted fact comparison panels from existing source span artifacts without source file reads, normalized text object reads, source ingest, fact mutation, output delivery, route execution, server start, mutation, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "run_ledger_viewer_gate") {
+    const sessionCount = metrics.desktop_session_view_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.failed_checkpoint_count === 0
+      && metrics.run_ledger_viewer_status === "complete"
+      && metrics.phase_slot === "P292"
+      && metrics.previous_phase_slot === "P291"
+      && metrics.next_phase_slot === "P293"
+      && metrics.source_workflow_run_ledger_status === "complete"
+      && metrics.source_agent_run_ledger_status === "complete"
+      && metrics.source_tool_invocation_ledger_status === "complete"
+      && metrics.source_audit_event_ledger_status === "complete"
+      && metrics.source_ledger_api_dashboard_status === "complete"
+      && metrics.source_source_span_inspector_status === "complete"
+      && metrics.source_source_span_inspector_phase_slot === "P291"
+      && metrics.source_source_span_inspector_next_phase_slot === "P292"
+      && metrics.run_ledger_viewer_panel_count === 6
+      && metrics.required_panel_count === 6
+      && metrics.ready_panel_count === 6
+      && sessionCount > 0
+      && metrics.run_progress_view_count === sessionCount
+      && metrics.run_history_view_count > 0
+      && metrics.linked_run_history_view_count === metrics.run_history_view_count
+      && metrics.run_agent_activity_view_count > 0
+      && metrics.completed_agent_activity_view_count === metrics.run_agent_activity_view_count
+      && metrics.run_tool_activity_view_count > 0
+      && metrics.run_log_artifact_view_count > 0
+      && metrics.ready_log_artifact_view_count === metrics.run_log_artifact_view_count
+      && metrics.human_review_required_session_count === sessionCount
+      && metrics.client_facing_ready_session_count === 0
+      && metrics.read_only_session_count === sessionCount
+      && metrics.preview_only_session_count === sessionCount
+      && metrics.read_only === true
+      && metrics.preview_only === true
+      && metrics.desktop_projection_only === true
+      && metrics.log_content_read_performed === false
+      && metrics.artifact_content_read_performed === false
+      && metrics.source_ingest_performed === false
+      && metrics.route_execution_performed === false
+      && metrics.server_started === false
+      && metrics.mutation_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.approval_application_performed === false
+      && metrics.output_delivery_performed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required === true
+      && metrics.client_facing_ready === false
+      && metrics.windows_baseline_stability_preserved === true
+      && metrics.mac_windows_completion_instability_guard === true
+    ) {
+      return passedWithOperationalGate(stage, "Run Ledger Viewer locks P292 Desktop session, workflow progress, event history, agent activity, tool activity, and log/artifact reference views from existing run ledgers without log/artifact content reads, route execution, server start, mutation, protected action execution, approval application, output delivery, legal advice, or client-facing output.");
     }
   }
 

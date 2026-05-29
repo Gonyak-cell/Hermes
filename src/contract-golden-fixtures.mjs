@@ -200,6 +200,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     approval_queue_ui: "artifacts/approval-queue-ui/latest/approval-queue-ui.json",
     evidence_viewer_ui: "artifacts/evidence-viewer-ui/latest/evidence-viewer-ui.json",
     source_span_inspector: "artifacts/source-span-inspector/latest/source-span-inspector.json",
+    run_ledger_viewer: "artifacts/run-ledger-viewer/latest/run-ledger-viewer.json",
   },
 };
 
@@ -393,6 +394,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("approval_queue_ui", "Approval Queue UI", "api", "approval-queue-ui.schema.json"),
   fixtureDefinition("evidence_viewer_ui", "Evidence Viewer UI", "api", "evidence-viewer-ui.schema.json"),
   fixtureDefinition("source_span_inspector", "Source Span Inspector", "api", "source-span-inspector.schema.json"),
+  fixtureDefinition("run_ledger_viewer", "Run Ledger Viewer", "api", "run-ledger-viewer.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

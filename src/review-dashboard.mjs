@@ -127,6 +127,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   approvalQueueUiPath: "artifacts/approval-queue-ui/latest/approval-queue-ui.json",
   evidenceViewerUiPath: "artifacts/evidence-viewer-ui/latest/evidence-viewer-ui.json",
   sourceSpanInspectorPath: "artifacts/source-span-inspector/latest/source-span-inspector.json",
+  runLedgerViewerPath: "artifacts/run-ledger-viewer/latest/run-ledger-viewer.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -905,6 +906,11 @@ const SOURCE_DEFINITIONS = [
     option: "sourceSpanInspectorPath",
     source_id: "source_span_inspector",
     label: "Source Span Inspector",
+  },
+  {
+    option: "runLedgerViewerPath",
+    source_id: "run_ledger_viewer",
+    label: "Run Ledger Viewer",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -2307,6 +2313,7 @@ function buildStageStatuses(artifacts, sources) {
     buildApprovalQueueUiStage(artifacts.approval_queue_ui, sourceById.get("approval_queue_ui")),
     buildEvidenceViewerUiStage(artifacts.evidence_viewer_ui, sourceById.get("evidence_viewer_ui")),
     buildSourceSpanInspectorStage(artifacts.source_span_inspector, sourceById.get("source_span_inspector")),
+    buildRunLedgerViewerStage(artifacts.run_ledger_viewer, sourceById.get("run_ledger_viewer")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -14965,6 +14972,132 @@ function buildSourceSpanInspectorStage(artifact, source) {
   };
 }
 
+function buildRunLedgerViewerStage(artifact, source) {
+  if (!artifact) return missingStage("run_ledger_viewer", "Run Ledger Viewer", source);
+  const summary = artifact.summary ?? {};
+  const sessionCount = summary.desktop_session_view_count ?? 0;
+  const status = artifact.validation?.valid === false
+    || summary.run_ledger_viewer_status !== "complete"
+    || summary.phase_slot !== "P292"
+    || summary.previous_phase_slot !== "P291"
+    || summary.next_phase_slot !== "P293"
+    || summary.source_workflow_run_ledger_status !== "complete"
+    || summary.source_agent_run_ledger_status !== "complete"
+    || summary.source_tool_invocation_ledger_status !== "complete"
+    || summary.source_audit_event_ledger_status !== "complete"
+    || summary.source_ledger_api_dashboard_status !== "complete"
+    || summary.source_source_span_inspector_status !== "complete"
+    || summary.source_source_span_inspector_phase_slot !== "P291"
+    || summary.source_source_span_inspector_next_phase_slot !== "P292"
+    || summary.run_ledger_viewer_panel_count !== 6
+    || summary.required_panel_count !== 6
+    || summary.ready_panel_count !== 6
+    || sessionCount <= 0
+    || summary.run_progress_view_count !== sessionCount
+    || summary.run_history_view_count <= 0
+    || summary.linked_run_history_view_count !== summary.run_history_view_count
+    || summary.run_agent_activity_view_count <= 0
+    || summary.completed_agent_activity_view_count !== summary.run_agent_activity_view_count
+    || summary.run_tool_activity_view_count <= 0
+    || summary.run_log_artifact_view_count <= 0
+    || summary.ready_log_artifact_view_count !== summary.run_log_artifact_view_count
+    || summary.human_review_required_session_count !== sessionCount
+    || summary.client_facing_ready_session_count !== 0
+    || summary.read_only_session_count !== sessionCount
+    || summary.preview_only_session_count !== sessionCount
+    || summary.read_only !== true
+    || summary.preview_only !== true
+    || summary.desktop_projection_only !== true
+    || summary.log_content_read_performed !== false
+    || summary.artifact_content_read_performed !== false
+    || summary.source_ingest_performed !== false
+    || summary.route_execution_performed !== false
+    || summary.server_started !== false
+    || summary.mutation_allowed !== false
+    || summary.protected_action_executed !== false
+    || summary.approval_application_performed !== false
+    || summary.output_delivery_performed !== false
+    || summary.legal_advice_generated !== false
+    || summary.client_facing_output_generated !== false
+    || summary.human_review_required !== true
+    || summary.client_facing_ready !== false
+    || summary.windows_baseline_stability_preserved !== true
+    || summary.mac_windows_completion_instability_guard !== true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "run_ledger_viewer",
+    label: "Run Ledger Viewer",
+    status,
+    message: `${sessionCount} Desktop session(s), ${summary.run_history_view_count ?? 0} history row(s), and ${summary.run_log_artifact_view_count ?? 0} log/artifact reference(s) ready.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      run_ledger_viewer_status: summary.run_ledger_viewer_status ?? "unknown",
+      run_ledger_viewer_id: summary.run_ledger_viewer_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      previous_phase_slot: summary.previous_phase_slot ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_workflow_run_ledger_status: summary.source_workflow_run_ledger_status ?? "unknown",
+      source_workflow_run_record_count: summary.source_workflow_run_record_count ?? 0,
+      source_agent_run_ledger_status: summary.source_agent_run_ledger_status ?? "unknown",
+      source_agent_run_record_count: summary.source_agent_run_record_count ?? 0,
+      source_agent_log_reference_count: summary.source_agent_log_reference_count ?? 0,
+      source_agent_artifact_reference_count: summary.source_agent_artifact_reference_count ?? 0,
+      source_tool_invocation_ledger_status: summary.source_tool_invocation_ledger_status ?? "unknown",
+      source_tool_invocation_record_count: summary.source_tool_invocation_record_count ?? 0,
+      source_audit_event_ledger_status: summary.source_audit_event_ledger_status ?? "unknown",
+      source_audit_trail_record_count: summary.source_audit_trail_record_count ?? 0,
+      source_ledger_api_dashboard_status: summary.source_ledger_api_dashboard_status ?? "unknown",
+      source_source_span_inspector_status: summary.source_source_span_inspector_status ?? "unknown",
+      source_source_span_inspector_phase_slot: summary.source_source_span_inspector_phase_slot ?? null,
+      source_source_span_inspector_next_phase_slot: summary.source_source_span_inspector_next_phase_slot ?? null,
+      run_ledger_viewer_panel_count: summary.run_ledger_viewer_panel_count ?? 0,
+      required_panel_count: summary.required_panel_count ?? 0,
+      ready_panel_count: summary.ready_panel_count ?? 0,
+      desktop_session_view_count: sessionCount,
+      blocked_desktop_session_count: summary.blocked_desktop_session_count ?? 0,
+      run_progress_view_count: summary.run_progress_view_count ?? 0,
+      run_history_view_count: summary.run_history_view_count ?? 0,
+      linked_run_history_view_count: summary.linked_run_history_view_count ?? 0,
+      run_agent_activity_view_count: summary.run_agent_activity_view_count ?? 0,
+      completed_agent_activity_view_count: summary.completed_agent_activity_view_count ?? 0,
+      run_tool_activity_view_count: summary.run_tool_activity_view_count ?? 0,
+      blocked_tool_activity_view_count: summary.blocked_tool_activity_view_count ?? 0,
+      permitted_tool_activity_view_count: summary.permitted_tool_activity_view_count ?? 0,
+      run_log_artifact_view_count: summary.run_log_artifact_view_count ?? 0,
+      log_reference_view_count: summary.log_reference_view_count ?? 0,
+      artifact_reference_view_count: summary.artifact_reference_view_count ?? 0,
+      ready_log_artifact_view_count: summary.ready_log_artifact_view_count ?? 0,
+      human_review_required_session_count: summary.human_review_required_session_count ?? 0,
+      client_facing_ready_session_count: summary.client_facing_ready_session_count ?? 0,
+      read_only_session_count: summary.read_only_session_count ?? 0,
+      preview_only_session_count: summary.preview_only_session_count ?? 0,
+      read_only: summary.read_only ?? false,
+      preview_only: summary.preview_only ?? false,
+      desktop_projection_only: summary.desktop_projection_only ?? false,
+      log_content_read_performed: summary.log_content_read_performed ?? false,
+      artifact_content_read_performed: summary.artifact_content_read_performed ?? false,
+      source_ingest_performed: summary.source_ingest_performed ?? false,
+      route_execution_performed: summary.route_execution_performed ?? false,
+      server_started: summary.server_started ?? false,
+      mutation_allowed: summary.mutation_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      approval_application_performed: summary.approval_application_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      client_facing_ready: summary.client_facing_ready ?? true,
+      windows_baseline_stability_preserved: summary.windows_baseline_stability_preserved ?? false,
+      mac_windows_completion_instability_guard: summary.mac_windows_completion_instability_guard ?? false,
+      validation_item_count: summary.validation_item_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -21699,6 +21832,24 @@ function buildActionItems(artifacts) {
       },
       reason: error.message,
       recommended_actions: ["fix_source_span_inspector", "rerun_source_span_inspector", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
+  for (const error of artifacts.run_ledger_viewer?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "run_ledger_viewer";
+    items.push({
+      action_item_id: `dashboard.action.run_ledger_viewer.${slugify(subjectId)}`,
+      source_stage: "run_ledger_viewer",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Run Ledger Viewer",
+      subject_ref: {
+        subject_type: "run_ledger_viewer_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_run_ledger_viewer", "rerun_run_ledger_viewer", "rebuild_dashboard"],
       source_ref: subjectId,
     });
   }
@@ -29004,6 +29155,67 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     source_span_inspector_validation_item_count: artifacts.source_span_inspector?.summary?.validation_item_count ?? 0,
     source_span_inspector_failed_checkpoint_count: artifacts.source_span_inspector?.summary?.failed_checkpoint_count ?? 0,
     source_span_inspector_validation_error_count: artifacts.source_span_inspector?.summary?.validation_error_count ?? artifacts.source_span_inspector?.validation?.errors?.length ?? 0,
+    run_ledger_viewer_status: artifacts.run_ledger_viewer?.summary?.run_ledger_viewer_status ?? "unknown",
+    run_ledger_viewer_id: artifacts.run_ledger_viewer?.summary?.run_ledger_viewer_id ?? null,
+    run_ledger_viewer_phase_slot: artifacts.run_ledger_viewer?.summary?.phase_slot ?? null,
+    run_ledger_viewer_previous_phase_slot: artifacts.run_ledger_viewer?.summary?.previous_phase_slot ?? null,
+    run_ledger_viewer_next_phase_slot: artifacts.run_ledger_viewer?.summary?.next_phase_slot ?? null,
+    run_ledger_viewer_source_workflow_run_ledger_status: artifacts.run_ledger_viewer?.summary?.source_workflow_run_ledger_status ?? "unknown",
+    run_ledger_viewer_source_workflow_run_record_count: artifacts.run_ledger_viewer?.summary?.source_workflow_run_record_count ?? 0,
+    run_ledger_viewer_source_agent_run_ledger_status: artifacts.run_ledger_viewer?.summary?.source_agent_run_ledger_status ?? "unknown",
+    run_ledger_viewer_source_agent_run_record_count: artifacts.run_ledger_viewer?.summary?.source_agent_run_record_count ?? 0,
+    run_ledger_viewer_source_agent_log_reference_count: artifacts.run_ledger_viewer?.summary?.source_agent_log_reference_count ?? 0,
+    run_ledger_viewer_source_agent_artifact_reference_count: artifacts.run_ledger_viewer?.summary?.source_agent_artifact_reference_count ?? 0,
+    run_ledger_viewer_source_tool_invocation_ledger_status: artifacts.run_ledger_viewer?.summary?.source_tool_invocation_ledger_status ?? "unknown",
+    run_ledger_viewer_source_tool_invocation_record_count: artifacts.run_ledger_viewer?.summary?.source_tool_invocation_record_count ?? 0,
+    run_ledger_viewer_source_audit_event_ledger_status: artifacts.run_ledger_viewer?.summary?.source_audit_event_ledger_status ?? "unknown",
+    run_ledger_viewer_source_audit_trail_record_count: artifacts.run_ledger_viewer?.summary?.source_audit_trail_record_count ?? 0,
+    run_ledger_viewer_source_ledger_api_dashboard_status: artifacts.run_ledger_viewer?.summary?.source_ledger_api_dashboard_status ?? "unknown",
+    run_ledger_viewer_source_source_span_inspector_status: artifacts.run_ledger_viewer?.summary?.source_source_span_inspector_status ?? "unknown",
+    run_ledger_viewer_source_source_span_inspector_phase_slot: artifacts.run_ledger_viewer?.summary?.source_source_span_inspector_phase_slot ?? null,
+    run_ledger_viewer_source_source_span_inspector_next_phase_slot: artifacts.run_ledger_viewer?.summary?.source_source_span_inspector_next_phase_slot ?? null,
+    run_ledger_viewer_panel_count: artifacts.run_ledger_viewer?.summary?.run_ledger_viewer_panel_count ?? 0,
+    run_ledger_viewer_required_panel_count: artifacts.run_ledger_viewer?.summary?.required_panel_count ?? 0,
+    run_ledger_viewer_ready_panel_count: artifacts.run_ledger_viewer?.summary?.ready_panel_count ?? 0,
+    run_ledger_viewer_desktop_session_view_count: artifacts.run_ledger_viewer?.summary?.desktop_session_view_count ?? 0,
+    run_ledger_viewer_blocked_desktop_session_count: artifacts.run_ledger_viewer?.summary?.blocked_desktop_session_count ?? 0,
+    run_ledger_viewer_run_progress_view_count: artifacts.run_ledger_viewer?.summary?.run_progress_view_count ?? 0,
+    run_ledger_viewer_run_history_view_count: artifacts.run_ledger_viewer?.summary?.run_history_view_count ?? 0,
+    run_ledger_viewer_linked_run_history_view_count: artifacts.run_ledger_viewer?.summary?.linked_run_history_view_count ?? 0,
+    run_ledger_viewer_run_agent_activity_view_count: artifacts.run_ledger_viewer?.summary?.run_agent_activity_view_count ?? 0,
+    run_ledger_viewer_completed_agent_activity_view_count: artifacts.run_ledger_viewer?.summary?.completed_agent_activity_view_count ?? 0,
+    run_ledger_viewer_run_tool_activity_view_count: artifacts.run_ledger_viewer?.summary?.run_tool_activity_view_count ?? 0,
+    run_ledger_viewer_blocked_tool_activity_view_count: artifacts.run_ledger_viewer?.summary?.blocked_tool_activity_view_count ?? 0,
+    run_ledger_viewer_permitted_tool_activity_view_count: artifacts.run_ledger_viewer?.summary?.permitted_tool_activity_view_count ?? 0,
+    run_ledger_viewer_run_log_artifact_view_count: artifacts.run_ledger_viewer?.summary?.run_log_artifact_view_count ?? 0,
+    run_ledger_viewer_log_reference_view_count: artifacts.run_ledger_viewer?.summary?.log_reference_view_count ?? 0,
+    run_ledger_viewer_artifact_reference_view_count: artifacts.run_ledger_viewer?.summary?.artifact_reference_view_count ?? 0,
+    run_ledger_viewer_ready_log_artifact_view_count: artifacts.run_ledger_viewer?.summary?.ready_log_artifact_view_count ?? 0,
+    run_ledger_viewer_human_review_required_session_count: artifacts.run_ledger_viewer?.summary?.human_review_required_session_count ?? 0,
+    run_ledger_viewer_client_facing_ready_session_count: artifacts.run_ledger_viewer?.summary?.client_facing_ready_session_count ?? 0,
+    run_ledger_viewer_read_only_session_count: artifacts.run_ledger_viewer?.summary?.read_only_session_count ?? 0,
+    run_ledger_viewer_preview_only_session_count: artifacts.run_ledger_viewer?.summary?.preview_only_session_count ?? 0,
+    run_ledger_viewer_read_only: artifacts.run_ledger_viewer?.summary?.read_only ?? false,
+    run_ledger_viewer_preview_only: artifacts.run_ledger_viewer?.summary?.preview_only ?? false,
+    run_ledger_viewer_desktop_projection_only: artifacts.run_ledger_viewer?.summary?.desktop_projection_only ?? false,
+    run_ledger_viewer_log_content_read_performed: artifacts.run_ledger_viewer?.summary?.log_content_read_performed ?? false,
+    run_ledger_viewer_artifact_content_read_performed: artifacts.run_ledger_viewer?.summary?.artifact_content_read_performed ?? false,
+    run_ledger_viewer_source_ingest_performed: artifacts.run_ledger_viewer?.summary?.source_ingest_performed ?? false,
+    run_ledger_viewer_route_execution_performed: artifacts.run_ledger_viewer?.summary?.route_execution_performed ?? false,
+    run_ledger_viewer_server_started: artifacts.run_ledger_viewer?.summary?.server_started ?? false,
+    run_ledger_viewer_mutation_allowed: artifacts.run_ledger_viewer?.summary?.mutation_allowed ?? false,
+    run_ledger_viewer_protected_action_executed: artifacts.run_ledger_viewer?.summary?.protected_action_executed ?? false,
+    run_ledger_viewer_approval_application_performed: artifacts.run_ledger_viewer?.summary?.approval_application_performed ?? false,
+    run_ledger_viewer_output_delivery_performed: artifacts.run_ledger_viewer?.summary?.output_delivery_performed ?? false,
+    run_ledger_viewer_legal_advice_generated: artifacts.run_ledger_viewer?.summary?.legal_advice_generated ?? false,
+    run_ledger_viewer_client_facing_output_generated: artifacts.run_ledger_viewer?.summary?.client_facing_output_generated ?? false,
+    run_ledger_viewer_human_review_required: artifacts.run_ledger_viewer?.summary?.human_review_required ?? false,
+    run_ledger_viewer_client_facing_ready: artifacts.run_ledger_viewer?.summary?.client_facing_ready ?? true,
+    run_ledger_viewer_windows_baseline_stability_preserved: artifacts.run_ledger_viewer?.summary?.windows_baseline_stability_preserved ?? false,
+    run_ledger_viewer_mac_windows_completion_instability_guard: artifacts.run_ledger_viewer?.summary?.mac_windows_completion_instability_guard ?? false,
+    run_ledger_viewer_validation_item_count: artifacts.run_ledger_viewer?.summary?.validation_item_count ?? 0,
+    run_ledger_viewer_failed_checkpoint_count: artifacts.run_ledger_viewer?.summary?.failed_checkpoint_count ?? 0,
+    run_ledger_viewer_validation_error_count: artifacts.run_ledger_viewer?.summary?.validation_error_count ?? artifacts.run_ledger_viewer?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -30841,6 +31053,8 @@ function parseArgs(argv) {
     else if (arg === "--no-evidence-viewer-ui") parsed.evidenceViewerUiPath = false;
     else if (arg === "--source-span-inspector") parsed.sourceSpanInspectorPath = argv[++index];
     else if (arg === "--no-source-span-inspector") parsed.sourceSpanInspectorPath = false;
+    else if (arg === "--run-ledger-viewer") parsed.runLedgerViewerPath = argv[++index];
+    else if (arg === "--no-run-ledger-viewer") parsed.runLedgerViewerPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

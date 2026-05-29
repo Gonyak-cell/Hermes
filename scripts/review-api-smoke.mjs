@@ -3080,6 +3080,50 @@ try {
   assert.equal(sourceSpanInspectorValidations.collection, "source_span_inspector_validations");
   assert.ok(sourceSpanInspectorValidations.count <= 20);
 
+  const runLedgerViewerArtifacts = await fetchJson(`${url}/api/run-ledger-viewer-artifacts?run_ledger_viewer_status=complete&limit=1`);
+  assert.equal(runLedgerViewerArtifacts.collection, "run_ledger_viewer_artifacts");
+  assert.ok(runLedgerViewerArtifacts.count <= 1);
+
+  const runLedgerViewerPanels = await fetchJson(`${url}/api/run-ledger-viewer-panels?run_ledger_viewer_panel_status=ready&limit=6`);
+  assert.equal(runLedgerViewerPanels.collection, "run_ledger_viewer_panels");
+  assert.ok(runLedgerViewerPanels.count <= 6);
+
+  const desktopSessionViews = await fetchJson(`${url}/api/desktop-session-views?desktop_session_status=ready&read_only=true&preview_only=true&limit=10`);
+  assert.equal(desktopSessionViews.collection, "desktop_session_views");
+  assert.ok(desktopSessionViews.count <= 10);
+
+  const runProgressViews = await fetchJson(`${url}/api/run-progress-views?run_progress_status=blocked_pending_human_review&read_only=true&limit=10`);
+  assert.equal(runProgressViews.collection, "run_progress_views");
+  assert.ok(runProgressViews.count <= 10);
+
+  const runHistoryViews = await fetchJson(`${url}/api/run-history-views?run_history_status=linked&read_only=true&limit=20`);
+  assert.equal(runHistoryViews.collection, "run_history_views");
+  assert.ok(runHistoryViews.count <= 20);
+
+  const runAgentActivityViews = await fetchJson(`${url}/api/run-agent-activity-views?agent_activity_status=ready&read_only=true&limit=10`);
+  assert.equal(runAgentActivityViews.collection, "run_agent_activity_views");
+  assert.ok(runAgentActivityViews.count <= 10);
+
+  const runToolActivityViews = await fetchJson(`${url}/api/run-tool-activity-views?tool_activity_status=ready&read_only=true&limit=20`);
+  assert.equal(runToolActivityViews.collection, "run_tool_activity_views");
+  assert.ok(runToolActivityViews.count <= 20);
+
+  const runLogArtifactViews = await fetchJson(`${url}/api/run-log-artifact-views?log_artifact_view_status=ready&read_only=true&preview_only=true&limit=20`);
+  assert.equal(runLogArtifactViews.collection, "run_log_artifact_views");
+  assert.ok(runLogArtifactViews.count <= 20);
+
+  const runLedgerViewerBoundary = await fetchJson(`${url}/api/run-ledger-viewer-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(runLedgerViewerBoundary.collection, "run_ledger_viewer_boundary");
+  assert.ok(runLedgerViewerBoundary.count <= 1);
+
+  const runLedgerViewerChecks = await fetchJson(`${url}/api/run-ledger-viewer-checks?status=passed&limit=20`);
+  assert.equal(runLedgerViewerChecks.collection, "run_ledger_viewer_checks");
+  assert.ok(runLedgerViewerChecks.count <= 20);
+
+  const runLedgerViewerValidations = await fetchJson(`${url}/api/run-ledger-viewer-validations?status=passed&limit=20`);
+  assert.equal(runLedgerViewerValidations.collection, "run_ledger_viewer_validations");
+  assert.ok(runLedgerViewerValidations.count <= 20);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

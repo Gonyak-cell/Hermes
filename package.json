@@ -170,6 +170,7 @@
     "events:store": "node scripts/append-only-event-store.mjs",
     "events:types": "node scripts/event-type-registry.mjs",
     "ledgers:api-dashboard": "node scripts/ledger-api-dashboard.mjs",
+    "ledgers:run-viewer": "node scripts/run-ledger-viewer.mjs",
     "ledgers:golden-fixtures": "node scripts/ledger-golden-fixtures.mjs",
     "events:agent-runs": "node scripts/agent-run-ledger.mjs",
     "events:audit-ledger": "node scripts/audit-event-ledger.mjs",

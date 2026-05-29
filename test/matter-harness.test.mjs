@@ -90,6 +90,7 @@ import { runApiRouteInventory } from "../src/api-route-inventory.mjs";
 import { runApprovalQueueUi } from "../src/approval-queue-ui.mjs";
 import { runEvidenceViewerUi } from "../src/evidence-viewer-ui.mjs";
 import { runSourceSpanInspector } from "../src/source-span-inspector.mjs";
+import { runRunLedgerViewer } from "../src/run-ledger-viewer.mjs";
 import { runReviewDashboardInformationArchitecture } from "../src/review-dashboard-ia.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
@@ -1977,6 +1978,7 @@ describe("matter harness", () => {
         approvalQueueUiPath: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
         evidenceViewerUiPath: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
         sourceSpanInspectorPath: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
+        runLedgerViewerPath: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12372,6 +12374,104 @@ describe("matter harness", () => {
       assert.ok(sourceSpanInspector.validation_items.every((item) => item.status === "passed"));
       assert.match(await readFile(path.join(outDir, "source-span-inspector", "summary.md"), "utf8"), /Source Span Inspector/);
 
+      const runLedgerViewer = await runRunLedgerViewer({
+        workflowRunLedgerPath: path.join(outDir, "workflow-run-ledger", "workflow-run-ledger.json"),
+        agentRunLedgerPath: path.join(outDir, "agent-run-ledger", "agent-run-ledger.json"),
+        toolInvocationLedgerPath: path.join(outDir, "tool-invocation-ledger", "tool-invocation-ledger.json"),
+        auditEventLedgerPath: path.join(outDir, "audit-event-ledger", "audit-event-ledger.json"),
+        ledgerApiDashboardPath: path.join(outDir, "ledger-api-dashboard", "ledger-api-dashboard.json"),
+        sourceSpanInspectorPath: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
+        outDir: path.join(outDir, "run-ledger-viewer"),
+        runAt: "2026-05-23T07:26:31.000Z",
+      });
+      const runLedgerViewerSchema = JSON.parse(await readFile("schemas/run-ledger-viewer.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(runLedgerViewer, runLedgerViewerSchema, {}, "run_ledger_viewer"), [], JSON.stringify(runLedgerViewer.validation.errors));
+      assert.equal(runLedgerViewer.summary.run_ledger_viewer_status, "complete");
+      assert.equal(runLedgerViewer.summary.phase_slot, "P292");
+      assert.equal(runLedgerViewer.summary.previous_phase_slot, "P291");
+      assert.equal(runLedgerViewer.summary.next_phase_slot, "P293");
+      assert.equal(runLedgerViewer.summary.source_workflow_run_ledger_status, "complete");
+      assert.equal(runLedgerViewer.summary.source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(runLedgerViewer.summary.source_agent_run_ledger_status, "complete");
+      assert.equal(runLedgerViewer.summary.source_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runLedgerViewer.summary.source_agent_log_reference_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(runLedgerViewer.summary.source_agent_artifact_reference_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(runLedgerViewer.summary.source_tool_invocation_ledger_status, "complete");
+      assert.equal(runLedgerViewer.summary.source_tool_invocation_record_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(runLedgerViewer.summary.source_audit_event_ledger_status, "complete");
+      assert.equal(runLedgerViewer.summary.source_audit_trail_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(runLedgerViewer.summary.source_ledger_api_dashboard_status, "complete");
+      assert.equal(runLedgerViewer.summary.source_source_span_inspector_status, "complete");
+      assert.equal(runLedgerViewer.summary.source_source_span_inspector_phase_slot, "P291");
+      assert.equal(runLedgerViewer.summary.source_source_span_inspector_next_phase_slot, "P292");
+      assert.equal(runLedgerViewer.summary.run_ledger_viewer_panel_count, 6);
+      assert.equal(runLedgerViewer.summary.required_panel_count, 6);
+      assert.equal(runLedgerViewer.summary.ready_panel_count, 6);
+      assert.equal(runLedgerViewer.summary.desktop_session_view_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(runLedgerViewer.summary.blocked_desktop_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewer.summary.run_progress_view_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewer.summary.run_history_view_count, workflowRunLedger.summary.event_binding_count);
+      assert.equal(runLedgerViewer.summary.linked_run_history_view_count, runLedgerViewer.summary.run_history_view_count);
+      assert.equal(runLedgerViewer.summary.run_agent_activity_view_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runLedgerViewer.summary.completed_agent_activity_view_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runLedgerViewer.summary.run_tool_activity_view_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(runLedgerViewer.summary.blocked_tool_activity_view_count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+      assert.equal(runLedgerViewer.summary.permitted_tool_activity_view_count, toolInvocationLedger.summary.permitted_tool_invocation_count);
+      assert.equal(runLedgerViewer.summary.run_log_artifact_view_count, agentRunLedger.summary.agent_run_log_reference_count + agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(runLedgerViewer.summary.log_reference_view_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(runLedgerViewer.summary.artifact_reference_view_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(runLedgerViewer.summary.ready_log_artifact_view_count, runLedgerViewer.summary.run_log_artifact_view_count);
+      assert.equal(runLedgerViewer.summary.human_review_required_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewer.summary.client_facing_ready_session_count, 0);
+      assert.equal(runLedgerViewer.summary.read_only_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewer.summary.preview_only_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewer.summary.read_only, true);
+      assert.equal(runLedgerViewer.summary.preview_only, true);
+      assert.equal(runLedgerViewer.summary.desktop_projection_only, true);
+      assert.equal(runLedgerViewer.summary.log_content_read_performed, false);
+      assert.equal(runLedgerViewer.summary.artifact_content_read_performed, false);
+      assert.equal(runLedgerViewer.summary.source_ingest_performed, false);
+      assert.equal(runLedgerViewer.summary.route_execution_performed, false);
+      assert.equal(runLedgerViewer.summary.server_started, false);
+      assert.equal(runLedgerViewer.summary.mutation_allowed, false);
+      assert.equal(runLedgerViewer.summary.protected_action_executed, false);
+      assert.equal(runLedgerViewer.summary.approval_application_performed, false);
+      assert.equal(runLedgerViewer.summary.output_delivery_performed, false);
+      assert.equal(runLedgerViewer.summary.legal_advice_generated, false);
+      assert.equal(runLedgerViewer.summary.client_facing_output_generated, false);
+      assert.equal(runLedgerViewer.summary.human_review_required, true);
+      assert.equal(runLedgerViewer.summary.client_facing_ready, false);
+      assert.equal(runLedgerViewer.summary.windows_baseline_stability_preserved, true);
+      assert.equal(runLedgerViewer.summary.mac_windows_completion_instability_guard, true);
+      assert.equal(runLedgerViewer.summary.validation_error_count, 0);
+      const runLedgerViewerPanelKeys = new Set(["desktop_sessions", "workflow_progress", "run_history", "agent_activity", "tool_activity", "logs_artifacts"]);
+      assert.ok(runLedgerViewer.run_ledger_viewer_panels.every((row) => runLedgerViewerPanelKeys.has(row.panel_key) && row.panel_status === "ready" && row.read_only && row.preview_only && row.desktop_projection_only && row.route_execution_allowed === false && row.server_start_allowed === false && row.log_content_read_allowed === false && row.artifact_content_read_allowed === false && row.mutation_allowed === false && row.protected_action_execution_allowed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(runLedgerViewer.desktop_session_views.every((row) => row.desktop_session_status === "ready" && row.progress_status === "blocked_pending_human_review" && row.agent_run_count > 0 && row.tool_invocation_count > 0 && row.log_reference_count > 0 && row.artifact_reference_count > 0 && row.read_only && row.preview_only && row.desktop_projection_only && row.route_execution_performed === false && row.server_started === false && row.mutation_allowed === false && row.protected_action_executed === false && row.human_review_required && row.client_facing_ready === false));
+      assert.ok(runLedgerViewer.run_progress_views.every((row) => row.run_progress_status === "blocked_pending_human_review" && row.event_backed_transition_count === row.state_transition_count && row.terminal_transition_count > 0 && row.read_only && row.preview_only));
+      assert.ok(runLedgerViewer.run_history_views.every((row) => row.run_history_status === "linked" && row.binding_status === "linked" && row.event_envelope_id && row.stored_event_id && row.read_only && row.preview_only));
+      assert.ok(runLedgerViewer.run_agent_activity_views.every((row) => row.agent_activity_status === "ready" && row.status === "completed" && row.log_reference_status === "captured" && row.artifact_reference_count >= 0 && row.captured_artifact_reference_count === row.artifact_reference_count && row.output_hash && row.read_only && row.preview_only && row.log_content_read_performed === false && row.artifact_content_read_performed === false));
+      assert.ok(runLedgerViewer.run_tool_activity_views.every((row) => row.tool_activity_status === "ready" && row.event_binding_status === "context_bound" && row.read_only && row.preview_only && row.execution_performed === false && row.protected_action_executed === false));
+      assert.ok(runLedgerViewer.run_log_artifact_views.every((row) => row.log_artifact_view_status === "ready" && ["log", "artifact"].includes(row.reference_kind) && row.reference_uri && row.read_only && row.preview_only && row.log_content_read_performed === false && row.artifact_content_read_performed === false));
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.boundary_status, "enforced");
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.read_only, true);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.preview_only, true);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.desktop_projection_only, true);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.log_content_read_performed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.artifact_content_read_performed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.route_execution_performed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.server_started, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.mutation_allowed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.protected_action_executed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.approval_application_performed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.output_delivery_performed, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.legal_advice_generated, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.client_facing_output_generated, false);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.windows_baseline_stability_preserved, true);
+      assert.equal(runLedgerViewer.run_ledger_viewer_boundary.mac_windows_completion_instability_guard, true);
+      assert.ok(runLedgerViewer.run_ledger_viewer_checks.every((item) => item.status === "passed"));
+      assert.ok(runLedgerViewer.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "run-ledger-viewer", "summary.md"), "utf8"), /Run Ledger Viewer/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -12587,6 +12687,7 @@ describe("matter harness", () => {
           approval_queue_ui: path.join(outDir, "approval-queue-ui", "approval-queue-ui.json"),
           evidence_viewer_ui: path.join(outDir, "evidence-viewer-ui", "evidence-viewer-ui.json"),
           source_span_inspector: path.join(outDir, "source-span-inspector", "source-span-inspector.json"),
+          run_ledger_viewer: path.join(outDir, "run-ledger-viewer", "run-ledger-viewer.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -12638,8 +12739,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 193);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 193);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 194);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 194);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -12820,6 +12921,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "approval_queue_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "evidence_viewer_ui"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "source_span_inspector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "run_ledger_viewer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12876,6 +12978,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "approval:queue-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-ui"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:source-span-inspector"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "ledgers:run-viewer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:tool-runtime"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "contracts:runtime-interface"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:approval-matrix"));
@@ -13771,6 +13874,10 @@ describe("matter harness", () => {
       assert.equal(sourceSpanInspectorCheckpoint?.acceptance_profile, "source_span_inspector_gate");
       assert.equal(sourceSpanInspectorCheckpoint?.status, "passed");
       assert.equal(sourceSpanInspectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const runLedgerViewerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-run-ledger-viewer");
+      assert.equal(runLedgerViewerCheckpoint?.acceptance_profile, "run_ledger_viewer_gate");
+      assert.equal(runLedgerViewerCheckpoint?.status, "passed");
+      assert.equal(runLedgerViewerCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -19110,6 +19217,67 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.source_span_inspector_validation_item_count, sourceSpanInspector.summary.validation_item_count);
       assert.equal(dashboard.summary.source_span_inspector_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.source_span_inspector_validation_error_count, 0);
+      assert.equal(dashboard.summary.run_ledger_viewer_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_id, runLedgerViewer.summary.run_ledger_viewer_id);
+      assert.equal(dashboard.summary.run_ledger_viewer_phase_slot, "P292");
+      assert.equal(dashboard.summary.run_ledger_viewer_previous_phase_slot, "P291");
+      assert.equal(dashboard.summary.run_ledger_viewer_next_phase_slot, "P293");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_workflow_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_agent_run_ledger_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_agent_log_reference_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_agent_artifact_reference_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_tool_invocation_ledger_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_tool_invocation_record_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_audit_event_ledger_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_audit_trail_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_ledger_api_dashboard_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_source_span_inspector_status, "complete");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_source_span_inspector_phase_slot, "P291");
+      assert.equal(dashboard.summary.run_ledger_viewer_source_source_span_inspector_next_phase_slot, "P292");
+      assert.equal(dashboard.summary.run_ledger_viewer_panel_count, 6);
+      assert.equal(dashboard.summary.run_ledger_viewer_required_panel_count, 6);
+      assert.equal(dashboard.summary.run_ledger_viewer_ready_panel_count, 6);
+      assert.equal(dashboard.summary.run_ledger_viewer_desktop_session_view_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_blocked_desktop_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_run_progress_view_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_run_history_view_count, workflowRunLedger.summary.event_binding_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_linked_run_history_view_count, runLedgerViewer.summary.run_history_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_run_agent_activity_view_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_completed_agent_activity_view_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_run_tool_activity_view_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_blocked_tool_activity_view_count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_permitted_tool_activity_view_count, toolInvocationLedger.summary.permitted_tool_invocation_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_run_log_artifact_view_count, agentRunLedger.summary.agent_run_log_reference_count + agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_log_reference_view_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_artifact_reference_view_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_ready_log_artifact_view_count, runLedgerViewer.summary.run_log_artifact_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_human_review_required_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_client_facing_ready_session_count, 0);
+      assert.equal(dashboard.summary.run_ledger_viewer_read_only_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_preview_only_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_read_only, true);
+      assert.equal(dashboard.summary.run_ledger_viewer_preview_only, true);
+      assert.equal(dashboard.summary.run_ledger_viewer_desktop_projection_only, true);
+      assert.equal(dashboard.summary.run_ledger_viewer_log_content_read_performed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_artifact_content_read_performed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_source_ingest_performed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_route_execution_performed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_server_started, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_mutation_allowed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_protected_action_executed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_approval_application_performed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_output_delivery_performed, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_legal_advice_generated, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_human_review_required, true);
+      assert.equal(dashboard.summary.run_ledger_viewer_client_facing_ready, false);
+      assert.equal(dashboard.summary.run_ledger_viewer_windows_baseline_stability_preserved, true);
+      assert.equal(dashboard.summary.run_ledger_viewer_mac_windows_completion_instability_guard, true);
+      assert.equal(dashboard.summary.run_ledger_viewer_validation_item_count, runLedgerViewer.summary.validation_item_count);
+      assert.equal(dashboard.summary.run_ledger_viewer_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.run_ledger_viewer_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -22862,6 +23030,69 @@ describe("matter harness", () => {
       assert.equal(sourceSpanInspectorStage?.metrics.validation_item_count, sourceSpanInspector.summary.validation_item_count);
       assert.equal(sourceSpanInspectorStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(sourceSpanInspectorStage?.metrics.validation_error_count, 0);
+      const runLedgerViewerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "run_ledger_viewer");
+      assert.equal(runLedgerViewerStage?.status, "passed");
+      assert.equal(runLedgerViewerStage?.metrics.run_ledger_viewer_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.run_ledger_viewer_id, runLedgerViewer.summary.run_ledger_viewer_id);
+      assert.equal(runLedgerViewerStage?.metrics.phase_slot, "P292");
+      assert.equal(runLedgerViewerStage?.metrics.previous_phase_slot, "P291");
+      assert.equal(runLedgerViewerStage?.metrics.next_phase_slot, "P293");
+      assert.equal(runLedgerViewerStage?.metrics.source_workflow_run_ledger_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.source_workflow_run_record_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.source_agent_run_ledger_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.source_agent_run_record_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.source_agent_log_reference_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(runLedgerViewerStage?.metrics.source_agent_artifact_reference_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(runLedgerViewerStage?.metrics.source_tool_invocation_ledger_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.source_tool_invocation_record_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.source_audit_event_ledger_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.source_audit_trail_record_count, auditEventLedger.summary.audit_trail_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.source_ledger_api_dashboard_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.source_source_span_inspector_status, "complete");
+      assert.equal(runLedgerViewerStage?.metrics.source_source_span_inspector_phase_slot, "P291");
+      assert.equal(runLedgerViewerStage?.metrics.source_source_span_inspector_next_phase_slot, "P292");
+      assert.equal(runLedgerViewerStage?.metrics.run_ledger_viewer_panel_count, 6);
+      assert.equal(runLedgerViewerStage?.metrics.required_panel_count, 6);
+      assert.equal(runLedgerViewerStage?.metrics.ready_panel_count, 6);
+      assert.equal(runLedgerViewerStage?.metrics.desktop_session_view_count, workflowRunLedger.summary.workflow_run_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.blocked_desktop_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.run_progress_view_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.run_history_view_count, workflowRunLedger.summary.event_binding_count);
+      assert.equal(runLedgerViewerStage?.metrics.linked_run_history_view_count, runLedgerViewer.summary.run_history_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.run_agent_activity_view_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.completed_agent_activity_view_count, agentRunLedger.summary.agent_run_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.run_tool_activity_view_count, toolInvocationLedger.summary.tool_invocation_record_count);
+      assert.equal(runLedgerViewerStage?.metrics.blocked_tool_activity_view_count, toolInvocationLedger.summary.blocked_tool_invocation_count);
+      assert.equal(runLedgerViewerStage?.metrics.permitted_tool_activity_view_count, toolInvocationLedger.summary.permitted_tool_invocation_count);
+      assert.equal(runLedgerViewerStage?.metrics.run_log_artifact_view_count, agentRunLedger.summary.agent_run_log_reference_count + agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(runLedgerViewerStage?.metrics.log_reference_view_count, agentRunLedger.summary.agent_run_log_reference_count);
+      assert.equal(runLedgerViewerStage?.metrics.artifact_reference_view_count, agentRunLedger.summary.agent_run_artifact_reference_count);
+      assert.equal(runLedgerViewerStage?.metrics.ready_log_artifact_view_count, runLedgerViewer.summary.run_log_artifact_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.human_review_required_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.client_facing_ready_session_count, 0);
+      assert.equal(runLedgerViewerStage?.metrics.read_only_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.preview_only_session_count, runLedgerViewer.summary.desktop_session_view_count);
+      assert.equal(runLedgerViewerStage?.metrics.read_only, true);
+      assert.equal(runLedgerViewerStage?.metrics.preview_only, true);
+      assert.equal(runLedgerViewerStage?.metrics.desktop_projection_only, true);
+      assert.equal(runLedgerViewerStage?.metrics.log_content_read_performed, false);
+      assert.equal(runLedgerViewerStage?.metrics.artifact_content_read_performed, false);
+      assert.equal(runLedgerViewerStage?.metrics.source_ingest_performed, false);
+      assert.equal(runLedgerViewerStage?.metrics.route_execution_performed, false);
+      assert.equal(runLedgerViewerStage?.metrics.server_started, false);
+      assert.equal(runLedgerViewerStage?.metrics.mutation_allowed, false);
+      assert.equal(runLedgerViewerStage?.metrics.protected_action_executed, false);
+      assert.equal(runLedgerViewerStage?.metrics.approval_application_performed, false);
+      assert.equal(runLedgerViewerStage?.metrics.output_delivery_performed, false);
+      assert.equal(runLedgerViewerStage?.metrics.legal_advice_generated, false);
+      assert.equal(runLedgerViewerStage?.metrics.client_facing_output_generated, false);
+      assert.equal(runLedgerViewerStage?.metrics.human_review_required, true);
+      assert.equal(runLedgerViewerStage?.metrics.client_facing_ready, false);
+      assert.equal(runLedgerViewerStage?.metrics.windows_baseline_stability_preserved, true);
+      assert.equal(runLedgerViewerStage?.metrics.mac_windows_completion_instability_guard, true);
+      assert.equal(runLedgerViewerStage?.metrics.validation_item_count, runLedgerViewer.summary.validation_item_count);
+      assert.equal(runLedgerViewerStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(runLedgerViewerStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -23063,6 +23294,17 @@ describe("matter harness", () => {
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-boundary"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-checks"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/source-span-inspector-validations"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-artifacts"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-panels"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/desktop-session-views"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-progress-views"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-history-views"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-agent-activity-views"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-tool-activity-views"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-log-artifact-views"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-boundary"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-checks"));
+      assert.ok(routeIndex.routes.some((route) => route.path === "/api/run-ledger-viewer-validations"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-contract-freezes"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-v2-contracts"));
       assert.ok(routeIndex.routes.some((route) => route.path === "/api/resource-version-v2-contracts"));
@@ -25987,6 +26229,50 @@ describe("matter harness", () => {
       const sourceSpanInspectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/source-span-inspector-validations?status=passed", apiOptions)).body);
       assert.equal(sourceSpanInspectorValidationsResponse.collection, "source_span_inspector_validations");
       assert.equal(sourceSpanInspectorValidationsResponse.count, sourceSpanInspector.summary.validation_item_count);
+
+      const runLedgerViewerArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/run-ledger-viewer-artifacts?run_ledger_viewer_status=complete", apiOptions)).body);
+      assert.equal(runLedgerViewerArtifactsResponse.collection, "run_ledger_viewer_artifacts");
+      assert.equal(runLedgerViewerArtifactsResponse.count, 1);
+
+      const runLedgerViewerPanelsResponse = JSON.parse((await buildReviewApiResponse("/api/run-ledger-viewer-panels?run_ledger_viewer_panel_status=ready", apiOptions)).body);
+      assert.equal(runLedgerViewerPanelsResponse.collection, "run_ledger_viewer_panels");
+      assert.equal(runLedgerViewerPanelsResponse.count, runLedgerViewer.summary.run_ledger_viewer_panel_count);
+
+      const desktopSessionViewsResponse = JSON.parse((await buildReviewApiResponse("/api/desktop-session-views?desktop_session_status=ready&read_only=true&preview_only=true", apiOptions)).body);
+      assert.equal(desktopSessionViewsResponse.collection, "desktop_session_views");
+      assert.equal(desktopSessionViewsResponse.count, runLedgerViewer.summary.desktop_session_view_count);
+
+      const runProgressViewsResponse = JSON.parse((await buildReviewApiResponse("/api/run-progress-views?run_progress_status=blocked_pending_human_review&read_only=true", apiOptions)).body);
+      assert.equal(runProgressViewsResponse.collection, "run_progress_views");
+      assert.equal(runProgressViewsResponse.count, runLedgerViewer.summary.run_progress_view_count);
+
+      const runHistoryViewsResponse = JSON.parse((await buildReviewApiResponse("/api/run-history-views?run_history_status=linked&read_only=true", apiOptions)).body);
+      assert.equal(runHistoryViewsResponse.collection, "run_history_views");
+      assert.equal(runHistoryViewsResponse.count, runLedgerViewer.summary.run_history_view_count);
+
+      const runAgentActivityViewsResponse = JSON.parse((await buildReviewApiResponse("/api/run-agent-activity-views?agent_activity_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(runAgentActivityViewsResponse.collection, "run_agent_activity_views");
+      assert.equal(runAgentActivityViewsResponse.count, runLedgerViewer.summary.run_agent_activity_view_count);
+
+      const runToolActivityViewsResponse = JSON.parse((await buildReviewApiResponse("/api/run-tool-activity-views?tool_activity_status=ready&read_only=true", apiOptions)).body);
+      assert.equal(runToolActivityViewsResponse.collection, "run_tool_activity_views");
+      assert.equal(runToolActivityViewsResponse.count, runLedgerViewer.summary.run_tool_activity_view_count);
+
+      const runLogArtifactViewsResponse = JSON.parse((await buildReviewApiResponse("/api/run-log-artifact-views?log_artifact_view_status=ready&read_only=true&preview_only=true", apiOptions)).body);
+      assert.equal(runLogArtifactViewsResponse.collection, "run_log_artifact_views");
+      assert.equal(runLogArtifactViewsResponse.count, runLedgerViewer.summary.run_log_artifact_view_count);
+
+      const runLedgerViewerBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/run-ledger-viewer-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(runLedgerViewerBoundaryResponse.collection, "run_ledger_viewer_boundary");
+      assert.equal(runLedgerViewerBoundaryResponse.count, 1);
+
+      const runLedgerViewerChecksResponse = JSON.parse((await buildReviewApiResponse("/api/run-ledger-viewer-checks?status=passed", apiOptions)).body);
+      assert.equal(runLedgerViewerChecksResponse.collection, "run_ledger_viewer_checks");
+      assert.equal(runLedgerViewerChecksResponse.count, runLedgerViewer.summary.validation_item_count);
+
+      const runLedgerViewerValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/run-ledger-viewer-validations?status=passed", apiOptions)).body);
+      assert.equal(runLedgerViewerValidationsResponse.collection, "run_ledger_viewer_validations");
+      assert.equal(runLedgerViewerValidationsResponse.count, runLedgerViewer.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

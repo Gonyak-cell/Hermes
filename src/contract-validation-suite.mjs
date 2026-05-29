@@ -22,6 +22,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "approval:queue-ui",
   "evidence:viewer-ui",
   "evidence:source-span-inspector",
+  "ledgers:run-viewer",
   "contracts:identity",
   "contracts:party-registry",
   "contracts:matter-teams",

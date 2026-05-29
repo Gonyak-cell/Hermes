@@ -2436,6 +2436,46 @@ try {
   assert.equal(githubConnectorValidations.collection, "github_connector_validations");
   assert.ok(githubConnectorValidations.count <= 5);
 
+  const vdrConnector = await fetchJson(`${url}/api/vdr-connector?vdr_connector_status=complete&limit=1`);
+  assert.equal(vdrConnector.collection, "vdr_connector");
+  assert.ok(vdrConnector.count <= 1);
+
+  const vdrRooms = await fetchJson(`${url}/api/vdr-rooms?vdr_room_status=metadata_export_ready&review_status=needs_review&limit=5`);
+  assert.equal(vdrRooms.collection, "vdr_rooms");
+  assert.ok(vdrRooms.count <= 5);
+
+  const vdrIndexes = await fetchJson(`${url}/api/vdr-indexes?vdr_index_status=resource_candidate_ready&vdr_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(vdrIndexes.collection, "vdr_indexes");
+  assert.ok(vdrIndexes.count <= 5);
+
+  const vdrDocuments = await fetchJson(`${url}/api/vdr-documents?vdr_document_status=resource_candidate_ready&vdr_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(vdrDocuments.collection, "vdr_documents");
+  assert.ok(vdrDocuments.count <= 5);
+
+  const vdrVersions = await fetchJson(`${url}/api/vdr-versions?vdr_version_status=current&vdr_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(vdrVersions.collection, "vdr_versions");
+  assert.ok(vdrVersions.count <= 5);
+
+  const vdrPermissionBoundaries = await fetchJson(`${url}/api/vdr-permission-boundaries?vdr_permission_boundary_status=enforced&review_status=needs_review&limit=5`);
+  assert.equal(vdrPermissionBoundaries.collection, "vdr_permission_boundaries");
+  assert.ok(vdrPermissionBoundaries.count <= 5);
+
+  const vdrResourceExpansionSeeds = await fetchJson(`${url}/api/vdr-resource-expansion-seeds?vdr_resource_expansion_seed_status=ready_for_resource_expansion&review_status=needs_review&limit=5`);
+  assert.equal(vdrResourceExpansionSeeds.collection, "vdr_resource_expansion_seeds");
+  assert.ok(vdrResourceExpansionSeeds.count <= 5);
+
+  const vdrCursor = await fetchJson(`${url}/api/vdr-cursor?cursor_status=complete&limit=1`);
+  assert.equal(vdrCursor.collection, "vdr_cursor");
+  assert.ok(vdrCursor.count <= 1);
+
+  const vdrAuthBoundary = await fetchJson(`${url}/api/vdr-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(vdrAuthBoundary.collection, "vdr_auth_boundary");
+  assert.ok(vdrAuthBoundary.count <= 1);
+
+  const vdrConnectorValidations = await fetchJson(`${url}/api/vdr-connector-validations?status=passed&limit=5`);
+  assert.equal(vdrConnectorValidations.collection, "vdr_connector_validations");
+  assert.ok(vdrConnectorValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

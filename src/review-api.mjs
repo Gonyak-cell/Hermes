@@ -5317,6 +5317,76 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("github_connector_validations", githubResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/vdr-connector") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_connector", [vdrResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-rooms") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_rooms", vdrResult.artifact.vdr_room_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-indexes") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_indexes", vdrResult.artifact.vdr_index_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-documents") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_documents", vdrResult.artifact.vdr_document_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-versions") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_versions", vdrResult.artifact.vdr_version_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-permission-boundaries") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_permission_boundaries", vdrResult.artifact.vdr_permission_boundary_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-resource-expansion-seeds") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_resource_expansion_seeds", vdrResult.artifact.vdr_resource_expansion_seed_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-cursor") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_cursor", [vdrResult.artifact.cursor_state].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-auth-boundary") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_auth_boundary", [vdrResult.artifact.auth_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/vdr-connector-validations") {
+    const vdrResult = await readDashboardSourceArtifact(dashboard, "vdr_connector");
+    if (!vdrResult.available) {
+      return jsonResponse(503, buildError("vdr_connector_unavailable", vdrResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("vdr_connector_validations", vdrResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11681,6 +11751,16 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/github-cursor", "GitHub connector cursor state"),
       route("GET", "/api/github-auth-boundary", "GitHub connector auth boundary"),
       route("GET", "/api/github-connector-validations", "GitHub Connector validation rows"),
+      route("GET", "/api/vdr-connector", "VDR Connector artifact"),
+      route("GET", "/api/vdr-rooms", "VDR room metadata rows"),
+      route("GET", "/api/vdr-indexes", "VDR index resource rows"),
+      route("GET", "/api/vdr-documents", "VDR document resource rows"),
+      route("GET", "/api/vdr-versions", "VDR document version rows"),
+      route("GET", "/api/vdr-permission-boundaries", "VDR permission boundary rows"),
+      route("GET", "/api/vdr-resource-expansion-seeds", "VDR resource expansion seed rows"),
+      route("GET", "/api/vdr-cursor", "VDR connector cursor state"),
+      route("GET", "/api/vdr-auth-boundary", "VDR connector auth boundary"),
+      route("GET", "/api/vdr-connector-validations", "VDR Connector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12766,6 +12846,15 @@ function filterItems(items, searchParams) {
     "github_workflow_input_status",
     "github_resource_status",
     "workflow_input_status",
+    "vdr_connector_status",
+    "vdr_room_status",
+    "vdr_index_status",
+    "vdr_document_status",
+    "vdr_version_status",
+    "vdr_permission_boundary_status",
+    "vdr_resource_expansion_seed_status",
+    "vdr_resource_status",
+    "resource_expansion_seed_status",
     "thread_status",
     "email_resource_status",
     "chat_resource_status",
@@ -14584,6 +14673,15 @@ function readFilterValue(item, key) {
   if (key === "github_workflow_input_status") return item.workflow_input_status;
   if (key === "github_resource_status") return item.github_resource_status;
   if (key === "workflow_input_status") return item.workflow_input_status;
+  if (key === "vdr_connector_status") return item.summary?.vdr_connector_status ?? item.connector_status ?? item.vdr_connector_status;
+  if (key === "vdr_room_status") return item.room_status;
+  if (key === "vdr_index_status") return item.index_status;
+  if (key === "vdr_document_status") return item.document_status;
+  if (key === "vdr_version_status") return item.version_status;
+  if (key === "vdr_permission_boundary_status") return item.permission_boundary_status;
+  if (key === "vdr_resource_expansion_seed_status") return item.resource_expansion_seed_status;
+  if (key === "vdr_resource_status") return item.vdr_resource_status;
+  if (key === "resource_expansion_seed_status") return item.resource_expansion_seed_status;
   if (key === "thread_status") return item.thread_status;
   if (key === "email_resource_status") return item.email_resource_status;
   if (key === "chat_resource_status") return item.chat_resource_status;

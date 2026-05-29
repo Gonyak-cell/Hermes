@@ -181,6 +181,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     outlook_email_connector: "artifacts/outlook-email-connector/latest/outlook-email-connector.json",
     kakaotalk_import_boundary: "artifacts/kakaotalk-import-boundary/latest/kakaotalk-import-boundary.json",
     github_connector: "artifacts/github-connector/latest/github-connector.json",
+    vdr_connector: "artifacts/vdr-connector/latest/vdr-connector.json",
   },
 };
 
@@ -355,6 +356,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("outlook_email_connector", "Outlook Email Connector", "connectors", "outlook-email-connector.schema.json"),
   fixtureDefinition("kakaotalk_import_boundary", "KakaoTalk Import Boundary", "connectors", "kakaotalk-import-boundary.schema.json"),
   fixtureDefinition("github_connector", "GitHub Connector", "connectors", "github-connector.schema.json"),
+  fixtureDefinition("vdr_connector", "VDR Connector", "connectors", "vdr-connector.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

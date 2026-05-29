@@ -1,0 +1,102 @@
+{
+  "schema_version": "vdr-connector-export.v1",
+  "tenant_id": "tenant.hermes.vdr.demo",
+  "matter_id": "MNA-2026-ALPHA",
+  "policy_snapshot_id": "policy.vdr_connector.default.v1",
+  "vdr_room_id": "vdr-room-alpha",
+  "room_name": "Project Alpha Legal Due Diligence VDR",
+  "source_url": "https://vdr.example/rooms/vdr-room-alpha",
+  "index_revision_id": "vdr-room-alpha-rev-20260524-001",
+  "permission_model": "group_based_readonly_export",
+  "exported_at": "2026-05-24T08:30:00.000Z",
+  "folders": [
+    {
+      "folder_id": "folder-indemnity",
+      "name": "Indemnity",
+      "path": "/01 Legal/Indemnity",
+      "parent_folder_id": "folder-legal",
+      "permission_group_ids": ["pg-legal-review"]
+    },
+    {
+      "folder_id": "folder-closing",
+      "name": "Closing Deliverables",
+      "path": "/02 Closing",
+      "parent_folder_id": null,
+      "permission_group_ids": ["pg-legal-review", "pg-client-clean-team"]
+    }
+  ],
+  "permissions": [
+    {
+      "permission_group_id": "pg-legal-review",
+      "name": "Legal Review Team",
+      "role": "reviewer",
+      "can_view": true,
+      "can_download": false,
+      "can_print": false,
+      "can_share": false,
+      "restricted": true,
+      "member_count": 4
+    },
+    {
+      "permission_group_id": "pg-client-clean-team",
+      "name": "Client Clean Team",
+      "role": "read_only_clean_team",
+      "can_view": true,
+      "can_download": false,
+      "can_print": false,
+      "can_share": false,
+      "restricted": true,
+      "member_count": 2
+    }
+  ],
+  "documents": [
+    {
+      "document_id": "DOC-001",
+      "document_version": "v12",
+      "title": "SPA markup v12",
+      "file_name": "SPA markup v12.docx",
+      "folder_id": "folder-indemnity",
+      "path": "/01 Legal/Indemnity/SPA markup v12.docx",
+      "mime_type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size_bytes": 384000,
+      "hash_sha256": "4122f70454116c5c94b96cc31ba08169668b91991a6d0a278834621c9431e937",
+      "uploaded_at": "2026-05-20T09:00:00.000Z",
+      "updated_at": "2026-05-23T15:45:00.000Z",
+      "owner": "seller-counsel",
+      "classification": "restricted",
+      "permission_group_ids": ["pg-legal-review"]
+    },
+    {
+      "document_id": "DOC-014",
+      "document_version": "v3",
+      "title": "Disclosure schedule indemnity exceptions",
+      "file_name": "Disclosure schedule indemnity exceptions.xlsx",
+      "folder_id": "folder-indemnity",
+      "path": "/01 Legal/Indemnity/Disclosure schedule indemnity exceptions.xlsx",
+      "mime_type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size_bytes": 128000,
+      "hash_sha256": "0e82013d2d14d68c2ef47531ad3f219d48cc315eead1d2c0874e73819a6b6c21",
+      "uploaded_at": "2026-05-22T10:20:00.000Z",
+      "updated_at": "2026-05-24T07:10:00.000Z",
+      "owner": "seller-counsel",
+      "classification": "restricted",
+      "permission_group_ids": ["pg-legal-review"]
+    },
+    {
+      "document_id": "DOC-021",
+      "document_version": "v1",
+      "title": "Closing deliverables checklist",
+      "file_name": "Closing deliverables checklist.pdf",
+      "folder_id": "folder-closing",
+      "path": "/02 Closing/Closing deliverables checklist.pdf",
+      "mime_type": "application/pdf",
+      "size_bytes": 220000,
+      "hash_sha256": "6ccca0f0b92c4965a42a4d2a2385d9341e54941af3a632957be881d8c9ffab40",
+      "uploaded_at": "2026-05-23T14:00:00.000Z",
+      "updated_at": "2026-05-24T07:25:00.000Z",
+      "owner": "seller-counsel",
+      "classification": "confidential",
+      "permission_group_ids": ["pg-legal-review", "pg-client-clean-team"]
+    }
+  ]
+}

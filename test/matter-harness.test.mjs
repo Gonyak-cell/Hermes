@@ -72,6 +72,7 @@ import { runOneDriveConnectorBoundary } from "../src/onedrive-connector-boundary
 import { runOutlookEmailConnector } from "../src/outlook-email-connector.mjs";
 import { runKakaoTalkImportBoundary } from "../src/kakaotalk-import-boundary.mjs";
 import { runGitHubConnector } from "../src/github-connector.mjs";
+import { runVdrConnector } from "../src/vdr-connector.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1939,6 +1940,7 @@ describe("matter harness", () => {
         outlookEmailConnectorPath: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
         kakaotalkImportBoundaryPath: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
         githubConnectorPath: path.join(outDir, "github-connector", "github-connector.json"),
+        vdrConnectorPath: path.join(outDir, "vdr-connector", "vdr-connector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11085,6 +11087,78 @@ describe("matter harness", () => {
       assert.equal(gitHubConnector.github_connector_boundary.github_api_execution_performed, false);
       assert.match(await readFile(path.join(outDir, "github-connector", "summary.md"), "utf8"), /GitHub Connector/);
 
+      const vdrConnector = await runVdrConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        githubConnectorPath: path.join(outDir, "github-connector", "github-connector.json"),
+        lddVdrInventoryPath: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+        vdrInputs: ["examples/vdr-connector"],
+        outDir: path.join(outDir, "vdr-connector"),
+        runAt: "2026-05-23T07:14:24.000Z",
+      });
+      const vdrConnectorSchema = JSON.parse(await readFile("schemas/vdr-connector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(vdrConnector, vdrConnectorSchema, {}, "vdr_connector"), [], JSON.stringify(vdrConnector.validation.errors));
+      assert.equal(vdrConnector.summary.vdr_connector_status, "complete");
+      assert.equal(vdrConnector.summary.connector_id, "connector.vdr.v2");
+      assert.equal(vdrConnector.summary.source_id, "source.vdr.v2");
+      assert.equal(vdrConnector.summary.source_github_connector_status, "complete");
+      assert.equal(vdrConnector.summary.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(vdrConnector.summary.room_count, 1);
+      assert.equal(vdrConnector.summary.index_record_count, 1);
+      assert.equal(vdrConnector.summary.folder_count, 2);
+      assert.equal(vdrConnector.summary.document_count, 3);
+      assert.equal(vdrConnector.summary.version_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.permission_boundary_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.permission_group_count, 2);
+      assert.equal(vdrConnector.summary.resource_expansion_seed_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.index_resource_count, vdrConnector.summary.index_record_count);
+      assert.equal(vdrConnector.summary.document_resource_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.resource_candidate_count, vdrConnector.summary.index_record_count + vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.resource_expansion_seed_link_count, vdrConnector.summary.resource_expansion_seed_count);
+      assert.equal(vdrConnector.summary.ldd_vdr_inventory_file_link_count, 1);
+      assert.equal(vdrConnector.summary.permission_boundary_link_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.metadata_complete_index_count, vdrConnector.summary.index_record_count);
+      assert.equal(vdrConnector.summary.metadata_complete_document_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnector.summary.cursor_status, "complete");
+      assert.equal(vdrConnector.summary.cursor_resume_supported, true);
+      assert.equal(vdrConnector.summary.raw_index_revision_cursor_material_allowed, false);
+      assert.equal(vdrConnector.summary.auth_boundary_status, "enforced");
+      assert.equal(vdrConnector.summary.credential_ref_required, true);
+      assert.equal(vdrConnector.summary.credential_reference_only, true);
+      assert.equal(vdrConnector.summary.raw_secret_material_allowed, false);
+      assert.equal(vdrConnector.summary.external_network_access_required_for_runtime, true);
+      assert.equal(vdrConnector.summary.local_export_read_performed, true);
+      assert.equal(vdrConnector.summary.vdr_api_execution_performed, false);
+      assert.equal(vdrConnector.summary.external_network_access_performed, false);
+      assert.equal(vdrConnector.summary.connector_execution_performed, true);
+      assert.equal(vdrConnector.summary.source_read_performed, true);
+      assert.equal(vdrConnector.summary.credential_material_read, false);
+      assert.equal(vdrConnector.summary.document_content_read_performed, false);
+      assert.equal(vdrConnector.summary.vdr_document_download_performed, false);
+      assert.equal(vdrConnector.summary.source_mutation_performed, false);
+      assert.equal(vdrConnector.summary.resource_mutation_performed, false);
+      assert.equal(vdrConnector.summary.permission_mutation_performed, false);
+      assert.equal(vdrConnector.summary.resource_expansion_mutation_performed, false);
+      assert.equal(vdrConnector.summary.matter_data_write_allowed, false);
+      assert.equal(vdrConnector.summary.task_state_write_allowed, false);
+      assert.equal(vdrConnector.summary.workflow_transition_allowed, false);
+      assert.equal(vdrConnector.summary.output_delivery_performed, false);
+      assert.equal(vdrConnector.summary.protected_action_executed, false);
+      assert.equal(vdrConnector.summary.legal_advice_generated, false);
+      assert.equal(vdrConnector.summary.client_facing_output_generated, false);
+      assert.equal(vdrConnector.summary.human_review_required_count, vdrConnector.summary.resource_candidate_count);
+      assert.equal(vdrConnector.summary.resource_expansion_human_review_required_count, vdrConnector.summary.resource_expansion_seed_count);
+      assert.equal(vdrConnector.summary.validation_error_count, 0);
+      assert.ok(vdrConnector.vdr_room_records.every((room) => room.connector_id === "connector.vdr.v2" && room.source_id === "source.vdr.v2" && room.room_status === "metadata_export_ready" && room.human_review_required));
+      assert.ok(vdrConnector.vdr_index_records.every((index) => index.resource_type === "vdr_index" && index.index_status === "resource_candidate_ready" && index.vdr_resource_status === "ready" && index.metadata_complete && index.human_review_required));
+      assert.ok(vdrConnector.vdr_document_records.every((document) => document.resource_type === "vdr_document" && document.document_status === "resource_candidate_ready" && document.permission_boundary_status === "enforced" && document.resource_expansion_seed_status === "ready_for_resource_expansion" && document.document_content_read_performed === false && document.vdr_document_download_performed === false && document.metadata_complete && document.human_review_required));
+      assert.ok(vdrConnector.vdr_permission_boundary_records.every((boundary) => boundary.permission_boundary_status === "enforced" && boundary.document_download_allowed === false && boundary.human_review_required_before_content_fetch && boundary.human_review_required));
+      assert.ok(vdrConnector.vdr_resource_expansion_seed_records.every((seed) => seed.resource_expansion_seed_status === "ready_for_resource_expansion" && seed.resource_expansion_binding_status === "bound" && seed.content_fetch_allowed_without_human_review === false && seed.human_review_required));
+      assert.equal(vdrConnector.cursor_state.cursor_kind, "vdr_index_revision_cursor");
+      assert.equal(vdrConnector.cursor_state.raw_index_revision_cursor_material_allowed, false);
+      assert.equal(vdrConnector.auth_boundary.auth_mode, "service_account_readonly");
+      assert.equal(vdrConnector.vdr_connector_boundary.vdr_api_execution_performed, false);
+      assert.match(await readFile(path.join(outDir, "vdr-connector", "summary.md"), "utf8"), /VDR Connector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11281,6 +11355,7 @@ describe("matter harness", () => {
           outlook_email_connector: path.join(outDir, "outlook-email-connector", "outlook-email-connector.json"),
           kakaotalk_import_boundary: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
           github_connector: path.join(outDir, "github-connector", "github-connector.json"),
+          vdr_connector: path.join(outDir, "vdr-connector", "vdr-connector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11332,8 +11407,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 174);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 174);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 175);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 175);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11495,6 +11570,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "outlook_email_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "kakaotalk_import_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "github_connector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "vdr_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12355,6 +12431,10 @@ describe("matter harness", () => {
       assert.equal(gitHubConnectorCheckpoint?.acceptance_profile, "github_connector_gate");
       assert.equal(gitHubConnectorCheckpoint?.status, "passed");
       assert.equal(gitHubConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const vdrConnectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-vdr-connector");
+      assert.equal(vdrConnectorCheckpoint?.acceptance_profile, "vdr_connector_gate");
+      assert.equal(vdrConnectorCheckpoint?.status, "passed");
+      assert.equal(vdrConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16847,6 +16927,60 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.github_connector_human_review_required_count, gitHubConnector.summary.human_review_required_count);
       assert.equal(dashboard.summary.github_connector_workflow_input_human_review_required_count, gitHubConnector.summary.workflow_input_human_review_required_count);
       assert.equal(dashboard.summary.github_connector_validation_error_count, 0);
+      assert.equal(dashboard.summary.vdr_connector_status, "complete");
+      assert.equal(dashboard.summary.vdr_connector_connector_id, vdrConnector.summary.connector_id);
+      assert.equal(dashboard.summary.vdr_connector_source_id, vdrConnector.summary.source_id);
+      assert.equal(dashboard.summary.vdr_connector_source_github_connector_status, "complete");
+      assert.equal(dashboard.summary.vdr_connector_source_ldd_vdr_inventory_status, "complete");
+      assert.equal(dashboard.summary.vdr_connector_source_ldd_vdr_inventory_file_record_count, vdrConnector.summary.source_ldd_vdr_inventory_file_record_count);
+      assert.equal(dashboard.summary.vdr_connector_room_count, vdrConnector.summary.room_count);
+      assert.equal(dashboard.summary.vdr_connector_index_record_count, vdrConnector.summary.index_record_count);
+      assert.equal(dashboard.summary.vdr_connector_folder_count, vdrConnector.summary.folder_count);
+      assert.equal(dashboard.summary.vdr_connector_document_count, vdrConnector.summary.document_count);
+      assert.equal(dashboard.summary.vdr_connector_version_count, vdrConnector.summary.version_count);
+      assert.equal(dashboard.summary.vdr_connector_permission_boundary_count, vdrConnector.summary.permission_boundary_count);
+      assert.equal(dashboard.summary.vdr_connector_permission_group_count, vdrConnector.summary.permission_group_count);
+      assert.equal(dashboard.summary.vdr_connector_resource_expansion_seed_count, vdrConnector.summary.resource_expansion_seed_count);
+      assert.equal(dashboard.summary.vdr_connector_index_resource_count, vdrConnector.summary.index_resource_count);
+      assert.equal(dashboard.summary.vdr_connector_document_resource_count, vdrConnector.summary.document_resource_count);
+      assert.equal(dashboard.summary.vdr_connector_resource_candidate_count, vdrConnector.summary.resource_candidate_count);
+      assert.equal(dashboard.summary.vdr_connector_resource_expansion_seed_link_count, vdrConnector.summary.resource_expansion_seed_link_count);
+      assert.equal(dashboard.summary.vdr_connector_ldd_vdr_inventory_file_link_count, vdrConnector.summary.ldd_vdr_inventory_file_link_count);
+      assert.equal(dashboard.summary.vdr_connector_permission_boundary_link_count, vdrConnector.summary.permission_boundary_link_count);
+      assert.equal(dashboard.summary.vdr_connector_metadata_complete_index_count, vdrConnector.summary.metadata_complete_index_count);
+      assert.equal(dashboard.summary.vdr_connector_metadata_complete_document_count, vdrConnector.summary.metadata_complete_document_count);
+      assert.equal(dashboard.summary.vdr_connector_cursor_status, "complete");
+      assert.equal(dashboard.summary.vdr_connector_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.vdr_connector_raw_index_revision_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.vdr_connector_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.vdr_connector_credential_ref_required, true);
+      assert.equal(dashboard.summary.vdr_connector_credential_reference_only, true);
+      assert.equal(dashboard.summary.vdr_connector_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.vdr_connector_read_operations_allowed, true);
+      assert.equal(dashboard.summary.vdr_connector_write_operations_allowed, false);
+      assert.equal(dashboard.summary.vdr_connector_external_network_access_required_for_runtime, true);
+      assert.equal(dashboard.summary.vdr_connector_local_export_read_performed, true);
+      assert.equal(dashboard.summary.vdr_connector_vdr_api_execution_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_external_network_access_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_connector_execution_performed, true);
+      assert.equal(dashboard.summary.vdr_connector_source_read_performed, true);
+      assert.equal(dashboard.summary.vdr_connector_credential_material_read, false);
+      assert.equal(dashboard.summary.vdr_connector_document_content_read_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_vdr_document_download_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_source_mutation_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_permission_mutation_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_resource_expansion_mutation_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.vdr_connector_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.vdr_connector_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.vdr_connector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.vdr_connector_protected_action_executed, false);
+      assert.equal(dashboard.summary.vdr_connector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.vdr_connector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.vdr_connector_human_review_required_count, vdrConnector.summary.human_review_required_count);
+      assert.equal(dashboard.summary.vdr_connector_resource_expansion_human_review_required_count, vdrConnector.summary.resource_expansion_human_review_required_count);
+      assert.equal(dashboard.summary.vdr_connector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19778,6 +19912,57 @@ describe("matter harness", () => {
       assert.equal(gitHubConnectorStage?.metrics.human_review_required_count, gitHubConnector.summary.human_review_required_count);
       assert.equal(gitHubConnectorStage?.metrics.workflow_input_human_review_required_count, gitHubConnector.summary.workflow_input_human_review_required_count);
       assert.equal(gitHubConnectorStage?.metrics.validation_error_count, 0);
+      const vdrConnectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "vdr_connector");
+      assert.equal(vdrConnectorStage?.status, "passed");
+      assert.equal(vdrConnectorStage?.metrics.vdr_connector_status, "complete");
+      assert.equal(vdrConnectorStage?.metrics.connector_id, vdrConnector.summary.connector_id);
+      assert.equal(vdrConnectorStage?.metrics.source_id, vdrConnector.summary.source_id);
+      assert.equal(vdrConnectorStage?.metrics.source_github_connector_status, "complete");
+      assert.equal(vdrConnectorStage?.metrics.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(vdrConnectorStage?.metrics.room_count, vdrConnector.summary.room_count);
+      assert.equal(vdrConnectorStage?.metrics.index_record_count, vdrConnector.summary.index_record_count);
+      assert.equal(vdrConnectorStage?.metrics.folder_count, vdrConnector.summary.folder_count);
+      assert.equal(vdrConnectorStage?.metrics.document_count, vdrConnector.summary.document_count);
+      assert.equal(vdrConnectorStage?.metrics.version_count, vdrConnector.summary.version_count);
+      assert.equal(vdrConnectorStage?.metrics.permission_boundary_count, vdrConnector.summary.permission_boundary_count);
+      assert.equal(vdrConnectorStage?.metrics.permission_group_count, vdrConnector.summary.permission_group_count);
+      assert.equal(vdrConnectorStage?.metrics.resource_expansion_seed_count, vdrConnector.summary.resource_expansion_seed_count);
+      assert.equal(vdrConnectorStage?.metrics.resource_candidate_count, vdrConnector.summary.resource_candidate_count);
+      assert.equal(vdrConnectorStage?.metrics.resource_expansion_seed_link_count, vdrConnector.summary.resource_expansion_seed_link_count);
+      assert.equal(vdrConnectorStage?.metrics.ldd_vdr_inventory_file_link_count, vdrConnector.summary.ldd_vdr_inventory_file_link_count);
+      assert.equal(vdrConnectorStage?.metrics.permission_boundary_link_count, vdrConnector.summary.permission_boundary_link_count);
+      assert.equal(vdrConnectorStage?.metrics.cursor_status, "complete");
+      assert.equal(vdrConnectorStage?.metrics.cursor_resume_supported, true);
+      assert.equal(vdrConnectorStage?.metrics.raw_index_revision_cursor_material_allowed, false);
+      assert.equal(vdrConnectorStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(vdrConnectorStage?.metrics.credential_ref_required, true);
+      assert.equal(vdrConnectorStage?.metrics.credential_reference_only, true);
+      assert.equal(vdrConnectorStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(vdrConnectorStage?.metrics.read_operations_allowed, true);
+      assert.equal(vdrConnectorStage?.metrics.write_operations_allowed, false);
+      assert.equal(vdrConnectorStage?.metrics.external_network_access_required_for_runtime, true);
+      assert.equal(vdrConnectorStage?.metrics.local_export_read_performed, true);
+      assert.equal(vdrConnectorStage?.metrics.vdr_api_execution_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.external_network_access_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.connector_execution_performed, true);
+      assert.equal(vdrConnectorStage?.metrics.source_read_performed, true);
+      assert.equal(vdrConnectorStage?.metrics.credential_material_read, false);
+      assert.equal(vdrConnectorStage?.metrics.document_content_read_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.vdr_document_download_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.source_mutation_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.resource_mutation_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.permission_mutation_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.resource_expansion_mutation_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(vdrConnectorStage?.metrics.task_state_write_allowed, false);
+      assert.equal(vdrConnectorStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(vdrConnectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(vdrConnectorStage?.metrics.protected_action_executed, false);
+      assert.equal(vdrConnectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(vdrConnectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(vdrConnectorStage?.metrics.human_review_required_count, vdrConnector.summary.human_review_required_count);
+      assert.equal(vdrConnectorStage?.metrics.resource_expansion_human_review_required_count, vdrConnector.summary.resource_expansion_human_review_required_count);
+      assert.equal(vdrConnectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22130,6 +22315,46 @@ describe("matter harness", () => {
       const gitHubConnectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/github-connector-validations?status=passed", apiOptions)).body);
       assert.equal(gitHubConnectorValidationsResponse.collection, "github_connector_validations");
       assert.equal(gitHubConnectorValidationsResponse.count, gitHubConnector.summary.validation_item_count);
+
+      const vdrConnectorResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-connector?vdr_connector_status=complete", apiOptions)).body);
+      assert.equal(vdrConnectorResponse.collection, "vdr_connector");
+      assert.equal(vdrConnectorResponse.count, 1);
+
+      const vdrRoomsResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-rooms?vdr_room_status=metadata_export_ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(vdrRoomsResponse.collection, "vdr_rooms");
+      assert.equal(vdrRoomsResponse.count, vdrConnector.summary.room_count);
+
+      const vdrIndexesResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-indexes?vdr_index_status=resource_candidate_ready&vdr_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(vdrIndexesResponse.collection, "vdr_indexes");
+      assert.equal(vdrIndexesResponse.count, vdrConnector.summary.index_record_count);
+
+      const vdrDocumentsResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-documents?vdr_document_status=resource_candidate_ready&vdr_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(vdrDocumentsResponse.collection, "vdr_documents");
+      assert.equal(vdrDocumentsResponse.count, vdrConnector.summary.document_count);
+
+      const vdrVersionsResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-versions?vdr_version_status=current&vdr_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(vdrVersionsResponse.collection, "vdr_versions");
+      assert.equal(vdrVersionsResponse.count, vdrConnector.summary.version_count);
+
+      const vdrPermissionBoundariesResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-permission-boundaries?vdr_permission_boundary_status=enforced&review_status=needs_review", apiOptions)).body);
+      assert.equal(vdrPermissionBoundariesResponse.collection, "vdr_permission_boundaries");
+      assert.equal(vdrPermissionBoundariesResponse.count, vdrConnector.summary.permission_boundary_count);
+
+      const vdrResourceExpansionSeedsResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-resource-expansion-seeds?vdr_resource_expansion_seed_status=ready_for_resource_expansion&review_status=needs_review", apiOptions)).body);
+      assert.equal(vdrResourceExpansionSeedsResponse.collection, "vdr_resource_expansion_seeds");
+      assert.equal(vdrResourceExpansionSeedsResponse.count, vdrConnector.summary.resource_expansion_seed_count);
+
+      const vdrCursorResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(vdrCursorResponse.collection, "vdr_cursor");
+      assert.equal(vdrCursorResponse.count, 1);
+
+      const vdrAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(vdrAuthBoundaryResponse.collection, "vdr_auth_boundary");
+      assert.equal(vdrAuthBoundaryResponse.count, 1);
+
+      const vdrConnectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-connector-validations?status=passed", apiOptions)).body);
+      assert.equal(vdrConnectorValidationsResponse.collection, "vdr_connector_validations");
+      assert.equal(vdrConnectorValidationsResponse.count, vdrConnector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

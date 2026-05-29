@@ -1,0 +1,281 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vdr-connector.schema.json",
+  "title": "VDR Connector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "vdr_connector_id",
+    "connector_id",
+    "connector_status",
+    "connector_contract_binding",
+    "source_binding",
+    "auth_boundary",
+    "vdr_room_records",
+    "vdr_index_records",
+    "vdr_document_records",
+    "vdr_version_records",
+    "vdr_permission_boundary_records",
+    "vdr_resource_expansion_seed_records",
+    "cursor_state",
+    "vdr_connector_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "vdr-connector.v1" },
+    "generated_at": { "type": "string" },
+    "vdr_connector_id": { "type": "string" },
+    "connector_id": { "const": "connector.vdr.v2" },
+    "connector_status": { "enum": ["complete", "attention"] },
+    "connector_contract_binding": {
+      "type": "object",
+      "required": ["binding_status", "connector_id", "source_id", "source_system", "connector_family", "phase_slot"],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "connector_id": { "const": "connector.vdr.v2" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "vdr" },
+        "connector_family": { "const": "vdr" },
+        "phase_slot": { "const": "P273" }
+      }
+    },
+    "source_binding": {
+      "type": "object",
+      "required": [
+        "source_binding_status",
+        "source_id",
+        "source_system",
+        "source_kind",
+        "tenant_id_required",
+        "matter_id_required",
+        "classification_required",
+        "policy_snapshot_required"
+      ],
+      "properties": {
+        "source_binding_status": { "const": "bound" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "vdr" },
+        "source_kind": { "const": "data_room" },
+        "tenant_id_required": { "const": true },
+        "matter_id_required": { "const": true },
+        "classification_required": { "const": true },
+        "policy_snapshot_required": { "const": true }
+      }
+    },
+    "auth_boundary": {
+      "type": "object",
+      "required": [
+        "auth_boundary_status",
+        "auth_mode",
+        "credential_ref_required",
+        "credential_reference_only",
+        "credential_material_read",
+        "raw_secret_material_allowed",
+        "external_network_access_required_for_runtime",
+        "external_network_access_performed",
+        "vdr_api_execution_performed",
+        "connector_execution_performed",
+        "local_export_read_performed",
+        "read_operations_allowed",
+        "write_operations_allowed",
+        "source_mutation_performed"
+      ],
+      "properties": {
+        "auth_boundary_status": { "const": "enforced" },
+        "auth_mode": { "const": "service_account_readonly" },
+        "credential_ref_required": { "const": true },
+        "credential_reference_only": { "const": true },
+        "credential_material_read": { "const": false },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_required_for_runtime": { "const": true },
+        "external_network_access_performed": { "const": false },
+        "vdr_api_execution_performed": { "const": false },
+        "connector_execution_performed": { "const": true },
+        "local_export_read_performed": { "const": true },
+        "read_operations_allowed": { "const": true },
+        "write_operations_allowed": { "const": false },
+        "source_mutation_performed": { "const": false }
+      }
+    },
+    "vdr_room_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["vdr_room_record_id", "connector_id", "source_id", "matter_id", "vdr_room_id", "room_status", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.vdr.v2" },
+          "source_system": { "const": "vdr" },
+          "room_status": { "const": "metadata_export_ready" },
+          "review_status": { "const": "needs_review" },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "permission_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "vdr_index_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["vdr_index_record_id", "connector_id", "source_id", "matter_id", "vdr_room_id", "index_revision_id", "external_id", "resource_id", "resource_type", "index_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.vdr.v2" },
+          "source_system": { "const": "vdr" },
+          "resource_type": { "const": "vdr_index" },
+          "index_status": { "const": "resource_candidate_ready" },
+          "vdr_resource_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false },
+          "permission_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "vdr_document_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["vdr_document_record_id", "connector_id", "source_id", "matter_id", "vdr_room_id", "document_id", "document_version", "external_id", "external_version_id", "resource_id", "resource_version_id", "resource_type", "document_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.vdr.v2" },
+          "source_system": { "const": "vdr" },
+          "resource_type": { "const": "vdr_document" },
+          "document_status": { "const": "resource_candidate_ready" },
+          "vdr_resource_status": { "const": "ready" },
+          "resource_projection_status": { "const": "ready" },
+          "resource_expansion_seed_status": { "const": "ready_for_resource_expansion" },
+          "permission_boundary_status": { "const": "enforced" },
+          "review_status": { "const": "needs_review" },
+          "metadata_complete": { "const": true },
+          "document_content_read_performed": { "const": false },
+          "vdr_document_download_performed": { "const": false },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false },
+          "permission_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "vdr_version_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["vdr_version_record_id", "vdr_document_record_id", "connector_id", "source_id", "matter_id", "resource_version_id", "version_status", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.vdr.v2" },
+          "source_system": { "const": "vdr" },
+          "version_status": { "const": "current" },
+          "vdr_resource_status": { "const": "ready" },
+          "review_status": { "const": "needs_review" },
+          "human_review_required": { "const": true },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "vdr_permission_boundary_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["vdr_permission_boundary_record_id", "vdr_document_record_id", "connector_id", "source_id", "matter_id", "permission_boundary_status", "document_download_allowed", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.vdr.v2" },
+          "source_system": { "const": "vdr" },
+          "permission_boundary_status": { "const": "enforced" },
+          "document_download_allowed": { "const": false },
+          "document_print_allowed": { "const": false },
+          "document_share_allowed": { "const": false },
+          "permission_mutation_allowed": { "const": false },
+          "credential_reference_only": { "const": true },
+          "human_review_required_before_content_fetch": { "const": true },
+          "review_status": { "const": "needs_review" },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "permission_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false }
+        }
+      }
+    },
+    "vdr_resource_expansion_seed_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["vdr_resource_expansion_seed_id", "vdr_document_record_id", "vdr_permission_boundary_record_id", "connector_id", "source_id", "matter_id", "resource_id", "resource_version_id", "resource_expansion_seed_status", "human_review_required"],
+        "properties": {
+          "connector_id": { "const": "connector.vdr.v2" },
+          "source_system": { "const": "vdr" },
+          "resource_expansion_seed_status": { "const": "ready_for_resource_expansion" },
+          "resource_expansion_binding_status": { "const": "bound" },
+          "content_fetch_allowed_without_human_review": { "const": false },
+          "permission_boundary_status": { "const": "enforced" },
+          "review_status": { "const": "needs_review" },
+          "human_review_required": { "const": true },
+          "source_mutation_performed": { "const": false },
+          "resource_mutation_performed": { "const": false },
+          "protected_action_executed": { "const": false }
+        }
+      }
+    },
+    "cursor_state": {
+      "type": "object",
+      "required": ["cursor_status", "cursor_kind", "resume_supported", "raw_index_revision_cursor_material_allowed"],
+      "properties": {
+        "cursor_status": { "const": "complete" },
+        "cursor_kind": { "const": "vdr_index_revision_cursor" },
+        "resume_supported": { "const": true },
+        "raw_index_revision_cursor_material_allowed": { "const": false },
+        "raw_cursor_material_allowed": { "const": false }
+      }
+    },
+    "vdr_connector_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "vdr_api_execution_performed", "document_content_read_performed", "source_mutation_performed", "resource_mutation_performed", "permission_mutation_performed", "legal_advice_generated", "client_facing_output_generated"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "vdr_api_execution_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "credential_material_read": { "const": false },
+        "document_content_read_performed": { "const": false },
+        "vdr_document_download_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "permission_mutation_performed": { "const": false },
+        "resource_expansion_mutation_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "validation_items": { "type": "array" },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["vdr_connector_status", "source_github_connector_status", "source_ldd_vdr_inventory_status", "room_count", "document_count", "resource_expansion_seed_count", "validation_error_count"],
+      "properties": {
+        "vdr_connector_status": { "const": "complete" },
+        "source_github_connector_status": { "const": "complete" },
+        "source_ldd_vdr_inventory_status": { "const": "complete" },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

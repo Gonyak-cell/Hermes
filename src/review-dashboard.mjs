@@ -108,6 +108,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   outlookEmailConnectorPath: "artifacts/outlook-email-connector/latest/outlook-email-connector.json",
   kakaotalkImportBoundaryPath: "artifacts/kakaotalk-import-boundary/latest/kakaotalk-import-boundary.json",
   githubConnectorPath: "artifacts/github-connector/latest/github-connector.json",
+  vdrConnectorPath: "artifacts/vdr-connector/latest/vdr-connector.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -791,6 +792,11 @@ const SOURCE_DEFINITIONS = [
     option: "githubConnectorPath",
     source_id: "github_connector",
     label: "GitHub Connector",
+  },
+  {
+    option: "vdrConnectorPath",
+    source_id: "vdr_connector",
+    label: "VDR Connector",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1768,6 +1774,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "outlook_email_connector") return data.summary ?? {};
   if (sourceId === "kakaotalk_import_boundary") return data.summary ?? {};
   if (sourceId === "github_connector") return data.summary ?? {};
+  if (sourceId === "vdr_connector") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2157,6 +2164,7 @@ function buildStageStatuses(artifacts, sources) {
     buildOutlookEmailConnectorStage(artifacts.outlook_email_connector, sourceById.get("outlook_email_connector")),
     buildKakaoTalkImportBoundaryStage(artifacts.kakaotalk_import_boundary, sourceById.get("kakaotalk_import_boundary")),
     buildGitHubConnectorStage(artifacts.github_connector, sourceById.get("github_connector")),
+    buildVdrConnectorStage(artifacts.vdr_connector, sourceById.get("vdr_connector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12550,6 +12558,128 @@ function buildGitHubConnectorStage(artifact, source) {
   };
 }
 
+function buildVdrConnectorStage(artifact, source) {
+  if (!artifact) return missingStage("vdr_connector", "VDR Connector", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.vdr_connector_status !== "complete"
+    || summary.source_github_connector_status !== "complete"
+    || summary.source_ldd_vdr_inventory_status !== "complete"
+    || summary.room_count <= 0
+    || summary.index_record_count <= 0
+    || summary.document_count <= 0
+    || summary.version_count !== summary.document_count
+    || summary.permission_boundary_count !== summary.document_count
+    || summary.resource_expansion_seed_count !== summary.document_count
+    || summary.index_resource_count !== summary.index_record_count
+    || summary.document_resource_count !== summary.document_count
+    || summary.resource_candidate_count !== summary.index_record_count + summary.document_count
+    || summary.resource_expansion_seed_link_count !== summary.resource_expansion_seed_count
+    || summary.ldd_vdr_inventory_file_link_count <= 0
+    || summary.permission_boundary_link_count !== summary.document_count
+    || summary.metadata_complete_index_count !== summary.index_record_count
+    || summary.metadata_complete_document_count !== summary.document_count
+    || summary.cursor_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.raw_index_revision_cursor_material_allowed === true
+    || summary.auth_boundary_status !== "enforced"
+    || summary.credential_ref_required !== true
+    || summary.credential_reference_only !== true
+    || summary.raw_secret_material_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.external_network_access_required_for_runtime !== true
+    || summary.local_export_read_performed !== true
+    || summary.vdr_api_execution_performed === true
+    || summary.external_network_access_performed === true
+    || summary.connector_execution_performed !== true
+    || summary.source_read_performed !== true
+    || summary.credential_material_read === true
+    || summary.document_content_read_performed === true
+    || summary.vdr_document_download_performed === true
+    || summary.source_mutation_performed === true
+    || summary.resource_mutation_performed === true
+    || summary.permission_mutation_performed === true
+    || summary.resource_expansion_mutation_performed === true
+    || summary.matter_data_write_allowed === true
+    || summary.task_state_write_allowed === true
+    || summary.workflow_transition_allowed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.human_review_required_count !== summary.resource_candidate_count
+    || summary.resource_expansion_human_review_required_count !== summary.resource_expansion_seed_count
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "vdr_connector",
+    label: "VDR Connector",
+    status,
+    message: `${summary.document_count ?? 0} VDR document(s), ${summary.index_record_count ?? 0} index record(s), and ${summary.resource_expansion_seed_count ?? 0} resource expansion seed(s) projected.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      vdr_connector_status: summary.vdr_connector_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      source_github_connector_status: summary.source_github_connector_status ?? "unknown",
+      source_ldd_vdr_inventory_status: summary.source_ldd_vdr_inventory_status ?? "unknown",
+      source_ldd_vdr_inventory_file_record_count: summary.source_ldd_vdr_inventory_file_record_count ?? 0,
+      room_count: summary.room_count ?? artifact.vdr_room_records?.length ?? 0,
+      index_record_count: summary.index_record_count ?? artifact.vdr_index_records?.length ?? 0,
+      folder_count: summary.folder_count ?? 0,
+      document_count: summary.document_count ?? artifact.vdr_document_records?.length ?? 0,
+      version_count: summary.version_count ?? artifact.vdr_version_records?.length ?? 0,
+      permission_boundary_count: summary.permission_boundary_count ?? artifact.vdr_permission_boundary_records?.length ?? 0,
+      permission_group_count: summary.permission_group_count ?? 0,
+      resource_expansion_seed_count: summary.resource_expansion_seed_count ?? artifact.vdr_resource_expansion_seed_records?.length ?? 0,
+      index_resource_count: summary.index_resource_count ?? 0,
+      document_resource_count: summary.document_resource_count ?? 0,
+      resource_candidate_count: summary.resource_candidate_count ?? 0,
+      resource_expansion_seed_link_count: summary.resource_expansion_seed_link_count ?? 0,
+      ldd_vdr_inventory_file_link_count: summary.ldd_vdr_inventory_file_link_count ?? 0,
+      permission_boundary_link_count: summary.permission_boundary_link_count ?? 0,
+      metadata_complete_index_count: summary.metadata_complete_index_count ?? 0,
+      metadata_complete_document_count: summary.metadata_complete_document_count ?? 0,
+      cursor_status: summary.cursor_status ?? artifact.cursor_state?.cursor_status ?? "unknown",
+      cursor_kind: summary.cursor_kind ?? artifact.cursor_state?.cursor_kind ?? null,
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_state?.resume_supported ?? false,
+      raw_index_revision_cursor_material_allowed: summary.raw_index_revision_cursor_material_allowed ?? artifact.cursor_state?.raw_index_revision_cursor_material_allowed ?? false,
+      auth_boundary_status: summary.auth_boundary_status ?? artifact.auth_boundary?.auth_boundary_status ?? "unknown",
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? false,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      external_network_access_required_for_runtime: summary.external_network_access_required_for_runtime ?? artifact.auth_boundary?.external_network_access_required_for_runtime ?? false,
+      local_export_read_performed: summary.local_export_read_performed ?? artifact.vdr_connector_boundary?.local_export_read_performed ?? false,
+      vdr_api_execution_performed: summary.vdr_api_execution_performed ?? artifact.vdr_connector_boundary?.vdr_api_execution_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.vdr_connector_boundary?.external_network_access_performed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.vdr_connector_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.vdr_connector_boundary?.source_read_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.vdr_connector_boundary?.credential_material_read ?? false,
+      document_content_read_performed: summary.document_content_read_performed ?? artifact.vdr_connector_boundary?.document_content_read_performed ?? false,
+      vdr_document_download_performed: summary.vdr_document_download_performed ?? artifact.vdr_connector_boundary?.vdr_document_download_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.vdr_connector_boundary?.source_mutation_performed ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.vdr_connector_boundary?.resource_mutation_performed ?? false,
+      permission_mutation_performed: summary.permission_mutation_performed ?? artifact.vdr_connector_boundary?.permission_mutation_performed ?? false,
+      resource_expansion_mutation_performed: summary.resource_expansion_mutation_performed ?? artifact.vdr_connector_boundary?.resource_expansion_mutation_performed ?? false,
+      matter_data_write_allowed: summary.matter_data_write_allowed ?? artifact.vdr_connector_boundary?.matter_data_write_allowed ?? false,
+      task_state_write_allowed: summary.task_state_write_allowed ?? artifact.vdr_connector_boundary?.task_state_write_allowed ?? false,
+      workflow_transition_allowed: summary.workflow_transition_allowed ?? artifact.vdr_connector_boundary?.workflow_transition_allowed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.vdr_connector_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.vdr_connector_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.vdr_connector_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.vdr_connector_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      resource_expansion_human_review_required_count: summary.resource_expansion_human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18946,6 +19076,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.vdr_connector?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "vdr_connector";
+    items.push({
+      action_item_id: `dashboard.action.vdr_connector.${slugify(subjectId)}`,
+      source_stage: "vdr_connector",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix VDR Connector",
+      subject_ref: {
+        subject_type: "vdr_connector_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_vdr_connector", "rerun_vdr_connector", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -25226,6 +25374,60 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     github_connector_human_review_required_count: artifacts.github_connector?.summary?.human_review_required_count ?? 0,
     github_connector_workflow_input_human_review_required_count: artifacts.github_connector?.summary?.workflow_input_human_review_required_count ?? 0,
     github_connector_validation_error_count: artifacts.github_connector?.summary?.validation_error_count ?? artifacts.github_connector?.validation?.errors?.length ?? 0,
+    vdr_connector_status: artifacts.vdr_connector?.summary?.vdr_connector_status ?? "unknown",
+    vdr_connector_connector_id: artifacts.vdr_connector?.summary?.connector_id ?? null,
+    vdr_connector_source_id: artifacts.vdr_connector?.summary?.source_id ?? null,
+    vdr_connector_source_github_connector_status: artifacts.vdr_connector?.summary?.source_github_connector_status ?? "unknown",
+    vdr_connector_source_ldd_vdr_inventory_status: artifacts.vdr_connector?.summary?.source_ldd_vdr_inventory_status ?? "unknown",
+    vdr_connector_source_ldd_vdr_inventory_file_record_count: artifacts.vdr_connector?.summary?.source_ldd_vdr_inventory_file_record_count ?? 0,
+    vdr_connector_room_count: artifacts.vdr_connector?.summary?.room_count ?? 0,
+    vdr_connector_index_record_count: artifacts.vdr_connector?.summary?.index_record_count ?? 0,
+    vdr_connector_folder_count: artifacts.vdr_connector?.summary?.folder_count ?? 0,
+    vdr_connector_document_count: artifacts.vdr_connector?.summary?.document_count ?? 0,
+    vdr_connector_version_count: artifacts.vdr_connector?.summary?.version_count ?? 0,
+    vdr_connector_permission_boundary_count: artifacts.vdr_connector?.summary?.permission_boundary_count ?? 0,
+    vdr_connector_permission_group_count: artifacts.vdr_connector?.summary?.permission_group_count ?? 0,
+    vdr_connector_resource_expansion_seed_count: artifacts.vdr_connector?.summary?.resource_expansion_seed_count ?? 0,
+    vdr_connector_index_resource_count: artifacts.vdr_connector?.summary?.index_resource_count ?? 0,
+    vdr_connector_document_resource_count: artifacts.vdr_connector?.summary?.document_resource_count ?? 0,
+    vdr_connector_resource_candidate_count: artifacts.vdr_connector?.summary?.resource_candidate_count ?? 0,
+    vdr_connector_resource_expansion_seed_link_count: artifacts.vdr_connector?.summary?.resource_expansion_seed_link_count ?? 0,
+    vdr_connector_ldd_vdr_inventory_file_link_count: artifacts.vdr_connector?.summary?.ldd_vdr_inventory_file_link_count ?? 0,
+    vdr_connector_permission_boundary_link_count: artifacts.vdr_connector?.summary?.permission_boundary_link_count ?? 0,
+    vdr_connector_metadata_complete_index_count: artifacts.vdr_connector?.summary?.metadata_complete_index_count ?? 0,
+    vdr_connector_metadata_complete_document_count: artifacts.vdr_connector?.summary?.metadata_complete_document_count ?? 0,
+    vdr_connector_cursor_status: artifacts.vdr_connector?.summary?.cursor_status ?? "unknown",
+    vdr_connector_cursor_resume_supported: artifacts.vdr_connector?.summary?.cursor_resume_supported ?? false,
+    vdr_connector_raw_index_revision_cursor_material_allowed: artifacts.vdr_connector?.summary?.raw_index_revision_cursor_material_allowed ?? false,
+    vdr_connector_auth_boundary_status: artifacts.vdr_connector?.summary?.auth_boundary_status ?? "unknown",
+    vdr_connector_credential_ref_required: artifacts.vdr_connector?.summary?.credential_ref_required ?? true,
+    vdr_connector_credential_reference_only: artifacts.vdr_connector?.summary?.credential_reference_only ?? false,
+    vdr_connector_raw_secret_material_allowed: artifacts.vdr_connector?.summary?.raw_secret_material_allowed ?? false,
+    vdr_connector_read_operations_allowed: artifacts.vdr_connector?.summary?.read_operations_allowed ?? false,
+    vdr_connector_write_operations_allowed: artifacts.vdr_connector?.summary?.write_operations_allowed ?? false,
+    vdr_connector_external_network_access_required_for_runtime: artifacts.vdr_connector?.summary?.external_network_access_required_for_runtime ?? false,
+    vdr_connector_local_export_read_performed: artifacts.vdr_connector?.summary?.local_export_read_performed ?? false,
+    vdr_connector_vdr_api_execution_performed: artifacts.vdr_connector?.summary?.vdr_api_execution_performed ?? false,
+    vdr_connector_external_network_access_performed: artifacts.vdr_connector?.summary?.external_network_access_performed ?? false,
+    vdr_connector_connector_execution_performed: artifacts.vdr_connector?.summary?.connector_execution_performed ?? false,
+    vdr_connector_source_read_performed: artifacts.vdr_connector?.summary?.source_read_performed ?? false,
+    vdr_connector_credential_material_read: artifacts.vdr_connector?.summary?.credential_material_read ?? false,
+    vdr_connector_document_content_read_performed: artifacts.vdr_connector?.summary?.document_content_read_performed ?? false,
+    vdr_connector_vdr_document_download_performed: artifacts.vdr_connector?.summary?.vdr_document_download_performed ?? false,
+    vdr_connector_source_mutation_performed: artifacts.vdr_connector?.summary?.source_mutation_performed ?? false,
+    vdr_connector_resource_mutation_performed: artifacts.vdr_connector?.summary?.resource_mutation_performed ?? false,
+    vdr_connector_permission_mutation_performed: artifacts.vdr_connector?.summary?.permission_mutation_performed ?? false,
+    vdr_connector_resource_expansion_mutation_performed: artifacts.vdr_connector?.summary?.resource_expansion_mutation_performed ?? false,
+    vdr_connector_matter_data_write_allowed: artifacts.vdr_connector?.summary?.matter_data_write_allowed ?? false,
+    vdr_connector_task_state_write_allowed: artifacts.vdr_connector?.summary?.task_state_write_allowed ?? false,
+    vdr_connector_workflow_transition_allowed: artifacts.vdr_connector?.summary?.workflow_transition_allowed ?? false,
+    vdr_connector_output_delivery_performed: artifacts.vdr_connector?.summary?.output_delivery_performed ?? false,
+    vdr_connector_protected_action_executed: artifacts.vdr_connector?.summary?.protected_action_executed ?? false,
+    vdr_connector_legal_advice_generated: artifacts.vdr_connector?.summary?.legal_advice_generated ?? false,
+    vdr_connector_client_facing_output_generated: artifacts.vdr_connector?.summary?.client_facing_output_generated ?? false,
+    vdr_connector_human_review_required_count: artifacts.vdr_connector?.summary?.human_review_required_count ?? 0,
+    vdr_connector_resource_expansion_human_review_required_count: artifacts.vdr_connector?.summary?.resource_expansion_human_review_required_count ?? 0,
+    vdr_connector_validation_error_count: artifacts.vdr_connector?.summary?.validation_error_count ?? artifacts.vdr_connector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -27025,6 +27227,8 @@ function parseArgs(argv) {
     else if (arg === "--no-kakaotalk-import-boundary") parsed.kakaotalkImportBoundaryPath = false;
     else if (arg === "--github-connector") parsed.githubConnectorPath = argv[++index];
     else if (arg === "--no-github-connector") parsed.githubConnectorPath = false;
+    else if (arg === "--vdr-connector") parsed.vdrConnectorPath = argv[++index];
+    else if (arg === "--no-vdr-connector") parsed.vdrConnectorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -1,0 +1,268 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/release-note-artifact.schema.json",
+  "title": "Release Note Artifact",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "release_note_artifact_id",
+    "release_note_artifact_status",
+    "safe_handling",
+    "release_note_contract",
+    "source_pr_draft_artifact",
+    "source_canonical_test_matrix",
+    "source_dev_protected_scan",
+    "release_note_output_artifacts",
+    "release_note_change_records",
+    "release_note_sections",
+    "release_note_gate_bindings",
+    "release_note_desktop_boundary",
+    "release_note_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "release-note-artifact.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "release_note_artifact_id": { "type": "string", "minLength": 1 },
+    "release_note_artifact_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "release_note_artifact_generated",
+        "release_note_publication_performed",
+        "merge_performed",
+        "release_performed",
+        "github_api_called",
+        "branch_push_performed",
+        "command_execution_performed",
+        "patch_application_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed_outside_artifact_dir",
+        "external_agent_invocation_performed",
+        "protected_mutation_performed",
+        "raw_secret_material_exposed",
+        "provider_key_exposed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "release_note_artifact_generated": { "const": true },
+        "release_note_publication_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "branch_push_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed_outside_artifact_dir": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false }
+      }
+    },
+    "release_note_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "note_authority", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "release-note-contract-definition.v1" },
+        "contract_id": { "const": "release-note-artifact.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "note_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "validated_pr_draft_test_protected_scan_and_human_gated_merge_candidate" }
+      }
+    },
+    "source_pr_draft_artifact": {
+      "type": "object",
+      "required": ["pr_draft_artifact_status", "output_artifact_count", "section_count", "test_evidence_count", "risk_count", "rollback_step_count", "merge_performed", "release_performed", "validation_error_count"],
+      "properties": {
+        "pr_draft_artifact_status": { "const": "complete" },
+        "output_artifact_count": { "const": 1 },
+        "section_count": { "const": 4 },
+        "test_evidence_count": { "type": "integer", "minimum": 3 },
+        "risk_count": { "type": "integer", "minimum": 4 },
+        "rollback_step_count": { "type": "integer", "minimum": 3 },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_canonical_test_matrix": {
+      "type": "object",
+      "required": ["canonical_test_matrix_status", "required_dimension_count", "passed_required_dimension_count", "failed_dimension_count", "validation_error_count"],
+      "properties": {
+        "canonical_test_matrix_status": { "const": "complete" },
+        "required_dimension_count": { "type": "integer", "minimum": 3 },
+        "passed_required_dimension_count": { "type": "integer", "minimum": 3 },
+        "failed_dimension_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_dev_protected_scan": {
+      "type": "object",
+      "required": ["dev_protected_scan_status", "protected_candidate_count", "blocked_before_approval_count", "raw_secret_material_exposed", "provider_key_exposed", "validation_error_count"],
+      "properties": {
+        "dev_protected_scan_status": { "const": "complete" },
+        "protected_candidate_count": { "type": "integer", "minimum": 1 },
+        "blocked_before_approval_count": { "type": "integer", "minimum": 1 },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "release_note_output_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "output_artifact_id", "artifact_type", "artifact_uri", "content_hash", "hash_status", "output_status", "delivery_state", "approval_status", "approval_request_ids", "delivery_action_ids", "blocking_gate_ids"],
+        "properties": {
+          "schema_version": { "const": "output-artifact.v2" },
+          "artifact_type": { "const": "release_note" },
+          "content_hash": { "type": "string", "minLength": 32 },
+          "hash_status": { "const": "present" },
+          "output_status": { "const": "draft" },
+          "delivery_state": { "const": "blocked_pending_approval" },
+          "approval_status": { "const": "pending" },
+          "approval_request_ids": { "type": "array", "minItems": 1 },
+          "delivery_action_ids": { "type": "array", "minItems": 1 },
+          "blocking_gate_ids": { "type": "array", "contains": { "const": "human_approval_gate" } }
+        }
+      }
+    },
+    "release_note_change_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "change_record_status", "merged_change_basis", "merge_performed", "release_performed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "release-note-change-record.v1" },
+          "change_record_status": { "const": "draft_from_human_gated_merge_candidate" },
+          "merged_change_basis": { "const": "validated_pr_draft_pending_human_merge_approval" },
+          "merge_performed": { "const": false },
+          "release_performed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "release_note_sections": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "section_type", "section_status", "content_lines", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "release-note-section.v1" },
+          "section_type": { "enum": ["highlights", "changes", "tests", "risks", "rollback", "human_review"] },
+          "section_status": { "const": "draft_ready_for_human_review" },
+          "content_lines": { "type": "array", "minItems": 1 },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "release_note_gate_bindings": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "release_note_binding_status", "release_note_publication_allowed", "merge_allowed", "release_allowed"],
+        "properties": {
+          "schema_version": { "const": "release-note-gate-binding.v1" },
+          "release_note_binding_status": { "const": "bound_to_release_note_draft" },
+          "release_note_publication_allowed": { "const": false },
+          "merge_allowed": { "const": false },
+          "release_allowed": { "const": false }
+        }
+      }
+    },
+    "release_note_desktop_boundary": {
+      "type": "object",
+      "required": ["schema_version", "boundary_status", "surface_policy", "read_only", "mutation_allowed", "github_api_allowed", "merge_allowed", "release_allowed", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "release-note-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "surface_policy": { "const": "read_only_release_note_review_surface" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "github_api_allowed": { "const": false },
+        "merge_allowed": { "const": false },
+        "release_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "release_note_artifact_status",
+        "release_note_artifact_contract_id",
+        "pack_id",
+        "capability_id",
+        "release_note_output_artifact_count",
+        "release_note_change_record_count",
+        "release_note_section_count",
+        "release_note_gate_binding_count",
+        "merge_performed",
+        "release_performed",
+        "github_api_called",
+        "branch_push_performed",
+        "desktop_read_only",
+        "validation_error_count"
+      ],
+      "properties": {
+        "release_note_artifact_status": { "enum": ["complete", "blocked"] },
+        "release_note_artifact_contract_id": { "const": "release-note-artifact.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "release_note_output_artifact_count": { "const": 1 },
+        "output_artifact_v2_count": { "const": 1 },
+        "output_artifact_hash_present_count": { "const": 1 },
+        "output_artifact_draft_count": { "const": 1 },
+        "output_artifact_blocked_pending_approval_count": { "const": 1 },
+        "output_artifact_pending_approval_count": { "const": 1 },
+        "release_note_change_record_count": { "const": 1 },
+        "merged_change_basis_count": { "const": 1 },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "release_note_publication_performed": { "const": false },
+        "release_note_section_count": { "const": 6 },
+        "highlights_section_present": { "const": true },
+        "changes_section_present": { "const": true },
+        "tests_section_present": { "const": true },
+        "risks_section_present": { "const": true },
+        "rollback_section_present": { "const": true },
+        "human_review_section_present": { "const": true },
+        "ready_section_count": { "const": 6 },
+        "release_note_gate_binding_count": { "const": 3 },
+        "bound_release_note_gate_binding_count": { "const": 3 },
+        "publication_allowed_count": { "const": 0 },
+        "merge_allowed_count": { "const": 0 },
+        "release_allowed_count": { "const": 0 },
+        "github_api_called": { "const": false },
+        "branch_push_performed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "human_review_required": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_github_api_allowed": { "const": false },
+        "desktop_merge_allowed": { "const": false },
+        "desktop_release_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

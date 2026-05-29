@@ -1,0 +1,272 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/personal-dev-dashboard-api.schema.json",
+  "title": "Personal Dev Dashboard API",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "personal_dev_dashboard_api_id",
+    "personal_dev_dashboard_api_status",
+    "safe_handling",
+    "personal_dev_dashboard_api_contract",
+    "source_repo_profile_detector",
+    "source_dev_lane_ledger",
+    "source_plan_reconciliation",
+    "source_scope_freeze_gate",
+    "source_implementation_patch_capture",
+    "source_diff_review_gate",
+    "source_canonical_test_matrix",
+    "source_pr_draft_artifact",
+    "source_release_note_artifact",
+    "source_rollback_plan_artifact",
+    "source_technical_debt_ledger",
+    "personal_dev_output_artifacts",
+    "personal_dev_panel_rows",
+    "personal_dev_status_rollups",
+    "personal_dev_api_route_bindings",
+    "personal_dev_dashboard_desktop_boundary",
+    "personal_dev_dashboard_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "personal-dev-dashboard-api.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "personal_dev_dashboard_api_id": { "type": "string", "minLength": 1 },
+    "personal_dev_dashboard_api_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "personal_dev_dashboard_api_generated",
+        "route_binding_generated",
+        "issue_mutation_performed",
+        "task_state_write_performed",
+        "command_execution_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed_outside_artifact_dir",
+        "protected_mutation_performed",
+        "github_api_called",
+        "branch_push_performed",
+        "pull_request_creation_performed",
+        "merge_performed",
+        "release_performed",
+        "patch_application_performed",
+        "external_agent_invocation_performed",
+        "raw_secret_material_exposed",
+        "provider_key_exposed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "personal_dev_dashboard_api_generated": { "const": true },
+        "route_binding_generated": { "const": true },
+        "issue_mutation_performed": { "const": false },
+        "task_state_write_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed_outside_artifact_dir": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "branch_push_performed": { "const": false },
+        "pull_request_creation_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false }
+      }
+    },
+    "personal_dev_dashboard_api_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "api_authority", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "personal-dev-dashboard-api-contract-definition.v1" },
+        "contract_id": { "const": "personal-dev-dashboard-api.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "api_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "personal_dev_phase_artifacts_projected_to_read_only_dashboard_api" }
+      }
+    },
+    "personal_dev_output_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "output_artifact_id", "artifact_type", "artifact_uri", "content_hash", "hash_status", "output_status", "delivery_state", "approval_status", "blocking_gate_ids"],
+        "properties": {
+          "schema_version": { "const": "output-artifact.v2" },
+          "artifact_type": { "const": "json" },
+          "content_hash": { "type": "string", "minLength": 32 },
+          "hash_status": { "const": "present" },
+          "output_status": { "const": "draft" },
+          "delivery_state": { "const": "blocked_pending_approval" },
+          "approval_status": { "const": "pending" },
+          "blocking_gate_ids": { "type": "array", "contains": { "const": "human_approval_gate" } }
+        }
+      }
+    },
+    "personal_dev_panel_rows": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "panel_row_id", "panel_section", "panel_status", "source_status", "summary_line", "api_route_group_id", "read_only", "mutation_allowed", "command_execution_allowed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "personal-dev-panel-row.v1" },
+          "panel_section": { "enum": ["repo", "worktree", "plan", "diff", "test", "pr"] },
+          "panel_status": { "const": "ready" },
+          "source_status": { "const": "complete" },
+          "read_only": { "const": true },
+          "mutation_allowed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "personal_dev_status_rollups": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "status_rollup_id", "rollup_key", "rollup_status", "panel_row_id", "read_only", "mutation_allowed", "command_execution_allowed"],
+        "properties": {
+          "schema_version": { "const": "personal-dev-status-rollup.v1" },
+          "rollup_key": { "enum": ["repo", "worktree", "plan", "diff", "test", "pr"] },
+          "rollup_status": { "const": "ready" },
+          "read_only": { "const": true },
+          "mutation_allowed": { "const": false },
+          "command_execution_allowed": { "const": false }
+        }
+      }
+    },
+    "personal_dev_api_route_bindings": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "api_route_binding_id", "route_group", "route_paths", "route_count", "route_binding_status", "read_only", "mutation_allowed", "task_state_write_allowed", "command_execution_allowed", "github_api_allowed", "pull_request_creation_allowed", "merge_allowed", "release_allowed", "source_of_truth"],
+        "properties": {
+          "schema_version": { "const": "personal-dev-api-route-binding.v1" },
+          "route_group": { "enum": ["repo", "worktree", "plan", "diff", "test", "pr"] },
+          "route_paths": { "type": "array", "minItems": 1 },
+          "route_count": { "type": "integer", "minimum": 1 },
+          "route_binding_status": { "const": "active" },
+          "read_only": { "const": true },
+          "mutation_allowed": { "const": false },
+          "task_state_write_allowed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "github_api_allowed": { "const": false },
+          "pull_request_creation_allowed": { "const": false },
+          "merge_allowed": { "const": false },
+          "release_allowed": { "const": false },
+          "source_of_truth": { "const": false }
+        }
+      }
+    },
+    "personal_dev_dashboard_desktop_boundary": {
+      "type": "object",
+      "required": ["schema_version", "boundary_status", "surface_policy", "read_only", "mutation_allowed", "task_state_write_allowed", "issue_mutation_allowed", "command_execution_allowed", "github_api_allowed", "pull_request_creation_allowed", "merge_allowed", "release_allowed", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "personal-dev-dashboard-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "surface_policy": { "const": "read_only_personal_dev_dashboard_api_surface" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "issue_mutation_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "github_api_allowed": { "const": false },
+        "pull_request_creation_allowed": { "const": false },
+        "merge_allowed": { "const": false },
+        "release_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "personal_dev_dashboard_api_status",
+        "personal_dev_dashboard_api_contract_id",
+        "pack_id",
+        "capability_id",
+        "api_authority",
+        "source_repo_profile_detector_status",
+        "source_dev_lane_ledger_status",
+        "source_plan_reconciliation_status",
+        "source_diff_review_gate_status",
+        "source_canonical_test_matrix_status",
+        "source_pr_draft_artifact_status",
+        "panel_row_count",
+        "ready_panel_row_count",
+        "repo_panel_status",
+        "worktree_panel_status",
+        "plan_panel_status",
+        "diff_panel_status",
+        "test_panel_status",
+        "pr_panel_status",
+        "api_route_binding_count",
+        "active_api_route_binding_count",
+        "mutation_performed",
+        "command_execution_performed",
+        "task_state_write_performed",
+        "github_api_called",
+        "pull_request_creation_performed",
+        "merge_performed",
+        "release_performed",
+        "desktop_read_only",
+        "desktop_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "personal_dev_dashboard_api_status": { "enum": ["complete", "blocked"] },
+        "personal_dev_dashboard_api_contract_id": { "const": "personal-dev-dashboard-api.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "api_authority": { "const": "harness_control_plane" },
+        "source_repo_profile_detector_status": { "const": "complete" },
+        "source_dev_lane_ledger_status": { "const": "complete" },
+        "source_plan_reconciliation_status": { "const": "complete" },
+        "source_diff_review_gate_status": { "const": "complete" },
+        "source_canonical_test_matrix_status": { "const": "complete" },
+        "source_pr_draft_artifact_status": { "const": "complete" },
+        "panel_row_count": { "const": 6 },
+        "ready_panel_row_count": { "const": 6 },
+        "repo_panel_status": { "const": "ready" },
+        "worktree_panel_status": { "const": "ready" },
+        "plan_panel_status": { "const": "ready" },
+        "diff_panel_status": { "const": "ready" },
+        "test_panel_status": { "const": "ready" },
+        "pr_panel_status": { "const": "ready" },
+        "api_route_binding_count": { "const": 6 },
+        "active_api_route_binding_count": { "const": 6 },
+        "mutation_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "task_state_write_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "pull_request_creation_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "desktop_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    }
+  }
+}

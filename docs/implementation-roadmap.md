@@ -6246,6 +6246,594 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 - Golden fixture 수가 118개로 증가하고 issue_intake_adapter artifact가 regression fixture에 포함됨
 - `npm test`, `npm run validate`, `npm run personal-dev:issue-intake -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
 
+## Phase 217 - Plan Request Contract
+
+목표: P217 Personal Dev Domain Pack에서 Claude Code와 Codex가 동일한 shared planning context와 동일한 제한조건으로 plan을 제출하도록 deterministic plan request contract를 추가한다. Hermes Desktop은 plan request, shared context, binding, validation 상태를 read-only operator surface로만 조회하고 agent invocation, plan acceptance, task state mutation은 수행하지 않는다.
+
+구현:
+
+- `src/plan-request-contract.mjs`와 `scripts/plan-request-contract.mjs`를 추가해 `npm run personal-dev:plan-request` slice를 등록
+- `schemas/plan-request-contract.schema.json`으로 shared planning context, Claude Code/Codex plan request, request binding, Desktop boundary, checkpoint를 검증
+- P214 Repo Profile Detector, P215 Agent Instruction Registry, P216 Issue Intake Adapter를 source contract로 연결
+- Claude Code와 Codex plan request 2개가 동일한 `shared_context_id`, `context_hash`, `constraints_hash`를 사용하도록 고정
+- agent 실행, plan acceptance, command execution은 수행하지 않고 request record만 생성
+- Review Dashboard와 Review API에 `/api/plan-request-contracts`, `/api/shared-planning-contexts`, `/api/plan-requests`, `/api/plan-request-bindings`, `/api/plan-request-desktop-boundary`, `/api/plan-request-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Plan Request Contract를 연결
+
+완료 기준:
+
+- Plan Request Contract가 validation error 없이 `complete` 상태가 됨
+- shared planning context가 1개이고 Claude Code/Codex plan request가 각각 1개씩 생성됨
+- plan request 2개가 동일한 context hash와 constraints hash를 공유하고 binding mismatch가 0임
+- external agent invocation, plan acceptance, command execution performed count가 모두 0임
+- Desktop read-only는 true이고 Desktop mutation/runtime execution/external agent invocation/plan acceptance/task state write/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Review API와 dashboard가 shared context/request/binding/boundary 상태를 read-only로 노출
+- Golden fixture 수가 119개로 증가하고 plan_request_contract artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:plan-request -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+
+## Phase 218 - Plan Reconciliation
+
+목표: P218 Personal Dev Domain Pack에서 P217 Claude Code/Codex plan request를 같은 shared planning context 안에서 deterministic plan candidate로 비교하고, 공통점, 충돌, selected scope, unresolved question을 human-gated reconciliation artifact로 고정한다. Hermes Desktop은 reconciliation 상태를 read-only operator surface로만 조회하고 agent invocation, plan acceptance, scope freeze, task mutation은 수행하지 않는다.
+
+구현:
+
+- `src/plan-reconciliation.mjs`와 `scripts/plan-reconciliation.mjs`를 추가하고 `npm run personal-dev:plan-reconciliation` slice를 등록
+- `schemas/plan-reconciliation.schema.json`으로 plan candidate, commonality, conflict, selected scope, unresolved question, Desktop boundary, checkpoint를 검증
+- P217 Plan Request Contract를 source contract로 사용하고 Claude Code/Codex candidate 2개가 같은 shared context hash와 constraints hash를 공유하도록 고정
+- implementation depth와 file surface 차이를 resolved conflict로 기록하고, selected scope는 Phase 219 scope freeze gate의 human-review 입력으로만 남김
+- external agent invocation, plan acceptance, scope freeze, command execution, task state mutation은 모두 0으로 유지
+- Review Dashboard와 Review API에 `/api/plan-reconciliations`, `/api/plan-candidates`, `/api/plan-commonalities`, `/api/plan-conflicts`, `/api/selected-plan-scopes`, `/api/unresolved-plan-questions`, `/api/plan-reconciliation-desktop-boundary`, `/api/plan-reconciliation-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Plan Reconciliation을 연결
+
+완료 기준:
+
+- Plan Reconciliation이 validation error 없이 `complete` 상태가 됨
+- Claude Code/Codex plan candidate 2개가 동일한 shared context와 constraints hash에 bound됨
+- commonality가 1개 이상이고 conflict가 1개 이상 resolved 상태로 기록됨
+- selected scope가 `selected_for_human_review`이며 scope freeze와 plan acceptance performed count가 0임
+- unresolved question이 non-blocking 상태로 기록되어 Phase 219 scope freeze gate 입력으로 남음
+- Desktop read-only가 true이고 Desktop mutation/runtime execution/external agent invocation/plan acceptance/scope freeze/task state write/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Review API와 dashboard가 reconciliation candidate/conflict/scope/question/boundary 상태를 read-only로 노출
+- Golden fixture 수가 120개로 증가하고 plan_reconciliation artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:plan-reconciliation -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과함
+## Phase 219 - Scope Freeze Gate
+
+목표: P219 Personal Dev Domain Pack에서 P218 selected scope와 P209 Protected File Gate rule을 구현 전 기준선으로 고정한다. Hermes Desktop은 frozen scope item, file boundary, protected rule snapshot, freeze decision, validation 상태를 read-only로만 조회하고 plan acceptance, patch, merge, release, protected file write는 수행하지 않는다.
+
+구현:
+
+- `src/scope-freeze-gate.mjs`와 `scripts/scope-freeze-gate.mjs`를 추가하고 `npm run personal-dev:scope-freeze` slice를 등록
+- `schemas/scope-freeze-gate.schema.json`으로 frozen scope item, scope file boundary, protected file rule snapshot, freeze decision, Desktop boundary, checkpoint를 검증
+- P218 Plan Reconciliation과 P209 Protected File Gate를 source contract로 사용하고 selected scope item, touched file, protected path rule을 고정
+- scope freeze performed count는 1로 기록하되 external agent invocation, command execution, protected mutation, task-state mutation, plan acceptance는 모두 0으로 유지
+- Review Dashboard와 Review API에 `/api/scope-freeze-gates`, `/api/frozen-scope-items`, `/api/scope-file-boundaries`, `/api/scope-protected-file-rules`, `/api/scope-freeze-decisions`, `/api/scope-freeze-desktop-boundary`, `/api/scope-freeze-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Scope Freeze Gate를 연결
+
+완료 기준:
+
+- Scope Freeze Gate가 validation error 없이 `complete` 상태가 됨
+- frozen scope item 수가 source selected scope item 수와 같고 모두 `frozen` 상태임
+- scope file boundary가 모두 in frozen scope이며 approval 전 write/mutation은 0임
+- protected file rule snapshot이 모두 `frozen`이고 protected write는 explicit human approval을 요구함
+- worktree provisioning은 freeze 이후에만 허용되고 implementation patch before worktree는 false임
+- Desktop read-only가 true이고 Desktop mutation/scope change/protected rule edit/protected write/runtime execution/external agent invocation/plan acceptance/task state write/source-of-truth 권한은 모두 false
+- Golden fixture 수가 121개로 증가하고 scope_freeze_gate artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:scope-freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 220 - Dev Lane Ledger
+
+목표: P220 Personal Dev Domain Pack에서 P219 frozen scope 이후 Claude Code와 Codex 작업 lane을 독립 branch/worktree record로 provisioned 상태에 고정한다. Windows 기준선에서는 실제 `git worktree add`, 외부 agent 호출, plan acceptance, patch application을 수행하지 않고, Desktop은 lane/branch/worktree/boundary/validation 상태를 read-only로만 조회한다.
+
+구현:
+
+- `src/dev-lane-ledger.mjs`, `scripts/dev-lane-ledger.mjs`, `schemas/dev-lane-ledger.schema.json`, `docs/dev-lane-ledger.md`를 추가
+- P219 Scope Freeze Gate, P218 Plan Reconciliation, P201 Worktree Manager v2를 source contract로 사용해 Claude Code lane과 Codex lane을 각각 하나씩 provisioned로 기록
+- branch record와 worktree record를 각각 2개 생성하되 `git_command_executed`, `filesystem_mutation_performed`, `external_agent_invocation_performed`, `plan_acceptance_performed`, `patch_application_performed`, `protected_mutation_performed`는 모두 0/false로 유지
+- Review Dashboard와 Review API에 `/api/dev-lane-ledgers`, `/api/dev-lanes`, `/api/dev-lane-branch-records`, `/api/dev-lane-worktree-records`, `/api/dev-lane-desktop-boundary`, `/api/dev-lane-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Dev Lane Ledger를 연결
+
+완료 기준:
+
+- Scope Freeze Gate, Plan Reconciliation, Worktree Manager v2 source status가 모두 complete
+- Claude Code lane 1개, Codex lane 1개가 provisioned이며 branch/worktree record가 각각 2개 created
+- branch name과 worktree path가 각각 2개로 고유하고 branch prefix는 `codex/`를 사용
+- materialized branch/worktree count, git command, filesystem mutation, external agent invocation, plan acceptance, patch application, protected mutation이 모두 0
+- Desktop read-only가 true이고 Desktop mutation/create/delete/runtime execution/external agent invocation/plan acceptance/patch/protected write/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Golden fixture 수가 122개로 증가하고 dev_lane_ledger artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:dev-lanes -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 221 - Implementation Patch Capture
+
+목표: P221 Personal Dev Domain Pack에서 P220 Dev Lane Ledger 이후 Claude Code와 Codex patch 후보를 실제 적용하지 않고 diff capture, touched file, generated artifact, run ledger binding으로 고정한다. Windows 기준선에서는 `git diff`, `git apply`, 파일 mutation, 외부 agent 호출, plan acceptance, merge, release를 수행하지 않고 Desktop은 patch/diff/file/artifact/binding/validation 상태를 read-only로만 조회한다.
+
+구현:
+
+- `src/implementation-patch-capture.mjs`, `scripts/implementation-patch-capture.mjs`, `schemas/implementation-patch-capture.schema.json`, `docs/implementation-patch-capture.md`를 추가
+- P220 Dev Lane Ledger, P219 Scope Freeze Gate, P205 Runtime Artifact Capture를 source contract로 사용해 Claude Code와 Codex patch record를 각각 하나씩 captured 상태로 기록
+- Runtime Artifact Capture의 diff capture 2개를 output-bound implementation diff capture로 투영하고, Scope Freeze Gate의 file boundary 9개를 in-scope touched file로 수집
+- Personal Dev generated artifact와 agent run/workflow run/output artifact 식별자를 run ledger binding으로 연결하되 patch application, git command, filesystem mutation, external agent invocation, plan acceptance, protected mutation은 모두 0/false로 유지
+- Review Dashboard와 Review API에 `/api/implementation-patch-captures`, `/api/implementation-patch-records`, `/api/implementation-diff-captures`, `/api/implementation-touched-files`, `/api/implementation-generated-artifacts`, `/api/implementation-run-ledger-bindings`, `/api/implementation-patch-desktop-boundary`, `/api/implementation-patch-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Implementation Patch Capture를 연결
+
+완료 기준:
+
+- Dev Lane Ledger, Scope Freeze Gate, Runtime Artifact Capture source status가 모두 complete
+- Claude Code patch record 1개, Codex patch record 1개가 captured이며 diff capture 2개가 OutputArtifact에 bound
+- touched file은 frozen scope file boundary에서만 나오고 write/mutation before approval은 0
+- generated artifact와 run ledger binding이 agent run, workflow run, output artifact에 연결됨
+- patch application, git command, filesystem mutation, external agent invocation, plan acceptance, protected mutation이 모두 0
+- Desktop read-only가 true이고 Desktop mutation/patch/git/filesystem/protected write/runtime execution/external agent invocation/plan acceptance/merge/release/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Golden fixture 수가 123개로 증가하고 implementation_patch_capture artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:patch-capture -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 222 - Diff Review Gate
+
+목표: P222 Personal Dev Domain Pack에서 P221 Implementation Patch Capture가 고정한 Claude Code와 Codex diff 후보를 self-report가 아니라 captured diff, touched file, generated artifact, protected-file gate evidence 기준으로 검토한다. Windows 기준선에서는 `git diff`, `git apply`, 파일 mutation, 외부 agent 호출, plan acceptance, merge, release를 수행하지 않고 Desktop은 diff review/result/file/artifact/gate/validation 상태를 read-only로만 조회한다.
+
+구현:
+
+- `src/diff-review-gate.mjs`, `scripts/diff-review-gate.mjs`, `schemas/diff-review-gate.schema.json`, `docs/diff-review-gate.md`를 추가
+- P221 Implementation Patch Capture와 P206 Protected File Gate를 source contract로 사용해 Claude Code와 Codex diff review result를 각각 하나씩 `reviewed_with_human_gate` 상태로 기록
+- touched file 9개를 frozen scope 기준 file finding으로 검토하고 generated artifact 2개를 output-bound artifact finding으로 검토
+- gate result 2개를 `passed_with_human_gate`로 기록하되 patch application, git command, filesystem mutation, external agent invocation, plan acceptance, protected mutation은 모두 0/false로 유지
+- Review Dashboard와 Review API에 `/api/diff-review-gates`, `/api/diff-review-results`, `/api/diff-review-file-findings`, `/api/diff-review-artifact-findings`, `/api/diff-review-gate-results`, `/api/diff-review-desktop-boundary`, `/api/diff-review-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Diff Review Gate를 연결
+
+완료 기준:
+
+- Implementation Patch Capture와 Protected File Gate source status가 모두 complete
+- Claude Code diff review result 1개, Codex diff review result 1개가 reviewed_with_human_gate이고 actual diff basis available, agent self-report trusted count는 0
+- file finding은 모두 in frozen scope이며 write/mutation before approval은 0
+- artifact finding은 모두 output artifact binding을 유지
+- gate result는 모두 passed_with_human_gate이며 patch application allowed count 0, blocked count 2
+- Desktop read-only가 true이고 Desktop mutation/patch/git/filesystem/protected write/runtime execution/external agent invocation/plan acceptance/merge/release/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Golden fixture 수가 124개로 증가하고 diff_review_gate artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:diff-review -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 223 - Canonical Test Matrix
+
+목표: P223 Personal Dev Domain Pack에서 repo profile, canonical test runner, diff review gate를 묶어 Windows 기준의 unit/typecheck/lint/e2e test matrix를 고정한다. required dimension은 harness가 직접 실행한 결과만 완료 근거로 쓰고, Desktop은 matrix/result/binding 상태를 read-only로 조회하며 rerun 요청 표면으로만 남긴다.
+
+구현:
+
+- `src/canonical-test-matrix.mjs`, `scripts/canonical-test-matrix.mjs`, `schemas/canonical-test-matrix.schema.json`, `docs/canonical-test-matrix.md`를 추가
+- package script `personal-dev:test-matrix`를 추가하고 repo-derived unit/typecheck/lint/e2e command matrix를 생성
+- e2e command가 없으면 optional `not_configured`로 기록하되 required gate에는 포함하지 않음
+- required unit/typecheck/lint dimension을 harness control plane authority로 실행하고 diff-review gate result 2개를 passing matrix result에 binding
+- Review Dashboard와 Review API에 `/api/canonical-test-matrices`, `/api/canonical-test-matrix-repos`, `/api/canonical-test-matrix-commands`, `/api/canonical-test-matrix-executions`, `/api/canonical-test-matrix-results`, `/api/canonical-test-matrix-bindings`, `/api/canonical-test-matrix-desktop-boundary`, `/api/canonical-test-matrix-validations`를 추가
+- Contract golden fixture, contract validation suite, control-plane goal checkpoint, control-plane loop에 Canonical Test Matrix를 연결
+
+완료 기준:
+
+- Repo Profile Detector, Canonical Test Runner, Diff Review Gate source status가 모두 complete
+- matrix repo 1개와 test dimension 4개가 기록되고 required unit/typecheck/lint 3개가 실행 및 통과
+- e2e command는 repo에 없으면 optional not_configured로 남아도 required gate를 막지 않음
+- diff-review gate result 2개가 passing required matrix result에 bound
+- agent/runtime self-report trusted count는 0이고 patch application, git command, filesystem mutation, external agent invocation, plan acceptance, protected mutation이 모두 0
+- Desktop read-only가 true이고 Desktop mutation/command execution/patch/git/filesystem/protected write/runtime execution/external agent invocation/plan acceptance/merge/release/source-of-truth/secret/provider key/installer/gateway/SSH/cron 권한은 모두 false
+- Golden fixture 수가 125개로 증가하고 canonical_test_matrix artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:test-matrix -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 224 - Dev Protected Scan
+
+목표: P224 Personal Dev Domain Pack에서 Windows 기준선 안정화 이후 captured worktree 변경과 Protected File Gate approval requirement를 결합해 credential/secret/production config 변경이 명시 승인 전 차단되는지 고정한다. 이 단계는 raw secret material을 읽거나 출력하지 않고, Desktop은 read-only 조회 표면으로만 남긴다.
+
+구현:
+
+- `src/dev-protected-scan.mjs`, `scripts/dev-protected-scan.mjs`, `schemas/dev-protected-scan.schema.json`, `docs/dev-protected-scan.md`를 추가
+- package script `personal-dev:protected-scan`를 추가하고 Implementation Patch Capture, Diff Review Gate, Canonical Test Matrix, Protected File Gate를 source로 묶음
+- `dev_protected_file_findings`, `dev_secret_findings`, `dev_prod_config_findings`, `dev_protected_scan_results`, `dev_protected_scan_bindings`, Desktop boundary, validation report를 생성
+- Contract Golden Fixtures, Contract Validation Suite, Review Dashboard, Review API, Control Plane Loop, Goal Checkpoint, test harness에 `dev_protected_scan` 계약을 연결
+
+완료 기준:
+
+- protected candidate는 모두 `blocked_pending_explicit_approval`이며 write/mutation allowed before approval count가 0
+- credential/secret candidate는 raw secret material을 materialize하지 않고 모두 blocked 상태
+- production config candidate는 모두 explicit approval 전 blocked 상태
+- scan result 2개와 canonical-test 이후 binding 2개가 생성되고 patch application/direct merge/direct apply/git/filesystem mutation/protected mutation/external agent/plan acceptance가 모두 0
+- Desktop read-only가 true이고 Desktop mutation/command execution/patch/git/filesystem/protected write/secret read/production config write/runtime execution/external agent invocation/plan acceptance/merge/release/source-of-truth/installer/gateway/SSH/cron 권한은 모두 false
+- Golden fixture 수가 126개로 증가하고 dev_protected_scan artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:protected-scan -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 225 - PR Draft Artifact
+
+목표: P225 Personal Dev Domain Pack에서 diff review, canonical test, protected scan이 통과한 변경을 summary/tests/risks/rollback 섹션이 있는 PR draft output artifact로 고정한다. 이 단계는 GitHub PR 생성, branch push, merge, release를 실행하지 않고, 사람이 검토할 수 있는 draft OutputArtifact v2와 read-only API surface만 만든다.
+
+구현:
+
+- `src/pr-draft-artifact.mjs`, `scripts/pr-draft-artifact.mjs`, `schemas/pr-draft-artifact.schema.json`, `docs/pr-draft-artifact.md`를 추가
+- package script `personal-dev:pr-draft`를 추가하고 Implementation Patch Capture, Diff Review Gate, Canonical Test Matrix, Dev Protected Scan, Output Delivery Contract Freeze를 source로 묶음
+- `pr-draft.md`, `pr_draft_output_artifacts`, `pr_draft_sections`, `pr_draft_test_evidence`, `pr_draft_risks`, `pr_draft_rollback_plan`, `pr_draft_bindings`, Desktop boundary, validation report를 생성
+- Contract Golden Fixtures, Contract Validation Suite, Review Dashboard, Review API, Control Plane Loop, Goal Checkpoint, test harness에 `pr_draft_artifact` 계약을 연결
+
+완료 기준:
+
+- PR draft가 `output-artifact.v2`, `artifact_type: pr_draft`, `output_status: draft`, `delivery_state: blocked_pending_approval`, `approval_status: pending`으로 저장됨
+- Summary, Tests, Risks, Rollback 4개 섹션이 모두 `ready_for_human_review` 상태
+- Canonical Test Matrix required evidence 3개가 모두 passed이며 agent self-report trusted count 0
+- Risk 4개와 rollback step 3개가 기록되고 rollback command/protected action execution은 모두 false
+- Protected scan 이후 binding 2개가 PR draft output artifact에 연결되며 PR creation/direct merge/release allowed count가 모두 0
+- Desktop read-only가 true이고 GitHub API, PR creation, branch push, patch/git/filesystem/protected write/secret read/production config write/merge/release/source-of-truth 권한은 모두 false
+- Golden fixture 수가 127개로 증가하고 pr_draft_artifact artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:pr-draft -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 226 - Release Note Artifact
+
+목표: P226 Personal Dev Domain Pack에서 P225 PR draft artifact, canonical test matrix, dev protected scan을 source로 validated merge candidate 기준 release note draft artifact를 생성한다. 이 단계는 실제 merge, release, publication, branch push, GitHub API 호출, protected write를 실행하지 않고, 사람이 검토할 수 있는 release note OutputArtifact v2와 read-only API surface만 만든다.
+
+구현:
+- `src/release-note-artifact.mjs`, `scripts/release-note-artifact.mjs`, `schemas/release-note-artifact.schema.json`, `docs/release-note-artifact.md` 추가
+- `personal-dev:release-note` npm script 추가
+- P225 PR Draft Artifact, Canonical Test Matrix, Dev Protected Scan source status를 검증하고 release note change record, section, gate binding, Desktop boundary를 생성
+- release note markdown을 OutputArtifact v2 draft로 저장하고 `blocked_pending_approval`/`pending` 상태와 human review gate를 유지
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- release note output artifact가 1개 생성되고 artifact hash, draft state, approval pending, blocking human gate가 모두 기록됨
+- highlights/changes/tests/risks/rollback/human_review 6개 section과 change record 1개, gate binding 3개가 생성됨
+- merge/release/publication/GitHub API/branch push/protected mutation이 0으로 유지됨
+- Desktop boundary는 read-only이며 source of truth가 아님
+- Golden fixture 수가 128개로 증가하고 release_note_artifact artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:release-note -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 227 - Rollback Plan Artifact
+
+목표: P227 Personal Dev Domain Pack에서 implementation patch capture, diff review, PR draft, release note를 source로 rollback commit/file/command target을 명시하는 rollback plan artifact를 생성한다. 이 단계는 실제 rollback, git command, file restore, commit revert, merge, release, branch push, protected write를 실행하지 않고 human-gated draft OutputArtifact v2와 read-only API surface만 만든다.
+
+구현:
+- `src/rollback-plan-artifact.mjs`, `scripts/rollback-plan-artifact.mjs`, `schemas/rollback-plan-artifact.schema.json`, `docs/rollback-plan-artifact.md` 추가
+- `personal-dev:rollback-plan` npm script 추가
+- unmerged patch/branch 후보를 rollback commit target으로, captured touched file을 rollback file target으로, human-approved future command preview를 rollback command target으로 기록
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- rollback commit target 2개, rollback file target 9개, rollback command target 5개가 모두 draft/non-executed 상태로 생성됨
+- rollback plan OutputArtifact v2가 draft/blocked_pending_approval/pending approval로 저장됨
+- rollback execution/git command/file restore/commit revert/merge/release/GitHub API/branch push/protected mutation이 0으로 유지됨
+- Desktop boundary는 read-only이며 source of truth가 아님
+- Golden fixture 수가 129개로 증가하고 rollback_plan_artifact artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:rollback-plan -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 228 - Technical Debt Ledger
+
+목표: P228 Personal Dev Domain Pack에서 agent가 발견한 미해결 이슈를 task로 보존하는 technical debt ledger를 생성한다. 이 단계는 issue tracker write, task state write, command execution, protected remediation, branch push, merge, release를 실행하지 않고, unresolved question과 PR draft risk를 human-gated read-only backlog task draft로만 보존한다.
+
+구현:
+- `src/technical-debt-ledger.mjs`, `scripts/technical-debt-ledger.mjs`, `schemas/technical-debt-ledger.schema.json`, `docs/technical-debt-ledger.md` 추가
+- `personal-dev:technical-debt` npm script 추가
+- Issue Intake Adapter의 normalized task shape, Plan Reconciliation의 unresolved question, PR Draft Artifact의 risk, Release Note Artifact의 risk section, Rollback Plan Artifact의 rollback target context를 source로 연결
+- unresolved question 2개와 PR draft risk 4개를 debt source finding 6개로 기록하고 각각 `technical_debt_task` backlog draft 6개와 binding 6개로 보존
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- debt source finding 6개가 `open_for_triage`로 생성되고 모두 task preservation 대상임
+- technical debt task 6개가 `backlog`/`preserved_as_task`/`ready_for_backlog` 상태로 생성됨
+- task_update OutputArtifact v2가 draft/blocked_pending_approval/pending approval로 저장됨
+- task state write, issue mutation, command execution, GitHub API, branch push, merge, release, protected mutation이 0으로 유지됨
+- Desktop boundary는 read-only이며 source of truth가 아님
+- Golden fixture 수가 130개로 증가하고 technical_debt_ledger artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:technical-debt -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 229 - Personal Dev Dashboard API
+
+목표: P229 Personal Dev Domain Pack에서 repo, worktree, plan, diff, test, PR 상태를 personal-dev read-only dashboard/API 표면으로 묶는다. 이 단계는 task state write, issue mutation, command execution, GitHub API, PR creation, branch push, merge, release를 실행하지 않고 기존 source artifact를 panel row와 route binding으로만 투영한다.
+
+구현:
+- `src/personal-dev-dashboard-api.mjs`, `scripts/personal-dev-dashboard-api.mjs`, `schemas/personal-dev-dashboard-api.schema.json`, `docs/personal-dev-dashboard-api.md` 추가
+- `personal-dev:dashboard-api` npm script 추가
+- Repo Profile Detector, Dev Lane Ledger, Plan Reconciliation, Scope Freeze Gate, Implementation Patch Capture, Diff Review Gate, Canonical Test Matrix, PR Draft Artifact, Release Note Artifact, Rollback Plan Artifact, Technical Debt Ledger를 source로 연결
+- repo/worktree/plan/diff/test/PR panel row 6개, status rollup 6개, API route binding 6개, Desktop read-only boundary, validation report를 생성
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- personal-dev panel row 6개와 status rollup 6개가 모두 `ready`이며 source status는 complete
+- API route binding 6개가 모두 `active`/read-only이고 mutation, task write, command execution, GitHub/PR/merge/release 권한이 false
+- OutputArtifact v2가 `artifact_type: json`, `output_status: draft`, `delivery_state: blocked_pending_approval`, `approval_status: pending`으로 저장됨
+- task state write, issue mutation, command execution, GitHub API, PR creation, branch push, merge, release, protected mutation이 0으로 유지됨
+- Desktop boundary는 read-only이며 source of truth가 아님
+- Golden fixture 수가 131개로 증가하고 personal_dev_dashboard_api artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:dashboard-api -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 230 - Personal Dev E2E Freeze
+
+목표: P230 Personal Dev Domain Pack에서 P213-P229 산출물을 하나의 Windows 기준선 freeze report로 묶는다. 이 단계는 Phase 217 이후 흐름이 Mac/Windows 차이로 흔들리지 않도록 issue intake부터 PR/release/rollback/debt/dashboard/API까지의 read-only E2E 경로를 검증한다.
+
+구현:
+- `src/personal-dev-e2e-freeze.mjs`, `scripts/personal-dev-e2e-freeze.mjs`, `schemas/personal-dev-e2e-freeze.schema.json`, `docs/personal-dev-e2e-freeze.md` 추가
+- `personal-dev:e2e-freeze` npm script 추가
+- P213-P229 personal-dev source artifact 17개를 freeze source로 연결
+- issue, plan, worktree, diff, test/protected scan, PR/release/rollback/debt, dashboard/API trace 7개를 생성
+- control-plane loop binding 18개, Desktop read-only boundary, validation report를 생성
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- source artifact 17개가 모두 complete이며 validation error 0
+- E2E trace 7개가 모두 passed이고 issue->plan->worktree->diff->test/protected scan->PR/release/rollback/debt->dashboard/API 경로가 complete
+- loop binding 18개가 모두 control-plane loop에 bound
+- mutation, source artifact mutation, task state write, issue mutation, command execution, git/filesystem mutation, GitHub API, branch push, PR creation, merge, release, rollback execution, patch application, protected mutation, external agent invocation, raw secret exposure, provider key exposure가 모두 0/false
+- Desktop boundary는 read-only이며 source of truth가 아님
+- Golden fixture 수가 132개로 증가하고 personal_dev_e2e_freeze artifact가 regression fixture에 포함됨
+- `npm test`, `npm run validate`, `npm run personal-dev:e2e-freeze -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:pipeline`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`가 통과
+
+## Phase 231 - Law Firm Pack Manifest
+
+??: P231 Law Firm Domain Pack?? law-firm pack? capability? core ?? ?? domain pack registry, capability manifest v2, capability registry API? ???? ??? deterministic artifact? ????. Hermes Desktop? matter boundary, attorney/human review, pending review output, gate ??? read-only? ???? legal advice, client-facing output generation, delivery execution, runtime execution, protected mutation? ???? ???.
+
+??:
+- `src/law-firm-pack-manifest.mjs`, `scripts/law-firm-pack-manifest.mjs`, `schemas/law-firm-pack-manifest.schema.json`, `docs/law-firm-pack-manifest.md` ??
+- `law-firm:pack-manifest` npm script ??
+- law-firm pack manifest, domain pack registry, pack compatibility, capability manifest v2, capability registry API, runtime/matter/policy/evidence/output delivery freeze? source? ??
+- law-firm pack registration, capability registration 2?, pack boundary, checkpoint/validation report? ??
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite? ??
+
+?? ??:
+- law-firm capability 2?? registry/capability manifest/API/version card? ?? ???
+- matter boundary, attorney review, human review, external model approval, default output pending_review? ???
+- legal advice, client-facing output generation, runtime execution, delivery execution, protected mutation, core mutation, raw secret/provider exposure? 0/false
+- Desktop boundary? read-only?? source of truth? ??
+- Golden fixture ?? 133?? ???? law_firm_pack_manifest artifact? regression fixture? ???
+- `npm test`, `npm run validate`, `npm run law-firm:pack-manifest -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:pipeline`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, `npm run dashboard:build`, `npm run api:smoke`? ??
+
+## Phase 232 - Matter OS Profile
+
+목표: P232 Law Firm Matter OS에서 Matter Cockpit 첫 화면이 바로 읽을 수 있는 matter-scoped profile card를 만든다. 고객, 상대방, 사건번호, 보안등급, 담당자를 표시하되 `matter_id` 경계를 보존하고, attorney/human review gate와 `pending_review` output posture를 유지한다. Desktop은 read-only 조회 표면이며 matter data write, runtime execution, delivery execution, legal advice, client-facing output generation을 수행하지 않는다.
+
+구현:
+- `src/matter-os-profile.mjs`, `scripts/matter-os-profile.mjs`, `schemas/matter-os-profile.schema.json`, `docs/matter-os-profile.md` 추가
+- `matter-os:profile` npm script 추가
+- Matter Profile/Team Ledger, Client/Counterparty Registry, Matter Contract Freeze, Law Firm Pack Manifest를 source of truth로 묶어 Matter OS profile card, display fields, Desktop boundary, checkpoint/validation report 생성
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- 모든 Matter OS profile card가 client, counterparty, matter number, security grade, responsible owner 표시 필드를 가진다.
+- 모든 profile card가 matter_team_only access scope, matter boundary id, attorney/human review, pending_review default output을 보존한다.
+- legal advice, client-facing output generation, matter data write, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 134개로 증가하고 matter_os_profile artifact가 regression fixture에 포함된다.
+- `npm run matter-os:profile -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:goal-checkpoint`, `npm run dashboard:build`, `npm run api:smoke`가 통과한다.
+
+## Phase 233 - Matter Timeline
+
+목표: P233 Law Firm Matter OS에서 회의, 수신, 제출, 기한을 `matter_id` 경계 안에서 날짜순으로 연결하는 read-only matter timeline artifact를 만든다. Timeline은 Matter OS Profile, 안전한 demo matter files, Output Catalog, Protected Delivery Queue를 source로 삼고, attorney/human review gate와 `pending_review` output posture를 보존한다. Desktop은 조회 표면이며 matter data write, runtime execution, delivery execution, legal advice, client-facing output generation을 수행하지 않는다.
+
+구현:
+- `src/matter-timeline.mjs`, `scripts/matter-timeline.mjs`, `schemas/matter-timeline.schema.json`, `docs/matter-timeline.md` 추가
+- `matter:timeline` npm script 추가
+- 회의, 수신 커뮤니케이션/문서, 제출/review packet, 기한/task due 이벤트를 `matter_timeline_events`로 정렬하고, matter별 `matter_timelines` rollup과 Desktop boundary/checkpoint/validation report를 생성
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- Timeline event가 meeting, received, submission, deadline 네 타입을 모두 포함한다.
+- 모든 event가 `matter_id`를 가지며 `event_at`, event type rank, matter id, event id 순서로 deterministic 정렬된다.
+- submission event는 pending review/protected delivery posture를 보존하고 실제 delivery execution은 수행하지 않는다.
+- legal advice, client-facing output generation, matter data write, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 135개로 증가하고 matter_timeline artifact가 regression fixture에 포함된다.
+- `npm run matter:timeline -- --check`, `npm test`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run control-plane:pipeline`, `npm run control-plane:loop`, `npm run control-plane:goal-checkpoint`, `npm run dashboard:build`, `npm run api:smoke`가 Windows 기준선에서 `npm.cmd` 실행으로 통과한다.
+
+## Phase 234 - Matter Document Index
+
+목표: P234 Law Firm Matter OS에서 원본, 초안, 제출본, 최신본, 상대방안을 `matter_id` 경계 안에서 구분하는 read-only matter document index artifact를 만든다. Matter Timeline, 안전한 demo matter files, Output Catalog, Protected Delivery Queue를 source로 쓰되, Desktop은 조회 표면으로만 유지하고 matter data write, runtime execution, delivery execution, legal advice, client-facing output generation은 수행하지 않는다.
+
+구현:
+- `src/matter-document-index.mjs`, `scripts/matter-document-index.mjs`, `schemas/matter-document-index.schema.json`, `docs/matter-document-index.md` 추가
+- `matter:document-index` npm script 추가
+- matter file document, VDR/CP checklist, litigation evidence, negotiation point, output catalog, protected delivery queue, matter timeline submission event를 document record/family/latest document로 정규화
+- document role을 `original`, `draft`, `submitted`, `counterparty_proposal`로 구분하고, 각 document family마다 최신본을 하나씩 지정
+- Review Dashboard summary/stage, Review API route, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- document record와 document family가 모두 존재하고 original/draft/submitted/counterparty proposal 역할이 모두 1개 이상 존재한다.
+- 모든 document record가 `matter_id`를 보존하고, latest document count가 document family count와 일치한다.
+- 모든 document record가 attorney/human review required 상태이며 legal advice, client-facing output generation, matter data write, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 136개로 증가하고 matter_document_index artifact가 regression fixture에 포함된다.
+- `npm.cmd run matter:document-index -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run api:smoke`가 Windows 기준선에서 통과한다.
+
+## Phase 235 - Matter Task Board
+
+목표: P235 Law Firm Matter OS에서 matter task board를 read-only 운영 표면으로 만든다. Matter task, deadline, VDR request, QA, CP checklist, negotiation point, litigation task, output review를 `matter_id` 경계 안에서 담당자, 기한, status, workflow binding과 연결하되 Desktop은 조회 표면으로만 유지하고 matter data write, task state write, workflow transition, runtime execution, delivery execution, legal advice, client-facing output generation은 수행하지 않는다.
+
+구현:
+- `src/matter-task-board.mjs`, `scripts/matter-task-board.mjs`, `schemas/matter-task-board.schema.json`, `docs/matter-task-board.md` 추가
+- `matter:task-board` npm script 추가
+- Matter Document Index, Matter Timeline, Matter OS Profile, Workflow Run Dashboard, Output Catalog, Protected Delivery Queue, 안전한 demo matter files를 source로 사용해 task row, board column, workflow binding을 생성
+- task row마다 `matter_id`, `task_owner`, `due_date`, `task_status`, `workflow_binding_id`, attorney/human review requirement를 보존하고 workflow binding은 non-executable read-only anchor로 제한
+- Review Dashboard summary/stage, Review API routes, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- task record가 1개 이상 존재하고 matter task, deadline, VDR, QA, CP, negotiation, litigation, output review category가 모두 포함된다.
+- 모든 task record가 담당자, 기한, status, workflow binding을 가지며 actual workflow run, timeline event, document record binding이 각각 1개 이상 존재한다.
+- 모든 task record가 `matter_id` 경계와 attorney/human review required 상태를 보존하고 legal advice, client-facing output generation, matter data write, task state write, workflow transition, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 137개로 증가하고 matter_task_board artifact가 regression fixture에 포함된다.
+- `npm.cmd run matter:task-board -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run api:smoke`가 Windows 기준선에서 통과한다.
+
+## Phase 236 - Matter Knowledge Graph
+
+목표: P236 Law Firm Matter OS에서 matter별 fact, issue, legal theory placeholder, evidence를 축적하는 read-only knowledge graph를 만든다. Matter Task Board, Matter Document Index, Matter Timeline, Matter OS Profile, 안전한 demo matter files, Output Catalog, Protected Delivery Queue를 source로 쓰되, legal theory는 attorney review placeholder로만 유지하고 matter data write, task state write, workflow transition, runtime execution, delivery execution, legal advice, client-facing output generation은 수행하지 않는다.
+
+구현:
+- `src/matter-knowledge-graph.mjs`, `scripts/matter-knowledge-graph.mjs`, `schemas/matter-knowledge-graph.schema.json`, `docs/matter-knowledge-graph.md` 추가
+- `matter:knowledge-graph` npm script 추가
+- matter file의 communications, risks, documents, deal control, litigation chronology/claim/evidence를 graph node와 edge로 정규화
+- node type을 `matter`, `fact`, `issue`, `legal_theory`, `evidence`로 구분하고 legal theory node는 `review_placeholder`로만 표시
+- Review Dashboard summary/stage, Review API routes, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- 각 matter가 fact, issue, legal theory placeholder, evidence node를 1개 이상 가진다.
+- 모든 node와 edge가 `matter_id`를 보존하고 attorney/human review required 상태를 유지한다.
+- fact-evidence, issue-evidence, legal-theory-issue edge가 각각 존재하고 edge endpoint가 기존 node에 연결된다.
+- legal theory node는 법률 결론이나 조언이 아니라 attorney-review placeholder이며 legal advice, client-facing output generation, matter data write, task state write, workflow transition, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 138개로 증가하고 matter_knowledge_graph artifact가 regression fixture에 포함된다.
+- `npm.cmd run matter:knowledge-graph -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run control-plane:loop`, `npm.cmd run api:smoke`가 Windows 기준선에서 통과한다.
+
+## Phase 237 - Matter Privilege Classifier
+
+목표: P237 Law Firm Matter OS에서 Matter Knowledge Graph의 evidence node를 기준으로 privilege, work-product, confidentiality, external-transfer candidate flag를 산출하는 read-only classifier를 만든다. 이 classifier는 최종 privilege 판단이나 legal advice를 제공하지 않고, 모든 classification/flag를 attorney/human review required 상태로 유지한다.
+
+구현:
+- `src/matter-privilege-classifier.mjs`, `scripts/matter-privilege-classifier.mjs`, `schemas/matter-privilege-classifier.schema.json`, `docs/matter-privilege-classifier.md` 추가
+- `matter:privilege-classifier` npm script 추가
+- Matter Knowledge Graph, Matter Document Index, Matter Task Board, safe demo matter files, Output Catalog, Protected Delivery Queue를 source로 읽어 evidence별 candidate classification record와 4개 flag를 생성
+- Review Dashboard summary/stage, Review API routes, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- classification record 수가 Matter Knowledge Graph evidence node 수와 일치하고, evidence flag 수가 record 수의 4배다.
+- privilege, work-product, confidentiality, external-transfer candidate flag가 evidence마다 생성되고 document/knowledge graph binding이 유지된다.
+- 모든 classification/flag가 `matter_id`를 보존하고 attorney/human review required, candidate review required 상태이며 final privilege determination은 0이다.
+- legal advice, client-facing output generation, matter data write, task state write, workflow transition, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 139개로 증가하고 matter_privilege_classifier artifact가 regression fixture에 포함된다.
+- `npm.cmd run matter:privilege-classifier -- --check`, `npm.cmd test`, `npm.cmd run validate`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run control-plane:loop`, `npm.cmd run api:smoke`가 Windows 기준선에서 통과한다.
+
+## Phase 238 - Matter Personal Data Detector
+
+목표: P238 Law Firm Matter OS에서 Matter Knowledge Graph의 evidence node와 Matter Document Index, Matter Privilege Classifier, Data Classification Rule Engine, Resource Quarantine Model을 기준으로 개인정보 후보 탐지 결과를 만든다. 이 detector는 개인정보 후보를 policy/quarantine control에 연결하지만 quarantine 실행, policy mutation, legal advice, client-facing output, matter/task/workflow/runtime/delivery 변경을 하지 않는 read-only 산출물이다.
+
+구현:
+- `src/matter-personal-data-detector.mjs`, `scripts/matter-personal-data-detector.mjs`, `schemas/matter-personal-data-detector.schema.json`, `docs/matter-personal-data-detector.md` 추가
+- `matter:personal-data-detector` npm script 추가
+- Matter Knowledge Graph, Matter Document Index, Matter Privilege Classifier, Data Classification Rule Engine, Resource Quarantine Model, safe demo matter files, Output Catalog, Protected Delivery Queue를 source로 읽어 개인정보 후보 detection, policy link, quarantine link, matter summary를 생성
+- 개인정보 후보는 `personal_data_gate` policy rule과 `sensitive_data` quarantine rule에 bound 상태로 연결하되 quarantine_applied와 policy mutation은 false로 고정
+- Review Dashboard summary/stage, Review API routes, API smoke, Control Plane Loop, Goal Checkpoint, Golden Fixture/Contract Validation Suite에 연결
+
+완료 기준:
+- detection record가 1개 이상 존재하고 모든 detection이 `matter_id`, evidence node, policy link, quarantine link를 보존한다.
+- personal data flag 수, policy link 수, quarantine link 수가 detection 수와 일치하고 sensitive personal data 후보가 1개 이상 존재한다.
+- 모든 detection/link가 attorney/human review required 상태이며 quarantine_applied, policy mutation, quarantine execution은 0/false다.
+- legal advice, client-facing output generation, matter data write, task state write, workflow transition, runtime execution, delivery execution, Desktop mutation/source-of-truth가 모두 0/false다.
+- Golden fixture 수가 140개로 증가하고 matter_personal_data_detector artifact가 regression fixture에 포함된다.
+- `npm.cmd run matter:personal-data-detector -- --check`, `npm.cmd test`, `npm.cmd run validate`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run control-plane:loop`, `npm.cmd run api:smoke`가 Windows 기준선에서 통과한다.
+
+## Phase 239 - Legal Citation Verifier
+
+목표: P239 Law Firm Domain Pack에서 Citation Object Store의 citation object를 Issue Graph legal rule placeholder, source span, evidence item, fact claim, lineage path에 대해 read-only로 검증하고, 법령/판례/문헌 최신성은 attorney currentness review gate로 보존한다. 이 verifier는 실제 법률 리서치나 최신 법령 검증 완료를 주장하지 않으며 legal advice, client-facing output, matter/task/workflow/runtime/delivery/protected mutation을 수행하지 않는다.
+
+구현:
+- `src/legal-citation-verifier.mjs`, `scripts/legal-citation-verifier.mjs`, `schemas/legal-citation-verifier.schema.json`, `docs/legal-citation-verifier.md` 추가
+- `legal:citations` npm script 추가
+- Citation Object Store, Issue Graph Store, Source Span Store, Evidence Item Store, Fact Claim Store, Lineage Graph, Output Catalog, Protected Delivery Queue를 source로 읽어 citation별 verification record, source check, currentness check, matter summary를 생성
+- currentness는 `currentness_review_required`와 `attorney_currentness_review_required=true`로 고정하고 `currentness_verified=false`, `external_legal_research_performed=false`, `legal_authority_finalized=false`를 명시
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, matter harness test에 연결
+
+완료 기준:
+- citation 80개마다 verification record, source check, currentness check가 각각 1개씩 생성된다.
+- 모든 citation이 source-bound, legal rule placeholder-bound, attorney/human review required, client_facing_ready=false 상태다.
+- currentness gate는 모든 citation에 적용되지만 machine currentness verification은 0이다.
+- legal advice, client-facing output, external legal research, legal authority finalization, matter/task/workflow/runtime/delivery/protected mutation이 모두 0/false다.
+- Golden fixture 수가 141개로 증가하고 legal_citation_verifier artifact가 regression fixture에 포함된다.
+- `npm.cmd run legal:citations -- --check`, `npm.cmd test`, `npm.cmd run validate`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run control-plane:loop`, `npm.cmd run api:smoke`가 Windows 기준선에서 통과한다.
+
+## Phase 240 - LDD VDR Inventory
+
+Goal: P240 Law Firm Domain Pack adds a read-only LDD VDR inventory artifact that aggregates matter-scoped VDR batches, folder rows, file rows, version rows, missing/requested data rows, and matter summaries from existing source register, VDR requests, matter documents, and resource version ledger context. Missing data is treated as RFI/follow-up context only, not as a factual non-existence finding.
+
+Implementation:
+- Added `src/ldd-vdr-inventory.mjs`, `scripts/ldd-vdr-inventory.mjs`, `schemas/ldd-vdr-inventory.schema.json`, and `docs/ldd-vdr-inventory.md`.
+- Added `law-firm:vdr-inventory` npm script.
+- The artifact emits `ldd_vdr_batches`, `ldd_vdr_folder_records`, `ldd_vdr_file_records`, `ldd_vdr_version_records`, `ldd_vdr_missing_data_records`, and `ldd_vdr_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 1 VDR batch, 4 folder rows, 1 file row, 1 version row, and 4 missing/requested data rows are generated from the demo matter baseline.
+- Every row remains matter_id-scoped and attorney/human-review gated.
+- Missing data rows are `follow_up_required`, `rfi_candidate=true`, and `absence_not_factual_nonexistence=true`.
+- Legal advice, client-facing output, external VDR access, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 142 and `ldd_vdr_inventory` is included as a regression fixture.
+- `npm.cmd run law-firm:vdr-inventory -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, and `npm.cmd run api:smoke` passed on the Windows baseline.
+
+## Phase 241 - LDD Document Classification
+
+Goal: P241 Law Firm Domain Pack classifies LDD VDR file and missing/requested document candidates into deterministic operational document classes such as contract, registry, license/permit, litigation, labor/employment, tax, corporate governance, closing deliverable, and other. These classes are routing metadata only and do not become legal conclusions.
+
+Implementation:
+- Added `src/ldd-document-classification.mjs`, `scripts/ldd-document-classification.mjs`, `schemas/ldd-document-classification.schema.json`, and `docs/ldd-document-classification.md`.
+- Added `law-firm:document-classification` npm script.
+- The artifact emits `ldd_document_classification_rules`, `ldd_document_classification_records`, `ldd_document_class_summaries`, and `ldd_document_matter_class_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 9 class rules, 5 classification records, 4 class summary rows, and 1 matter class summary are generated from the P240 VDR inventory baseline.
+- All document candidates from P240 file/missing-data rows are classified.
+- Contract, tax, and closing-deliverable classes are represented in the demo baseline.
+- Every classification row remains matter_id-scoped and attorney/human-review gated.
+- Legal advice, client-facing output, final legal classification assertion, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 143 and `ldd_document_classification` is included as a regression fixture.
+- `npm.cmd run law-firm:document-classification -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, and `npm.cmd run api:smoke` passed on the Windows baseline.
+
+## Phase 242 - LDD Extractor Selection
+
+Goal: P242 Law Firm Domain Pack adds a deterministic extractor selection ledger that maps each Phase 241 LDD document classification row to a local, review-gated extractor profile. This phase selects extractors and records rationale only; it does not execute extractors or generate extracted legal/client-facing work product.
+
+Implementation:
+- Added `src/ldd-extractor-selection.mjs`, `scripts/ldd-extractor-selection.mjs`, `schemas/ldd-extractor-selection.schema.json`, and `docs/ldd-extractor-selection.md`.
+- Added `law-firm:extractor-selection` npm script.
+- The artifact emits `ldd_extractor_registry`, `ldd_extractor_selection_records`, `ldd_extractor_selection_rationales`, and `ldd_extractor_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 9 local-only extractor registry rows, 5 extractor selection records, 5 rationale rows, and 1 matter summary are generated from the P241 classification baseline.
+- All Phase 241 classification rows receive a selected extractor profile and a rationale.
+- Contract, tax, and closing-deliverable extractor selections are represented in the demo baseline.
+- Extractor execution and extracted result generation remain 0/false.
+- Every selection/rationale row remains matter_id-scoped and attorney/human-review gated.
+- Legal advice, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 144 and `ldd_extractor_selection` is included as a regression fixture.
+- `npm.cmd run law-firm:extractor-selection -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, and `npm.cmd run api:smoke` passed on the Windows baseline.
+
+## Phase 243 - LDD Fact Extraction
+
+Goal: P243 Law Firm Domain Pack adds a deterministic LDD fact extraction ledger that turns Phase 242 extractor selections and scoped demo matter metadata into attorney-reviewable candidate fact rows. This phase records facts and source gaps only; it does not provide legal advice, execute external extractors, or generate client-facing work product.
+
+Implementation:
+- Added `src/ldd-fact-extraction.mjs`, `scripts/ldd-fact-extraction.mjs`, `schemas/ldd-fact-extraction.schema.json`, and `docs/ldd-fact-extraction.md`.
+- Added `law-firm:fact-extraction` npm script.
+- The artifact emits `ldd_fact_extraction_rules`, `ldd_fact_records`, `ldd_fact_source_bindings`, `ldd_fact_type_summaries`, and `ldd_fact_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 5 fact rules and 16 fact rows are generated from 5 Phase 242 extractor selection rows.
+- Parties, dates, obligations, termination, and change-of-control fact types are represented in the demo baseline.
+- Termination is recorded as a source-gap review item when clause text is not present in the deterministic source set.
+- Every fact and source-binding row remains matter_id-scoped and attorney/human-review gated.
+- External extractor execution, legal conclusions, legal advice, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 145 and `ldd_fact_extraction` is included as a regression fixture.
+- `npm.cmd run law-firm:fact-extraction -- --check`, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run api:smoke`, `npm.cmd run control-plane:loop`, and `npm.cmd run validate` passed on the Windows baseline.
+
+## Phase 244 - LDD Issue Detection
+
+Goal: P244 Law Firm Domain Pack adds a deterministic LDD issue detection ledger that turns Phase 243 candidate facts and scoped demo matter metadata into attorney-reviewable issue candidates, red/yellow operational flags, follow-up rows, and severity summaries. This phase records operational review cues only; it does not assert legal conclusions, provide legal advice, or generate client-facing work product.
+
+Implementation:
+- Added `src/ldd-issue-detection.mjs`, `scripts/ldd-issue-detection.mjs`, `schemas/ldd-issue-detection.schema.json`, and `docs/ldd-issue-detection.md`.
+- Added `law-firm:issue-detection` npm script.
+- The artifact emits `ldd_issue_detection_rules`, `ldd_issue_records`, `ldd_issue_follow_ups`, `ldd_issue_severity_summaries`, and `ldd_issue_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 5 issue rules and 5 issue candidate rows are generated from 16 Phase 243 fact rows and scoped demo matter metadata.
+- 2 red flags, 3 yellow flags, high/medium severities, 1 source-gap issue, and 5 open follow-up rows are represented in the demo baseline.
+- Every issue and follow-up row remains matter_id-scoped and attorney/human-review gated.
+- Issue flags are operational review cues only, not legal conclusions.
+- External execution, legal conclusions, legal advice, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 146 and `ldd_issue_detection` is included as a regression fixture.
+- `npm.cmd run law-firm:issue-detection -- --check`, schema validation, `npm.cmd test`, `npm.cmd run contracts:inventory`, `npm.cmd run contracts:dependencies -- --check`, `npm.cmd run contracts:golden-fixtures -- --check`, `npm.cmd run contracts:validate -- --check`, `npm.cmd run dashboard:build`, `npm.cmd run control-plane:goal-checkpoint`, `npm.cmd run api:smoke`, `npm.cmd run control-plane:loop`, `npm.cmd run validate`, and `git diff --check` passed on the Windows baseline.
+
+## Phase 245 - LDD RFI Generator
+
+Goal: P245 Law Firm Domain Pack adds a deterministic, draft-only RFI generator that turns P244 issue candidates and P240 VDR missing/requested material rows into attorney-reviewable RFI draft packets, question rows, missing-material links, issue links, and matter summaries. Missing/requested materials remain follow-up/RFI context only, not factual non-existence findings, and no client-facing output is finalized.
+
+Implementation:
+- Added `src/ldd-rfi-generator.mjs`, `scripts/ldd-rfi-generator.mjs`, `schemas/ldd-rfi-generator.schema.json`, and `docs/ldd-rfi-generator.md`.
+- Added `law-firm:rfi-generator` npm script.
+- The artifact emits `ldd_rfi_rules`, `ldd_rfi_drafts`, `ldd_rfi_questions`, `ldd_rfi_missing_material_links`, `ldd_rfi_issue_links`, and `ldd_rfi_matter_summaries`.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 5 RFI rules, 1 draft packet, 5 question rows, 4 missing-material links, 5 issue links, and 1 matter summary are generated from the P244/P240 baseline.
+- Every question links to a P244 issue candidate and carries evidence/source references.
+- Every VDR RFI candidate is linked through a missing-material link row.
+- Every draft/question/link row remains `matter_id`-scoped, draft-only, attorney/human-review gated, and not client-facing-ready.
+- Legal advice, legal conclusions, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 147 and `ldd_rfi_generator` is included as a regression fixture.
+- `npm run law-firm:rfi-generator -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6254,10 +6842,11 @@ Phase 190은 Phase 187/188/189의 pre-run, in-run, post-run gate와 Phase 105 Ga
 
 운영 원칙:
 
-- 현재 완료 기준점은 Phase 216이다.
+- Current actual completion baseline is Phase 245.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- 남은 계획 슬롯은 P217-P312, 총 96개다.
+- Remaining planned slots are P246-P312, 67 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
+- P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
 - 완료된 슬롯은 구체적 구현 산출물과 완료 기준을 작성한 뒤 `## Phase N` 형식으로 승격한다.
 

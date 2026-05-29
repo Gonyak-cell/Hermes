@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/plan-reconciliation.schema.json",
+  "title": "Plan Reconciliation",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "plan_reconciliation_id",
+    "plan_reconciliation_status",
+    "plan_reconciliation_contract",
+    "source_plan_request_contract",
+    "shared_planning_context",
+    "plan_candidates",
+    "plan_commonalities",
+    "plan_conflicts",
+    "selected_plan_scope",
+    "unresolved_plan_questions",
+    "plan_reconciliation_desktop_boundary",
+    "plan_reconciliation_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "plan-reconciliation.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "plan_reconciliation_id": { "type": "string", "minLength": 1 },
+    "plan_reconciliation_status": { "enum": ["complete", "blocked"] },
+    "plan_reconciliation_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "plan-reconciliation-contract-definition.v1" },
+        "contract_id": { "const": "plan-reconciliation.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "source_of_truth": { "const": "plan_request_contract_reconciled_into_human_gated_scope_candidate" }
+      }
+    },
+    "source_plan_request_contract": {
+      "type": "object",
+      "required": ["schema_version", "plan_request_status", "plan_request_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-plan-request-contract.v1" },
+        "plan_request_status": { "enum": ["complete", "blocked", "unknown"] },
+        "plan_request_count": { "type": "integer", "minimum": 0 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "plan_candidates": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/plan_candidate" }
+    },
+    "plan_commonalities": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/plan_commonality" }
+    },
+    "plan_conflicts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/plan_conflict" }
+    },
+    "selected_plan_scope": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "selected_scope_id",
+        "selected_scope_status",
+        "selected_scope_items",
+        "excluded_scope_items",
+        "required_next_gate",
+        "scope_freeze_performed",
+        "plan_acceptance_performed",
+        "implementation_allowed_before_scope_freeze",
+        "human_review_required",
+        "human_review_note"
+      ],
+      "properties": {
+        "schema_version": { "const": "selected-plan-scope.v1" },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "selected_scope_items": { "type": "array", "minItems": 1 },
+        "excluded_scope_items": { "type": "array", "minItems": 1 },
+        "required_next_gate": { "const": "scope_freeze_gate" },
+        "scope_freeze_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "implementation_allowed_before_scope_freeze": { "const": false },
+        "human_review_required": { "const": true },
+        "human_review_note": { "type": "string", "minLength": 1 }
+      }
+    },
+    "unresolved_plan_questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/unresolved_question" }
+    },
+    "plan_reconciliation_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "mutation_allowed",
+        "runtime_execution_allowed",
+        "external_agent_invocation_allowed",
+        "plan_acceptance_allowed",
+        "scope_freeze_allowed",
+        "task_state_write_allowed",
+        "source_of_truth"
+      ],
+      "properties": {
+        "schema_version": { "const": "plan-reconciliation-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "external_agent_invocation_allowed": { "const": false },
+        "plan_acceptance_allowed": { "const": false },
+        "scope_freeze_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "plan_reconciliation_checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/validation_item" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "plan_reconciliation_status",
+        "plan_reconciliation_contract_id",
+        "plan_candidate_count",
+        "commonality_count",
+        "conflict_count",
+        "resolved_conflict_count",
+        "selected_scope_status",
+        "unresolved_question_count",
+        "scope_freeze_performed_count",
+        "plan_acceptance_performed_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "plan_reconciliation_status": { "enum": ["complete", "blocked"] },
+        "plan_reconciliation_contract_id": { "const": "plan-reconciliation.v1" },
+        "plan_candidate_count": { "type": "integer", "minimum": 0 },
+        "commonality_count": { "type": "integer", "minimum": 0 },
+        "conflict_count": { "type": "integer", "minimum": 0 },
+        "resolved_conflict_count": { "type": "integer", "minimum": 0 },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "unresolved_question_count": { "type": "integer", "minimum": 0 },
+        "scope_freeze_performed_count": { "const": 0 },
+        "plan_acceptance_performed_count": { "const": 0 },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "plan_candidate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "plan_candidate_id",
+        "source_plan_request_id",
+        "agent",
+        "candidate_status",
+        "candidate_origin",
+        "shared_context_id",
+        "context_hash",
+        "constraints_hash",
+        "scope_summary",
+        "scope_items",
+        "proposed_steps",
+        "touched_files",
+        "tests",
+        "risks",
+        "human_review_needs",
+        "external_agent_invocation_performed",
+        "plan_acceptance_performed",
+        "command_execution_performed"
+      ],
+      "properties": {
+        "schema_version": { "const": "plan-candidate.v1" },
+        "agent": { "enum": ["claude_code", "codex"] },
+        "candidate_status": { "const": "ready_for_reconciliation" },
+        "candidate_origin": { "const": "deterministic_local_candidate_from_plan_request" },
+        "scope_items": { "type": "array", "minItems": 1 },
+        "proposed_steps": { "type": "array", "minItems": 1 },
+        "touched_files": { "type": "array", "minItems": 1 },
+        "tests": { "type": "array", "minItems": 1 },
+        "risks": { "type": "array", "minItems": 1 },
+        "human_review_needs": { "type": "array", "minItems": 1 },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "command_execution_performed": { "const": false }
+      }
+    },
+    "plan_commonality": {
+      "type": "object",
+      "required": ["schema_version", "commonality_id", "commonality_status", "commonality_kind", "evidence_agents", "description"],
+      "properties": {
+        "schema_version": { "const": "plan-commonality.v1" },
+        "commonality_status": { "const": "accepted" },
+        "evidence_agents": { "type": "array", "minItems": 2 }
+      }
+    },
+    "plan_conflict": {
+      "type": "object",
+      "required": ["schema_version", "conflict_id", "conflict_status", "conflict_kind", "selected_resolution", "resolution_reason"],
+      "properties": {
+        "schema_version": { "const": "plan-conflict.v1" },
+        "conflict_status": { "const": "resolved" }
+      }
+    },
+    "unresolved_question": {
+      "type": "object",
+      "required": ["schema_version", "question_id", "question_status", "blocker_status", "question", "required_owner"],
+      "properties": {
+        "schema_version": { "const": "unresolved-plan-question.v1" },
+        "blocker_status": { "const": "non_blocking_for_reconciliation" }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "status", "message"],
+      "properties": {
+        "schema_version": { "const": "plan-reconciliation-checkpoint.v1" },
+        "status": { "enum": ["passed", "failed"] }
+      }
+    },
+    "validation_item": {
+      "type": "object",
+      "required": ["path", "checkpoint_id", "check_id", "status", "message"],
+      "properties": {
+        "status": { "enum": ["passed", "failed"] }
+      }
+    }
+  }
+}

@@ -89,6 +89,35 @@ const GOAL_ITEMS = [
   sourceItem("repo_profile_detector", "Repo profile detector", "personal_dev", "repo_profile_detector", "control-plane-repo-profile-detector", { acceptance_profile: "repo_profile_detector_gate" }),
   sourceItem("agent_instruction_registry", "Agent instruction registry", "personal_dev", "agent_instruction_registry", "control-plane-agent-instruction-registry", { acceptance_profile: "agent_instruction_registry_gate" }),
   sourceItem("issue_intake_adapter", "Issue intake adapter", "personal_dev", "issue_intake_adapter", "control-plane-issue-intake-adapter", { acceptance_profile: "issue_intake_adapter_gate" }),
+  sourceItem("plan_request_contract", "Plan request contract", "personal_dev", "plan_request_contract", "control-plane-plan-request-contract", { acceptance_profile: "plan_request_contract_gate" }),
+  sourceItem("plan_reconciliation", "Plan reconciliation", "personal_dev", "plan_reconciliation", "control-plane-plan-reconciliation", { acceptance_profile: "plan_reconciliation_gate" }),
+  sourceItem("scope_freeze_gate", "Scope freeze gate", "personal_dev", "scope_freeze_gate", "control-plane-scope-freeze-gate", { acceptance_profile: "scope_freeze_gate_gate" }),
+  sourceItem("dev_lane_ledger", "Dev lane ledger", "personal_dev", "dev_lane_ledger", "control-plane-dev-lane-ledger", { acceptance_profile: "dev_lane_ledger_gate" }),
+  sourceItem("implementation_patch_capture", "Implementation patch capture", "personal_dev", "implementation_patch_capture", "control-plane-implementation-patch-capture", { acceptance_profile: "implementation_patch_capture_gate" }),
+  sourceItem("diff_review_gate", "Diff review gate", "personal_dev", "diff_review_gate", "control-plane-diff-review-gate", { acceptance_profile: "diff_review_gate_gate" }),
+  sourceItem("canonical_test_matrix", "Canonical test matrix", "personal_dev", "canonical_test_matrix", "control-plane-canonical-test-matrix", { acceptance_profile: "canonical_test_matrix_gate" }),
+  sourceItem("dev_protected_scan", "Dev protected scan", "personal_dev", "dev_protected_scan", "control-plane-dev-protected-scan", { acceptance_profile: "dev_protected_scan_gate" }),
+  sourceItem("pr_draft_artifact", "PR draft artifact", "personal_dev", "pr_draft_artifact", "control-plane-pr-draft-artifact", { acceptance_profile: "pr_draft_artifact_gate" }),
+  sourceItem("release_note_artifact", "Release note artifact", "personal_dev", "release_note_artifact", "control-plane-release-note-artifact", { acceptance_profile: "release_note_artifact_gate" }),
+  sourceItem("rollback_plan_artifact", "Rollback plan artifact", "personal_dev", "rollback_plan_artifact", "control-plane-rollback-plan-artifact", { acceptance_profile: "rollback_plan_artifact_gate" }),
+  sourceItem("technical_debt_ledger", "Technical debt ledger", "personal_dev", "technical_debt_ledger", "control-plane-technical-debt-ledger", { acceptance_profile: "technical_debt_ledger_gate" }),
+  sourceItem("personal_dev_dashboard_api", "Personal dev dashboard API", "personal_dev", "personal_dev_dashboard_api", "control-plane-personal-dev-dashboard-api", { acceptance_profile: "personal_dev_dashboard_api_gate" }),
+  sourceItem("personal_dev_e2e_freeze", "Personal dev E2E freeze", "personal_dev", "personal_dev_e2e_freeze", "control-plane-personal-dev-e2e-freeze", { acceptance_profile: "personal_dev_e2e_freeze_gate" }),
+  sourceItem("law_firm_pack_manifest", "Law-firm pack manifest", "law_firm", "law_firm_pack_manifest", "control-plane-law-firm-pack-manifest", { acceptance_profile: "law_firm_pack_manifest_gate" }),
+  sourceItem("matter_os_profile", "Matter OS profile", "law_firm", "matter_os_profile", "control-plane-matter-os-profile", { acceptance_profile: "matter_os_profile_gate" }),
+  sourceItem("matter_timeline", "Matter timeline", "law_firm", "matter_timeline", "control-plane-matter-timeline", { acceptance_profile: "matter_timeline_gate" }),
+  sourceItem("matter_document_index", "Matter document index", "law_firm", "matter_document_index", "control-plane-matter-document-index", { acceptance_profile: "matter_document_index_gate" }),
+  sourceItem("matter_task_board", "Matter task board", "law_firm", "matter_task_board", "control-plane-matter-task-board", { acceptance_profile: "matter_task_board_gate" }),
+  sourceItem("matter_knowledge_graph", "Matter knowledge graph", "law_firm", "matter_knowledge_graph", "control-plane-matter-knowledge-graph", { acceptance_profile: "matter_knowledge_graph_gate" }),
+  sourceItem("matter_privilege_classifier", "Matter privilege classifier", "law_firm", "matter_privilege_classifier", "control-plane-matter-privilege-classifier", { acceptance_profile: "matter_privilege_classifier_gate" }),
+  sourceItem("matter_personal_data_detector", "Matter personal data detector", "law_firm", "matter_personal_data_detector", "control-plane-matter-personal-data-detector", { acceptance_profile: "matter_personal_data_detector_gate" }),
+  sourceItem("legal_citation_verifier", "Legal citation verifier", "law_firm", "legal_citation_verifier", "control-plane-legal-citation-verifier", { acceptance_profile: "legal_citation_verifier_gate" }),
+  sourceItem("ldd_vdr_inventory", "LDD VDR inventory", "law_firm", "ldd_vdr_inventory", "control-plane-ldd-vdr-inventory", { acceptance_profile: "ldd_vdr_inventory_gate" }),
+  sourceItem("ldd_document_classification", "LDD document classification", "law_firm", "ldd_document_classification", "control-plane-ldd-document-classification", { acceptance_profile: "ldd_document_classification_gate" }),
+  sourceItem("ldd_extractor_selection", "LDD extractor selection", "law_firm", "ldd_extractor_selection", "control-plane-ldd-extractor-selection", { acceptance_profile: "ldd_extractor_selection_gate" }),
+  sourceItem("ldd_fact_extraction", "LDD fact extraction", "law_firm", "ldd_fact_extraction", "control-plane-ldd-fact-extraction", { acceptance_profile: "ldd_fact_extraction_gate" }),
+  sourceItem("ldd_issue_detection", "LDD issue detection", "law_firm", "ldd_issue_detection", "control-plane-ldd-issue-detection", { acceptance_profile: "ldd_issue_detection_gate" }),
+  sourceItem("ldd_rfi_generator", "LDD RFI generator", "law_firm", "ldd_rfi_generator", "control-plane-ldd-rfi-generator", { acceptance_profile: "ldd_rfi_generator_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -292,7 +321,7 @@ function buildContext(dashboardResult, loopResult, healthResult, packageResult, 
     sourcesById,
     stagesById,
     packageScripts,
-    roadmapPhaseCount: [...roadmapText.matchAll(/^## Phase \d+:/gm)].length,
+    roadmapPhaseCount: roadmapPhaseMatches(roadmapText).length,
     latestRoadmapPhase: latestRoadmapPhase(roadmapText),
   };
 }
@@ -537,6 +566,35 @@ function evaluateStageAcceptance(item, stage) {
     "repo_profile_detector_gate",
     "agent_instruction_registry_gate",
     "issue_intake_adapter_gate",
+    "plan_request_contract_gate",
+    "plan_reconciliation_gate",
+    "scope_freeze_gate_gate",
+    "dev_lane_ledger_gate",
+    "implementation_patch_capture_gate",
+    "diff_review_gate_gate",
+    "canonical_test_matrix_gate",
+    "dev_protected_scan_gate",
+    "pr_draft_artifact_gate",
+    "release_note_artifact_gate",
+    "rollback_plan_artifact_gate",
+    "technical_debt_ledger_gate",
+    "personal_dev_dashboard_api_gate",
+    "personal_dev_e2e_freeze_gate",
+    "law_firm_pack_manifest_gate",
+    "matter_os_profile_gate",
+    "matter_timeline_gate",
+    "matter_document_index_gate",
+    "matter_task_board_gate",
+    "matter_knowledge_graph_gate",
+    "matter_privilege_classifier_gate",
+    "matter_personal_data_detector_gate",
+    "legal_citation_verifier_gate",
+    "ldd_vdr_inventory_gate",
+    "ldd_document_classification_gate",
+    "ldd_extractor_selection_gate",
+    "ldd_fact_extraction_gate",
+    "ldd_issue_detection_gate",
+    "ldd_rfi_generator_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -2297,6 +2355,1452 @@ function evaluateStageAcceptance(item, stage) {
     }
   }
 
+  if (item.acceptance_profile === "plan_request_contract_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.plan_request_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.issue_intake_status === "complete"
+      && metrics.repo_profile_detector_status === "complete"
+      && metrics.agent_instruction_registry_status === "complete"
+      && metrics.shared_context_count === 1
+      && metrics.plan_request_count === 2
+      && metrics.ready_plan_request_count === metrics.plan_request_count
+      && metrics.claude_plan_request_count === 1
+      && metrics.codex_plan_request_count === 1
+      && metrics.unique_context_hash_count === 1
+      && metrics.unique_constraints_hash_count === 1
+      && metrics.shared_context_binding_count === metrics.plan_request_count
+      && metrics.bound_plan_request_count === metrics.plan_request_count
+      && metrics.unbound_plan_request_count === 0
+      && metrics.context_hash_mismatch_count === 0
+      && metrics.constraints_hash_mismatch_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.command_execution_performed_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Plan request contract gives Claude Code and Codex the same shared context and constraints while recording no agent invocation, plan acceptance, command execution, or Desktop-side mutation authority.");
+    }
+  }
+
+  if (item.acceptance_profile === "plan_reconciliation_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.plan_reconciliation_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.source_plan_request_status === "complete"
+      && metrics.shared_context_count === 1
+      && metrics.plan_candidate_count === 2
+      && metrics.ready_plan_candidate_count === metrics.plan_candidate_count
+      && metrics.claude_plan_candidate_count === 1
+      && metrics.codex_plan_candidate_count === 1
+      && metrics.unique_context_hash_count === 1
+      && metrics.unique_constraints_hash_count === 1
+      && metrics.commonality_count >= 1
+      && metrics.accepted_commonality_count === metrics.commonality_count
+      && metrics.conflict_count >= 1
+      && metrics.resolved_conflict_count === metrics.conflict_count
+      && metrics.unresolved_conflict_count === 0
+      && metrics.selected_scope_status === "selected_for_human_review"
+      && metrics.selected_scope_item_count >= 1
+      && metrics.unresolved_question_count >= 1
+      && metrics.non_blocking_unresolved_question_count === metrics.unresolved_question_count
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.scope_freeze_performed_count === 0
+      && metrics.command_execution_performed_count === 0
+      && metrics.implementation_allowed_before_scope_freeze === false
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_scope_freeze_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Plan reconciliation compares the Claude Code and Codex plan candidates, records commonalities, resolved conflicts, selected draft scope, and unresolved questions while leaving scope freeze and plan acceptance to human-gated follow-on phases.");
+    }
+  }
+
+  if (item.acceptance_profile === "scope_freeze_gate_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.scope_freeze_gate_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.source_plan_reconciliation_status === "complete"
+      && metrics.source_protected_file_gate_status === "complete"
+      && metrics.selected_scope_status === "selected_for_human_review"
+      && metrics.frozen_scope_item_count >= 1
+      && metrics.frozen_scope_item_count === metrics.source_selected_scope_item_count
+      && metrics.frozen_scope_item_frozen_count === metrics.frozen_scope_item_count
+      && metrics.scope_file_boundary_count >= 1
+      && metrics.in_scope_file_boundary_count === metrics.scope_file_boundary_count
+      && metrics.protected_file_rule_count >= 1
+      && metrics.frozen_protected_file_rule_count === metrics.protected_file_rule_count
+      && metrics.frozen_protected_file_rule_snapshot_count === metrics.protected_file_rule_count
+      && metrics.protected_write_requires_approval === true
+      && metrics.write_allowed_before_approval_count === 0
+      && metrics.mutation_allowed_before_approval_count === 0
+      && metrics.scope_freeze_decision_status === "frozen"
+      && metrics.scope_freeze_performed_count === 1
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.command_execution_performed_count === 0
+      && metrics.protected_mutation_performed_count === 0
+      && metrics.worktree_provisioning_allowed_after_freeze === true
+      && metrics.implementation_patch_allowed_before_worktree === false
+      && metrics.protected_file_write_allowed_without_approval === false
+      && metrics.scope_change_requires_new_reconciliation === true
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_scope_change_allowed === false
+      && metrics.desktop_protected_file_rule_edit_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Scope freeze gate freezes the selected Plan Reconciliation scope, file boundaries, and protected file rules before worktree or patch work while leaving plan acceptance, protected writes, merge, and release human-gated.");
+    }
+  }
+
+  if (item.acceptance_profile === "dev_lane_ledger_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.dev_lane_ledger_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.source_scope_freeze_gate_status === "complete"
+      && metrics.source_plan_reconciliation_status === "complete"
+      && metrics.source_worktree_manager_v2_status === "complete"
+      && metrics.scope_freeze_performed_count === 1
+      && metrics.worktree_provisioning_allowed_after_freeze === true
+      && metrics.selected_scope_status === "selected_for_human_review"
+      && metrics.dev_lane_count === 2
+      && metrics.provisioned_dev_lane_count === 2
+      && metrics.claude_code_lane_count === 1
+      && metrics.codex_lane_count === 1
+      && metrics.unique_branch_name_count === 2
+      && metrics.unique_worktree_path_count === 2
+      && metrics.branch_record_count === 2
+      && metrics.created_branch_record_count === 2
+      && metrics.worktree_record_count === 2
+      && metrics.created_worktree_record_count === 2
+      && metrics.materialized_branch_count === 0
+      && metrics.materialized_worktree_count === 0
+      && metrics.git_command_executed_count === 0
+      && metrics.filesystem_mutation_performed_count === 0
+      && metrics.protected_file_write_allowed_without_approval === false
+      && metrics.protected_mutation_performed_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.patch_application_performed_count === 0
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_create_worktree_allowed === false
+      && metrics.desktop_delete_worktree_allowed === false
+      && metrics.desktop_delete_branch_allowed === false
+      && metrics.desktop_cleanup_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Dev lane ledger provisions Claude Code and Codex branch/worktree records after scope freeze while leaving physical worktree creation, protected writes, patch, merge, and release human-gated.");
+    }
+  }
+
+  if (item.acceptance_profile === "implementation_patch_capture_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.implementation_patch_capture_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.source_dev_lane_ledger_status === "complete"
+      && metrics.source_scope_freeze_gate_status === "complete"
+      && metrics.source_runtime_artifact_capture_status === "complete"
+      && metrics.patch_record_count === 2
+      && metrics.captured_patch_record_count === 2
+      && metrics.claude_code_patch_record_count === 1
+      && metrics.codex_patch_record_count === 1
+      && metrics.diff_capture_count === 2
+      && metrics.captured_diff_capture_count === 2
+      && metrics.output_bound_diff_capture_count === 2
+      && metrics.touched_file_count > 0
+      && metrics.in_scope_touched_file_count === metrics.touched_file_count
+      && metrics.generated_artifact_count > 0
+      && metrics.captured_generated_artifact_count === metrics.generated_artifact_count
+      && metrics.output_bound_generated_artifact_count === metrics.generated_artifact_count
+      && metrics.run_ledger_binding_count === 2
+      && metrics.bound_run_ledger_binding_count === 2
+      && metrics.patch_application_performed_count === 0
+      && metrics.git_command_executed_count === 0
+      && metrics.filesystem_mutation_performed_count === 0
+      && metrics.protected_file_write_allowed_without_approval === false
+      && metrics.protected_mutation_performed_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.human_review_required === true
+      && metrics.runtime_self_report_trusted === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Implementation patch capture binds Claude Code and Codex patch records to diff, touched file, generated artifact, and run ledger metadata while leaving patch application, protected writes, merge, and release human-gated.");
+    }
+  }
+
+  if (item.acceptance_profile === "diff_review_gate_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.diff_review_gate_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.source_implementation_patch_capture_status === "complete"
+      && metrics.source_protected_file_gate_status === "complete"
+      && metrics.patch_record_count === 2
+      && metrics.diff_review_result_count === 2
+      && metrics.reviewed_diff_review_result_count === 2
+      && metrics.claude_code_review_result_count === 1
+      && metrics.codex_review_result_count === 1
+      && metrics.actual_diff_basis_available_count === 2
+      && metrics.agent_self_report_trusted_count === 0
+      && metrics.file_finding_count > 0
+      && metrics.reviewed_file_finding_count === metrics.file_finding_count
+      && metrics.in_scope_file_finding_count === metrics.file_finding_count
+      && metrics.artifact_finding_count > 0
+      && metrics.reviewed_artifact_finding_count === metrics.artifact_finding_count
+      && metrics.gate_result_count === 2
+      && metrics.passed_with_human_gate_count === 2
+      && metrics.patch_application_allowed_count === 0
+      && metrics.patch_application_blocked_count === 2
+      && metrics.patch_application_performed_count === 0
+      && metrics.git_command_executed_count === 0
+      && metrics.filesystem_mutation_performed_count === 0
+      && metrics.protected_file_write_allowed_without_approval === false
+      && metrics.protected_mutation_performed_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Diff review gate evaluates captured Claude Code and Codex diff records against frozen file/artifact evidence instead of self-report while leaving patch application, protected writes, merge, and release human-gated.");
+    }
+  }
+
+  if (item.acceptance_profile === "canonical_test_matrix_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.canonical_test_matrix_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.source_repo_profile_detector_status === "complete"
+      && metrics.source_canonical_test_runner_status === "complete"
+      && metrics.source_diff_review_gate_status === "complete"
+      && metrics.matrix_repo_count === 1
+      && metrics.test_dimension_count === 4
+      && metrics.required_dimension_count >= 3
+      && metrics.configured_dimension_count >= 3
+      && metrics.executed_dimension_count >= metrics.required_dimension_count
+      && metrics.passed_required_dimension_count === metrics.required_dimension_count
+      && metrics.failed_dimension_count === 0
+      && metrics.timed_out_dimension_count === 0
+      && metrics.unit_dimension_passed === true
+      && metrics.typecheck_dimension_passed === true
+      && metrics.lint_dimension_passed === true
+      && metrics.agent_self_report_trusted_count === 0
+      && metrics.runtime_self_report_trusted_count === 0
+      && metrics.binding_count === 2
+      && metrics.bound_to_passing_matrix_count === 2
+      && metrics.merge_ready_count === 0
+      && metrics.direct_merge_allowed_count === 0
+      && metrics.direct_apply_allowed_count === 0
+      && metrics.patch_application_allowed_count === 0
+      && metrics.patch_application_performed_count === 0
+      && metrics.git_command_executed_count === 0
+      && metrics.filesystem_mutation_performed_count === 0
+      && metrics.protected_file_write_allowed_without_approval === false
+      && metrics.protected_mutation_performed_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Canonical test matrix executes the repo-derived unit/typecheck/lint commands under harness authority, binds passed required results to diff-review gates, and leaves Desktop as read-only rerun surface.");
+    }
+  }
+
+  if (item.acceptance_profile === "dev_protected_scan_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.dev_protected_scan_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.scan_authority === "harness_control_plane"
+      && metrics.source_implementation_patch_capture_status === "complete"
+      && metrics.source_diff_review_gate_status === "complete"
+      && metrics.source_canonical_test_matrix_status === "complete"
+      && metrics.source_protected_file_gate_status === "complete"
+      && metrics.scanned_file_count > 0
+      && metrics.actual_touched_file_scanned_count === metrics.source_touched_file_count
+      && metrics.protected_candidate_count > 0
+      && metrics.protected_candidate_count === metrics.source_protected_file_gate_blocked_before_approval_count
+      && metrics.blocked_before_approval_count === metrics.protected_candidate_count
+      && metrics.explicit_approval_required_count === metrics.protected_candidate_count
+      && metrics.pending_explicit_approval_count === metrics.protected_candidate_count
+      && metrics.credential_or_secret_candidate_count > 0
+      && metrics.credential_or_secret_change_blocked_count === metrics.credential_or_secret_candidate_count
+      && metrics.production_config_candidate_count > 0
+      && metrics.production_config_change_blocked_count === metrics.production_config_candidate_count
+      && metrics.write_allowed_before_approval_count === 0
+      && metrics.mutation_allowed_before_approval_count === 0
+      && metrics.secret_value_materialized_count === 0
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.scan_result_count === 2
+      && metrics.passed_with_protected_blocks_count === 2
+      && metrics.binding_count === 2
+      && metrics.bound_after_canonical_test_matrix_count === 2
+      && metrics.patch_application_allowed_count === 0
+      && metrics.direct_merge_allowed_count === 0
+      && metrics.direct_apply_allowed_count === 0
+      && metrics.patch_application_performed_count === 0
+      && metrics.git_command_executed_count === 0
+      && metrics.filesystem_mutation_performed_count === 0
+      && metrics.protected_mutation_performed_count === 0
+      && metrics.external_agent_invocation_performed_count === 0
+      && metrics.plan_acceptance_performed_count === 0
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_secret_material_read_allowed === false
+      && metrics.desktop_production_config_write_allowed === false
+      && metrics.desktop_runtime_execution_allowed === false
+      && metrics.desktop_external_agent_invocation_allowed === false
+      && metrics.desktop_plan_acceptance_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.raw_secret_material_exposed_count === 0
+      && metrics.provider_key_exposed_count === 0
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Dev protected scan imports captured worktree files and protected gate approval requirements, blocks credential and production config changes before approval, and keeps Desktop read-only without materializing secret values.");
+    }
+  }
+
+  if (item.acceptance_profile === "pr_draft_artifact_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.pr_draft_artifact_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.draft_authority === "harness_control_plane"
+      && metrics.source_implementation_patch_capture_status === "complete"
+      && metrics.source_diff_review_gate_status === "complete"
+      && metrics.source_canonical_test_matrix_status === "complete"
+      && metrics.source_dev_protected_scan_status === "complete"
+      && metrics.source_output_delivery_contract_freeze_status === "complete"
+      && metrics.source_pr_draft_output_artifact_available === true
+      && metrics.pr_draft_output_artifact_count === 1
+      && metrics.output_artifact_v2_count === 1
+      && metrics.output_artifact_hash_present_count === 1
+      && metrics.output_artifact_draft_count === 1
+      && metrics.output_artifact_blocked_pending_approval_count === 1
+      && metrics.output_artifact_pending_approval_count === 1
+      && metrics.pr_draft_section_count === 4
+      && metrics.summary_section_present === true
+      && metrics.tests_section_present === true
+      && metrics.risks_section_present === true
+      && metrics.rollback_section_present === true
+      && metrics.test_evidence_count >= 3
+      && metrics.passed_test_evidence_count === metrics.test_evidence_count
+      && metrics.agent_self_report_trusted_test_count === 0
+      && metrics.risk_count >= 4
+      && metrics.rollback_step_count >= 3
+      && metrics.draft_not_executed_rollback_step_count === metrics.rollback_step_count
+      && metrics.rollback_command_execution_allowed_count === 0
+      && metrics.pr_draft_binding_count === 2
+      && metrics.bound_after_protected_scan_count === 2
+      && metrics.pull_request_creation_allowed_count === 0
+      && metrics.direct_merge_allowed_count === 0
+      && metrics.release_allowed_count === 0
+      && metrics.pull_request_creation_performed === false
+      && metrics.github_api_called === false
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_github_api_allowed === false
+      && metrics.desktop_pull_request_creation_allowed === false
+      && metrics.desktop_branch_push_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_secret_material_read_allowed === false
+      && metrics.desktop_production_config_write_allowed === false
+      && metrics.desktop_direct_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "PR draft artifact stores summary, tests, risks, and rollback as a hashed OutputArtifact v2 while leaving GitHub PR creation, branch push, merge, release, and protected writes behind human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "release_note_artifact_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.release_note_artifact_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.note_authority === "harness_control_plane"
+      && metrics.source_pr_draft_artifact_status === "complete"
+      && metrics.source_canonical_test_matrix_status === "complete"
+      && metrics.source_dev_protected_scan_status === "complete"
+      && metrics.release_note_output_artifact_count === 1
+      && metrics.output_artifact_v2_count === 1
+      && metrics.output_artifact_hash_present_count === 1
+      && metrics.output_artifact_draft_count === 1
+      && metrics.output_artifact_blocked_pending_approval_count === 1
+      && metrics.output_artifact_pending_approval_count === 1
+      && metrics.release_note_change_record_count === 1
+      && metrics.merged_change_basis_count === 1
+      && metrics.release_note_section_count === 6
+      && metrics.highlights_section_present === true
+      && metrics.changes_section_present === true
+      && metrics.tests_section_present === true
+      && metrics.risks_section_present === true
+      && metrics.rollback_section_present === true
+      && metrics.human_review_section_present === true
+      && metrics.ready_section_count === 6
+      && metrics.release_note_gate_binding_count === 3
+      && metrics.bound_release_note_gate_binding_count === 3
+      && metrics.publication_allowed_count === 0
+      && metrics.merge_allowed_count === 0
+      && metrics.release_allowed_count === 0
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.release_note_publication_performed === false
+      && metrics.github_api_called === false
+      && metrics.branch_push_performed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_github_api_allowed === false
+      && metrics.desktop_branch_push_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_patch_application_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_protected_file_write_allowed === false
+      && metrics.desktop_secret_material_read_allowed === false
+      && metrics.desktop_production_config_write_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Release note artifact drafts a hashed OutputArtifact v2 from the validated PR draft merge candidate while leaving merge, release, publication, branch push, GitHub API, and protected writes behind human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "rollback_plan_artifact_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.rollback_plan_artifact_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.plan_authority === "harness_control_plane"
+      && metrics.source_implementation_patch_capture_status === "complete"
+      && metrics.source_diff_review_gate_status === "complete"
+      && metrics.source_pr_draft_artifact_status === "complete"
+      && metrics.source_release_note_artifact_status === "complete"
+      && metrics.rollback_output_artifact_count === 1
+      && metrics.output_artifact_v2_count === 1
+      && metrics.output_artifact_hash_present_count === 1
+      && metrics.output_artifact_draft_count === 1
+      && metrics.output_artifact_blocked_pending_approval_count === 1
+      && metrics.output_artifact_pending_approval_count === 1
+      && metrics.rollback_commit_target_count >= 2
+      && metrics.pending_not_merged_commit_target_count === metrics.rollback_commit_target_count
+      && metrics.commit_revert_required_count === 0
+      && metrics.commit_revert_performed_count === 0
+      && metrics.rollback_file_target_count >= 1
+      && metrics.restore_candidate_file_target_count === metrics.rollback_file_target_count
+      && metrics.file_restore_allowed_count === 0
+      && metrics.file_restore_performed_count === 0
+      && metrics.rollback_command_target_count >= 3
+      && metrics.draft_not_executed_command_target_count === metrics.rollback_command_target_count
+      && metrics.command_execution_allowed_count === 0
+      && metrics.command_executed_count === 0
+      && metrics.rollback_plan_binding_count === 4
+      && metrics.bound_rollback_plan_binding_count === 4
+      && metrics.rollback_execution_allowed_count === 0
+      && metrics.merge_allowed_count === 0
+      && metrics.release_allowed_count === 0
+      && metrics.rollback_execution_performed === false
+      && metrics.command_execution_performed === false
+      && metrics.git_command_executed === false
+      && metrics.filesystem_mutation_performed === false
+      && metrics.protected_mutation_performed === false
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.github_api_called === false
+      && metrics.branch_push_performed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_git_command_allowed === false
+      && metrics.desktop_filesystem_mutation_allowed === false
+      && metrics.desktop_file_restore_allowed === false
+      && metrics.desktop_commit_revert_allowed === false
+      && metrics.desktop_rollback_execution_allowed === false
+      && metrics.desktop_github_api_allowed === false
+      && metrics.desktop_branch_push_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Rollback plan artifact declares commit, file, and command rollback targets while leaving command execution, git operations, file restore, commit revert, merge, release, and protected writes behind human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "technical_debt_ledger_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.technical_debt_ledger_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.ledger_authority === "harness_control_plane"
+      && metrics.source_issue_intake_status === "complete"
+      && metrics.source_plan_reconciliation_status === "complete"
+      && metrics.source_pr_draft_artifact_status === "complete"
+      && metrics.source_release_note_artifact_status === "complete"
+      && metrics.source_rollback_plan_artifact_status === "complete"
+      && metrics.debt_source_finding_count >= 6
+      && metrics.open_for_triage_finding_count === metrics.debt_source_finding_count
+      && metrics.technical_debt_task_count === metrics.debt_source_finding_count
+      && metrics.preserved_task_count === metrics.technical_debt_task_count
+      && metrics.backlog_task_count === metrics.technical_debt_task_count
+      && metrics.debt_task_binding_count === metrics.technical_debt_task_count
+      && metrics.bound_debt_task_binding_count === metrics.debt_task_binding_count
+      && metrics.technical_debt_output_artifact_count === 1
+      && metrics.output_artifact_v2_count === 1
+      && metrics.output_artifact_hash_present_count === 1
+      && metrics.output_artifact_draft_count === 1
+      && metrics.output_artifact_blocked_pending_approval_count === 1
+      && metrics.output_artifact_pending_approval_count === 1
+      && metrics.task_state_write_allowed_count === 0
+      && metrics.task_state_write_performed_count === 0
+      && metrics.issue_mutation_allowed_count === 0
+      && metrics.issue_mutation_performed_count === 0
+      && metrics.command_execution_allowed_count === 0
+      && metrics.command_execution_performed_count === 0
+      && metrics.github_api_called === false
+      && metrics.branch_push_performed === false
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.protected_mutation_performed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.human_review_required === true
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_issue_mutation_allowed === false
+      && metrics.desktop_external_fetch_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_github_api_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Technical debt ledger preserves unresolved plan questions and PR risks as read-only backlog task drafts while leaving task state writes, issue mutation, commands, protected remediation, merge, and release behind human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "personal_dev_dashboard_api_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.personal_dev_dashboard_api_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.api_authority === "harness_control_plane"
+      && metrics.source_repo_profile_detector_status === "complete"
+      && metrics.source_dev_lane_ledger_status === "complete"
+      && metrics.source_plan_reconciliation_status === "complete"
+      && metrics.source_diff_review_gate_status === "complete"
+      && metrics.source_canonical_test_matrix_status === "complete"
+      && metrics.source_pr_draft_artifact_status === "complete"
+      && metrics.panel_row_count === 6
+      && metrics.ready_panel_row_count === 6
+      && metrics.repo_panel_status === "ready"
+      && metrics.worktree_panel_status === "ready"
+      && metrics.plan_panel_status === "ready"
+      && metrics.diff_panel_status === "ready"
+      && metrics.test_panel_status === "ready"
+      && metrics.pr_panel_status === "ready"
+      && metrics.status_rollup_count === 6
+      && metrics.ready_status_rollup_count === 6
+      && metrics.api_route_binding_count === 6
+      && metrics.active_api_route_binding_count === 6
+      && metrics.read_only_api_route_binding_count === 6
+      && metrics.personal_dev_output_artifact_count === 1
+      && metrics.output_artifact_v2_count === 1
+      && metrics.output_artifact_hash_present_count === 1
+      && metrics.output_artifact_draft_count === 1
+      && metrics.output_artifact_blocked_pending_approval_count === 1
+      && metrics.output_artifact_pending_approval_count === 1
+      && metrics.mutation_performed === false
+      && metrics.command_execution_performed === false
+      && metrics.task_state_write_performed === false
+      && metrics.issue_mutation_performed === false
+      && metrics.github_api_called === false
+      && metrics.branch_push_performed === false
+      && metrics.pull_request_creation_performed === false
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.protected_mutation_performed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_issue_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_github_api_allowed === false
+      && metrics.desktop_branch_push_allowed === false
+      && metrics.desktop_pull_request_creation_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Personal-dev dashboard/API projects repo, worktree, plan, diff, test, and PR status into read-only panel rows and route bindings while leaving task writes, issue mutation, commands, GitHub, PR creation, merge, release, and protected writes behind human review.");
+    }
+  }
+
+  if (item.acceptance_profile === "personal_dev_e2e_freeze_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.personal_dev_e2e_freeze_status === "complete"
+      && metrics.pack_id === "personal-dev"
+      && metrics.capability_id === "personal_dev.codex.worktree_patch"
+      && metrics.freeze_authority === "harness_control_plane"
+      && metrics.source_count === 17
+      && metrics.passed_source_count === 17
+      && metrics.trace_count === 7
+      && metrics.passed_trace_count === 7
+      && metrics.loop_binding_count === 18
+      && metrics.bound_loop_binding_count === 18
+      && metrics.issue_to_pr_path_complete === true
+      && metrics.dashboard_panel_row_count === 6
+      && metrics.dashboard_route_binding_count === 6
+      && metrics.mutation_performed === false
+      && metrics.command_execution_performed === false
+      && metrics.task_state_write_performed === false
+      && metrics.issue_mutation_performed === false
+      && metrics.github_api_called === false
+      && metrics.branch_push_performed === false
+      && metrics.pull_request_creation_performed === false
+      && metrics.merge_performed === false
+      && metrics.release_performed === false
+      && metrics.rollback_execution_performed === false
+      && metrics.patch_application_performed === false
+      && metrics.protected_mutation_performed === false
+      && metrics.external_agent_invocation_performed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_task_state_write_allowed === false
+      && metrics.desktop_issue_mutation_allowed === false
+      && metrics.desktop_command_execution_allowed === false
+      && metrics.desktop_github_api_allowed === false
+      && metrics.desktop_branch_push_allowed === false
+      && metrics.desktop_pull_request_creation_allowed === false
+      && metrics.desktop_merge_allowed === false
+      && metrics.desktop_release_allowed === false
+      && metrics.desktop_rollback_execution_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Personal-dev E2E freeze confirms the P213-P229 issue-to-PR path as a read-only Windows baseline before future desktop work continues.");
+    }
+  }
+
+  if (item.acceptance_profile === "law_firm_pack_manifest_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.law_firm_pack_manifest_status === "complete"
+      && metrics.pack_id === "law-firm"
+      && metrics.registration_status === "registered"
+      && metrics.registry_pack_present === true
+      && metrics.compatibility_status === "compatible"
+      && metrics.core_compatibility_status === "compatible"
+      && metrics.dependency_status === "complete"
+      && metrics.common_dependency_declared === true
+      && metrics.law_firm_human_review_required === true
+      && metrics.matter_boundary_required === true
+      && metrics.draft_only_by_default === true
+      && metrics.attorney_review_required === true
+      && metrics.human_review_required === true
+      && metrics.capability_count > 0
+      && metrics.registered_capability_count === metrics.capability_count
+      && metrics.capability_manifest_v2_count === metrics.capability_count
+      && metrics.capability_registry_api_pack_card_present === true
+      && metrics.capability_registry_api_capability_card_count === metrics.capability_count
+      && metrics.capability_version_api_card_count === metrics.capability_count
+      && metrics.attorney_review_required_capability_count === metrics.capability_count
+      && metrics.human_review_required_capability_count === metrics.capability_count
+      && metrics.runtime_freeze_status === "complete"
+      && metrics.matter_contract_freeze_status === "complete"
+      && metrics.policy_contract_freeze_status === "complete"
+      && metrics.evidence_contract_freeze_status === "complete"
+      && metrics.output_delivery_contract_freeze_status === "complete"
+      && metrics.executed_delivery_action_count === 0
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_runtime_source_of_truth === false
+      && metrics.desktop_protected_mutation_execution_allowed === false
+      && metrics.raw_secret_material_exposed === false
+      && metrics.provider_key_exposed === false
+      && metrics.installer_or_gateway_control === false
+      && metrics.ssh_or_cron_control === false
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.protected_action_executed_count === 0
+      && metrics.core_pack_mutation_required === false
+      && metrics.core_capability_registration_required === false
+      && metrics.core_route_registration_required === false
+      && metrics.core_mutation_required_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Law-firm pack manifest registers matter-scoped capabilities through the domain-pack registry with attorney review, pending output review, and read-only Desktop boundaries preserved without core mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_os_profile_gate") {
+    const profileCount = metrics.matter_os_profile_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_os_profile_status === "complete"
+      && metrics.source_matter_profile_team_ledger_status === "complete"
+      && metrics.source_client_counterparty_registry_status === "complete"
+      && metrics.source_matter_contract_freeze_status === "complete"
+      && metrics.source_law_firm_pack_manifest_status === "complete"
+      && profileCount > 0
+      && metrics.complete_profile_card_count === profileCount
+      && metrics.display_field_coverage_count === profileCount
+      && metrics.client_display_coverage_count === profileCount
+      && metrics.counterparty_display_coverage_count === profileCount
+      && metrics.matter_number_coverage_count === profileCount
+      && metrics.security_grade_coverage_count === profileCount
+      && metrics.responsible_owner_coverage_count === profileCount
+      && metrics.matter_boundary_coverage_count === profileCount
+      && metrics.attorney_review_required_profile_count === profileCount
+      && metrics.human_review_required_profile_count === profileCount
+      && metrics.default_pending_review_profile_count === profileCount
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter OS profile exposes client, counterparty, matter number, security grade, and responsible owner as read-only matter-scoped cockpit cards while preserving attorney review and no-output boundaries.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_timeline_gate") {
+    const eventCount = metrics.timeline_event_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_timeline_status === "complete"
+      && metrics.source_matter_os_profile_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && (metrics.matter_file_count ?? 0) > 0
+      && metrics.available_matter_file_count === metrics.matter_file_count
+      && metrics.matter_file_with_matter_id_count === metrics.matter_file_count
+      && (metrics.matter_timeline_count ?? 0) > 0
+      && eventCount > 0
+      && (metrics.meeting_event_count ?? 0) > 0
+      && (metrics.received_event_count ?? 0) > 0
+      && (metrics.submission_event_count ?? 0) > 0
+      && (metrics.deadline_event_count ?? 0) > 0
+      && metrics.sorted_event_count === eventCount
+      && metrics.unsorted_event_count === 0
+      && metrics.matter_id_scoped_event_count === eventCount
+      && metrics.attorney_review_required_event_count === eventCount
+      && metrics.human_review_required_event_count === eventCount
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter Timeline exposes meeting, received, submission, and deadline events in matter-scoped date order while preserving attorney review and read-only no-output boundaries.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_document_index_gate") {
+    const recordCount = metrics.document_record_count ?? 0;
+    const familyCount = metrics.document_family_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_document_index_status === "complete"
+      && metrics.source_matter_timeline_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && (metrics.matter_file_count ?? 0) > 0
+      && metrics.available_matter_file_count === metrics.matter_file_count
+      && metrics.matter_file_with_matter_id_count === metrics.matter_file_count
+      && recordCount > 0
+      && familyCount > 0
+      && (metrics.original_document_count ?? 0) > 0
+      && (metrics.draft_document_count ?? 0) > 0
+      && (metrics.submitted_document_count ?? 0) > 0
+      && (metrics.counterparty_proposal_count ?? 0) > 0
+      && metrics.latest_document_count === familyCount
+      && metrics.family_with_latest_document_count === familyCount
+      && metrics.matter_id_scoped_document_count === recordCount
+      && metrics.attorney_review_required_document_count === recordCount
+      && metrics.human_review_required_document_count === recordCount
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter Document Index separates originals, drafts, submitted copies, latest documents, and counterparty proposals as read-only matter-scoped operational context with attorney review preserved.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_task_board_gate") {
+    const taskCount = metrics.task_record_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_task_board_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_matter_timeline_status === "complete"
+      && metrics.source_matter_os_profile_status === "complete"
+      && metrics.source_workflow_run_dashboard_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && (metrics.matter_file_count ?? 0) > 0
+      && metrics.available_matter_file_count === metrics.matter_file_count
+      && taskCount > 0
+      && (metrics.board_column_count ?? 0) > 0
+      && metrics.workflow_binding_count === taskCount
+      && (metrics.matter_task_count ?? 0) > 0
+      && (metrics.matter_deadline_task_count ?? 0) > 0
+      && (metrics.vdr_request_task_count ?? 0) > 0
+      && (metrics.qa_item_task_count ?? 0) > 0
+      && (metrics.cp_checklist_task_count ?? 0) > 0
+      && (metrics.negotiation_point_task_count ?? 0) > 0
+      && (metrics.litigation_task_count ?? 0) > 0
+      && (metrics.output_review_task_count ?? 0) > 0
+      && (metrics.blocked_task_count ?? 0) > 0
+      && (metrics.open_task_count ?? 0) > 0
+      && (metrics.in_review_task_count ?? 0) > 0
+      && metrics.task_with_owner_count === taskCount
+      && metrics.task_with_due_date_count === taskCount
+      && metrics.task_with_status_count === taskCount
+      && metrics.workflow_bound_task_count === taskCount
+      && (metrics.actual_workflow_run_bound_task_count ?? 0) > 0
+      && (metrics.timeline_bound_task_count ?? 0) > 0
+      && (metrics.document_bound_task_count ?? 0) > 0
+      && metrics.matter_id_scoped_task_count === taskCount
+      && metrics.attorney_review_required_task_count === taskCount
+      && metrics.human_review_required_task_count === taskCount
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter Task Board exposes task, owner, due date, status, and workflow binding rows as read-only matter-scoped operational context while preserving attorney review and no-execution boundaries.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_knowledge_graph_gate") {
+    const nodeCount = metrics.graph_node_count ?? 0;
+    const edgeCount = metrics.graph_edge_count ?? 0;
+    const matterCount = metrics.matter_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_knowledge_graph_status === "complete"
+      && metrics.source_matter_task_board_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_matter_timeline_status === "complete"
+      && metrics.source_matter_os_profile_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && (metrics.matter_file_count ?? 0) > 0
+      && metrics.available_matter_file_count === metrics.matter_file_count
+      && matterCount > 0
+      && metrics.matter_summary_count === matterCount
+      && nodeCount > 0
+      && edgeCount > 0
+      && (metrics.matter_node_count ?? 0) === matterCount
+      && (metrics.fact_node_count ?? 0) > 0
+      && (metrics.issue_node_count ?? 0) > 0
+      && (metrics.legal_theory_node_count ?? 0) > 0
+      && (metrics.evidence_node_count ?? 0) > 0
+      && metrics.matter_with_fact_count === matterCount
+      && metrics.matter_with_issue_count === matterCount
+      && metrics.matter_with_legal_theory_count === matterCount
+      && metrics.matter_with_evidence_count === matterCount
+      && metrics.matter_id_scoped_node_count === nodeCount
+      && metrics.matter_id_scoped_edge_count === edgeCount
+      && metrics.attorney_review_required_node_count === nodeCount
+      && metrics.attorney_review_required_edge_count === edgeCount
+      && metrics.human_review_required_node_count === nodeCount
+      && metrics.human_review_required_edge_count === edgeCount
+      && metrics.legal_theory_placeholder_count === metrics.legal_theory_node_count
+      && (metrics.fact_evidence_edge_count ?? 0) > 0
+      && (metrics.issue_evidence_edge_count ?? 0) > 0
+      && (metrics.legal_theory_issue_edge_count ?? 0) > 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter Knowledge Graph accumulates matter-scoped fact, issue, legal theory placeholder, and evidence nodes as read-only operational context while preserving attorney review and no-execution boundaries.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_privilege_classifier_gate") {
+    const recordCount = metrics.classification_record_count ?? 0;
+    const flagCount = metrics.evidence_flag_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_privilege_classifier_status === "complete"
+      && metrics.source_matter_knowledge_graph_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_matter_task_board_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && (metrics.matter_file_count ?? 0) > 0
+      && metrics.available_matter_file_count === metrics.matter_file_count
+      && (metrics.matter_count ?? 0) > 0
+      && recordCount > 0
+      && flagCount === recordCount * 4
+      && metrics.expected_evidence_node_count === recordCount
+      && metrics.knowledge_graph_bound_classification_count === recordCount
+      && (metrics.document_bound_classification_count ?? 0) > 0
+      && (metrics.privileged_review_required_count ?? 0) > 0
+      && (metrics.work_product_review_required_count ?? 0) > 0
+      && metrics.confidential_flagged_evidence_count === recordCount
+      && (metrics.external_transfer_blocked_count ?? 0) > 0
+      && metrics.candidate_review_required_count === recordCount
+      && metrics.attorney_review_required_classification_count === recordCount
+      && metrics.attorney_review_required_flag_count === flagCount
+      && metrics.human_review_required_classification_count === recordCount
+      && metrics.human_review_required_flag_count === flagCount
+      && metrics.matter_id_scoped_classification_count === recordCount
+      && metrics.matter_id_scoped_flag_count === flagCount
+      && metrics.final_privilege_determination_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter Privilege Classifier applies privilege, work-product, confidentiality, and external-transfer candidate flags to evidence rows while preserving attorney review and avoiding final privilege determinations.");
+    }
+  }
+
+  if (item.acceptance_profile === "matter_personal_data_detector_gate") {
+    const recordCount = metrics.detection_record_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.matter_personal_data_detector_status === "complete"
+      && metrics.source_matter_knowledge_graph_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_matter_privilege_classifier_status === "complete"
+      && metrics.source_data_classification_rule_engine_status === "complete"
+      && metrics.source_resource_quarantine_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && (metrics.matter_file_count ?? 0) > 0
+      && metrics.available_matter_file_count === metrics.matter_file_count
+      && (metrics.matter_count ?? 0) > 0
+      && recordCount > 0
+      && metrics.personal_data_flagged_count === recordCount
+      && (metrics.sensitive_personal_data_flagged_count ?? 0) > 0
+      && metrics.policy_link_count === recordCount
+      && metrics.quarantine_link_count === recordCount
+      && metrics.policy_bound_detection_count === recordCount
+      && metrics.quarantine_bound_detection_count === recordCount
+      && metrics.matter_id_scoped_detection_count === recordCount
+      && metrics.knowledge_graph_bound_detection_count === recordCount
+      && (metrics.document_bound_detection_count ?? 0) > 0
+      && metrics.attorney_review_required_detection_count === recordCount
+      && metrics.attorney_review_required_policy_link_count === recordCount
+      && metrics.attorney_review_required_quarantine_link_count === recordCount
+      && metrics.human_review_required_detection_count === recordCount
+      && metrics.human_review_required_policy_link_count === recordCount
+      && metrics.human_review_required_quarantine_link_count === recordCount
+      && metrics.quarantine_applied_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.policy_enforcement_mutation_performed === false
+      && metrics.quarantine_execution_performed === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.quarantine_execution_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Matter Personal Data Detector links candidate personal data rows to policy and quarantine controls while preserving attorney review and avoiding quarantine execution or mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "legal_citation_verifier_gate") {
+    const citationCount = metrics.citation_count ?? 0;
+    if (
+      metrics.validation_error_count === 0
+      && metrics.legal_citation_verifier_status === "complete"
+      && metrics.source_citation_object_store_status === "complete"
+      && metrics.source_issue_graph_store_status === "complete"
+      && metrics.source_source_span_store_status === "complete"
+      && metrics.source_evidence_item_store_status === "complete"
+      && metrics.source_fact_claim_store_status === "complete"
+      && metrics.source_lineage_graph_status === "complete"
+      && metrics.source_output_catalog_status === "complete"
+      && metrics.source_delivery_queue_status === "complete"
+      && citationCount > 0
+      && metrics.verification_record_count === citationCount
+      && metrics.source_check_count === citationCount
+      && metrics.currentness_check_count === citationCount
+      && (metrics.matter_count ?? 0) > 0
+      && metrics.source_bound_citation_count === citationCount
+      && metrics.legal_rule_bound_citation_count === citationCount
+      && metrics.currentness_gate_applied_count === citationCount
+      && metrics.currentness_review_required_count === citationCount
+      && metrics.currentness_verified_count === 0
+      && metrics.legal_authority_review_required_count === citationCount
+      && metrics.attorney_review_required_citation_count === citationCount
+      && metrics.human_review_required_citation_count === citationCount
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.external_legal_research_performed === false
+      && metrics.legal_authority_finalized === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Legal Citation Verifier applies source and currentness review gates to every citation while preserving attorney review and avoiding legal advice or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_vdr_inventory_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_vdr_inventory_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_matter_task_board_status === "complete"
+      && metrics.source_resource_version_ledger_status === "complete"
+      && metrics.source_law_firm_pack_manifest_status === "complete"
+      && (metrics.batch_count ?? 0) > 0
+      && (metrics.folder_record_count ?? 0) > 0
+      && (metrics.file_record_count ?? 0) > 0
+      && metrics.version_record_count === metrics.file_record_count
+      && (metrics.missing_data_record_count ?? 0) > 0
+      && metrics.rfi_candidate_count === metrics.missing_data_record_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD VDR Inventory aggregates batch, folder, file, version, and missing-data rows while preserving attorney review and avoiding client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_document_classification_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_document_classification_status === "complete"
+      && metrics.source_ldd_vdr_inventory_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && (metrics.source_document_count ?? 0) > 0
+      && (metrics.classification_rule_count ?? 0) >= 8
+      && metrics.classification_record_count === metrics.source_document_count
+      && metrics.classified_document_count === metrics.source_document_count
+      && (metrics.class_summary_count ?? 0) > 0
+      && (metrics.matter_count ?? 0) > 0
+      && (metrics.file_classification_count ?? 0) > 0
+      && (metrics.missing_data_classification_count ?? 0) > 0
+      && (metrics.contract_classification_count ?? 0) > 0
+      && (metrics.tax_classification_count ?? 0) > 0
+      && (metrics.closing_deliverable_classification_count ?? 0) > 0
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD Document Classification assigns deterministic review-gated document classes while avoiding legal conclusions and client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_extractor_selection_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_extractor_selection_status === "complete"
+      && metrics.source_ldd_document_classification_status === "complete"
+      && metrics.source_ldd_document_classification_phase_status === "complete"
+      && metrics.source_extractor_adapter_contract_status === "complete"
+      && metrics.source_extractor_adapter_contract_phase_status === "complete"
+      && (metrics.classification_record_count ?? 0) > 0
+      && (metrics.extractor_registry_count ?? 0) >= 9
+      && metrics.extractor_registry_local_only_count === metrics.extractor_registry_count
+      && metrics.selection_record_count === metrics.classification_record_count
+      && metrics.selected_extractor_count === metrics.selection_record_count
+      && metrics.selection_rationale_count === metrics.selection_record_count
+      && (metrics.distinct_selected_extractor_count ?? 0) > 0
+      && (metrics.matter_count ?? 0) > 0
+      && (metrics.contract_extractor_selection_count ?? 0) > 0
+      && (metrics.tax_extractor_selection_count ?? 0) > 0
+      && (metrics.closing_deliverable_extractor_selection_count ?? 0) > 0
+      && metrics.extractor_execution_count === 0
+      && metrics.extraction_result_generated_count === 0
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD Extractor Selection maps document classes to review-gated extractor profiles without executing extraction or generating client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_fact_extraction_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_fact_extraction_status === "complete"
+      && metrics.source_ldd_extractor_selection_status === "complete"
+      && metrics.source_ldd_extractor_selection_phase_status === "complete"
+      && metrics.source_matter_status === "complete"
+      && (metrics.source_selection_record_count ?? 0) > 0
+      && (metrics.fact_rule_count ?? 0) >= 5
+      && (metrics.fact_record_count ?? 0) >= (metrics.source_selection_record_count ?? 0)
+      && metrics.source_binding_count === metrics.fact_record_count
+      && (metrics.type_summary_count ?? 0) >= 5
+      && (metrics.matter_count ?? 0) > 0
+      && (metrics.party_fact_count ?? 0) > 0
+      && (metrics.date_fact_count ?? 0) > 0
+      && (metrics.obligation_fact_count ?? 0) > 0
+      && (metrics.termination_fact_count ?? 0) > 0
+      && (metrics.change_of_control_fact_count ?? 0) > 0
+      && (metrics.source_gap_fact_count ?? 0) > 0
+      && metrics.deterministic_fact_extraction_count === metrics.fact_record_count
+      && metrics.external_extractor_execution_count === 0
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD Fact Extraction records deterministic candidate facts and source gaps with attorney review gates and no legal/client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_issue_detection_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_issue_detection_status === "complete"
+      && metrics.source_ldd_fact_extraction_status === "complete"
+      && metrics.source_ldd_fact_extraction_phase_status === "complete"
+      && metrics.source_matter_status === "complete"
+      && (metrics.source_fact_record_count ?? 0) > 0
+      && (metrics.issue_rule_count ?? 0) >= 5
+      && (metrics.issue_record_count ?? 0) >= 5
+      && metrics.detected_issue_count === metrics.issue_record_count
+      && (metrics.red_flag_count ?? 0) > 0
+      && (metrics.yellow_flag_count ?? 0) > 0
+      && (metrics.high_severity_issue_count ?? 0) > 0
+      && (metrics.medium_severity_issue_count ?? 0) > 0
+      && (metrics.source_gap_issue_count ?? 0) > 0
+      && metrics.follow_up_count === metrics.issue_record_count
+      && metrics.open_follow_up_count === metrics.follow_up_count
+      && (metrics.severity_summary_count ?? 0) > 0
+      && (metrics.matter_count ?? 0) > 0
+      && metrics.deterministic_issue_detection_count === metrics.issue_record_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD Issue Detection records deterministic review-gated issue candidates, red/yellow flags, and follow-ups without legal/client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "ldd_rfi_generator_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.ldd_rfi_generator_status === "complete"
+      && metrics.source_ldd_issue_detection_status === "complete"
+      && metrics.source_ldd_issue_detection_phase_status === "complete"
+      && metrics.source_ldd_vdr_inventory_status === "complete"
+      && metrics.source_ldd_vdr_inventory_phase_status === "complete"
+      && metrics.source_matter_status === "complete"
+      && (metrics.source_issue_record_count ?? 0) > 0
+      && (metrics.source_rfi_candidate_count ?? 0) > 0
+      && (metrics.rfi_rule_count ?? 0) >= 5
+      && (metrics.rfi_draft_count ?? 0) > 0
+      && metrics.rfi_question_count === metrics.source_issue_record_count
+      && metrics.question_with_issue_link_count === metrics.rfi_question_count
+      && metrics.question_with_evidence_link_count === metrics.rfi_question_count
+      && metrics.missing_material_link_count === metrics.source_rfi_candidate_count
+      && metrics.issue_link_count === metrics.rfi_question_count
+      && (metrics.human_review_note_count ?? 0) === metrics.rfi_draft_count
+      && metrics.draft_only_count === metrics.rfi_draft_count
+      && metrics.deterministic_rfi_generation_count === metrics.rfi_question_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "LDD RFI Generator records draft-only attorney-review RFI packets with issue/evidence links and no legal/client-facing output.");
+    }
+  }
+
   if (item.acceptance_profile === "event_envelope_ledger_gate") {
     const errors = metrics.validation_error_count ?? 0;
     const envelopeCount = metrics.event_envelope_count ?? 0;
@@ -3925,10 +5429,17 @@ async function readTextOrError(filePath) {
 }
 
 function latestRoadmapPhase(text) {
-  const matches = [...String(text ?? "").matchAll(/^## Phase (\d+): (.+)$/gm)];
+  const matches = roadmapPhaseMatches(text);
   const latest = matches.at(-1);
   if (!latest) return null;
-  return `Phase ${latest[1]}: ${latest[2]}`;
+  return `Phase ${latest.phase}: ${latest.title}`;
+}
+
+function roadmapPhaseMatches(text) {
+  return [...String(text ?? "").matchAll(/^## Phase (\d+)(?::| -) (.+)$/gm)].map((match) => ({
+    phase: match[1],
+    title: match[2],
+  }));
 }
 
 function countBy(items, key) {

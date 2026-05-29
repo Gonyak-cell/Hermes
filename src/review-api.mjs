@@ -4351,6 +4351,713 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("personal_dev_pack_validations", personalDevPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/law-firm-pack-manifests") {
+    const lawFirmPackManifestResult = await readDashboardSourceArtifact(dashboard, "law_firm_pack_manifest");
+    if (!lawFirmPackManifestResult.available) {
+      return jsonResponse(503, buildError("law_firm_pack_manifest_unavailable", lawFirmPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_pack_manifests", [lawFirmPackManifestResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-pack-registration") {
+    const lawFirmPackManifestResult = await readDashboardSourceArtifact(dashboard, "law_firm_pack_manifest");
+    if (!lawFirmPackManifestResult.available) {
+      return jsonResponse(503, buildError("law_firm_pack_manifest_unavailable", lawFirmPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_pack_registration", [lawFirmPackManifestResult.artifact.law_firm_pack_registration].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-capability-registrations") {
+    const lawFirmPackManifestResult = await readDashboardSourceArtifact(dashboard, "law_firm_pack_manifest");
+    if (!lawFirmPackManifestResult.available) {
+      return jsonResponse(503, buildError("law_firm_pack_manifest_unavailable", lawFirmPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_capability_registrations", lawFirmPackManifestResult.artifact.law_firm_capability_registrations ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-pack-boundary") {
+    const lawFirmPackManifestResult = await readDashboardSourceArtifact(dashboard, "law_firm_pack_manifest");
+    if (!lawFirmPackManifestResult.available) {
+      return jsonResponse(503, buildError("law_firm_pack_manifest_unavailable", lawFirmPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_pack_boundary", [lawFirmPackManifestResult.artifact.law_firm_pack_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/law-firm-pack-validations") {
+    const lawFirmPackManifestResult = await readDashboardSourceArtifact(dashboard, "law_firm_pack_manifest");
+    if (!lawFirmPackManifestResult.available) {
+      return jsonResponse(503, buildError("law_firm_pack_manifest_unavailable", lawFirmPackManifestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("law_firm_pack_validations", lawFirmPackManifestResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-os-profile-artifacts") {
+    const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
+    if (!matterOsProfileResult.available) {
+      return jsonResponse(503, buildError("matter_os_profile_unavailable", matterOsProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_os_profile_artifacts", [matterOsProfileResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-os-profiles") {
+    const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
+    if (!matterOsProfileResult.available) {
+      return jsonResponse(503, buildError("matter_os_profile_unavailable", matterOsProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_os_profiles", matterOsProfileResult.artifact.matter_os_profiles ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-os-display-fields") {
+    const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
+    if (!matterOsProfileResult.available) {
+      return jsonResponse(503, buildError("matter_os_profile_unavailable", matterOsProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_os_display_fields", matterOsProfileResult.artifact.matter_os_display_fields ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-os-profile-boundary") {
+    const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
+    if (!matterOsProfileResult.available) {
+      return jsonResponse(503, buildError("matter_os_profile_unavailable", matterOsProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_os_profile_boundary", [matterOsProfileResult.artifact.matter_os_profile_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-os-profile-validations") {
+    const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
+    if (!matterOsProfileResult.available) {
+      return jsonResponse(503, buildError("matter_os_profile_unavailable", matterOsProfileResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_os_profile_validations", matterOsProfileResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-timeline-artifacts") {
+    const matterTimelineResult = await readDashboardSourceArtifact(dashboard, "matter_timeline");
+    if (!matterTimelineResult.available) {
+      return jsonResponse(503, buildError("matter_timeline_unavailable", matterTimelineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_timeline_artifacts", [matterTimelineResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-timeline-events") {
+    const matterTimelineResult = await readDashboardSourceArtifact(dashboard, "matter_timeline");
+    if (!matterTimelineResult.available) {
+      return jsonResponse(503, buildError("matter_timeline_unavailable", matterTimelineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_timeline_events", matterTimelineResult.artifact.matter_timeline_events ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-timeline-matters") {
+    const matterTimelineResult = await readDashboardSourceArtifact(dashboard, "matter_timeline");
+    if (!matterTimelineResult.available) {
+      return jsonResponse(503, buildError("matter_timeline_unavailable", matterTimelineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_timeline_matters", matterTimelineResult.artifact.matter_timelines ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-timeline-boundary") {
+    const matterTimelineResult = await readDashboardSourceArtifact(dashboard, "matter_timeline");
+    if (!matterTimelineResult.available) {
+      return jsonResponse(503, buildError("matter_timeline_unavailable", matterTimelineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_timeline_boundary", [matterTimelineResult.artifact.matter_timeline_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-timeline-validations") {
+    const matterTimelineResult = await readDashboardSourceArtifact(dashboard, "matter_timeline");
+    if (!matterTimelineResult.available) {
+      return jsonResponse(503, buildError("matter_timeline_unavailable", matterTimelineResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_timeline_validations", matterTimelineResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-document-index-artifacts") {
+    const matterDocumentIndexResult = await readDashboardSourceArtifact(dashboard, "matter_document_index");
+    if (!matterDocumentIndexResult.available) {
+      return jsonResponse(503, buildError("matter_document_index_unavailable", matterDocumentIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_document_index_artifacts", [matterDocumentIndexResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-document-records") {
+    const matterDocumentIndexResult = await readDashboardSourceArtifact(dashboard, "matter_document_index");
+    if (!matterDocumentIndexResult.available) {
+      return jsonResponse(503, buildError("matter_document_index_unavailable", matterDocumentIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_document_records", matterDocumentIndexResult.artifact.document_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-document-families") {
+    const matterDocumentIndexResult = await readDashboardSourceArtifact(dashboard, "matter_document_index");
+    if (!matterDocumentIndexResult.available) {
+      return jsonResponse(503, buildError("matter_document_index_unavailable", matterDocumentIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_document_families", matterDocumentIndexResult.artifact.document_families ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-latest-documents") {
+    const matterDocumentIndexResult = await readDashboardSourceArtifact(dashboard, "matter_document_index");
+    if (!matterDocumentIndexResult.available) {
+      return jsonResponse(503, buildError("matter_document_index_unavailable", matterDocumentIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_latest_documents", matterDocumentIndexResult.artifact.latest_documents ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-document-index-boundary") {
+    const matterDocumentIndexResult = await readDashboardSourceArtifact(dashboard, "matter_document_index");
+    if (!matterDocumentIndexResult.available) {
+      return jsonResponse(503, buildError("matter_document_index_unavailable", matterDocumentIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_document_index_boundary", [matterDocumentIndexResult.artifact.matter_document_index_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-document-index-validations") {
+    const matterDocumentIndexResult = await readDashboardSourceArtifact(dashboard, "matter_document_index");
+    if (!matterDocumentIndexResult.available) {
+      return jsonResponse(503, buildError("matter_document_index_unavailable", matterDocumentIndexResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_document_index_validations", matterDocumentIndexResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-task-board-artifacts") {
+    const matterTaskBoardResult = await readDashboardSourceArtifact(dashboard, "matter_task_board");
+    if (!matterTaskBoardResult.available) {
+      return jsonResponse(503, buildError("matter_task_board_unavailable", matterTaskBoardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_task_board_artifacts", [matterTaskBoardResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-task-records") {
+    const matterTaskBoardResult = await readDashboardSourceArtifact(dashboard, "matter_task_board");
+    if (!matterTaskBoardResult.available) {
+      return jsonResponse(503, buildError("matter_task_board_unavailable", matterTaskBoardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_task_records", matterTaskBoardResult.artifact.task_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-task-board-columns") {
+    const matterTaskBoardResult = await readDashboardSourceArtifact(dashboard, "matter_task_board");
+    if (!matterTaskBoardResult.available) {
+      return jsonResponse(503, buildError("matter_task_board_unavailable", matterTaskBoardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_task_board_columns", matterTaskBoardResult.artifact.board_columns ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-task-workflow-bindings") {
+    const matterTaskBoardResult = await readDashboardSourceArtifact(dashboard, "matter_task_board");
+    if (!matterTaskBoardResult.available) {
+      return jsonResponse(503, buildError("matter_task_board_unavailable", matterTaskBoardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_task_workflow_bindings", matterTaskBoardResult.artifact.workflow_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-task-board-boundary") {
+    const matterTaskBoardResult = await readDashboardSourceArtifact(dashboard, "matter_task_board");
+    if (!matterTaskBoardResult.available) {
+      return jsonResponse(503, buildError("matter_task_board_unavailable", matterTaskBoardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_task_board_boundary", [matterTaskBoardResult.artifact.matter_task_board_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-task-board-validations") {
+    const matterTaskBoardResult = await readDashboardSourceArtifact(dashboard, "matter_task_board");
+    if (!matterTaskBoardResult.available) {
+      return jsonResponse(503, buildError("matter_task_board_unavailable", matterTaskBoardResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_task_board_validations", matterTaskBoardResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-knowledge-graph-artifacts") {
+    const matterKnowledgeGraphResult = await readDashboardSourceArtifact(dashboard, "matter_knowledge_graph");
+    if (!matterKnowledgeGraphResult.available) {
+      return jsonResponse(503, buildError("matter_knowledge_graph_unavailable", matterKnowledgeGraphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_knowledge_graph_artifacts", [matterKnowledgeGraphResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-knowledge-nodes") {
+    const matterKnowledgeGraphResult = await readDashboardSourceArtifact(dashboard, "matter_knowledge_graph");
+    if (!matterKnowledgeGraphResult.available) {
+      return jsonResponse(503, buildError("matter_knowledge_graph_unavailable", matterKnowledgeGraphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_knowledge_nodes", matterKnowledgeGraphResult.artifact.graph_nodes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-knowledge-edges") {
+    const matterKnowledgeGraphResult = await readDashboardSourceArtifact(dashboard, "matter_knowledge_graph");
+    if (!matterKnowledgeGraphResult.available) {
+      return jsonResponse(503, buildError("matter_knowledge_graph_unavailable", matterKnowledgeGraphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_knowledge_edges", matterKnowledgeGraphResult.artifact.graph_edges ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-knowledge-summaries") {
+    const matterKnowledgeGraphResult = await readDashboardSourceArtifact(dashboard, "matter_knowledge_graph");
+    if (!matterKnowledgeGraphResult.available) {
+      return jsonResponse(503, buildError("matter_knowledge_graph_unavailable", matterKnowledgeGraphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_knowledge_summaries", matterKnowledgeGraphResult.artifact.matter_knowledge_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-knowledge-graph-boundary") {
+    const matterKnowledgeGraphResult = await readDashboardSourceArtifact(dashboard, "matter_knowledge_graph");
+    if (!matterKnowledgeGraphResult.available) {
+      return jsonResponse(503, buildError("matter_knowledge_graph_unavailable", matterKnowledgeGraphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_knowledge_graph_boundary", [matterKnowledgeGraphResult.artifact.matter_knowledge_graph_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-knowledge-graph-validations") {
+    const matterKnowledgeGraphResult = await readDashboardSourceArtifact(dashboard, "matter_knowledge_graph");
+    if (!matterKnowledgeGraphResult.available) {
+      return jsonResponse(503, buildError("matter_knowledge_graph_unavailable", matterKnowledgeGraphResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_knowledge_graph_validations", matterKnowledgeGraphResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-privilege-classifier-artifacts") {
+    const matterPrivilegeClassifierResult = await readDashboardSourceArtifact(dashboard, "matter_privilege_classifier");
+    if (!matterPrivilegeClassifierResult.available) {
+      return jsonResponse(503, buildError("matter_privilege_classifier_unavailable", matterPrivilegeClassifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_privilege_classifier_artifacts", [matterPrivilegeClassifierResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/privilege-classification-records") {
+    const matterPrivilegeClassifierResult = await readDashboardSourceArtifact(dashboard, "matter_privilege_classifier");
+    if (!matterPrivilegeClassifierResult.available) {
+      return jsonResponse(503, buildError("matter_privilege_classifier_unavailable", matterPrivilegeClassifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("privilege_classification_records", matterPrivilegeClassifierResult.artifact.privilege_classification_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/privilege-evidence-flags") {
+    const matterPrivilegeClassifierResult = await readDashboardSourceArtifact(dashboard, "matter_privilege_classifier");
+    if (!matterPrivilegeClassifierResult.available) {
+      return jsonResponse(503, buildError("matter_privilege_classifier_unavailable", matterPrivilegeClassifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("privilege_evidence_flags", matterPrivilegeClassifierResult.artifact.privilege_evidence_flags ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-privilege-summaries") {
+    const matterPrivilegeClassifierResult = await readDashboardSourceArtifact(dashboard, "matter_privilege_classifier");
+    if (!matterPrivilegeClassifierResult.available) {
+      return jsonResponse(503, buildError("matter_privilege_classifier_unavailable", matterPrivilegeClassifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_privilege_summaries", matterPrivilegeClassifierResult.artifact.matter_privilege_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-privilege-classifier-boundary") {
+    const matterPrivilegeClassifierResult = await readDashboardSourceArtifact(dashboard, "matter_privilege_classifier");
+    if (!matterPrivilegeClassifierResult.available) {
+      return jsonResponse(503, buildError("matter_privilege_classifier_unavailable", matterPrivilegeClassifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_privilege_classifier_boundary", [matterPrivilegeClassifierResult.artifact.matter_privilege_classifier_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-privilege-classifier-validations") {
+    const matterPrivilegeClassifierResult = await readDashboardSourceArtifact(dashboard, "matter_privilege_classifier");
+    if (!matterPrivilegeClassifierResult.available) {
+      return jsonResponse(503, buildError("matter_privilege_classifier_unavailable", matterPrivilegeClassifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_privilege_classifier_validations", matterPrivilegeClassifierResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-personal-data-detector-artifacts") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_personal_data_detector_artifacts", [matterPersonalDataDetectorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-data-detection-records") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_data_detection_records", matterPersonalDataDetectorResult.artifact.personal_data_detection_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-data-policy-links") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_data_policy_links", matterPersonalDataDetectorResult.artifact.personal_data_policy_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-data-quarantine-links") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_data_quarantine_links", matterPersonalDataDetectorResult.artifact.personal_data_quarantine_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-personal-data-summaries") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_personal_data_summaries", matterPersonalDataDetectorResult.artifact.matter_personal_data_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-personal-data-detector-boundary") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_personal_data_detector_boundary", [matterPersonalDataDetectorResult.artifact.matter_personal_data_detector_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/matter-personal-data-detector-validations") {
+    const matterPersonalDataDetectorResult = await readDashboardSourceArtifact(dashboard, "matter_personal_data_detector");
+    if (!matterPersonalDataDetectorResult.available) {
+      return jsonResponse(503, buildError("matter_personal_data_detector_unavailable", matterPersonalDataDetectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("matter_personal_data_detector_validations", matterPersonalDataDetectorResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-verifier-artifacts") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_verifier_artifacts", [legalCitationVerifierResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-verification-records") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_verification_records", legalCitationVerifierResult.artifact.legal_citation_verification_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-source-checks") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_source_checks", legalCitationVerifierResult.artifact.legal_citation_source_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-currentness-checks") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_currentness_checks", legalCitationVerifierResult.artifact.legal_citation_currentness_checks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-matter-summaries") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_matter_summaries", legalCitationVerifierResult.artifact.legal_citation_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-verifier-boundary") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_verifier_boundary", [legalCitationVerifierResult.artifact.legal_citation_verifier_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/legal-citation-verifier-validations") {
+    const legalCitationVerifierResult = await readDashboardSourceArtifact(dashboard, "legal_citation_verifier");
+    if (!legalCitationVerifierResult.available) {
+      return jsonResponse(503, buildError("legal_citation_verifier_unavailable", legalCitationVerifierResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("legal_citation_verifier_validations", legalCitationVerifierResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-inventory-artifacts") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_inventory_artifacts", [lddVdrInventoryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-batches") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_batches", lddVdrInventoryResult.artifact.ldd_vdr_batches ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-folders") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_folders", lddVdrInventoryResult.artifact.ldd_vdr_folder_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-files") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_files", lddVdrInventoryResult.artifact.ldd_vdr_file_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-versions") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_versions", lddVdrInventoryResult.artifact.ldd_vdr_version_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-missing-data") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_missing_data", lddVdrInventoryResult.artifact.ldd_vdr_missing_data_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-matter-summaries") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_matter_summaries", lddVdrInventoryResult.artifact.ldd_vdr_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-inventory-boundary") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_inventory_boundary", [lddVdrInventoryResult.artifact.ldd_vdr_inventory_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-vdr-inventory-validations") {
+    const lddVdrInventoryResult = await readDashboardSourceArtifact(dashboard, "ldd_vdr_inventory");
+    if (!lddVdrInventoryResult.available) {
+      return jsonResponse(503, buildError("ldd_vdr_inventory_unavailable", lddVdrInventoryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_vdr_inventory_validations", lddVdrInventoryResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-classification-artifacts") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_classification_artifacts", [classificationResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-classification-rules") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_classification_rules", classificationResult.artifact.ldd_document_classification_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-classification-records") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_classification_records", classificationResult.artifact.ldd_document_classification_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-class-summaries") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_class_summaries", classificationResult.artifact.ldd_document_class_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-matter-class-summaries") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_matter_class_summaries", classificationResult.artifact.ldd_document_matter_class_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-classification-boundary") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_classification_boundary", [classificationResult.artifact.ldd_document_classification_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-document-classification-validations") {
+    const classificationResult = await readDashboardSourceArtifact(dashboard, "ldd_document_classification");
+    if (!classificationResult.available) {
+      return jsonResponse(503, buildError("ldd_document_classification_unavailable", classificationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_document_classification_validations", classificationResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-selection-artifacts") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_selection_artifacts", [selectionResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-registry") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_registry", selectionResult.artifact.ldd_extractor_registry ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-selection-records") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_selection_records", selectionResult.artifact.ldd_extractor_selection_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-selection-rationales") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_selection_rationales", selectionResult.artifact.ldd_extractor_selection_rationales ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-matter-summaries") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_matter_summaries", selectionResult.artifact.ldd_extractor_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-selection-boundary") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_selection_boundary", [selectionResult.artifact.ldd_extractor_selection_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-extractor-selection-validations") {
+    const selectionResult = await readDashboardSourceArtifact(dashboard, "ldd_extractor_selection");
+    if (!selectionResult.available) {
+      return jsonResponse(503, buildError("ldd_extractor_selection_unavailable", selectionResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_extractor_selection_validations", selectionResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-extraction-artifacts") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_extraction_artifacts", [factResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-extraction-rules") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_extraction_rules", factResult.artifact.ldd_fact_extraction_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-records") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_records", factResult.artifact.ldd_fact_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-source-bindings") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_source_bindings", factResult.artifact.ldd_fact_source_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-type-summaries") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_type_summaries", factResult.artifact.ldd_fact_type_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-matter-summaries") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_matter_summaries", factResult.artifact.ldd_fact_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-extraction-boundary") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_extraction_boundary", [factResult.artifact.ldd_fact_extraction_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-fact-extraction-validations") {
+    const factResult = await readDashboardSourceArtifact(dashboard, "ldd_fact_extraction");
+    if (!factResult.available) {
+      return jsonResponse(503, buildError("ldd_fact_extraction_unavailable", factResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_fact_extraction_validations", factResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-detection-artifacts") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_detection_artifacts", [issueResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-detection-rules") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_detection_rules", issueResult.artifact.ldd_issue_detection_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-records") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_records", issueResult.artifact.ldd_issue_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-follow-ups") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_follow_ups", issueResult.artifact.ldd_issue_follow_ups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-severity-summaries") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_severity_summaries", issueResult.artifact.ldd_issue_severity_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-matter-summaries") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_matter_summaries", issueResult.artifact.ldd_issue_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-detection-boundary") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_detection_boundary", [issueResult.artifact.ldd_issue_detection_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-issue-detection-validations") {
+    const issueResult = await readDashboardSourceArtifact(dashboard, "ldd_issue_detection");
+    if (!issueResult.available) {
+      return jsonResponse(503, buildError("ldd_issue_detection_unavailable", issueResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_issue_detection_validations", issueResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-generator-artifacts") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_generator_artifacts", [rfiResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-rules") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_rules", rfiResult.artifact.ldd_rfi_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-drafts") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_drafts", rfiResult.artifact.ldd_rfi_drafts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-questions") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_questions", rfiResult.artifact.ldd_rfi_questions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-missing-material-links") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_missing_material_links", rfiResult.artifact.ldd_rfi_missing_material_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-issue-links") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_issue_links", rfiResult.artifact.ldd_rfi_issue_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-matter-summaries") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_matter_summaries", rfiResult.artifact.ldd_rfi_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-generator-boundary") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_generator_boundary", [rfiResult.artifact.ldd_rfi_generator_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/ldd-rfi-generator-validations") {
+    const rfiResult = await readDashboardSourceArtifact(dashboard, "ldd_rfi_generator");
+    if (!rfiResult.available) {
+      return jsonResponse(503, buildError("ldd_rfi_generator_unavailable", rfiResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("ldd_rfi_generator_validations", rfiResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -4504,6 +5211,727 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
       return jsonResponse(503, buildError("issue_intake_adapter_unavailable", issueIntakeResult.error), method);
     }
     return jsonResponse(200, buildCollectionResponse("issue_intake_validations", issueIntakeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-request-contracts") {
+    const planRequestResult = await readDashboardSourceArtifact(dashboard, "plan_request_contract");
+    if (!planRequestResult.available) {
+      return jsonResponse(503, buildError("plan_request_contract_unavailable", planRequestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_request_contracts", [planRequestResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/shared-planning-contexts") {
+    const planRequestResult = await readDashboardSourceArtifact(dashboard, "plan_request_contract");
+    if (!planRequestResult.available) {
+      return jsonResponse(503, buildError("plan_request_contract_unavailable", planRequestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("shared_planning_contexts", [planRequestResult.artifact.shared_planning_context].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-requests") {
+    const planRequestResult = await readDashboardSourceArtifact(dashboard, "plan_request_contract");
+    if (!planRequestResult.available) {
+      return jsonResponse(503, buildError("plan_request_contract_unavailable", planRequestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_requests", planRequestResult.artifact.plan_requests ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-request-bindings") {
+    const planRequestResult = await readDashboardSourceArtifact(dashboard, "plan_request_contract");
+    if (!planRequestResult.available) {
+      return jsonResponse(503, buildError("plan_request_contract_unavailable", planRequestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_request_bindings", planRequestResult.artifact.plan_request_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-request-desktop-boundary") {
+    const planRequestResult = await readDashboardSourceArtifact(dashboard, "plan_request_contract");
+    if (!planRequestResult.available) {
+      return jsonResponse(503, buildError("plan_request_contract_unavailable", planRequestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_request_desktop_boundary", [planRequestResult.artifact.plan_request_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-request-validations") {
+    const planRequestResult = await readDashboardSourceArtifact(dashboard, "plan_request_contract");
+    if (!planRequestResult.available) {
+      return jsonResponse(503, buildError("plan_request_contract_unavailable", planRequestResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_request_validations", planRequestResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-reconciliations") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_reconciliations", [reconciliationResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-candidates") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_candidates", reconciliationResult.artifact.plan_candidates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-commonalities") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_commonalities", reconciliationResult.artifact.plan_commonalities ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-conflicts") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_conflicts", reconciliationResult.artifact.plan_conflicts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/selected-plan-scopes") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("selected_plan_scopes", [reconciliationResult.artifact.selected_plan_scope].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/unresolved-plan-questions") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("unresolved_plan_questions", reconciliationResult.artifact.unresolved_plan_questions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-reconciliation-desktop-boundary") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_reconciliation_desktop_boundary", [reconciliationResult.artifact.plan_reconciliation_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/plan-reconciliation-validations") {
+    const reconciliationResult = await readDashboardSourceArtifact(dashboard, "plan_reconciliation");
+    if (!reconciliationResult.available) {
+      return jsonResponse(503, buildError("plan_reconciliation_unavailable", reconciliationResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plan_reconciliation_validations", reconciliationResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/scope-freeze-gates") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("scope_freeze_gates", [scopeFreezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/frozen-scope-items") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("frozen_scope_items", scopeFreezeResult.artifact.frozen_scope_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/scope-file-boundaries") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("scope_file_boundaries", scopeFreezeResult.artifact.scope_file_boundaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/scope-protected-file-rules") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("scope_protected_file_rules", scopeFreezeResult.artifact.scope_protected_file_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/scope-freeze-decisions") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("scope_freeze_decisions", [scopeFreezeResult.artifact.scope_freeze_decision].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/scope-freeze-desktop-boundary") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("scope_freeze_desktop_boundary", [scopeFreezeResult.artifact.scope_freeze_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/scope-freeze-validations") {
+    const scopeFreezeResult = await readDashboardSourceArtifact(dashboard, "scope_freeze_gate");
+    if (!scopeFreezeResult.available) {
+      return jsonResponse(503, buildError("scope_freeze_gate_unavailable", scopeFreezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("scope_freeze_validations", scopeFreezeResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-lane-ledgers") {
+    const devLaneResult = await readDashboardSourceArtifact(dashboard, "dev_lane_ledger");
+    if (!devLaneResult.available) {
+      return jsonResponse(503, buildError("dev_lane_ledger_unavailable", devLaneResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_lane_ledgers", [devLaneResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-lanes") {
+    const devLaneResult = await readDashboardSourceArtifact(dashboard, "dev_lane_ledger");
+    if (!devLaneResult.available) {
+      return jsonResponse(503, buildError("dev_lane_ledger_unavailable", devLaneResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_lanes", devLaneResult.artifact.dev_lanes ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-lane-branch-records") {
+    const devLaneResult = await readDashboardSourceArtifact(dashboard, "dev_lane_ledger");
+    if (!devLaneResult.available) {
+      return jsonResponse(503, buildError("dev_lane_ledger_unavailable", devLaneResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_lane_branch_records", devLaneResult.artifact.dev_lane_branch_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-lane-worktree-records") {
+    const devLaneResult = await readDashboardSourceArtifact(dashboard, "dev_lane_ledger");
+    if (!devLaneResult.available) {
+      return jsonResponse(503, buildError("dev_lane_ledger_unavailable", devLaneResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_lane_worktree_records", devLaneResult.artifact.dev_lane_worktree_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-lane-desktop-boundary") {
+    const devLaneResult = await readDashboardSourceArtifact(dashboard, "dev_lane_ledger");
+    if (!devLaneResult.available) {
+      return jsonResponse(503, buildError("dev_lane_ledger_unavailable", devLaneResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_lane_desktop_boundary", [devLaneResult.artifact.dev_lane_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-lane-validations") {
+    const devLaneResult = await readDashboardSourceArtifact(dashboard, "dev_lane_ledger");
+    if (!devLaneResult.available) {
+      return jsonResponse(503, buildError("dev_lane_ledger_unavailable", devLaneResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_lane_validations", devLaneResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-patch-captures") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_patch_captures", [patchCaptureResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-patch-records") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_patch_records", patchCaptureResult.artifact.implementation_patch_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-diff-captures") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_diff_captures", patchCaptureResult.artifact.implementation_diff_captures ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-touched-files") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_touched_files", patchCaptureResult.artifact.implementation_touched_files ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-generated-artifacts") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_generated_artifacts", patchCaptureResult.artifact.implementation_generated_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-run-ledger-bindings") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_run_ledger_bindings", patchCaptureResult.artifact.implementation_run_ledger_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-patch-desktop-boundary") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_patch_desktop_boundary", [patchCaptureResult.artifact.implementation_patch_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/implementation-patch-validations") {
+    const patchCaptureResult = await readDashboardSourceArtifact(dashboard, "implementation_patch_capture");
+    if (!patchCaptureResult.available) {
+      return jsonResponse(503, buildError("implementation_patch_capture_unavailable", patchCaptureResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("implementation_patch_validations", patchCaptureResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-gates") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_gates", [diffReviewResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-results") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_results", diffReviewResult.artifact.diff_review_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-file-findings") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_file_findings", diffReviewResult.artifact.diff_review_file_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-artifact-findings") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_artifact_findings", diffReviewResult.artifact.diff_review_artifact_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-gate-results") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_gate_results", diffReviewResult.artifact.diff_review_gate_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-desktop-boundary") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_desktop_boundary", [diffReviewResult.artifact.diff_review_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/diff-review-validations") {
+    const diffReviewResult = await readDashboardSourceArtifact(dashboard, "diff_review_gate");
+    if (!diffReviewResult.available) {
+      return jsonResponse(503, buildError("diff_review_gate_unavailable", diffReviewResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("diff_review_validations", diffReviewResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrices") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrices", [matrixResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-repos") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_repos", matrixResult.artifact.canonical_test_matrix_repos ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-commands") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_commands", matrixResult.artifact.canonical_test_matrix_commands ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-executions") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_executions", matrixResult.artifact.canonical_test_matrix_executions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-results") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_results", matrixResult.artifact.canonical_test_matrix_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-bindings") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_bindings", matrixResult.artifact.canonical_test_matrix_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-desktop-boundary") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_desktop_boundary", [matrixResult.artifact.canonical_test_matrix_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/canonical-test-matrix-validations") {
+    const matrixResult = await readDashboardSourceArtifact(dashboard, "canonical_test_matrix");
+    if (!matrixResult.available) {
+      return jsonResponse(503, buildError("canonical_test_matrix_unavailable", matrixResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("canonical_test_matrix_validations", matrixResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-protected-scans") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_protected_scans", [scanResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-protected-file-findings") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_protected_file_findings", scanResult.artifact.dev_protected_file_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-secret-findings") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_secret_findings", scanResult.artifact.dev_secret_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-prod-config-findings") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_prod_config_findings", scanResult.artifact.dev_prod_config_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-protected-scan-results") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_protected_scan_results", scanResult.artifact.dev_protected_scan_results ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-protected-scan-bindings") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_protected_scan_bindings", scanResult.artifact.dev_protected_scan_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-protected-scan-desktop-boundary") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_protected_scan_desktop_boundary", [scanResult.artifact.dev_protected_scan_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/dev-protected-scan-validations") {
+    const scanResult = await readDashboardSourceArtifact(dashboard, "dev_protected_scan");
+    if (!scanResult.available) {
+      return jsonResponse(503, buildError("dev_protected_scan_unavailable", scanResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("dev_protected_scan_validations", scanResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-artifacts") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_artifacts", [draftResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-output-artifacts") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_output_artifacts", draftResult.artifact.pr_draft_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-sections") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_sections", draftResult.artifact.pr_draft_sections ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-test-evidence") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_test_evidence", draftResult.artifact.pr_draft_test_evidence ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-risks") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_risks", draftResult.artifact.pr_draft_risks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-rollback-plan") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_rollback_plan", draftResult.artifact.pr_draft_rollback_plan ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-bindings") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_bindings", draftResult.artifact.pr_draft_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-desktop-boundary") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_desktop_boundary", [draftResult.artifact.pr_draft_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/pr-draft-validations") {
+    const draftResult = await readDashboardSourceArtifact(dashboard, "pr_draft_artifact");
+    if (!draftResult.available) {
+      return jsonResponse(503, buildError("pr_draft_artifact_unavailable", draftResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("pr_draft_validations", draftResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-artifacts") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_artifacts", [noteResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-output-artifacts") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_output_artifacts", noteResult.artifact.release_note_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-change-records") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_change_records", noteResult.artifact.release_note_change_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-sections") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_sections", noteResult.artifact.release_note_sections ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-gate-bindings") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_gate_bindings", noteResult.artifact.release_note_gate_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-desktop-boundary") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_desktop_boundary", [noteResult.artifact.release_note_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/release-note-validations") {
+    const noteResult = await readDashboardSourceArtifact(dashboard, "release_note_artifact");
+    if (!noteResult.available) {
+      return jsonResponse(503, buildError("release_note_artifact_unavailable", noteResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("release_note_validations", noteResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-plan-artifacts") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_plan_artifacts", [rollbackResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-plan-output-artifacts") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_plan_output_artifacts", rollbackResult.artifact.rollback_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-commit-targets") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_commit_targets", rollbackResult.artifact.rollback_commit_targets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-file-targets") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_file_targets", rollbackResult.artifact.rollback_file_targets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-command-targets") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_command_targets", rollbackResult.artifact.rollback_command_targets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-plan-bindings") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_plan_bindings", rollbackResult.artifact.rollback_plan_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-plan-desktop-boundary") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_plan_desktop_boundary", [rollbackResult.artifact.rollback_plan_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/rollback-plan-validations") {
+    const rollbackResult = await readDashboardSourceArtifact(dashboard, "rollback_plan_artifact");
+    if (!rollbackResult.available) {
+      return jsonResponse(503, buildError("rollback_plan_artifact_unavailable", rollbackResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("rollback_plan_validations", rollbackResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/technical-debt-ledgers") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("technical_debt_ledgers", [debtResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/technical-debt-output-artifacts") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("technical_debt_output_artifacts", debtResult.artifact.technical_debt_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/debt-source-findings") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("debt_source_findings", debtResult.artifact.debt_source_findings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/technical-debt-tasks") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("technical_debt_tasks", debtResult.artifact.technical_debt_tasks ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/debt-task-bindings") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("debt_task_bindings", debtResult.artifact.debt_task_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/technical-debt-desktop-boundary") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("technical_debt_desktop_boundary", [debtResult.artifact.technical_debt_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/technical-debt-validations") {
+    const debtResult = await readDashboardSourceArtifact(dashboard, "technical_debt_ledger");
+    if (!debtResult.available) {
+      return jsonResponse(503, buildError("technical_debt_ledger_unavailable", debtResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("technical_debt_validations", debtResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-dashboard-apis") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_dashboard_apis", [panelResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-output-artifacts") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_output_artifacts", panelResult.artifact.personal_dev_output_artifacts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-panel-rows") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_panel_rows", panelResult.artifact.personal_dev_panel_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-status-rollups") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_status_rollups", panelResult.artifact.personal_dev_status_rollups ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-api-route-bindings") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_api_route_bindings", panelResult.artifact.personal_dev_api_route_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-dashboard-desktop-boundary") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_dashboard_desktop_boundary", [panelResult.artifact.personal_dev_dashboard_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-dashboard-validations") {
+    const panelResult = await readDashboardSourceArtifact(dashboard, "personal_dev_dashboard_api");
+    if (!panelResult.available) {
+      return jsonResponse(503, buildError("personal_dev_dashboard_api_unavailable", panelResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_dashboard_validations", panelResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-freezes") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_freezes", [freezeResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-freeze-sources") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_freeze_sources", freezeResult.artifact.personal_dev_e2e_freeze_sources ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-freeze-checkpoints") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_freeze_checkpoints", freezeResult.artifact.personal_dev_e2e_freeze_checkpoints ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-traces") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_traces", freezeResult.artifact.personal_dev_e2e_traces ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-loop-bindings") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_loop_bindings", freezeResult.artifact.personal_dev_e2e_loop_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-freeze-desktop-boundary") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_freeze_desktop_boundary", [freezeResult.artifact.personal_dev_e2e_freeze_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/personal-dev-e2e-freeze-validations") {
+    const freezeResult = await readDashboardSourceArtifact(dashboard, "personal_dev_e2e_freeze");
+    if (!freezeResult.available) {
+      return jsonResponse(503, buildError("personal_dev_e2e_freeze_unavailable", freezeResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("personal_dev_e2e_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
   if (pathname === "/api/gate-approval-contract-freezes") {
     const freezeResult = await readDashboardSourceArtifact(dashboard, "gate_approval_contract_freeze");
@@ -8729,6 +10157,107 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/personal-dev-capability-registrations", "Personal-dev capability registration rows"),
       route("GET", "/api/personal-dev-pack-boundary", "Personal-dev Desktop/core mutation boundary"),
       route("GET", "/api/personal-dev-pack-validations", "Personal-dev pack manifest validation rows"),
+      route("GET", "/api/law-firm-pack-manifests", "Law-firm pack manifest artifact"),
+      route("GET", "/api/law-firm-pack-registration", "Law-firm pack registration row"),
+      route("GET", "/api/law-firm-capability-registrations", "Law-firm capability registration rows"),
+      route("GET", "/api/law-firm-pack-boundary", "Law-firm attorney review and matter boundary"),
+      route("GET", "/api/law-firm-pack-validations", "Law-firm pack manifest validation rows"),
+      route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
+      route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
+      route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
+      route("GET", "/api/matter-os-profile-boundary", "Matter OS profile Desktop boundary"),
+      route("GET", "/api/matter-os-profile-validations", "Matter OS profile validation rows"),
+      route("GET", "/api/matter-timeline-artifacts", "Matter timeline artifact"),
+      route("GET", "/api/matter-timeline-events", "Matter timeline event rows"),
+      route("GET", "/api/matter-timeline-matters", "Matter timeline matter rows"),
+      route("GET", "/api/matter-timeline-boundary", "Matter timeline Desktop boundary"),
+      route("GET", "/api/matter-timeline-validations", "Matter timeline validation rows"),
+      route("GET", "/api/matter-document-index-artifacts", "Matter document index artifact"),
+      route("GET", "/api/matter-document-records", "Matter document index record rows"),
+      route("GET", "/api/matter-document-families", "Matter document family rows"),
+      route("GET", "/api/matter-latest-documents", "Matter latest document rows"),
+      route("GET", "/api/matter-document-index-boundary", "Matter document index Desktop boundary"),
+      route("GET", "/api/matter-document-index-validations", "Matter document index validation rows"),
+      route("GET", "/api/matter-task-board-artifacts", "Matter task board artifact"),
+      route("GET", "/api/matter-task-records", "Matter task board task rows"),
+      route("GET", "/api/matter-task-board-columns", "Matter task board column rows"),
+      route("GET", "/api/matter-task-workflow-bindings", "Matter task workflow binding rows"),
+      route("GET", "/api/matter-task-board-boundary", "Matter task board Desktop boundary"),
+      route("GET", "/api/matter-task-board-validations", "Matter task board validation rows"),
+      route("GET", "/api/matter-knowledge-graph-artifacts", "Matter knowledge graph artifact"),
+      route("GET", "/api/matter-knowledge-nodes", "Matter knowledge graph node rows"),
+      route("GET", "/api/matter-knowledge-edges", "Matter knowledge graph edge rows"),
+      route("GET", "/api/matter-knowledge-summaries", "Matter knowledge graph matter summary rows"),
+      route("GET", "/api/matter-knowledge-graph-boundary", "Matter knowledge graph Desktop boundary"),
+      route("GET", "/api/matter-knowledge-graph-validations", "Matter knowledge graph validation rows"),
+      route("GET", "/api/matter-privilege-classifier-artifacts", "Matter privilege classifier artifact"),
+      route("GET", "/api/privilege-classification-records", "Matter privilege classification candidate rows"),
+      route("GET", "/api/privilege-evidence-flags", "Matter privilege evidence flag rows"),
+      route("GET", "/api/matter-privilege-summaries", "Matter privilege classifier matter summary rows"),
+      route("GET", "/api/matter-privilege-classifier-boundary", "Matter privilege classifier Desktop boundary"),
+      route("GET", "/api/matter-privilege-classifier-validations", "Matter privilege classifier validation rows"),
+      route("GET", "/api/matter-personal-data-detector-artifacts", "Matter personal data detector artifact"),
+      route("GET", "/api/personal-data-detection-records", "Matter personal data candidate rows"),
+      route("GET", "/api/personal-data-policy-links", "Matter personal data policy link rows"),
+      route("GET", "/api/personal-data-quarantine-links", "Matter personal data quarantine link rows"),
+      route("GET", "/api/matter-personal-data-summaries", "Matter personal data detector matter summary rows"),
+      route("GET", "/api/matter-personal-data-detector-boundary", "Matter personal data detector Desktop boundary"),
+      route("GET", "/api/matter-personal-data-detector-validations", "Matter personal data detector validation rows"),
+      route("GET", "/api/legal-citation-verifier-artifacts", "Legal citation verifier artifact"),
+      route("GET", "/api/legal-citation-verification-records", "Legal citation verification rows"),
+      route("GET", "/api/legal-citation-source-checks", "Legal citation source check rows"),
+      route("GET", "/api/legal-citation-currentness-checks", "Legal citation currentness check rows"),
+      route("GET", "/api/legal-citation-matter-summaries", "Legal citation verifier matter summary rows"),
+      route("GET", "/api/legal-citation-verifier-boundary", "Legal citation verifier Desktop boundary"),
+      route("GET", "/api/legal-citation-verifier-validations", "Legal citation verifier validation rows"),
+      route("GET", "/api/ldd-vdr-inventory-artifacts", "LDD VDR inventory artifact"),
+      route("GET", "/api/ldd-vdr-batches", "LDD VDR inventory batch rows"),
+      route("GET", "/api/ldd-vdr-folders", "LDD VDR folder rows"),
+      route("GET", "/api/ldd-vdr-files", "LDD VDR file rows"),
+      route("GET", "/api/ldd-vdr-versions", "LDD VDR version rows"),
+      route("GET", "/api/ldd-vdr-missing-data", "LDD VDR missing data rows"),
+      route("GET", "/api/ldd-vdr-matter-summaries", "LDD VDR matter summary rows"),
+      route("GET", "/api/ldd-vdr-inventory-boundary", "LDD VDR inventory Desktop boundary"),
+      route("GET", "/api/ldd-vdr-inventory-validations", "LDD VDR inventory validation rows"),
+      route("GET", "/api/ldd-document-classification-artifacts", "LDD document classification artifact"),
+      route("GET", "/api/ldd-document-classification-rules", "LDD document classification rule rows"),
+      route("GET", "/api/ldd-document-classification-records", "LDD document classification rows"),
+      route("GET", "/api/ldd-document-class-summaries", "LDD document class summary rows"),
+      route("GET", "/api/ldd-document-matter-class-summaries", "LDD document matter class summary rows"),
+      route("GET", "/api/ldd-document-classification-boundary", "LDD document classification Desktop boundary"),
+      route("GET", "/api/ldd-document-classification-validations", "LDD document classification validation rows"),
+      route("GET", "/api/ldd-extractor-selection-artifacts", "LDD extractor selection artifact"),
+      route("GET", "/api/ldd-extractor-registry", "LDD extractor registry rows"),
+      route("GET", "/api/ldd-extractor-selection-records", "LDD extractor selection rows"),
+      route("GET", "/api/ldd-extractor-selection-rationales", "LDD extractor selection rationale rows"),
+      route("GET", "/api/ldd-extractor-matter-summaries", "LDD extractor matter summary rows"),
+      route("GET", "/api/ldd-extractor-selection-boundary", "LDD extractor selection Desktop boundary"),
+      route("GET", "/api/ldd-extractor-selection-validations", "LDD extractor selection validation rows"),
+      route("GET", "/api/ldd-fact-extraction-artifacts", "LDD fact extraction artifact"),
+      route("GET", "/api/ldd-fact-extraction-rules", "LDD fact extraction rule rows"),
+      route("GET", "/api/ldd-fact-records", "LDD fact candidate and source-gap rows"),
+      route("GET", "/api/ldd-fact-source-bindings", "LDD fact source binding rows"),
+      route("GET", "/api/ldd-fact-type-summaries", "LDD fact type summary rows"),
+      route("GET", "/api/ldd-fact-matter-summaries", "LDD fact matter summary rows"),
+      route("GET", "/api/ldd-fact-extraction-boundary", "LDD fact extraction Desktop boundary"),
+      route("GET", "/api/ldd-fact-extraction-validations", "LDD fact extraction validation rows"),
+      route("GET", "/api/ldd-issue-detection-artifacts", "LDD issue detection artifact"),
+      route("GET", "/api/ldd-issue-detection-rules", "LDD issue detection rule rows"),
+      route("GET", "/api/ldd-issue-records", "LDD issue candidate rows"),
+      route("GET", "/api/ldd-issue-follow-ups", "LDD issue follow-up rows"),
+      route("GET", "/api/ldd-issue-severity-summaries", "LDD issue severity summary rows"),
+      route("GET", "/api/ldd-issue-matter-summaries", "LDD issue matter summary rows"),
+      route("GET", "/api/ldd-issue-detection-boundary", "LDD issue detection Desktop boundary"),
+      route("GET", "/api/ldd-issue-detection-validations", "LDD issue detection validation rows"),
+      route("GET", "/api/ldd-rfi-generator-artifacts", "LDD RFI generator artifact"),
+      route("GET", "/api/ldd-rfi-rules", "LDD RFI generation rule rows"),
+      route("GET", "/api/ldd-rfi-drafts", "LDD RFI draft packets"),
+      route("GET", "/api/ldd-rfi-questions", "LDD RFI draft question rows"),
+      route("GET", "/api/ldd-rfi-missing-material-links", "LDD RFI missing material link rows"),
+      route("GET", "/api/ldd-rfi-issue-links", "LDD RFI issue link rows"),
+      route("GET", "/api/ldd-rfi-matter-summaries", "LDD RFI matter summary rows"),
+      route("GET", "/api/ldd-rfi-generator-boundary", "LDD RFI generator Desktop boundary"),
+      route("GET", "/api/ldd-rfi-generator-validations", "LDD RFI generator validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -8751,6 +10280,109 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/issue-task-bindings", "Issue to task binding rows"),
       route("GET", "/api/issue-intake-desktop-boundary", "Issue intake Desktop read-only boundary"),
       route("GET", "/api/issue-intake-validations", "Issue intake adapter validation rows"),
+      route("GET", "/api/plan-request-contracts", "Plan request contract artifact"),
+      route("GET", "/api/shared-planning-contexts", "Shared planning context rows"),
+      route("GET", "/api/plan-requests", "Claude Code and Codex plan request rows"),
+      route("GET", "/api/plan-request-bindings", "Plan request context binding rows"),
+      route("GET", "/api/plan-request-desktop-boundary", "Plan request Desktop read-only boundary"),
+      route("GET", "/api/plan-request-validations", "Plan request contract validation rows"),
+      route("GET", "/api/plan-reconciliations", "Plan reconciliation artifact"),
+      route("GET", "/api/plan-candidates", "Claude Code and Codex plan candidate rows"),
+      route("GET", "/api/plan-commonalities", "Plan reconciliation commonality rows"),
+      route("GET", "/api/plan-conflicts", "Plan reconciliation conflict rows"),
+      route("GET", "/api/selected-plan-scopes", "Selected plan scope rows"),
+      route("GET", "/api/unresolved-plan-questions", "Unresolved plan question rows"),
+      route("GET", "/api/plan-reconciliation-desktop-boundary", "Plan reconciliation Desktop read-only boundary"),
+      route("GET", "/api/plan-reconciliation-validations", "Plan reconciliation validation rows"),
+      route("GET", "/api/scope-freeze-gates", "Scope freeze gate artifact"),
+      route("GET", "/api/frozen-scope-items", "Frozen selected scope item rows"),
+      route("GET", "/api/scope-file-boundaries", "Frozen scope file boundary rows"),
+      route("GET", "/api/scope-protected-file-rules", "Frozen protected file rule snapshots"),
+      route("GET", "/api/scope-freeze-decisions", "Scope freeze decision rows"),
+      route("GET", "/api/scope-freeze-desktop-boundary", "Scope freeze Desktop read-only boundary"),
+      route("GET", "/api/scope-freeze-validations", "Scope freeze validation rows"),
+      route("GET", "/api/dev-lane-ledgers", "Dev lane ledger artifact"),
+      route("GET", "/api/dev-lanes", "Claude Code and Codex dev lane rows"),
+      route("GET", "/api/dev-lane-branch-records", "Dev lane branch records"),
+      route("GET", "/api/dev-lane-worktree-records", "Dev lane worktree records"),
+      route("GET", "/api/dev-lane-desktop-boundary", "Dev lane Desktop read-only boundary"),
+      route("GET", "/api/dev-lane-validations", "Dev lane validation rows"),
+      route("GET", "/api/implementation-patch-captures", "Implementation patch capture artifacts"),
+      route("GET", "/api/implementation-patch-records", "Implementation patch records"),
+      route("GET", "/api/implementation-diff-captures", "Implementation diff capture rows"),
+      route("GET", "/api/implementation-touched-files", "Implementation touched file rows"),
+      route("GET", "/api/implementation-generated-artifacts", "Implementation generated artifact rows"),
+      route("GET", "/api/implementation-run-ledger-bindings", "Implementation patch run ledger bindings"),
+      route("GET", "/api/implementation-patch-desktop-boundary", "Implementation patch Desktop read-only boundary"),
+      route("GET", "/api/implementation-patch-validations", "Implementation patch validation rows"),
+      route("GET", "/api/diff-review-gates", "Diff review gate artifacts"),
+      route("GET", "/api/diff-review-results", "Diff review result rows"),
+      route("GET", "/api/diff-review-file-findings", "Diff review file findings"),
+      route("GET", "/api/diff-review-artifact-findings", "Diff review artifact findings"),
+      route("GET", "/api/diff-review-gate-results", "Diff review gate result rows"),
+      route("GET", "/api/diff-review-desktop-boundary", "Diff review Desktop read-only boundary"),
+      route("GET", "/api/diff-review-validations", "Diff review validation rows"),
+      route("GET", "/api/canonical-test-matrices", "Canonical test matrix artifacts"),
+      route("GET", "/api/canonical-test-matrix-repos", "Canonical test matrix repository rows"),
+      route("GET", "/api/canonical-test-matrix-commands", "Canonical test matrix command rows"),
+      route("GET", "/api/canonical-test-matrix-executions", "Canonical test matrix execution rows"),
+      route("GET", "/api/canonical-test-matrix-results", "Canonical test matrix result rows"),
+      route("GET", "/api/canonical-test-matrix-bindings", "Canonical test matrix diff-review bindings"),
+      route("GET", "/api/canonical-test-matrix-desktop-boundary", "Canonical test matrix Desktop read-only boundary"),
+      route("GET", "/api/canonical-test-matrix-validations", "Canonical test matrix validation rows"),
+      route("GET", "/api/dev-protected-scans", "Dev protected scan artifacts"),
+      route("GET", "/api/dev-protected-file-findings", "Dev protected file findings"),
+      route("GET", "/api/dev-secret-findings", "Dev secret and credential findings"),
+      route("GET", "/api/dev-prod-config-findings", "Dev production config findings"),
+      route("GET", "/api/dev-protected-scan-results", "Dev protected scan result rows"),
+      route("GET", "/api/dev-protected-scan-bindings", "Dev protected scan canonical-test bindings"),
+      route("GET", "/api/dev-protected-scan-desktop-boundary", "Dev protected scan Desktop read-only boundary"),
+      route("GET", "/api/dev-protected-scan-validations", "Dev protected scan validation rows"),
+      route("GET", "/api/pr-draft-artifacts", "PR draft artifact records"),
+      route("GET", "/api/pr-draft-output-artifacts", "PR draft OutputArtifact v2 rows"),
+      route("GET", "/api/pr-draft-sections", "PR draft summary, tests, risks, and rollback sections"),
+      route("GET", "/api/pr-draft-test-evidence", "PR draft canonical test evidence rows"),
+      route("GET", "/api/pr-draft-risks", "PR draft risk rows"),
+      route("GET", "/api/pr-draft-rollback-plan", "PR draft rollback plan rows"),
+      route("GET", "/api/pr-draft-bindings", "PR draft protected-scan bindings"),
+      route("GET", "/api/pr-draft-desktop-boundary", "PR draft Desktop read-only boundary"),
+      route("GET", "/api/pr-draft-validations", "PR draft validation rows"),
+      route("GET", "/api/release-note-artifacts", "Release note artifact records"),
+      route("GET", "/api/release-note-output-artifacts", "Release note OutputArtifact v2 rows"),
+      route("GET", "/api/release-note-change-records", "Release note validated change records"),
+      route("GET", "/api/release-note-sections", "Release note highlights, changes, tests, risks, rollback, and human review sections"),
+      route("GET", "/api/release-note-gate-bindings", "Release note human-gated source bindings"),
+      route("GET", "/api/release-note-desktop-boundary", "Release note Desktop read-only boundary"),
+      route("GET", "/api/release-note-validations", "Release note validation rows"),
+      route("GET", "/api/rollback-plan-artifacts", "Rollback plan artifact records"),
+      route("GET", "/api/rollback-plan-output-artifacts", "Rollback plan OutputArtifact v2 rows"),
+      route("GET", "/api/rollback-commit-targets", "Rollback commit target records"),
+      route("GET", "/api/rollback-file-targets", "Rollback file target records"),
+      route("GET", "/api/rollback-command-targets", "Rollback command target records"),
+      route("GET", "/api/rollback-plan-bindings", "Rollback plan source bindings"),
+      route("GET", "/api/rollback-plan-desktop-boundary", "Rollback plan Desktop read-only boundary"),
+      route("GET", "/api/rollback-plan-validations", "Rollback plan validation rows"),
+      route("GET", "/api/technical-debt-ledgers", "Technical debt ledger records"),
+      route("GET", "/api/technical-debt-output-artifacts", "Technical debt OutputArtifact v2 rows"),
+      route("GET", "/api/debt-source-findings", "Technical debt source findings"),
+      route("GET", "/api/technical-debt-tasks", "Technical debt task drafts"),
+      route("GET", "/api/debt-task-bindings", "Technical debt task bindings"),
+      route("GET", "/api/technical-debt-desktop-boundary", "Technical debt Desktop read-only boundary"),
+      route("GET", "/api/technical-debt-validations", "Technical debt validation rows"),
+      route("GET", "/api/personal-dev-dashboard-apis", "Personal-dev dashboard/API artifact records"),
+      route("GET", "/api/personal-dev-output-artifacts", "Personal-dev dashboard OutputArtifact v2 rows"),
+      route("GET", "/api/personal-dev-panel-rows", "Personal-dev repo, worktree, plan, diff, test, and PR panel rows"),
+      route("GET", "/api/personal-dev-status-rollups", "Personal-dev dashboard status rollups"),
+      route("GET", "/api/personal-dev-api-route-bindings", "Personal-dev read-only API route bindings"),
+      route("GET", "/api/personal-dev-dashboard-desktop-boundary", "Personal-dev dashboard Desktop read-only boundary"),
+      route("GET", "/api/personal-dev-dashboard-validations", "Personal-dev dashboard/API validation rows"),
+      route("GET", "/api/personal-dev-e2e-freezes", "Personal-dev E2E freeze artifact records"),
+      route("GET", "/api/personal-dev-e2e-freeze-sources", "Personal-dev E2E freeze source rows"),
+      route("GET", "/api/personal-dev-e2e-freeze-checkpoints", "Personal-dev E2E freeze checkpoint rows"),
+      route("GET", "/api/personal-dev-e2e-traces", "Personal-dev issue, plan, worktree, diff, test, PR, and dashboard/API traces"),
+      route("GET", "/api/personal-dev-e2e-loop-bindings", "Personal-dev E2E control-plane loop bindings"),
+      route("GET", "/api/personal-dev-e2e-freeze-desktop-boundary", "Personal-dev E2E freeze Desktop read-only boundary"),
+      route("GET", "/api/personal-dev-e2e-freeze-validations", "Personal-dev E2E freeze validation rows"),
       route("GET", "/api/gate-approval-contract-freezes", "Gate/Approval contract freeze artifacts"),
       route("GET", "/api/gate-result-contracts", "GateResult v2 contract fixtures"),
       route("GET", "/api/approval-request-contracts", "ApprovalRequest v2 contract fixtures"),
@@ -9425,6 +11057,129 @@ function filterItems(items, searchParams) {
     "runtime_freeze_loop_binding_status",
     "personal_dev_pack_manifest_status",
     "personal_dev_capability_registration_status",
+    "law_firm_pack_manifest_status",
+    "law_firm_capability_registration_status",
+    "matter_os_profile_status",
+    "profile_card_status",
+    "display_field_status",
+    "matter_timeline_status",
+    "timeline_event_type",
+    "timeline_event_status",
+    "timeline_review_status",
+    "timeline_matter_status",
+    "matter_document_index_status",
+    "document_role",
+    "document_status",
+    "document_family_status",
+    "latest_document",
+    "document_source_kind",
+    "matter_task_board_status",
+    "task_status",
+    "task_owner",
+    "task_category",
+    "task_column",
+    "task_due_status",
+    "task_workflow_binding_status",
+    "workflow_run_bound",
+    "matter_knowledge_graph_status",
+    "matter_knowledge_status",
+    "knowledge_node_type",
+    "knowledge_node_status",
+    "knowledge_edge_type",
+    "knowledge_edge_status",
+    "legal_theory_placeholder",
+    "matter_privilege_classifier_status",
+    "matter_privilege_status",
+    "work_product_flag",
+    "confidentiality_flag",
+    "classification_status",
+    "final_privilege_determination",
+    "matter_personal_data_detector_status",
+    "matter_personal_data_status",
+    "personal_data_flag",
+    "personal_data_detection_status",
+    "personal_data_category",
+    "primary_personal_data_category",
+    "sensitive_personal_data",
+    "policy_binding_status",
+    "policy_classification",
+    "quarantine_binding_status",
+    "quarantine_category",
+    "quarantine_action",
+    "quarantine_applied",
+    "legal_citation_verifier_status",
+    "legal_citation_matter_status",
+    "citation_kind",
+    "authority_type",
+    "source_check_status",
+    "currentness_check_status",
+    "legal_authority_status",
+    "legal_rule_binding_status",
+    "verification_status",
+    "review_status",
+    "source_bound",
+    "currentness_gate_applied",
+    "currentness_verified",
+    "attorney_currentness_review_required",
+    "external_legal_research_performed",
+    "legal_authority_finalized",
+    "ldd_vdr_inventory_status",
+    "ldd_vdr_matter_status",
+    "batch_status",
+    "folder_status",
+    "inventory_file_status",
+    "version_status",
+    "missing_data_status",
+    "rfi_candidate",
+    "resource_version_ledger_bound",
+    "ldd_document_classification_status",
+    "ldd_document_matter_classification_status",
+    "document_class",
+    "primary_document_class",
+    "classification_status",
+    "classification_confidence",
+    "source_row_kind",
+    "ldd_extractor_selection_status",
+    "ldd_extractor_matter_status",
+    "extractor_id",
+    "selected_extractor_id",
+    "extractor_kind",
+    "extractor_selection_status",
+    "selection_status",
+    "rationale_status",
+    "extractor_execution_performed",
+    "extraction_result_generated",
+    "ldd_fact_extraction_status",
+    "ldd_fact_matter_status",
+    "fact_type",
+    "fact_status",
+    "fact_confidence",
+    "source_gap",
+    "deterministic_fact_extraction_performed",
+    "external_extractor_execution_performed",
+    "source_selected_extractor_id",
+    "ldd_issue_detection_status",
+    "ldd_issue_matter_status",
+    "issue_type",
+    "issue_status",
+    "issue_severity",
+    "issue_flag",
+    "follow_up_status",
+    "follow_up_owner",
+    "deterministic_issue_detection_performed",
+    "ldd_rfi_generator_status",
+    "ldd_rfi_matter_status",
+    "rfi_rule_type",
+    "rfi_draft_status",
+    "rfi_question_type",
+    "rfi_question_priority",
+    "rfi_question_status",
+    "rfi_missing_material_status",
+    "rfi_issue_link_status",
+    "deterministic_rfi_generation_performed",
+    "ldd_rfi_question_id",
+    "ldd_issue_record_id",
+    "ldd_vdr_missing_data_record_id",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -9455,6 +11210,85 @@ function filterItems(items, searchParams) {
     "task_priority",
     "priority",
     "issue_task_binding_status",
+    "plan_request_status",
+    "plan_reconciliation_status",
+    "scope_freeze_gate_status",
+    "dev_lane_ledger_status",
+    "implementation_patch_capture_status",
+    "diff_review_gate_status",
+    "diff_review_status",
+    "file_finding_status",
+    "artifact_finding_status",
+    "gate_result_status",
+    "review_decision",
+    "canonical_test_matrix_status",
+    "repo_matrix_status",
+    "test_dimension",
+    "matrix_command_status",
+    "execution_status",
+    "matrix_result_status",
+    "binding_status",
+    "dev_protected_scan_status",
+    "finding_status",
+    "secret_finding_status",
+    "prod_config_finding_status",
+    "scan_result_status",
+    "pr_draft_artifact_status",
+    "output_status",
+    "section_type",
+    "section_status",
+    "test_evidence_status",
+    "risk_status",
+    "rollback_status",
+    "pr_draft_binding_status",
+    "release_note_artifact_status",
+    "change_record_status",
+    "merged_change_basis",
+    "release_note_binding_status",
+    "rollback_plan_artifact_status",
+    "rollback_commit_status",
+    "rollback_file_status",
+    "rollback_command_status",
+    "rollback_plan_binding_status",
+    "technical_debt_ledger_status",
+    "finding_status",
+    "debt_source_type",
+    "debt_task_status",
+    "debt_preservation_status",
+    "debt_task_binding_status",
+    "personal_dev_dashboard_status",
+    "personal_dev_e2e_freeze_status",
+    "personal_dev_e2e_source_status",
+    "personal_dev_e2e_checkpoint_status",
+    "e2e_trace_status",
+    "e2e_trace_stage",
+    "e2e_loop_binding_status",
+    "panel_section",
+    "panel_status",
+    "rollup_key",
+    "rollup_status",
+    "route_group",
+    "route_binding_status",
+    "candidate_status",
+    "commonality_status",
+    "conflict_status",
+    "selected_scope_status",
+    "frozen_scope_status",
+    "file_boundary_status",
+    "rule_snapshot_status",
+    "decision_status",
+    "lane_status",
+    "lane_role",
+    "branch_record_status",
+    "worktree_record_status",
+    "patch_record_status",
+    "diff_capture_status",
+    "touched_file_status",
+    "generated_artifact_status",
+    "run_ledger_binding_status",
+    "question_status",
+    "blocker_status",
+    "agent",
     "registration_status",
     "canonical_test_plan_status",
     "canonical_test_execution_status",
@@ -10800,6 +12634,133 @@ function readFilterValue(item, key) {
   if (key === "runtime_freeze_loop_binding_status") return item.runtime_freeze_loop_binding_status;
   if (key === "personal_dev_pack_manifest_status") return item.summary?.personal_dev_pack_manifest_status ?? item.personal_dev_pack_manifest_status;
   if (key === "personal_dev_capability_registration_status") return item.registration_status;
+  if (key === "law_firm_pack_manifest_status") return item.summary?.law_firm_pack_manifest_status ?? item.law_firm_pack_manifest_status;
+  if (key === "law_firm_capability_registration_status") return item.registration_status;
+  if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
+  if (key === "profile_card_status") return item.profile_card_status;
+  if (key === "display_field_status") return item.display_field_status;
+  if (key === "matter_timeline_status") return item.summary?.matter_timeline_status ?? item.matter_timeline_status;
+  if (key === "timeline_event_type") return item.event_type;
+  if (key === "timeline_event_status") return item.event_status;
+  if (key === "timeline_review_status") return item.review_status;
+  if (key === "timeline_matter_status") return item.timeline_status;
+  if (key === "matter_document_index_status") return item.summary?.matter_document_index_status ?? item.matter_document_index_status;
+  if (key === "document_role") return item.document_role ?? item.latest_document_role;
+  if (key === "document_status") return item.document_status ?? item.latest_document_status;
+  if (key === "document_family_status") return item.family_status;
+  if (key === "latest_document") return String(Boolean(item.is_latest));
+  if (key === "document_source_kind") return item.source_kind;
+  if (key === "matter_task_board_status") return item.summary?.matter_task_board_status ?? item.matter_task_board_status;
+  if (key === "task_status") return item.task_status;
+  if (key === "task_owner") return item.task_owner;
+  if (key === "task_category") return item.task_category;
+  if (key === "task_column") return item.task_column_id;
+  if (key === "task_due_status") return item.due_status;
+  if (key === "task_workflow_binding_status") return item.workflow_binding_status;
+  if (key === "workflow_run_bound") return String(Boolean(item.workflow_run_id));
+  if (key === "matter_knowledge_graph_status") return item.summary?.matter_knowledge_graph_status ?? item.matter_knowledge_graph_status;
+  if (key === "matter_knowledge_status") return item.matter_knowledge_status;
+  if (key === "knowledge_node_type") return item.node_type;
+  if (key === "knowledge_node_status") return item.node_status;
+  if (key === "knowledge_edge_type") return item.edge_type;
+  if (key === "knowledge_edge_status") return item.edge_status;
+  if (key === "legal_theory_placeholder") return String(item.metadata?.legal_theory_kind === "review_placeholder");
+  if (key === "matter_privilege_classifier_status") return item.summary?.matter_privilege_classifier_status ?? item.matter_privilege_classifier_status;
+  if (key === "matter_privilege_status") return item.matter_privilege_status;
+  if (key === "privilege_flag") return item.privilege_flag;
+  if (key === "work_product_flag") return item.work_product_flag;
+  if (key === "confidentiality_flag") return item.confidentiality_flag;
+  if (key === "external_transfer_flag") return item.external_transfer_flag;
+  if (key === "classification_status") return item.classification_status;
+  if (key === "flag_type") return item.flag_type;
+  if (key === "flag_value") return item.flag_value;
+  if (key === "final_privilege_determination") return String(Boolean(item.privilege_determination_final));
+  if (key === "matter_personal_data_detector_status") return item.summary?.matter_personal_data_detector_status ?? item.matter_personal_data_detector_status;
+  if (key === "matter_personal_data_status") return item.matter_personal_data_status;
+  if (key === "personal_data_flag") return item.personal_data_flag;
+  if (key === "personal_data_detection_status") return item.personal_data_detection_status;
+  if (key === "personal_data_category") return item.detected_personal_data_categories;
+  if (key === "primary_personal_data_category") return item.primary_personal_data_category;
+  if (key === "sensitive_personal_data") return String(Boolean(item.sensitive_personal_data));
+  if (key === "policy_binding_status") return item.policy_binding_status;
+  if (key === "policy_classification") return item.policy_classification;
+  if (key === "quarantine_binding_status") return item.quarantine_binding_status;
+  if (key === "quarantine_category") return item.quarantine_category;
+  if (key === "quarantine_action") return item.quarantine_action;
+  if (key === "quarantine_applied") return String(Boolean(item.quarantine_applied));
+  if (key === "legal_citation_verifier_status") return item.summary?.legal_citation_verifier_status ?? item.legal_citation_verifier_status;
+  if (key === "legal_citation_matter_status") return item.legal_citation_matter_status;
+  if (key === "citation_kind") return item.citation_kind;
+  if (key === "authority_type") return item.authority_type;
+  if (key === "source_check_status") return item.source_check_status;
+  if (key === "currentness_check_status") return item.currentness_check_status;
+  if (key === "legal_authority_status") return item.legal_authority_status;
+  if (key === "legal_rule_binding_status") return item.legal_rule_binding_status;
+  if (key === "verification_status") return item.verification_status;
+  if (key === "review_status") return item.review_status;
+  if (key === "source_bound") return String(Boolean(item.source_bound));
+  if (key === "currentness_gate_applied") return String(Boolean(item.currentness_gate_applied));
+  if (key === "currentness_verified") return String(Boolean(item.currentness_verified));
+  if (key === "attorney_currentness_review_required") return String(Boolean(item.attorney_currentness_review_required));
+  if (key === "external_legal_research_performed") return String(Boolean(item.external_legal_research_performed));
+  if (key === "legal_authority_finalized") return String(Boolean(item.legal_authority_finalized));
+  if (key === "ldd_vdr_inventory_status") return item.summary?.ldd_vdr_inventory_status ?? item.ldd_vdr_inventory_status;
+  if (key === "ldd_vdr_matter_status") return item.ldd_vdr_matter_status;
+  if (key === "batch_status") return item.batch_status;
+  if (key === "folder_status") return item.folder_status;
+  if (key === "inventory_file_status") return item.inventory_file_status;
+  if (key === "version_status") return item.version_status;
+  if (key === "missing_data_status") return item.missing_data_status;
+  if (key === "rfi_candidate") return String(Boolean(item.rfi_candidate));
+  if (key === "resource_version_ledger_bound") return String(Boolean(item.resource_version_ledger_bound));
+  if (key === "ldd_document_classification_status") return item.summary?.ldd_document_classification_status ?? item.ldd_document_classification_status;
+  if (key === "ldd_document_matter_classification_status") return item.ldd_document_matter_classification_status;
+  if (key === "document_class") return item.document_class ?? item.primary_document_class;
+  if (key === "primary_document_class") return item.primary_document_class;
+  if (key === "classification_status") return item.classification_status;
+  if (key === "classification_confidence") return item.classification_confidence;
+  if (key === "source_row_kind") return item.source_row_kind;
+  if (key === "ldd_extractor_selection_status") return item.summary?.ldd_extractor_selection_status ?? item.ldd_extractor_selection_status;
+  if (key === "ldd_extractor_matter_status") return item.ldd_extractor_matter_status;
+  if (key === "extractor_id") return item.selected_extractor_id ?? item.binding_adapter_contract_extractor_id;
+  if (key === "selected_extractor_id") return item.selected_extractor_id;
+  if (key === "extractor_kind") return item.extractor_kind;
+  if (key === "extractor_selection_status") return item.selection_status;
+  if (key === "selection_status") return item.selection_status;
+  if (key === "rationale_status") return item.rationale_status;
+  if (key === "extractor_execution_performed") return String(Boolean(item.extractor_execution_performed));
+  if (key === "extraction_result_generated") return String(Boolean(item.extraction_result_generated));
+  if (key === "ldd_fact_extraction_status") return item.summary?.ldd_fact_extraction_status ?? item.ldd_fact_extraction_status;
+  if (key === "ldd_fact_matter_status") return item.ldd_fact_matter_status;
+  if (key === "fact_type") return item.fact_type;
+  if (key === "fact_status") return item.fact_status;
+  if (key === "fact_confidence") return item.fact_confidence;
+  if (key === "source_gap") return String(Boolean(item.source_gap));
+  if (key === "deterministic_fact_extraction_performed") return String(Boolean(item.deterministic_fact_extraction_performed));
+  if (key === "external_extractor_execution_performed") return String(Boolean(item.external_extractor_execution_performed));
+  if (key === "source_selected_extractor_id") return item.source_selected_extractor_id ?? item.selected_extractor_id;
+  if (key === "ldd_issue_detection_status") return item.summary?.ldd_issue_detection_status ?? item.ldd_issue_detection_status;
+  if (key === "ldd_issue_matter_status") return item.ldd_issue_matter_status;
+  if (key === "issue_type") return item.issue_type;
+  if (key === "issue_status") return item.issue_status;
+  if (key === "issue_severity") return item.issue_severity;
+  if (key === "issue_flag") return item.issue_flag;
+  if (key === "follow_up_status") return item.follow_up_status;
+  if (key === "follow_up_owner") return item.follow_up_owner;
+  if (key === "deterministic_issue_detection_performed") return String(Boolean(item.deterministic_issue_detection_performed));
+  if (key === "ldd_rfi_generator_status") return item.summary?.ldd_rfi_generator_status ?? item.ldd_rfi_generator_status;
+  if (key === "ldd_rfi_matter_status") return item.ldd_rfi_matter_status;
+  if (key === "rfi_rule_type") return item.rfi_rule_type;
+  if (key === "rfi_draft_status") return item.rfi_draft_status;
+  if (key === "rfi_question_type") return item.rfi_question_type;
+  if (key === "rfi_question_priority") return item.rfi_question_priority;
+  if (key === "rfi_question_status") return item.rfi_question_status;
+  if (key === "rfi_missing_material_status") return item.rfi_missing_material_status;
+  if (key === "rfi_issue_link_status") return item.rfi_issue_link_status;
+  if (key === "deterministic_rfi_generation_performed") return String(Boolean(item.deterministic_rfi_generation_performed));
+  if (key === "ldd_rfi_question_id") return item.ldd_rfi_question_id;
+  if (key === "ldd_issue_record_id") return item.ldd_issue_record_id;
+  if (key === "ldd_vdr_missing_data_record_id") return item.ldd_vdr_missing_data_record_id;
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;
@@ -10829,6 +12790,85 @@ function readFilterValue(item, key) {
   if (key === "task_status") return item.task_status ?? item.normalized_task_status;
   if (key === "task_priority") return item.task_priority ?? item.priority;
   if (key === "issue_task_binding_status") return item.binding_status;
+  if (key === "plan_request_status") return item.summary?.plan_request_status ?? item.plan_request_status;
+  if (key === "plan_reconciliation_status") return item.summary?.plan_reconciliation_status ?? item.plan_reconciliation_status;
+  if (key === "scope_freeze_gate_status") return item.summary?.scope_freeze_gate_status ?? item.scope_freeze_gate_status;
+  if (key === "dev_lane_ledger_status") return item.summary?.dev_lane_ledger_status ?? item.dev_lane_ledger_status;
+  if (key === "implementation_patch_capture_status") return item.summary?.implementation_patch_capture_status ?? item.implementation_patch_capture_status;
+  if (key === "diff_review_gate_status") return item.summary?.diff_review_gate_status ?? item.diff_review_gate_status;
+  if (key === "diff_review_status") return item.diff_review_status;
+  if (key === "file_finding_status") return item.file_finding_status;
+  if (key === "artifact_finding_status") return item.artifact_finding_status;
+  if (key === "gate_result_status") return item.gate_result_status;
+  if (key === "review_decision") return item.review_decision;
+  if (key === "canonical_test_matrix_status") return item.summary?.canonical_test_matrix_status ?? item.canonical_test_matrix_status;
+  if (key === "repo_matrix_status") return item.repo_matrix_status;
+  if (key === "test_dimension") return item.test_dimension;
+  if (key === "matrix_command_status") return item.matrix_command_status;
+  if (key === "execution_status") return item.execution_status;
+  if (key === "matrix_result_status") return item.matrix_result_status;
+  if (key === "binding_status") return item.binding_status;
+  if (key === "dev_protected_scan_status") return item.summary?.dev_protected_scan_status ?? item.dev_protected_scan_status;
+  if (key === "finding_status") return item.finding_status;
+  if (key === "secret_finding_status") return item.secret_finding_status;
+  if (key === "prod_config_finding_status") return item.prod_config_finding_status;
+  if (key === "scan_result_status") return item.scan_result_status;
+  if (key === "pr_draft_artifact_status") return item.summary?.pr_draft_artifact_status ?? item.pr_draft_artifact_status;
+  if (key === "output_status") return item.output_status;
+  if (key === "section_type") return item.section_type;
+  if (key === "section_status") return item.section_status;
+  if (key === "test_evidence_status") return item.test_evidence_status;
+  if (key === "risk_status") return item.risk_status;
+  if (key === "rollback_status") return item.rollback_status;
+  if (key === "pr_draft_binding_status") return item.pr_draft_binding_status;
+  if (key === "release_note_artifact_status") return item.summary?.release_note_artifact_status ?? item.release_note_artifact_status;
+  if (key === "change_record_status") return item.change_record_status;
+  if (key === "merged_change_basis") return item.merged_change_basis;
+  if (key === "release_note_binding_status") return item.release_note_binding_status;
+  if (key === "rollback_plan_artifact_status") return item.summary?.rollback_plan_artifact_status ?? item.rollback_plan_artifact_status;
+  if (key === "rollback_commit_status") return item.rollback_commit_status;
+  if (key === "rollback_file_status") return item.rollback_file_status;
+  if (key === "rollback_command_status") return item.rollback_command_status;
+  if (key === "rollback_plan_binding_status") return item.rollback_plan_binding_status;
+  if (key === "technical_debt_ledger_status") return item.summary?.technical_debt_ledger_status ?? item.technical_debt_ledger_status;
+  if (key === "finding_status") return item.finding_status;
+  if (key === "debt_source_type") return item.source_type;
+  if (key === "debt_task_status") return item.task_status;
+  if (key === "debt_preservation_status") return item.preservation_status;
+  if (key === "debt_task_binding_status") return item.debt_task_binding_status;
+  if (key === "personal_dev_dashboard_status") return item.summary?.personal_dev_dashboard_api_status ?? item.personal_dev_dashboard_api_status;
+  if (key === "personal_dev_e2e_freeze_status") return item.summary?.personal_dev_e2e_freeze_status ?? item.personal_dev_e2e_freeze_status;
+  if (key === "personal_dev_e2e_source_status") return item.source_status;
+  if (key === "personal_dev_e2e_checkpoint_status") return item.status;
+  if (key === "e2e_trace_status") return item.trace_status;
+  if (key === "e2e_trace_stage") return item.trace_stage;
+  if (key === "e2e_loop_binding_status") return item.e2e_loop_binding_status;
+  if (key === "panel_section") return item.panel_section;
+  if (key === "panel_status") return item.panel_status;
+  if (key === "rollup_key") return item.rollup_key;
+  if (key === "rollup_status") return item.rollup_status;
+  if (key === "route_group") return item.route_group;
+  if (key === "route_binding_status") return item.route_binding_status;
+  if (key === "candidate_status") return item.candidate_status;
+  if (key === "commonality_status") return item.commonality_status;
+  if (key === "conflict_status") return item.conflict_status;
+  if (key === "selected_scope_status") return item.selected_scope_status ?? item.summary?.selected_scope_status;
+  if (key === "frozen_scope_status") return item.frozen_scope_status;
+  if (key === "file_boundary_status") return item.file_boundary_status;
+  if (key === "rule_snapshot_status") return item.rule_snapshot_status;
+  if (key === "decision_status") return item.decision_status;
+  if (key === "lane_status") return item.lane_status;
+  if (key === "lane_role") return item.lane_role;
+  if (key === "branch_record_status") return item.branch_record_status;
+  if (key === "worktree_record_status") return item.worktree_record_status;
+  if (key === "patch_record_status") return item.patch_record_status;
+  if (key === "diff_capture_status") return item.diff_capture_status;
+  if (key === "touched_file_status") return item.touched_file_status;
+  if (key === "generated_artifact_status") return item.generated_artifact_status;
+  if (key === "run_ledger_binding_status") return item.run_ledger_binding_status;
+  if (key === "question_status") return item.question_status;
+  if (key === "blocker_status") return item.blocker_status;
+  if (key === "agent") return item.agent;
   if (key === "registration_status") return item.summary?.registration_status ?? item.registration_status;
   if (key === "canonical_test_plan_status") return item.summary?.canonical_test_plan_status ?? item.plan_status;
   if (key === "canonical_test_execution_status") return item.harness_status ?? item.execution_status;

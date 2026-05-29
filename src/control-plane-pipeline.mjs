@@ -240,10 +240,11 @@ function step(stepId, label, category, command, expectedArtifacts = []) {
 
 function runCommand(command, options) {
   const [bin, ...args] = command;
+  const spawnCommand = resolveCommandSpawn({ executable: bin, args });
   return new Promise((resolve) => {
     let stdout = "";
     let stderr = "";
-    const child = spawn(bin, args, {
+    const child = spawn(spawnCommand.command, spawnCommand.args, {
       cwd: options.cwd,
       env: process.env,
       stdio: ["ignore", "pipe", "pipe"],
@@ -274,6 +275,20 @@ function runCommand(command, options) {
       });
     });
   });
+}
+
+function resolveCommandSpawn(command) {
+  if (process.platform !== "win32" || command.executable !== "npm") {
+    return { command: command.executable, args: command.args };
+  }
+  const commandLine = ["npm.cmd", ...command.args].map(quoteWindowsCommandArg).join(" ");
+  return { command: "cmd.exe", args: ["/d", "/s", "/c", commandLine] };
+}
+
+function quoteWindowsCommandArg(value) {
+  const text = String(value);
+  if (/^[A-Za-z0-9_./:=+-]+$/.test(text)) return text;
+  return `"${text.replace(/"/g, '\\"')}"`;
 }
 
 async function checkArtifacts(expectedArtifacts, cwd) {

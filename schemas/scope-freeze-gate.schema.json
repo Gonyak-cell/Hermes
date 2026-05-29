@@ -1,0 +1,282 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/scope-freeze-gate.schema.json",
+  "title": "Scope Freeze Gate",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "scope_freeze_gate_id",
+    "scope_freeze_gate_status",
+    "safe_handling",
+    "scope_freeze_gate_contract",
+    "source_plan_reconciliation",
+    "source_protected_file_gate",
+    "selected_plan_scope",
+    "frozen_scope_items",
+    "scope_file_boundaries",
+    "scope_protected_file_rules",
+    "scope_freeze_decision",
+    "scope_freeze_desktop_boundary",
+    "scope_freeze_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "scope-freeze-gate.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "scope_freeze_gate_id": { "type": "string", "minLength": 1 },
+    "scope_freeze_gate_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "external_agent_invocation_performed",
+        "scope_freeze_performed",
+        "plan_acceptance_performed",
+        "protected_mutation_performed",
+        "task_state_mutation_performed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "external_agent_invocation_performed": { "const": false },
+        "scope_freeze_performed": { "const": true },
+        "plan_acceptance_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "task_state_mutation_performed": { "const": false }
+      }
+    },
+    "scope_freeze_gate_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "scope-freeze-gate-contract-definition.v1" },
+        "contract_id": { "const": "scope-freeze-gate.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "source_of_truth": { "const": "plan_reconciliation_selected_scope_and_protected_file_rules" }
+      }
+    },
+    "source_plan_reconciliation": {
+      "type": "object",
+      "required": ["schema_version", "plan_reconciliation_status", "selected_scope_status", "selected_scope_item_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-plan-reconciliation.v1" },
+        "plan_reconciliation_status": { "const": "complete" },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "selected_scope_item_count": { "type": "integer", "minimum": 1 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_protected_file_gate": {
+      "type": "object",
+      "required": ["schema_version", "protected_file_gate_status", "contract_status", "protected_file_rule_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-protected-file-gate.v1" },
+        "protected_file_gate_status": { "const": "complete" },
+        "contract_status": { "const": "locked" },
+        "protected_file_rule_count": { "type": "integer", "minimum": 1 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "frozen_scope_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/frozen_scope_item" }
+    },
+    "scope_file_boundaries": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/scope_file_boundary" }
+    },
+    "scope_protected_file_rules": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/scope_protected_file_rule" }
+    },
+    "scope_freeze_decision": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "decision_status",
+        "scope_freeze_performed",
+        "plan_acceptance_performed",
+        "external_agent_invocation_performed",
+        "command_execution_performed",
+        "task_state_mutation_performed",
+        "worktree_provisioning_allowed_after_freeze",
+        "implementation_patch_allowed_before_worktree",
+        "protected_write_allowed_without_explicit_approval",
+        "scope_change_requires_new_reconciliation",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "scope-freeze-decision.v1" },
+        "decision_status": { "const": "frozen" },
+        "scope_freeze_performed": { "const": true },
+        "plan_acceptance_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "task_state_mutation_performed": { "const": false },
+        "worktree_provisioning_allowed_after_freeze": { "const": true },
+        "implementation_patch_allowed_before_worktree": { "const": false },
+        "protected_write_allowed_without_explicit_approval": { "const": false },
+        "scope_change_requires_new_reconciliation": { "const": true },
+        "human_review_required": { "const": true }
+      }
+    },
+    "scope_freeze_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "mutation_allowed",
+        "scope_change_allowed",
+        "protected_file_rule_edit_allowed",
+        "protected_file_write_allowed",
+        "runtime_execution_allowed",
+        "external_agent_invocation_allowed",
+        "plan_acceptance_allowed",
+        "task_state_write_allowed",
+        "source_of_truth"
+      ],
+      "properties": {
+        "schema_version": { "const": "scope-freeze-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "scope_change_allowed": { "const": false },
+        "protected_file_rule_edit_allowed": { "const": false },
+        "protected_file_write_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "external_agent_invocation_allowed": { "const": false },
+        "plan_acceptance_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "scope_freeze_checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "scope_freeze_gate_status",
+        "scope_freeze_gate_contract_id",
+        "source_plan_reconciliation_status",
+        "source_protected_file_gate_status",
+        "selected_scope_status",
+        "source_selected_scope_item_count",
+        "frozen_scope_item_count",
+        "scope_file_boundary_count",
+        "protected_file_rule_count",
+        "frozen_protected_file_rule_snapshot_count",
+        "protected_write_requires_approval",
+        "scope_freeze_performed_count",
+        "plan_acceptance_performed_count",
+        "external_agent_invocation_performed_count",
+        "command_execution_performed_count",
+        "protected_mutation_performed_count",
+        "worktree_provisioning_allowed_after_freeze",
+        "implementation_patch_allowed_before_worktree",
+        "protected_file_write_allowed_without_approval",
+        "human_review_required",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "scope_freeze_gate_status": { "enum": ["complete", "blocked"] },
+        "scope_freeze_gate_contract_id": { "const": "scope-freeze-gate.v1" },
+        "source_plan_reconciliation_status": { "const": "complete" },
+        "source_protected_file_gate_status": { "const": "complete" },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "source_selected_scope_item_count": { "type": "integer", "minimum": 1 },
+        "frozen_scope_item_count": { "type": "integer", "minimum": 1 },
+        "scope_file_boundary_count": { "type": "integer", "minimum": 1 },
+        "protected_file_rule_count": { "type": "integer", "minimum": 1 },
+        "frozen_protected_file_rule_snapshot_count": { "type": "integer", "minimum": 1 },
+        "protected_write_requires_approval": { "const": true },
+        "scope_freeze_performed_count": { "const": 1 },
+        "plan_acceptance_performed_count": { "const": 0 },
+        "external_agent_invocation_performed_count": { "const": 0 },
+        "command_execution_performed_count": { "const": 0 },
+        "protected_mutation_performed_count": { "const": 0 },
+        "worktree_provisioning_allowed_after_freeze": { "const": true },
+        "implementation_patch_allowed_before_worktree": { "const": false },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "human_review_required": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "frozen_scope_item": {
+      "type": "object",
+      "required": ["schema_version", "frozen_scope_item_id", "frozen_scope_status", "scope_item", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "frozen-scope-item.v1" },
+        "frozen_scope_status": { "const": "frozen" },
+        "scope_item": { "type": "string", "minLength": 1 },
+        "human_review_required": { "const": true }
+      }
+    },
+    "scope_file_boundary": {
+      "type": "object",
+      "required": ["schema_version", "scope_file_boundary_id", "file_path", "file_boundary_status", "in_frozen_scope", "write_allowed_before_approval", "mutation_allowed_before_approval", "protected_action_executed"],
+      "properties": {
+        "schema_version": { "const": "scope-file-boundary.v1" },
+        "file_boundary_status": { "enum": ["in_scope_unprotected", "in_scope_protected_requires_approval"] },
+        "in_frozen_scope": { "const": true },
+        "write_allowed_before_approval": { "const": false },
+        "mutation_allowed_before_approval": { "const": false },
+        "protected_action_executed": { "const": false }
+      }
+    },
+    "scope_protected_file_rule": {
+      "type": "object",
+      "required": ["schema_version", "scope_protected_file_rule_id", "rule_status", "rule_snapshot_status", "explicit_approval_required", "write_allowed_before_approval", "mutation_allowed_before_approval", "protected_action_executed"],
+      "properties": {
+        "schema_version": { "const": "scope-protected-file-rule.v1" },
+        "rule_status": { "const": "frozen" },
+        "rule_snapshot_status": { "const": "frozen" },
+        "explicit_approval_required": { "const": true },
+        "write_allowed_before_approval": { "const": false },
+        "mutation_allowed_before_approval": { "const": false },
+        "protected_action_executed": { "const": false }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["schema_version", "checkpoint_id", "status", "message"],
+      "properties": {
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string", "minLength": 1 }
+      }
+    }
+  }
+}

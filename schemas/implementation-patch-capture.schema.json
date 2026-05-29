@@ -1,0 +1,322 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/implementation-patch-capture.schema.json",
+  "title": "Implementation Patch Capture",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "implementation_patch_capture_id",
+    "implementation_patch_capture_status",
+    "safe_handling",
+    "implementation_patch_capture_contract",
+    "source_dev_lane_ledger",
+    "source_scope_freeze_gate",
+    "source_runtime_artifact_capture",
+    "implementation_patch_records",
+    "implementation_diff_captures",
+    "implementation_touched_files",
+    "implementation_generated_artifacts",
+    "implementation_run_ledger_bindings",
+    "implementation_patch_desktop_boundary",
+    "implementation_patch_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "implementation-patch-capture.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "implementation_patch_capture_id": { "type": "string", "minLength": 1 },
+    "implementation_patch_capture_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "implementation_patch_capture_performed",
+        "patch_application_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed",
+        "external_agent_invocation_performed",
+        "plan_acceptance_performed",
+        "protected_mutation_performed",
+        "task_state_mutation_performed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "implementation_patch_capture_performed": { "const": true },
+        "patch_application_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "task_state_mutation_performed": { "const": false }
+      }
+    },
+    "implementation_patch_capture_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "implementation-patch-capture-contract-definition.v1" },
+        "contract_id": { "const": "implementation-patch-capture.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "source_of_truth": { "const": "dev_lane_runtime_diff_and_scope_file_boundary_records" }
+      }
+    },
+    "source_dev_lane_ledger": {
+      "type": "object",
+      "required": ["schema_version", "dev_lane_ledger_status", "dev_lane_count", "provisioned_dev_lane_count", "branch_record_count", "worktree_record_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-dev-lane-ledger.v1" },
+        "dev_lane_ledger_status": { "const": "complete" },
+        "dev_lane_count": { "const": 2 },
+        "provisioned_dev_lane_count": { "const": 2 },
+        "branch_record_count": { "const": 2 },
+        "worktree_record_count": { "const": 2 },
+        "git_command_executed_count": { "const": 0 },
+        "filesystem_mutation_performed_count": { "const": 0 },
+        "patch_application_performed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_scope_freeze_gate": {
+      "type": "object",
+      "required": ["schema_version", "scope_freeze_gate_status", "selected_scope_status", "scope_file_boundary_count", "in_scope_file_boundary_count", "scope_freeze_performed_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-scope-freeze-gate.v1" },
+        "scope_freeze_gate_status": { "const": "complete" },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "scope_file_boundary_count": { "type": "integer", "minimum": 1 },
+        "in_scope_file_boundary_count": { "type": "integer", "minimum": 1 },
+        "scope_freeze_performed_count": { "const": 1 },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_runtime_artifact_capture": {
+      "type": "object",
+      "required": ["schema_version", "runtime_artifact_capture_status", "diff_capture_record_count", "bound_diff_capture_count", "diff_apply_allowed", "artifact_write_allowed", "desktop_read_only", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-runtime-artifact-capture.v1" },
+        "runtime_artifact_capture_status": { "const": "complete" },
+        "diff_capture_record_count": { "type": "integer", "minimum": 2 },
+        "bound_diff_capture_count": { "type": "integer", "minimum": 2 },
+        "diff_apply_allowed": { "const": false },
+        "artifact_write_allowed": { "const": false },
+        "desktop_read_only": { "const": true },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "implementation_patch_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/patch_record" }
+    },
+    "implementation_diff_captures": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/diff_capture" }
+    },
+    "implementation_touched_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/touched_file" }
+    },
+    "implementation_generated_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/generated_artifact" }
+    },
+    "implementation_run_ledger_bindings": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/run_ledger_binding" }
+    },
+    "implementation_patch_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "mutation_allowed",
+        "patch_application_allowed",
+        "git_command_allowed",
+        "filesystem_mutation_allowed",
+        "protected_file_write_allowed",
+        "runtime_execution_allowed",
+        "external_agent_invocation_allowed",
+        "plan_acceptance_allowed",
+        "source_of_truth"
+      ],
+      "properties": {
+        "schema_version": { "const": "implementation-patch-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "patch_application_allowed": { "const": false },
+        "git_command_allowed": { "const": false },
+        "filesystem_mutation_allowed": { "const": false },
+        "protected_file_write_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "external_agent_invocation_allowed": { "const": false },
+        "plan_acceptance_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "implementation_patch_capture_status",
+        "implementation_patch_capture_contract_id",
+        "source_dev_lane_ledger_status",
+        "source_scope_freeze_gate_status",
+        "source_runtime_artifact_capture_status",
+        "patch_record_count",
+        "captured_patch_record_count",
+        "diff_capture_count",
+        "captured_diff_capture_count",
+        "touched_file_count",
+        "in_scope_touched_file_count",
+        "generated_artifact_count",
+        "captured_generated_artifact_count",
+        "run_ledger_binding_count",
+        "bound_run_ledger_binding_count",
+        "patch_application_performed_count",
+        "git_command_executed_count",
+        "filesystem_mutation_performed_count",
+        "protected_file_write_allowed_without_approval",
+        "protected_mutation_performed_count",
+        "external_agent_invocation_performed_count",
+        "plan_acceptance_performed_count",
+        "human_review_required",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_patch_application_allowed",
+        "desktop_git_command_allowed",
+        "desktop_filesystem_mutation_allowed",
+        "desktop_protected_file_write_allowed",
+        "desktop_runtime_execution_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "implementation_patch_capture_status": { "enum": ["complete", "blocked"] },
+        "implementation_patch_capture_contract_id": { "const": "implementation-patch-capture.v1" },
+        "source_dev_lane_ledger_status": { "const": "complete" },
+        "source_scope_freeze_gate_status": { "const": "complete" },
+        "source_runtime_artifact_capture_status": { "const": "complete" },
+        "patch_record_count": { "const": 2 },
+        "captured_patch_record_count": { "const": 2 },
+        "diff_capture_count": { "const": 2 },
+        "captured_diff_capture_count": { "const": 2 },
+        "touched_file_count": { "type": "integer", "minimum": 1 },
+        "in_scope_touched_file_count": { "type": "integer", "minimum": 1 },
+        "generated_artifact_count": { "type": "integer", "minimum": 1 },
+        "captured_generated_artifact_count": { "type": "integer", "minimum": 1 },
+        "run_ledger_binding_count": { "const": 2 },
+        "bound_run_ledger_binding_count": { "const": 2 },
+        "patch_application_performed_count": { "const": 0 },
+        "git_command_executed_count": { "const": 0 },
+        "filesystem_mutation_performed_count": { "const": 0 },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "protected_mutation_performed_count": { "const": 0 },
+        "external_agent_invocation_performed_count": { "const": 0 },
+        "plan_acceptance_performed_count": { "const": 0 },
+        "human_review_required": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_patch_application_allowed": { "const": false },
+        "desktop_git_command_allowed": { "const": false },
+        "desktop_filesystem_mutation_allowed": { "const": false },
+        "desktop_protected_file_write_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "patch_record": {
+      "type": "object",
+      "required": ["schema_version", "implementation_patch_record_id", "agent", "patch_record_status", "source_dev_lane_id", "implementation_diff_capture_id", "patch_application_performed", "git_command_executed", "filesystem_mutation_performed", "protected_mutation_performed", "external_agent_invocation_performed", "plan_acceptance_performed", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "implementation-patch-record.v1" },
+        "agent": { "enum": ["claude_code", "codex"] },
+        "patch_record_status": { "const": "captured" },
+        "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+        "patch_application_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "diff_capture": {
+      "type": "object",
+      "required": ["schema_version", "implementation_diff_capture_id", "runtime_id", "diff_capture_status", "output_artifact_binding_status", "direct_apply_allowed", "direct_merge_allowed", "patch_application_performed", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "implementation-diff-capture.v1" },
+        "runtime_id": { "enum": ["claude_code", "codex"] },
+        "diff_capture_status": { "const": "captured" },
+        "output_artifact_binding_status": { "const": "bound_to_output_artifact" },
+        "direct_apply_allowed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "touched_file": {
+      "type": "object",
+      "required": ["schema_version", "touched_file_id", "file_path", "touched_file_status", "in_frozen_scope", "write_allowed_before_approval", "mutation_allowed_before_approval"],
+      "properties": {
+        "schema_version": { "const": "implementation-touched-file.v1" },
+        "touched_file_status": { "const": "captured_in_scope" },
+        "in_frozen_scope": { "const": true },
+        "write_allowed_before_approval": { "const": false },
+        "mutation_allowed_before_approval": { "const": false }
+      }
+    },
+    "generated_artifact": {
+      "type": "object",
+      "required": ["schema_version", "generated_artifact_id", "generated_artifact_status", "capability_id", "output_artifact_binding_status"],
+      "properties": {
+        "schema_version": { "const": "implementation-generated-artifact.v1" },
+        "generated_artifact_status": { "const": "captured" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "output_artifact_binding_status": { "const": "bound_to_output_artifact" }
+      }
+    },
+    "run_ledger_binding": {
+      "type": "object",
+      "required": ["schema_version", "implementation_run_ledger_binding_id", "run_ledger_binding_status", "implementation_patch_record_id", "implementation_diff_capture_id", "agent_run_id", "workflow_run_id", "output_artifact_id", "patch_application_performed", "git_command_executed", "filesystem_mutation_performed", "protected_mutation_performed", "external_agent_invocation_performed", "plan_acceptance_performed", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "implementation-run-ledger-binding.v1" },
+        "run_ledger_binding_status": { "const": "bound" },
+        "patch_application_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    }
+  }
+}

@@ -656,7 +656,8 @@ function renderCanonicalTestRunnerMarkdown(result) {
 function runCommand(command, options) {
   return new Promise((resolve) => {
     const startedAt = new Date();
-    const child = spawn(command.executable, command.args, {
+    const spawnSpec = resolveCommandSpawn(command);
+    const child = spawn(spawnSpec.command, spawnSpec.args, {
       cwd: options.cwd,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -715,6 +716,21 @@ function runCommand(command, options) {
       });
     });
   });
+}
+
+function resolveCommandSpawn(command) {
+  if (process.platform !== "win32") {
+    return { command: command.executable, args: command.args };
+  }
+  const executable = command.executable === "npm" ? "npm.cmd" : command.executable;
+  const commandLine = [executable, ...command.args].map(quoteWindowsCommandArg).join(" ");
+  return { command: "cmd.exe", args: ["/d", "/s", "/c", commandLine] };
+}
+
+function quoteWindowsCommandArg(value) {
+  const text = String(value);
+  if (/^[A-Za-z0-9_./:=+-]+$/.test(text)) return text;
+  return `"${text.replace(/"/g, '\\"')}"`;
 }
 
 function parseArgs(argv) {

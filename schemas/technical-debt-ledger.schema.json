@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/technical-debt-ledger.schema.json",
+  "title": "Technical Debt Ledger",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "technical_debt_ledger_id",
+    "technical_debt_ledger_status",
+    "safe_handling",
+    "technical_debt_contract",
+    "source_issue_intake_adapter",
+    "source_plan_reconciliation",
+    "source_pr_draft_artifact",
+    "source_release_note_artifact",
+    "source_rollback_plan_artifact",
+    "technical_debt_output_artifacts",
+    "debt_source_findings",
+    "technical_debt_tasks",
+    "debt_task_bindings",
+    "technical_debt_desktop_boundary",
+    "technical_debt_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "technical-debt-ledger.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "technical_debt_ledger_id": { "type": "string", "minLength": 1 },
+    "technical_debt_ledger_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "technical_debt_ledger_generated",
+        "issue_mutation_performed",
+        "task_state_write_performed",
+        "external_fetch_performed",
+        "command_execution_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed_outside_artifact_dir",
+        "protected_mutation_performed",
+        "github_api_called",
+        "branch_push_performed",
+        "merge_performed",
+        "release_performed",
+        "patch_application_performed",
+        "external_agent_invocation_performed",
+        "raw_secret_material_exposed",
+        "provider_key_exposed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "technical_debt_ledger_generated": { "const": true },
+        "issue_mutation_performed": { "const": false },
+        "task_state_write_performed": { "const": false },
+        "external_fetch_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed_outside_artifact_dir": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "branch_push_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false }
+      }
+    },
+    "technical_debt_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "ledger_authority", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "technical-debt-contract-definition.v1" },
+        "contract_id": { "const": "technical-debt-ledger.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "ledger_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "human_gated_personal_dev_debt_findings_preserved_as_read_only_tasks" }
+      }
+    },
+    "source_issue_intake_adapter": {
+      "type": "object",
+      "required": ["issue_intake_status", "normalized_task_count", "ready_normalized_task_count", "task_state_write_allowed", "task_state_write_performed_count", "validation_error_count"],
+      "properties": {
+        "issue_intake_status": { "const": "complete" },
+        "normalized_task_count": { "type": "integer", "minimum": 3 },
+        "ready_normalized_task_count": { "type": "integer", "minimum": 3 },
+        "task_state_write_allowed": { "const": false },
+        "task_state_write_performed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_plan_reconciliation": {
+      "type": "object",
+      "required": ["plan_reconciliation_status", "unresolved_question_count", "non_blocking_unresolved_question_count", "unresolved_conflict_count", "plan_acceptance_performed_count", "command_execution_performed_count", "validation_error_count"],
+      "properties": {
+        "plan_reconciliation_status": { "const": "complete" },
+        "unresolved_question_count": { "type": "integer", "minimum": 1 },
+        "non_blocking_unresolved_question_count": { "type": "integer", "minimum": 1 },
+        "unresolved_conflict_count": { "const": 0 },
+        "plan_acceptance_performed_count": { "const": 0 },
+        "command_execution_performed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_pr_draft_artifact": {
+      "type": "object",
+      "required": ["pr_draft_artifact_status", "risk_count", "high_risk_count", "merge_performed", "release_performed", "validation_error_count"],
+      "properties": {
+        "pr_draft_artifact_status": { "const": "complete" },
+        "risk_count": { "type": "integer", "minimum": 4 },
+        "high_risk_count": { "type": "integer", "minimum": 1 },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_release_note_artifact": {
+      "type": "object",
+      "required": ["release_note_artifact_status", "risks_section_present", "ready_risks_section_count", "merge_performed", "release_performed", "publication_performed", "validation_error_count"],
+      "properties": {
+        "release_note_artifact_status": { "const": "complete" },
+        "risks_section_present": { "const": true },
+        "ready_risks_section_count": { "const": 1 },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "publication_performed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_rollback_plan_artifact": {
+      "type": "object",
+      "required": ["rollback_plan_artifact_status", "rollback_command_target_count", "rollback_execution_performed", "command_execution_performed", "file_restore_performed_count", "validation_error_count"],
+      "properties": {
+        "rollback_plan_artifact_status": { "const": "complete" },
+        "rollback_command_target_count": { "type": "integer", "minimum": 3 },
+        "rollback_execution_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "file_restore_performed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "technical_debt_output_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "output_artifact_id", "artifact_type", "artifact_uri", "content_hash", "hash_status", "output_status", "delivery_state", "approval_status", "approval_request_ids", "delivery_action_ids", "blocking_gate_ids"],
+        "properties": {
+          "schema_version": { "const": "output-artifact.v2" },
+          "artifact_type": { "const": "task_update" },
+          "content_hash": { "type": "string", "minLength": 32 },
+          "hash_status": { "const": "present" },
+          "output_status": { "const": "draft" },
+          "delivery_state": { "const": "blocked_pending_approval" },
+          "approval_status": { "const": "pending" },
+          "approval_request_ids": { "type": "array", "minItems": 1 },
+          "delivery_action_ids": { "type": "array", "minItems": 1 },
+          "blocking_gate_ids": { "type": "array", "contains": { "const": "human_approval_gate" } }
+        }
+      }
+    },
+    "debt_source_findings": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "debt_source_finding_id", "source_type", "source_record_id", "finding_key", "finding_status", "debt_category", "severity", "preserve_as_task_required", "resolved_by_current_phase", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "debt-source-finding.v1" },
+          "source_type": { "enum": ["plan_reconciliation_unresolved_question", "pr_draft_risk"] },
+          "finding_status": { "const": "open_for_triage" },
+          "preserve_as_task_required": { "const": true },
+          "resolved_by_current_phase": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "technical_debt_tasks": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "technical_debt_task_id", "task_id", "source_finding_id", "task_status", "normalized_task_status", "preservation_status", "task_priority", "task_kind", "task_state_write_allowed", "task_state_write_performed", "external_issue_mutation_allowed", "external_issue_mutation_performed", "command_execution_allowed", "command_execution_performed", "desktop_read_only", "desktop_mutation_allowed", "desktop_source_of_truth", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "technical-debt-task.v1" },
+          "task_status": { "const": "backlog" },
+          "normalized_task_status": { "const": "ready_for_backlog" },
+          "preservation_status": { "const": "preserved_as_task" },
+          "task_kind": { "const": "technical_debt" },
+          "task_state_write_allowed": { "const": false },
+          "task_state_write_performed": { "const": false },
+          "external_issue_mutation_allowed": { "const": false },
+          "external_issue_mutation_performed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "command_execution_performed": { "const": false },
+          "desktop_read_only": { "const": true },
+          "desktop_mutation_allowed": { "const": false },
+          "desktop_source_of_truth": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "debt_task_bindings": {
+      "type": "array",
+      "minItems": 6,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "debt_task_binding_id", "source_finding_id", "technical_debt_task_id", "task_id", "output_artifact_id", "debt_task_binding_status", "source_binding_status", "preservation_status", "task_state_write_allowed", "task_state_write_performed", "issue_mutation_allowed", "issue_mutation_performed", "command_execution_allowed", "command_execution_performed", "protected_mutation_allowed", "protected_mutation_performed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "debt-task-binding.v1" },
+          "debt_task_binding_status": { "const": "bound_to_technical_debt_ledger" },
+          "source_binding_status": { "const": "source_finding_preserved" },
+          "preservation_status": { "const": "preserved_as_task" },
+          "task_state_write_allowed": { "const": false },
+          "task_state_write_performed": { "const": false },
+          "issue_mutation_allowed": { "const": false },
+          "issue_mutation_performed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "command_execution_performed": { "const": false },
+          "protected_mutation_allowed": { "const": false },
+          "protected_mutation_performed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "technical_debt_desktop_boundary": {
+      "type": "object",
+      "required": ["schema_version", "boundary_status", "surface_policy", "read_only", "mutation_allowed", "task_state_write_allowed", "issue_mutation_allowed", "external_fetch_allowed", "command_execution_allowed", "github_api_allowed", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "technical-debt-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "surface_policy": { "const": "read_only_technical_debt_task_review_surface" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "issue_mutation_allowed": { "const": false },
+        "external_fetch_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "github_api_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "technical_debt_ledger_status",
+        "technical_debt_ledger_contract_id",
+        "pack_id",
+        "capability_id",
+        "ledger_authority",
+        "source_issue_intake_status",
+        "source_plan_reconciliation_status",
+        "source_pr_draft_artifact_status",
+        "source_release_note_artifact_status",
+        "source_rollback_plan_artifact_status",
+        "debt_source_finding_count",
+        "plan_question_finding_count",
+        "pr_risk_finding_count",
+        "technical_debt_task_count",
+        "preserved_task_count",
+        "backlog_task_count",
+        "debt_task_binding_count",
+        "bound_debt_task_binding_count",
+        "task_state_write_performed_count",
+        "issue_mutation_performed_count",
+        "command_execution_performed_count",
+        "desktop_read_only",
+        "desktop_task_state_write_allowed",
+        "desktop_issue_mutation_allowed",
+        "desktop_source_of_truth",
+        "validation_error_count"
+      ],
+      "properties": {
+        "technical_debt_ledger_status": { "enum": ["complete", "blocked"] },
+        "technical_debt_ledger_contract_id": { "const": "technical-debt-ledger.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "ledger_authority": { "const": "harness_control_plane" },
+        "source_issue_intake_status": { "const": "complete" },
+        "source_plan_reconciliation_status": { "const": "complete" },
+        "source_pr_draft_artifact_status": { "const": "complete" },
+        "source_release_note_artifact_status": { "const": "complete" },
+        "source_rollback_plan_artifact_status": { "const": "complete" },
+        "debt_source_finding_count": { "type": "integer", "minimum": 6 },
+        "technical_debt_task_count": { "type": "integer", "minimum": 6 },
+        "task_state_write_performed_count": { "const": 0 },
+        "issue_mutation_performed_count": { "const": 0 },
+        "command_execution_performed_count": { "const": 0 },
+        "desktop_read_only": { "const": true },
+        "desktop_task_state_write_allowed": { "const": false },
+        "desktop_issue_mutation_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    }
+  }
+}

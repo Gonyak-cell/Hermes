@@ -1,0 +1,344 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/dev-lane-ledger.schema.json",
+  "title": "Dev Lane Ledger",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "dev_lane_ledger_id",
+    "dev_lane_ledger_status",
+    "safe_handling",
+    "dev_lane_ledger_contract",
+    "source_scope_freeze_gate",
+    "source_plan_reconciliation",
+    "source_worktree_manager_v2",
+    "selected_plan_scope",
+    "source_scope_freeze_decision",
+    "dev_lanes",
+    "dev_lane_branch_records",
+    "dev_lane_worktree_records",
+    "dev_lane_desktop_boundary",
+    "dev_lane_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "dev-lane-ledger.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "dev_lane_ledger_id": { "type": "string", "minLength": 1 },
+    "dev_lane_ledger_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "worktree_lane_provisioning_performed",
+        "physical_worktree_creation_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed",
+        "external_agent_invocation_performed",
+        "plan_acceptance_performed",
+        "patch_application_performed",
+        "protected_mutation_performed",
+        "task_state_mutation_performed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "worktree_lane_provisioning_performed": { "const": true },
+        "physical_worktree_creation_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "task_state_mutation_performed": { "const": false }
+      }
+    },
+    "dev_lane_ledger_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "dev-lane-ledger-contract-definition.v1" },
+        "contract_id": { "const": "dev-lane-ledger.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "source_of_truth": { "const": "scope_freeze_worktree_manager_and_plan_reconciliation_lane_records" }
+      }
+    },
+    "source_scope_freeze_gate": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "scope_freeze_gate_status",
+        "selected_scope_status",
+        "frozen_scope_item_count",
+        "scope_freeze_performed_count",
+        "worktree_provisioning_allowed_after_freeze",
+        "protected_file_write_allowed_without_approval",
+        "source_hash"
+      ],
+      "properties": {
+        "schema_version": { "const": "source-scope-freeze-gate.v1" },
+        "scope_freeze_gate_status": { "const": "complete" },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "frozen_scope_item_count": { "type": "integer", "minimum": 1 },
+        "scope_freeze_performed_count": { "const": 1 },
+        "worktree_provisioning_allowed_after_freeze": { "const": true },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_plan_reconciliation": {
+      "type": "object",
+      "required": ["schema_version", "plan_reconciliation_status", "plan_candidate_count", "ready_plan_candidate_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-plan-reconciliation.v1" },
+        "plan_reconciliation_status": { "const": "complete" },
+        "plan_candidate_count": { "type": "integer", "minimum": 2 },
+        "ready_plan_candidate_count": { "type": "integer", "minimum": 2 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_worktree_manager_v2": {
+      "type": "object",
+      "required": ["schema_version", "worktree_manager_v2_status", "manager_status", "branch_prefix", "worktree_root", "agent_worktree_plan_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-worktree-manager-v2.v1" },
+        "worktree_manager_v2_status": { "const": "complete" },
+        "manager_status": { "const": "locked" },
+        "branch_prefix": { "const": "codex/" },
+        "worktree_root": { "const": ".hermes/worktrees" },
+        "agent_worktree_plan_count": { "type": "integer", "minimum": 2 },
+        "desktop_read_only": { "const": true },
+        "desktop_create_worktree_allowed": { "const": false },
+        "desktop_delete_worktree_allowed": { "const": false },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "dev_lanes": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/dev_lane" }
+    },
+    "dev_lane_branch_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/branch_record" }
+    },
+    "dev_lane_worktree_records": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/worktree_record" }
+    },
+    "dev_lane_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "mutation_allowed",
+        "create_worktree_allowed",
+        "delete_worktree_allowed",
+        "delete_branch_allowed",
+        "runtime_execution_allowed",
+        "external_agent_invocation_allowed",
+        "plan_acceptance_allowed",
+        "patch_application_allowed",
+        "protected_file_write_allowed",
+        "source_of_truth"
+      ],
+      "properties": {
+        "schema_version": { "const": "dev-lane-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "create_worktree_allowed": { "const": false },
+        "delete_worktree_allowed": { "const": false },
+        "delete_branch_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "external_agent_invocation_allowed": { "const": false },
+        "plan_acceptance_allowed": { "const": false },
+        "patch_application_allowed": { "const": false },
+        "protected_file_write_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "dev_lane_checkpoints": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/checkpoint" }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "dev_lane_ledger_status",
+        "dev_lane_ledger_contract_id",
+        "source_scope_freeze_gate_status",
+        "source_plan_reconciliation_status",
+        "source_worktree_manager_v2_status",
+        "scope_freeze_performed_count",
+        "worktree_provisioning_allowed_after_freeze",
+        "selected_scope_status",
+        "dev_lane_count",
+        "provisioned_dev_lane_count",
+        "claude_code_lane_count",
+        "codex_lane_count",
+        "unique_branch_name_count",
+        "unique_worktree_path_count",
+        "branch_record_count",
+        "created_branch_record_count",
+        "worktree_record_count",
+        "created_worktree_record_count",
+        "git_command_executed_count",
+        "filesystem_mutation_performed_count",
+        "protected_file_write_allowed_without_approval",
+        "protected_mutation_performed_count",
+        "external_agent_invocation_performed_count",
+        "plan_acceptance_performed_count",
+        "patch_application_performed_count",
+        "human_review_required",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_create_worktree_allowed",
+        "desktop_delete_worktree_allowed",
+        "desktop_runtime_execution_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "dev_lane_ledger_status": { "enum": ["complete", "blocked"] },
+        "dev_lane_ledger_contract_id": { "const": "dev-lane-ledger.v1" },
+        "source_scope_freeze_gate_status": { "const": "complete" },
+        "source_plan_reconciliation_status": { "const": "complete" },
+        "source_worktree_manager_v2_status": { "const": "complete" },
+        "scope_freeze_performed_count": { "const": 1 },
+        "worktree_provisioning_allowed_after_freeze": { "const": true },
+        "selected_scope_status": { "const": "selected_for_human_review" },
+        "dev_lane_count": { "const": 2 },
+        "provisioned_dev_lane_count": { "const": 2 },
+        "claude_code_lane_count": { "const": 1 },
+        "codex_lane_count": { "const": 1 },
+        "unique_branch_name_count": { "const": 2 },
+        "unique_worktree_path_count": { "const": 2 },
+        "branch_record_count": { "const": 2 },
+        "created_branch_record_count": { "const": 2 },
+        "worktree_record_count": { "const": 2 },
+        "created_worktree_record_count": { "const": 2 },
+        "git_command_executed_count": { "const": 0 },
+        "filesystem_mutation_performed_count": { "const": 0 },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "protected_mutation_performed_count": { "const": 0 },
+        "external_agent_invocation_performed_count": { "const": 0 },
+        "plan_acceptance_performed_count": { "const": 0 },
+        "patch_application_performed_count": { "const": 0 },
+        "human_review_required": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_create_worktree_allowed": { "const": false },
+        "desktop_delete_worktree_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "dev_lane": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "dev_lane_id",
+        "agent",
+        "lane_status",
+        "lane_role",
+        "branch_name",
+        "worktree_path",
+        "branch_record_status",
+        "worktree_record_status",
+        "branch_materialized",
+        "worktree_materialized",
+        "git_command_executed",
+        "filesystem_mutation_performed",
+        "protected_mutation_performed",
+        "external_agent_invocation_performed",
+        "plan_acceptance_performed",
+        "patch_application_performed",
+        "protected_file_write_allowed_without_approval",
+        "human_review_required"
+      ],
+      "properties": {
+        "schema_version": { "const": "dev-lane.v1" },
+        "agent": { "enum": ["claude_code", "codex"] },
+        "lane_status": { "const": "provisioned" },
+        "lane_role": { "enum": ["planner_review_lane", "implementation_patch_lane"] },
+        "branch_name": { "type": "string", "pattern": "^codex/" },
+        "worktree_path": { "type": "string", "minLength": 1 },
+        "branch_record_status": { "const": "created" },
+        "worktree_record_status": { "const": "created" },
+        "branch_materialized": { "const": false },
+        "worktree_materialized": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "branch_record": {
+      "type": "object",
+      "required": ["schema_version", "branch_record_id", "dev_lane_id", "agent", "branch_name", "branch_record_status", "git_ref_created", "git_command_executed", "protected_mutation_performed"],
+      "properties": {
+        "schema_version": { "const": "dev-lane-branch-record.v1" },
+        "agent": { "enum": ["claude_code", "codex"] },
+        "branch_name": { "type": "string", "pattern": "^codex/" },
+        "branch_record_status": { "const": "created" },
+        "git_ref_created": { "const": false },
+        "git_command_executed": { "const": false },
+        "protected_mutation_performed": { "const": false }
+      }
+    },
+    "worktree_record": {
+      "type": "object",
+      "required": ["schema_version", "worktree_record_id", "dev_lane_id", "agent", "worktree_path", "worktree_record_status", "filesystem_path_created", "git_command_executed", "filesystem_mutation_performed", "protected_mutation_performed"],
+      "properties": {
+        "schema_version": { "const": "dev-lane-worktree-record.v1" },
+        "agent": { "enum": ["claude_code", "codex"] },
+        "worktree_record_status": { "const": "created" },
+        "filesystem_path_created": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false }
+      }
+    },
+    "checkpoint": {
+      "type": "object",
+      "required": ["checkpoint_id", "status", "message"],
+      "properties": {
+        "checkpoint_id": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["passed", "failed"] },
+        "message": { "type": "string" }
+      }
+    }
+  }
+}

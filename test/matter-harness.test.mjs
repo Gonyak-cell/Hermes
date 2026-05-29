@@ -38,6 +38,13 @@ import { runEvidenceGoldenFixtures } from "../src/evidence-golden-fixtures.mjs";
 import { runFactClaimStore } from "../src/fact-claim-store.mjs";
 import { runIssueGraphStore } from "../src/issue-graph-store.mjs";
 import { runCitationObjectStore } from "../src/citation-object-store.mjs";
+import { runLegalCitationVerifier } from "../src/legal-citation-verifier.mjs";
+import { runLddVdrInventory } from "../src/ldd-vdr-inventory.mjs";
+import { runLddDocumentClassification } from "../src/ldd-document-classification.mjs";
+import { runLddExtractorSelection } from "../src/ldd-extractor-selection.mjs";
+import { runLddFactExtraction } from "../src/ldd-fact-extraction.mjs";
+import { runLddIssueDetection } from "../src/ldd-issue-detection.mjs";
+import { runLddRfiGenerator } from "../src/ldd-rfi-generator.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -210,9 +217,31 @@ import { runCanonicalTestRunner } from "../src/canonical-test-runner.mjs";
 import { runRuntimeApiDashboard } from "../src/runtime-api-dashboard.mjs";
 import { runRuntimeFreeze } from "../src/runtime-freeze.mjs";
 import { runPersonalDevPackManifest } from "../src/personal-dev-pack-manifest.mjs";
+import { runLawFirmPackManifest } from "../src/law-firm-pack-manifest.mjs";
+import { runMatterOsProfile } from "../src/matter-os-profile.mjs";
+import { runMatterTimeline } from "../src/matter-timeline.mjs";
+import { runMatterDocumentIndex } from "../src/matter-document-index.mjs";
+import { runMatterTaskBoard } from "../src/matter-task-board.mjs";
+import { runMatterKnowledgeGraph } from "../src/matter-knowledge-graph.mjs";
+import { runMatterPrivilegeClassifier } from "../src/matter-privilege-classifier.mjs";
+import { runMatterPersonalDataDetector } from "../src/matter-personal-data-detector.mjs";
 import { runRepoProfileDetector } from "../src/repo-profile-detector.mjs";
 import { runAgentInstructionRegistry } from "../src/agent-instruction-registry.mjs";
 import { runIssueIntakeAdapter } from "../src/issue-intake-adapter.mjs";
+import { runPlanRequestContract } from "../src/plan-request-contract.mjs";
+import { runPlanReconciliation } from "../src/plan-reconciliation.mjs";
+import { runScopeFreezeGate } from "../src/scope-freeze-gate.mjs";
+import { runDevLaneLedger } from "../src/dev-lane-ledger.mjs";
+import { runImplementationPatchCapture } from "../src/implementation-patch-capture.mjs";
+import { runDiffReviewGate } from "../src/diff-review-gate.mjs";
+import { runCanonicalTestMatrix } from "../src/canonical-test-matrix.mjs";
+import { runDevProtectedScan } from "../src/dev-protected-scan.mjs";
+import { runPrDraftArtifact } from "../src/pr-draft-artifact.mjs";
+import { runReleaseNoteArtifact } from "../src/release-note-artifact.mjs";
+import { runRollbackPlanArtifact } from "../src/rollback-plan-artifact.mjs";
+import { runTechnicalDebtLedger } from "../src/technical-debt-ledger.mjs";
+import { runPersonalDevDashboardApi } from "../src/personal-dev-dashboard-api.mjs";
+import { runPersonalDevE2eFreeze } from "../src/personal-dev-e2e-freeze.mjs";
 import { runGateApprovalContractFreeze } from "../src/gate-approval-contract-freeze.mjs";
 import { runOutputDeliveryContractFreeze } from "../src/output-delivery-contract-freeze.mjs";
 import { runEventAuditRunContractFreeze } from "../src/event-audit-run-contract-freeze.mjs";
@@ -1828,6 +1857,34 @@ describe("matter harness", () => {
         repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
         agentInstructionRegistryPath: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
         issueIntakeAdapterPath: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
+        planRequestContractPath: path.join(outDir, "plan-request-contract", "plan-request-contract.json"),
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        scopeFreezeGatePath: path.join(outDir, "scope-freeze-gate", "scope-freeze-gate.json"),
+        devLaneLedgerPath: path.join(outDir, "dev-lane-ledger", "dev-lane-ledger.json"),
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        devProtectedScanPath: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        releaseNoteArtifactPath: path.join(outDir, "release-note-artifact", "release-note-artifact.json"),
+        rollbackPlanArtifactPath: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
+        technicalDebtLedgerPath: path.join(outDir, "technical-debt-ledger", "technical-debt-ledger.json"),
+        personalDevDashboardApiPath: path.join(outDir, "personal-dev-dashboard-api", "personal-dev-dashboard-api.json"),
+        lawFirmPackManifestPath: path.join(outDir, "law-firm-pack-manifest", "law-firm-pack-manifest.json"),
+        matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterTaskBoardPath: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+        matterKnowledgeGraphPath: path.join(outDir, "matter-knowledge-graph", "matter-knowledge-graph.json"),
+        matterPrivilegeClassifierPath: path.join(outDir, "matter-privilege-classifier", "matter-privilege-classifier.json"),
+        matterPersonalDataDetectorPath: path.join(outDir, "matter-personal-data-detector", "matter-personal-data-detector.json"),
+        legalCitationVerifierPath: path.join(outDir, "legal-citation-verifier", "legal-citation-verifier.json"),
+        lddVdrInventoryPath: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+        lddDocumentClassificationPath: path.join(outDir, "ldd-document-classification", "ldd-document-classification.json"),
+        lddExtractorSelectionPath: path.join(outDir, "ldd-extractor-selection", "ldd-extractor-selection.json"),
+        lddFactExtractionPath: path.join(outDir, "ldd-fact-extraction", "ldd-fact-extraction.json"),
+        lddIssueDetectionPath: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
+        lddRfiGeneratorPath: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -1975,6 +2032,15 @@ describe("matter harness", () => {
         controlPlaneHumanGatesPath: false,
         gateApprovalContractFreezePath: false,
         runtimeApiDashboardPath: false,
+        lawFirmPackManifestPath: false,
+        matterOsProfilePath: false,
+        matterTimelinePath: false,
+        matterDocumentIndexPath: false,
+        matterTaskBoardPath: false,
+        matterKnowledgeGraphPath: false,
+        matterPrivilegeClassifierPath: false,
+        matterPersonalDataDetectorPath: false,
+        legalCitationVerifierPath: false,
         outputDeliveryContractFreezePath: false,
         eventAuditRunContractFreezePath: false,
         eventEnvelopeLedgerPath: false,
@@ -5023,7 +5089,9 @@ describe("matter harness", () => {
       assert.equal(resourceQuarantineModel.summary.quarantine_rule_count, 6);
       assert.equal(resourceQuarantineModel.summary.required_quarantine_category_count, 6);
       assert.equal(resourceQuarantineModel.summary.source_expansion_item_count, second.summary.discovered_count);
-      assert.equal(resourceQuarantineModel.summary.source_sensitive_item_count, 1);
+      const sensitiveClassifications = new Set(["P2_CLIENT_CONFIDENTIAL", "P3_PRIVILEGED", "P4_HIGHLY_RESTRICTED", "P5_SECRET"]);
+      const expectedSensitiveExpansionItemCount = second.items.filter((item) => sensitiveClassifications.has(item.data_classification)).length;
+      assert.equal(resourceQuarantineModel.summary.source_sensitive_item_count, expectedSensitiveExpansionItemCount);
       assert.equal(resourceQuarantineModel.summary.sensitive_hold_count, resourceQuarantineModel.summary.source_sensitive_item_count);
       assert.ok(resourceQuarantineModel.summary.ambiguous_hold_count >= resourceQuarantineModel.summary.source_ambiguous_item_count);
       assert.equal(resourceQuarantineModel.summary.quarantine_item_count, resourceQuarantineModel.summary.review_queue_item_count);
@@ -7522,6 +7590,1760 @@ describe("matter harness", () => {
       assert.ok(issueIntakeAdapter.issue_task_bindings.every((binding) => binding.binding_status === "bound"));
       assert.match(await readFile(path.join(outDir, "issue-intake-adapter", "summary.md"), "utf8"), /Issue Intake Adapter/);
 
+      const planRequestContract = await runPlanRequestContract({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        issueIntakeAdapterPath: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        agentInstructionRegistryPath: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
+        outDir: path.join(outDir, "plan-request-contract"),
+        runAt: "2026-05-23T06:45:53.000Z",
+      });
+      const planRequestContractSchema = JSON.parse(await readFile("schemas/plan-request-contract.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(planRequestContract, planRequestContractSchema, {}, "plan_request_contract"), []);
+      assert.equal(planRequestContract.summary.plan_request_status, "complete");
+      assert.equal(planRequestContract.summary.pack_id, "personal-dev");
+      assert.equal(planRequestContract.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(planRequestContract.summary.issue_intake_status, "complete");
+      assert.equal(planRequestContract.summary.repo_profile_detector_status, "complete");
+      assert.equal(planRequestContract.summary.agent_instruction_registry_status, "complete");
+      assert.equal(planRequestContract.summary.shared_context_count, 1);
+      assert.equal(planRequestContract.summary.plan_request_count, 2);
+      assert.equal(planRequestContract.summary.ready_plan_request_count, 2);
+      assert.equal(planRequestContract.summary.claude_plan_request_count, 1);
+      assert.equal(planRequestContract.summary.codex_plan_request_count, 1);
+      assert.equal(planRequestContract.summary.unique_context_hash_count, 1);
+      assert.equal(planRequestContract.summary.unique_constraints_hash_count, 1);
+      assert.equal(planRequestContract.summary.shared_context_binding_count, 2);
+      assert.equal(planRequestContract.summary.bound_plan_request_count, 2);
+      assert.equal(planRequestContract.summary.unbound_plan_request_count, 0);
+      assert.equal(planRequestContract.summary.context_hash_mismatch_count, 0);
+      assert.equal(planRequestContract.summary.constraints_hash_mismatch_count, 0);
+      assert.equal(planRequestContract.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(planRequestContract.summary.plan_acceptance_performed_count, 0);
+      assert.equal(planRequestContract.summary.command_execution_performed_count, 0);
+      assert.equal(planRequestContract.summary.desktop_read_only, true);
+      assert.equal(planRequestContract.summary.desktop_mutation_allowed, false);
+      assert.equal(planRequestContract.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(planRequestContract.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(planRequestContract.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(planRequestContract.summary.desktop_task_state_write_allowed, false);
+      assert.equal(planRequestContract.summary.desktop_source_of_truth, false);
+      assert.equal(planRequestContract.summary.validation_error_count, 0);
+      assert.deepEqual(new Set(planRequestContract.plan_requests.map((request) => request.agent)), new Set(["claude_code", "codex"]));
+      assert.equal(new Set(planRequestContract.plan_requests.map((request) => request.shared_context_id)).size, 1);
+      assert.ok(planRequestContract.plan_requests.every((request) => request.request_status === "ready" && request.external_agent_invocation_performed === false && request.command_execution_performed === false && request.plan_acceptance_performed === false));
+      assert.ok(planRequestContract.plan_request_bindings.every((binding) => binding.binding_status === "bound" && binding.context_hash_matches && binding.constraints_hash_matches));
+      assert.match(await readFile(path.join(outDir, "plan-request-contract", "summary.md"), "utf8"), /Plan Request Contract/);
+
+      const planReconciliation = await runPlanReconciliation({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        planRequestContractPath: path.join(outDir, "plan-request-contract", "plan-request-contract.json"),
+        outDir: path.join(outDir, "plan-reconciliation"),
+        runAt: "2026-05-23T06:45:54.000Z",
+      });
+      const planReconciliationSchema = JSON.parse(await readFile("schemas/plan-reconciliation.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(planReconciliation, planReconciliationSchema, {}, "plan_reconciliation"), []);
+      assert.equal(planReconciliation.summary.plan_reconciliation_status, "complete");
+      assert.equal(planReconciliation.summary.pack_id, "personal-dev");
+      assert.equal(planReconciliation.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(planReconciliation.summary.source_plan_request_status, "complete");
+      assert.equal(planReconciliation.summary.shared_context_count, 1);
+      assert.equal(planReconciliation.summary.plan_request_count, 2);
+      assert.equal(planReconciliation.summary.plan_candidate_count, 2);
+      assert.equal(planReconciliation.summary.ready_plan_candidate_count, 2);
+      assert.equal(planReconciliation.summary.claude_plan_candidate_count, 1);
+      assert.equal(planReconciliation.summary.codex_plan_candidate_count, 1);
+      assert.equal(planReconciliation.summary.unique_context_hash_count, 1);
+      assert.equal(planReconciliation.summary.unique_constraints_hash_count, 1);
+      assert.ok(planReconciliation.summary.commonality_count >= 1);
+      assert.equal(planReconciliation.summary.accepted_commonality_count, planReconciliation.summary.commonality_count);
+      assert.ok(planReconciliation.summary.conflict_count >= 1);
+      assert.equal(planReconciliation.summary.resolved_conflict_count, planReconciliation.summary.conflict_count);
+      assert.equal(planReconciliation.summary.unresolved_conflict_count, 0);
+      assert.equal(planReconciliation.summary.selected_scope_status, "selected_for_human_review");
+      assert.ok(planReconciliation.summary.selected_scope_item_count >= 1);
+      assert.ok(planReconciliation.summary.unresolved_question_count >= 1);
+      assert.equal(planReconciliation.summary.non_blocking_unresolved_question_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(planReconciliation.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(planReconciliation.summary.plan_acceptance_performed_count, 0);
+      assert.equal(planReconciliation.summary.scope_freeze_performed_count, 0);
+      assert.equal(planReconciliation.summary.command_execution_performed_count, 0);
+      assert.equal(planReconciliation.summary.implementation_allowed_before_scope_freeze, false);
+      assert.equal(planReconciliation.summary.human_review_required, true);
+      assert.equal(planReconciliation.summary.desktop_read_only, true);
+      assert.equal(planReconciliation.summary.desktop_mutation_allowed, false);
+      assert.equal(planReconciliation.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(planReconciliation.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(planReconciliation.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(planReconciliation.summary.desktop_scope_freeze_allowed, false);
+      assert.equal(planReconciliation.summary.desktop_task_state_write_allowed, false);
+      assert.equal(planReconciliation.summary.desktop_source_of_truth, false);
+      assert.equal(planReconciliation.summary.validation_error_count, 0);
+      assert.deepEqual(new Set(planReconciliation.plan_candidates.map((candidate) => candidate.agent)), new Set(["claude_code", "codex"]));
+      assert.ok(planReconciliation.plan_candidates.every((candidate) => candidate.candidate_status === "ready_for_reconciliation" && candidate.external_agent_invocation_performed === false && candidate.command_execution_performed === false && candidate.plan_acceptance_performed === false));
+      assert.ok(planReconciliation.plan_conflicts.every((conflict) => conflict.conflict_status === "resolved"));
+      assert.equal(planReconciliation.selected_plan_scope.scope_freeze_performed, false);
+      assert.equal(planReconciliation.selected_plan_scope.plan_acceptance_performed, false);
+      assert.match(await readFile(path.join(outDir, "plan-reconciliation", "summary.md"), "utf8"), /Plan Reconciliation/);
+
+      const scopeFreezeGate = await runScopeFreezeGate({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        outDir: path.join(outDir, "scope-freeze-gate"),
+        runAt: "2026-05-23T06:45:55.000Z",
+      });
+      const scopeFreezeGateSchema = JSON.parse(await readFile("schemas/scope-freeze-gate.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(scopeFreezeGate, scopeFreezeGateSchema, {}, "scope_freeze_gate"), []);
+      assert.equal(scopeFreezeGate.summary.scope_freeze_gate_status, "complete");
+      assert.equal(scopeFreezeGate.summary.pack_id, "personal-dev");
+      assert.equal(scopeFreezeGate.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(scopeFreezeGate.summary.source_plan_reconciliation_status, "complete");
+      assert.equal(scopeFreezeGate.summary.source_protected_file_gate_status, "complete");
+      assert.equal(scopeFreezeGate.summary.selected_scope_status, "selected_for_human_review");
+      assert.equal(scopeFreezeGate.summary.source_selected_scope_item_count, planReconciliation.summary.selected_scope_item_count);
+      assert.equal(scopeFreezeGate.summary.frozen_scope_item_count, planReconciliation.summary.selected_scope_item_count);
+      assert.equal(scopeFreezeGate.summary.frozen_scope_item_frozen_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.ok(scopeFreezeGate.summary.scope_file_boundary_count >= 1);
+      assert.equal(scopeFreezeGate.summary.in_scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.ok(scopeFreezeGate.summary.protected_file_rule_count >= protectedFileGate.summary.rule_count);
+      assert.equal(scopeFreezeGate.summary.frozen_protected_file_rule_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(scopeFreezeGate.summary.frozen_protected_file_rule_snapshot_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(scopeFreezeGate.summary.protected_write_requires_approval, true);
+      assert.equal(scopeFreezeGate.summary.write_allowed_before_approval_count, 0);
+      assert.equal(scopeFreezeGate.summary.mutation_allowed_before_approval_count, 0);
+      assert.equal(scopeFreezeGate.summary.scope_freeze_decision_status, "frozen");
+      assert.equal(scopeFreezeGate.summary.scope_freeze_performed_count, 1);
+      assert.equal(scopeFreezeGate.summary.plan_acceptance_performed_count, 0);
+      assert.equal(scopeFreezeGate.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(scopeFreezeGate.summary.command_execution_performed_count, 0);
+      assert.equal(scopeFreezeGate.summary.protected_mutation_performed_count, 0);
+      assert.equal(scopeFreezeGate.summary.worktree_provisioning_allowed_after_freeze, true);
+      assert.equal(scopeFreezeGate.summary.implementation_patch_allowed_before_worktree, false);
+      assert.equal(scopeFreezeGate.summary.protected_file_write_allowed_without_approval, false);
+      assert.equal(scopeFreezeGate.summary.scope_change_requires_new_reconciliation, true);
+      assert.equal(scopeFreezeGate.summary.human_review_required, true);
+      assert.equal(scopeFreezeGate.summary.desktop_read_only, true);
+      assert.equal(scopeFreezeGate.summary.desktop_mutation_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_scope_change_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_protected_file_rule_edit_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_protected_file_write_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_task_state_write_allowed, false);
+      assert.equal(scopeFreezeGate.summary.desktop_source_of_truth, false);
+      assert.equal(scopeFreezeGate.summary.validation_error_count, 0);
+      assert.ok(scopeFreezeGate.frozen_scope_items.every((item) => item.frozen_scope_status === "frozen"));
+      assert.ok(scopeFreezeGate.scope_file_boundaries.every((boundary) => boundary.in_frozen_scope && boundary.write_allowed_before_approval === false));
+      assert.ok(scopeFreezeGate.scope_protected_file_rules.every((rule) => rule.rule_snapshot_status === "frozen" && rule.write_allowed_before_approval === false));
+      assert.equal(scopeFreezeGate.scope_freeze_decision.decision_status, "frozen");
+      assert.match(await readFile(path.join(outDir, "scope-freeze-gate", "summary.md"), "utf8"), /Scope Freeze Gate/);
+
+      const devLaneLedger = await runDevLaneLedger({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        scopeFreezeGatePath: path.join(outDir, "scope-freeze-gate", "scope-freeze-gate.json"),
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        worktreeManagerV2Path: path.join(outDir, "worktree-manager-v2", "worktree-manager-v2.json"),
+        outDir: path.join(outDir, "dev-lane-ledger"),
+        runAt: "2026-05-23T06:45:56.000Z",
+      });
+      const devLaneLedgerSchema = JSON.parse(await readFile("schemas/dev-lane-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(devLaneLedger, devLaneLedgerSchema, {}, "dev_lane_ledger"), []);
+      assert.equal(devLaneLedger.summary.dev_lane_ledger_status, "complete");
+      assert.equal(devLaneLedger.summary.pack_id, "personal-dev");
+      assert.equal(devLaneLedger.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(devLaneLedger.summary.source_scope_freeze_gate_status, "complete");
+      assert.equal(devLaneLedger.summary.source_plan_reconciliation_status, "complete");
+      assert.equal(devLaneLedger.summary.source_worktree_manager_v2_status, "complete");
+      assert.equal(devLaneLedger.summary.scope_freeze_performed_count, 1);
+      assert.equal(devLaneLedger.summary.worktree_provisioning_allowed_after_freeze, true);
+      assert.equal(devLaneLedger.summary.selected_scope_status, "selected_for_human_review");
+      assert.equal(devLaneLedger.summary.frozen_scope_item_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.equal(devLaneLedger.summary.scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(devLaneLedger.summary.protected_file_rule_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(devLaneLedger.summary.dev_lane_count, 2);
+      assert.equal(devLaneLedger.summary.provisioned_dev_lane_count, 2);
+      assert.equal(devLaneLedger.summary.claude_code_lane_count, 1);
+      assert.equal(devLaneLedger.summary.codex_lane_count, 1);
+      assert.equal(devLaneLedger.summary.unique_branch_name_count, 2);
+      assert.equal(devLaneLedger.summary.unique_worktree_path_count, 2);
+      assert.equal(devLaneLedger.summary.branch_record_count, 2);
+      assert.equal(devLaneLedger.summary.created_branch_record_count, 2);
+      assert.equal(devLaneLedger.summary.worktree_record_count, 2);
+      assert.equal(devLaneLedger.summary.created_worktree_record_count, 2);
+      assert.equal(devLaneLedger.summary.materialized_branch_count, 0);
+      assert.equal(devLaneLedger.summary.materialized_worktree_count, 0);
+      assert.equal(devLaneLedger.summary.git_command_executed_count, 0);
+      assert.equal(devLaneLedger.summary.filesystem_mutation_performed_count, 0);
+      assert.equal(devLaneLedger.summary.protected_file_write_allowed_without_approval, false);
+      assert.equal(devLaneLedger.summary.protected_mutation_performed_count, 0);
+      assert.equal(devLaneLedger.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(devLaneLedger.summary.plan_acceptance_performed_count, 0);
+      assert.equal(devLaneLedger.summary.patch_application_performed_count, 0);
+      assert.equal(devLaneLedger.summary.human_review_required, true);
+      assert.equal(devLaneLedger.summary.desktop_read_only, true);
+      assert.equal(devLaneLedger.summary.desktop_mutation_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_create_worktree_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_delete_worktree_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_delete_branch_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_cleanup_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_patch_application_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_protected_file_write_allowed, false);
+      assert.equal(devLaneLedger.summary.desktop_source_of_truth, false);
+      assert.equal(devLaneLedger.summary.validation_error_count, 0);
+      assert.deepEqual(new Set(devLaneLedger.dev_lanes.map((lane) => lane.agent)), new Set(["claude_code", "codex"]));
+      assert.ok(devLaneLedger.dev_lanes.every((lane) => lane.lane_status === "provisioned" && lane.branch_record_status === "created" && lane.worktree_record_status === "created" && lane.git_command_executed === false && lane.filesystem_mutation_performed === false && lane.patch_application_performed === false));
+      assert.ok(devLaneLedger.dev_lane_branch_records.every((record) => record.branch_record_status === "created" && record.git_ref_created === false && record.git_command_executed === false));
+      assert.ok(devLaneLedger.dev_lane_worktree_records.every((record) => record.worktree_record_status === "created" && record.filesystem_path_created === false && record.filesystem_mutation_performed === false));
+      assert.equal(devLaneLedger.dev_lane_desktop_boundary.read_only, true);
+      assert.equal(devLaneLedger.dev_lane_desktop_boundary.create_worktree_allowed, false);
+      assert.match(await readFile(path.join(outDir, "dev-lane-ledger", "summary.md"), "utf8"), /Dev Lane Ledger/);
+
+      const implementationPatchCapture = await runImplementationPatchCapture({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        devLaneLedgerPath: path.join(outDir, "dev-lane-ledger", "dev-lane-ledger.json"),
+        scopeFreezeGatePath: path.join(outDir, "scope-freeze-gate", "scope-freeze-gate.json"),
+        runtimeArtifactCapturePath: path.join(outDir, "runtime-artifact-capture", "runtime-artifact-capture.json"),
+        outDir: path.join(outDir, "implementation-patch-capture"),
+        runAt: "2026-05-23T06:45:57.000Z",
+      });
+      const implementationPatchCaptureSchema = JSON.parse(await readFile("schemas/implementation-patch-capture.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(implementationPatchCapture, implementationPatchCaptureSchema, {}, "implementation_patch_capture"), []);
+      assert.equal(implementationPatchCapture.summary.implementation_patch_capture_status, "complete");
+      assert.equal(implementationPatchCapture.summary.pack_id, "personal-dev");
+      assert.equal(implementationPatchCapture.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(implementationPatchCapture.summary.source_dev_lane_ledger_status, "complete");
+      assert.equal(implementationPatchCapture.summary.source_scope_freeze_gate_status, "complete");
+      assert.equal(implementationPatchCapture.summary.source_runtime_artifact_capture_status, "complete");
+      assert.equal(implementationPatchCapture.summary.patch_record_count, 2);
+      assert.equal(implementationPatchCapture.summary.captured_patch_record_count, 2);
+      assert.equal(implementationPatchCapture.summary.claude_code_patch_record_count, 1);
+      assert.equal(implementationPatchCapture.summary.codex_patch_record_count, 1);
+      assert.equal(implementationPatchCapture.summary.diff_capture_count, 2);
+      assert.equal(implementationPatchCapture.summary.captured_diff_capture_count, 2);
+      assert.equal(implementationPatchCapture.summary.output_bound_diff_capture_count, 2);
+      assert.equal(implementationPatchCapture.summary.touched_file_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(implementationPatchCapture.summary.in_scope_touched_file_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(implementationPatchCapture.summary.protected_touched_file_count, 0);
+      assert.equal(implementationPatchCapture.summary.write_allowed_before_approval_count, 0);
+      assert.equal(implementationPatchCapture.summary.mutation_allowed_before_approval_count, 0);
+      assert.ok(implementationPatchCapture.summary.generated_artifact_count >= 1);
+      assert.equal(implementationPatchCapture.summary.captured_generated_artifact_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(implementationPatchCapture.summary.output_bound_generated_artifact_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(implementationPatchCapture.summary.run_ledger_binding_count, 2);
+      assert.equal(implementationPatchCapture.summary.bound_run_ledger_binding_count, 2);
+      assert.equal(implementationPatchCapture.summary.patch_application_performed_count, 0);
+      assert.equal(implementationPatchCapture.summary.git_command_executed_count, 0);
+      assert.equal(implementationPatchCapture.summary.filesystem_mutation_performed_count, 0);
+      assert.equal(implementationPatchCapture.summary.protected_file_write_allowed_without_approval, false);
+      assert.equal(implementationPatchCapture.summary.protected_mutation_performed_count, 0);
+      assert.equal(implementationPatchCapture.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(implementationPatchCapture.summary.plan_acceptance_performed_count, 0);
+      assert.equal(implementationPatchCapture.summary.human_review_required, true);
+      assert.equal(implementationPatchCapture.summary.runtime_self_report_trusted, false);
+      assert.equal(implementationPatchCapture.summary.desktop_read_only, true);
+      assert.equal(implementationPatchCapture.summary.desktop_mutation_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_patch_application_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_git_command_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_filesystem_mutation_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_protected_file_write_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_merge_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_release_allowed, false);
+      assert.equal(implementationPatchCapture.summary.desktop_source_of_truth, false);
+      assert.equal(implementationPatchCapture.summary.validation_error_count, 0);
+      assert.deepEqual(new Set(implementationPatchCapture.implementation_patch_records.map((record) => record.agent)), new Set(["claude_code", "codex"]));
+      assert.ok(implementationPatchCapture.implementation_patch_records.every((record) => record.patch_record_status === "captured" && record.patch_application_performed === false && record.git_command_executed === false && record.filesystem_mutation_performed === false));
+      assert.ok(implementationPatchCapture.implementation_diff_captures.every((record) => record.diff_capture_status === "captured" && record.output_artifact_binding_status === "bound_to_output_artifact" && record.direct_apply_allowed === false && record.direct_merge_allowed === false));
+      assert.ok(implementationPatchCapture.implementation_touched_files.every((record) => record.touched_file_status === "captured_in_scope" && record.in_frozen_scope && record.write_allowed_before_approval === false));
+      assert.ok(implementationPatchCapture.implementation_generated_artifacts.every((record) => record.generated_artifact_status === "captured" && record.output_artifact_binding_status === "bound_to_output_artifact"));
+      assert.ok(implementationPatchCapture.implementation_run_ledger_bindings.every((record) => record.run_ledger_binding_status === "bound" && record.patch_application_performed === false));
+      assert.equal(implementationPatchCapture.implementation_patch_desktop_boundary.read_only, true);
+      assert.equal(implementationPatchCapture.implementation_patch_desktop_boundary.patch_application_allowed, false);
+      assert.match(await readFile(path.join(outDir, "implementation-patch-capture", "summary.md"), "utf8"), /Implementation Patch Capture/);
+
+      const diffReviewGate = await runDiffReviewGate({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        outDir: path.join(outDir, "diff-review-gate"),
+        runAt: "2026-05-23T06:45:58.000Z",
+      });
+      const diffReviewGateSchema = JSON.parse(await readFile("schemas/diff-review-gate.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(diffReviewGate, diffReviewGateSchema, {}, "diff_review_gate"), []);
+      assert.equal(diffReviewGate.summary.diff_review_gate_status, "complete");
+      assert.equal(diffReviewGate.summary.pack_id, "personal-dev");
+      assert.equal(diffReviewGate.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(diffReviewGate.summary.source_implementation_patch_capture_status, "complete");
+      assert.equal(diffReviewGate.summary.source_protected_file_gate_status, "complete");
+      assert.equal(diffReviewGate.summary.patch_record_count, 2);
+      assert.equal(diffReviewGate.summary.diff_review_result_count, 2);
+      assert.equal(diffReviewGate.summary.reviewed_diff_review_result_count, 2);
+      assert.equal(diffReviewGate.summary.claude_code_review_result_count, 1);
+      assert.equal(diffReviewGate.summary.codex_review_result_count, 1);
+      assert.equal(diffReviewGate.summary.actual_diff_basis_available_count, 2);
+      assert.equal(diffReviewGate.summary.agent_self_report_trusted_count, 0);
+      assert.equal(diffReviewGate.summary.file_finding_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(diffReviewGate.summary.reviewed_file_finding_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(diffReviewGate.summary.in_scope_file_finding_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(diffReviewGate.summary.artifact_finding_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(diffReviewGate.summary.reviewed_artifact_finding_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(diffReviewGate.summary.gate_result_count, 2);
+      assert.equal(diffReviewGate.summary.passed_with_human_gate_count, 2);
+      assert.equal(diffReviewGate.summary.patch_application_allowed_count, 0);
+      assert.equal(diffReviewGate.summary.patch_application_blocked_count, 2);
+      assert.equal(diffReviewGate.summary.patch_application_performed_count, 0);
+      assert.equal(diffReviewGate.summary.git_command_executed_count, 0);
+      assert.equal(diffReviewGate.summary.filesystem_mutation_performed_count, 0);
+      assert.equal(diffReviewGate.summary.protected_file_write_allowed_without_approval, false);
+      assert.equal(diffReviewGate.summary.protected_mutation_performed_count, 0);
+      assert.equal(diffReviewGate.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(diffReviewGate.summary.plan_acceptance_performed_count, 0);
+      assert.equal(diffReviewGate.summary.human_review_required, true);
+      assert.equal(diffReviewGate.summary.desktop_read_only, true);
+      assert.equal(diffReviewGate.summary.desktop_mutation_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_patch_application_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_git_command_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_filesystem_mutation_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_protected_file_write_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_merge_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_release_allowed, false);
+      assert.equal(diffReviewGate.summary.desktop_source_of_truth, false);
+      assert.equal(diffReviewGate.summary.validation_error_count, 0);
+      assert.deepEqual(new Set(diffReviewGate.diff_review_results.map((record) => record.agent)), new Set(["claude_code", "codex"]));
+      assert.ok(diffReviewGate.diff_review_results.every((record) => record.diff_review_status === "reviewed_with_human_gate" && record.agent_self_report_trusted === false && record.actual_diff_basis_available === true && record.patch_application_allowed === false));
+      assert.ok(diffReviewGate.diff_review_file_findings.every((record) => record.file_finding_status === "reviewed_in_scope" && record.in_frozen_scope && record.write_allowed_before_approval === false));
+      assert.ok(diffReviewGate.diff_review_artifact_findings.every((record) => record.artifact_finding_status === "reviewed_output_bound" && record.output_artifact_binding_status === "bound_to_output_artifact"));
+      assert.ok(diffReviewGate.diff_review_gate_results.every((record) => record.gate_result_status === "passed_with_human_gate" && record.patch_application_allowed === false && record.patch_application_blocked === true));
+      assert.equal(diffReviewGate.diff_review_desktop_boundary.read_only, true);
+      assert.equal(diffReviewGate.diff_review_desktop_boundary.patch_application_allowed, false);
+      assert.match(await readFile(path.join(outDir, "diff-review-gate", "summary.md"), "utf8"), /Diff Review Gate/);
+
+      const canonicalTestMatrixFixtureDir = path.join(outDir, "canonical-test-matrix-fixture-repo");
+      await mkdir(path.join(canonicalTestMatrixFixtureDir, "src"), { recursive: true });
+      await writeFile(path.join(canonicalTestMatrixFixtureDir, "package.json"), JSON.stringify({
+        name: "canonical-test-matrix-fixture",
+        version: "0.0.0",
+        private: true,
+        type: "module",
+        scripts: {
+          test: "node -e \"console.log('unit pass')\"",
+          "personal-dev:test-matrix": "node -e \"console.log('matrix registered')\"",
+          "validate:core": "node -e \"console.log('lint pass')\"",
+        },
+      }, null, 2));
+      await writeFile(path.join(canonicalTestMatrixFixtureDir, "src", "canonical-test-matrix.mjs"), "export const ok = true;\n", "utf8");
+      const canonicalTestMatrix = await runCanonicalTestMatrix({
+        repoRoot: canonicalTestMatrixFixtureDir,
+        packagePath: path.join(canonicalTestMatrixFixtureDir, "package.json"),
+        roadmapPath: path.resolve("docs/final-completion-phase-ledger.md"),
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        canonicalTestRunnerPath: path.join(outDir, "canonical-test-runner", "canonical-test-runner.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        outDir: path.join(outDir, "canonical-test-matrix"),
+        runAt: "2026-05-23T06:45:59.000Z",
+        timeoutMs: 60000,
+      });
+      const canonicalTestMatrixSchema = JSON.parse(await readFile("schemas/canonical-test-matrix.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(canonicalTestMatrix, canonicalTestMatrixSchema, {}, "canonical_test_matrix"), []);
+      assert.equal(canonicalTestMatrix.summary.canonical_test_matrix_status, "complete");
+      assert.equal(canonicalTestMatrix.summary.pack_id, "personal-dev");
+      assert.equal(canonicalTestMatrix.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(canonicalTestMatrix.summary.test_matrix_authority, "harness_control_plane");
+      assert.equal(canonicalTestMatrix.summary.source_repo_profile_detector_status, "complete");
+      assert.equal(canonicalTestMatrix.summary.source_canonical_test_runner_status, "complete");
+      assert.equal(canonicalTestMatrix.summary.source_diff_review_gate_status, "complete");
+      assert.equal(canonicalTestMatrix.summary.matrix_repo_count, 1);
+      assert.equal(canonicalTestMatrix.summary.test_dimension_count, 4);
+      assert.equal(canonicalTestMatrix.summary.required_dimension_count, 3);
+      assert.equal(canonicalTestMatrix.summary.configured_dimension_count, 3);
+      assert.equal(canonicalTestMatrix.summary.executed_dimension_count, 3);
+      assert.equal(canonicalTestMatrix.summary.passed_required_dimension_count, 3);
+      assert.equal(canonicalTestMatrix.summary.failed_dimension_count, 0);
+      assert.equal(canonicalTestMatrix.summary.timed_out_dimension_count, 0);
+      assert.equal(canonicalTestMatrix.summary.unit_dimension_passed, true);
+      assert.equal(canonicalTestMatrix.summary.typecheck_dimension_passed, true);
+      assert.equal(canonicalTestMatrix.summary.lint_dimension_passed, true);
+      assert.equal(canonicalTestMatrix.summary.e2e_dimension_configured, false);
+      assert.equal(canonicalTestMatrix.summary.agent_self_report_trusted_count, 0);
+      assert.equal(canonicalTestMatrix.summary.runtime_self_report_trusted_count, 0);
+      assert.equal(canonicalTestMatrix.summary.binding_count, 2);
+      assert.equal(canonicalTestMatrix.summary.bound_to_passing_matrix_count, 2);
+      assert.equal(canonicalTestMatrix.summary.merge_ready_count, 0);
+      assert.equal(canonicalTestMatrix.summary.direct_merge_allowed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.direct_apply_allowed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.patch_application_allowed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.patch_application_performed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.git_command_executed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.filesystem_mutation_performed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.protected_file_write_allowed_without_approval, false);
+      assert.equal(canonicalTestMatrix.summary.protected_mutation_performed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.plan_acceptance_performed_count, 0);
+      assert.equal(canonicalTestMatrix.summary.human_review_required, true);
+      assert.equal(canonicalTestMatrix.summary.desktop_read_only, true);
+      assert.equal(canonicalTestMatrix.summary.desktop_mutation_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_command_execution_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_patch_application_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_git_command_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_filesystem_mutation_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_protected_file_write_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_merge_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_release_allowed, false);
+      assert.equal(canonicalTestMatrix.summary.desktop_source_of_truth, false);
+      assert.equal(canonicalTestMatrix.summary.validation_error_count, 0);
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_repos.every((record) => record.repo_matrix_status === "ready" && record.human_review_required === true));
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_commands.some((record) => record.test_dimension === "unit" && record.matrix_command_status === "configured"));
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_commands.some((record) => record.test_dimension === "typecheck" && record.matrix_command_status === "derived"));
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_commands.some((record) => record.test_dimension === "e2e" && record.matrix_command_status === "not_configured"));
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_executions.filter((record) => record.execution_required).every((record) => record.execution_status === "passed" && record.execution_performed === true));
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_results.filter((record) => record.execution_required).every((record) => record.matrix_result_status === "passed" && record.agent_self_report_trusted === false && record.direct_merge_allowed === false));
+      assert.ok(canonicalTestMatrix.canonical_test_matrix_bindings.every((record) => record.binding_status === "bound_to_passing_matrix" && record.patch_application_allowed === false && record.direct_merge_allowed === false));
+      assert.equal(canonicalTestMatrix.canonical_test_matrix_desktop_boundary.read_only, true);
+      assert.equal(canonicalTestMatrix.canonical_test_matrix_desktop_boundary.command_execution_allowed, false);
+      assert.match(await readFile(path.join(outDir, "canonical-test-matrix", "summary.md"), "utf8"), /Canonical Test Matrix/);
+
+      const devProtectedScan = await runDevProtectedScan({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        protectedFileGatePath: path.join(outDir, "protected-file-gate", "protected-file-gate.json"),
+        outDir: path.join(outDir, "dev-protected-scan"),
+        runAt: "2026-05-23T06:46:00.000Z",
+      });
+      const devProtectedScanSchema = JSON.parse(await readFile("schemas/dev-protected-scan.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(devProtectedScan, devProtectedScanSchema, {}, "dev_protected_scan"), []);
+      assert.equal(devProtectedScan.summary.dev_protected_scan_status, "complete");
+      assert.equal(devProtectedScan.summary.dev_protected_scan_contract_id, "dev-protected-scan.v1");
+      assert.equal(devProtectedScan.summary.pack_id, "personal-dev");
+      assert.equal(devProtectedScan.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(devProtectedScan.summary.scan_authority, "harness_control_plane");
+      assert.equal(devProtectedScan.summary.source_implementation_patch_capture_status, "complete");
+      assert.equal(devProtectedScan.summary.source_diff_review_gate_status, "complete");
+      assert.equal(devProtectedScan.summary.source_canonical_test_matrix_status, "complete");
+      assert.equal(devProtectedScan.summary.source_protected_file_gate_status, "complete");
+      assert.equal(devProtectedScan.summary.source_touched_file_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(devProtectedScan.summary.source_protected_file_gate_blocked_before_approval_count, protectedFileGate.summary.blocked_before_approval_count);
+      assert.equal(devProtectedScan.summary.scanned_file_count, implementationPatchCapture.summary.touched_file_count + protectedFileGate.summary.blocked_before_approval_count);
+      assert.equal(devProtectedScan.summary.actual_touched_file_scanned_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(devProtectedScan.summary.protected_candidate_count, protectedFileGate.summary.blocked_before_approval_count);
+      assert.ok(devProtectedScan.summary.credential_or_secret_candidate_count >= protectedFileGate.summary.secret_file_block_count);
+      assert.equal(devProtectedScan.summary.production_config_candidate_count, protectedFileGate.summary.production_config_block_count);
+      assert.equal(devProtectedScan.summary.blocked_before_approval_count, devProtectedScan.summary.protected_candidate_count);
+      assert.equal(devProtectedScan.summary.explicit_approval_required_count, devProtectedScan.summary.protected_candidate_count);
+      assert.equal(devProtectedScan.summary.pending_explicit_approval_count, devProtectedScan.summary.protected_candidate_count);
+      assert.equal(devProtectedScan.summary.credential_or_secret_change_blocked_count, devProtectedScan.summary.credential_or_secret_candidate_count);
+      assert.equal(devProtectedScan.summary.production_config_change_blocked_count, devProtectedScan.summary.production_config_candidate_count);
+      assert.equal(devProtectedScan.summary.write_allowed_before_approval_count, 0);
+      assert.equal(devProtectedScan.summary.mutation_allowed_before_approval_count, 0);
+      assert.equal(devProtectedScan.summary.secret_value_materialized_count, 0);
+      assert.equal(devProtectedScan.summary.raw_secret_material_exposed, false);
+      assert.equal(devProtectedScan.summary.provider_key_exposed, false);
+      assert.equal(devProtectedScan.summary.scan_result_count, 2);
+      assert.equal(devProtectedScan.summary.passed_with_protected_blocks_count, 2);
+      assert.equal(devProtectedScan.summary.binding_count, 2);
+      assert.equal(devProtectedScan.summary.bound_after_canonical_test_matrix_count, 2);
+      assert.equal(devProtectedScan.summary.patch_application_allowed_count, 0);
+      assert.equal(devProtectedScan.summary.direct_merge_allowed_count, 0);
+      assert.equal(devProtectedScan.summary.direct_apply_allowed_count, 0);
+      assert.equal(devProtectedScan.summary.patch_application_performed_count, 0);
+      assert.equal(devProtectedScan.summary.git_command_executed_count, 0);
+      assert.equal(devProtectedScan.summary.filesystem_mutation_performed_count, 0);
+      assert.equal(devProtectedScan.summary.protected_mutation_performed_count, 0);
+      assert.equal(devProtectedScan.summary.external_agent_invocation_performed_count, 0);
+      assert.equal(devProtectedScan.summary.plan_acceptance_performed_count, 0);
+      assert.equal(devProtectedScan.summary.human_review_required, true);
+      assert.equal(devProtectedScan.summary.desktop_read_only, true);
+      assert.equal(devProtectedScan.summary.desktop_mutation_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_command_execution_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_patch_application_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_git_command_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_filesystem_mutation_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_protected_file_write_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_secret_material_read_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_production_config_write_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_runtime_execution_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_external_agent_invocation_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_plan_acceptance_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_merge_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_release_allowed, false);
+      assert.equal(devProtectedScan.summary.desktop_source_of_truth, false);
+      assert.equal(devProtectedScan.summary.raw_secret_material_exposed_count, 0);
+      assert.equal(devProtectedScan.summary.provider_key_exposed_count, 0);
+      assert.equal(devProtectedScan.summary.failed_checkpoint_count, 0);
+      assert.equal(devProtectedScan.summary.validation_error_count, 0);
+      assert.ok(devProtectedScan.dev_protected_file_findings.filter((record) => record.protected_file_detected).every((record) => record.finding_status === "blocked_pending_explicit_approval" && record.write_allowed_before_approval === false && record.mutation_allowed_before_approval === false));
+      assert.ok(devProtectedScan.dev_secret_findings.every((record) => record.secret_finding_status === "blocked_pending_explicit_approval" && record.raw_secret_material_exposed === false && record.secret_value_materialized === false && record.provider_key_exposed === false));
+      assert.ok(devProtectedScan.dev_prod_config_findings.every((record) => record.prod_config_finding_status === "blocked_pending_explicit_approval" && record.write_allowed_before_approval === false && record.mutation_allowed_before_approval === false));
+      assert.ok(devProtectedScan.dev_protected_scan_results.every((record) => record.scan_result_status === "passed_with_protected_blocks" && record.patch_application_performed === false && record.git_command_executed === false && record.filesystem_mutation_performed === false));
+      assert.ok(devProtectedScan.dev_protected_scan_bindings.every((record) => record.binding_status === "bound_after_canonical_test_matrix" && record.patch_application_allowed === false && record.direct_merge_allowed === false && record.direct_apply_allowed === false));
+      assert.equal(devProtectedScan.dev_protected_scan_desktop_boundary.read_only, true);
+      assert.equal(devProtectedScan.dev_protected_scan_desktop_boundary.secret_material_read_allowed, false);
+      assert.match(await readFile(path.join(outDir, "dev-protected-scan", "summary.md"), "utf8"), /Dev Protected Scan/);
+
+      const prDraftArtifact = await runPrDraftArtifact({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        devProtectedScanPath: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        outDir: path.join(outDir, "pr-draft-artifact"),
+        runAt: "2026-05-23T06:47:00.000Z",
+      });
+      const prDraftArtifactSchema = JSON.parse(await readFile("schemas/pr-draft-artifact.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(prDraftArtifact, prDraftArtifactSchema, {}, "pr_draft_artifact"), []);
+      assert.equal(prDraftArtifact.summary.pr_draft_artifact_status, "complete");
+      assert.equal(prDraftArtifact.summary.pr_draft_artifact_contract_id, "pr-draft-artifact.v1");
+      assert.equal(prDraftArtifact.summary.pack_id, "personal-dev");
+      assert.equal(prDraftArtifact.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(prDraftArtifact.summary.draft_authority, "harness_control_plane");
+      assert.equal(prDraftArtifact.summary.source_implementation_patch_capture_status, "complete");
+      assert.equal(prDraftArtifact.summary.source_diff_review_gate_status, "complete");
+      assert.equal(prDraftArtifact.summary.source_canonical_test_matrix_status, "complete");
+      assert.equal(prDraftArtifact.summary.source_dev_protected_scan_status, "complete");
+      assert.equal(prDraftArtifact.summary.source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(prDraftArtifact.summary.source_pr_draft_output_artifact_available, true);
+      assert.equal(prDraftArtifact.summary.pr_draft_output_artifact_count, 1);
+      assert.equal(prDraftArtifact.summary.output_artifact_v2_count, 1);
+      assert.equal(prDraftArtifact.summary.output_artifact_hash_present_count, 1);
+      assert.equal(prDraftArtifact.summary.output_artifact_draft_count, 1);
+      assert.equal(prDraftArtifact.summary.output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(prDraftArtifact.summary.output_artifact_pending_approval_count, 1);
+      assert.equal(prDraftArtifact.summary.pr_draft_section_count, 4);
+      assert.equal(prDraftArtifact.summary.summary_section_present, true);
+      assert.equal(prDraftArtifact.summary.tests_section_present, true);
+      assert.equal(prDraftArtifact.summary.risks_section_present, true);
+      assert.equal(prDraftArtifact.summary.rollback_section_present, true);
+      assert.equal(prDraftArtifact.summary.test_evidence_count, canonicalTestMatrix.summary.required_dimension_count);
+      assert.equal(prDraftArtifact.summary.passed_test_evidence_count, prDraftArtifact.summary.test_evidence_count);
+      assert.equal(prDraftArtifact.summary.agent_self_report_trusted_test_count, 0);
+      assert.equal(prDraftArtifact.summary.risk_count, 4);
+      assert.equal(prDraftArtifact.summary.rollback_step_count, 3);
+      assert.equal(prDraftArtifact.summary.draft_not_executed_rollback_step_count, 3);
+      assert.equal(prDraftArtifact.summary.rollback_command_execution_allowed_count, 0);
+      assert.equal(prDraftArtifact.summary.pr_draft_binding_count, 2);
+      assert.equal(prDraftArtifact.summary.bound_after_protected_scan_count, 2);
+      assert.equal(prDraftArtifact.summary.pull_request_creation_allowed_count, 0);
+      assert.equal(prDraftArtifact.summary.direct_merge_allowed_count, 0);
+      assert.equal(prDraftArtifact.summary.release_allowed_count, 0);
+      assert.equal(prDraftArtifact.summary.pull_request_creation_performed, false);
+      assert.equal(prDraftArtifact.summary.github_api_called, false);
+      assert.equal(prDraftArtifact.summary.branch_push_performed, false);
+      assert.equal(prDraftArtifact.summary.merge_performed, false);
+      assert.equal(prDraftArtifact.summary.release_performed, false);
+      assert.equal(prDraftArtifact.summary.raw_secret_material_exposed, false);
+      assert.equal(prDraftArtifact.summary.provider_key_exposed, false);
+      assert.equal(prDraftArtifact.summary.human_review_required, true);
+      assert.equal(prDraftArtifact.summary.desktop_read_only, true);
+      assert.equal(prDraftArtifact.summary.desktop_github_api_allowed, false);
+      assert.equal(prDraftArtifact.summary.desktop_pull_request_creation_allowed, false);
+      assert.equal(prDraftArtifact.summary.desktop_direct_merge_allowed, false);
+      assert.equal(prDraftArtifact.summary.desktop_release_allowed, false);
+      assert.equal(prDraftArtifact.summary.desktop_source_of_truth, false);
+      assert.equal(prDraftArtifact.summary.failed_checkpoint_count, 0);
+      assert.equal(prDraftArtifact.summary.validation_error_count, 0);
+      assert.ok(prDraftArtifact.pr_draft_output_artifacts.every((artifact) => artifact.schema_version === "output-artifact.v2" && artifact.artifact_type === "pr_draft" && artifact.output_status === "draft" && artifact.delivery_state === "blocked_pending_approval"));
+      assert.ok(["summary", "tests", "risks", "rollback"].every((sectionType) => prDraftArtifact.pr_draft_sections.some((section) => section.section_type === sectionType && section.section_status === "ready_for_human_review")));
+      assert.ok(prDraftArtifact.pr_draft_test_evidence.every((record) => record.test_evidence_status === "passed" && record.agent_self_report_trusted === false && record.direct_merge_allowed === false));
+      assert.ok(prDraftArtifact.pr_draft_rollback_plan.every((record) => record.rollback_status === "draft_not_executed" && record.command_execution_allowed === false));
+      assert.ok(prDraftArtifact.pr_draft_bindings.every((record) => record.pr_draft_binding_status === "bound_after_protected_scan" && record.pull_request_creation_allowed === false && record.direct_merge_allowed === false));
+      assert.equal(prDraftArtifact.pr_draft_desktop_boundary.read_only, true);
+      assert.equal(prDraftArtifact.pr_draft_desktop_boundary.github_api_allowed, false);
+      assert.match(await readFile(path.join(outDir, "pr-draft-artifact", "summary.md"), "utf8"), /PR Draft Artifact/);
+      assert.match(await readFile(path.join(outDir, "pr-draft-artifact", "pr-draft.md"), "utf8"), /## Summary[\s\S]*## Tests[\s\S]*## Risks[\s\S]*## Rollback/);
+
+      const releaseNoteArtifact = await runReleaseNoteArtifact({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        devProtectedScanPath: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+        outDir: path.join(outDir, "release-note-artifact"),
+        runAt: "2026-05-23T06:48:00.000Z",
+      });
+      const releaseNoteArtifactSchema = JSON.parse(await readFile("schemas/release-note-artifact.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(releaseNoteArtifact, releaseNoteArtifactSchema, {}, "release_note_artifact"), []);
+      assert.equal(releaseNoteArtifact.summary.release_note_artifact_status, "complete");
+      assert.equal(releaseNoteArtifact.summary.release_note_artifact_contract_id, "release-note-artifact.v1");
+      assert.equal(releaseNoteArtifact.summary.pack_id, "personal-dev");
+      assert.equal(releaseNoteArtifact.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(releaseNoteArtifact.summary.note_authority, "harness_control_plane");
+      assert.equal(releaseNoteArtifact.summary.source_pr_draft_artifact_status, "complete");
+      assert.equal(releaseNoteArtifact.summary.source_canonical_test_matrix_status, "complete");
+      assert.equal(releaseNoteArtifact.summary.source_dev_protected_scan_status, "complete");
+      assert.equal(releaseNoteArtifact.summary.release_note_output_artifact_count, 1);
+      assert.equal(releaseNoteArtifact.summary.output_artifact_v2_count, 1);
+      assert.equal(releaseNoteArtifact.summary.output_artifact_hash_present_count, 1);
+      assert.equal(releaseNoteArtifact.summary.output_artifact_draft_count, 1);
+      assert.equal(releaseNoteArtifact.summary.output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(releaseNoteArtifact.summary.output_artifact_pending_approval_count, 1);
+      assert.equal(releaseNoteArtifact.summary.release_note_change_record_count, 1);
+      assert.equal(releaseNoteArtifact.summary.merged_change_basis_count, 1);
+      assert.equal(releaseNoteArtifact.summary.release_note_section_count, 6);
+      assert.equal(releaseNoteArtifact.summary.ready_section_count, 6);
+      assert.equal(releaseNoteArtifact.summary.release_note_gate_binding_count, 3);
+      assert.equal(releaseNoteArtifact.summary.bound_release_note_gate_binding_count, 3);
+      assert.equal(releaseNoteArtifact.summary.publication_allowed_count, 0);
+      assert.equal(releaseNoteArtifact.summary.merge_allowed_count, 0);
+      assert.equal(releaseNoteArtifact.summary.release_allowed_count, 0);
+      assert.equal(releaseNoteArtifact.summary.merge_performed, false);
+      assert.equal(releaseNoteArtifact.summary.release_performed, false);
+      assert.equal(releaseNoteArtifact.summary.release_note_publication_performed, false);
+      assert.equal(releaseNoteArtifact.summary.github_api_called, false);
+      assert.equal(releaseNoteArtifact.summary.branch_push_performed, false);
+      assert.equal(releaseNoteArtifact.summary.raw_secret_material_exposed, false);
+      assert.equal(releaseNoteArtifact.summary.provider_key_exposed, false);
+      assert.equal(releaseNoteArtifact.summary.human_review_required, true);
+      assert.equal(releaseNoteArtifact.summary.desktop_read_only, true);
+      assert.equal(releaseNoteArtifact.summary.desktop_github_api_allowed, false);
+      assert.equal(releaseNoteArtifact.summary.desktop_merge_allowed, false);
+      assert.equal(releaseNoteArtifact.summary.desktop_release_allowed, false);
+      assert.equal(releaseNoteArtifact.summary.desktop_source_of_truth, false);
+      assert.equal(releaseNoteArtifact.summary.failed_checkpoint_count, 0);
+      assert.equal(releaseNoteArtifact.summary.validation_error_count, 0);
+      assert.ok(releaseNoteArtifact.release_note_output_artifacts.every((artifact) => artifact.schema_version === "output-artifact.v2" && artifact.artifact_type === "release_note" && artifact.output_status === "draft" && artifact.delivery_state === "blocked_pending_approval"));
+      assert.ok(["highlights", "changes", "tests", "risks", "rollback", "human_review"].every((sectionType) => releaseNoteArtifact.release_note_sections.some((section) => section.section_type === sectionType && section.section_status === "draft_ready_for_human_review")));
+      assert.ok(releaseNoteArtifact.release_note_change_records.every((record) => record.merged_change_basis === "validated_pr_draft_pending_human_merge_approval" && record.merge_performed === false && record.release_performed === false));
+      assert.ok(releaseNoteArtifact.release_note_gate_bindings.every((binding) => binding.release_note_binding_status === "bound_to_release_note_draft" && binding.release_note_publication_allowed === false && binding.merge_allowed === false && binding.release_allowed === false));
+      assert.equal(releaseNoteArtifact.release_note_desktop_boundary.read_only, true);
+      assert.equal(releaseNoteArtifact.release_note_desktop_boundary.github_api_allowed, false);
+      assert.match(await readFile(path.join(outDir, "release-note-artifact", "summary.md"), "utf8"), /Release Note Artifact/);
+      assert.match(await readFile(path.join(outDir, "release-note-artifact", "release-note.md"), "utf8"), /## Highlights[\s\S]*## Changes[\s\S]*## Tests[\s\S]*## Risks[\s\S]*## Rollback[\s\S]*## Human Review/);
+
+      const rollbackPlanArtifact = await runRollbackPlanArtifact({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        releaseNoteArtifactPath: path.join(outDir, "release-note-artifact", "release-note-artifact.json"),
+        outDir: path.join(outDir, "rollback-plan-artifact"),
+        runAt: "2026-05-23T06:49:00.000Z",
+      });
+      const rollbackPlanArtifactSchema = JSON.parse(await readFile("schemas/rollback-plan-artifact.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(rollbackPlanArtifact, rollbackPlanArtifactSchema, {}, "rollback_plan_artifact"), []);
+      assert.equal(rollbackPlanArtifact.summary.rollback_plan_artifact_status, "complete");
+      assert.equal(rollbackPlanArtifact.summary.rollback_plan_artifact_contract_id, "rollback-plan-artifact.v1");
+      assert.equal(rollbackPlanArtifact.summary.pack_id, "personal-dev");
+      assert.equal(rollbackPlanArtifact.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(rollbackPlanArtifact.summary.plan_authority, "harness_control_plane");
+      assert.equal(rollbackPlanArtifact.summary.source_implementation_patch_capture_status, "complete");
+      assert.equal(rollbackPlanArtifact.summary.source_diff_review_gate_status, "complete");
+      assert.equal(rollbackPlanArtifact.summary.source_pr_draft_artifact_status, "complete");
+      assert.equal(rollbackPlanArtifact.summary.source_release_note_artifact_status, "complete");
+      assert.equal(rollbackPlanArtifact.summary.rollback_output_artifact_count, 1);
+      assert.equal(rollbackPlanArtifact.summary.output_artifact_v2_count, 1);
+      assert.equal(rollbackPlanArtifact.summary.output_artifact_hash_present_count, 1);
+      assert.equal(rollbackPlanArtifact.summary.output_artifact_draft_count, 1);
+      assert.equal(rollbackPlanArtifact.summary.output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(rollbackPlanArtifact.summary.output_artifact_pending_approval_count, 1);
+      assert.equal(rollbackPlanArtifact.summary.rollback_commit_target_count, 2);
+      assert.equal(rollbackPlanArtifact.summary.pending_not_merged_commit_target_count, 2);
+      assert.equal(rollbackPlanArtifact.summary.commit_revert_required_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.commit_revert_performed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.rollback_file_target_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(rollbackPlanArtifact.summary.restore_candidate_file_target_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(rollbackPlanArtifact.summary.file_restore_allowed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.file_restore_performed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.rollback_command_target_count, 5);
+      assert.equal(rollbackPlanArtifact.summary.draft_not_executed_command_target_count, 5);
+      assert.equal(rollbackPlanArtifact.summary.command_execution_allowed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.command_executed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.rollback_plan_binding_count, 4);
+      assert.equal(rollbackPlanArtifact.summary.bound_rollback_plan_binding_count, 4);
+      assert.equal(rollbackPlanArtifact.summary.rollback_execution_allowed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.merge_allowed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.release_allowed_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.rollback_execution_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.command_execution_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.git_command_executed, false);
+      assert.equal(rollbackPlanArtifact.summary.filesystem_mutation_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.protected_mutation_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.merge_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.release_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.github_api_called, false);
+      assert.equal(rollbackPlanArtifact.summary.branch_push_performed, false);
+      assert.equal(rollbackPlanArtifact.summary.human_review_required, true);
+      assert.equal(rollbackPlanArtifact.summary.desktop_read_only, true);
+      assert.equal(rollbackPlanArtifact.summary.desktop_command_execution_allowed, false);
+      assert.equal(rollbackPlanArtifact.summary.desktop_file_restore_allowed, false);
+      assert.equal(rollbackPlanArtifact.summary.desktop_commit_revert_allowed, false);
+      assert.equal(rollbackPlanArtifact.summary.desktop_rollback_execution_allowed, false);
+      assert.equal(rollbackPlanArtifact.summary.desktop_source_of_truth, false);
+      assert.equal(rollbackPlanArtifact.summary.failed_checkpoint_count, 0);
+      assert.equal(rollbackPlanArtifact.summary.validation_error_count, 0);
+      assert.ok(rollbackPlanArtifact.rollback_output_artifacts.every((artifact) => artifact.schema_version === "output-artifact.v2" && artifact.artifact_type === "rollback_plan" && artifact.output_status === "draft" && artifact.delivery_state === "blocked_pending_approval"));
+      assert.ok(rollbackPlanArtifact.rollback_commit_targets.every((target) => target.rollback_commit_status === "pending_not_merged" && target.command_execution_allowed === false && target.commit_revert_performed === false));
+      assert.ok(rollbackPlanArtifact.rollback_file_targets.every((target) => target.rollback_file_status === "restore_candidate_declared" && target.file_restore_allowed === false && target.file_restore_performed === false));
+      assert.ok(rollbackPlanArtifact.rollback_command_targets.every((target) => target.rollback_command_status === "draft_not_executed" && target.command_execution_allowed === false && target.command_executed === false));
+      assert.ok(rollbackPlanArtifact.rollback_plan_bindings.every((binding) => binding.rollback_plan_binding_status === "bound_to_rollback_plan_draft" && binding.rollback_execution_allowed === false && binding.command_execution_allowed === false));
+      assert.equal(rollbackPlanArtifact.rollback_plan_desktop_boundary.read_only, true);
+      assert.equal(rollbackPlanArtifact.rollback_plan_desktop_boundary.command_execution_allowed, false);
+      assert.match(await readFile(path.join(outDir, "rollback-plan-artifact", "summary.md"), "utf8"), /Rollback Plan Artifact/);
+      assert.match(await readFile(path.join(outDir, "rollback-plan-artifact", "rollback-plan.md"), "utf8"), /Commit Targets[\s\S]*File Targets[\s\S]*Command Targets/);
+
+      const technicalDebtLedger = await runTechnicalDebtLedger({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        issueIntakeAdapterPath: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        releaseNoteArtifactPath: path.join(outDir, "release-note-artifact", "release-note-artifact.json"),
+        rollbackPlanArtifactPath: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
+        outDir: path.join(outDir, "technical-debt-ledger"),
+        runAt: "2026-05-23T06:50:00.000Z",
+      });
+      const technicalDebtLedgerSchema = JSON.parse(await readFile("schemas/technical-debt-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(technicalDebtLedger, technicalDebtLedgerSchema, {}, "technical_debt_ledger"), []);
+      assert.equal(technicalDebtLedger.summary.technical_debt_ledger_status, "complete");
+      assert.equal(technicalDebtLedger.summary.technical_debt_ledger_contract_id, "technical-debt-ledger.v1");
+      assert.equal(technicalDebtLedger.summary.pack_id, "personal-dev");
+      assert.equal(technicalDebtLedger.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(technicalDebtLedger.summary.ledger_authority, "harness_control_plane");
+      assert.equal(technicalDebtLedger.summary.source_issue_intake_status, "complete");
+      assert.equal(technicalDebtLedger.summary.source_plan_reconciliation_status, "complete");
+      assert.equal(technicalDebtLedger.summary.source_pr_draft_artifact_status, "complete");
+      assert.equal(technicalDebtLedger.summary.source_release_note_artifact_status, "complete");
+      assert.equal(technicalDebtLedger.summary.source_rollback_plan_artifact_status, "complete");
+      assert.equal(technicalDebtLedger.summary.source_unresolved_question_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(technicalDebtLedger.summary.source_pr_draft_risk_count, prDraftArtifact.summary.risk_count);
+      assert.equal(technicalDebtLedger.summary.debt_source_finding_count, planReconciliation.summary.unresolved_question_count + prDraftArtifact.summary.risk_count);
+      assert.equal(technicalDebtLedger.summary.plan_question_finding_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(technicalDebtLedger.summary.pr_risk_finding_count, prDraftArtifact.summary.risk_count);
+      assert.equal(technicalDebtLedger.summary.open_for_triage_finding_count, technicalDebtLedger.summary.debt_source_finding_count);
+      assert.equal(technicalDebtLedger.summary.technical_debt_task_count, technicalDebtLedger.summary.debt_source_finding_count);
+      assert.equal(technicalDebtLedger.summary.preserved_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(technicalDebtLedger.summary.backlog_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(technicalDebtLedger.summary.debt_task_binding_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(technicalDebtLedger.summary.bound_debt_task_binding_count, technicalDebtLedger.summary.debt_task_binding_count);
+      assert.equal(technicalDebtLedger.summary.technical_debt_output_artifact_count, 1);
+      assert.equal(technicalDebtLedger.summary.output_artifact_v2_count, 1);
+      assert.equal(technicalDebtLedger.summary.output_artifact_hash_present_count, 1);
+      assert.equal(technicalDebtLedger.summary.output_artifact_draft_count, 1);
+      assert.equal(technicalDebtLedger.summary.output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(technicalDebtLedger.summary.output_artifact_pending_approval_count, 1);
+      assert.equal(technicalDebtLedger.summary.task_state_write_allowed_count, 0);
+      assert.equal(technicalDebtLedger.summary.task_state_write_performed_count, 0);
+      assert.equal(technicalDebtLedger.summary.issue_mutation_allowed_count, 0);
+      assert.equal(technicalDebtLedger.summary.issue_mutation_performed_count, 0);
+      assert.equal(technicalDebtLedger.summary.command_execution_allowed_count, 0);
+      assert.equal(technicalDebtLedger.summary.command_execution_performed_count, 0);
+      assert.equal(technicalDebtLedger.summary.github_api_called, false);
+      assert.equal(technicalDebtLedger.summary.branch_push_performed, false);
+      assert.equal(technicalDebtLedger.summary.merge_performed, false);
+      assert.equal(technicalDebtLedger.summary.release_performed, false);
+      assert.equal(technicalDebtLedger.summary.protected_mutation_performed, false);
+      assert.equal(technicalDebtLedger.summary.human_review_required, true);
+      assert.equal(technicalDebtLedger.summary.desktop_read_only, true);
+      assert.equal(technicalDebtLedger.summary.desktop_task_state_write_allowed, false);
+      assert.equal(technicalDebtLedger.summary.desktop_issue_mutation_allowed, false);
+      assert.equal(technicalDebtLedger.summary.desktop_command_execution_allowed, false);
+      assert.equal(technicalDebtLedger.summary.desktop_source_of_truth, false);
+      assert.equal(technicalDebtLedger.summary.failed_checkpoint_count, 0);
+      assert.equal(technicalDebtLedger.summary.validation_error_count, 0);
+      assert.ok(technicalDebtLedger.debt_source_findings.every((finding) => finding.finding_status === "open_for_triage" && finding.preserve_as_task_required === true && finding.resolved_by_current_phase === false));
+      assert.ok(technicalDebtLedger.technical_debt_tasks.every((task) => task.task_status === "backlog" && task.preservation_status === "preserved_as_task" && task.task_state_write_performed === false && task.command_execution_performed === false));
+      assert.ok(technicalDebtLedger.debt_task_bindings.every((binding) => binding.debt_task_binding_status === "bound_to_technical_debt_ledger" && binding.task_state_write_performed === false && binding.issue_mutation_performed === false));
+      assert.equal(technicalDebtLedger.technical_debt_desktop_boundary.read_only, true);
+      assert.equal(technicalDebtLedger.technical_debt_desktop_boundary.task_state_write_allowed, false);
+      assert.match(await readFile(path.join(outDir, "technical-debt-ledger", "summary.md"), "utf8"), /Technical Debt Ledger/);
+      assert.match(await readFile(path.join(outDir, "technical-debt-ledger", "technical-debt-ledger.md"), "utf8"), /Source Findings[\s\S]*Preserved Tasks/);
+
+      const personalDevDashboardApi = await runPersonalDevDashboardApi({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        devLaneLedgerPath: path.join(outDir, "dev-lane-ledger", "dev-lane-ledger.json"),
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        scopeFreezeGatePath: path.join(outDir, "scope-freeze-gate", "scope-freeze-gate.json"),
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        releaseNoteArtifactPath: path.join(outDir, "release-note-artifact", "release-note-artifact.json"),
+        rollbackPlanArtifactPath: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
+        technicalDebtLedgerPath: path.join(outDir, "technical-debt-ledger", "technical-debt-ledger.json"),
+        outDir: path.join(outDir, "personal-dev-dashboard-api"),
+        runAt: "2026-05-23T06:51:00.000Z",
+      });
+      const personalDevDashboardApiSchema = JSON.parse(await readFile("schemas/personal-dev-dashboard-api.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(personalDevDashboardApi, personalDevDashboardApiSchema, {}, "personal_dev_dashboard_api"), []);
+      assert.equal(personalDevDashboardApi.summary.personal_dev_dashboard_api_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.personal_dev_dashboard_api_contract_id, "personal-dev-dashboard-api.v1");
+      assert.equal(personalDevDashboardApi.summary.pack_id, "personal-dev");
+      assert.equal(personalDevDashboardApi.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(personalDevDashboardApi.summary.api_authority, "harness_control_plane");
+      assert.equal(personalDevDashboardApi.summary.source_repo_profile_detector_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_dev_lane_ledger_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_plan_reconciliation_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_scope_freeze_gate_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_implementation_patch_capture_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_diff_review_gate_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_canonical_test_matrix_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_pr_draft_artifact_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_release_note_artifact_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_rollback_plan_artifact_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.source_technical_debt_ledger_status, "complete");
+      assert.equal(personalDevDashboardApi.summary.panel_row_count, 6);
+      assert.equal(personalDevDashboardApi.summary.ready_panel_row_count, 6);
+      assert.equal(personalDevDashboardApi.summary.repo_panel_status, "ready");
+      assert.equal(personalDevDashboardApi.summary.worktree_panel_status, "ready");
+      assert.equal(personalDevDashboardApi.summary.plan_panel_status, "ready");
+      assert.equal(personalDevDashboardApi.summary.diff_panel_status, "ready");
+      assert.equal(personalDevDashboardApi.summary.test_panel_status, "ready");
+      assert.equal(personalDevDashboardApi.summary.pr_panel_status, "ready");
+      assert.equal(personalDevDashboardApi.summary.status_rollup_count, 6);
+      assert.equal(personalDevDashboardApi.summary.ready_status_rollup_count, 6);
+      assert.equal(personalDevDashboardApi.summary.api_route_binding_count, 6);
+      assert.equal(personalDevDashboardApi.summary.active_api_route_binding_count, 6);
+      assert.equal(personalDevDashboardApi.summary.read_only_api_route_binding_count, 6);
+      assert.ok(personalDevDashboardApi.summary.route_count >= 20);
+      assert.equal(personalDevDashboardApi.summary.personal_dev_output_artifact_count, 1);
+      assert.equal(personalDevDashboardApi.summary.output_artifact_v2_count, 1);
+      assert.equal(personalDevDashboardApi.summary.output_artifact_hash_present_count, 1);
+      assert.equal(personalDevDashboardApi.summary.output_artifact_draft_count, 1);
+      assert.equal(personalDevDashboardApi.summary.output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(personalDevDashboardApi.summary.output_artifact_pending_approval_count, 1);
+      assert.equal(personalDevDashboardApi.summary.mutation_performed, false);
+      assert.equal(personalDevDashboardApi.summary.command_execution_performed, false);
+      assert.equal(personalDevDashboardApi.summary.task_state_write_performed, false);
+      assert.equal(personalDevDashboardApi.summary.issue_mutation_performed, false);
+      assert.equal(personalDevDashboardApi.summary.github_api_called, false);
+      assert.equal(personalDevDashboardApi.summary.branch_push_performed, false);
+      assert.equal(personalDevDashboardApi.summary.pull_request_creation_performed, false);
+      assert.equal(personalDevDashboardApi.summary.merge_performed, false);
+      assert.equal(personalDevDashboardApi.summary.release_performed, false);
+      assert.equal(personalDevDashboardApi.summary.protected_mutation_performed, false);
+      assert.equal(personalDevDashboardApi.summary.raw_secret_material_exposed, false);
+      assert.equal(personalDevDashboardApi.summary.provider_key_exposed, false);
+      assert.equal(personalDevDashboardApi.summary.desktop_read_only, true);
+      assert.equal(personalDevDashboardApi.summary.desktop_mutation_allowed, false);
+      assert.equal(personalDevDashboardApi.summary.desktop_task_state_write_allowed, false);
+      assert.equal(personalDevDashboardApi.summary.desktop_issue_mutation_allowed, false);
+      assert.equal(personalDevDashboardApi.summary.desktop_command_execution_allowed, false);
+      assert.equal(personalDevDashboardApi.summary.desktop_github_api_allowed, false);
+      assert.equal(personalDevDashboardApi.summary.desktop_source_of_truth, false);
+      assert.equal(personalDevDashboardApi.summary.failed_checkpoint_count, 0);
+      assert.equal(personalDevDashboardApi.summary.validation_error_count, 0);
+      assert.ok(personalDevDashboardApi.personal_dev_output_artifacts.every((artifact) => artifact.schema_version === "output-artifact.v2" && artifact.artifact_type === "json" && artifact.output_status === "draft" && artifact.delivery_state === "blocked_pending_approval" && artifact.approval_status === "pending" && artifact.hash_status === "present"));
+      assert.ok(personalDevDashboardApi.personal_dev_panel_rows.every((row) => row.panel_status === "ready" && row.source_status === "complete" && row.read_only === true && row.mutation_allowed === false && row.command_execution_allowed === false));
+      assert.ok(personalDevDashboardApi.personal_dev_status_rollups.every((rollup) => rollup.rollup_status === "ready" && rollup.read_only === true));
+      assert.ok(personalDevDashboardApi.personal_dev_api_route_bindings.every((binding) => binding.route_binding_status === "active" && binding.read_only === true && binding.mutation_allowed === false && binding.command_execution_allowed === false && binding.github_api_allowed === false && binding.pull_request_creation_allowed === false));
+      assert.equal(personalDevDashboardApi.personal_dev_dashboard_desktop_boundary.read_only, true);
+      assert.equal(personalDevDashboardApi.personal_dev_dashboard_desktop_boundary.command_execution_allowed, false);
+      assert.equal(personalDevDashboardApi.personal_dev_dashboard_desktop_boundary.github_api_allowed, false);
+      assert.equal(personalDevDashboardApi.personal_dev_dashboard_desktop_boundary.source_of_truth, false);
+      assert.ok(personalDevDashboardApi.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "personal-dev-dashboard-api", "summary.md"), "utf8"), /Personal Dev Dashboard API/);
+      assert.match(await readFile(path.join(outDir, "personal-dev-dashboard-api", "personal-dev-panel.md"), "utf8"), /repo[\s\S]*worktree[\s\S]*plan[\s\S]*diff[\s\S]*test[\s\S]*pr/);
+
+      const personalDevE2eFreeze = await runPersonalDevE2eFreeze({
+        repoRoot: ".",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        controlPlaneLoopPath: "src/control-plane-loop.mjs",
+        reviewDashboardPath: "src/review-dashboard.mjs",
+        reviewApiPath: "src/review-api.mjs",
+        personalDevPackManifestPath: path.join(outDir, "personal-dev-pack-manifest", "personal-dev-pack-manifest.json"),
+        repoProfileDetectorPath: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
+        agentInstructionRegistryPath: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
+        issueIntakeAdapterPath: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
+        planRequestContractPath: path.join(outDir, "plan-request-contract", "plan-request-contract.json"),
+        planReconciliationPath: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+        scopeFreezeGatePath: path.join(outDir, "scope-freeze-gate", "scope-freeze-gate.json"),
+        devLaneLedgerPath: path.join(outDir, "dev-lane-ledger", "dev-lane-ledger.json"),
+        implementationPatchCapturePath: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+        diffReviewGatePath: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+        canonicalTestMatrixPath: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+        devProtectedScanPath: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+        prDraftArtifactPath: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+        releaseNoteArtifactPath: path.join(outDir, "release-note-artifact", "release-note-artifact.json"),
+        rollbackPlanArtifactPath: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
+        technicalDebtLedgerPath: path.join(outDir, "technical-debt-ledger", "technical-debt-ledger.json"),
+        personalDevDashboardApiPath: path.join(outDir, "personal-dev-dashboard-api", "personal-dev-dashboard-api.json"),
+        outDir: path.join(outDir, "personal-dev-e2e-freeze"),
+        runAt: "2026-05-23T06:52:00.000Z",
+      });
+      const personalDevE2eFreezeSchema = JSON.parse(await readFile("schemas/personal-dev-e2e-freeze.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(personalDevE2eFreeze, personalDevE2eFreezeSchema, {}, "personal_dev_e2e_freeze"), []);
+      assert.equal(personalDevE2eFreeze.summary.personal_dev_e2e_freeze_status, "complete");
+      assert.equal(personalDevE2eFreeze.summary.personal_dev_e2e_freeze_contract_id, "personal-dev-e2e-freeze.v1");
+      assert.equal(personalDevE2eFreeze.summary.pack_id, "personal-dev");
+      assert.equal(personalDevE2eFreeze.summary.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(personalDevE2eFreeze.summary.freeze_authority, "harness_control_plane");
+      assert.equal(personalDevE2eFreeze.summary.source_count, 17);
+      assert.equal(personalDevE2eFreeze.summary.passed_source_count, 17);
+      assert.equal(personalDevE2eFreeze.summary.trace_count, 7);
+      assert.equal(personalDevE2eFreeze.summary.passed_trace_count, 7);
+      assert.equal(personalDevE2eFreeze.summary.loop_binding_count, 18);
+      assert.equal(personalDevE2eFreeze.summary.bound_loop_binding_count, 18);
+      assert.equal(personalDevE2eFreeze.summary.issue_to_pr_path_complete, true);
+      assert.equal(personalDevE2eFreeze.summary.issue_source_count, issueIntakeAdapter.summary.issue_source_count);
+      assert.equal(personalDevE2eFreeze.summary.normalized_task_count, issueIntakeAdapter.summary.normalized_task_count);
+      assert.equal(personalDevE2eFreeze.summary.plan_request_count, planRequestContract.summary.plan_request_count);
+      assert.equal(personalDevE2eFreeze.summary.plan_candidate_count, planReconciliation.summary.plan_candidate_count);
+      assert.equal(personalDevE2eFreeze.summary.scope_freeze_performed_count, scopeFreezeGate.summary.scope_freeze_performed_count);
+      assert.equal(personalDevE2eFreeze.summary.dev_lane_count, devLaneLedger.summary.dev_lane_count);
+      assert.equal(personalDevE2eFreeze.summary.patch_record_count, implementationPatchCapture.summary.patch_record_count);
+      assert.equal(personalDevE2eFreeze.summary.diff_review_result_count, diffReviewGate.summary.diff_review_result_count);
+      assert.equal(personalDevE2eFreeze.summary.required_test_dimension_count, canonicalTestMatrix.summary.required_dimension_count);
+      assert.equal(personalDevE2eFreeze.summary.passed_required_test_dimension_count, canonicalTestMatrix.summary.passed_required_dimension_count);
+      assert.equal(personalDevE2eFreeze.summary.protected_scan_result_count, devProtectedScan.summary.scan_result_count);
+      assert.equal(personalDevE2eFreeze.summary.pr_draft_output_artifact_count, prDraftArtifact.summary.pr_draft_output_artifact_count);
+      assert.equal(personalDevE2eFreeze.summary.release_note_output_artifact_count, releaseNoteArtifact.summary.release_note_output_artifact_count);
+      assert.equal(personalDevE2eFreeze.summary.rollback_output_artifact_count, rollbackPlanArtifact.summary.rollback_output_artifact_count);
+      assert.equal(personalDevE2eFreeze.summary.technical_debt_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(personalDevE2eFreeze.summary.dashboard_panel_row_count, personalDevDashboardApi.summary.panel_row_count);
+      assert.equal(personalDevE2eFreeze.summary.dashboard_route_binding_count, personalDevDashboardApi.summary.api_route_binding_count);
+      assert.equal(personalDevE2eFreeze.summary.mutation_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.command_execution_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.task_state_write_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.issue_mutation_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.github_api_called, false);
+      assert.equal(personalDevE2eFreeze.summary.branch_push_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.pull_request_creation_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.merge_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.release_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.rollback_execution_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.patch_application_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.protected_mutation_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.external_agent_invocation_performed, false);
+      assert.equal(personalDevE2eFreeze.summary.raw_secret_material_exposed, false);
+      assert.equal(personalDevE2eFreeze.summary.provider_key_exposed, false);
+      assert.equal(personalDevE2eFreeze.summary.desktop_read_only, true);
+      assert.equal(personalDevE2eFreeze.summary.desktop_source_of_truth, false);
+      assert.equal(personalDevE2eFreeze.summary.failed_checkpoint_count, 0);
+      assert.equal(personalDevE2eFreeze.summary.validation_error_count, 0);
+      assert.ok(personalDevE2eFreeze.personal_dev_e2e_freeze_sources.every((source) => source.source_status === "complete" && source.validation_error_count === 0));
+      assert.ok(personalDevE2eFreeze.personal_dev_e2e_traces.every((trace) => trace.trace_status === "passed" && trace.read_only === true && trace.mutation_allowed === false));
+      assert.ok(personalDevE2eFreeze.personal_dev_e2e_loop_bindings.every((binding) => ["bound_prior_source", "bound_self"].includes(binding.e2e_loop_binding_status) && binding.control_plane_loop_declared === true));
+      assert.equal(personalDevE2eFreeze.personal_dev_e2e_freeze_desktop_boundary.read_only, true);
+      assert.equal(personalDevE2eFreeze.personal_dev_e2e_freeze_desktop_boundary.command_execution_allowed, false);
+      assert.equal(personalDevE2eFreeze.personal_dev_e2e_freeze_desktop_boundary.github_api_allowed, false);
+      assert.equal(personalDevE2eFreeze.personal_dev_e2e_freeze_desktop_boundary.source_of_truth, false);
+      assert.ok(personalDevE2eFreeze.validation_items.every((item) => item.status === "passed"));
+      assert.match(await readFile(path.join(outDir, "personal-dev-e2e-freeze", "summary.md"), "utf8"), /Personal Dev E2E Freeze/);
+
+      const lawFirmPackManifest = await runLawFirmPackManifest({
+        lawFirmPackPath: "packs/law-firm/pack.json",
+        domainPackRegistryPath: path.join(outDir, "domain-packs", "domain-pack-registry.json"),
+        packManifestCompatibilityPath: path.join(outDir, "pack-manifest-compatibility", "pack-manifest-compatibility.json"),
+        capabilityManifestV2Path: path.join(outDir, "capability-manifest-v2", "capability-manifest-v2.json"),
+        capabilityRegistryApiPath: path.join(outDir, "capability-registry-api", "capability-registry-api.json"),
+        runtimeFreezePath: path.join(outDir, "runtime-freeze", "runtime-freeze.json"),
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        policyContractFreezePath: path.join(outDir, "policy-contract-freeze", "policy-contract-freeze.json"),
+        evidenceContractFreezePath: path.join(outDir, "evidence-contract-freeze", "evidence-contract-freeze.json"),
+        outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "law-firm-pack-manifest"),
+        runAt: "2026-05-23T06:52:00.000Z",
+      });
+      const lawFirmPackManifestSchema = JSON.parse(await readFile("schemas/law-firm-pack-manifest.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lawFirmPackManifest, lawFirmPackManifestSchema, {}, "law_firm_pack_manifest"), []);
+      assert.equal(lawFirmPackManifest.summary.law_firm_pack_manifest_status, "complete");
+      assert.equal(lawFirmPackManifest.summary.pack_id, "law-firm");
+      assert.equal(lawFirmPackManifest.summary.registration_status, "registered");
+      assert.equal(lawFirmPackManifest.summary.compatibility_status, "compatible");
+      assert.equal(lawFirmPackManifest.summary.common_dependency_declared, true);
+      assert.equal(lawFirmPackManifest.summary.law_firm_human_review_required, true);
+      assert.equal(lawFirmPackManifest.summary.matter_boundary_required, true);
+      assert.equal(lawFirmPackManifest.summary.draft_only_by_default, true);
+      assert.equal(lawFirmPackManifest.summary.attorney_review_required, true);
+      assert.equal(lawFirmPackManifest.summary.registered_capability_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifest.summary.capability_manifest_v2_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifest.summary.capability_registry_api_pack_card_present, true);
+      assert.equal(lawFirmPackManifest.summary.capability_registry_api_capability_card_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifest.summary.capability_version_api_card_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifest.summary.attorney_review_required_capability_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifest.summary.runtime_freeze_status, "complete");
+      assert.equal(lawFirmPackManifest.summary.matter_contract_freeze_status, "complete");
+      assert.equal(lawFirmPackManifest.summary.policy_contract_freeze_status, "complete");
+      assert.equal(lawFirmPackManifest.summary.evidence_contract_freeze_status, "complete");
+      assert.equal(lawFirmPackManifest.summary.output_delivery_contract_freeze_status, "complete");
+      assert.equal(lawFirmPackManifest.summary.executed_delivery_action_count, 0);
+      assert.equal(lawFirmPackManifest.summary.core_mutation_required_count, 0);
+      assert.equal(lawFirmPackManifest.summary.desktop_read_only, true);
+      assert.equal(lawFirmPackManifest.summary.desktop_mutation_allowed, false);
+      assert.equal(lawFirmPackManifest.summary.desktop_runtime_source_of_truth, false);
+      assert.equal(lawFirmPackManifest.summary.legal_advice_provided, false);
+      assert.equal(lawFirmPackManifest.summary.client_facing_output_generated, false);
+      assert.equal(lawFirmPackManifest.summary.protected_action_executed_count, 0);
+      assert.ok(lawFirmPackManifest.law_firm_capability_registrations.every((registration) => registration.registration_status === "registered" && registration.attorney_review_required === true && registration.core_registration_required === false && registration.desktop_mutation_allowed === false));
+      assert.match(await readFile(path.join(outDir, "law-firm-pack-manifest", "summary.md"), "utf8"), /Law Firm Pack Manifest/);
+
+      const matterOsProfile = await runMatterOsProfile({
+        matterProfileTeamLedgerPath: path.join(outDir, "matter-profile-team-ledger", "matter-profile-team-ledger.json"),
+        clientCounterpartyRegistryPath: path.join(outDir, "client-counterparty-registry", "client-counterparty-registry.json"),
+        matterContractFreezePath: path.join(outDir, "matter-contract-freeze", "matter-contract-freeze.json"),
+        lawFirmPackManifestPath: path.join(outDir, "law-firm-pack-manifest", "law-firm-pack-manifest.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-os-profile"),
+        runAt: "2026-05-23T06:53:00.000Z",
+      });
+      const matterOsProfileSchema = JSON.parse(await readFile("schemas/matter-os-profile.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterOsProfile, matterOsProfileSchema, {}, "matter_os_profile"), []);
+      assert.equal(matterOsProfile.summary.matter_os_profile_status, "complete");
+      assert.equal(matterOsProfile.summary.source_matter_profile_team_ledger_status, "complete");
+      assert.equal(matterOsProfile.summary.source_client_counterparty_registry_status, "complete");
+      assert.equal(matterOsProfile.summary.source_matter_contract_freeze_status, "complete");
+      assert.equal(matterOsProfile.summary.source_law_firm_pack_manifest_status, "complete");
+      assert.equal(matterOsProfile.summary.matter_os_profile_count, matterProfileTeamLedger.summary.matter_profile_count);
+      assert.equal(matterOsProfile.summary.complete_profile_card_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.display_field_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.client_display_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.counterparty_display_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.matter_number_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.security_grade_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.responsible_owner_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.matter_boundary_coverage_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.attorney_review_required_profile_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.default_pending_review_profile_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfile.summary.legal_advice_provided, false);
+      assert.equal(matterOsProfile.summary.client_facing_output_generated, false);
+      assert.equal(matterOsProfile.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterOsProfile.summary.desktop_read_only, true);
+      assert.equal(matterOsProfile.summary.desktop_mutation_allowed, false);
+      assert.equal(matterOsProfile.summary.matter_data_write_allowed, false);
+      assert.equal(matterOsProfile.summary.runtime_execution_allowed, false);
+      assert.equal(matterOsProfile.summary.delivery_execution_allowed, false);
+      assert.equal(matterOsProfile.summary.validation_error_count, 0);
+      assert.ok(matterOsProfile.matter_os_profiles.every((profile) => profile.display_fields.client && profile.display_fields.counterparty && profile.display_fields.matter_number && profile.display_fields.security_grade && profile.display_fields.responsible_owner));
+      assert.match(await readFile(path.join(outDir, "matter-os-profile", "summary.md"), "utf8"), /Matter OS Profile/);
+
+      const matterTimeline = await runMatterTimeline({
+        matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+        matterFiles: ["examples/project-alpha-matter.json", "examples/project-beta-litigation-matter.json"],
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-timeline"),
+        runAt: "2026-05-23T06:54:00.000Z",
+      });
+      const matterTimelineSchema = JSON.parse(await readFile("schemas/matter-timeline.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterTimeline, matterTimelineSchema, {}, "matter_timeline"), []);
+      assert.equal(matterTimeline.summary.matter_timeline_status, "complete");
+      assert.equal(matterTimeline.summary.source_matter_os_profile_status, "complete");
+      assert.equal(matterTimeline.summary.source_output_catalog_status, "complete");
+      assert.equal(matterTimeline.summary.source_delivery_queue_status, "complete");
+      assert.equal(matterTimeline.summary.matter_file_count, 2);
+      assert.equal(matterTimeline.summary.available_matter_file_count, matterTimeline.summary.matter_file_count);
+      assert.equal(matterTimeline.summary.matter_file_with_matter_id_count, matterTimeline.summary.matter_file_count);
+      assert.ok(matterTimeline.summary.matter_timeline_count >= 2);
+      assert.ok(matterTimeline.summary.timeline_event_count > 0);
+      assert.ok(matterTimeline.summary.meeting_event_count > 0);
+      assert.ok(matterTimeline.summary.received_event_count > 0);
+      assert.ok(matterTimeline.summary.submission_event_count > 0);
+      assert.ok(matterTimeline.summary.deadline_event_count > 0);
+      assert.equal(matterTimeline.summary.sorted_event_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterTimeline.summary.unsorted_event_count, 0);
+      assert.equal(matterTimeline.summary.matter_id_scoped_event_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterTimeline.summary.attorney_review_required_event_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterTimeline.summary.human_review_required_event_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterTimeline.summary.legal_advice_provided, false);
+      assert.equal(matterTimeline.summary.client_facing_output_generated, false);
+      assert.equal(matterTimeline.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterTimeline.summary.desktop_read_only, true);
+      assert.equal(matterTimeline.summary.desktop_mutation_allowed, false);
+      assert.equal(matterTimeline.summary.matter_data_write_allowed, false);
+      assert.equal(matterTimeline.summary.runtime_execution_allowed, false);
+      assert.equal(matterTimeline.summary.delivery_execution_allowed, false);
+      assert.equal(matterTimeline.summary.validation_error_count, 0);
+      assert.ok(matterTimeline.matter_timeline_events.some((event) => event.event_type === "meeting"));
+      assert.ok(matterTimeline.matter_timeline_events.some((event) => event.event_type === "received"));
+      assert.ok(matterTimeline.matter_timeline_events.some((event) => event.event_type === "submission"));
+      assert.ok(matterTimeline.matter_timeline_events.some((event) => event.event_type === "deadline"));
+      assert.match(await readFile(path.join(outDir, "matter-timeline", "summary.md"), "utf8"), /Matter Timeline/);
+
+      const matterDocumentIndex = await runMatterDocumentIndex({
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        matterFiles: ["examples/project-alpha-matter.json", "examples/project-beta-litigation-matter.json"],
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-document-index"),
+        runAt: "2026-05-23T06:55:00.000Z",
+      });
+      const matterDocumentIndexSchema = JSON.parse(await readFile("schemas/matter-document-index.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterDocumentIndex, matterDocumentIndexSchema, {}, "matter_document_index"), []);
+      assert.equal(matterDocumentIndex.summary.matter_document_index_status, "complete");
+      assert.equal(matterDocumentIndex.summary.source_matter_timeline_status, "complete");
+      assert.equal(matterDocumentIndex.summary.source_output_catalog_status, "complete");
+      assert.equal(matterDocumentIndex.summary.source_delivery_queue_status, "complete");
+      assert.equal(matterDocumentIndex.summary.matter_file_count, 2);
+      assert.equal(matterDocumentIndex.summary.available_matter_file_count, matterDocumentIndex.summary.matter_file_count);
+      assert.equal(matterDocumentIndex.summary.matter_file_with_matter_id_count, matterDocumentIndex.summary.matter_file_count);
+      assert.ok(matterDocumentIndex.summary.document_record_count > 0);
+      assert.ok(matterDocumentIndex.summary.document_family_count > 0);
+      assert.ok(matterDocumentIndex.summary.original_document_count > 0);
+      assert.ok(matterDocumentIndex.summary.draft_document_count > 0);
+      assert.ok(matterDocumentIndex.summary.submitted_document_count > 0);
+      assert.ok(matterDocumentIndex.summary.counterparty_proposal_count > 0);
+      assert.equal(matterDocumentIndex.summary.latest_document_count, matterDocumentIndex.summary.document_family_count);
+      assert.equal(matterDocumentIndex.summary.family_with_latest_document_count, matterDocumentIndex.summary.document_family_count);
+      assert.equal(matterDocumentIndex.summary.matter_id_scoped_document_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(matterDocumentIndex.summary.attorney_review_required_document_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(matterDocumentIndex.summary.human_review_required_document_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(matterDocumentIndex.summary.legal_advice_provided, false);
+      assert.equal(matterDocumentIndex.summary.client_facing_output_generated, false);
+      assert.equal(matterDocumentIndex.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterDocumentIndex.summary.desktop_read_only, true);
+      assert.equal(matterDocumentIndex.summary.desktop_mutation_allowed, false);
+      assert.equal(matterDocumentIndex.summary.matter_data_write_allowed, false);
+      assert.equal(matterDocumentIndex.summary.runtime_execution_allowed, false);
+      assert.equal(matterDocumentIndex.summary.delivery_execution_allowed, false);
+      assert.equal(matterDocumentIndex.summary.validation_error_count, 0);
+      assert.ok(matterDocumentIndex.document_records.some((record) => record.document_role === "original"));
+      assert.ok(matterDocumentIndex.document_records.some((record) => record.document_role === "draft"));
+      assert.ok(matterDocumentIndex.document_records.some((record) => record.document_role === "submitted"));
+      assert.ok(matterDocumentIndex.document_records.some((record) => record.document_role === "counterparty_proposal"));
+      assert.ok(matterDocumentIndex.document_records.some((record) => record.is_latest === true));
+      assert.match(await readFile(path.join(outDir, "matter-document-index", "summary.md"), "utf8"), /Matter Document Index/);
+
+      const matterTaskBoard = await runMatterTaskBoard({
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+        workflowRunDashboardPath: path.join(outDir, "workflow-run-dashboard", "workflow-run-dashboard.json"),
+        matterFiles: ["examples/project-alpha-matter.json", "examples/project-beta-litigation-matter.json"],
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-task-board"),
+        runAt: "2026-05-23T06:56:00.000Z",
+      });
+      const matterTaskBoardSchema = JSON.parse(await readFile("schemas/matter-task-board.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterTaskBoard, matterTaskBoardSchema, {}, "matter_task_board"), []);
+      assert.equal(matterTaskBoard.summary.matter_task_board_status, "complete");
+      assert.equal(matterTaskBoard.summary.source_matter_document_index_status, "complete");
+      assert.equal(matterTaskBoard.summary.source_matter_timeline_status, "complete");
+      assert.equal(matterTaskBoard.summary.source_matter_os_profile_status, "complete");
+      assert.equal(matterTaskBoard.summary.source_workflow_run_dashboard_status, "complete");
+      assert.equal(matterTaskBoard.summary.source_output_catalog_status, "complete");
+      assert.equal(matterTaskBoard.summary.source_delivery_queue_status, "complete");
+      assert.equal(matterTaskBoard.summary.matter_file_count, 2);
+      assert.equal(matterTaskBoard.summary.available_matter_file_count, matterTaskBoard.summary.matter_file_count);
+      assert.ok(matterTaskBoard.summary.task_record_count > 0);
+      assert.ok(matterTaskBoard.summary.board_column_count > 0);
+      assert.equal(matterTaskBoard.summary.workflow_binding_count, matterTaskBoard.summary.task_record_count);
+      assert.ok(matterTaskBoard.summary.matter_task_count > 0);
+      assert.ok(matterTaskBoard.summary.matter_deadline_task_count > 0);
+      assert.ok(matterTaskBoard.summary.vdr_request_task_count > 0);
+      assert.ok(matterTaskBoard.summary.qa_item_task_count > 0);
+      assert.ok(matterTaskBoard.summary.cp_checklist_task_count > 0);
+      assert.ok(matterTaskBoard.summary.negotiation_point_task_count > 0);
+      assert.ok(matterTaskBoard.summary.litigation_task_count > 0);
+      assert.ok(matterTaskBoard.summary.output_review_task_count > 0);
+      assert.ok(matterTaskBoard.summary.blocked_task_count > 0);
+      assert.ok(matterTaskBoard.summary.open_task_count > 0);
+      assert.ok(matterTaskBoard.summary.in_review_task_count > 0);
+      assert.equal(matterTaskBoard.summary.task_with_owner_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoard.summary.task_with_due_date_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoard.summary.task_with_status_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoard.summary.workflow_bound_task_count, matterTaskBoard.summary.task_record_count);
+      assert.ok(matterTaskBoard.summary.actual_workflow_run_bound_task_count > 0);
+      assert.ok(matterTaskBoard.summary.timeline_bound_task_count > 0);
+      assert.ok(matterTaskBoard.summary.document_bound_task_count > 0);
+      assert.equal(matterTaskBoard.summary.matter_id_scoped_task_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoard.summary.attorney_review_required_task_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoard.summary.human_review_required_task_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoard.summary.legal_advice_provided, false);
+      assert.equal(matterTaskBoard.summary.client_facing_output_generated, false);
+      assert.equal(matterTaskBoard.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterTaskBoard.summary.desktop_read_only, true);
+      assert.equal(matterTaskBoard.summary.desktop_mutation_allowed, false);
+      assert.equal(matterTaskBoard.summary.desktop_source_of_truth, false);
+      assert.equal(matterTaskBoard.summary.matter_data_write_allowed, false);
+      assert.equal(matterTaskBoard.summary.runtime_execution_allowed, false);
+      assert.equal(matterTaskBoard.summary.delivery_execution_allowed, false);
+      assert.equal(matterTaskBoard.summary.task_state_write_allowed, false);
+      assert.equal(matterTaskBoard.summary.workflow_transition_allowed, false);
+      assert.equal(matterTaskBoard.summary.protected_action_allowed, false);
+      assert.equal(matterTaskBoard.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(matterTaskBoard.summary.validation_error_count, 0);
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "matter_task"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "matter_deadline"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "vdr_request"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "qa_item"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "cp_checklist"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "negotiation_point"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "litigation_missing_evidence"));
+      assert.ok(matterTaskBoard.task_records.some((record) => record.task_category === "output_review"));
+      assert.ok(matterTaskBoard.task_records.every((record) => record.task_owner && record.due_date && record.task_status && record.workflow_binding_id));
+      assert.ok(matterTaskBoard.workflow_bindings.some((binding) => binding.workflow_run_id));
+      assert.match(await readFile(path.join(outDir, "matter-task-board", "summary.md"), "utf8"), /Matter Task Board/);
+
+      const matterKnowledgeGraph = await runMatterKnowledgeGraph({
+        matterTaskBoardPath: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterTimelinePath: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+        matterOsProfilePath: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+        matterFiles: ["examples/project-alpha-matter.json", "examples/project-beta-litigation-matter.json"],
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-knowledge-graph"),
+        runAt: "2026-05-23T06:57:00.000Z",
+      });
+      const matterKnowledgeGraphSchema = JSON.parse(await readFile("schemas/matter-knowledge-graph.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterKnowledgeGraph, matterKnowledgeGraphSchema, {}, "matter_knowledge_graph"), []);
+      assert.equal(matterKnowledgeGraph.summary.matter_knowledge_graph_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.source_matter_task_board_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.source_matter_document_index_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.source_matter_timeline_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.source_matter_os_profile_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.source_output_catalog_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.source_delivery_queue_status, "complete");
+      assert.equal(matterKnowledgeGraph.summary.matter_file_count, 2);
+      assert.equal(matterKnowledgeGraph.summary.available_matter_file_count, matterKnowledgeGraph.summary.matter_file_count);
+      assert.equal(matterKnowledgeGraph.summary.matter_count, 2);
+      assert.equal(matterKnowledgeGraph.summary.matter_summary_count, matterKnowledgeGraph.summary.matter_count);
+      assert.ok(matterKnowledgeGraph.summary.graph_node_count > 0);
+      assert.ok(matterKnowledgeGraph.summary.graph_edge_count > 0);
+      assert.equal(matterKnowledgeGraph.summary.matter_node_count, matterKnowledgeGraph.summary.matter_count);
+      assert.ok(matterKnowledgeGraph.summary.fact_node_count > 0);
+      assert.ok(matterKnowledgeGraph.summary.issue_node_count > 0);
+      assert.ok(matterKnowledgeGraph.summary.legal_theory_node_count > 0);
+      assert.ok(matterKnowledgeGraph.summary.evidence_node_count > 0);
+      assert.equal(matterKnowledgeGraph.summary.matter_with_fact_count, matterKnowledgeGraph.summary.matter_count);
+      assert.equal(matterKnowledgeGraph.summary.matter_with_issue_count, matterKnowledgeGraph.summary.matter_count);
+      assert.equal(matterKnowledgeGraph.summary.matter_with_legal_theory_count, matterKnowledgeGraph.summary.matter_count);
+      assert.equal(matterKnowledgeGraph.summary.matter_with_evidence_count, matterKnowledgeGraph.summary.matter_count);
+      assert.equal(matterKnowledgeGraph.summary.matter_id_scoped_node_count, matterKnowledgeGraph.summary.graph_node_count);
+      assert.equal(matterKnowledgeGraph.summary.matter_id_scoped_edge_count, matterKnowledgeGraph.summary.graph_edge_count);
+      assert.equal(matterKnowledgeGraph.summary.attorney_review_required_node_count, matterKnowledgeGraph.summary.graph_node_count);
+      assert.equal(matterKnowledgeGraph.summary.attorney_review_required_edge_count, matterKnowledgeGraph.summary.graph_edge_count);
+      assert.equal(matterKnowledgeGraph.summary.human_review_required_node_count, matterKnowledgeGraph.summary.graph_node_count);
+      assert.equal(matterKnowledgeGraph.summary.human_review_required_edge_count, matterKnowledgeGraph.summary.graph_edge_count);
+      assert.equal(matterKnowledgeGraph.summary.legal_theory_placeholder_count, matterKnowledgeGraph.summary.legal_theory_node_count);
+      assert.ok(matterKnowledgeGraph.summary.fact_evidence_edge_count > 0);
+      assert.ok(matterKnowledgeGraph.summary.issue_evidence_edge_count > 0);
+      assert.ok(matterKnowledgeGraph.summary.legal_theory_issue_edge_count > 0);
+      assert.equal(matterKnowledgeGraph.summary.legal_advice_provided, false);
+      assert.equal(matterKnowledgeGraph.summary.client_facing_output_generated, false);
+      assert.equal(matterKnowledgeGraph.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterKnowledgeGraph.summary.desktop_read_only, true);
+      assert.equal(matterKnowledgeGraph.summary.desktop_mutation_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.desktop_source_of_truth, false);
+      assert.equal(matterKnowledgeGraph.summary.matter_data_write_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.task_state_write_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.workflow_transition_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.runtime_execution_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.delivery_execution_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.protected_action_allowed, false);
+      assert.equal(matterKnowledgeGraph.summary.validation_error_count, 0);
+      assert.ok(matterKnowledgeGraph.graph_nodes.some((node) => node.node_type === "fact"));
+      assert.ok(matterKnowledgeGraph.graph_nodes.some((node) => node.node_type === "issue"));
+      assert.ok(matterKnowledgeGraph.graph_nodes.some((node) => node.node_type === "legal_theory"));
+      assert.ok(matterKnowledgeGraph.graph_nodes.some((node) => node.node_type === "evidence"));
+      assert.ok(matterKnowledgeGraph.graph_nodes.filter((node) => node.node_type === "legal_theory").every((node) => node.metadata.legal_theory_kind === "review_placeholder" && node.metadata.legal_conclusion_provided === false));
+      assert.ok(matterKnowledgeGraph.graph_edges.some((edge) => edge.edge_type === "fact_supported_by_evidence"));
+      assert.ok(matterKnowledgeGraph.graph_edges.some((edge) => edge.edge_type === "legal_theory_frames_issue"));
+      assert.match(await readFile(path.join(outDir, "matter-knowledge-graph", "summary.md"), "utf8"), /Matter Knowledge Graph/);
+
+      const matterPrivilegeClassifier = await runMatterPrivilegeClassifier({
+        matterKnowledgeGraphPath: path.join(outDir, "matter-knowledge-graph", "matter-knowledge-graph.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterTaskBoardPath: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+        matterFiles: ["examples/project-alpha-matter.json", "examples/project-beta-litigation-matter.json"],
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-privilege-classifier"),
+        runAt: "2026-05-23T06:58:00.000Z",
+      });
+      const matterPrivilegeClassifierSchema = JSON.parse(await readFile("schemas/matter-privilege-classifier.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterPrivilegeClassifier, matterPrivilegeClassifierSchema, {}, "matter_privilege_classifier"), []);
+      assert.equal(matterPrivilegeClassifier.summary.matter_privilege_classifier_status, "complete");
+      assert.equal(matterPrivilegeClassifier.summary.source_matter_knowledge_graph_status, "complete");
+      assert.equal(matterPrivilegeClassifier.summary.source_matter_document_index_status, "complete");
+      assert.equal(matterPrivilegeClassifier.summary.source_matter_task_board_status, "complete");
+      assert.equal(matterPrivilegeClassifier.summary.source_output_catalog_status, "complete");
+      assert.equal(matterPrivilegeClassifier.summary.source_delivery_queue_status, "complete");
+      assert.equal(matterPrivilegeClassifier.summary.matter_file_count, 2);
+      assert.equal(matterPrivilegeClassifier.summary.available_matter_file_count, matterPrivilegeClassifier.summary.matter_file_count);
+      assert.equal(matterPrivilegeClassifier.summary.matter_count, 2);
+      assert.equal(matterPrivilegeClassifier.summary.classification_record_count, matterKnowledgeGraph.summary.evidence_node_count);
+      assert.equal(matterPrivilegeClassifier.summary.evidence_flag_count, matterPrivilegeClassifier.summary.classification_record_count * 4);
+      assert.equal(matterPrivilegeClassifier.summary.expected_evidence_node_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(matterPrivilegeClassifier.summary.knowledge_graph_bound_classification_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.ok(matterPrivilegeClassifier.summary.document_bound_classification_count > 0);
+      assert.ok(matterPrivilegeClassifier.summary.privileged_review_required_count > 0);
+      assert.ok(matterPrivilegeClassifier.summary.work_product_review_required_count > 0);
+      assert.equal(matterPrivilegeClassifier.summary.confidential_flagged_evidence_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.ok(matterPrivilegeClassifier.summary.external_transfer_blocked_count > 0);
+      assert.equal(matterPrivilegeClassifier.summary.candidate_review_required_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(matterPrivilegeClassifier.summary.attorney_review_required_classification_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(matterPrivilegeClassifier.summary.attorney_review_required_flag_count, matterPrivilegeClassifier.summary.evidence_flag_count);
+      assert.equal(matterPrivilegeClassifier.summary.human_review_required_classification_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(matterPrivilegeClassifier.summary.human_review_required_flag_count, matterPrivilegeClassifier.summary.evidence_flag_count);
+      assert.equal(matterPrivilegeClassifier.summary.matter_id_scoped_classification_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(matterPrivilegeClassifier.summary.matter_id_scoped_flag_count, matterPrivilegeClassifier.summary.evidence_flag_count);
+      assert.equal(matterPrivilegeClassifier.summary.final_privilege_determination_count, 0);
+      assert.equal(matterPrivilegeClassifier.summary.legal_advice_provided, false);
+      assert.equal(matterPrivilegeClassifier.summary.client_facing_output_generated, false);
+      assert.equal(matterPrivilegeClassifier.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterPrivilegeClassifier.summary.desktop_read_only, true);
+      assert.equal(matterPrivilegeClassifier.summary.desktop_mutation_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.desktop_source_of_truth, false);
+      assert.equal(matterPrivilegeClassifier.summary.matter_data_write_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.task_state_write_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.workflow_transition_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.runtime_execution_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.delivery_execution_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.protected_action_allowed, false);
+      assert.equal(matterPrivilegeClassifier.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(matterPrivilegeClassifier.summary.validation_error_count, 0);
+      assert.ok(matterPrivilegeClassifier.privilege_classification_records.every((record) => record.privilege_flag && record.work_product_flag && record.confidentiality_flag && record.external_transfer_flag));
+      assert.ok(matterPrivilegeClassifier.privilege_classification_records.every((record) => record.classification_status === "candidate_review_required" && record.privilege_determination_final === false));
+      assert.ok(matterPrivilegeClassifier.privilege_evidence_flags.some((flag) => flag.flag_type === "privilege"));
+      assert.ok(matterPrivilegeClassifier.privilege_evidence_flags.some((flag) => flag.flag_type === "work_product"));
+      assert.match(await readFile(path.join(outDir, "matter-privilege-classifier", "summary.md"), "utf8"), /Matter Privilege Classifier/);
+
+      const matterPersonalDataDetector = await runMatterPersonalDataDetector({
+        matterKnowledgeGraphPath: path.join(outDir, "matter-knowledge-graph", "matter-knowledge-graph.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterPrivilegeClassifierPath: path.join(outDir, "matter-privilege-classifier", "matter-privilege-classifier.json"),
+        dataClassificationRuleEnginePath: path.join(outDir, "data-classification-rules", "data-classification-rule-engine.json"),
+        resourceQuarantineModelPath: path.join(outDir, "resource-quarantine", "resource-quarantine-model.json"),
+        matterFiles: ["examples/project-alpha-matter.json", "examples/project-beta-litigation-matter.json"],
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "matter-personal-data-detector"),
+        runAt: "2026-05-23T06:59:00.000Z",
+      });
+      const matterPersonalDataDetectorSchema = JSON.parse(await readFile("schemas/matter-personal-data-detector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(matterPersonalDataDetector, matterPersonalDataDetectorSchema, {}, "matter_personal_data_detector"), []);
+      assert.equal(matterPersonalDataDetector.summary.matter_personal_data_detector_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_matter_knowledge_graph_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_matter_document_index_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_matter_privilege_classifier_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_data_classification_rule_engine_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_resource_quarantine_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_output_catalog_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.source_delivery_queue_status, "complete");
+      assert.equal(matterPersonalDataDetector.summary.matter_file_count, 2);
+      assert.equal(matterPersonalDataDetector.summary.available_matter_file_count, matterPersonalDataDetector.summary.matter_file_count);
+      assert.equal(matterPersonalDataDetector.summary.matter_count, 2);
+      assert.ok(matterPersonalDataDetector.summary.detection_record_count > 0);
+      assert.equal(matterPersonalDataDetector.summary.personal_data_flagged_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.ok(matterPersonalDataDetector.summary.sensitive_personal_data_flagged_count > 0);
+      assert.equal(matterPersonalDataDetector.summary.policy_link_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.quarantine_link_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.policy_bound_detection_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.quarantine_bound_detection_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.matter_id_scoped_detection_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.knowledge_graph_bound_detection_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.ok(matterPersonalDataDetector.summary.document_bound_detection_count > 0);
+      assert.equal(matterPersonalDataDetector.summary.attorney_review_required_detection_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.attorney_review_required_policy_link_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.attorney_review_required_quarantine_link_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.human_review_required_detection_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.human_review_required_policy_link_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.human_review_required_quarantine_link_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetector.summary.quarantine_applied_count, 0);
+      assert.equal(matterPersonalDataDetector.summary.legal_advice_provided, false);
+      assert.equal(matterPersonalDataDetector.summary.client_facing_output_generated, false);
+      assert.equal(matterPersonalDataDetector.summary.policy_enforcement_mutation_performed, false);
+      assert.equal(matterPersonalDataDetector.summary.quarantine_execution_performed, false);
+      assert.equal(matterPersonalDataDetector.summary.desktop_boundary_status, "enforced");
+      assert.equal(matterPersonalDataDetector.summary.desktop_read_only, true);
+      assert.equal(matterPersonalDataDetector.summary.desktop_mutation_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.desktop_source_of_truth, false);
+      assert.equal(matterPersonalDataDetector.summary.matter_data_write_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.task_state_write_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.workflow_transition_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.runtime_execution_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.delivery_execution_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.protected_action_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.quarantine_execution_allowed, false);
+      assert.equal(matterPersonalDataDetector.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(matterPersonalDataDetector.summary.validation_error_count, 0);
+      assert.ok(matterPersonalDataDetector.personal_data_detection_records.every((record) => record.policy_binding_status === "bound" && record.quarantine_binding_status === "bound" && record.quarantine_applied === false));
+      assert.ok(matterPersonalDataDetector.personal_data_policy_links.every((link) => link.required_gates.includes("personal_data_gate") && link.policy_mutation_performed === false));
+      assert.ok(matterPersonalDataDetector.personal_data_quarantine_links.every((link) => link.quarantine_category === "sensitive_data" && link.quarantine_applied === false));
+      assert.match(await readFile(path.join(outDir, "matter-personal-data-detector", "summary.md"), "utf8"), /Matter Personal Data Detector/);
+
+      const legalCitationVerifier = await runLegalCitationVerifier({
+        citationObjectStorePath: path.join(outDir, "citation-object-store", "citation-object-store.json"),
+        issueGraphStorePath: path.join(outDir, "issue-graph-store", "issue-graph-store.json"),
+        sourceSpanStorePath: path.join(outDir, "source-span-store", "source-span-store.json"),
+        evidenceItemStorePath: path.join(outDir, "evidence-item-store", "evidence-item-store.json"),
+        factClaimStorePath: path.join(outDir, "fact-claim-store", "fact-claim-store.json"),
+        lineageGraphPath: path.join(outDir, "lineage-graph", "lineage-graph.json"),
+        outputCatalogPath: path.join(outDir, "output-catalog", "output-catalog.json"),
+        deliveryQueuePath: path.join(outDir, "delivery-queue", "protected-delivery-queue.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "legal-citation-verifier"),
+        runAt: "2026-05-23T07:00:00.000Z",
+      });
+      const legalCitationVerifierSchema = JSON.parse(await readFile("schemas/legal-citation-verifier.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(legalCitationVerifier, legalCitationVerifierSchema, {}, "legal_citation_verifier"), []);
+      assert.equal(legalCitationVerifier.summary.legal_citation_verifier_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_citation_object_store_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_issue_graph_store_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_source_span_store_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_evidence_item_store_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_fact_claim_store_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_lineage_graph_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_output_catalog_status, "complete");
+      assert.equal(legalCitationVerifier.summary.source_delivery_queue_status, "complete");
+      assert.equal(legalCitationVerifier.summary.citation_count, citationObjectStore.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.verification_record_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.source_check_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.currentness_check_count, legalCitationVerifier.summary.citation_count);
+      assert.ok(legalCitationVerifier.summary.matter_count > 0);
+      assert.equal(legalCitationVerifier.summary.source_bound_citation_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.legal_rule_bound_citation_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.currentness_gate_applied_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.currentness_review_required_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.currentness_verified_count, 0);
+      assert.equal(legalCitationVerifier.summary.legal_authority_review_required_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.attorney_review_required_citation_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.human_review_required_citation_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifier.summary.client_facing_ready_count, 0);
+      assert.equal(legalCitationVerifier.summary.legal_advice_provided, false);
+      assert.equal(legalCitationVerifier.summary.client_facing_output_generated, false);
+      assert.equal(legalCitationVerifier.summary.external_legal_research_performed, false);
+      assert.equal(legalCitationVerifier.summary.legal_authority_finalized, false);
+      assert.equal(legalCitationVerifier.summary.desktop_boundary_status, "enforced");
+      assert.equal(legalCitationVerifier.summary.desktop_read_only, true);
+      assert.equal(legalCitationVerifier.summary.desktop_mutation_allowed, false);
+      assert.equal(legalCitationVerifier.summary.desktop_source_of_truth, false);
+      assert.equal(legalCitationVerifier.summary.matter_data_write_allowed, false);
+      assert.equal(legalCitationVerifier.summary.task_state_write_allowed, false);
+      assert.equal(legalCitationVerifier.summary.workflow_transition_allowed, false);
+      assert.equal(legalCitationVerifier.summary.runtime_execution_allowed, false);
+      assert.equal(legalCitationVerifier.summary.delivery_execution_allowed, false);
+      assert.equal(legalCitationVerifier.summary.protected_action_allowed, false);
+      assert.equal(legalCitationVerifier.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(legalCitationVerifier.summary.validation_error_count, 0);
+      assert.ok(legalCitationVerifier.legal_citation_verification_records.every((record) => record.source_bound && record.currentness_check_status === "currentness_review_required" && record.currentness_verified === false));
+      assert.ok(legalCitationVerifier.legal_citation_source_checks.every((check) => check.source_check_status === "source_bound_pending_attorney_review" && check.source_bound));
+      assert.ok(legalCitationVerifier.legal_citation_currentness_checks.every((check) => check.attorney_currentness_review_required && check.external_legal_research_performed === false));
+      assert.match(await readFile(path.join(outDir, "legal-citation-verifier", "summary.md"), "utf8"), /Legal Citation Verifier/);
+
+      const lddVdrInventory = await runLddVdrInventory({
+        matterFiles: [
+          "examples/project-alpha-matter.json",
+          "examples/project-beta-litigation-matter.json",
+        ],
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        matterTaskBoardPath: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+        resourceVersionLedgerPath: path.join(outDir, "resource-version-ledger", "resource-version-ledger.json"),
+        lawFirmPackManifestPath: path.join(outDir, "law-firm-pack-manifest", "law-firm-pack-manifest.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-vdr-inventory"),
+        runAt: "2026-05-23T07:00:00.000Z",
+      });
+      const lddVdrInventorySchema = JSON.parse(await readFile("schemas/ldd-vdr-inventory.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddVdrInventory, lddVdrInventorySchema, {}, "ldd_vdr_inventory"), []);
+      assert.equal(lddVdrInventory.summary.ldd_vdr_inventory_status, "complete");
+      assert.equal(lddVdrInventory.summary.source_matter_document_index_status, "complete");
+      assert.equal(lddVdrInventory.summary.source_matter_task_board_status, "complete");
+      assert.equal(lddVdrInventory.summary.source_resource_version_ledger_status, "complete");
+      assert.equal(lddVdrInventory.summary.source_law_firm_pack_manifest_status, "complete");
+      assert.ok(lddVdrInventory.summary.batch_count > 0);
+      assert.ok(lddVdrInventory.summary.folder_record_count > 0);
+      assert.ok(lddVdrInventory.summary.file_record_count > 0);
+      assert.equal(lddVdrInventory.summary.version_record_count, lddVdrInventory.summary.file_record_count);
+      assert.ok(lddVdrInventory.summary.missing_data_record_count > 0);
+      assert.equal(lddVdrInventory.summary.rfi_candidate_count, lddVdrInventory.summary.missing_data_record_count);
+      assert.equal(lddVdrInventory.summary.client_facing_ready_count, 0);
+      assert.equal(lddVdrInventory.summary.legal_advice_provided, false);
+      assert.equal(lddVdrInventory.summary.client_facing_output_generated, false);
+      assert.equal(lddVdrInventory.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddVdrInventory.summary.desktop_read_only, true);
+      assert.equal(lddVdrInventory.summary.desktop_mutation_allowed, false);
+      assert.equal(lddVdrInventory.summary.desktop_source_of_truth, false);
+      assert.equal(lddVdrInventory.summary.matter_data_write_allowed, false);
+      assert.equal(lddVdrInventory.summary.task_state_write_allowed, false);
+      assert.equal(lddVdrInventory.summary.workflow_transition_allowed, false);
+      assert.equal(lddVdrInventory.summary.runtime_execution_allowed, false);
+      assert.equal(lddVdrInventory.summary.delivery_execution_allowed, false);
+      assert.equal(lddVdrInventory.summary.protected_action_allowed, false);
+      assert.equal(lddVdrInventory.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddVdrInventory.summary.validation_error_count, 0);
+      assert.ok(lddVdrInventory.ldd_vdr_batches.every((batch) => batch.source_system === "vdr" && batch.attorney_review_required && batch.client_facing_ready === false));
+      assert.ok(lddVdrInventory.ldd_vdr_missing_data_records.every((record) => record.missing_data_status === "follow_up_required" && record.absence_not_factual_nonexistence && record.rfi_candidate));
+      assert.match(await readFile(path.join(outDir, "ldd-vdr-inventory", "summary.md"), "utf8"), /LDD VDR Inventory/);
+
+      const lddDocumentClassification = await runLddDocumentClassification({
+        lddVdrInventoryPath: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-document-classification"),
+        runAt: "2026-05-23T07:00:00.000Z",
+      });
+      const lddDocumentClassificationSchema = JSON.parse(await readFile("schemas/ldd-document-classification.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddDocumentClassification, lddDocumentClassificationSchema, {}, "ldd_document_classification"), []);
+      assert.equal(lddDocumentClassification.summary.ldd_document_classification_status, "complete");
+      assert.equal(lddDocumentClassification.summary.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(lddDocumentClassification.summary.source_matter_document_index_status, "complete");
+      assert.equal(lddDocumentClassification.summary.source_document_count, lddVdrInventory.summary.file_record_count + lddVdrInventory.summary.missing_data_record_count);
+      assert.equal(lddDocumentClassification.summary.classification_record_count, lddDocumentClassification.summary.source_document_count);
+      assert.equal(lddDocumentClassification.summary.classified_document_count, lddDocumentClassification.summary.source_document_count);
+      assert.ok(lddDocumentClassification.summary.classification_rule_count >= 8);
+      assert.ok(lddDocumentClassification.summary.class_summary_count > 0);
+      assert.ok(lddDocumentClassification.summary.file_classification_count > 0);
+      assert.ok(lddDocumentClassification.summary.missing_data_classification_count > 0);
+      assert.ok(lddDocumentClassification.summary.contract_classification_count > 0);
+      assert.ok(lddDocumentClassification.summary.tax_classification_count > 0);
+      assert.ok(lddDocumentClassification.summary.closing_deliverable_classification_count > 0);
+      assert.equal(lddDocumentClassification.summary.client_facing_ready_count, 0);
+      assert.equal(lddDocumentClassification.summary.legal_advice_provided, false);
+      assert.equal(lddDocumentClassification.summary.client_facing_output_generated, false);
+      assert.equal(lddDocumentClassification.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddDocumentClassification.summary.desktop_read_only, true);
+      assert.equal(lddDocumentClassification.summary.desktop_mutation_allowed, false);
+      assert.equal(lddDocumentClassification.summary.desktop_source_of_truth, false);
+      assert.equal(lddDocumentClassification.summary.matter_data_write_allowed, false);
+      assert.equal(lddDocumentClassification.summary.task_state_write_allowed, false);
+      assert.equal(lddDocumentClassification.summary.workflow_transition_allowed, false);
+      assert.equal(lddDocumentClassification.summary.runtime_execution_allowed, false);
+      assert.equal(lddDocumentClassification.summary.delivery_execution_allowed, false);
+      assert.equal(lddDocumentClassification.summary.protected_action_allowed, false);
+      assert.equal(lddDocumentClassification.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddDocumentClassification.summary.validation_error_count, 0);
+      assert.ok(lddDocumentClassification.ldd_document_classification_records.every((record) => record.classification_status === "classified_pending_attorney_review" && record.attorney_review_required && record.client_facing_ready === false));
+      assert.ok(lddDocumentClassification.ldd_document_classification_records.some((record) => record.primary_document_class === "contract"));
+      assert.ok(lddDocumentClassification.ldd_document_classification_records.some((record) => record.primary_document_class === "tax"));
+      assert.ok(lddDocumentClassification.ldd_document_classification_records.some((record) => record.primary_document_class === "closing_deliverable"));
+      assert.match(await readFile(path.join(outDir, "ldd-document-classification", "summary.md"), "utf8"), /LDD Document Classification/);
+
+      const lddExtractorSelection = await runLddExtractorSelection({
+        lddDocumentClassificationPath: path.join(outDir, "ldd-document-classification", "ldd-document-classification.json"),
+        extractorAdapterContractPath: path.join(outDir, "extractor-adapter-contract", "extractor-adapter-contract.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-extractor-selection"),
+        runAt: "2026-05-23T07:00:01.000Z",
+      });
+      const lddExtractorSelectionSchema = JSON.parse(await readFile("schemas/ldd-extractor-selection.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddExtractorSelection, lddExtractorSelectionSchema, {}, "ldd_extractor_selection"), []);
+      assert.equal(lddExtractorSelection.summary.ldd_extractor_selection_status, "complete");
+      assert.equal(lddExtractorSelection.summary.source_ldd_document_classification_status, "complete");
+      assert.equal(lddExtractorSelection.summary.source_ldd_document_classification_phase_status, "complete");
+      assert.equal(lddExtractorSelection.summary.source_extractor_adapter_contract_status, "complete");
+      assert.equal(lddExtractorSelection.summary.source_extractor_adapter_contract_phase_status, "complete");
+      assert.equal(lddExtractorSelection.summary.classification_record_count, lddDocumentClassification.summary.classification_record_count);
+      assert.ok(lddExtractorSelection.summary.extractor_registry_count >= 9);
+      assert.equal(lddExtractorSelection.summary.extractor_registry_local_only_count, lddExtractorSelection.summary.extractor_registry_count);
+      assert.equal(lddExtractorSelection.summary.selection_record_count, lddDocumentClassification.summary.classification_record_count);
+      assert.equal(lddExtractorSelection.summary.selected_extractor_count, lddExtractorSelection.summary.selection_record_count);
+      assert.equal(lddExtractorSelection.summary.selection_rationale_count, lddExtractorSelection.summary.selection_record_count);
+      assert.ok(lddExtractorSelection.summary.distinct_selected_extractor_count > 0);
+      assert.ok(lddExtractorSelection.summary.contract_extractor_selection_count > 0);
+      assert.ok(lddExtractorSelection.summary.tax_extractor_selection_count > 0);
+      assert.ok(lddExtractorSelection.summary.closing_deliverable_extractor_selection_count > 0);
+      assert.equal(lddExtractorSelection.summary.extractor_execution_count, 0);
+      assert.equal(lddExtractorSelection.summary.extraction_result_generated_count, 0);
+      assert.equal(lddExtractorSelection.summary.client_facing_ready_count, 0);
+      assert.equal(lddExtractorSelection.summary.legal_advice_provided, false);
+      assert.equal(lddExtractorSelection.summary.client_facing_output_generated, false);
+      assert.equal(lddExtractorSelection.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddExtractorSelection.summary.desktop_read_only, true);
+      assert.equal(lddExtractorSelection.summary.desktop_mutation_allowed, false);
+      assert.equal(lddExtractorSelection.summary.matter_data_write_allowed, false);
+      assert.equal(lddExtractorSelection.summary.task_state_write_allowed, false);
+      assert.equal(lddExtractorSelection.summary.workflow_transition_allowed, false);
+      assert.equal(lddExtractorSelection.summary.runtime_execution_allowed, false);
+      assert.equal(lddExtractorSelection.summary.delivery_execution_allowed, false);
+      assert.equal(lddExtractorSelection.summary.protected_action_allowed, false);
+      assert.equal(lddExtractorSelection.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddExtractorSelection.summary.validation_error_count, 0);
+      assert.ok(lddExtractorSelection.ldd_extractor_selection_records.every((record) => record.selection_status === "selected_pending_attorney_review" && record.attorney_review_required && record.extractor_execution_performed === false && record.client_facing_ready === false));
+      assert.ok(lddExtractorSelection.ldd_extractor_selection_rationales.every((rationale) => rationale.rationale_status === "document_class_rule_match" && rationale.extractor_execution_performed === false));
+      assert.match(await readFile(path.join(outDir, "ldd-extractor-selection", "summary.md"), "utf8"), /LDD Extractor Selection/);
+
+      const lddFactExtraction = await runLddFactExtraction({
+        lddExtractorSelectionPath: path.join(outDir, "ldd-extractor-selection", "ldd-extractor-selection.json"),
+        matterPath: "examples/project-alpha-matter.json",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-fact-extraction"),
+        runAt: "2026-05-23T07:00:02.000Z",
+      });
+      const lddFactExtractionSchema = JSON.parse(await readFile("schemas/ldd-fact-extraction.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddFactExtraction, lddFactExtractionSchema, {}, "ldd_fact_extraction"), []);
+      assert.equal(lddFactExtraction.summary.ldd_fact_extraction_status, "complete");
+      assert.equal(lddFactExtraction.summary.source_ldd_extractor_selection_status, "complete");
+      assert.equal(lddFactExtraction.summary.source_ldd_extractor_selection_phase_status, "complete");
+      assert.equal(lddFactExtraction.summary.source_matter_status, "complete");
+      assert.equal(lddFactExtraction.summary.source_selection_record_count, lddExtractorSelection.summary.selection_record_count);
+      assert.ok(lddFactExtraction.summary.fact_rule_count >= 5);
+      assert.ok(lddFactExtraction.summary.fact_record_count >= lddExtractorSelection.summary.selection_record_count);
+      assert.equal(lddFactExtraction.summary.source_binding_count, lddFactExtraction.summary.fact_record_count);
+      assert.ok(lddFactExtraction.summary.party_fact_count > 0);
+      assert.ok(lddFactExtraction.summary.date_fact_count > 0);
+      assert.ok(lddFactExtraction.summary.obligation_fact_count > 0);
+      assert.ok(lddFactExtraction.summary.termination_fact_count > 0);
+      assert.ok(lddFactExtraction.summary.change_of_control_fact_count > 0);
+      assert.ok(lddFactExtraction.summary.source_gap_fact_count > 0);
+      assert.equal(lddFactExtraction.summary.deterministic_fact_extraction_count, lddFactExtraction.summary.fact_record_count);
+      assert.equal(lddFactExtraction.summary.external_extractor_execution_count, 0);
+      assert.equal(lddFactExtraction.summary.client_facing_ready_count, 0);
+      assert.equal(lddFactExtraction.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(lddFactExtraction.summary.legal_advice_provided, false);
+      assert.equal(lddFactExtraction.summary.client_facing_output_generated, false);
+      assert.equal(lddFactExtraction.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddFactExtraction.summary.desktop_read_only, true);
+      assert.equal(lddFactExtraction.summary.desktop_mutation_allowed, false);
+      assert.equal(lddFactExtraction.summary.matter_data_write_allowed, false);
+      assert.equal(lddFactExtraction.summary.task_state_write_allowed, false);
+      assert.equal(lddFactExtraction.summary.workflow_transition_allowed, false);
+      assert.equal(lddFactExtraction.summary.runtime_execution_allowed, false);
+      assert.equal(lddFactExtraction.summary.delivery_execution_allowed, false);
+      assert.equal(lddFactExtraction.summary.protected_action_allowed, false);
+      assert.equal(lddFactExtraction.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddFactExtraction.summary.validation_error_count, 0);
+      assert.ok(lddFactExtraction.ldd_fact_records.every((record) => record.attorney_review_required && record.human_review_required && record.client_facing_ready === false && record.legal_conclusion_asserted === false));
+      assert.ok(lddFactExtraction.ldd_fact_records.some((record) => record.fact_type === "termination" && record.source_gap === true && record.fact_status === "source_gap_review_required"));
+      assert.match(await readFile(path.join(outDir, "ldd-fact-extraction", "summary.md"), "utf8"), /LDD Fact Extraction/);
+
+      const lddIssueDetection = await runLddIssueDetection({
+        lddFactExtractionPath: path.join(outDir, "ldd-fact-extraction", "ldd-fact-extraction.json"),
+        matterPath: "examples/project-alpha-matter.json",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-issue-detection"),
+        runAt: "2026-05-23T07:00:03.000Z",
+      });
+      const lddIssueDetectionSchema = JSON.parse(await readFile("schemas/ldd-issue-detection.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddIssueDetection, lddIssueDetectionSchema, {}, "ldd_issue_detection"), []);
+      assert.equal(lddIssueDetection.summary.ldd_issue_detection_status, "complete");
+      assert.equal(lddIssueDetection.summary.source_ldd_fact_extraction_status, "complete");
+      assert.equal(lddIssueDetection.summary.source_ldd_fact_extraction_phase_status, "complete");
+      assert.equal(lddIssueDetection.summary.source_matter_status, "complete");
+      assert.equal(lddIssueDetection.summary.source_fact_record_count, lddFactExtraction.summary.fact_record_count);
+      assert.ok(lddIssueDetection.summary.issue_rule_count >= 5);
+      assert.ok(lddIssueDetection.summary.issue_record_count >= 5);
+      assert.equal(lddIssueDetection.summary.detected_issue_count, lddIssueDetection.summary.issue_record_count);
+      assert.ok(lddIssueDetection.summary.red_flag_count > 0);
+      assert.ok(lddIssueDetection.summary.yellow_flag_count > 0);
+      assert.ok(lddIssueDetection.summary.high_severity_issue_count > 0);
+      assert.ok(lddIssueDetection.summary.medium_severity_issue_count > 0);
+      assert.ok(lddIssueDetection.summary.source_gap_issue_count > 0);
+      assert.equal(lddIssueDetection.summary.follow_up_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddIssueDetection.summary.open_follow_up_count, lddIssueDetection.summary.follow_up_count);
+      assert.ok(lddIssueDetection.summary.severity_summary_count > 0);
+      assert.equal(lddIssueDetection.summary.matter_count, 1);
+      assert.equal(lddIssueDetection.summary.deterministic_issue_detection_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddIssueDetection.summary.attorney_review_required_issue_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddIssueDetection.summary.human_review_required_issue_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddIssueDetection.summary.client_facing_ready_count, 0);
+      assert.equal(lddIssueDetection.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(lddIssueDetection.summary.legal_advice_provided, false);
+      assert.equal(lddIssueDetection.summary.client_facing_output_generated, false);
+      assert.equal(lddIssueDetection.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddIssueDetection.summary.desktop_read_only, true);
+      assert.equal(lddIssueDetection.summary.desktop_mutation_allowed, false);
+      assert.equal(lddIssueDetection.summary.matter_data_write_allowed, false);
+      assert.equal(lddIssueDetection.summary.task_state_write_allowed, false);
+      assert.equal(lddIssueDetection.summary.workflow_transition_allowed, false);
+      assert.equal(lddIssueDetection.summary.runtime_execution_allowed, false);
+      assert.equal(lddIssueDetection.summary.delivery_execution_allowed, false);
+      assert.equal(lddIssueDetection.summary.protected_action_allowed, false);
+      assert.equal(lddIssueDetection.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddIssueDetection.summary.validation_error_count, 0);
+      assert.ok(lddIssueDetection.ldd_issue_records.every((record) => record.attorney_review_required && record.human_review_required && record.client_facing_ready === false && record.legal_conclusion_asserted === false));
+      assert.ok(lddIssueDetection.ldd_issue_records.some((record) => record.issue_type === "source_gap" && record.source_gap === true));
+      assert.match(await readFile(path.join(outDir, "ldd-issue-detection", "summary.md"), "utf8"), /LDD Issue Detection/);
+
+      const lddRfiGenerator = await runLddRfiGenerator({
+        lddIssueDetectionPath: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
+        lddVdrInventoryPath: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+        matterPath: "examples/project-alpha-matter.json",
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "ldd-rfi-generator"),
+        runAt: "2026-05-23T07:00:04.000Z",
+      });
+      const lddRfiGeneratorSchema = JSON.parse(await readFile("schemas/ldd-rfi-generator.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(lddRfiGenerator, lddRfiGeneratorSchema, {}, "ldd_rfi_generator"), []);
+      assert.equal(lddRfiGenerator.summary.ldd_rfi_generator_status, "complete");
+      assert.equal(lddRfiGenerator.summary.source_ldd_issue_detection_status, "complete");
+      assert.equal(lddRfiGenerator.summary.source_ldd_issue_detection_phase_status, "complete");
+      assert.equal(lddRfiGenerator.summary.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(lddRfiGenerator.summary.source_ldd_vdr_inventory_phase_status, "complete");
+      assert.equal(lddRfiGenerator.summary.source_matter_status, "complete");
+      assert.equal(lddRfiGenerator.summary.source_issue_record_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddRfiGenerator.summary.source_rfi_candidate_count, lddVdrInventory.summary.rfi_candidate_count);
+      assert.ok(lddRfiGenerator.summary.rfi_rule_count >= 5);
+      assert.equal(lddRfiGenerator.summary.rfi_draft_count, 1);
+      assert.equal(lddRfiGenerator.summary.rfi_question_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddRfiGenerator.summary.question_with_issue_link_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(lddRfiGenerator.summary.question_with_evidence_link_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(lddRfiGenerator.summary.missing_material_link_count, lddVdrInventory.summary.rfi_candidate_count);
+      assert.equal(lddRfiGenerator.summary.issue_link_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(lddRfiGenerator.summary.draft_only_count, lddRfiGenerator.summary.rfi_draft_count);
+      assert.equal(lddRfiGenerator.summary.human_review_note_count, lddRfiGenerator.summary.rfi_draft_count);
+      assert.equal(lddRfiGenerator.summary.deterministic_rfi_generation_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(lddRfiGenerator.summary.client_facing_ready_count, 0);
+      assert.equal(lddRfiGenerator.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(lddRfiGenerator.summary.legal_advice_provided, false);
+      assert.equal(lddRfiGenerator.summary.client_facing_output_generated, false);
+      assert.equal(lddRfiGenerator.summary.desktop_boundary_status, "enforced");
+      assert.equal(lddRfiGenerator.summary.desktop_read_only, true);
+      assert.equal(lddRfiGenerator.summary.desktop_mutation_allowed, false);
+      assert.equal(lddRfiGenerator.summary.matter_data_write_allowed, false);
+      assert.equal(lddRfiGenerator.summary.task_state_write_allowed, false);
+      assert.equal(lddRfiGenerator.summary.workflow_transition_allowed, false);
+      assert.equal(lddRfiGenerator.summary.runtime_execution_allowed, false);
+      assert.equal(lddRfiGenerator.summary.delivery_execution_allowed, false);
+      assert.equal(lddRfiGenerator.summary.protected_action_allowed, false);
+      assert.equal(lddRfiGenerator.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(lddRfiGenerator.summary.validation_error_count, 0);
+      assert.ok(lddRfiGenerator.ldd_rfi_questions.every((question) => question.ldd_issue_record_id && question.evidence_ref_count > 0 && question.attorney_review_required && question.client_facing_ready === false));
+      assert.ok(lddRfiGenerator.ldd_rfi_missing_material_links.every((link) => link.ldd_issue_record_id && link.ldd_vdr_missing_data_record_id && link.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "ldd-rfi-generator", "summary.md"), "utf8"), /LDD RFI Generator/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -7662,6 +9484,35 @@ describe("matter harness", () => {
           repo_profile_detector: path.join(outDir, "repo-profile-detector", "repo-profile-detector.json"),
           agent_instruction_registry: path.join(outDir, "agent-instruction-registry", "agent-instruction-registry.json"),
           issue_intake_adapter: path.join(outDir, "issue-intake-adapter", "issue-intake-adapter.json"),
+          plan_request_contract: path.join(outDir, "plan-request-contract", "plan-request-contract.json"),
+          plan_reconciliation: path.join(outDir, "plan-reconciliation", "plan-reconciliation.json"),
+          scope_freeze_gate: path.join(outDir, "scope-freeze-gate", "scope-freeze-gate.json"),
+          dev_lane_ledger: path.join(outDir, "dev-lane-ledger", "dev-lane-ledger.json"),
+          implementation_patch_capture: path.join(outDir, "implementation-patch-capture", "implementation-patch-capture.json"),
+          diff_review_gate: path.join(outDir, "diff-review-gate", "diff-review-gate.json"),
+          canonical_test_matrix: path.join(outDir, "canonical-test-matrix", "canonical-test-matrix.json"),
+          dev_protected_scan: path.join(outDir, "dev-protected-scan", "dev-protected-scan.json"),
+          pr_draft_artifact: path.join(outDir, "pr-draft-artifact", "pr-draft-artifact.json"),
+          release_note_artifact: path.join(outDir, "release-note-artifact", "release-note-artifact.json"),
+          rollback_plan_artifact: path.join(outDir, "rollback-plan-artifact", "rollback-plan-artifact.json"),
+          technical_debt_ledger: path.join(outDir, "technical-debt-ledger", "technical-debt-ledger.json"),
+          personal_dev_dashboard_api: path.join(outDir, "personal-dev-dashboard-api", "personal-dev-dashboard-api.json"),
+          personal_dev_e2e_freeze: path.join(outDir, "personal-dev-e2e-freeze", "personal-dev-e2e-freeze.json"),
+          law_firm_pack_manifest: path.join(outDir, "law-firm-pack-manifest", "law-firm-pack-manifest.json"),
+          matter_os_profile: path.join(outDir, "matter-os-profile", "matter-os-profile.json"),
+          matter_timeline: path.join(outDir, "matter-timeline", "matter-timeline.json"),
+          matter_document_index: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+          matter_task_board: path.join(outDir, "matter-task-board", "matter-task-board.json"),
+          matter_knowledge_graph: path.join(outDir, "matter-knowledge-graph", "matter-knowledge-graph.json"),
+          matter_privilege_classifier: path.join(outDir, "matter-privilege-classifier", "matter-privilege-classifier.json"),
+          matter_personal_data_detector: path.join(outDir, "matter-personal-data-detector", "matter-personal-data-detector.json"),
+          legal_citation_verifier: path.join(outDir, "legal-citation-verifier", "legal-citation-verifier.json"),
+          ldd_vdr_inventory: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+          ldd_document_classification: path.join(outDir, "ldd-document-classification", "ldd-document-classification.json"),
+          ldd_extractor_selection: path.join(outDir, "ldd-extractor-selection", "ldd-extractor-selection.json"),
+          ldd_fact_extraction: path.join(outDir, "ldd-fact-extraction", "ldd-fact-extraction.json"),
+          ldd_issue_detection: path.join(outDir, "ldd-issue-detection", "ldd-issue-detection.json"),
+          ldd_rfi_generator: path.join(outDir, "ldd-rfi-generator", "ldd-rfi-generator.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -7713,8 +9564,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 118);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 118);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 147);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 147);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -7820,6 +9671,35 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "repo_profile_detector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "agent_instruction_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "issue_intake_adapter"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "plan_request_contract"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "plan_reconciliation"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "scope_freeze_gate"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dev_lane_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "implementation_patch_capture"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "diff_review_gate"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "canonical_test_matrix"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "dev_protected_scan"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pr_draft_artifact"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "release_note_artifact"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "rollback_plan_artifact"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "technical_debt_ledger"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_dashboard_api"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "personal_dev_e2e_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "law_firm_pack_manifest"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_os_profile"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_timeline"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_document_index"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_task_board"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_knowledge_graph"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_privilege_classifier"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "matter_personal_data_detector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "legal_citation_verifier"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_vdr_inventory"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_document_classification"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_extractor_selection"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_fact_extraction"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_issue_detection"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "ldd_rfi_generator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -7892,9 +9772,23 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "capabilities:manifest-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "packs:compatibility"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:pack-manifest"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:pack-manifest"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:task-board"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:knowledge-graph"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:privilege-classifier"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:personal-data-detector"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:instructions"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:issue-intake"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:plan-request"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:plan-reconciliation"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:scope-freeze"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:dev-lanes"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:repo-profile"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:dashboard-api"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "personal-dev:e2e-freeze"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:state-model"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:runner"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "workflows:queue-retry"));
@@ -7933,6 +9827,13 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:fact-claims"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:issue-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:citations"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "legal:citations"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:vdr-inventory"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:document-classification"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:extractor-selection"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:fact-extraction"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:issue-detection"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:rfi-generator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-data"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:export-bundle"));
@@ -8415,6 +10316,122 @@ describe("matter harness", () => {
       assert.equal(issueIntakeAdapterCheckpoint?.acceptance_profile, "issue_intake_adapter_gate");
       assert.equal(issueIntakeAdapterCheckpoint?.status, "passed");
       assert.equal(issueIntakeAdapterCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const planRequestContractCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-plan-request-contract");
+      assert.equal(planRequestContractCheckpoint?.acceptance_profile, "plan_request_contract_gate");
+      assert.equal(planRequestContractCheckpoint?.status, "passed");
+      assert.equal(planRequestContractCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const planReconciliationCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-plan-reconciliation");
+      assert.equal(planReconciliationCheckpoint?.acceptance_profile, "plan_reconciliation_gate");
+      assert.equal(planReconciliationCheckpoint?.status, "passed");
+      assert.equal(planReconciliationCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const scopeFreezeGateCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-scope-freeze-gate");
+      assert.equal(scopeFreezeGateCheckpoint?.acceptance_profile, "scope_freeze_gate_gate");
+      assert.equal(scopeFreezeGateCheckpoint?.status, "passed");
+      assert.equal(scopeFreezeGateCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const devLaneLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-dev-lane-ledger");
+      assert.equal(devLaneLedgerCheckpoint?.acceptance_profile, "dev_lane_ledger_gate");
+      assert.equal(devLaneLedgerCheckpoint?.status, "passed");
+      assert.equal(devLaneLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const implementationPatchCaptureCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-implementation-patch-capture");
+      assert.equal(implementationPatchCaptureCheckpoint?.acceptance_profile, "implementation_patch_capture_gate");
+      assert.equal(implementationPatchCaptureCheckpoint?.status, "passed");
+      assert.equal(implementationPatchCaptureCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const diffReviewGateCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-diff-review-gate");
+      assert.equal(diffReviewGateCheckpoint?.acceptance_profile, "diff_review_gate_gate");
+      assert.equal(diffReviewGateCheckpoint?.status, "passed");
+      assert.equal(diffReviewGateCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const canonicalTestMatrixCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-canonical-test-matrix");
+      assert.equal(canonicalTestMatrixCheckpoint?.acceptance_profile, "canonical_test_matrix_gate");
+      assert.equal(canonicalTestMatrixCheckpoint?.status, "passed");
+      assert.equal(canonicalTestMatrixCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const devProtectedScanCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-dev-protected-scan");
+      assert.equal(devProtectedScanCheckpoint?.acceptance_profile, "dev_protected_scan_gate");
+      assert.equal(devProtectedScanCheckpoint?.status, "passed");
+      assert.equal(devProtectedScanCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const prDraftArtifactCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-pr-draft-artifact");
+      assert.equal(prDraftArtifactCheckpoint?.acceptance_profile, "pr_draft_artifact_gate");
+      assert.equal(prDraftArtifactCheckpoint?.status, "passed");
+      assert.equal(prDraftArtifactCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const releaseNoteArtifactCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-release-note-artifact");
+      assert.equal(releaseNoteArtifactCheckpoint?.acceptance_profile, "release_note_artifact_gate");
+      assert.equal(releaseNoteArtifactCheckpoint?.status, "passed");
+      assert.equal(releaseNoteArtifactCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const rollbackPlanArtifactCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-rollback-plan-artifact");
+      assert.equal(rollbackPlanArtifactCheckpoint?.acceptance_profile, "rollback_plan_artifact_gate");
+      assert.equal(rollbackPlanArtifactCheckpoint?.status, "passed");
+      assert.equal(rollbackPlanArtifactCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const technicalDebtLedgerCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-technical-debt-ledger");
+      assert.equal(technicalDebtLedgerCheckpoint?.acceptance_profile, "technical_debt_ledger_gate");
+      assert.equal(technicalDebtLedgerCheckpoint?.status, "passed");
+      assert.equal(technicalDebtLedgerCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const personalDevDashboardApiCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-personal-dev-dashboard-api");
+      assert.equal(personalDevDashboardApiCheckpoint?.acceptance_profile, "personal_dev_dashboard_api_gate");
+      assert.equal(personalDevDashboardApiCheckpoint?.status, "passed");
+      assert.equal(personalDevDashboardApiCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const personalDevE2eFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-personal-dev-e2e-freeze");
+      assert.equal(personalDevE2eFreezeCheckpoint?.acceptance_profile, "personal_dev_e2e_freeze_gate");
+      assert.equal(personalDevE2eFreezeCheckpoint?.status, "passed");
+      assert.equal(personalDevE2eFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lawFirmPackManifestCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-law-firm-pack-manifest");
+      assert.equal(lawFirmPackManifestCheckpoint?.acceptance_profile, "law_firm_pack_manifest_gate");
+      assert.equal(lawFirmPackManifestCheckpoint?.status, "passed");
+      assert.equal(lawFirmPackManifestCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterOsProfileCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-os-profile");
+      assert.equal(matterOsProfileCheckpoint?.acceptance_profile, "matter_os_profile_gate");
+      assert.equal(matterOsProfileCheckpoint?.status, "passed");
+      assert.equal(matterOsProfileCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterTimelineCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-timeline");
+      assert.equal(matterTimelineCheckpoint?.acceptance_profile, "matter_timeline_gate");
+      assert.equal(matterTimelineCheckpoint?.status, "passed");
+      assert.equal(matterTimelineCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterDocumentIndexCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-document-index");
+      assert.equal(matterDocumentIndexCheckpoint?.acceptance_profile, "matter_document_index_gate");
+      assert.equal(matterDocumentIndexCheckpoint?.status, "passed");
+      assert.equal(matterDocumentIndexCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterTaskBoardCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-task-board");
+      assert.equal(matterTaskBoardCheckpoint?.acceptance_profile, "matter_task_board_gate");
+      assert.equal(matterTaskBoardCheckpoint?.status, "passed");
+      assert.equal(matterTaskBoardCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterKnowledgeGraphCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-knowledge-graph");
+      assert.equal(matterKnowledgeGraphCheckpoint?.acceptance_profile, "matter_knowledge_graph_gate");
+      assert.equal(matterKnowledgeGraphCheckpoint?.status, "passed");
+      assert.equal(matterKnowledgeGraphCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterPrivilegeClassifierCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-privilege-classifier");
+      assert.equal(matterPrivilegeClassifierCheckpoint?.acceptance_profile, "matter_privilege_classifier_gate");
+      assert.equal(matterPrivilegeClassifierCheckpoint?.status, "passed");
+      assert.equal(matterPrivilegeClassifierCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const matterPersonalDataDetectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-matter-personal-data-detector");
+      assert.equal(matterPersonalDataDetectorCheckpoint?.acceptance_profile, "matter_personal_data_detector_gate");
+      assert.equal(matterPersonalDataDetectorCheckpoint?.status, "passed");
+      assert.equal(matterPersonalDataDetectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const legalCitationVerifierCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-legal-citation-verifier");
+      assert.equal(legalCitationVerifierCheckpoint?.acceptance_profile, "legal_citation_verifier_gate");
+      assert.equal(legalCitationVerifierCheckpoint?.status, "passed");
+      assert.equal(legalCitationVerifierCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddVdrInventoryCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-vdr-inventory");
+      assert.equal(lddVdrInventoryCheckpoint?.acceptance_profile, "ldd_vdr_inventory_gate");
+      assert.equal(lddVdrInventoryCheckpoint?.status, "passed");
+      assert.equal(lddVdrInventoryCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddDocumentClassificationCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-document-classification");
+      assert.equal(lddDocumentClassificationCheckpoint?.acceptance_profile, "ldd_document_classification_gate");
+      assert.equal(lddDocumentClassificationCheckpoint?.status, "passed");
+      assert.equal(lddDocumentClassificationCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddExtractorSelectionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-extractor-selection");
+      assert.equal(lddExtractorSelectionCheckpoint?.acceptance_profile, "ldd_extractor_selection_gate");
+      assert.equal(lddExtractorSelectionCheckpoint?.status, "passed");
+      assert.equal(lddExtractorSelectionCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddFactExtractionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-fact-extraction");
+      assert.equal(lddFactExtractionCheckpoint?.acceptance_profile, "ldd_fact_extraction_gate");
+      assert.equal(lddFactExtractionCheckpoint?.status, "passed");
+      assert.equal(lddFactExtractionCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddIssueDetectionCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-issue-detection");
+      assert.equal(lddIssueDetectionCheckpoint?.acceptance_profile, "ldd_issue_detection_gate");
+      assert.equal(lddIssueDetectionCheckpoint?.status, "passed");
+      assert.equal(lddIssueDetectionCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const lddRfiGeneratorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-ldd-rfi-generator");
+      assert.equal(lddRfiGeneratorCheckpoint?.acceptance_profile, "ldd_rfi_generator_gate");
+      assert.equal(lddRfiGeneratorCheckpoint?.status, "passed");
+      assert.equal(lddRfiGeneratorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -10741,6 +12758,1083 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.issue_intake_desktop_runtime_execution_allowed, false);
       assert.equal(dashboard.summary.issue_intake_desktop_source_of_truth, false);
       assert.equal(dashboard.summary.issue_intake_validation_error_count, 0);
+      assert.equal(dashboard.summary.plan_request_status, "complete");
+      assert.equal(dashboard.summary.plan_request_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.plan_request_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.plan_request_issue_intake_status, "complete");
+      assert.equal(dashboard.summary.plan_request_repo_profile_detector_status, "complete");
+      assert.equal(dashboard.summary.plan_request_agent_instruction_registry_status, "complete");
+      assert.equal(dashboard.summary.plan_request_shared_context_count, 1);
+      assert.equal(dashboard.summary.plan_request_plan_request_count, planRequestContract.summary.plan_request_count);
+      assert.equal(dashboard.summary.plan_request_ready_plan_request_count, 2);
+      assert.equal(dashboard.summary.plan_request_claude_plan_request_count, 1);
+      assert.equal(dashboard.summary.plan_request_codex_plan_request_count, 1);
+      assert.equal(dashboard.summary.plan_request_unique_context_hash_count, 1);
+      assert.equal(dashboard.summary.plan_request_unique_constraints_hash_count, 1);
+      assert.equal(dashboard.summary.plan_request_shared_context_binding_count, planRequestContract.summary.shared_context_binding_count);
+      assert.equal(dashboard.summary.plan_request_bound_plan_request_count, 2);
+      assert.equal(dashboard.summary.plan_request_unbound_plan_request_count, 0);
+      assert.equal(dashboard.summary.plan_request_context_hash_mismatch_count, 0);
+      assert.equal(dashboard.summary.plan_request_constraints_hash_mismatch_count, 0);
+      assert.equal(dashboard.summary.plan_request_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.plan_request_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.plan_request_command_execution_performed_count, 0);
+      assert.equal(dashboard.summary.plan_request_desktop_read_only, true);
+      assert.equal(dashboard.summary.plan_request_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.plan_request_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.plan_request_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.plan_request_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.plan_request_desktop_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.plan_request_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.plan_request_validation_error_count, 0);
+      assert.equal(dashboard.summary.plan_reconciliation_status, "complete");
+      assert.equal(dashboard.summary.plan_reconciliation_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.plan_reconciliation_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.plan_reconciliation_source_plan_request_status, "complete");
+      assert.equal(dashboard.summary.plan_reconciliation_shared_context_count, 1);
+      assert.equal(dashboard.summary.plan_reconciliation_plan_candidate_count, planReconciliation.summary.plan_candidate_count);
+      assert.equal(dashboard.summary.plan_reconciliation_ready_plan_candidate_count, 2);
+      assert.equal(dashboard.summary.plan_reconciliation_claude_plan_candidate_count, 1);
+      assert.equal(dashboard.summary.plan_reconciliation_codex_plan_candidate_count, 1);
+      assert.equal(dashboard.summary.plan_reconciliation_unique_context_hash_count, 1);
+      assert.equal(dashboard.summary.plan_reconciliation_unique_constraints_hash_count, 1);
+      assert.equal(dashboard.summary.plan_reconciliation_commonality_count, planReconciliation.summary.commonality_count);
+      assert.equal(dashboard.summary.plan_reconciliation_accepted_commonality_count, planReconciliation.summary.commonality_count);
+      assert.equal(dashboard.summary.plan_reconciliation_conflict_count, planReconciliation.summary.conflict_count);
+      assert.equal(dashboard.summary.plan_reconciliation_resolved_conflict_count, planReconciliation.summary.conflict_count);
+      assert.equal(dashboard.summary.plan_reconciliation_unresolved_conflict_count, 0);
+      assert.equal(dashboard.summary.plan_reconciliation_selected_scope_status, "selected_for_human_review");
+      assert.equal(dashboard.summary.plan_reconciliation_unresolved_question_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(dashboard.summary.plan_reconciliation_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.plan_reconciliation_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.plan_reconciliation_scope_freeze_performed_count, 0);
+      assert.equal(dashboard.summary.plan_reconciliation_command_execution_performed_count, 0);
+      assert.equal(dashboard.summary.plan_reconciliation_human_review_required, true);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_read_only, true);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_scope_freeze_allowed, false);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.plan_reconciliation_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.plan_reconciliation_validation_error_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_gate_status, "complete");
+      assert.equal(dashboard.summary.scope_freeze_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.scope_freeze_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.scope_freeze_source_plan_reconciliation_status, "complete");
+      assert.equal(dashboard.summary.scope_freeze_source_protected_file_gate_status, "complete");
+      assert.equal(dashboard.summary.scope_freeze_selected_scope_status, "selected_for_human_review");
+      assert.equal(dashboard.summary.scope_freeze_source_selected_scope_item_count, planReconciliation.summary.selected_scope_item_count);
+      assert.equal(dashboard.summary.scope_freeze_frozen_scope_item_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.equal(dashboard.summary.scope_freeze_frozen_scope_item_frozen_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.equal(dashboard.summary.scope_freeze_scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(dashboard.summary.scope_freeze_in_scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(dashboard.summary.scope_freeze_protected_file_rule_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(dashboard.summary.scope_freeze_frozen_protected_file_rule_snapshot_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(dashboard.summary.scope_freeze_protected_write_requires_approval, true);
+      assert.equal(dashboard.summary.scope_freeze_write_allowed_before_approval_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_mutation_allowed_before_approval_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_decision_status, "frozen");
+      assert.equal(dashboard.summary.scope_freeze_performed_count, 1);
+      assert.equal(dashboard.summary.scope_freeze_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_command_execution_performed_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_protected_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.scope_freeze_worktree_provisioning_allowed_after_freeze, true);
+      assert.equal(dashboard.summary.scope_freeze_implementation_patch_allowed_before_worktree, false);
+      assert.equal(dashboard.summary.scope_freeze_protected_file_write_allowed_without_approval, false);
+      assert.equal(dashboard.summary.scope_freeze_scope_change_requires_new_reconciliation, true);
+      assert.equal(dashboard.summary.scope_freeze_human_review_required, true);
+      assert.equal(dashboard.summary.scope_freeze_desktop_read_only, true);
+      assert.equal(dashboard.summary.scope_freeze_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_scope_change_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_protected_file_rule_edit_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_protected_file_write_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.scope_freeze_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.scope_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.dev_lane_ledger_status, "complete");
+      assert.equal(dashboard.summary.dev_lane_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.dev_lane_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.dev_lane_source_scope_freeze_gate_status, "complete");
+      assert.equal(dashboard.summary.dev_lane_source_plan_reconciliation_status, "complete");
+      assert.equal(dashboard.summary.dev_lane_source_worktree_manager_v2_status, "complete");
+      assert.equal(dashboard.summary.dev_lane_scope_freeze_performed_count, 1);
+      assert.equal(dashboard.summary.dev_lane_worktree_provisioning_allowed_after_freeze, true);
+      assert.equal(dashboard.summary.dev_lane_selected_scope_status, "selected_for_human_review");
+      assert.equal(dashboard.summary.dev_lane_frozen_scope_item_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.equal(dashboard.summary.dev_lane_scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(dashboard.summary.dev_lane_protected_file_rule_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(dashboard.summary.dev_lane_count, 2);
+      assert.equal(dashboard.summary.dev_lane_provisioned_count, 2);
+      assert.equal(dashboard.summary.dev_lane_claude_code_count, 1);
+      assert.equal(dashboard.summary.dev_lane_codex_count, 1);
+      assert.equal(dashboard.summary.dev_lane_unique_branch_name_count, 2);
+      assert.equal(dashboard.summary.dev_lane_unique_worktree_path_count, 2);
+      assert.equal(dashboard.summary.dev_lane_branch_record_count, 2);
+      assert.equal(dashboard.summary.dev_lane_created_branch_record_count, 2);
+      assert.equal(dashboard.summary.dev_lane_worktree_record_count, 2);
+      assert.equal(dashboard.summary.dev_lane_created_worktree_record_count, 2);
+      assert.equal(dashboard.summary.dev_lane_materialized_branch_count, 0);
+      assert.equal(dashboard.summary.dev_lane_materialized_worktree_count, 0);
+      assert.equal(dashboard.summary.dev_lane_git_command_executed_count, 0);
+      assert.equal(dashboard.summary.dev_lane_filesystem_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.dev_lane_protected_file_write_allowed_without_approval, false);
+      assert.equal(dashboard.summary.dev_lane_protected_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.dev_lane_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.dev_lane_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.dev_lane_patch_application_performed_count, 0);
+      assert.equal(dashboard.summary.dev_lane_human_review_required, true);
+      assert.equal(dashboard.summary.dev_lane_desktop_read_only, true);
+      assert.equal(dashboard.summary.dev_lane_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_create_worktree_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_delete_worktree_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_delete_branch_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_cleanup_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_patch_application_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_protected_file_write_allowed, false);
+      assert.equal(dashboard.summary.dev_lane_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.dev_lane_validation_error_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_capture_status, "complete");
+      assert.equal(dashboard.summary.implementation_patch_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.implementation_patch_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.implementation_patch_source_dev_lane_ledger_status, "complete");
+      assert.equal(dashboard.summary.implementation_patch_source_scope_freeze_gate_status, "complete");
+      assert.equal(dashboard.summary.implementation_patch_source_runtime_artifact_capture_status, "complete");
+      assert.equal(dashboard.summary.implementation_patch_record_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_captured_record_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_claude_code_record_count, 1);
+      assert.equal(dashboard.summary.implementation_patch_codex_record_count, 1);
+      assert.equal(dashboard.summary.implementation_patch_diff_capture_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_captured_diff_capture_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_output_bound_diff_capture_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_touched_file_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(dashboard.summary.implementation_patch_in_scope_touched_file_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(dashboard.summary.implementation_patch_generated_artifact_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(dashboard.summary.implementation_patch_captured_generated_artifact_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(dashboard.summary.implementation_patch_run_ledger_binding_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_bound_run_ledger_binding_count, 2);
+      assert.equal(dashboard.summary.implementation_patch_application_performed_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_git_command_executed_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_filesystem_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_protected_file_write_allowed_without_approval, false);
+      assert.equal(dashboard.summary.implementation_patch_protected_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.implementation_patch_human_review_required, true);
+      assert.equal(dashboard.summary.implementation_patch_runtime_self_report_trusted, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_read_only, true);
+      assert.equal(dashboard.summary.implementation_patch_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_patch_application_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_git_command_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_filesystem_mutation_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_protected_file_write_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_merge_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_release_allowed, false);
+      assert.equal(dashboard.summary.implementation_patch_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.implementation_patch_validation_error_count, 0);
+      assert.equal(dashboard.summary.diff_review_gate_status, "complete");
+      assert.equal(dashboard.summary.diff_review_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.diff_review_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.diff_review_source_implementation_patch_capture_status, "complete");
+      assert.equal(dashboard.summary.diff_review_source_protected_file_gate_status, "complete");
+      assert.equal(dashboard.summary.diff_review_patch_record_count, 2);
+      assert.equal(dashboard.summary.diff_review_result_count, 2);
+      assert.equal(dashboard.summary.diff_review_reviewed_result_count, 2);
+      assert.equal(dashboard.summary.diff_review_claude_code_result_count, 1);
+      assert.equal(dashboard.summary.diff_review_codex_result_count, 1);
+      assert.equal(dashboard.summary.diff_review_actual_diff_basis_available_count, 2);
+      assert.equal(dashboard.summary.diff_review_agent_self_report_trusted_count, 0);
+      assert.equal(dashboard.summary.diff_review_file_finding_count, diffReviewGate.summary.file_finding_count);
+      assert.equal(dashboard.summary.diff_review_reviewed_file_finding_count, diffReviewGate.summary.file_finding_count);
+      assert.equal(dashboard.summary.diff_review_in_scope_file_finding_count, diffReviewGate.summary.file_finding_count);
+      assert.equal(dashboard.summary.diff_review_artifact_finding_count, diffReviewGate.summary.artifact_finding_count);
+      assert.equal(dashboard.summary.diff_review_reviewed_artifact_finding_count, diffReviewGate.summary.artifact_finding_count);
+      assert.equal(dashboard.summary.diff_review_gate_result_count, 2);
+      assert.equal(dashboard.summary.diff_review_passed_with_human_gate_count, 2);
+      assert.equal(dashboard.summary.diff_review_patch_application_allowed_count, 0);
+      assert.equal(dashboard.summary.diff_review_patch_application_blocked_count, 2);
+      assert.equal(dashboard.summary.diff_review_patch_application_performed_count, 0);
+      assert.equal(dashboard.summary.diff_review_git_command_executed_count, 0);
+      assert.equal(dashboard.summary.diff_review_filesystem_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.diff_review_protected_file_write_allowed_without_approval, false);
+      assert.equal(dashboard.summary.diff_review_protected_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.diff_review_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.diff_review_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.diff_review_human_review_required, true);
+      assert.equal(dashboard.summary.diff_review_desktop_read_only, true);
+      assert.equal(dashboard.summary.diff_review_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_patch_application_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_git_command_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_filesystem_mutation_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_protected_file_write_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_merge_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_release_allowed, false);
+      assert.equal(dashboard.summary.diff_review_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.diff_review_validation_error_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_status, "complete");
+      assert.equal(dashboard.summary.canonical_test_matrix_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.canonical_test_matrix_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.canonical_test_matrix_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.canonical_test_matrix_source_repo_profile_detector_status, "complete");
+      assert.equal(dashboard.summary.canonical_test_matrix_source_canonical_test_runner_status, "complete");
+      assert.equal(dashboard.summary.canonical_test_matrix_source_diff_review_gate_status, "complete");
+      assert.equal(dashboard.summary.canonical_test_matrix_repo_count, 1);
+      assert.equal(dashboard.summary.canonical_test_matrix_dimension_count, 4);
+      assert.equal(dashboard.summary.canonical_test_matrix_required_dimension_count, 3);
+      assert.equal(dashboard.summary.canonical_test_matrix_configured_dimension_count, 3);
+      assert.equal(dashboard.summary.canonical_test_matrix_executed_dimension_count, 3);
+      assert.equal(dashboard.summary.canonical_test_matrix_passed_required_dimension_count, 3);
+      assert.equal(dashboard.summary.canonical_test_matrix_failed_dimension_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_timed_out_dimension_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_unit_dimension_passed, true);
+      assert.equal(dashboard.summary.canonical_test_matrix_typecheck_dimension_passed, true);
+      assert.equal(dashboard.summary.canonical_test_matrix_lint_dimension_passed, true);
+      assert.equal(dashboard.summary.canonical_test_matrix_e2e_dimension_configured, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_agent_self_report_trusted_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_runtime_self_report_trusted_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_binding_count, 2);
+      assert.equal(dashboard.summary.canonical_test_matrix_bound_to_passing_matrix_count, 2);
+      assert.equal(dashboard.summary.canonical_test_matrix_merge_ready_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_direct_merge_allowed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_direct_apply_allowed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_patch_application_allowed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_patch_application_performed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_git_command_executed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_filesystem_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_protected_file_write_allowed_without_approval, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_protected_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_external_agent_invocation_performed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_plan_acceptance_performed_count, 0);
+      assert.equal(dashboard.summary.canonical_test_matrix_human_review_required, true);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_read_only, true);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_command_execution_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_patch_application_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_git_command_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_filesystem_mutation_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_protected_file_write_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_external_agent_invocation_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_plan_acceptance_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_merge_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_release_allowed, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.canonical_test_matrix_validation_error_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_status, "complete");
+      assert.equal(dashboard.summary.dev_protected_scan_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.dev_protected_scan_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.dev_protected_scan_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.dev_protected_scan_source_implementation_patch_capture_status, "complete");
+      assert.equal(dashboard.summary.dev_protected_scan_source_diff_review_gate_status, "complete");
+      assert.equal(dashboard.summary.dev_protected_scan_source_canonical_test_matrix_status, "complete");
+      assert.equal(dashboard.summary.dev_protected_scan_source_protected_file_gate_status, "complete");
+      assert.equal(dashboard.summary.dev_protected_scan_scanned_file_count, devProtectedScan.summary.scanned_file_count);
+      assert.equal(dashboard.summary.dev_protected_scan_protected_candidate_count, protectedFileGate.summary.blocked_before_approval_count);
+      assert.equal(dashboard.summary.dev_protected_scan_credential_or_secret_change_blocked_count, devProtectedScan.summary.credential_or_secret_candidate_count);
+      assert.equal(dashboard.summary.dev_protected_scan_production_config_change_blocked_count, devProtectedScan.summary.production_config_candidate_count);
+      assert.equal(dashboard.summary.dev_protected_scan_write_allowed_before_approval_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_mutation_allowed_before_approval_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_secret_value_materialized_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_raw_secret_material_exposed, false);
+      assert.equal(dashboard.summary.dev_protected_scan_provider_key_exposed, false);
+      assert.equal(dashboard.summary.dev_protected_scan_result_count, 2);
+      assert.equal(dashboard.summary.dev_protected_scan_binding_count, 2);
+      assert.equal(dashboard.summary.dev_protected_scan_patch_application_performed_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_git_command_executed_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_filesystem_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_protected_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_human_review_required, true);
+      assert.equal(dashboard.summary.dev_protected_scan_desktop_read_only, true);
+      assert.equal(dashboard.summary.dev_protected_scan_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.dev_protected_scan_desktop_command_execution_allowed, false);
+      assert.equal(dashboard.summary.dev_protected_scan_desktop_secret_material_read_allowed, false);
+      assert.equal(dashboard.summary.dev_protected_scan_desktop_production_config_write_allowed, false);
+      assert.equal(dashboard.summary.dev_protected_scan_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.dev_protected_scan_raw_secret_material_exposed_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_provider_key_exposed_count, 0);
+      assert.equal(dashboard.summary.dev_protected_scan_validation_error_count, 0);
+      assert.equal(dashboard.summary.pr_draft_artifact_status, "complete");
+      assert.equal(dashboard.summary.pr_draft_artifact_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.pr_draft_artifact_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.pr_draft_artifact_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.pr_draft_artifact_source_implementation_patch_capture_status, "complete");
+      assert.equal(dashboard.summary.pr_draft_artifact_source_diff_review_gate_status, "complete");
+      assert.equal(dashboard.summary.pr_draft_artifact_source_canonical_test_matrix_status, "complete");
+      assert.equal(dashboard.summary.pr_draft_artifact_source_dev_protected_scan_status, "complete");
+      assert.equal(dashboard.summary.pr_draft_artifact_source_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.pr_draft_artifact_source_pr_draft_output_artifact_available, true);
+      assert.equal(dashboard.summary.pr_draft_output_artifact_count, 1);
+      assert.equal(dashboard.summary.pr_draft_output_artifact_v2_count, 1);
+      assert.equal(dashboard.summary.pr_draft_output_artifact_hash_present_count, 1);
+      assert.equal(dashboard.summary.pr_draft_output_artifact_draft_count, 1);
+      assert.equal(dashboard.summary.pr_draft_output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(dashboard.summary.pr_draft_output_artifact_pending_approval_count, 1);
+      assert.equal(dashboard.summary.pr_draft_section_count, 4);
+      assert.equal(dashboard.summary.pr_draft_summary_section_present, true);
+      assert.equal(dashboard.summary.pr_draft_tests_section_present, true);
+      assert.equal(dashboard.summary.pr_draft_risks_section_present, true);
+      assert.equal(dashboard.summary.pr_draft_rollback_section_present, true);
+      assert.equal(dashboard.summary.pr_draft_test_evidence_count, prDraftArtifact.summary.test_evidence_count);
+      assert.equal(dashboard.summary.pr_draft_passed_test_evidence_count, prDraftArtifact.summary.test_evidence_count);
+      assert.equal(dashboard.summary.pr_draft_agent_self_report_trusted_test_count, 0);
+      assert.equal(dashboard.summary.pr_draft_risk_count, 4);
+      assert.equal(dashboard.summary.pr_draft_rollback_step_count, 3);
+      assert.equal(dashboard.summary.pr_draft_draft_not_executed_rollback_step_count, 3);
+      assert.equal(dashboard.summary.pr_draft_rollback_command_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.pr_draft_binding_count, 2);
+      assert.equal(dashboard.summary.pr_draft_bound_after_protected_scan_count, 2);
+      assert.equal(dashboard.summary.pr_draft_pull_request_creation_allowed_count, 0);
+      assert.equal(dashboard.summary.pr_draft_direct_merge_allowed_count, 0);
+      assert.equal(dashboard.summary.pr_draft_release_allowed_count, 0);
+      assert.equal(dashboard.summary.pr_draft_pull_request_creation_performed, false);
+      assert.equal(dashboard.summary.pr_draft_github_api_called, false);
+      assert.equal(dashboard.summary.pr_draft_merge_performed, false);
+      assert.equal(dashboard.summary.pr_draft_release_performed, false);
+      assert.equal(dashboard.summary.pr_draft_human_review_required, true);
+      assert.equal(dashboard.summary.pr_draft_desktop_read_only, true);
+      assert.equal(dashboard.summary.pr_draft_desktop_pull_request_creation_allowed, false);
+      assert.equal(dashboard.summary.pr_draft_desktop_direct_merge_allowed, false);
+      assert.equal(dashboard.summary.pr_draft_desktop_release_allowed, false);
+      assert.equal(dashboard.summary.pr_draft_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.pr_draft_validation_error_count, 0);
+      assert.equal(dashboard.summary.release_note_artifact_status, "complete");
+      assert.equal(dashboard.summary.release_note_artifact_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.release_note_artifact_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.release_note_artifact_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.release_note_artifact_source_pr_draft_artifact_status, "complete");
+      assert.equal(dashboard.summary.release_note_artifact_source_canonical_test_matrix_status, "complete");
+      assert.equal(dashboard.summary.release_note_artifact_source_dev_protected_scan_status, "complete");
+      assert.equal(dashboard.summary.release_note_output_artifact_count, 1);
+      assert.equal(dashboard.summary.release_note_output_artifact_v2_count, 1);
+      assert.equal(dashboard.summary.release_note_output_artifact_hash_present_count, 1);
+      assert.equal(dashboard.summary.release_note_output_artifact_draft_count, 1);
+      assert.equal(dashboard.summary.release_note_output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(dashboard.summary.release_note_output_artifact_pending_approval_count, 1);
+      assert.equal(dashboard.summary.release_note_change_record_count, 1);
+      assert.equal(dashboard.summary.release_note_merged_change_basis_count, 1);
+      assert.equal(dashboard.summary.release_note_section_count, 6);
+      assert.equal(dashboard.summary.release_note_ready_section_count, 6);
+      assert.equal(dashboard.summary.release_note_gate_binding_count, 3);
+      assert.equal(dashboard.summary.release_note_bound_gate_binding_count, 3);
+      assert.equal(dashboard.summary.release_note_publication_allowed_count, 0);
+      assert.equal(dashboard.summary.release_note_merge_allowed_count, 0);
+      assert.equal(dashboard.summary.release_note_release_allowed_count, 0);
+      assert.equal(dashboard.summary.release_note_merge_performed, false);
+      assert.equal(dashboard.summary.release_note_release_performed, false);
+      assert.equal(dashboard.summary.release_note_publication_performed, false);
+      assert.equal(dashboard.summary.release_note_github_api_called, false);
+      assert.equal(dashboard.summary.release_note_branch_push_performed, false);
+      assert.equal(dashboard.summary.release_note_human_review_required, true);
+      assert.equal(dashboard.summary.release_note_desktop_read_only, true);
+      assert.equal(dashboard.summary.release_note_desktop_merge_allowed, false);
+      assert.equal(dashboard.summary.release_note_desktop_release_allowed, false);
+      assert.equal(dashboard.summary.release_note_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.release_note_validation_error_count, 0);
+      assert.equal(dashboard.summary.rollback_plan_artifact_status, "complete");
+      assert.equal(dashboard.summary.rollback_plan_artifact_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.rollback_plan_artifact_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.rollback_plan_artifact_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.rollback_plan_source_implementation_patch_capture_status, "complete");
+      assert.equal(dashboard.summary.rollback_plan_source_diff_review_gate_status, "complete");
+      assert.equal(dashboard.summary.rollback_plan_source_pr_draft_artifact_status, "complete");
+      assert.equal(dashboard.summary.rollback_plan_source_release_note_artifact_status, "complete");
+      assert.equal(dashboard.summary.rollback_output_artifact_count, 1);
+      assert.equal(dashboard.summary.rollback_output_artifact_v2_count, 1);
+      assert.equal(dashboard.summary.rollback_output_artifact_hash_present_count, 1);
+      assert.equal(dashboard.summary.rollback_output_artifact_draft_count, 1);
+      assert.equal(dashboard.summary.rollback_output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(dashboard.summary.rollback_output_artifact_pending_approval_count, 1);
+      assert.equal(dashboard.summary.rollback_commit_target_count, 2);
+      assert.equal(dashboard.summary.rollback_pending_not_merged_commit_target_count, 2);
+      assert.equal(dashboard.summary.rollback_commit_revert_required_count, 0);
+      assert.equal(dashboard.summary.rollback_commit_revert_performed_count, 0);
+      assert.equal(dashboard.summary.rollback_file_target_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(dashboard.summary.rollback_restore_candidate_file_target_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(dashboard.summary.rollback_file_restore_allowed_count, 0);
+      assert.equal(dashboard.summary.rollback_file_restore_performed_count, 0);
+      assert.equal(dashboard.summary.rollback_command_target_count, 5);
+      assert.equal(dashboard.summary.rollback_draft_not_executed_command_target_count, 5);
+      assert.equal(dashboard.summary.rollback_command_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.rollback_command_executed_count, 0);
+      assert.equal(dashboard.summary.rollback_plan_binding_count, 4);
+      assert.equal(dashboard.summary.rollback_plan_bound_binding_count, 4);
+      assert.equal(dashboard.summary.rollback_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.rollback_merge_allowed_count, 0);
+      assert.equal(dashboard.summary.rollback_release_allowed_count, 0);
+      assert.equal(dashboard.summary.rollback_execution_performed, false);
+      assert.equal(dashboard.summary.rollback_command_execution_performed, false);
+      assert.equal(dashboard.summary.rollback_git_command_executed, false);
+      assert.equal(dashboard.summary.rollback_filesystem_mutation_performed, false);
+      assert.equal(dashboard.summary.rollback_protected_mutation_performed, false);
+      assert.equal(dashboard.summary.rollback_merge_performed, false);
+      assert.equal(dashboard.summary.rollback_release_performed, false);
+      assert.equal(dashboard.summary.rollback_human_review_required, true);
+      assert.equal(dashboard.summary.rollback_desktop_read_only, true);
+      assert.equal(dashboard.summary.rollback_desktop_command_execution_allowed, false);
+      assert.equal(dashboard.summary.rollback_desktop_file_restore_allowed, false);
+      assert.equal(dashboard.summary.rollback_desktop_commit_revert_allowed, false);
+      assert.equal(dashboard.summary.rollback_desktop_rollback_execution_allowed, false);
+      assert.equal(dashboard.summary.rollback_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.rollback_validation_error_count, 0);
+      assert.equal(dashboard.summary.technical_debt_ledger_status, "complete");
+      assert.equal(dashboard.summary.technical_debt_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.technical_debt_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.technical_debt_ledger_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.technical_debt_source_issue_intake_status, "complete");
+      assert.equal(dashboard.summary.technical_debt_source_plan_reconciliation_status, "complete");
+      assert.equal(dashboard.summary.technical_debt_source_pr_draft_artifact_status, "complete");
+      assert.equal(dashboard.summary.technical_debt_source_release_note_artifact_status, "complete");
+      assert.equal(dashboard.summary.technical_debt_source_rollback_plan_artifact_status, "complete");
+      assert.equal(dashboard.summary.technical_debt_source_unresolved_question_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(dashboard.summary.technical_debt_source_pr_draft_risk_count, prDraftArtifact.summary.risk_count);
+      assert.equal(dashboard.summary.technical_debt_output_artifact_count, 1);
+      assert.equal(dashboard.summary.technical_debt_output_artifact_v2_count, 1);
+      assert.equal(dashboard.summary.technical_debt_output_artifact_hash_present_count, 1);
+      assert.equal(dashboard.summary.technical_debt_output_artifact_draft_count, 1);
+      assert.equal(dashboard.summary.technical_debt_output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(dashboard.summary.technical_debt_output_artifact_pending_approval_count, 1);
+      assert.equal(dashboard.summary.technical_debt_source_finding_count, technicalDebtLedger.summary.debt_source_finding_count);
+      assert.equal(dashboard.summary.technical_debt_plan_question_finding_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(dashboard.summary.technical_debt_pr_risk_finding_count, prDraftArtifact.summary.risk_count);
+      assert.equal(dashboard.summary.technical_debt_open_for_triage_finding_count, technicalDebtLedger.summary.debt_source_finding_count);
+      assert.equal(dashboard.summary.technical_debt_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(dashboard.summary.technical_debt_preserved_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(dashboard.summary.technical_debt_backlog_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(dashboard.summary.technical_debt_task_binding_count, technicalDebtLedger.summary.debt_task_binding_count);
+      assert.equal(dashboard.summary.technical_debt_bound_task_binding_count, technicalDebtLedger.summary.debt_task_binding_count);
+      assert.equal(dashboard.summary.technical_debt_task_state_write_allowed_count, 0);
+      assert.equal(dashboard.summary.technical_debt_task_state_write_performed_count, 0);
+      assert.equal(dashboard.summary.technical_debt_issue_mutation_allowed_count, 0);
+      assert.equal(dashboard.summary.technical_debt_issue_mutation_performed_count, 0);
+      assert.equal(dashboard.summary.technical_debt_command_execution_allowed_count, 0);
+      assert.equal(dashboard.summary.technical_debt_command_execution_performed_count, 0);
+      assert.equal(dashboard.summary.technical_debt_github_api_called, false);
+      assert.equal(dashboard.summary.technical_debt_branch_push_performed, false);
+      assert.equal(dashboard.summary.technical_debt_merge_performed, false);
+      assert.equal(dashboard.summary.technical_debt_release_performed, false);
+      assert.equal(dashboard.summary.technical_debt_protected_mutation_performed, false);
+      assert.equal(dashboard.summary.technical_debt_human_review_required, true);
+      assert.equal(dashboard.summary.technical_debt_desktop_read_only, true);
+      assert.equal(dashboard.summary.technical_debt_desktop_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.technical_debt_desktop_issue_mutation_allowed, false);
+      assert.equal(dashboard.summary.technical_debt_desktop_command_execution_allowed, false);
+      assert.equal(dashboard.summary.technical_debt_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.technical_debt_validation_error_count, 0);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_repo_profile_detector_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_dev_lane_ledger_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_plan_reconciliation_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_scope_freeze_gate_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_implementation_patch_capture_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_diff_review_gate_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_canonical_test_matrix_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_pr_draft_artifact_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_release_note_artifact_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_rollback_plan_artifact_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_source_technical_debt_ledger_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_output_artifact_count, 1);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_output_artifact_v2_count, 1);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_output_artifact_hash_present_count, 1);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_output_artifact_draft_count, 1);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_output_artifact_pending_approval_count, 1);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_panel_row_count, 6);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_ready_panel_row_count, 6);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_repo_panel_status, "ready");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_worktree_panel_status, "ready");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_plan_panel_status, "ready");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_diff_panel_status, "ready");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_test_panel_status, "ready");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_pr_panel_status, "ready");
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_status_rollup_count, 6);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_ready_status_rollup_count, 6);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_route_binding_count, 6);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_active_route_binding_count, 6);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_read_only_route_binding_count, 6);
+      assert.ok(dashboard.summary.personal_dev_dashboard_api_route_count >= 20);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_command_execution_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_task_state_write_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_issue_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_github_api_called, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_branch_push_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_pull_request_creation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_merge_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_release_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_protected_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_raw_secret_material_exposed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_provider_key_exposed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_read_only, true);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_issue_mutation_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_command_execution_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_github_api_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_branch_push_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_pull_request_creation_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_merge_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_release_allowed, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.personal_dev_dashboard_api_validation_error_count, 0);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_status, "complete");
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_pack_id, "personal-dev");
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_authority, "harness_control_plane");
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_source_count, 17);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_passed_source_count, 17);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_trace_count, 7);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_passed_trace_count, 7);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_loop_binding_count, 18);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_bound_loop_binding_count, 18);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_issue_to_pr_path_complete, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_issue_source_count, personalDevE2eFreeze.summary.issue_source_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_normalized_task_count, personalDevE2eFreeze.summary.normalized_task_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_plan_request_count, personalDevE2eFreeze.summary.plan_request_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_plan_candidate_count, personalDevE2eFreeze.summary.plan_candidate_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_dev_lane_count, personalDevE2eFreeze.summary.dev_lane_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_patch_record_count, personalDevE2eFreeze.summary.patch_record_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_diff_review_result_count, personalDevE2eFreeze.summary.diff_review_result_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_required_test_dimension_count, personalDevE2eFreeze.summary.required_test_dimension_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_passed_required_test_dimension_count, personalDevE2eFreeze.summary.passed_required_test_dimension_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_protected_scan_result_count, personalDevE2eFreeze.summary.protected_scan_result_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_pr_draft_output_artifact_count, personalDevE2eFreeze.summary.pr_draft_output_artifact_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_release_note_output_artifact_count, personalDevE2eFreeze.summary.release_note_output_artifact_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_rollback_output_artifact_count, personalDevE2eFreeze.summary.rollback_output_artifact_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_technical_debt_task_count, personalDevE2eFreeze.summary.technical_debt_task_count);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_dashboard_panel_row_count, 6);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_dashboard_route_binding_count, 6);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_command_execution_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_task_state_write_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_issue_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_github_api_called, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_branch_push_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_pull_request_creation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_merge_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_release_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_rollback_execution_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_patch_application_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_protected_mutation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_external_agent_invocation_performed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_raw_secret_material_exposed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_provider_key_exposed, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_desktop_read_only, true);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.personal_dev_e2e_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_pack_id, "law-firm");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_registration_status, "registered");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_compatibility_status, "compatible");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_common_dependency_declared, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_human_review_required, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_matter_boundary_required, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_draft_only_by_default, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_attorney_review_required, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_capability_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_registered_capability_count, lawFirmPackManifest.summary.registered_capability_count);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_capability_manifest_v2_count, lawFirmPackManifest.summary.capability_manifest_v2_count);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_capability_registry_api_pack_card_present, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_capability_registry_api_capability_card_count, lawFirmPackManifest.summary.capability_registry_api_capability_card_count);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_capability_version_api_card_count, lawFirmPackManifest.summary.capability_version_api_card_count);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_attorney_review_required_capability_count, lawFirmPackManifest.summary.attorney_review_required_capability_count);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_runtime_freeze_status, "complete");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_matter_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_policy_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_evidence_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_output_delivery_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_executed_delivery_action_count, 0);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_desktop_read_only, true);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_desktop_runtime_source_of_truth, false);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_desktop_protected_mutation_execution_allowed, false);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_legal_advice_provided, false);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_protected_action_executed_count, 0);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_core_mutation_required_count, 0);
+      assert.equal(dashboard.summary.law_firm_pack_manifest_default_output_status, "pending_review");
+      assert.equal(dashboard.summary.law_firm_pack_manifest_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_os_profile_status, "complete");
+      assert.equal(dashboard.summary.matter_os_profile_source_matter_profile_team_ledger_status, "complete");
+      assert.equal(dashboard.summary.matter_os_profile_source_client_counterparty_registry_status, "complete");
+      assert.equal(dashboard.summary.matter_os_profile_source_matter_contract_freeze_status, "complete");
+      assert.equal(dashboard.summary.matter_os_profile_source_law_firm_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.matter_os_profile_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(dashboard.summary.matter_os_profile_complete_profile_card_count, matterOsProfile.summary.complete_profile_card_count);
+      assert.equal(dashboard.summary.matter_os_profile_display_field_coverage_count, matterOsProfile.summary.display_field_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_client_display_coverage_count, matterOsProfile.summary.client_display_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_counterparty_display_coverage_count, matterOsProfile.summary.counterparty_display_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_matter_number_coverage_count, matterOsProfile.summary.matter_number_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_security_grade_coverage_count, matterOsProfile.summary.security_grade_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_responsible_owner_coverage_count, matterOsProfile.summary.responsible_owner_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_matter_boundary_coverage_count, matterOsProfile.summary.matter_boundary_coverage_count);
+      assert.equal(dashboard.summary.matter_os_profile_attorney_review_required_profile_count, matterOsProfile.summary.attorney_review_required_profile_count);
+      assert.equal(dashboard.summary.matter_os_profile_default_pending_review_profile_count, matterOsProfile.summary.default_pending_review_profile_count);
+      assert.equal(dashboard.summary.matter_os_profile_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_os_profile_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_os_profile_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_os_profile_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_os_profile_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_os_profile_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_os_profile_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_os_profile_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_os_profile_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_timeline_status, "complete");
+      assert.equal(dashboard.summary.matter_timeline_source_matter_os_profile_status, "complete");
+      assert.equal(dashboard.summary.matter_timeline_source_output_catalog_status, "complete");
+      assert.equal(dashboard.summary.matter_timeline_source_delivery_queue_status, "complete");
+      assert.equal(dashboard.summary.matter_timeline_matter_file_count, matterTimeline.summary.matter_file_count);
+      assert.equal(dashboard.summary.matter_timeline_available_matter_file_count, matterTimeline.summary.available_matter_file_count);
+      assert.equal(dashboard.summary.matter_timeline_matter_file_with_matter_id_count, matterTimeline.summary.matter_file_with_matter_id_count);
+      assert.equal(dashboard.summary.matter_timeline_count, matterTimeline.summary.matter_timeline_count);
+      assert.equal(dashboard.summary.matter_timeline_event_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(dashboard.summary.matter_timeline_meeting_event_count, matterTimeline.summary.meeting_event_count);
+      assert.equal(dashboard.summary.matter_timeline_received_event_count, matterTimeline.summary.received_event_count);
+      assert.equal(dashboard.summary.matter_timeline_submission_event_count, matterTimeline.summary.submission_event_count);
+      assert.equal(dashboard.summary.matter_timeline_deadline_event_count, matterTimeline.summary.deadline_event_count);
+      assert.equal(dashboard.summary.matter_timeline_sorted_event_count, matterTimeline.summary.sorted_event_count);
+      assert.equal(dashboard.summary.matter_timeline_unsorted_event_count, 0);
+      assert.equal(dashboard.summary.matter_timeline_matter_id_scoped_event_count, matterTimeline.summary.matter_id_scoped_event_count);
+      assert.equal(dashboard.summary.matter_timeline_attorney_review_required_event_count, matterTimeline.summary.attorney_review_required_event_count);
+      assert.equal(dashboard.summary.matter_timeline_human_review_required_event_count, matterTimeline.summary.human_review_required_event_count);
+      assert.equal(dashboard.summary.matter_timeline_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_timeline_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_timeline_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_timeline_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_timeline_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_timeline_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_timeline_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_timeline_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_timeline_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.matter_document_index_source_matter_timeline_status, "complete");
+      assert.equal(dashboard.summary.matter_document_index_source_output_catalog_status, "complete");
+      assert.equal(dashboard.summary.matter_document_index_source_delivery_queue_status, "complete");
+      assert.equal(dashboard.summary.matter_document_index_matter_file_count, matterDocumentIndex.summary.matter_file_count);
+      assert.equal(dashboard.summary.matter_document_index_available_matter_file_count, matterDocumentIndex.summary.available_matter_file_count);
+      assert.equal(dashboard.summary.matter_document_index_matter_file_with_matter_id_count, matterDocumentIndex.summary.matter_file_with_matter_id_count);
+      assert.equal(dashboard.summary.matter_document_index_document_record_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(dashboard.summary.matter_document_index_document_family_count, matterDocumentIndex.summary.document_family_count);
+      assert.equal(dashboard.summary.matter_document_index_original_document_count, matterDocumentIndex.summary.original_document_count);
+      assert.equal(dashboard.summary.matter_document_index_draft_document_count, matterDocumentIndex.summary.draft_document_count);
+      assert.equal(dashboard.summary.matter_document_index_submitted_document_count, matterDocumentIndex.summary.submitted_document_count);
+      assert.equal(dashboard.summary.matter_document_index_counterparty_proposal_count, matterDocumentIndex.summary.counterparty_proposal_count);
+      assert.equal(dashboard.summary.matter_document_index_latest_document_count, matterDocumentIndex.summary.latest_document_count);
+      assert.equal(dashboard.summary.matter_document_index_family_with_latest_document_count, matterDocumentIndex.summary.family_with_latest_document_count);
+      assert.equal(dashboard.summary.matter_document_index_matter_id_scoped_document_count, matterDocumentIndex.summary.matter_id_scoped_document_count);
+      assert.equal(dashboard.summary.matter_document_index_attorney_review_required_document_count, matterDocumentIndex.summary.attorney_review_required_document_count);
+      assert.equal(dashboard.summary.matter_document_index_human_review_required_document_count, matterDocumentIndex.summary.human_review_required_document_count);
+      assert.equal(dashboard.summary.matter_document_index_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_document_index_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_document_index_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_document_index_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_document_index_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_document_index_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_document_index_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_document_index_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_document_index_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_task_board_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_source_matter_timeline_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_source_matter_os_profile_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_source_workflow_run_dashboard_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_source_output_catalog_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_source_delivery_queue_status, "complete");
+      assert.equal(dashboard.summary.matter_task_board_matter_file_count, matterTaskBoard.summary.matter_file_count);
+      assert.equal(dashboard.summary.matter_task_board_available_matter_file_count, matterTaskBoard.summary.available_matter_file_count);
+      assert.equal(dashboard.summary.matter_task_board_task_record_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(dashboard.summary.matter_task_board_board_column_count, matterTaskBoard.summary.board_column_count);
+      assert.equal(dashboard.summary.matter_task_board_workflow_binding_count, matterTaskBoard.summary.workflow_binding_count);
+      assert.equal(dashboard.summary.matter_task_board_matter_task_count, matterTaskBoard.summary.matter_task_count);
+      assert.equal(dashboard.summary.matter_task_board_matter_deadline_task_count, matterTaskBoard.summary.matter_deadline_task_count);
+      assert.equal(dashboard.summary.matter_task_board_vdr_request_task_count, matterTaskBoard.summary.vdr_request_task_count);
+      assert.equal(dashboard.summary.matter_task_board_qa_item_task_count, matterTaskBoard.summary.qa_item_task_count);
+      assert.equal(dashboard.summary.matter_task_board_cp_checklist_task_count, matterTaskBoard.summary.cp_checklist_task_count);
+      assert.equal(dashboard.summary.matter_task_board_negotiation_point_task_count, matterTaskBoard.summary.negotiation_point_task_count);
+      assert.equal(dashboard.summary.matter_task_board_litigation_task_count, matterTaskBoard.summary.litigation_task_count);
+      assert.equal(dashboard.summary.matter_task_board_output_review_task_count, matterTaskBoard.summary.output_review_task_count);
+      assert.equal(dashboard.summary.matter_task_board_blocked_task_count, matterTaskBoard.summary.blocked_task_count);
+      assert.equal(dashboard.summary.matter_task_board_open_task_count, matterTaskBoard.summary.open_task_count);
+      assert.equal(dashboard.summary.matter_task_board_in_review_task_count, matterTaskBoard.summary.in_review_task_count);
+      assert.equal(dashboard.summary.matter_task_board_task_with_owner_count, matterTaskBoard.summary.task_with_owner_count);
+      assert.equal(dashboard.summary.matter_task_board_task_with_due_date_count, matterTaskBoard.summary.task_with_due_date_count);
+      assert.equal(dashboard.summary.matter_task_board_task_with_status_count, matterTaskBoard.summary.task_with_status_count);
+      assert.equal(dashboard.summary.matter_task_board_workflow_bound_task_count, matterTaskBoard.summary.workflow_bound_task_count);
+      assert.equal(dashboard.summary.matter_task_board_actual_workflow_run_bound_task_count, matterTaskBoard.summary.actual_workflow_run_bound_task_count);
+      assert.equal(dashboard.summary.matter_task_board_timeline_bound_task_count, matterTaskBoard.summary.timeline_bound_task_count);
+      assert.equal(dashboard.summary.matter_task_board_document_bound_task_count, matterTaskBoard.summary.document_bound_task_count);
+      assert.equal(dashboard.summary.matter_task_board_matter_id_scoped_task_count, matterTaskBoard.summary.matter_id_scoped_task_count);
+      assert.equal(dashboard.summary.matter_task_board_attorney_review_required_task_count, matterTaskBoard.summary.attorney_review_required_task_count);
+      assert.equal(dashboard.summary.matter_task_board_human_review_required_task_count, matterTaskBoard.summary.human_review_required_task_count);
+      assert.equal(dashboard.summary.matter_task_board_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_task_board_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_task_board_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_task_board_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_task_board_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.matter_task_board_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_protected_action_allowed, false);
+      assert.equal(dashboard.summary.matter_task_board_client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(dashboard.summary.matter_task_board_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.matter_task_board_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_knowledge_graph_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_source_matter_task_board_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_source_matter_timeline_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_source_matter_os_profile_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_source_output_catalog_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_source_delivery_queue_status, "complete");
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_file_count, matterKnowledgeGraph.summary.matter_file_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_available_matter_file_count, matterKnowledgeGraph.summary.available_matter_file_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_count, matterKnowledgeGraph.summary.matter_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_summary_count, matterKnowledgeGraph.summary.matter_summary_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_node_count, matterKnowledgeGraph.summary.graph_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_edge_count, matterKnowledgeGraph.summary.graph_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_fact_node_count, matterKnowledgeGraph.summary.fact_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_issue_node_count, matterKnowledgeGraph.summary.issue_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_legal_theory_node_count, matterKnowledgeGraph.summary.legal_theory_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_evidence_node_count, matterKnowledgeGraph.summary.evidence_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_with_fact_count, matterKnowledgeGraph.summary.matter_with_fact_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_with_issue_count, matterKnowledgeGraph.summary.matter_with_issue_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_with_legal_theory_count, matterKnowledgeGraph.summary.matter_with_legal_theory_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_with_evidence_count, matterKnowledgeGraph.summary.matter_with_evidence_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_id_scoped_node_count, matterKnowledgeGraph.summary.matter_id_scoped_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_id_scoped_edge_count, matterKnowledgeGraph.summary.matter_id_scoped_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_attorney_review_required_node_count, matterKnowledgeGraph.summary.attorney_review_required_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_attorney_review_required_edge_count, matterKnowledgeGraph.summary.attorney_review_required_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_human_review_required_node_count, matterKnowledgeGraph.summary.human_review_required_node_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_human_review_required_edge_count, matterKnowledgeGraph.summary.human_review_required_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_legal_theory_placeholder_count, matterKnowledgeGraph.summary.legal_theory_placeholder_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_fact_evidence_edge_count, matterKnowledgeGraph.summary.fact_evidence_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_issue_evidence_edge_count, matterKnowledgeGraph.summary.issue_evidence_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_legal_theory_issue_edge_count, matterKnowledgeGraph.summary.legal_theory_issue_edge_count);
+      assert.equal(dashboard.summary.matter_knowledge_graph_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_knowledge_graph_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_knowledge_graph_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_protected_action_allowed, false);
+      assert.equal(dashboard.summary.matter_knowledge_graph_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_privilege_classifier_status, "complete");
+      assert.equal(dashboard.summary.matter_privilege_classifier_source_matter_knowledge_graph_status, "complete");
+      assert.equal(dashboard.summary.matter_privilege_classifier_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.matter_privilege_classifier_source_matter_task_board_status, "complete");
+      assert.equal(dashboard.summary.matter_privilege_classifier_source_output_catalog_status, "complete");
+      assert.equal(dashboard.summary.matter_privilege_classifier_source_delivery_queue_status, "complete");
+      assert.equal(dashboard.summary.matter_privilege_classifier_matter_file_count, matterPrivilegeClassifier.summary.matter_file_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_available_matter_file_count, matterPrivilegeClassifier.summary.available_matter_file_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_matter_count, matterPrivilegeClassifier.summary.matter_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_classification_record_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_evidence_flag_count, matterPrivilegeClassifier.summary.evidence_flag_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_expected_evidence_node_count, matterPrivilegeClassifier.summary.expected_evidence_node_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_knowledge_graph_bound_classification_count, matterPrivilegeClassifier.summary.knowledge_graph_bound_classification_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_document_bound_classification_count, matterPrivilegeClassifier.summary.document_bound_classification_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_privileged_review_required_count, matterPrivilegeClassifier.summary.privileged_review_required_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_client_confidential_review_required_count, matterPrivilegeClassifier.summary.client_confidential_review_required_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_work_product_review_required_count, matterPrivilegeClassifier.summary.work_product_review_required_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_no_work_product_signal_count, matterPrivilegeClassifier.summary.no_work_product_signal_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_confidential_flagged_evidence_count, matterPrivilegeClassifier.summary.confidential_flagged_evidence_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_privileged_confidential_count, matterPrivilegeClassifier.summary.privileged_confidential_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_restricted_confidential_count, matterPrivilegeClassifier.summary.restricted_confidential_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_client_confidential_count, matterPrivilegeClassifier.summary.client_confidential_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_external_transfer_blocked_count, matterPrivilegeClassifier.summary.external_transfer_blocked_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_external_transfer_requires_approval_count, matterPrivilegeClassifier.summary.external_transfer_requires_approval_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_candidate_review_required_count, matterPrivilegeClassifier.summary.candidate_review_required_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_attorney_review_required_classification_count, matterPrivilegeClassifier.summary.attorney_review_required_classification_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_attorney_review_required_flag_count, matterPrivilegeClassifier.summary.attorney_review_required_flag_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_human_review_required_classification_count, matterPrivilegeClassifier.summary.human_review_required_classification_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_human_review_required_flag_count, matterPrivilegeClassifier.summary.human_review_required_flag_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_matter_id_scoped_classification_count, matterPrivilegeClassifier.summary.matter_id_scoped_classification_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_matter_id_scoped_flag_count, matterPrivilegeClassifier.summary.matter_id_scoped_flag_count);
+      assert.equal(dashboard.summary.matter_privilege_classifier_final_privilege_determination_count, 0);
+      assert.equal(dashboard.summary.matter_privilege_classifier_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_privilege_classifier_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_privilege_classifier_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_desktop_source_of_truth, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_protected_action_allowed, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(dashboard.summary.matter_privilege_classifier_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.matter_privilege_classifier_validation_error_count, 0);
+      assert.equal(dashboard.summary.matter_personal_data_detector_status, "complete");
+      assert.equal(dashboard.summary.matter_personal_data_detector_source_matter_knowledge_graph_status, "complete");
+      assert.equal(dashboard.summary.matter_personal_data_detector_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.matter_personal_data_detector_source_matter_privilege_classifier_status, "complete");
+      assert.equal(dashboard.summary.matter_personal_data_detector_source_data_classification_rule_engine_status, "complete");
+      assert.equal(dashboard.summary.matter_personal_data_detector_source_resource_quarantine_status, "complete");
+      assert.equal(dashboard.summary.matter_personal_data_detector_detection_record_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_personal_data_flagged_count, matterPersonalDataDetector.summary.personal_data_flagged_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_sensitive_personal_data_flagged_count, matterPersonalDataDetector.summary.sensitive_personal_data_flagged_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_policy_link_count, matterPersonalDataDetector.summary.policy_link_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_quarantine_link_count, matterPersonalDataDetector.summary.quarantine_link_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_policy_bound_detection_count, matterPersonalDataDetector.summary.policy_bound_detection_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_quarantine_bound_detection_count, matterPersonalDataDetector.summary.quarantine_bound_detection_count);
+      assert.equal(dashboard.summary.matter_personal_data_detector_quarantine_applied_count, 0);
+      assert.equal(dashboard.summary.matter_personal_data_detector_legal_advice_provided, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_policy_enforcement_mutation_performed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_quarantine_execution_performed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.matter_personal_data_detector_desktop_read_only, true);
+      assert.equal(dashboard.summary.matter_personal_data_detector_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_protected_action_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_quarantine_execution_allowed, false);
+      assert.equal(dashboard.summary.matter_personal_data_detector_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.matter_personal_data_detector_validation_error_count, 0);
+      assert.equal(dashboard.summary.legal_citation_verifier_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_citation_object_store_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_issue_graph_store_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_source_span_store_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_evidence_item_store_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_fact_claim_store_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_lineage_graph_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_output_catalog_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_source_delivery_queue_status, "complete");
+      assert.equal(dashboard.summary.legal_citation_verifier_citation_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_verification_record_count, legalCitationVerifier.summary.verification_record_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_source_check_count, legalCitationVerifier.summary.source_check_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_currentness_check_count, legalCitationVerifier.summary.currentness_check_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_source_bound_citation_count, legalCitationVerifier.summary.source_bound_citation_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_legal_rule_bound_citation_count, legalCitationVerifier.summary.legal_rule_bound_citation_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_currentness_gate_applied_count, legalCitationVerifier.summary.currentness_gate_applied_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_currentness_review_required_count, legalCitationVerifier.summary.currentness_review_required_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_currentness_verified_count, 0);
+      assert.equal(dashboard.summary.legal_citation_verifier_legal_authority_review_required_count, legalCitationVerifier.summary.legal_authority_review_required_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_attorney_review_required_citation_count, legalCitationVerifier.summary.attorney_review_required_citation_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_human_review_required_citation_count, legalCitationVerifier.summary.human_review_required_citation_count);
+      assert.equal(dashboard.summary.legal_citation_verifier_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.legal_citation_verifier_legal_advice_provided, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_external_legal_research_performed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_legal_authority_finalized, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.legal_citation_verifier_desktop_read_only, true);
+      assert.equal(dashboard.summary.legal_citation_verifier_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_protected_action_allowed, false);
+      assert.equal(dashboard.summary.legal_citation_verifier_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.legal_citation_verifier_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_status, "complete");
+      assert.equal(dashboard.summary.ldd_vdr_inventory_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.ldd_vdr_inventory_source_matter_task_board_status, "complete");
+      assert.equal(dashboard.summary.ldd_vdr_inventory_source_resource_version_ledger_status, "complete");
+      assert.equal(dashboard.summary.ldd_vdr_inventory_source_law_firm_pack_manifest_status, "complete");
+      assert.equal(dashboard.summary.ldd_vdr_inventory_batch_count, lddVdrInventory.summary.batch_count);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_folder_record_count, lddVdrInventory.summary.folder_record_count);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_file_record_count, lddVdrInventory.summary.file_record_count);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_version_record_count, lddVdrInventory.summary.version_record_count);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_missing_data_record_count, lddVdrInventory.summary.missing_data_record_count);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_rfi_candidate_count, lddVdrInventory.summary.rfi_candidate_count);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_vdr_inventory_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_vdr_inventory_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_document_classification_status, "complete");
+      assert.equal(dashboard.summary.ldd_document_classification_source_ldd_vdr_inventory_status, "complete");
+      assert.equal(dashboard.summary.ldd_document_classification_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.ldd_document_classification_source_document_count, lddDocumentClassification.summary.source_document_count);
+      assert.equal(dashboard.summary.ldd_document_classification_record_count, lddDocumentClassification.summary.classification_record_count);
+      assert.equal(dashboard.summary.ldd_document_classification_classified_document_count, lddDocumentClassification.summary.classified_document_count);
+      assert.equal(dashboard.summary.ldd_document_classification_class_summary_count, lddDocumentClassification.summary.class_summary_count);
+      assert.equal(dashboard.summary.ldd_document_classification_file_classification_count, lddDocumentClassification.summary.file_classification_count);
+      assert.equal(dashboard.summary.ldd_document_classification_missing_data_classification_count, lddDocumentClassification.summary.missing_data_classification_count);
+      assert.equal(dashboard.summary.ldd_document_classification_contract_classification_count, lddDocumentClassification.summary.contract_classification_count);
+      assert.equal(dashboard.summary.ldd_document_classification_tax_classification_count, lddDocumentClassification.summary.tax_classification_count);
+      assert.equal(dashboard.summary.ldd_document_classification_closing_deliverable_classification_count, lddDocumentClassification.summary.closing_deliverable_classification_count);
+      assert.equal(dashboard.summary.ldd_document_classification_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_document_classification_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_document_classification_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_document_classification_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_document_classification_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_document_classification_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_document_classification_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_document_classification_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_extractor_selection_status, "complete");
+      assert.equal(dashboard.summary.ldd_extractor_selection_source_ldd_document_classification_status, "complete");
+      assert.equal(dashboard.summary.ldd_extractor_selection_source_ldd_document_classification_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_extractor_selection_source_extractor_adapter_contract_status, "complete");
+      assert.equal(dashboard.summary.ldd_extractor_selection_source_extractor_adapter_contract_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_extractor_selection_classification_record_count, lddExtractorSelection.summary.classification_record_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_registry_count, lddExtractorSelection.summary.extractor_registry_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_registry_local_only_count, lddExtractorSelection.summary.extractor_registry_local_only_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_record_count, lddExtractorSelection.summary.selection_record_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_selected_extractor_count, lddExtractorSelection.summary.selected_extractor_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_distinct_selected_extractor_count, lddExtractorSelection.summary.distinct_selected_extractor_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_rationale_count, lddExtractorSelection.summary.selection_rationale_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_matter_count, lddExtractorSelection.summary.matter_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_contract_extractor_selection_count, lddExtractorSelection.summary.contract_extractor_selection_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_tax_extractor_selection_count, lddExtractorSelection.summary.tax_extractor_selection_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_closing_deliverable_extractor_selection_count, lddExtractorSelection.summary.closing_deliverable_extractor_selection_count);
+      assert.equal(dashboard.summary.ldd_extractor_selection_extractor_execution_count, 0);
+      assert.equal(dashboard.summary.ldd_extractor_selection_extraction_result_generated_count, 0);
+      assert.equal(dashboard.summary.ldd_extractor_selection_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_extractor_selection_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_extractor_selection_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_extractor_selection_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_extractor_selection_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_extractor_selection_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_fact_extraction_status, "complete");
+      assert.equal(dashboard.summary.ldd_fact_extraction_source_ldd_extractor_selection_status, "complete");
+      assert.equal(dashboard.summary.ldd_fact_extraction_source_ldd_extractor_selection_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_fact_extraction_source_matter_status, "complete");
+      assert.equal(dashboard.summary.ldd_fact_extraction_source_selection_record_count, lddFactExtraction.summary.source_selection_record_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_rule_count, lddFactExtraction.summary.fact_rule_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_record_count, lddFactExtraction.summary.fact_record_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_source_gap_fact_count, lddFactExtraction.summary.source_gap_fact_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_source_binding_count, lddFactExtraction.summary.source_binding_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_party_fact_count, lddFactExtraction.summary.party_fact_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_date_fact_count, lddFactExtraction.summary.date_fact_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_obligation_fact_count, lddFactExtraction.summary.obligation_fact_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_termination_fact_count, lddFactExtraction.summary.termination_fact_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_change_of_control_fact_count, lddFactExtraction.summary.change_of_control_fact_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_deterministic_fact_extraction_count, lddFactExtraction.summary.deterministic_fact_extraction_count);
+      assert.equal(dashboard.summary.ldd_fact_extraction_external_extractor_execution_count, 0);
+      assert.equal(dashboard.summary.ldd_fact_extraction_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_fact_extraction_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.ldd_fact_extraction_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_fact_extraction_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_fact_extraction_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_fact_extraction_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_fact_extraction_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_issue_detection_status, "complete");
+      assert.equal(dashboard.summary.ldd_issue_detection_source_ldd_fact_extraction_status, "complete");
+      assert.equal(dashboard.summary.ldd_issue_detection_source_ldd_fact_extraction_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_issue_detection_source_matter_status, "complete");
+      assert.equal(dashboard.summary.ldd_issue_detection_source_fact_record_count, lddIssueDetection.summary.source_fact_record_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_rule_count, lddIssueDetection.summary.issue_rule_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_record_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_detected_issue_count, lddIssueDetection.summary.detected_issue_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_red_flag_count, lddIssueDetection.summary.red_flag_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_yellow_flag_count, lddIssueDetection.summary.yellow_flag_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_high_severity_issue_count, lddIssueDetection.summary.high_severity_issue_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_medium_severity_issue_count, lddIssueDetection.summary.medium_severity_issue_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_source_gap_issue_count, lddIssueDetection.summary.source_gap_issue_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_follow_up_count, lddIssueDetection.summary.follow_up_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_open_follow_up_count, lddIssueDetection.summary.open_follow_up_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_severity_summary_count, lddIssueDetection.summary.severity_summary_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_matter_count, lddIssueDetection.summary.matter_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_deterministic_issue_detection_count, lddIssueDetection.summary.deterministic_issue_detection_count);
+      assert.equal(dashboard.summary.ldd_issue_detection_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_issue_detection_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.ldd_issue_detection_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_issue_detection_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_issue_detection_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_issue_detection_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_issue_detection_validation_error_count, 0);
+      assert.equal(dashboard.summary.ldd_rfi_generator_status, "complete");
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_ldd_issue_detection_status, "complete");
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_ldd_issue_detection_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_ldd_vdr_inventory_status, "complete");
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_ldd_vdr_inventory_phase_status, "complete");
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_matter_status, "complete");
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_issue_record_count, lddRfiGenerator.summary.source_issue_record_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_source_rfi_candidate_count, lddRfiGenerator.summary.source_rfi_candidate_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_rule_count, lddRfiGenerator.summary.rfi_rule_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_draft_count, lddRfiGenerator.summary.rfi_draft_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_question_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_question_with_issue_link_count, lddRfiGenerator.summary.question_with_issue_link_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_question_with_evidence_link_count, lddRfiGenerator.summary.question_with_evidence_link_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_missing_material_link_count, lddRfiGenerator.summary.missing_material_link_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_issue_link_count, lddRfiGenerator.summary.issue_link_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_draft_only_count, lddRfiGenerator.summary.draft_only_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_human_review_note_count, lddRfiGenerator.summary.human_review_note_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_deterministic_rfi_generation_count, lddRfiGenerator.summary.deterministic_rfi_generation_count);
+      assert.equal(dashboard.summary.ldd_rfi_generator_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.ldd_rfi_generator_legal_advice_provided, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.ldd_rfi_generator_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.ldd_rfi_generator_desktop_read_only, true);
+      assert.equal(dashboard.summary.ldd_rfi_generator_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_protected_action_allowed, false);
+      assert.equal(dashboard.summary.ldd_rfi_generator_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.ldd_rfi_generator_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -11723,6 +14817,861 @@ describe("matter harness", () => {
       assert.equal(agentInstructionRegistryStage?.metrics.desktop_instruction_write_allowed, false);
       assert.equal(agentInstructionRegistryStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(agentInstructionRegistryStage?.metrics.desktop_source_of_truth, false);
+      const issueIntakeAdapterStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "issue_intake_adapter");
+      assert.equal(issueIntakeAdapterStage?.status, "passed");
+      assert.equal(issueIntakeAdapterStage?.metrics.issue_intake_status, "complete");
+      assert.equal(issueIntakeAdapterStage?.metrics.issue_record_count, 3);
+      assert.equal(issueIntakeAdapterStage?.metrics.normalized_task_count, 3);
+      assert.equal(issueIntakeAdapterStage?.metrics.bound_issue_task_binding_count, 3);
+      assert.equal(issueIntakeAdapterStage?.metrics.issue_mutation_performed_count, 0);
+      assert.equal(issueIntakeAdapterStage?.metrics.desktop_read_only, true);
+      assert.equal(issueIntakeAdapterStage?.metrics.desktop_mutation_allowed, false);
+      const planRequestContractStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "plan_request_contract");
+      assert.equal(planRequestContractStage?.status, "passed");
+      assert.equal(planRequestContractStage?.metrics.plan_request_status, "complete");
+      assert.equal(planRequestContractStage?.metrics.plan_request_count, 2);
+      assert.equal(planRequestContractStage?.metrics.claude_plan_request_count, 1);
+      assert.equal(planRequestContractStage?.metrics.codex_plan_request_count, 1);
+      assert.equal(planRequestContractStage?.metrics.shared_context_count, 1);
+      assert.equal(planRequestContractStage?.metrics.unique_context_hash_count, 1);
+      assert.equal(planRequestContractStage?.metrics.unique_constraints_hash_count, 1);
+      assert.equal(planRequestContractStage?.metrics.bound_plan_request_count, 2);
+      assert.equal(planRequestContractStage?.metrics.external_agent_invocation_performed_count, 0);
+      assert.equal(planRequestContractStage?.metrics.plan_acceptance_performed_count, 0);
+      assert.equal(planRequestContractStage?.metrics.command_execution_performed_count, 0);
+      assert.equal(planRequestContractStage?.metrics.desktop_read_only, true);
+      assert.equal(planRequestContractStage?.metrics.desktop_mutation_allowed, false);
+      const planReconciliationStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "plan_reconciliation");
+      assert.equal(planReconciliationStage?.status, "passed");
+      assert.equal(planReconciliationStage?.metrics.plan_reconciliation_status, "complete");
+      assert.equal(planReconciliationStage?.metrics.source_plan_request_status, "complete");
+      assert.equal(planReconciliationStage?.metrics.plan_candidate_count, 2);
+      assert.equal(planReconciliationStage?.metrics.claude_plan_candidate_count, 1);
+      assert.equal(planReconciliationStage?.metrics.codex_plan_candidate_count, 1);
+      assert.equal(planReconciliationStage?.metrics.commonality_count, planReconciliation.summary.commonality_count);
+      assert.equal(planReconciliationStage?.metrics.conflict_count, planReconciliation.summary.conflict_count);
+      assert.equal(planReconciliationStage?.metrics.resolved_conflict_count, planReconciliation.summary.conflict_count);
+      assert.equal(planReconciliationStage?.metrics.selected_scope_status, "selected_for_human_review");
+      assert.equal(planReconciliationStage?.metrics.unresolved_question_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(planReconciliationStage?.metrics.external_agent_invocation_performed_count, 0);
+      assert.equal(planReconciliationStage?.metrics.plan_acceptance_performed_count, 0);
+      assert.equal(planReconciliationStage?.metrics.scope_freeze_performed_count, 0);
+      assert.equal(planReconciliationStage?.metrics.command_execution_performed_count, 0);
+      assert.equal(planReconciliationStage?.metrics.desktop_read_only, true);
+      assert.equal(planReconciliationStage?.metrics.desktop_mutation_allowed, false);
+      const scopeFreezeGateStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "scope_freeze_gate");
+      assert.equal(scopeFreezeGateStage?.status, "passed");
+      assert.equal(scopeFreezeGateStage?.metrics.scope_freeze_gate_status, "complete");
+      assert.equal(scopeFreezeGateStage?.metrics.source_plan_reconciliation_status, "complete");
+      assert.equal(scopeFreezeGateStage?.metrics.source_protected_file_gate_status, "complete");
+      assert.equal(scopeFreezeGateStage?.metrics.selected_scope_status, "selected_for_human_review");
+      assert.equal(scopeFreezeGateStage?.metrics.frozen_scope_item_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.equal(scopeFreezeGateStage?.metrics.frozen_scope_item_frozen_count, scopeFreezeGate.summary.frozen_scope_item_count);
+      assert.equal(scopeFreezeGateStage?.metrics.scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(scopeFreezeGateStage?.metrics.in_scope_file_boundary_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(scopeFreezeGateStage?.metrics.protected_file_rule_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(scopeFreezeGateStage?.metrics.frozen_protected_file_rule_snapshot_count, scopeFreezeGate.summary.protected_file_rule_count);
+      assert.equal(scopeFreezeGateStage?.metrics.protected_write_requires_approval, true);
+      assert.equal(scopeFreezeGateStage?.metrics.write_allowed_before_approval_count, 0);
+      assert.equal(scopeFreezeGateStage?.metrics.mutation_allowed_before_approval_count, 0);
+      assert.equal(scopeFreezeGateStage?.metrics.scope_freeze_decision_status, "frozen");
+      assert.equal(scopeFreezeGateStage?.metrics.scope_freeze_performed_count, 1);
+      assert.equal(scopeFreezeGateStage?.metrics.plan_acceptance_performed_count, 0);
+      assert.equal(scopeFreezeGateStage?.metrics.external_agent_invocation_performed_count, 0);
+      assert.equal(scopeFreezeGateStage?.metrics.command_execution_performed_count, 0);
+      assert.equal(scopeFreezeGateStage?.metrics.protected_mutation_performed_count, 0);
+      assert.equal(scopeFreezeGateStage?.metrics.worktree_provisioning_allowed_after_freeze, true);
+      assert.equal(scopeFreezeGateStage?.metrics.implementation_patch_allowed_before_worktree, false);
+      assert.equal(scopeFreezeGateStage?.metrics.protected_file_write_allowed_without_approval, false);
+      assert.equal(scopeFreezeGateStage?.metrics.scope_change_requires_new_reconciliation, true);
+      assert.equal(scopeFreezeGateStage?.metrics.desktop_read_only, true);
+      assert.equal(scopeFreezeGateStage?.metrics.desktop_mutation_allowed, false);
+      const devLaneLedgerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "dev_lane_ledger");
+      assert.equal(devLaneLedgerStage?.status, "passed");
+      assert.equal(devLaneLedgerStage?.metrics.dev_lane_ledger_status, "complete");
+      assert.equal(devLaneLedgerStage?.metrics.source_scope_freeze_gate_status, "complete");
+      assert.equal(devLaneLedgerStage?.metrics.source_plan_reconciliation_status, "complete");
+      assert.equal(devLaneLedgerStage?.metrics.source_worktree_manager_v2_status, "complete");
+      assert.equal(devLaneLedgerStage?.metrics.scope_freeze_performed_count, 1);
+      assert.equal(devLaneLedgerStage?.metrics.worktree_provisioning_allowed_after_freeze, true);
+      assert.equal(devLaneLedgerStage?.metrics.dev_lane_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.provisioned_dev_lane_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.claude_code_lane_count, 1);
+      assert.equal(devLaneLedgerStage?.metrics.codex_lane_count, 1);
+      assert.equal(devLaneLedgerStage?.metrics.unique_branch_name_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.unique_worktree_path_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.branch_record_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.created_branch_record_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.worktree_record_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.created_worktree_record_count, 2);
+      assert.equal(devLaneLedgerStage?.metrics.git_command_executed_count, 0);
+      assert.equal(devLaneLedgerStage?.metrics.filesystem_mutation_performed_count, 0);
+      assert.equal(devLaneLedgerStage?.metrics.protected_file_write_allowed_without_approval, false);
+      assert.equal(devLaneLedgerStage?.metrics.protected_mutation_performed_count, 0);
+      assert.equal(devLaneLedgerStage?.metrics.external_agent_invocation_performed_count, 0);
+      assert.equal(devLaneLedgerStage?.metrics.plan_acceptance_performed_count, 0);
+      assert.equal(devLaneLedgerStage?.metrics.patch_application_performed_count, 0);
+      assert.equal(devLaneLedgerStage?.metrics.desktop_read_only, true);
+      assert.equal(devLaneLedgerStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(devLaneLedgerStage?.metrics.desktop_create_worktree_allowed, false);
+      assert.equal(devLaneLedgerStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(devLaneLedgerStage?.metrics.validation_error_count, 0);
+      const implementationPatchCaptureStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "implementation_patch_capture");
+      assert.equal(implementationPatchCaptureStage?.status, "passed");
+      assert.equal(implementationPatchCaptureStage?.metrics.implementation_patch_capture_status, "complete");
+      assert.equal(implementationPatchCaptureStage?.metrics.source_dev_lane_ledger_status, "complete");
+      assert.equal(implementationPatchCaptureStage?.metrics.source_scope_freeze_gate_status, "complete");
+      assert.equal(implementationPatchCaptureStage?.metrics.source_runtime_artifact_capture_status, "complete");
+      assert.equal(implementationPatchCaptureStage?.metrics.patch_record_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.captured_patch_record_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.claude_code_patch_record_count, 1);
+      assert.equal(implementationPatchCaptureStage?.metrics.codex_patch_record_count, 1);
+      assert.equal(implementationPatchCaptureStage?.metrics.diff_capture_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.captured_diff_capture_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.output_bound_diff_capture_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.touched_file_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(implementationPatchCaptureStage?.metrics.in_scope_touched_file_count, scopeFreezeGate.summary.scope_file_boundary_count);
+      assert.equal(implementationPatchCaptureStage?.metrics.generated_artifact_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(implementationPatchCaptureStage?.metrics.captured_generated_artifact_count, implementationPatchCapture.summary.generated_artifact_count);
+      assert.equal(implementationPatchCaptureStage?.metrics.run_ledger_binding_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.bound_run_ledger_binding_count, 2);
+      assert.equal(implementationPatchCaptureStage?.metrics.patch_application_performed_count, 0);
+      assert.equal(implementationPatchCaptureStage?.metrics.git_command_executed_count, 0);
+      assert.equal(implementationPatchCaptureStage?.metrics.filesystem_mutation_performed_count, 0);
+      assert.equal(implementationPatchCaptureStage?.metrics.protected_file_write_allowed_without_approval, false);
+      assert.equal(implementationPatchCaptureStage?.metrics.protected_mutation_performed_count, 0);
+      assert.equal(implementationPatchCaptureStage?.metrics.external_agent_invocation_performed_count, 0);
+      assert.equal(implementationPatchCaptureStage?.metrics.plan_acceptance_performed_count, 0);
+      assert.equal(implementationPatchCaptureStage?.metrics.desktop_read_only, true);
+      assert.equal(implementationPatchCaptureStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(implementationPatchCaptureStage?.metrics.desktop_patch_application_allowed, false);
+      assert.equal(implementationPatchCaptureStage?.metrics.desktop_git_command_allowed, false);
+      assert.equal(implementationPatchCaptureStage?.metrics.desktop_filesystem_mutation_allowed, false);
+      assert.equal(implementationPatchCaptureStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(implementationPatchCaptureStage?.metrics.validation_error_count, 0);
+      const diffReviewGateStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "diff_review_gate");
+      assert.equal(diffReviewGateStage?.status, "passed");
+      assert.equal(diffReviewGateStage?.metrics.diff_review_gate_status, "complete");
+      assert.equal(diffReviewGateStage?.metrics.source_implementation_patch_capture_status, "complete");
+      assert.equal(diffReviewGateStage?.metrics.source_protected_file_gate_status, "complete");
+      assert.equal(diffReviewGateStage?.metrics.patch_record_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.diff_review_result_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.reviewed_diff_review_result_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.claude_code_review_result_count, 1);
+      assert.equal(diffReviewGateStage?.metrics.codex_review_result_count, 1);
+      assert.equal(diffReviewGateStage?.metrics.actual_diff_basis_available_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.agent_self_report_trusted_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.file_finding_count, diffReviewGate.summary.file_finding_count);
+      assert.equal(diffReviewGateStage?.metrics.reviewed_file_finding_count, diffReviewGate.summary.file_finding_count);
+      assert.equal(diffReviewGateStage?.metrics.in_scope_file_finding_count, diffReviewGate.summary.file_finding_count);
+      assert.equal(diffReviewGateStage?.metrics.artifact_finding_count, diffReviewGate.summary.artifact_finding_count);
+      assert.equal(diffReviewGateStage?.metrics.reviewed_artifact_finding_count, diffReviewGate.summary.artifact_finding_count);
+      assert.equal(diffReviewGateStage?.metrics.gate_result_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.passed_with_human_gate_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.patch_application_allowed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.patch_application_blocked_count, 2);
+      assert.equal(diffReviewGateStage?.metrics.patch_application_performed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.git_command_executed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.filesystem_mutation_performed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.protected_file_write_allowed_without_approval, false);
+      assert.equal(diffReviewGateStage?.metrics.protected_mutation_performed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.external_agent_invocation_performed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.plan_acceptance_performed_count, 0);
+      assert.equal(diffReviewGateStage?.metrics.desktop_read_only, true);
+      assert.equal(diffReviewGateStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(diffReviewGateStage?.metrics.desktop_patch_application_allowed, false);
+      assert.equal(diffReviewGateStage?.metrics.desktop_git_command_allowed, false);
+      assert.equal(diffReviewGateStage?.metrics.desktop_filesystem_mutation_allowed, false);
+      assert.equal(diffReviewGateStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(diffReviewGateStage?.metrics.validation_error_count, 0);
+      const canonicalTestMatrixStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "canonical_test_matrix");
+      assert.equal(canonicalTestMatrixStage?.status, "passed");
+      assert.equal(canonicalTestMatrixStage?.metrics.canonical_test_matrix_status, "complete");
+      assert.equal(canonicalTestMatrixStage?.metrics.source_repo_profile_detector_status, "complete");
+      assert.equal(canonicalTestMatrixStage?.metrics.source_canonical_test_runner_status, "complete");
+      assert.equal(canonicalTestMatrixStage?.metrics.source_diff_review_gate_status, "complete");
+      assert.equal(canonicalTestMatrixStage?.metrics.matrix_repo_count, 1);
+      assert.equal(canonicalTestMatrixStage?.metrics.test_dimension_count, 4);
+      assert.equal(canonicalTestMatrixStage?.metrics.required_dimension_count, 3);
+      assert.equal(canonicalTestMatrixStage?.metrics.configured_dimension_count, 3);
+      assert.equal(canonicalTestMatrixStage?.metrics.executed_dimension_count, 3);
+      assert.equal(canonicalTestMatrixStage?.metrics.passed_required_dimension_count, 3);
+      assert.equal(canonicalTestMatrixStage?.metrics.failed_dimension_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.timed_out_dimension_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.unit_dimension_passed, true);
+      assert.equal(canonicalTestMatrixStage?.metrics.typecheck_dimension_passed, true);
+      assert.equal(canonicalTestMatrixStage?.metrics.lint_dimension_passed, true);
+      assert.equal(canonicalTestMatrixStage?.metrics.agent_self_report_trusted_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.runtime_self_report_trusted_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.binding_count, 2);
+      assert.equal(canonicalTestMatrixStage?.metrics.bound_to_passing_matrix_count, 2);
+      assert.equal(canonicalTestMatrixStage?.metrics.patch_application_allowed_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.patch_application_performed_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.git_command_executed_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.filesystem_mutation_performed_count, 0);
+      assert.equal(canonicalTestMatrixStage?.metrics.desktop_read_only, true);
+      assert.equal(canonicalTestMatrixStage?.metrics.desktop_command_execution_allowed, false);
+      assert.equal(canonicalTestMatrixStage?.metrics.desktop_runtime_execution_allowed, false);
+      assert.equal(canonicalTestMatrixStage?.metrics.validation_error_count, 0);
+      const devProtectedScanStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "dev_protected_scan");
+      assert.equal(devProtectedScanStage?.status, "passed");
+      assert.equal(devProtectedScanStage?.metrics.dev_protected_scan_status, "complete");
+      assert.equal(devProtectedScanStage?.metrics.source_implementation_patch_capture_status, "complete");
+      assert.equal(devProtectedScanStage?.metrics.source_diff_review_gate_status, "complete");
+      assert.equal(devProtectedScanStage?.metrics.source_canonical_test_matrix_status, "complete");
+      assert.equal(devProtectedScanStage?.metrics.source_protected_file_gate_status, "complete");
+      assert.equal(devProtectedScanStage?.metrics.protected_candidate_count, protectedFileGate.summary.blocked_before_approval_count);
+      assert.equal(devProtectedScanStage?.metrics.blocked_before_approval_count, devProtectedScanStage?.metrics.protected_candidate_count);
+      assert.equal(devProtectedScanStage?.metrics.credential_or_secret_change_blocked_count, devProtectedScanStage?.metrics.credential_or_secret_candidate_count);
+      assert.equal(devProtectedScanStage?.metrics.production_config_change_blocked_count, devProtectedScanStage?.metrics.production_config_candidate_count);
+      assert.equal(devProtectedScanStage?.metrics.write_allowed_before_approval_count, 0);
+      assert.equal(devProtectedScanStage?.metrics.mutation_allowed_before_approval_count, 0);
+      assert.equal(devProtectedScanStage?.metrics.raw_secret_material_exposed, false);
+      assert.equal(devProtectedScanStage?.metrics.provider_key_exposed, false);
+      assert.equal(devProtectedScanStage?.metrics.scan_result_count, 2);
+      assert.equal(devProtectedScanStage?.metrics.binding_count, 2);
+      assert.equal(devProtectedScanStage?.metrics.patch_application_performed_count, 0);
+      assert.equal(devProtectedScanStage?.metrics.git_command_executed_count, 0);
+      assert.equal(devProtectedScanStage?.metrics.filesystem_mutation_performed_count, 0);
+      assert.equal(devProtectedScanStage?.metrics.desktop_read_only, true);
+      assert.equal(devProtectedScanStage?.metrics.desktop_secret_material_read_allowed, false);
+      assert.equal(devProtectedScanStage?.metrics.desktop_production_config_write_allowed, false);
+      assert.equal(devProtectedScanStage?.metrics.validation_error_count, 0);
+      const prDraftArtifactStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "pr_draft_artifact");
+      assert.equal(prDraftArtifactStage?.status, "passed");
+      assert.equal(prDraftArtifactStage?.metrics.pr_draft_artifact_status, "complete");
+      assert.equal(prDraftArtifactStage?.metrics.source_implementation_patch_capture_status, "complete");
+      assert.equal(prDraftArtifactStage?.metrics.source_diff_review_gate_status, "complete");
+      assert.equal(prDraftArtifactStage?.metrics.source_canonical_test_matrix_status, "complete");
+      assert.equal(prDraftArtifactStage?.metrics.source_dev_protected_scan_status, "complete");
+      assert.equal(prDraftArtifactStage?.metrics.source_pr_draft_output_artifact_available, true);
+      assert.equal(prDraftArtifactStage?.metrics.pr_draft_output_artifact_count, 1);
+      assert.equal(prDraftArtifactStage?.metrics.pr_draft_section_count, 4);
+      assert.equal(prDraftArtifactStage?.metrics.test_evidence_count, prDraftArtifact.summary.test_evidence_count);
+      assert.equal(prDraftArtifactStage?.metrics.passed_test_evidence_count, prDraftArtifact.summary.test_evidence_count);
+      assert.equal(prDraftArtifactStage?.metrics.risk_count, 4);
+      assert.equal(prDraftArtifactStage?.metrics.rollback_step_count, 3);
+      assert.equal(prDraftArtifactStage?.metrics.pr_draft_binding_count, 2);
+      assert.equal(prDraftArtifactStage?.metrics.pull_request_creation_performed, false);
+      assert.equal(prDraftArtifactStage?.metrics.github_api_called, false);
+      assert.equal(prDraftArtifactStage?.metrics.merge_performed, false);
+      assert.equal(prDraftArtifactStage?.metrics.release_performed, false);
+      assert.equal(prDraftArtifactStage?.metrics.desktop_read_only, true);
+      assert.equal(prDraftArtifactStage?.metrics.desktop_pull_request_creation_allowed, false);
+      assert.equal(prDraftArtifactStage?.metrics.desktop_direct_merge_allowed, false);
+      assert.equal(prDraftArtifactStage?.metrics.validation_error_count, 0);
+      const releaseNoteArtifactStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "release_note_artifact");
+      assert.equal(releaseNoteArtifactStage?.status, "passed");
+      assert.equal(releaseNoteArtifactStage?.metrics.release_note_artifact_status, "complete");
+      assert.equal(releaseNoteArtifactStage?.metrics.source_pr_draft_artifact_status, "complete");
+      assert.equal(releaseNoteArtifactStage?.metrics.source_canonical_test_matrix_status, "complete");
+      assert.equal(releaseNoteArtifactStage?.metrics.source_dev_protected_scan_status, "complete");
+      assert.equal(releaseNoteArtifactStage?.metrics.release_note_output_artifact_count, 1);
+      assert.equal(releaseNoteArtifactStage?.metrics.release_note_change_record_count, 1);
+      assert.equal(releaseNoteArtifactStage?.metrics.release_note_section_count, 6);
+      assert.equal(releaseNoteArtifactStage?.metrics.release_note_gate_binding_count, 3);
+      assert.equal(releaseNoteArtifactStage?.metrics.publication_allowed_count, 0);
+      assert.equal(releaseNoteArtifactStage?.metrics.merge_allowed_count, 0);
+      assert.equal(releaseNoteArtifactStage?.metrics.release_allowed_count, 0);
+      assert.equal(releaseNoteArtifactStage?.metrics.merge_performed, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.release_performed, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.release_note_publication_performed, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.github_api_called, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.branch_push_performed, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.desktop_read_only, true);
+      assert.equal(releaseNoteArtifactStage?.metrics.desktop_merge_allowed, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.desktop_release_allowed, false);
+      assert.equal(releaseNoteArtifactStage?.metrics.validation_error_count, 0);
+      const rollbackPlanArtifactStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "rollback_plan_artifact");
+      assert.equal(rollbackPlanArtifactStage?.status, "passed");
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_plan_artifact_status, "complete");
+      assert.equal(rollbackPlanArtifactStage?.metrics.source_implementation_patch_capture_status, "complete");
+      assert.equal(rollbackPlanArtifactStage?.metrics.source_diff_review_gate_status, "complete");
+      assert.equal(rollbackPlanArtifactStage?.metrics.source_pr_draft_artifact_status, "complete");
+      assert.equal(rollbackPlanArtifactStage?.metrics.source_release_note_artifact_status, "complete");
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_output_artifact_count, 1);
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_commit_target_count, 2);
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_file_target_count, implementationPatchCapture.summary.touched_file_count);
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_command_target_count, 5);
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_plan_binding_count, 4);
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_execution_allowed_count, 0);
+      assert.equal(rollbackPlanArtifactStage?.metrics.command_execution_allowed_count, 0);
+      assert.equal(rollbackPlanArtifactStage?.metrics.command_executed_count, 0);
+      assert.equal(rollbackPlanArtifactStage?.metrics.rollback_execution_performed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.command_execution_performed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.git_command_executed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.filesystem_mutation_performed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.desktop_read_only, true);
+      assert.equal(rollbackPlanArtifactStage?.metrics.desktop_command_execution_allowed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.desktop_file_restore_allowed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.desktop_rollback_execution_allowed, false);
+      assert.equal(rollbackPlanArtifactStage?.metrics.validation_error_count, 0);
+      const technicalDebtLedgerStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "technical_debt_ledger");
+      assert.equal(technicalDebtLedgerStage?.status, "passed");
+      assert.equal(technicalDebtLedgerStage?.metrics.technical_debt_ledger_status, "complete");
+      assert.equal(technicalDebtLedgerStage?.metrics.source_issue_intake_status, "complete");
+      assert.equal(technicalDebtLedgerStage?.metrics.source_plan_reconciliation_status, "complete");
+      assert.equal(technicalDebtLedgerStage?.metrics.source_pr_draft_artifact_status, "complete");
+      assert.equal(technicalDebtLedgerStage?.metrics.source_release_note_artifact_status, "complete");
+      assert.equal(technicalDebtLedgerStage?.metrics.source_rollback_plan_artifact_status, "complete");
+      assert.equal(technicalDebtLedgerStage?.metrics.debt_source_finding_count, technicalDebtLedger.summary.debt_source_finding_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.plan_question_finding_count, planReconciliation.summary.unresolved_question_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.pr_risk_finding_count, prDraftArtifact.summary.risk_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.technical_debt_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.preserved_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.backlog_task_count, technicalDebtLedger.summary.technical_debt_task_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.debt_task_binding_count, technicalDebtLedger.summary.debt_task_binding_count);
+      assert.equal(technicalDebtLedgerStage?.metrics.task_state_write_allowed_count, 0);
+      assert.equal(technicalDebtLedgerStage?.metrics.task_state_write_performed_count, 0);
+      assert.equal(technicalDebtLedgerStage?.metrics.issue_mutation_performed_count, 0);
+      assert.equal(technicalDebtLedgerStage?.metrics.command_execution_performed_count, 0);
+      assert.equal(technicalDebtLedgerStage?.metrics.desktop_read_only, true);
+      assert.equal(technicalDebtLedgerStage?.metrics.desktop_task_state_write_allowed, false);
+      assert.equal(technicalDebtLedgerStage?.metrics.desktop_issue_mutation_allowed, false);
+      assert.equal(technicalDebtLedgerStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(technicalDebtLedgerStage?.metrics.validation_error_count, 0);
+      const personalDevDashboardApiStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "personal_dev_dashboard_api");
+      assert.equal(personalDevDashboardApiStage?.status, "passed");
+      assert.equal(personalDevDashboardApiStage?.metrics.personal_dev_dashboard_api_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.pack_id, "personal-dev");
+      assert.equal(personalDevDashboardApiStage?.metrics.capability_id, "personal_dev.codex.worktree_patch");
+      assert.equal(personalDevDashboardApiStage?.metrics.api_authority, "harness_control_plane");
+      assert.equal(personalDevDashboardApiStage?.metrics.source_repo_profile_detector_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.source_dev_lane_ledger_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.source_plan_reconciliation_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.source_diff_review_gate_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.source_canonical_test_matrix_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.source_pr_draft_artifact_status, "complete");
+      assert.equal(personalDevDashboardApiStage?.metrics.panel_row_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.ready_panel_row_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.status_rollup_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.ready_status_rollup_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.api_route_binding_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.active_api_route_binding_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.read_only_api_route_binding_count, 6);
+      assert.equal(personalDevDashboardApiStage?.metrics.personal_dev_output_artifact_count, 1);
+      assert.equal(personalDevDashboardApiStage?.metrics.output_artifact_v2_count, 1);
+      assert.equal(personalDevDashboardApiStage?.metrics.output_artifact_draft_count, 1);
+      assert.equal(personalDevDashboardApiStage?.metrics.output_artifact_blocked_pending_approval_count, 1);
+      assert.equal(personalDevDashboardApiStage?.metrics.output_artifact_pending_approval_count, 1);
+      assert.equal(personalDevDashboardApiStage?.metrics.mutation_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.command_execution_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.task_state_write_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.issue_mutation_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.github_api_called, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.pull_request_creation_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.merge_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.release_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.protected_mutation_performed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.desktop_read_only, true);
+      assert.equal(personalDevDashboardApiStage?.metrics.desktop_command_execution_allowed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.desktop_github_api_allowed, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(personalDevDashboardApiStage?.metrics.validation_error_count, 0);
+      const personalDevE2eFreezeStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "personal_dev_e2e_freeze");
+      assert.equal(personalDevE2eFreezeStage?.status, "passed");
+      assert.equal(personalDevE2eFreezeStage?.metrics.personal_dev_e2e_freeze_status, "complete");
+      assert.equal(personalDevE2eFreezeStage?.metrics.source_count, 17);
+      assert.equal(personalDevE2eFreezeStage?.metrics.passed_source_count, 17);
+      assert.equal(personalDevE2eFreezeStage?.metrics.trace_count, 7);
+      assert.equal(personalDevE2eFreezeStage?.metrics.passed_trace_count, 7);
+      assert.equal(personalDevE2eFreezeStage?.metrics.loop_binding_count, 18);
+      assert.equal(personalDevE2eFreezeStage?.metrics.bound_loop_binding_count, 18);
+      assert.equal(personalDevE2eFreezeStage?.metrics.issue_to_pr_path_complete, true);
+      assert.equal(personalDevE2eFreezeStage?.metrics.dashboard_panel_row_count, 6);
+      assert.equal(personalDevE2eFreezeStage?.metrics.dashboard_route_binding_count, 6);
+      assert.equal(personalDevE2eFreezeStage?.metrics.mutation_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.command_execution_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.github_api_called, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.pull_request_creation_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.merge_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.release_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.rollback_execution_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.external_agent_invocation_performed, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.desktop_read_only, true);
+      assert.equal(personalDevE2eFreezeStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(personalDevE2eFreezeStage?.metrics.validation_error_count, 0);
+      const lawFirmPackManifestStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "law_firm_pack_manifest");
+      assert.equal(lawFirmPackManifestStage?.status, "passed");
+      assert.equal(lawFirmPackManifestStage?.metrics.law_firm_pack_manifest_status, "complete");
+      assert.equal(lawFirmPackManifestStage?.metrics.pack_id, "law-firm");
+      assert.equal(lawFirmPackManifestStage?.metrics.registration_status, "registered");
+      assert.equal(lawFirmPackManifestStage?.metrics.compatibility_status, "compatible");
+      assert.equal(lawFirmPackManifestStage?.metrics.law_firm_human_review_required, true);
+      assert.equal(lawFirmPackManifestStage?.metrics.matter_boundary_required, true);
+      assert.equal(lawFirmPackManifestStage?.metrics.registered_capability_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifestStage?.metrics.capability_version_api_card_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifestStage?.metrics.attorney_review_required_capability_count, lawFirmPackManifest.summary.capability_count);
+      assert.equal(lawFirmPackManifestStage?.metrics.runtime_freeze_status, "complete");
+      assert.equal(lawFirmPackManifestStage?.metrics.matter_contract_freeze_status, "complete");
+      assert.equal(lawFirmPackManifestStage?.metrics.output_delivery_contract_freeze_status, "complete");
+      assert.equal(lawFirmPackManifestStage?.metrics.executed_delivery_action_count, 0);
+      assert.equal(lawFirmPackManifestStage?.metrics.core_mutation_required_count, 0);
+      assert.equal(lawFirmPackManifestStage?.metrics.desktop_read_only, true);
+      assert.equal(lawFirmPackManifestStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lawFirmPackManifestStage?.metrics.desktop_runtime_source_of_truth, false);
+      assert.equal(lawFirmPackManifestStage?.metrics.legal_advice_provided, false);
+      assert.equal(lawFirmPackManifestStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lawFirmPackManifestStage?.metrics.protected_action_executed_count, 0);
+      assert.equal(lawFirmPackManifestStage?.metrics.validation_error_count, 0);
+      const matterOsProfileStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_os_profile");
+      assert.equal(matterOsProfileStage?.status, "passed");
+      assert.equal(matterOsProfileStage?.metrics.matter_os_profile_status, "complete");
+      assert.equal(matterOsProfileStage?.metrics.source_matter_profile_team_ledger_status, "complete");
+      assert.equal(matterOsProfileStage?.metrics.source_client_counterparty_registry_status, "complete");
+      assert.equal(matterOsProfileStage?.metrics.source_matter_contract_freeze_status, "complete");
+      assert.equal(matterOsProfileStage?.metrics.source_law_firm_pack_manifest_status, "complete");
+      assert.equal(matterOsProfileStage?.metrics.matter_os_profile_count, matterOsProfile.summary.matter_os_profile_count);
+      assert.equal(matterOsProfileStage?.metrics.complete_profile_card_count, matterOsProfile.summary.complete_profile_card_count);
+      assert.equal(matterOsProfileStage?.metrics.display_field_coverage_count, matterOsProfile.summary.display_field_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.client_display_coverage_count, matterOsProfile.summary.client_display_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.counterparty_display_coverage_count, matterOsProfile.summary.counterparty_display_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.matter_number_coverage_count, matterOsProfile.summary.matter_number_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.security_grade_coverage_count, matterOsProfile.summary.security_grade_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.responsible_owner_coverage_count, matterOsProfile.summary.responsible_owner_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.matter_boundary_coverage_count, matterOsProfile.summary.matter_boundary_coverage_count);
+      assert.equal(matterOsProfileStage?.metrics.attorney_review_required_profile_count, matterOsProfile.summary.attorney_review_required_profile_count);
+      assert.equal(matterOsProfileStage?.metrics.default_pending_review_profile_count, matterOsProfile.summary.default_pending_review_profile_count);
+      assert.equal(matterOsProfileStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterOsProfileStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterOsProfileStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterOsProfileStage?.metrics.desktop_read_only, true);
+      assert.equal(matterOsProfileStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterOsProfileStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterOsProfileStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterOsProfileStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterOsProfileStage?.metrics.validation_error_count, 0);
+      const matterTimelineStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_timeline");
+      assert.equal(matterTimelineStage?.status, "passed");
+      assert.equal(matterTimelineStage?.metrics.matter_timeline_status, "complete");
+      assert.equal(matterTimelineStage?.metrics.source_matter_os_profile_status, "complete");
+      assert.equal(matterTimelineStage?.metrics.source_output_catalog_status, "complete");
+      assert.equal(matterTimelineStage?.metrics.source_delivery_queue_status, "complete");
+      assert.equal(matterTimelineStage?.metrics.matter_file_count, matterTimeline.summary.matter_file_count);
+      assert.equal(matterTimelineStage?.metrics.available_matter_file_count, matterTimeline.summary.available_matter_file_count);
+      assert.equal(matterTimelineStage?.metrics.matter_file_with_matter_id_count, matterTimeline.summary.matter_file_with_matter_id_count);
+      assert.equal(matterTimelineStage?.metrics.matter_timeline_count, matterTimeline.summary.matter_timeline_count);
+      assert.equal(matterTimelineStage?.metrics.timeline_event_count, matterTimeline.summary.timeline_event_count);
+      assert.equal(matterTimelineStage?.metrics.meeting_event_count, matterTimeline.summary.meeting_event_count);
+      assert.equal(matterTimelineStage?.metrics.received_event_count, matterTimeline.summary.received_event_count);
+      assert.equal(matterTimelineStage?.metrics.submission_event_count, matterTimeline.summary.submission_event_count);
+      assert.equal(matterTimelineStage?.metrics.deadline_event_count, matterTimeline.summary.deadline_event_count);
+      assert.equal(matterTimelineStage?.metrics.sorted_event_count, matterTimeline.summary.sorted_event_count);
+      assert.equal(matterTimelineStage?.metrics.unsorted_event_count, 0);
+      assert.equal(matterTimelineStage?.metrics.matter_id_scoped_event_count, matterTimeline.summary.matter_id_scoped_event_count);
+      assert.equal(matterTimelineStage?.metrics.attorney_review_required_event_count, matterTimeline.summary.attorney_review_required_event_count);
+      assert.equal(matterTimelineStage?.metrics.human_review_required_event_count, matterTimeline.summary.human_review_required_event_count);
+      assert.equal(matterTimelineStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterTimelineStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterTimelineStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterTimelineStage?.metrics.desktop_read_only, true);
+      assert.equal(matterTimelineStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterTimelineStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterTimelineStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterTimelineStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterTimelineStage?.metrics.validation_error_count, 0);
+      const matterDocumentIndexStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_document_index");
+      assert.equal(matterDocumentIndexStage?.status, "passed");
+      assert.equal(matterDocumentIndexStage?.metrics.matter_document_index_status, "complete");
+      assert.equal(matterDocumentIndexStage?.metrics.source_matter_timeline_status, "complete");
+      assert.equal(matterDocumentIndexStage?.metrics.source_output_catalog_status, "complete");
+      assert.equal(matterDocumentIndexStage?.metrics.source_delivery_queue_status, "complete");
+      assert.equal(matterDocumentIndexStage?.metrics.matter_file_count, matterDocumentIndex.summary.matter_file_count);
+      assert.equal(matterDocumentIndexStage?.metrics.document_record_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(matterDocumentIndexStage?.metrics.document_family_count, matterDocumentIndex.summary.document_family_count);
+      assert.equal(matterDocumentIndexStage?.metrics.original_document_count, matterDocumentIndex.summary.original_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.draft_document_count, matterDocumentIndex.summary.draft_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.submitted_document_count, matterDocumentIndex.summary.submitted_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.counterparty_proposal_count, matterDocumentIndex.summary.counterparty_proposal_count);
+      assert.equal(matterDocumentIndexStage?.metrics.latest_document_count, matterDocumentIndex.summary.latest_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.matter_id_scoped_document_count, matterDocumentIndex.summary.matter_id_scoped_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.attorney_review_required_document_count, matterDocumentIndex.summary.attorney_review_required_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.human_review_required_document_count, matterDocumentIndex.summary.human_review_required_document_count);
+      assert.equal(matterDocumentIndexStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterDocumentIndexStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterDocumentIndexStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterDocumentIndexStage?.metrics.desktop_read_only, true);
+      assert.equal(matterDocumentIndexStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterDocumentIndexStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterDocumentIndexStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterDocumentIndexStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterDocumentIndexStage?.metrics.validation_error_count, 0);
+      const matterTaskBoardStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_task_board");
+      assert.equal(matterTaskBoardStage?.status, "passed");
+      assert.equal(matterTaskBoardStage?.metrics.matter_task_board_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.source_matter_timeline_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.source_matter_os_profile_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.source_workflow_run_dashboard_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.source_output_catalog_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.source_delivery_queue_status, "complete");
+      assert.equal(matterTaskBoardStage?.metrics.matter_file_count, matterTaskBoard.summary.matter_file_count);
+      assert.equal(matterTaskBoardStage?.metrics.available_matter_file_count, matterTaskBoard.summary.available_matter_file_count);
+      assert.equal(matterTaskBoardStage?.metrics.task_record_count, matterTaskBoard.summary.task_record_count);
+      assert.equal(matterTaskBoardStage?.metrics.board_column_count, matterTaskBoard.summary.board_column_count);
+      assert.equal(matterTaskBoardStage?.metrics.workflow_binding_count, matterTaskBoard.summary.workflow_binding_count);
+      assert.equal(matterTaskBoardStage?.metrics.matter_task_count, matterTaskBoard.summary.matter_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.matter_deadline_task_count, matterTaskBoard.summary.matter_deadline_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.vdr_request_task_count, matterTaskBoard.summary.vdr_request_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.qa_item_task_count, matterTaskBoard.summary.qa_item_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.cp_checklist_task_count, matterTaskBoard.summary.cp_checklist_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.negotiation_point_task_count, matterTaskBoard.summary.negotiation_point_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.litigation_task_count, matterTaskBoard.summary.litigation_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.output_review_task_count, matterTaskBoard.summary.output_review_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.blocked_task_count, matterTaskBoard.summary.blocked_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.open_task_count, matterTaskBoard.summary.open_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.in_review_task_count, matterTaskBoard.summary.in_review_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.task_with_owner_count, matterTaskBoard.summary.task_with_owner_count);
+      assert.equal(matterTaskBoardStage?.metrics.task_with_due_date_count, matterTaskBoard.summary.task_with_due_date_count);
+      assert.equal(matterTaskBoardStage?.metrics.task_with_status_count, matterTaskBoard.summary.task_with_status_count);
+      assert.equal(matterTaskBoardStage?.metrics.workflow_bound_task_count, matterTaskBoard.summary.workflow_bound_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.actual_workflow_run_bound_task_count, matterTaskBoard.summary.actual_workflow_run_bound_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.timeline_bound_task_count, matterTaskBoard.summary.timeline_bound_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.document_bound_task_count, matterTaskBoard.summary.document_bound_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.matter_id_scoped_task_count, matterTaskBoard.summary.matter_id_scoped_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.attorney_review_required_task_count, matterTaskBoard.summary.attorney_review_required_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.human_review_required_task_count, matterTaskBoard.summary.human_review_required_task_count);
+      assert.equal(matterTaskBoardStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterTaskBoardStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterTaskBoardStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterTaskBoardStage?.metrics.desktop_read_only, true);
+      assert.equal(matterTaskBoardStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(matterTaskBoardStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.task_state_write_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.protected_action_allowed, false);
+      assert.equal(matterTaskBoardStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(matterTaskBoardStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(matterTaskBoardStage?.metrics.validation_error_count, 0);
+      const matterKnowledgeGraphStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_knowledge_graph");
+      assert.equal(matterKnowledgeGraphStage?.status, "passed");
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_knowledge_graph_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.source_matter_task_board_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.source_matter_timeline_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.source_matter_os_profile_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.source_output_catalog_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.source_delivery_queue_status, "complete");
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_count, matterKnowledgeGraph.summary.matter_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.graph_node_count, matterKnowledgeGraph.summary.graph_node_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.graph_edge_count, matterKnowledgeGraph.summary.graph_edge_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.fact_node_count, matterKnowledgeGraph.summary.fact_node_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.issue_node_count, matterKnowledgeGraph.summary.issue_node_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.legal_theory_node_count, matterKnowledgeGraph.summary.legal_theory_node_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.evidence_node_count, matterKnowledgeGraph.summary.evidence_node_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_with_fact_count, matterKnowledgeGraph.summary.matter_with_fact_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_with_issue_count, matterKnowledgeGraph.summary.matter_with_issue_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_with_legal_theory_count, matterKnowledgeGraph.summary.matter_with_legal_theory_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_with_evidence_count, matterKnowledgeGraph.summary.matter_with_evidence_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.legal_theory_placeholder_count, matterKnowledgeGraph.summary.legal_theory_placeholder_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.fact_evidence_edge_count, matterKnowledgeGraph.summary.fact_evidence_edge_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.issue_evidence_edge_count, matterKnowledgeGraph.summary.issue_evidence_edge_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.legal_theory_issue_edge_count, matterKnowledgeGraph.summary.legal_theory_issue_edge_count);
+      assert.equal(matterKnowledgeGraphStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterKnowledgeGraphStage?.metrics.desktop_read_only, true);
+      assert.equal(matterKnowledgeGraphStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.task_state_write_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.protected_action_allowed, false);
+      assert.equal(matterKnowledgeGraphStage?.metrics.validation_error_count, 0);
+      const matterPrivilegeClassifierStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_privilege_classifier");
+      assert.equal(matterPrivilegeClassifierStage?.status, "passed");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.matter_privilege_classifier_status, "complete");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.source_matter_knowledge_graph_status, "complete");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.source_matter_task_board_status, "complete");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.source_output_catalog_status, "complete");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.source_delivery_queue_status, "complete");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.classification_record_count, matterPrivilegeClassifier.summary.classification_record_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.evidence_flag_count, matterPrivilegeClassifier.summary.evidence_flag_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.expected_evidence_node_count, matterPrivilegeClassifier.summary.expected_evidence_node_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.knowledge_graph_bound_classification_count, matterPrivilegeClassifier.summary.knowledge_graph_bound_classification_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.document_bound_classification_count, matterPrivilegeClassifier.summary.document_bound_classification_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.privileged_review_required_count, matterPrivilegeClassifier.summary.privileged_review_required_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.work_product_review_required_count, matterPrivilegeClassifier.summary.work_product_review_required_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.confidential_flagged_evidence_count, matterPrivilegeClassifier.summary.confidential_flagged_evidence_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.external_transfer_blocked_count, matterPrivilegeClassifier.summary.external_transfer_blocked_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.candidate_review_required_count, matterPrivilegeClassifier.summary.candidate_review_required_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.attorney_review_required_classification_count, matterPrivilegeClassifier.summary.attorney_review_required_classification_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.attorney_review_required_flag_count, matterPrivilegeClassifier.summary.attorney_review_required_flag_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.human_review_required_classification_count, matterPrivilegeClassifier.summary.human_review_required_classification_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.human_review_required_flag_count, matterPrivilegeClassifier.summary.human_review_required_flag_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.matter_id_scoped_classification_count, matterPrivilegeClassifier.summary.matter_id_scoped_classification_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.matter_id_scoped_flag_count, matterPrivilegeClassifier.summary.matter_id_scoped_flag_count);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.final_privilege_determination_count, 0);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterPrivilegeClassifierStage?.metrics.desktop_read_only, true);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.task_state_write_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.protected_action_allowed, false);
+      assert.equal(matterPrivilegeClassifierStage?.metrics.validation_error_count, 0);
+      const matterPersonalDataDetectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "matter_personal_data_detector");
+      assert.equal(matterPersonalDataDetectorStage?.status, "passed");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.matter_personal_data_detector_status, "complete");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.source_matter_knowledge_graph_status, "complete");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.source_matter_privilege_classifier_status, "complete");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.source_data_classification_rule_engine_status, "complete");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.source_resource_quarantine_status, "complete");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.detection_record_count, matterPersonalDataDetector.summary.detection_record_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.personal_data_flagged_count, matterPersonalDataDetector.summary.personal_data_flagged_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.sensitive_personal_data_flagged_count, matterPersonalDataDetector.summary.sensitive_personal_data_flagged_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.policy_link_count, matterPersonalDataDetector.summary.policy_link_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.quarantine_link_count, matterPersonalDataDetector.summary.quarantine_link_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.policy_bound_detection_count, matterPersonalDataDetector.summary.policy_bound_detection_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.quarantine_bound_detection_count, matterPersonalDataDetector.summary.quarantine_bound_detection_count);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.quarantine_applied_count, 0);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.legal_advice_provided, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.policy_enforcement_mutation_performed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.quarantine_execution_performed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(matterPersonalDataDetectorStage?.metrics.desktop_read_only, true);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.task_state_write_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.protected_action_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.quarantine_execution_allowed, false);
+      assert.equal(matterPersonalDataDetectorStage?.metrics.validation_error_count, 0);
+      const legalCitationVerifierStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "legal_citation_verifier");
+      assert.equal(legalCitationVerifierStage?.status, "passed");
+      assert.equal(legalCitationVerifierStage?.metrics.legal_citation_verifier_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_citation_object_store_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_issue_graph_store_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_source_span_store_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_evidence_item_store_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_fact_claim_store_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_lineage_graph_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_output_catalog_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.source_delivery_queue_status, "complete");
+      assert.equal(legalCitationVerifierStage?.metrics.citation_count, legalCitationVerifier.summary.citation_count);
+      assert.equal(legalCitationVerifierStage?.metrics.verification_record_count, legalCitationVerifier.summary.verification_record_count);
+      assert.equal(legalCitationVerifierStage?.metrics.source_check_count, legalCitationVerifier.summary.source_check_count);
+      assert.equal(legalCitationVerifierStage?.metrics.currentness_check_count, legalCitationVerifier.summary.currentness_check_count);
+      assert.equal(legalCitationVerifierStage?.metrics.source_bound_citation_count, legalCitationVerifier.summary.source_bound_citation_count);
+      assert.equal(legalCitationVerifierStage?.metrics.legal_rule_bound_citation_count, legalCitationVerifier.summary.legal_rule_bound_citation_count);
+      assert.equal(legalCitationVerifierStage?.metrics.currentness_gate_applied_count, legalCitationVerifier.summary.currentness_gate_applied_count);
+      assert.equal(legalCitationVerifierStage?.metrics.currentness_review_required_count, legalCitationVerifier.summary.currentness_review_required_count);
+      assert.equal(legalCitationVerifierStage?.metrics.currentness_verified_count, 0);
+      assert.equal(legalCitationVerifierStage?.metrics.legal_authority_review_required_count, legalCitationVerifier.summary.legal_authority_review_required_count);
+      assert.equal(legalCitationVerifierStage?.metrics.attorney_review_required_citation_count, legalCitationVerifier.summary.attorney_review_required_citation_count);
+      assert.equal(legalCitationVerifierStage?.metrics.human_review_required_citation_count, legalCitationVerifier.summary.human_review_required_citation_count);
+      assert.equal(legalCitationVerifierStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(legalCitationVerifierStage?.metrics.legal_advice_provided, false);
+      assert.equal(legalCitationVerifierStage?.metrics.client_facing_output_generated, false);
+      assert.equal(legalCitationVerifierStage?.metrics.external_legal_research_performed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.legal_authority_finalized, false);
+      assert.equal(legalCitationVerifierStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(legalCitationVerifierStage?.metrics.desktop_read_only, true);
+      assert.equal(legalCitationVerifierStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.task_state_write_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.protected_action_allowed, false);
+      assert.equal(legalCitationVerifierStage?.metrics.validation_error_count, 0);
+      const lddVdrInventoryStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_vdr_inventory");
+      assert.equal(lddVdrInventoryStage?.status, "passed");
+      assert.equal(lddVdrInventoryStage?.metrics.ldd_vdr_inventory_status, "complete");
+      assert.equal(lddVdrInventoryStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(lddVdrInventoryStage?.metrics.source_matter_task_board_status, "complete");
+      assert.equal(lddVdrInventoryStage?.metrics.source_resource_version_ledger_status, "complete");
+      assert.equal(lddVdrInventoryStage?.metrics.source_law_firm_pack_manifest_status, "complete");
+      assert.equal(lddVdrInventoryStage?.metrics.batch_count, lddVdrInventory.summary.batch_count);
+      assert.equal(lddVdrInventoryStage?.metrics.folder_record_count, lddVdrInventory.summary.folder_record_count);
+      assert.equal(lddVdrInventoryStage?.metrics.file_record_count, lddVdrInventory.summary.file_record_count);
+      assert.equal(lddVdrInventoryStage?.metrics.version_record_count, lddVdrInventory.summary.version_record_count);
+      assert.equal(lddVdrInventoryStage?.metrics.missing_data_record_count, lddVdrInventory.summary.missing_data_record_count);
+      assert.equal(lddVdrInventoryStage?.metrics.rfi_candidate_count, lddVdrInventory.summary.rfi_candidate_count);
+      assert.equal(lddVdrInventoryStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddVdrInventoryStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddVdrInventoryStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddVdrInventoryStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddVdrInventoryStage?.metrics.desktop_read_only, true);
+      assert.equal(lddVdrInventoryStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddVdrInventoryStage?.metrics.validation_error_count, 0);
+      const lddDocumentClassificationStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_document_classification");
+      assert.equal(lddDocumentClassificationStage?.status, "passed");
+      assert.equal(lddDocumentClassificationStage?.metrics.ldd_document_classification_status, "complete");
+      assert.equal(lddDocumentClassificationStage?.metrics.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(lddDocumentClassificationStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(lddDocumentClassificationStage?.metrics.source_document_count, lddDocumentClassification.summary.source_document_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.classification_record_count, lddDocumentClassification.summary.classification_record_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.classified_document_count, lddDocumentClassification.summary.classified_document_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.class_summary_count, lddDocumentClassification.summary.class_summary_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.file_classification_count, lddDocumentClassification.summary.file_classification_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.missing_data_classification_count, lddDocumentClassification.summary.missing_data_classification_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.contract_classification_count, lddDocumentClassification.summary.contract_classification_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.tax_classification_count, lddDocumentClassification.summary.tax_classification_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.closing_deliverable_classification_count, lddDocumentClassification.summary.closing_deliverable_classification_count);
+      assert.equal(lddDocumentClassificationStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddDocumentClassificationStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddDocumentClassificationStage?.metrics.desktop_read_only, true);
+      assert.equal(lddDocumentClassificationStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddDocumentClassificationStage?.metrics.validation_error_count, 0);
+      const lddExtractorSelectionStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_extractor_selection");
+      assert.equal(lddExtractorSelectionStage?.status, "passed");
+      assert.equal(lddExtractorSelectionStage?.metrics.ldd_extractor_selection_status, "complete");
+      assert.equal(lddExtractorSelectionStage?.metrics.source_ldd_document_classification_status, "complete");
+      assert.equal(lddExtractorSelectionStage?.metrics.source_ldd_document_classification_phase_status, "complete");
+      assert.equal(lddExtractorSelectionStage?.metrics.source_extractor_adapter_contract_status, "complete");
+      assert.equal(lddExtractorSelectionStage?.metrics.source_extractor_adapter_contract_phase_status, "complete");
+      assert.equal(lddExtractorSelectionStage?.metrics.classification_record_count, lddExtractorSelection.summary.classification_record_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.extractor_registry_count, lddExtractorSelection.summary.extractor_registry_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.extractor_registry_local_only_count, lddExtractorSelection.summary.extractor_registry_local_only_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.selection_record_count, lddExtractorSelection.summary.selection_record_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.selected_extractor_count, lddExtractorSelection.summary.selected_extractor_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.distinct_selected_extractor_count, lddExtractorSelection.summary.distinct_selected_extractor_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.selection_rationale_count, lddExtractorSelection.summary.selection_rationale_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.contract_extractor_selection_count, lddExtractorSelection.summary.contract_extractor_selection_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.tax_extractor_selection_count, lddExtractorSelection.summary.tax_extractor_selection_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.closing_deliverable_extractor_selection_count, lddExtractorSelection.summary.closing_deliverable_extractor_selection_count);
+      assert.equal(lddExtractorSelectionStage?.metrics.extractor_execution_count, 0);
+      assert.equal(lddExtractorSelectionStage?.metrics.extraction_result_generated_count, 0);
+      assert.equal(lddExtractorSelectionStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddExtractorSelectionStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddExtractorSelectionStage?.metrics.desktop_read_only, true);
+      assert.equal(lddExtractorSelectionStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddExtractorSelectionStage?.metrics.validation_error_count, 0);
+      const lddFactExtractionStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_fact_extraction");
+      assert.equal(lddFactExtractionStage?.status, "passed");
+      assert.equal(lddFactExtractionStage?.metrics.ldd_fact_extraction_status, "complete");
+      assert.equal(lddFactExtractionStage?.metrics.source_ldd_extractor_selection_status, "complete");
+      assert.equal(lddFactExtractionStage?.metrics.source_ldd_extractor_selection_phase_status, "complete");
+      assert.equal(lddFactExtractionStage?.metrics.source_matter_status, "complete");
+      assert.equal(lddFactExtractionStage?.metrics.fact_rule_count, lddFactExtraction.summary.fact_rule_count);
+      assert.equal(lddFactExtractionStage?.metrics.fact_record_count, lddFactExtraction.summary.fact_record_count);
+      assert.equal(lddFactExtractionStage?.metrics.source_gap_fact_count, lddFactExtraction.summary.source_gap_fact_count);
+      assert.equal(lddFactExtractionStage?.metrics.source_binding_count, lddFactExtraction.summary.source_binding_count);
+      assert.equal(lddFactExtractionStage?.metrics.party_fact_count, lddFactExtraction.summary.party_fact_count);
+      assert.equal(lddFactExtractionStage?.metrics.date_fact_count, lddFactExtraction.summary.date_fact_count);
+      assert.equal(lddFactExtractionStage?.metrics.obligation_fact_count, lddFactExtraction.summary.obligation_fact_count);
+      assert.equal(lddFactExtractionStage?.metrics.termination_fact_count, lddFactExtraction.summary.termination_fact_count);
+      assert.equal(lddFactExtractionStage?.metrics.change_of_control_fact_count, lddFactExtraction.summary.change_of_control_fact_count);
+      assert.equal(lddFactExtractionStage?.metrics.deterministic_fact_extraction_count, lddFactExtraction.summary.deterministic_fact_extraction_count);
+      assert.equal(lddFactExtractionStage?.metrics.external_extractor_execution_count, 0);
+      assert.equal(lddFactExtractionStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddFactExtractionStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddFactExtractionStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddFactExtractionStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(lddFactExtractionStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddFactExtractionStage?.metrics.desktop_read_only, true);
+      assert.equal(lddFactExtractionStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddFactExtractionStage?.metrics.validation_error_count, 0);
+      const lddIssueDetectionStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_issue_detection");
+      assert.equal(lddIssueDetectionStage?.status, "passed");
+      assert.equal(lddIssueDetectionStage?.metrics.ldd_issue_detection_status, "complete");
+      assert.equal(lddIssueDetectionStage?.metrics.source_ldd_fact_extraction_status, "complete");
+      assert.equal(lddIssueDetectionStage?.metrics.source_ldd_fact_extraction_phase_status, "complete");
+      assert.equal(lddIssueDetectionStage?.metrics.source_matter_status, "complete");
+      assert.equal(lddIssueDetectionStage?.metrics.source_fact_record_count, lddIssueDetection.summary.source_fact_record_count);
+      assert.equal(lddIssueDetectionStage?.metrics.issue_rule_count, lddIssueDetection.summary.issue_rule_count);
+      assert.equal(lddIssueDetectionStage?.metrics.issue_record_count, lddIssueDetection.summary.issue_record_count);
+      assert.equal(lddIssueDetectionStage?.metrics.detected_issue_count, lddIssueDetection.summary.detected_issue_count);
+      assert.equal(lddIssueDetectionStage?.metrics.red_flag_count, lddIssueDetection.summary.red_flag_count);
+      assert.equal(lddIssueDetectionStage?.metrics.yellow_flag_count, lddIssueDetection.summary.yellow_flag_count);
+      assert.equal(lddIssueDetectionStage?.metrics.high_severity_issue_count, lddIssueDetection.summary.high_severity_issue_count);
+      assert.equal(lddIssueDetectionStage?.metrics.medium_severity_issue_count, lddIssueDetection.summary.medium_severity_issue_count);
+      assert.equal(lddIssueDetectionStage?.metrics.source_gap_issue_count, lddIssueDetection.summary.source_gap_issue_count);
+      assert.equal(lddIssueDetectionStage?.metrics.follow_up_count, lddIssueDetection.summary.follow_up_count);
+      assert.equal(lddIssueDetectionStage?.metrics.open_follow_up_count, lddIssueDetection.summary.open_follow_up_count);
+      assert.equal(lddIssueDetectionStage?.metrics.deterministic_issue_detection_count, lddIssueDetection.summary.deterministic_issue_detection_count);
+      assert.equal(lddIssueDetectionStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddIssueDetectionStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddIssueDetectionStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddIssueDetectionStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(lddIssueDetectionStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddIssueDetectionStage?.metrics.desktop_read_only, true);
+      assert.equal(lddIssueDetectionStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddIssueDetectionStage?.metrics.validation_error_count, 0);
+      const lddRfiGeneratorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "ldd_rfi_generator");
+      assert.equal(lddRfiGeneratorStage?.status, "passed");
+      assert.equal(lddRfiGeneratorStage?.metrics.ldd_rfi_generator_status, "complete");
+      assert.equal(lddRfiGeneratorStage?.metrics.source_ldd_issue_detection_status, "complete");
+      assert.equal(lddRfiGeneratorStage?.metrics.source_ldd_issue_detection_phase_status, "complete");
+      assert.equal(lddRfiGeneratorStage?.metrics.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(lddRfiGeneratorStage?.metrics.source_ldd_vdr_inventory_phase_status, "complete");
+      assert.equal(lddRfiGeneratorStage?.metrics.source_matter_status, "complete");
+      assert.equal(lddRfiGeneratorStage?.metrics.source_issue_record_count, lddRfiGenerator.summary.source_issue_record_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.source_rfi_candidate_count, lddRfiGenerator.summary.source_rfi_candidate_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.rfi_rule_count, lddRfiGenerator.summary.rfi_rule_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.rfi_draft_count, lddRfiGenerator.summary.rfi_draft_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.rfi_question_count, lddRfiGenerator.summary.rfi_question_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.question_with_issue_link_count, lddRfiGenerator.summary.question_with_issue_link_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.question_with_evidence_link_count, lddRfiGenerator.summary.question_with_evidence_link_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.missing_material_link_count, lddRfiGenerator.summary.missing_material_link_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.issue_link_count, lddRfiGenerator.summary.issue_link_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.draft_only_count, lddRfiGenerator.summary.draft_only_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.human_review_note_count, lddRfiGenerator.summary.human_review_note_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.deterministic_rfi_generation_count, lddRfiGenerator.summary.deterministic_rfi_generation_count);
+      assert.equal(lddRfiGeneratorStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(lddRfiGeneratorStage?.metrics.legal_advice_provided, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(lddRfiGeneratorStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(lddRfiGeneratorStage?.metrics.desktop_read_only, true);
+      assert.equal(lddRfiGeneratorStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.task_state_write_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.protected_action_allowed, false);
+      assert.equal(lddRfiGeneratorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -13500,6 +17449,422 @@ describe("matter harness", () => {
       assert.equal(personalDevPackValidationsResponse.collection, "personal_dev_pack_validations");
       assert.equal(personalDevPackValidationsResponse.count, personalDevPackManifest.summary.validation_item_count);
 
+      const lawFirmPackManifestsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-pack-manifests?law_firm_pack_manifest_status=complete", apiOptions)).body);
+      assert.equal(lawFirmPackManifestsResponse.collection, "law_firm_pack_manifests");
+      assert.equal(lawFirmPackManifestsResponse.count, 1);
+
+      const lawFirmPackRegistrationResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-pack-registration?registration_status=registered", apiOptions)).body);
+      assert.equal(lawFirmPackRegistrationResponse.collection, "law_firm_pack_registration");
+      assert.equal(lawFirmPackRegistrationResponse.count, 1);
+
+      const lawFirmCapabilityRegistrationsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-capability-registrations?law_firm_capability_registration_status=registered", apiOptions)).body);
+      assert.equal(lawFirmCapabilityRegistrationsResponse.collection, "law_firm_capability_registrations");
+      assert.equal(lawFirmCapabilityRegistrationsResponse.count, lawFirmPackManifest.summary.registered_capability_count);
+
+      const lawFirmPackBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-pack-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lawFirmPackBoundaryResponse.collection, "law_firm_pack_boundary");
+      assert.equal(lawFirmPackBoundaryResponse.count, 1);
+
+      const lawFirmPackValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/law-firm-pack-validations?status=passed", apiOptions)).body);
+      assert.equal(lawFirmPackValidationsResponse.collection, "law_firm_pack_validations");
+      assert.equal(lawFirmPackValidationsResponse.count, lawFirmPackManifest.summary.validation_item_count);
+
+      const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
+      assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");
+      assert.equal(matterOsProfileArtifactsResponse.count, 1);
+
+      const matterOsProfilesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profiles?profile_card_status=complete", apiOptions)).body);
+      assert.equal(matterOsProfilesResponse.collection, "matter_os_profiles");
+      assert.equal(matterOsProfilesResponse.count, matterOsProfile.summary.complete_profile_card_count);
+
+      const matterOsDisplayFieldsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-display-fields?display_field_status=complete", apiOptions)).body);
+      assert.equal(matterOsDisplayFieldsResponse.collection, "matter_os_display_fields");
+      assert.equal(matterOsDisplayFieldsResponse.count, matterOsProfile.summary.display_field_coverage_count);
+
+      const matterOsProfileBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterOsProfileBoundaryResponse.collection, "matter_os_profile_boundary");
+      assert.equal(matterOsProfileBoundaryResponse.count, 1);
+
+      const matterOsProfileValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-validations?status=passed", apiOptions)).body);
+      assert.equal(matterOsProfileValidationsResponse.collection, "matter_os_profile_validations");
+      assert.equal(matterOsProfileValidationsResponse.count, matterOsProfile.summary.validation_item_count);
+
+      const matterTimelineArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-timeline-artifacts?matter_timeline_status=complete", apiOptions)).body);
+      assert.equal(matterTimelineArtifactsResponse.collection, "matter_timeline_artifacts");
+      assert.equal(matterTimelineArtifactsResponse.count, 1);
+
+      const matterTimelineEventsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-timeline-events?timeline_event_type=deadline", apiOptions)).body);
+      assert.equal(matterTimelineEventsResponse.collection, "matter_timeline_events");
+      assert.equal(matterTimelineEventsResponse.count, matterTimeline.summary.deadline_event_count);
+
+      const matterTimelineMattersResponse = JSON.parse((await buildReviewApiResponse("/api/matter-timeline-matters?timeline_matter_status=complete", apiOptions)).body);
+      assert.equal(matterTimelineMattersResponse.collection, "matter_timeline_matters");
+      assert.equal(matterTimelineMattersResponse.count, matterTimeline.summary.complete_matter_timeline_count);
+
+      const matterTimelineBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-timeline-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterTimelineBoundaryResponse.collection, "matter_timeline_boundary");
+      assert.equal(matterTimelineBoundaryResponse.count, 1);
+
+      const matterTimelineValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-timeline-validations?status=passed", apiOptions)).body);
+      assert.equal(matterTimelineValidationsResponse.collection, "matter_timeline_validations");
+      assert.equal(matterTimelineValidationsResponse.count, matterTimeline.summary.validation_item_count);
+
+      const matterDocumentIndexArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-document-index-artifacts?matter_document_index_status=complete", apiOptions)).body);
+      assert.equal(matterDocumentIndexArtifactsResponse.collection, "matter_document_index_artifacts");
+      assert.equal(matterDocumentIndexArtifactsResponse.count, 1);
+
+      const matterDocumentRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-document-records?document_role=original", apiOptions)).body);
+      assert.equal(matterDocumentRecordsResponse.collection, "matter_document_records");
+      assert.equal(matterDocumentRecordsResponse.count, matterDocumentIndex.summary.original_document_count);
+
+      const matterDocumentFamiliesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-document-families?document_family_status=indexed", apiOptions)).body);
+      assert.equal(matterDocumentFamiliesResponse.collection, "matter_document_families");
+      assert.equal(matterDocumentFamiliesResponse.count, matterDocumentIndex.summary.document_family_count);
+
+      const matterLatestDocumentsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-latest-documents?latest_document=true", apiOptions)).body);
+      assert.equal(matterLatestDocumentsResponse.collection, "matter_latest_documents");
+      assert.equal(matterLatestDocumentsResponse.count, matterDocumentIndex.summary.latest_document_count);
+
+      const matterDocumentIndexBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-document-index-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterDocumentIndexBoundaryResponse.collection, "matter_document_index_boundary");
+      assert.equal(matterDocumentIndexBoundaryResponse.count, 1);
+
+      const matterDocumentIndexValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-document-index-validations?status=passed", apiOptions)).body);
+      assert.equal(matterDocumentIndexValidationsResponse.collection, "matter_document_index_validations");
+      assert.equal(matterDocumentIndexValidationsResponse.count, matterDocumentIndex.summary.validation_item_count);
+
+      const matterTaskBoardArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-task-board-artifacts?matter_task_board_status=complete", apiOptions)).body);
+      assert.equal(matterTaskBoardArtifactsResponse.collection, "matter_task_board_artifacts");
+      assert.equal(matterTaskBoardArtifactsResponse.count, 1);
+
+      const matterTaskRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-task-records?task_category=matter_task", apiOptions)).body);
+      assert.equal(matterTaskRecordsResponse.collection, "matter_task_records");
+      assert.equal(matterTaskRecordsResponse.count, matterTaskBoard.summary.matter_task_count);
+
+      const matterTaskColumnsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-task-board-columns?task_column=open", apiOptions)).body);
+      assert.equal(matterTaskColumnsResponse.collection, "matter_task_board_columns");
+      assert.equal(matterTaskColumnsResponse.count, 1);
+
+      const matterTaskWorkflowBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-task-workflow-bindings?task_workflow_binding_status=bound&workflow_run_bound=true", apiOptions)).body);
+      assert.equal(matterTaskWorkflowBindingsResponse.collection, "matter_task_workflow_bindings");
+      assert.equal(matterTaskWorkflowBindingsResponse.count, matterTaskBoard.summary.actual_workflow_run_bound_task_count);
+
+      const matterTaskBoardBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-task-board-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterTaskBoardBoundaryResponse.collection, "matter_task_board_boundary");
+      assert.equal(matterTaskBoardBoundaryResponse.count, 1);
+
+      const matterTaskBoardValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-task-board-validations?status=passed", apiOptions)).body);
+      assert.equal(matterTaskBoardValidationsResponse.collection, "matter_task_board_validations");
+      assert.equal(matterTaskBoardValidationsResponse.count, matterTaskBoard.summary.validation_item_count);
+
+      const matterKnowledgeGraphArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-graph-artifacts?matter_knowledge_graph_status=complete", apiOptions)).body);
+      assert.equal(matterKnowledgeGraphArtifactsResponse.collection, "matter_knowledge_graph_artifacts");
+      assert.equal(matterKnowledgeGraphArtifactsResponse.count, 1);
+
+      const matterKnowledgeNodesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-nodes?knowledge_node_type=fact", apiOptions)).body);
+      assert.equal(matterKnowledgeNodesResponse.collection, "matter_knowledge_nodes");
+      assert.equal(matterKnowledgeNodesResponse.count, matterKnowledgeGraph.summary.fact_node_count);
+
+      const matterKnowledgeTheoryNodesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-nodes?knowledge_node_type=legal_theory&legal_theory_placeholder=true", apiOptions)).body);
+      assert.equal(matterKnowledgeTheoryNodesResponse.collection, "matter_knowledge_nodes");
+      assert.equal(matterKnowledgeTheoryNodesResponse.count, matterKnowledgeGraph.summary.legal_theory_placeholder_count);
+
+      const matterKnowledgeEdgesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-edges?knowledge_edge_type=fact_supported_by_evidence", apiOptions)).body);
+      assert.equal(matterKnowledgeEdgesResponse.collection, "matter_knowledge_edges");
+      assert.equal(matterKnowledgeEdgesResponse.count, matterKnowledgeGraph.summary.fact_evidence_edge_count);
+
+      const matterKnowledgeSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-summaries?matter_knowledge_status=complete", apiOptions)).body);
+      assert.equal(matterKnowledgeSummariesResponse.collection, "matter_knowledge_summaries");
+      assert.equal(matterKnowledgeSummariesResponse.count, matterKnowledgeGraph.summary.matter_summary_count);
+
+      const matterKnowledgeGraphBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-graph-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterKnowledgeGraphBoundaryResponse.collection, "matter_knowledge_graph_boundary");
+      assert.equal(matterKnowledgeGraphBoundaryResponse.count, 1);
+
+      const matterKnowledgeGraphValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-knowledge-graph-validations?status=passed", apiOptions)).body);
+      assert.equal(matterKnowledgeGraphValidationsResponse.collection, "matter_knowledge_graph_validations");
+      assert.equal(matterKnowledgeGraphValidationsResponse.count, matterKnowledgeGraph.summary.validation_item_count);
+
+      const matterPrivilegeClassifierArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-privilege-classifier-artifacts?matter_privilege_classifier_status=complete", apiOptions)).body);
+      assert.equal(matterPrivilegeClassifierArtifactsResponse.collection, "matter_privilege_classifier_artifacts");
+      assert.equal(matterPrivilegeClassifierArtifactsResponse.count, 1);
+
+      const privilegeClassificationRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/privilege-classification-records?privilege_flag=privileged_review_required", apiOptions)).body);
+      assert.equal(privilegeClassificationRecordsResponse.collection, "privilege_classification_records");
+      assert.equal(privilegeClassificationRecordsResponse.count, matterPrivilegeClassifier.summary.privileged_review_required_count);
+
+      const privilegeEvidenceFlagsResponse = JSON.parse((await buildReviewApiResponse("/api/privilege-evidence-flags?flag_type=work_product", apiOptions)).body);
+      assert.equal(privilegeEvidenceFlagsResponse.collection, "privilege_evidence_flags");
+      assert.equal(privilegeEvidenceFlagsResponse.count, matterPrivilegeClassifier.summary.classification_record_count);
+
+      const matterPrivilegeSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-privilege-summaries?matter_privilege_status=complete", apiOptions)).body);
+      assert.equal(matterPrivilegeSummariesResponse.collection, "matter_privilege_summaries");
+      assert.equal(matterPrivilegeSummariesResponse.count, matterPrivilegeClassifier.summary.matter_count);
+
+      const matterPrivilegeClassifierBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-privilege-classifier-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterPrivilegeClassifierBoundaryResponse.collection, "matter_privilege_classifier_boundary");
+      assert.equal(matterPrivilegeClassifierBoundaryResponse.count, 1);
+
+      const matterPrivilegeClassifierValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-privilege-classifier-validations?status=passed", apiOptions)).body);
+      assert.equal(matterPrivilegeClassifierValidationsResponse.collection, "matter_privilege_classifier_validations");
+      assert.equal(matterPrivilegeClassifierValidationsResponse.count, matterPrivilegeClassifier.summary.validation_item_count);
+
+      const matterPersonalDataDetectorArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-personal-data-detector-artifacts?matter_personal_data_detector_status=complete", apiOptions)).body);
+      assert.equal(matterPersonalDataDetectorArtifactsResponse.collection, "matter_personal_data_detector_artifacts");
+      assert.equal(matterPersonalDataDetectorArtifactsResponse.count, 1);
+
+      const personalDataDetectionRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-data-detection-records?personal_data_flag=sensitive_personal_data_review_required", apiOptions)).body);
+      assert.equal(personalDataDetectionRecordsResponse.collection, "personal_data_detection_records");
+      assert.equal(personalDataDetectionRecordsResponse.count, matterPersonalDataDetector.summary.sensitive_personal_data_flagged_count);
+
+      const personalDataPolicyLinksResponse = JSON.parse((await buildReviewApiResponse("/api/personal-data-policy-links?policy_binding_status=bound", apiOptions)).body);
+      assert.equal(personalDataPolicyLinksResponse.collection, "personal_data_policy_links");
+      assert.equal(personalDataPolicyLinksResponse.count, matterPersonalDataDetector.summary.policy_link_count);
+
+      const personalDataQuarantineLinksResponse = JSON.parse((await buildReviewApiResponse("/api/personal-data-quarantine-links?quarantine_binding_status=bound&quarantine_applied=false", apiOptions)).body);
+      assert.equal(personalDataQuarantineLinksResponse.collection, "personal_data_quarantine_links");
+      assert.equal(personalDataQuarantineLinksResponse.count, matterPersonalDataDetector.summary.quarantine_link_count);
+
+      const matterPersonalDataSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/matter-personal-data-summaries?matter_personal_data_status=complete", apiOptions)).body);
+      assert.equal(matterPersonalDataSummariesResponse.collection, "matter_personal_data_summaries");
+      assert.equal(matterPersonalDataSummariesResponse.count, matterPersonalDataDetector.summary.matter_count);
+
+      const matterPersonalDataDetectorBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/matter-personal-data-detector-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(matterPersonalDataDetectorBoundaryResponse.collection, "matter_personal_data_detector_boundary");
+      assert.equal(matterPersonalDataDetectorBoundaryResponse.count, 1);
+
+      const matterPersonalDataDetectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-personal-data-detector-validations?status=passed", apiOptions)).body);
+      assert.equal(matterPersonalDataDetectorValidationsResponse.collection, "matter_personal_data_detector_validations");
+      assert.equal(matterPersonalDataDetectorValidationsResponse.count, matterPersonalDataDetector.summary.validation_item_count);
+
+      const legalCitationVerifierArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-verifier-artifacts?legal_citation_verifier_status=complete", apiOptions)).body);
+      assert.equal(legalCitationVerifierArtifactsResponse.collection, "legal_citation_verifier_artifacts");
+      assert.equal(legalCitationVerifierArtifactsResponse.count, 1);
+
+      const legalCitationVerificationRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-verification-records?currentness_check_status=currentness_review_required", apiOptions)).body);
+      assert.equal(legalCitationVerificationRecordsResponse.collection, "legal_citation_verification_records");
+      assert.equal(legalCitationVerificationRecordsResponse.count, legalCitationVerifier.summary.currentness_review_required_count);
+
+      const legalCitationSourceChecksResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-source-checks?source_check_status=source_bound_pending_attorney_review&source_bound=true", apiOptions)).body);
+      assert.equal(legalCitationSourceChecksResponse.collection, "legal_citation_source_checks");
+      assert.equal(legalCitationSourceChecksResponse.count, legalCitationVerifier.summary.source_check_count);
+
+      const legalCitationCurrentnessChecksResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-currentness-checks?currentness_verified=false&attorney_currentness_review_required=true", apiOptions)).body);
+      assert.equal(legalCitationCurrentnessChecksResponse.collection, "legal_citation_currentness_checks");
+      assert.equal(legalCitationCurrentnessChecksResponse.count, legalCitationVerifier.summary.currentness_check_count);
+
+      const legalCitationMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-matter-summaries?legal_citation_matter_status=complete", apiOptions)).body);
+      assert.equal(legalCitationMatterSummariesResponse.collection, "legal_citation_matter_summaries");
+      assert.equal(legalCitationMatterSummariesResponse.count, legalCitationVerifier.summary.matter_count);
+
+      const legalCitationVerifierBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-verifier-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(legalCitationVerifierBoundaryResponse.collection, "legal_citation_verifier_boundary");
+      assert.equal(legalCitationVerifierBoundaryResponse.count, 1);
+
+      const legalCitationVerifierValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/legal-citation-verifier-validations?status=passed", apiOptions)).body);
+      assert.equal(legalCitationVerifierValidationsResponse.collection, "legal_citation_verifier_validations");
+      assert.equal(legalCitationVerifierValidationsResponse.count, legalCitationVerifier.summary.validation_item_count);
+
+      const lddVdrInventoryArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-inventory-artifacts?ldd_vdr_inventory_status=complete", apiOptions)).body);
+      assert.equal(lddVdrInventoryArtifactsResponse.collection, "ldd_vdr_inventory_artifacts");
+      assert.equal(lddVdrInventoryArtifactsResponse.count, 1);
+
+      const lddVdrBatchesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-batches?batch_status=inventory_attention_required", apiOptions)).body);
+      assert.equal(lddVdrBatchesResponse.collection, "ldd_vdr_batches");
+      assert.equal(lddVdrBatchesResponse.count, lddVdrInventory.summary.batch_count);
+
+      const lddVdrFoldersResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-folders?folder_status=attention_required", apiOptions)).body);
+      assert.equal(lddVdrFoldersResponse.collection, "ldd_vdr_folders");
+      assert.ok(lddVdrFoldersResponse.count > 0);
+
+      const lddVdrFilesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-files?inventory_file_status=ready_for_attorney_review", apiOptions)).body);
+      assert.equal(lddVdrFilesResponse.collection, "ldd_vdr_files");
+      assert.equal(lddVdrFilesResponse.count, lddVdrInventory.summary.file_record_count);
+
+      const lddVdrVersionsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-versions?version_status=current&resource_version_ledger_bound=true", apiOptions)).body);
+      assert.equal(lddVdrVersionsResponse.collection, "ldd_vdr_versions");
+      assert.equal(lddVdrVersionsResponse.count, lddVdrInventory.summary.version_record_count);
+
+      const lddVdrMissingDataResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-missing-data?missing_data_status=follow_up_required&rfi_candidate=true", apiOptions)).body);
+      assert.equal(lddVdrMissingDataResponse.collection, "ldd_vdr_missing_data");
+      assert.equal(lddVdrMissingDataResponse.count, lddVdrInventory.summary.missing_data_record_count);
+
+      const lddVdrMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-matter-summaries?ldd_vdr_matter_status=attention_required", apiOptions)).body);
+      assert.equal(lddVdrMatterSummariesResponse.collection, "ldd_vdr_matter_summaries");
+      assert.equal(lddVdrMatterSummariesResponse.count, lddVdrInventory.summary.matter_count);
+
+      const lddVdrInventoryBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-inventory-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddVdrInventoryBoundaryResponse.collection, "ldd_vdr_inventory_boundary");
+      assert.equal(lddVdrInventoryBoundaryResponse.count, 1);
+
+      const lddVdrInventoryValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-vdr-inventory-validations?status=passed", apiOptions)).body);
+      assert.equal(lddVdrInventoryValidationsResponse.collection, "ldd_vdr_inventory_validations");
+      assert.equal(lddVdrInventoryValidationsResponse.count, lddVdrInventory.summary.validation_item_count);
+
+      const lddDocumentClassificationArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-classification-artifacts?ldd_document_classification_status=complete", apiOptions)).body);
+      assert.equal(lddDocumentClassificationArtifactsResponse.collection, "ldd_document_classification_artifacts");
+      assert.equal(lddDocumentClassificationArtifactsResponse.count, 1);
+
+      const lddDocumentClassificationRulesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-classification-rules?document_class=contract", apiOptions)).body);
+      assert.equal(lddDocumentClassificationRulesResponse.collection, "ldd_document_classification_rules");
+      assert.equal(lddDocumentClassificationRulesResponse.count, 1);
+
+      const lddDocumentClassificationRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-classification-records?classification_status=classified_pending_attorney_review&source_row_kind=missing_data", apiOptions)).body);
+      assert.equal(lddDocumentClassificationRecordsResponse.collection, "ldd_document_classification_records");
+      assert.equal(lddDocumentClassificationRecordsResponse.count, lddDocumentClassification.summary.missing_data_classification_count);
+
+      const lddDocumentClassSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-class-summaries?document_class=tax", apiOptions)).body);
+      assert.equal(lddDocumentClassSummariesResponse.collection, "ldd_document_class_summaries");
+      assert.equal(lddDocumentClassSummariesResponse.count, 1);
+
+      const lddDocumentMatterClassSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-matter-class-summaries?ldd_document_matter_classification_status=classified_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddDocumentMatterClassSummariesResponse.collection, "ldd_document_matter_class_summaries");
+      assert.equal(lddDocumentMatterClassSummariesResponse.count, lddDocumentClassification.summary.matter_count);
+
+      const lddDocumentClassificationBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-classification-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddDocumentClassificationBoundaryResponse.collection, "ldd_document_classification_boundary");
+      assert.equal(lddDocumentClassificationBoundaryResponse.count, 1);
+
+      const lddDocumentClassificationValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-document-classification-validations?status=passed", apiOptions)).body);
+      assert.equal(lddDocumentClassificationValidationsResponse.collection, "ldd_document_classification_validations");
+      assert.equal(lddDocumentClassificationValidationsResponse.count, lddDocumentClassification.summary.validation_item_count);
+
+      const lddExtractorSelectionArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-selection-artifacts?ldd_extractor_selection_status=complete", apiOptions)).body);
+      assert.equal(lddExtractorSelectionArtifactsResponse.collection, "ldd_extractor_selection_artifacts");
+      assert.equal(lddExtractorSelectionArtifactsResponse.count, 1);
+
+      const lddExtractorRegistryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-registry?document_class=contract", apiOptions)).body);
+      assert.equal(lddExtractorRegistryResponse.collection, "ldd_extractor_registry");
+      assert.equal(lddExtractorRegistryResponse.count, 1);
+
+      const lddExtractorSelectionRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-selection-records?selection_status=selected_pending_attorney_review&extractor_execution_performed=false", apiOptions)).body);
+      assert.equal(lddExtractorSelectionRecordsResponse.collection, "ldd_extractor_selection_records");
+      assert.equal(lddExtractorSelectionRecordsResponse.count, lddExtractorSelection.summary.selection_record_count);
+
+      const lddExtractorSelectionRationalesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-selection-rationales?rationale_status=document_class_rule_match", apiOptions)).body);
+      assert.equal(lddExtractorSelectionRationalesResponse.collection, "ldd_extractor_selection_rationales");
+      assert.equal(lddExtractorSelectionRationalesResponse.count, lddExtractorSelection.summary.selection_rationale_count);
+
+      const lddExtractorMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-matter-summaries?ldd_extractor_matter_status=selected_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddExtractorMatterSummariesResponse.collection, "ldd_extractor_matter_summaries");
+      assert.equal(lddExtractorMatterSummariesResponse.count, lddExtractorSelection.summary.matter_count);
+
+      const lddExtractorSelectionBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-selection-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddExtractorSelectionBoundaryResponse.collection, "ldd_extractor_selection_boundary");
+      assert.equal(lddExtractorSelectionBoundaryResponse.count, 1);
+
+      const lddExtractorSelectionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-extractor-selection-validations?status=passed", apiOptions)).body);
+      assert.equal(lddExtractorSelectionValidationsResponse.collection, "ldd_extractor_selection_validations");
+      assert.equal(lddExtractorSelectionValidationsResponse.count, lddExtractorSelection.summary.validation_item_count);
+
+      const lddFactExtractionArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-extraction-artifacts?ldd_fact_extraction_status=complete", apiOptions)).body);
+      assert.equal(lddFactExtractionArtifactsResponse.collection, "ldd_fact_extraction_artifacts");
+      assert.equal(lddFactExtractionArtifactsResponse.count, 1);
+
+      const lddFactExtractionRulesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-extraction-rules?fact_type=party", apiOptions)).body);
+      assert.equal(lddFactExtractionRulesResponse.collection, "ldd_fact_extraction_rules");
+      assert.equal(lddFactExtractionRulesResponse.count, 1);
+
+      const lddFactRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-records?fact_type=obligation&fact_status=candidate_extracted_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddFactRecordsResponse.collection, "ldd_fact_records");
+      assert.equal(lddFactRecordsResponse.count, lddFactExtraction.summary.obligation_fact_count);
+
+      const lddFactSourceGapResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-records?fact_type=termination&source_gap=true", apiOptions)).body);
+      assert.equal(lddFactSourceGapResponse.collection, "ldd_fact_records");
+      assert.equal(lddFactSourceGapResponse.count, lddFactExtraction.summary.source_gap_fact_count);
+
+      const lddFactSourceBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-source-bindings?binding_status=bound_to_source_metadata", apiOptions)).body);
+      assert.equal(lddFactSourceBindingsResponse.collection, "ldd_fact_source_bindings");
+      assert.equal(lddFactSourceBindingsResponse.count, lddFactExtraction.summary.bound_source_metadata_count);
+
+      const lddFactTypeSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-type-summaries?fact_type=party", apiOptions)).body);
+      assert.equal(lddFactTypeSummariesResponse.collection, "ldd_fact_type_summaries");
+      assert.equal(lddFactTypeSummariesResponse.count, 1);
+
+      const lddFactMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-matter-summaries?ldd_fact_matter_status=complete_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddFactMatterSummariesResponse.collection, "ldd_fact_matter_summaries");
+      assert.equal(lddFactMatterSummariesResponse.count, lddFactExtraction.summary.matter_count);
+
+      const lddFactExtractionBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-extraction-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddFactExtractionBoundaryResponse.collection, "ldd_fact_extraction_boundary");
+      assert.equal(lddFactExtractionBoundaryResponse.count, 1);
+
+      const lddFactExtractionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-fact-extraction-validations?status=passed", apiOptions)).body);
+      assert.equal(lddFactExtractionValidationsResponse.collection, "ldd_fact_extraction_validations");
+      assert.equal(lddFactExtractionValidationsResponse.count, lddFactExtraction.summary.validation_item_count);
+
+      const lddIssueDetectionArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-detection-artifacts?ldd_issue_detection_status=complete", apiOptions)).body);
+      assert.equal(lddIssueDetectionArtifactsResponse.collection, "ldd_issue_detection_artifacts");
+      assert.equal(lddIssueDetectionArtifactsResponse.count, 1);
+
+      const lddIssueDetectionRulesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-detection-rules?issue_type=tax_exposure", apiOptions)).body);
+      assert.equal(lddIssueDetectionRulesResponse.collection, "ldd_issue_detection_rules");
+      assert.equal(lddIssueDetectionRulesResponse.count, 1);
+
+      const lddIssueRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-records?issue_flag=red&issue_severity=high", apiOptions)).body);
+      assert.equal(lddIssueRecordsResponse.collection, "ldd_issue_records");
+      assert.equal(lddIssueRecordsResponse.count, lddIssueDetection.summary.red_flag_count);
+
+      const lddIssueSourceGapResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-records?issue_type=source_gap&source_gap=true", apiOptions)).body);
+      assert.equal(lddIssueSourceGapResponse.collection, "ldd_issue_records");
+      assert.equal(lddIssueSourceGapResponse.count, lddIssueDetection.summary.source_gap_issue_count);
+
+      const lddIssueFollowUpsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-follow-ups?follow_up_status=open_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddIssueFollowUpsResponse.collection, "ldd_issue_follow_ups");
+      assert.equal(lddIssueFollowUpsResponse.count, lddIssueDetection.summary.open_follow_up_count);
+
+      const lddIssueSeveritySummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-severity-summaries?issue_severity=high", apiOptions)).body);
+      assert.equal(lddIssueSeveritySummariesResponse.collection, "ldd_issue_severity_summaries");
+      assert.equal(lddIssueSeveritySummariesResponse.count, 1);
+
+      const lddIssueMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-matter-summaries?ldd_issue_matter_status=issues_detected_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddIssueMatterSummariesResponse.collection, "ldd_issue_matter_summaries");
+      assert.equal(lddIssueMatterSummariesResponse.count, lddIssueDetection.summary.matter_count);
+
+      const lddIssueDetectionBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-detection-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddIssueDetectionBoundaryResponse.collection, "ldd_issue_detection_boundary");
+      assert.equal(lddIssueDetectionBoundaryResponse.count, 1);
+
+      const lddIssueDetectionValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-issue-detection-validations?status=passed", apiOptions)).body);
+      assert.equal(lddIssueDetectionValidationsResponse.collection, "ldd_issue_detection_validations");
+      assert.equal(lddIssueDetectionValidationsResponse.count, lddIssueDetection.summary.validation_item_count);
+
+      const lddRfiGeneratorArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-generator-artifacts?ldd_rfi_generator_status=complete", apiOptions)).body);
+      assert.equal(lddRfiGeneratorArtifactsResponse.collection, "ldd_rfi_generator_artifacts");
+      assert.equal(lddRfiGeneratorArtifactsResponse.count, 1);
+
+      const lddRfiRulesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-rules?rfi_rule_type=missing_material_request", apiOptions)).body);
+      assert.equal(lddRfiRulesResponse.collection, "ldd_rfi_rules");
+      assert.equal(lddRfiRulesResponse.count, 1);
+
+      const lddRfiDraftsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-drafts?rfi_draft_status=internal_attorney_review_required", apiOptions)).body);
+      assert.equal(lddRfiDraftsResponse.collection, "ldd_rfi_drafts");
+      assert.equal(lddRfiDraftsResponse.count, lddRfiGenerator.summary.rfi_draft_count);
+
+      const lddRfiQuestionsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-questions?rfi_question_priority=high&rfi_question_status=draft_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddRfiQuestionsResponse.collection, "ldd_rfi_questions");
+      assert.equal(lddRfiQuestionsResponse.count, lddRfiGenerator.summary.high_priority_question_count);
+
+      const lddRfiMissingMaterialLinksResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-missing-material-links?rfi_missing_material_status=linked_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddRfiMissingMaterialLinksResponse.collection, "ldd_rfi_missing_material_links");
+      assert.equal(lddRfiMissingMaterialLinksResponse.count, lddRfiGenerator.summary.missing_material_link_count);
+
+      const lddRfiIssueLinksResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-issue-links?rfi_issue_link_status=linked_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddRfiIssueLinksResponse.collection, "ldd_rfi_issue_links");
+      assert.equal(lddRfiIssueLinksResponse.count, lddRfiGenerator.summary.issue_link_count);
+
+      const lddRfiMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-matter-summaries?ldd_rfi_matter_status=draft_questions_pending_attorney_review", apiOptions)).body);
+      assert.equal(lddRfiMatterSummariesResponse.collection, "ldd_rfi_matter_summaries");
+      assert.equal(lddRfiMatterSummariesResponse.count, lddRfiGenerator.summary.matter_count);
+
+      const lddRfiGeneratorBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-generator-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(lddRfiGeneratorBoundaryResponse.collection, "ldd_rfi_generator_boundary");
+      assert.equal(lddRfiGeneratorBoundaryResponse.count, 1);
+
+      const lddRfiGeneratorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/ldd-rfi-generator-validations?status=passed", apiOptions)).body);
+      assert.equal(lddRfiGeneratorValidationsResponse.collection, "ldd_rfi_generator_validations");
+      assert.equal(lddRfiGeneratorValidationsResponse.count, lddRfiGenerator.summary.validation_item_count);
+
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");
       assert.equal(repoProfileDetectorsResponse.count, 1);
@@ -13587,6 +17952,446 @@ describe("matter harness", () => {
       const issueIntakeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/issue-intake-validations?status=passed", apiOptions)).body);
       assert.equal(issueIntakeValidationsResponse.collection, "issue_intake_validations");
       assert.equal(issueIntakeValidationsResponse.count, issueIntakeAdapter.summary.validation_item_count);
+
+      const planRequestContractsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-request-contracts?plan_request_status=complete", apiOptions)).body);
+      assert.equal(planRequestContractsResponse.collection, "plan_request_contracts");
+      assert.equal(planRequestContractsResponse.count, 1);
+
+      const sharedPlanningContextsResponse = JSON.parse((await buildReviewApiResponse("/api/shared-planning-contexts", apiOptions)).body);
+      assert.equal(sharedPlanningContextsResponse.collection, "shared_planning_contexts");
+      assert.equal(sharedPlanningContextsResponse.count, 1);
+
+      const planRequestsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-requests?request_status=ready", apiOptions)).body);
+      assert.equal(planRequestsResponse.collection, "plan_requests");
+      assert.equal(planRequestsResponse.count, planRequestContract.summary.plan_request_count);
+
+      const codexPlanRequestsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-requests?agent=codex", apiOptions)).body);
+      assert.equal(codexPlanRequestsResponse.collection, "plan_requests");
+      assert.equal(codexPlanRequestsResponse.count, 1);
+
+      const planRequestBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-request-bindings?binding_status=bound", apiOptions)).body);
+      assert.equal(planRequestBindingsResponse.collection, "plan_request_bindings");
+      assert.equal(planRequestBindingsResponse.count, planRequestContract.summary.bound_plan_request_count);
+
+      const planRequestDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/plan-request-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(planRequestDesktopBoundaryResponse.collection, "plan_request_desktop_boundary");
+      assert.equal(planRequestDesktopBoundaryResponse.count, 1);
+
+      const planRequestValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-request-validations?status=passed", apiOptions)).body);
+      assert.equal(planRequestValidationsResponse.collection, "plan_request_validations");
+      assert.equal(planRequestValidationsResponse.count, planRequestContract.summary.validation_item_count);
+
+      const planReconciliationsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-reconciliations?plan_reconciliation_status=complete", apiOptions)).body);
+      assert.equal(planReconciliationsResponse.collection, "plan_reconciliations");
+      assert.equal(planReconciliationsResponse.count, 1);
+
+      const planCandidatesResponse = JSON.parse((await buildReviewApiResponse("/api/plan-candidates?candidate_status=ready_for_reconciliation", apiOptions)).body);
+      assert.equal(planCandidatesResponse.collection, "plan_candidates");
+      assert.equal(planCandidatesResponse.count, planReconciliation.summary.plan_candidate_count);
+
+      const codexPlanCandidatesResponse = JSON.parse((await buildReviewApiResponse("/api/plan-candidates?agent=codex", apiOptions)).body);
+      assert.equal(codexPlanCandidatesResponse.collection, "plan_candidates");
+      assert.equal(codexPlanCandidatesResponse.count, 1);
+
+      const planCommonalitiesResponse = JSON.parse((await buildReviewApiResponse("/api/plan-commonalities?commonality_status=accepted", apiOptions)).body);
+      assert.equal(planCommonalitiesResponse.collection, "plan_commonalities");
+      assert.equal(planCommonalitiesResponse.count, planReconciliation.summary.commonality_count);
+
+      const planConflictsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-conflicts?conflict_status=resolved", apiOptions)).body);
+      assert.equal(planConflictsResponse.collection, "plan_conflicts");
+      assert.equal(planConflictsResponse.count, planReconciliation.summary.conflict_count);
+
+      const selectedPlanScopesResponse = JSON.parse((await buildReviewApiResponse("/api/selected-plan-scopes?selected_scope_status=selected_for_human_review", apiOptions)).body);
+      assert.equal(selectedPlanScopesResponse.collection, "selected_plan_scopes");
+      assert.equal(selectedPlanScopesResponse.count, 1);
+
+      const unresolvedPlanQuestionsResponse = JSON.parse((await buildReviewApiResponse("/api/unresolved-plan-questions?blocker_status=non_blocking_for_reconciliation", apiOptions)).body);
+      assert.equal(unresolvedPlanQuestionsResponse.collection, "unresolved_plan_questions");
+      assert.equal(unresolvedPlanQuestionsResponse.count, planReconciliation.summary.unresolved_question_count);
+
+      const planReconciliationDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/plan-reconciliation-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(planReconciliationDesktopBoundaryResponse.collection, "plan_reconciliation_desktop_boundary");
+      assert.equal(planReconciliationDesktopBoundaryResponse.count, 1);
+
+      const planReconciliationValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/plan-reconciliation-validations?status=passed", apiOptions)).body);
+      assert.equal(planReconciliationValidationsResponse.collection, "plan_reconciliation_validations");
+      assert.equal(planReconciliationValidationsResponse.count, planReconciliation.summary.validation_item_count);
+
+      const scopeFreezeGatesResponse = JSON.parse((await buildReviewApiResponse("/api/scope-freeze-gates?scope_freeze_gate_status=complete", apiOptions)).body);
+      assert.equal(scopeFreezeGatesResponse.collection, "scope_freeze_gates");
+      assert.equal(scopeFreezeGatesResponse.count, 1);
+
+      const frozenScopeItemsResponse = JSON.parse((await buildReviewApiResponse("/api/frozen-scope-items?frozen_scope_status=frozen", apiOptions)).body);
+      assert.equal(frozenScopeItemsResponse.collection, "frozen_scope_items");
+      assert.equal(frozenScopeItemsResponse.count, scopeFreezeGate.summary.frozen_scope_item_count);
+
+      const scopeFileBoundariesResponse = JSON.parse((await buildReviewApiResponse("/api/scope-file-boundaries?file_boundary_status=in_scope_unprotected", apiOptions)).body);
+      assert.equal(scopeFileBoundariesResponse.collection, "scope_file_boundaries");
+      assert.ok(scopeFileBoundariesResponse.count <= scopeFreezeGate.summary.scope_file_boundary_count);
+
+      const scopeProtectedFileRulesResponse = JSON.parse((await buildReviewApiResponse("/api/scope-protected-file-rules?rule_snapshot_status=frozen", apiOptions)).body);
+      assert.equal(scopeProtectedFileRulesResponse.collection, "scope_protected_file_rules");
+      assert.equal(scopeProtectedFileRulesResponse.count, scopeFreezeGate.summary.protected_file_rule_count);
+
+      const scopeFreezeDecisionsResponse = JSON.parse((await buildReviewApiResponse("/api/scope-freeze-decisions?decision_status=frozen", apiOptions)).body);
+      assert.equal(scopeFreezeDecisionsResponse.collection, "scope_freeze_decisions");
+      assert.equal(scopeFreezeDecisionsResponse.count, 1);
+
+      const scopeFreezeDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/scope-freeze-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(scopeFreezeDesktopBoundaryResponse.collection, "scope_freeze_desktop_boundary");
+      assert.equal(scopeFreezeDesktopBoundaryResponse.count, 1);
+
+      const scopeFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/scope-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(scopeFreezeValidationsResponse.collection, "scope_freeze_validations");
+      assert.equal(scopeFreezeValidationsResponse.count, scopeFreezeGate.summary.validation_item_count);
+
+      const devLaneLedgersResponse = JSON.parse((await buildReviewApiResponse("/api/dev-lane-ledgers?dev_lane_ledger_status=complete", apiOptions)).body);
+      assert.equal(devLaneLedgersResponse.collection, "dev_lane_ledgers");
+      assert.equal(devLaneLedgersResponse.count, 1);
+
+      const devLanesResponse = JSON.parse((await buildReviewApiResponse("/api/dev-lanes?lane_status=provisioned&agent=codex", apiOptions)).body);
+      assert.equal(devLanesResponse.collection, "dev_lanes");
+      assert.equal(devLanesResponse.count, 1);
+
+      const devLaneBranchRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-lane-branch-records?branch_record_status=created", apiOptions)).body);
+      assert.equal(devLaneBranchRecordsResponse.collection, "dev_lane_branch_records");
+      assert.equal(devLaneBranchRecordsResponse.count, devLaneLedger.summary.branch_record_count);
+
+      const devLaneWorktreeRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-lane-worktree-records?worktree_record_status=created", apiOptions)).body);
+      assert.equal(devLaneWorktreeRecordsResponse.collection, "dev_lane_worktree_records");
+      assert.equal(devLaneWorktreeRecordsResponse.count, devLaneLedger.summary.worktree_record_count);
+
+      const devLaneDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/dev-lane-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(devLaneDesktopBoundaryResponse.collection, "dev_lane_desktop_boundary");
+      assert.equal(devLaneDesktopBoundaryResponse.count, 1);
+
+      const devLaneValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-lane-validations?status=passed", apiOptions)).body);
+      assert.equal(devLaneValidationsResponse.collection, "dev_lane_validations");
+      assert.equal(devLaneValidationsResponse.count, devLaneLedger.summary.validation_item_count);
+
+      const implementationPatchCapturesResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-patch-captures?implementation_patch_capture_status=complete", apiOptions)).body);
+      assert.equal(implementationPatchCapturesResponse.collection, "implementation_patch_captures");
+      assert.equal(implementationPatchCapturesResponse.count, 1);
+
+      const implementationPatchRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-patch-records?patch_record_status=captured&agent=codex", apiOptions)).body);
+      assert.equal(implementationPatchRecordsResponse.collection, "implementation_patch_records");
+      assert.equal(implementationPatchRecordsResponse.count, 1);
+
+      const implementationDiffCapturesResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-diff-captures?diff_capture_status=captured", apiOptions)).body);
+      assert.equal(implementationDiffCapturesResponse.collection, "implementation_diff_captures");
+      assert.equal(implementationDiffCapturesResponse.count, implementationPatchCapture.summary.diff_capture_count);
+
+      const implementationTouchedFilesResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-touched-files?touched_file_status=captured_in_scope", apiOptions)).body);
+      assert.equal(implementationTouchedFilesResponse.collection, "implementation_touched_files");
+      assert.equal(implementationTouchedFilesResponse.count, implementationPatchCapture.summary.touched_file_count);
+
+      const implementationGeneratedArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-generated-artifacts?generated_artifact_status=captured", apiOptions)).body);
+      assert.equal(implementationGeneratedArtifactsResponse.collection, "implementation_generated_artifacts");
+      assert.equal(implementationGeneratedArtifactsResponse.count, implementationPatchCapture.summary.generated_artifact_count);
+
+      const implementationRunLedgerBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-run-ledger-bindings?run_ledger_binding_status=bound", apiOptions)).body);
+      assert.equal(implementationRunLedgerBindingsResponse.collection, "implementation_run_ledger_bindings");
+      assert.equal(implementationRunLedgerBindingsResponse.count, implementationPatchCapture.summary.run_ledger_binding_count);
+
+      const implementationPatchDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-patch-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(implementationPatchDesktopBoundaryResponse.collection, "implementation_patch_desktop_boundary");
+      assert.equal(implementationPatchDesktopBoundaryResponse.count, 1);
+
+      const implementationPatchValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/implementation-patch-validations?status=passed", apiOptions)).body);
+      assert.equal(implementationPatchValidationsResponse.collection, "implementation_patch_validations");
+      assert.equal(implementationPatchValidationsResponse.count, implementationPatchCapture.summary.validation_item_count);
+
+      const diffReviewGatesResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-gates?diff_review_gate_status=complete", apiOptions)).body);
+      assert.equal(diffReviewGatesResponse.collection, "diff_review_gates");
+      assert.equal(diffReviewGatesResponse.count, 1);
+
+      const diffReviewResultsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-results?diff_review_status=reviewed_with_human_gate", apiOptions)).body);
+      assert.equal(diffReviewResultsResponse.collection, "diff_review_results");
+      assert.equal(diffReviewResultsResponse.count, diffReviewGate.summary.diff_review_result_count);
+
+      const codexDiffReviewResultsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-results?agent=codex&review_decision=advance_to_canonical_test_gate_without_patch_application", apiOptions)).body);
+      assert.equal(codexDiffReviewResultsResponse.collection, "diff_review_results");
+      assert.equal(codexDiffReviewResultsResponse.count, 1);
+
+      const diffReviewFileFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-file-findings?file_finding_status=reviewed_in_scope", apiOptions)).body);
+      assert.equal(diffReviewFileFindingsResponse.collection, "diff_review_file_findings");
+      assert.equal(diffReviewFileFindingsResponse.count, diffReviewGate.summary.file_finding_count);
+
+      const diffReviewArtifactFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-artifact-findings?artifact_finding_status=reviewed_output_bound", apiOptions)).body);
+      assert.equal(diffReviewArtifactFindingsResponse.collection, "diff_review_artifact_findings");
+      assert.equal(diffReviewArtifactFindingsResponse.count, diffReviewGate.summary.artifact_finding_count);
+
+      const diffReviewGateResultsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-gate-results?gate_result_status=passed_with_human_gate", apiOptions)).body);
+      assert.equal(diffReviewGateResultsResponse.collection, "diff_review_gate_results");
+      assert.equal(diffReviewGateResultsResponse.count, diffReviewGate.summary.gate_result_count);
+
+      const diffReviewDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(diffReviewDesktopBoundaryResponse.collection, "diff_review_desktop_boundary");
+      assert.equal(diffReviewDesktopBoundaryResponse.count, 1);
+
+      const diffReviewValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/diff-review-validations?status=passed", apiOptions)).body);
+      assert.equal(diffReviewValidationsResponse.collection, "diff_review_validations");
+      assert.equal(diffReviewValidationsResponse.count, diffReviewGate.summary.validation_item_count);
+
+      const canonicalTestMatricesResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrices?canonical_test_matrix_status=complete", apiOptions)).body);
+      assert.equal(canonicalTestMatricesResponse.collection, "canonical_test_matrices");
+      assert.equal(canonicalTestMatricesResponse.count, 1);
+
+      const canonicalTestMatrixReposResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-repos?repo_matrix_status=ready", apiOptions)).body);
+      assert.equal(canonicalTestMatrixReposResponse.collection, "canonical_test_matrix_repos");
+      assert.equal(canonicalTestMatrixReposResponse.count, canonicalTestMatrix.summary.matrix_repo_count);
+
+      const canonicalTestMatrixCommandsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-commands?matrix_command_status=configured&test_dimension=unit", apiOptions)).body);
+      assert.equal(canonicalTestMatrixCommandsResponse.collection, "canonical_test_matrix_commands");
+      assert.equal(canonicalTestMatrixCommandsResponse.count, 1);
+
+      const canonicalTestMatrixExecutionsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-executions?execution_status=passed&test_dimension=unit", apiOptions)).body);
+      assert.equal(canonicalTestMatrixExecutionsResponse.collection, "canonical_test_matrix_executions");
+      assert.equal(canonicalTestMatrixExecutionsResponse.count, 1);
+
+      const canonicalTestMatrixResultsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-results?matrix_result_status=passed", apiOptions)).body);
+      assert.equal(canonicalTestMatrixResultsResponse.collection, "canonical_test_matrix_results");
+      assert.equal(canonicalTestMatrixResultsResponse.count, canonicalTestMatrix.summary.passed_dimension_count);
+
+      const canonicalTestMatrixBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-bindings?binding_status=bound_to_passing_matrix", apiOptions)).body);
+      assert.equal(canonicalTestMatrixBindingsResponse.collection, "canonical_test_matrix_bindings");
+      assert.equal(canonicalTestMatrixBindingsResponse.count, canonicalTestMatrix.summary.binding_count);
+
+      const canonicalTestMatrixDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(canonicalTestMatrixDesktopBoundaryResponse.collection, "canonical_test_matrix_desktop_boundary");
+      assert.equal(canonicalTestMatrixDesktopBoundaryResponse.count, 1);
+
+      const canonicalTestMatrixValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/canonical-test-matrix-validations?status=passed", apiOptions)).body);
+      assert.equal(canonicalTestMatrixValidationsResponse.collection, "canonical_test_matrix_validations");
+      assert.equal(canonicalTestMatrixValidationsResponse.count, canonicalTestMatrix.summary.validation_item_count);
+
+      const devProtectedScansResponse = JSON.parse((await buildReviewApiResponse("/api/dev-protected-scans?dev_protected_scan_status=complete", apiOptions)).body);
+      assert.equal(devProtectedScansResponse.collection, "dev_protected_scans");
+      assert.equal(devProtectedScansResponse.count, 1);
+
+      const devProtectedFileFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-protected-file-findings?finding_status=blocked_pending_explicit_approval&candidate_origin=protected_file_gate_approval_requirement", apiOptions)).body);
+      assert.equal(devProtectedFileFindingsResponse.collection, "dev_protected_file_findings");
+      assert.equal(devProtectedFileFindingsResponse.count, devProtectedScan.summary.protected_candidate_count);
+
+      const devSecretFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-secret-findings?secret_finding_status=blocked_pending_explicit_approval", apiOptions)).body);
+      assert.equal(devSecretFindingsResponse.collection, "dev_secret_findings");
+      assert.equal(devSecretFindingsResponse.count, devProtectedScan.summary.credential_or_secret_candidate_count);
+
+      const devProdConfigFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-prod-config-findings?prod_config_finding_status=blocked_pending_explicit_approval", apiOptions)).body);
+      assert.equal(devProdConfigFindingsResponse.collection, "dev_prod_config_findings");
+      assert.equal(devProdConfigFindingsResponse.count, devProtectedScan.summary.production_config_candidate_count);
+
+      const devProtectedScanResultsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-protected-scan-results?scan_result_status=passed_with_protected_blocks", apiOptions)).body);
+      assert.equal(devProtectedScanResultsResponse.collection, "dev_protected_scan_results");
+      assert.equal(devProtectedScanResultsResponse.count, devProtectedScan.summary.scan_result_count);
+
+      const devProtectedScanBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-protected-scan-bindings?binding_status=bound_after_canonical_test_matrix", apiOptions)).body);
+      assert.equal(devProtectedScanBindingsResponse.collection, "dev_protected_scan_bindings");
+      assert.equal(devProtectedScanBindingsResponse.count, devProtectedScan.summary.binding_count);
+
+      const devProtectedScanDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/dev-protected-scan-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(devProtectedScanDesktopBoundaryResponse.collection, "dev_protected_scan_desktop_boundary");
+      assert.equal(devProtectedScanDesktopBoundaryResponse.count, 1);
+
+      const devProtectedScanValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/dev-protected-scan-validations?status=passed", apiOptions)).body);
+      assert.equal(devProtectedScanValidationsResponse.collection, "dev_protected_scan_validations");
+      assert.equal(devProtectedScanValidationsResponse.count, devProtectedScan.summary.validation_item_count);
+
+      const prDraftArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-artifacts?pr_draft_artifact_status=complete", apiOptions)).body);
+      assert.equal(prDraftArtifactsResponse.collection, "pr_draft_artifacts");
+      assert.equal(prDraftArtifactsResponse.count, 1);
+
+      const prDraftOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-output-artifacts?artifact_type=pr_draft&output_status=draft", apiOptions)).body);
+      assert.equal(prDraftOutputArtifactsResponse.collection, "pr_draft_output_artifacts");
+      assert.equal(prDraftOutputArtifactsResponse.count, prDraftArtifact.summary.pr_draft_output_artifact_count);
+
+      const prDraftSectionsResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-sections?section_status=ready_for_human_review", apiOptions)).body);
+      assert.equal(prDraftSectionsResponse.collection, "pr_draft_sections");
+      assert.equal(prDraftSectionsResponse.count, prDraftArtifact.summary.pr_draft_section_count);
+
+      const prDraftTestEvidenceResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-test-evidence?test_evidence_status=passed", apiOptions)).body);
+      assert.equal(prDraftTestEvidenceResponse.collection, "pr_draft_test_evidence");
+      assert.equal(prDraftTestEvidenceResponse.count, prDraftArtifact.summary.test_evidence_count);
+
+      const prDraftRisksResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-risks?risk_status=documented_for_human_review", apiOptions)).body);
+      assert.equal(prDraftRisksResponse.collection, "pr_draft_risks");
+      assert.ok(prDraftRisksResponse.count >= 1);
+
+      const prDraftRollbackPlanResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-rollback-plan?rollback_status=draft_not_executed", apiOptions)).body);
+      assert.equal(prDraftRollbackPlanResponse.collection, "pr_draft_rollback_plan");
+      assert.equal(prDraftRollbackPlanResponse.count, prDraftArtifact.summary.rollback_step_count);
+
+      const prDraftBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-bindings?pr_draft_binding_status=bound_after_protected_scan", apiOptions)).body);
+      assert.equal(prDraftBindingsResponse.collection, "pr_draft_bindings");
+      assert.equal(prDraftBindingsResponse.count, prDraftArtifact.summary.pr_draft_binding_count);
+
+      const prDraftDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(prDraftDesktopBoundaryResponse.collection, "pr_draft_desktop_boundary");
+      assert.equal(prDraftDesktopBoundaryResponse.count, 1);
+
+      const prDraftValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/pr-draft-validations?status=passed", apiOptions)).body);
+      assert.equal(prDraftValidationsResponse.collection, "pr_draft_validations");
+      assert.equal(prDraftValidationsResponse.count, prDraftArtifact.summary.validation_item_count);
+
+      const releaseNoteArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-artifacts?release_note_artifact_status=complete", apiOptions)).body);
+      assert.equal(releaseNoteArtifactsResponse.collection, "release_note_artifacts");
+      assert.equal(releaseNoteArtifactsResponse.count, 1);
+
+      const releaseNoteOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-output-artifacts?artifact_type=release_note&output_status=draft", apiOptions)).body);
+      assert.equal(releaseNoteOutputArtifactsResponse.collection, "release_note_output_artifacts");
+      assert.equal(releaseNoteOutputArtifactsResponse.count, releaseNoteArtifact.summary.release_note_output_artifact_count);
+
+      const releaseNoteChangeRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-change-records?change_record_status=draft_from_human_gated_merge_candidate", apiOptions)).body);
+      assert.equal(releaseNoteChangeRecordsResponse.collection, "release_note_change_records");
+      assert.equal(releaseNoteChangeRecordsResponse.count, releaseNoteArtifact.summary.release_note_change_record_count);
+
+      const releaseNoteSectionsResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-sections?section_status=draft_ready_for_human_review", apiOptions)).body);
+      assert.equal(releaseNoteSectionsResponse.collection, "release_note_sections");
+      assert.equal(releaseNoteSectionsResponse.count, releaseNoteArtifact.summary.release_note_section_count);
+
+      const releaseNoteGateBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-gate-bindings?release_note_binding_status=bound_to_release_note_draft", apiOptions)).body);
+      assert.equal(releaseNoteGateBindingsResponse.collection, "release_note_gate_bindings");
+      assert.equal(releaseNoteGateBindingsResponse.count, releaseNoteArtifact.summary.release_note_gate_binding_count);
+
+      const releaseNoteDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(releaseNoteDesktopBoundaryResponse.collection, "release_note_desktop_boundary");
+      assert.equal(releaseNoteDesktopBoundaryResponse.count, 1);
+
+      const releaseNoteValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/release-note-validations?status=passed", apiOptions)).body);
+      assert.equal(releaseNoteValidationsResponse.collection, "release_note_validations");
+      assert.equal(releaseNoteValidationsResponse.count, releaseNoteArtifact.summary.validation_item_count);
+
+      const rollbackPlanArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-plan-artifacts?rollback_plan_artifact_status=complete", apiOptions)).body);
+      assert.equal(rollbackPlanArtifactsResponse.collection, "rollback_plan_artifacts");
+      assert.equal(rollbackPlanArtifactsResponse.count, 1);
+
+      const rollbackPlanOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-plan-output-artifacts?artifact_type=rollback_plan&output_status=draft", apiOptions)).body);
+      assert.equal(rollbackPlanOutputArtifactsResponse.collection, "rollback_plan_output_artifacts");
+      assert.equal(rollbackPlanOutputArtifactsResponse.count, rollbackPlanArtifact.summary.rollback_output_artifact_count);
+
+      const rollbackCommitTargetsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-commit-targets?rollback_commit_status=pending_not_merged", apiOptions)).body);
+      assert.equal(rollbackCommitTargetsResponse.collection, "rollback_commit_targets");
+      assert.equal(rollbackCommitTargetsResponse.count, rollbackPlanArtifact.summary.rollback_commit_target_count);
+
+      const rollbackFileTargetsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-file-targets?rollback_file_status=restore_candidate_declared", apiOptions)).body);
+      assert.equal(rollbackFileTargetsResponse.collection, "rollback_file_targets");
+      assert.equal(rollbackFileTargetsResponse.count, rollbackPlanArtifact.summary.rollback_file_target_count);
+
+      const rollbackCommandTargetsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-command-targets?rollback_command_status=draft_not_executed", apiOptions)).body);
+      assert.equal(rollbackCommandTargetsResponse.collection, "rollback_command_targets");
+      assert.equal(rollbackCommandTargetsResponse.count, rollbackPlanArtifact.summary.rollback_command_target_count);
+
+      const rollbackPlanBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-plan-bindings?rollback_plan_binding_status=bound_to_rollback_plan_draft", apiOptions)).body);
+      assert.equal(rollbackPlanBindingsResponse.collection, "rollback_plan_bindings");
+      assert.equal(rollbackPlanBindingsResponse.count, rollbackPlanArtifact.summary.rollback_plan_binding_count);
+
+      const rollbackPlanDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-plan-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(rollbackPlanDesktopBoundaryResponse.collection, "rollback_plan_desktop_boundary");
+      assert.equal(rollbackPlanDesktopBoundaryResponse.count, 1);
+
+      const rollbackPlanValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/rollback-plan-validations?status=passed", apiOptions)).body);
+      assert.equal(rollbackPlanValidationsResponse.collection, "rollback_plan_validations");
+      assert.equal(rollbackPlanValidationsResponse.count, rollbackPlanArtifact.summary.validation_item_count);
+
+      const technicalDebtLedgersResponse = JSON.parse((await buildReviewApiResponse("/api/technical-debt-ledgers?technical_debt_ledger_status=complete", apiOptions)).body);
+      assert.equal(technicalDebtLedgersResponse.collection, "technical_debt_ledgers");
+      assert.equal(technicalDebtLedgersResponse.count, 1);
+
+      const technicalDebtOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/technical-debt-output-artifacts?artifact_type=task_update&output_status=draft", apiOptions)).body);
+      assert.equal(technicalDebtOutputArtifactsResponse.collection, "technical_debt_output_artifacts");
+      assert.equal(technicalDebtOutputArtifactsResponse.count, technicalDebtLedger.summary.technical_debt_output_artifact_count);
+
+      const debtSourceFindingsResponse = JSON.parse((await buildReviewApiResponse("/api/debt-source-findings?finding_status=open_for_triage", apiOptions)).body);
+      assert.equal(debtSourceFindingsResponse.collection, "debt_source_findings");
+      assert.equal(debtSourceFindingsResponse.count, technicalDebtLedger.summary.debt_source_finding_count);
+
+      const technicalDebtTasksResponse = JSON.parse((await buildReviewApiResponse("/api/technical-debt-tasks?debt_task_status=backlog&debt_preservation_status=preserved_as_task", apiOptions)).body);
+      assert.equal(technicalDebtTasksResponse.collection, "technical_debt_tasks");
+      assert.equal(technicalDebtTasksResponse.count, technicalDebtLedger.summary.technical_debt_task_count);
+
+      const debtTaskBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/debt-task-bindings?debt_task_binding_status=bound_to_technical_debt_ledger", apiOptions)).body);
+      assert.equal(debtTaskBindingsResponse.collection, "debt_task_bindings");
+      assert.equal(debtTaskBindingsResponse.count, technicalDebtLedger.summary.debt_task_binding_count);
+
+      const technicalDebtDesktopBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/technical-debt-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(technicalDebtDesktopBoundaryResponse.collection, "technical_debt_desktop_boundary");
+      assert.equal(technicalDebtDesktopBoundaryResponse.count, 1);
+
+      const technicalDebtValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/technical-debt-validations?status=passed", apiOptions)).body);
+      assert.equal(technicalDebtValidationsResponse.collection, "technical_debt_validations");
+      assert.equal(technicalDebtValidationsResponse.count, technicalDebtLedger.summary.validation_item_count);
+
+      const personalDevDashboardsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-dashboard-apis?personal_dev_dashboard_status=complete", apiOptions)).body);
+      assert.equal(personalDevDashboardsResponse.collection, "personal_dev_dashboard_apis");
+      assert.equal(personalDevDashboardsResponse.count, 1);
+
+      const personalDevOutputArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-output-artifacts?artifact_type=json&output_status=draft", apiOptions)).body);
+      assert.equal(personalDevOutputArtifactsResponse.collection, "personal_dev_output_artifacts");
+      assert.equal(personalDevOutputArtifactsResponse.count, personalDevDashboardApi.summary.personal_dev_output_artifact_count);
+
+      const personalDevPanelRowsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-panel-rows?panel_status=ready", apiOptions)).body);
+      assert.equal(personalDevPanelRowsResponse.collection, "personal_dev_panel_rows");
+      assert.equal(personalDevPanelRowsResponse.count, personalDevDashboardApi.summary.panel_row_count);
+
+      const repoPanelRowsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-panel-rows?panel_section=repo&panel_status=ready", apiOptions)).body);
+      assert.equal(repoPanelRowsResponse.collection, "personal_dev_panel_rows");
+      assert.equal(repoPanelRowsResponse.count, 1);
+
+      const personalDevStatusRollupsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-status-rollups?rollup_status=ready", apiOptions)).body);
+      assert.equal(personalDevStatusRollupsResponse.collection, "personal_dev_status_rollups");
+      assert.equal(personalDevStatusRollupsResponse.count, personalDevDashboardApi.summary.status_rollup_count);
+
+      const personalDevRouteBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-api-route-bindings?route_binding_status=active", apiOptions)).body);
+      assert.equal(personalDevRouteBindingsResponse.collection, "personal_dev_api_route_bindings");
+      assert.equal(personalDevRouteBindingsResponse.count, personalDevDashboardApi.summary.api_route_binding_count);
+
+      const prRouteBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-api-route-bindings?route_group=pr&route_binding_status=active", apiOptions)).body);
+      assert.equal(prRouteBindingsResponse.collection, "personal_dev_api_route_bindings");
+      assert.equal(prRouteBindingsResponse.count, 1);
+
+      const personalDevDashboardBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-dashboard-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(personalDevDashboardBoundaryResponse.collection, "personal_dev_dashboard_desktop_boundary");
+      assert.equal(personalDevDashboardBoundaryResponse.count, 1);
+
+      const personalDevDashboardValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-dashboard-validations?status=passed", apiOptions)).body);
+      assert.equal(personalDevDashboardValidationsResponse.collection, "personal_dev_dashboard_validations");
+      assert.equal(personalDevDashboardValidationsResponse.count, personalDevDashboardApi.summary.validation_item_count);
+
+      const personalDevE2eFreezesResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-freezes?personal_dev_e2e_freeze_status=complete", apiOptions)).body);
+      assert.equal(personalDevE2eFreezesResponse.collection, "personal_dev_e2e_freezes");
+      assert.equal(personalDevE2eFreezesResponse.count, 1);
+
+      const personalDevE2eSourcesResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-freeze-sources?personal_dev_e2e_source_status=complete", apiOptions)).body);
+      assert.equal(personalDevE2eSourcesResponse.collection, "personal_dev_e2e_freeze_sources");
+      assert.equal(personalDevE2eSourcesResponse.count, personalDevE2eFreeze.summary.source_count);
+
+      const personalDevE2eCheckpointsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-freeze-checkpoints?personal_dev_e2e_checkpoint_status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eCheckpointsResponse.collection, "personal_dev_e2e_freeze_checkpoints");
+      assert.equal(personalDevE2eCheckpointsResponse.count, personalDevE2eFreeze.summary.checkpoint_count);
+
+      const personalDevE2eTracesResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-traces?e2e_trace_status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eTracesResponse.collection, "personal_dev_e2e_traces");
+      assert.equal(personalDevE2eTracesResponse.count, personalDevE2eFreeze.summary.trace_count);
+
+      const personalDevE2eDashboardTraceResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-traces?e2e_trace_stage=dashboard_api&e2e_trace_status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eDashboardTraceResponse.collection, "personal_dev_e2e_traces");
+      assert.equal(personalDevE2eDashboardTraceResponse.count, 1);
+
+      const personalDevE2eLoopBindingsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-loop-bindings?e2e_loop_binding_status=bound_prior_source", apiOptions)).body);
+      assert.equal(personalDevE2eLoopBindingsResponse.collection, "personal_dev_e2e_loop_bindings");
+      assert.equal(personalDevE2eLoopBindingsResponse.count, personalDevE2eFreeze.summary.loop_binding_count - 1);
+
+      const personalDevE2eSelfBindingResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-loop-bindings?e2e_loop_binding_status=bound_self", apiOptions)).body);
+      assert.equal(personalDevE2eSelfBindingResponse.collection, "personal_dev_e2e_loop_bindings");
+      assert.equal(personalDevE2eSelfBindingResponse.count, 1);
+
+      const personalDevE2eBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-freeze-desktop-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(personalDevE2eBoundaryResponse.collection, "personal_dev_e2e_freeze_desktop_boundary");
+      assert.equal(personalDevE2eBoundaryResponse.count, 1);
+
+      const personalDevE2eValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/personal-dev-e2e-freeze-validations?status=passed", apiOptions)).body);
+      assert.equal(personalDevE2eValidationsResponse.collection, "personal_dev_e2e_freeze_validations");
+      assert.equal(personalDevE2eValidationsResponse.count, personalDevE2eFreeze.summary.validation_item_count);
 
       const gateApprovalContractFreezes = JSON.parse((await buildReviewApiResponse("/api/gate-approval-contract-freezes?freeze_status=complete", apiOptions)).body);
       assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

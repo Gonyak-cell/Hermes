@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/canonical-test-matrix.schema.json",
+  "title": "Canonical Test Matrix",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "canonical_test_matrix_id",
+    "canonical_test_matrix_status",
+    "safe_handling",
+    "canonical_test_matrix_contract",
+    "source_repo_profile_detector",
+    "source_canonical_test_runner",
+    "source_diff_review_gate",
+    "canonical_test_matrix_repos",
+    "canonical_test_matrix_commands",
+    "canonical_test_matrix_executions",
+    "canonical_test_matrix_results",
+    "canonical_test_matrix_bindings",
+    "canonical_test_matrix_desktop_boundary",
+    "canonical_test_matrix_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "canonical-test-matrix.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "canonical_test_matrix_id": { "type": "string", "minLength": 1 },
+    "canonical_test_matrix_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "canonical_test_matrix_performed",
+        "command_execution_performed",
+        "patch_application_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed",
+        "external_agent_invocation_performed",
+        "plan_acceptance_performed",
+        "protected_mutation_performed",
+        "task_state_mutation_performed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "canonical_test_matrix_performed": { "const": true },
+        "command_execution_performed": { "const": true },
+        "patch_application_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "task_state_mutation_performed": { "const": false }
+      }
+    },
+    "canonical_test_matrix_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "test_matrix_authority", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-contract-definition.v1" },
+        "contract_id": { "const": "canonical-test-matrix.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "test_matrix_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "repo_detected_test_commands_harness_executed_after_diff_review" }
+      }
+    },
+    "source_repo_profile_detector": {
+      "type": "object",
+      "required": ["schema_version", "repo_profile_detector_status", "repo_profile_status", "command_profile_count", "configured_command_count", "validation_error_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-repo-profile-detector-for-test-matrix.v1" },
+        "repo_profile_detector_status": { "const": "complete" },
+        "repo_profile_status": { "const": "complete" },
+        "command_profile_count": { "type": "integer", "minimum": 1 },
+        "configured_command_count": { "type": "integer", "minimum": 1 },
+        "command_execution_performed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_canonical_test_runner": {
+      "type": "object",
+      "required": ["schema_version", "canonical_test_runner_status", "canonical_test_execution_count", "passed_execution_count", "failed_execution_count", "agent_self_report_trusted", "validation_error_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-canonical-test-runner-for-test-matrix.v1" },
+        "canonical_test_runner_status": { "const": "complete" },
+        "canonical_test_execution_count": { "type": "integer", "minimum": 1 },
+        "passed_execution_count": { "type": "integer", "minimum": 1 },
+        "failed_execution_count": { "const": 0 },
+        "agent_self_report_trusted": { "const": false },
+        "direct_merge_allowed_count": { "const": 0 },
+        "direct_apply_allowed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "source_diff_review_gate": {
+      "type": "object",
+      "required": ["schema_version", "diff_review_gate_status", "gate_result_count", "passed_with_human_gate_count", "patch_application_allowed_count", "validation_error_count", "source_hash"],
+      "properties": {
+        "schema_version": { "const": "source-diff-review-gate-for-test-matrix.v1" },
+        "diff_review_gate_status": { "const": "complete" },
+        "gate_result_count": { "const": 2 },
+        "passed_with_human_gate_count": { "const": 2 },
+        "patch_application_allowed_count": { "const": 0 },
+        "patch_application_performed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 },
+        "source_hash": { "type": "string", "minLength": 32 }
+      }
+    },
+    "canonical_test_matrix_repos": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/repo" }
+    },
+    "canonical_test_matrix_commands": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/command" }
+    },
+    "canonical_test_matrix_executions": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/execution" }
+    },
+    "canonical_test_matrix_results": {
+      "type": "array",
+      "minItems": 4,
+      "items": { "$ref": "#/$defs/result" }
+    },
+    "canonical_test_matrix_bindings": {
+      "type": "array",
+      "minItems": 2,
+      "items": { "$ref": "#/$defs/binding" }
+    },
+    "canonical_test_matrix_desktop_boundary": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "boundary_status",
+        "read_only",
+        "mutation_allowed",
+        "command_execution_allowed",
+        "patch_application_allowed",
+        "git_command_allowed",
+        "filesystem_mutation_allowed",
+        "protected_file_write_allowed",
+        "runtime_execution_allowed",
+        "external_agent_invocation_allowed",
+        "plan_acceptance_allowed",
+        "source_of_truth"
+      ],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "patch_application_allowed": { "const": false },
+        "git_command_allowed": { "const": false },
+        "filesystem_mutation_allowed": { "const": false },
+        "protected_file_write_allowed": { "const": false },
+        "runtime_execution_allowed": { "const": false },
+        "external_agent_invocation_allowed": { "const": false },
+        "plan_acceptance_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "canonical_test_matrix_status",
+        "canonical_test_matrix_contract_id",
+        "source_repo_profile_detector_status",
+        "source_canonical_test_runner_status",
+        "source_diff_review_gate_status",
+        "matrix_repo_count",
+        "test_dimension_count",
+        "required_dimension_count",
+        "configured_dimension_count",
+        "executed_dimension_count",
+        "passed_required_dimension_count",
+        "failed_dimension_count",
+        "timed_out_dimension_count",
+        "unit_dimension_passed",
+        "typecheck_dimension_passed",
+        "lint_dimension_passed",
+        "agent_self_report_trusted_count",
+        "runtime_self_report_trusted_count",
+        "binding_count",
+        "bound_to_passing_matrix_count",
+        "merge_ready_count",
+        "direct_merge_allowed_count",
+        "direct_apply_allowed_count",
+        "patch_application_allowed_count",
+        "patch_application_performed_count",
+        "git_command_executed_count",
+        "filesystem_mutation_performed_count",
+        "protected_file_write_allowed_without_approval",
+        "protected_mutation_performed_count",
+        "external_agent_invocation_performed_count",
+        "plan_acceptance_performed_count",
+        "human_review_required",
+        "desktop_read_only",
+        "desktop_mutation_allowed",
+        "desktop_command_execution_allowed",
+        "desktop_patch_application_allowed",
+        "desktop_git_command_allowed",
+        "desktop_filesystem_mutation_allowed",
+        "desktop_protected_file_write_allowed",
+        "desktop_runtime_execution_allowed",
+        "validation_error_count"
+      ],
+      "properties": {
+        "canonical_test_matrix_status": { "enum": ["complete", "blocked"] },
+        "canonical_test_matrix_contract_id": { "const": "canonical-test-matrix.v1" },
+        "source_repo_profile_detector_status": { "const": "complete" },
+        "source_canonical_test_runner_status": { "const": "complete" },
+        "source_diff_review_gate_status": { "const": "complete" },
+        "matrix_repo_count": { "const": 1 },
+        "test_dimension_count": { "const": 4 },
+        "required_dimension_count": { "type": "integer", "minimum": 3 },
+        "configured_dimension_count": { "type": "integer", "minimum": 3 },
+        "executed_dimension_count": { "type": "integer", "minimum": 3 },
+        "passed_required_dimension_count": { "type": "integer", "minimum": 3 },
+        "failed_dimension_count": { "const": 0 },
+        "timed_out_dimension_count": { "const": 0 },
+        "unit_dimension_passed": { "const": true },
+        "typecheck_dimension_passed": { "const": true },
+        "lint_dimension_passed": { "const": true },
+        "agent_self_report_trusted_count": { "const": 0 },
+        "runtime_self_report_trusted_count": { "const": 0 },
+        "binding_count": { "const": 2 },
+        "bound_to_passing_matrix_count": { "const": 2 },
+        "merge_ready_count": { "const": 0 },
+        "direct_merge_allowed_count": { "const": 0 },
+        "direct_apply_allowed_count": { "const": 0 },
+        "patch_application_allowed_count": { "const": 0 },
+        "patch_application_performed_count": { "const": 0 },
+        "git_command_executed_count": { "const": 0 },
+        "filesystem_mutation_performed_count": { "const": 0 },
+        "protected_file_write_allowed_without_approval": { "const": false },
+        "protected_mutation_performed_count": { "const": 0 },
+        "external_agent_invocation_performed_count": { "const": 0 },
+        "plan_acceptance_performed_count": { "const": 0 },
+        "human_review_required": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_patch_application_allowed": { "const": false },
+        "desktop_git_command_allowed": { "const": false },
+        "desktop_filesystem_mutation_allowed": { "const": false },
+        "desktop_protected_file_write_allowed": { "const": false },
+        "desktop_runtime_execution_allowed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  },
+  "$defs": {
+    "repo": {
+      "type": "object",
+      "required": ["schema_version", "canonical_test_matrix_repo_id", "repo_matrix_status", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-repo.v1" },
+        "repo_matrix_status": { "const": "ready" },
+        "human_review_required": { "const": true }
+      }
+    },
+    "command": {
+      "type": "object",
+      "required": ["schema_version", "canonical_test_matrix_command_id", "test_dimension", "matrix_command_status", "execution_required", "execution_allowed", "human_review_required"],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-command.v1" },
+        "test_dimension": { "enum": ["unit", "typecheck", "lint", "e2e"] },
+        "matrix_command_status": { "enum": ["configured", "derived", "not_configured"] },
+        "execution_required": { "type": "boolean" },
+        "execution_allowed": { "type": "boolean" },
+        "human_review_required": { "const": true }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "required": ["schema_version", "canonical_test_matrix_execution_id", "test_dimension", "execution_status", "execution_required", "execution_allowed", "execution_performed", "patch_application_performed", "git_command_executed", "filesystem_mutation_performed"],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-execution.v1" },
+        "test_dimension": { "enum": ["unit", "typecheck", "lint", "e2e"] },
+        "execution_status": { "enum": ["passed", "failed", "timed_out", "not_configured", "blocked_missing_required_command"] },
+        "patch_application_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "plan_acceptance_performed": { "const": false }
+      }
+    },
+    "result": {
+      "type": "object",
+      "required": ["schema_version", "canonical_test_matrix_result_id", "test_dimension", "matrix_result_status", "agent_self_report_trusted", "human_review_required", "direct_merge_allowed", "direct_apply_allowed"],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-result.v1" },
+        "test_dimension": { "enum": ["unit", "typecheck", "lint", "e2e"] },
+        "matrix_result_status": { "enum": ["passed", "blocked", "not_configured"] },
+        "agent_self_report_trusted": { "const": false },
+        "runtime_self_report_trusted": { "const": false },
+        "human_review_required": { "const": true },
+        "merge_ready": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "direct_apply_allowed": { "const": false },
+        "patch_application_performed": { "const": false }
+      }
+    },
+    "binding": {
+      "type": "object",
+      "required": ["schema_version", "canonical_test_matrix_binding_id", "binding_status", "human_review_required", "patch_application_allowed", "direct_merge_allowed", "direct_apply_allowed"],
+      "properties": {
+        "schema_version": { "const": "canonical-test-matrix-binding.v1" },
+        "binding_status": { "const": "bound_to_passing_matrix" },
+        "human_review_required": { "const": true },
+        "patch_application_allowed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "direct_merge_allowed": { "const": false },
+        "direct_apply_allowed": { "const": false }
+      }
+    }
+  }
+}

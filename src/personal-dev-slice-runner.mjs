@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { spawn } from "node:child_process";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import {
   loadCoreSchemas,
@@ -57,7 +57,9 @@ export async function buildPersonalDevSliceRun(options = {}) {
 
   const brief = buildDevProjectBrief(portfolio, { today: options.today ?? isoDate(runAt) });
   const selected = selectDevelopmentTask(portfolio, brief, options.taskId);
-  const repoPath = path.resolve(selected.project.repository);
+  const repoPath = await resolveProjectRepository(selected.project.repository, {
+    fallbackRepoPath: options.repoPath ?? process.cwd(),
+  });
   const idSuffix = stableId(`${selected.project.id}:${selected.task.id}:${sha256(portfolioText)}`);
   const ids = { ...DEFAULT_IDS, ...options.ids };
   const workspace = await prepareAgentWorkspace({
@@ -504,6 +506,36 @@ function selectDevelopmentTask(portfolio, brief, taskId) {
   throw new Error("No development task is available for the personal dev slice");
 }
 
+async function resolveProjectRepository(repository, options = {}) {
+  const declaredPath = path.resolve(repository ?? ".");
+  if (await pathExists(declaredPath)) return declaredPath;
+
+  const fallbackPath = path.resolve(options.fallbackRepoPath ?? process.cwd());
+  const declaredName = lastPathSegment(repository);
+  if (
+    declaredName &&
+    declaredName.toLowerCase() === path.basename(fallbackPath).toLowerCase() &&
+    await pathExists(path.join(fallbackPath, "package.json"))
+  ) {
+    return fallbackPath;
+  }
+
+  return declaredPath;
+}
+
+function lastPathSegment(value) {
+  return String(value ?? "").split(/[\\/]+/).filter(Boolean).at(-1) ?? "";
+}
+
+async function pathExists(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function runCanonicalDevChecks({ cwd, runAt }) {
   const commands = [
     {
@@ -535,7 +567,8 @@ async function runCanonicalDevChecks({ cwd, runAt }) {
 function runCommand(command, options) {
   return new Promise((resolve) => {
     const started = new Date().toISOString();
-    const child = spawn(command.command, command.args, {
+    const spawnSpec = resolveCommandSpawn(command);
+    const child = spawn(spawnSpec.command, spawnSpec.args, {
       cwd: options.cwd,
       stdio: ["ignore", "pipe", "pipe"],
     });
@@ -593,6 +626,21 @@ function runCommand(command, options) {
       });
     });
   });
+}
+
+function resolveCommandSpawn(command) {
+  if (process.platform !== "win32") {
+    return { command: command.command, args: command.args };
+  }
+  const executable = command.command === "npm" ? "npm.cmd" : command.command;
+  const commandLine = [executable, ...command.args].map(quoteWindowsCommandArg).join(" ");
+  return { command: "cmd.exe", args: ["/d", "/s", "/c", commandLine] };
+}
+
+function quoteWindowsCommandArg(value) {
+  const text = String(value);
+  if (/^[A-Za-z0-9_./:=+-]+$/.test(text)) return text;
+  return `"${text.replace(/"/g, '\\"')}"`;
 }
 
 function skippedTestResult(runAt) {
@@ -963,6 +1011,7 @@ function buildGateResults(context) {
 }
 
 function buildEventLedger(context) {
+  const testGateEventType = context.testResult.status === "passed" ? "gate.passed" : "gate.failed";
   const events = [
     ledgerEvent(context, "resource.ingested", "resource", context.resourceId, null, connectorActor(), 0, {}),
     ledgerEvent(context, "issue.created", "issue", context.issueId, "resource.ingested", harnessActor(), 3, {}),
@@ -995,10 +1044,10 @@ function buildEventLedger(context) {
     ledgerEvent(context, "gate.passed", "gate_result", context.diffGateId, "gate.passed", harnessActor("gate.diff_review", "Diff Review Gate"), 15, {
       gate_id: "diff_review_gate",
     }, "diff"),
-    ledgerEvent(context, context.testResult.status === "passed" ? "gate.passed" : "gate.failed", "gate_result", context.testGateId, "agent_run.completed", harnessActor("gate.test", "Test Gate"), 16, {
+    ledgerEvent(context, testGateEventType, "gate_result", context.testGateId, "agent_run.completed", harnessActor("gate.test", "Test Gate"), 16, {
       gate_id: "test_gate",
     }, "test"),
-    ledgerEvent(context, "output.rendered", "output_artifact", context.outputArtifactId, "gate.passed", harnessActor(), 17, {
+    ledgerEvent(context, "output.rendered", "output_artifact", context.outputArtifactId, testGateEventType, harnessActor(), 17, {
       artifact_type: "pr_draft",
     }),
     ledgerEvent(context, "approval.requested", "approval", context.approvalId, "output.rendered", harnessActor(), 18, {
@@ -1087,6 +1136,7 @@ function findPriorEventId(idSuffix, type, disambiguator) {
     return `event.gate.passed.personal_dev.${idSuffix}.protected`;
   }
   if (type === "gate.passed") return `event.gate.passed.personal_dev.${idSuffix}.test`;
+  if (type === "gate.failed") return `event.gate.failed.personal_dev.${idSuffix}.test`;
   if (type === "agent_run.completed" && disambiguator === "codex") {
     return `event.agent_run.completed.personal_dev.${idSuffix}.claude`;
   }

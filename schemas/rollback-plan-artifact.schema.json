@@ -1,0 +1,318 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/rollback-plan-artifact.schema.json",
+  "title": "Rollback Plan Artifact",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "rollback_plan_artifact_id",
+    "rollback_plan_artifact_status",
+    "safe_handling",
+    "rollback_plan_contract",
+    "source_implementation_patch_capture",
+    "source_diff_review_gate",
+    "source_pr_draft_artifact",
+    "source_release_note_artifact",
+    "rollback_output_artifacts",
+    "rollback_commit_targets",
+    "rollback_file_targets",
+    "rollback_command_targets",
+    "rollback_plan_bindings",
+    "rollback_plan_desktop_boundary",
+    "rollback_plan_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "rollback-plan-artifact.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "rollback_plan_artifact_id": { "type": "string", "minLength": 1 },
+    "rollback_plan_artifact_status": { "enum": ["complete", "blocked"] },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "legal_advice",
+        "client_facing_output",
+        "human_review_required",
+        "rollback_plan_artifact_generated",
+        "rollback_execution_performed",
+        "command_execution_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed_outside_artifact_dir",
+        "file_restore_performed",
+        "commit_revert_performed",
+        "merge_performed",
+        "release_performed",
+        "github_api_called",
+        "branch_push_performed",
+        "patch_application_performed",
+        "external_agent_invocation_performed",
+        "protected_mutation_performed",
+        "raw_secret_material_exposed",
+        "provider_key_exposed"
+      ],
+      "properties": {
+        "legal_advice": { "const": "not_provided" },
+        "client_facing_output": { "const": "not_generated" },
+        "human_review_required": { "const": true },
+        "rollback_plan_artifact_generated": { "const": true },
+        "rollback_execution_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed_outside_artifact_dir": { "const": false },
+        "file_restore_performed": { "const": false },
+        "commit_revert_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "branch_push_performed": { "const": false },
+        "patch_application_performed": { "const": false },
+        "external_agent_invocation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false }
+      }
+    },
+    "rollback_plan_contract": {
+      "type": "object",
+      "required": ["schema_version", "contract_id", "pack_id", "capability_id", "plan_authority", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "rollback-plan-contract-definition.v1" },
+        "contract_id": { "const": "rollback-plan-artifact.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "plan_authority": { "const": "harness_control_plane" },
+        "source_of_truth": { "const": "implementation_patch_pr_draft_release_note_and_human_gated_rollback_targets" }
+      }
+    },
+    "source_implementation_patch_capture": {
+      "type": "object",
+      "required": ["implementation_patch_capture_status", "patch_record_count", "touched_file_count", "patch_application_performed_count", "git_command_executed_count", "filesystem_mutation_performed_count", "validation_error_count"],
+      "properties": {
+        "implementation_patch_capture_status": { "const": "complete" },
+        "patch_record_count": { "type": "integer", "minimum": 2 },
+        "touched_file_count": { "type": "integer", "minimum": 1 },
+        "patch_application_performed_count": { "const": 0 },
+        "git_command_executed_count": { "const": 0 },
+        "filesystem_mutation_performed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_diff_review_gate": {
+      "type": "object",
+      "required": ["diff_review_gate_status", "gate_result_count", "passed_with_human_gate_count", "patch_application_allowed_count", "validation_error_count"],
+      "properties": {
+        "diff_review_gate_status": { "const": "complete" },
+        "gate_result_count": { "type": "integer", "minimum": 2 },
+        "passed_with_human_gate_count": { "type": "integer", "minimum": 2 },
+        "patch_application_allowed_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_pr_draft_artifact": {
+      "type": "object",
+      "required": ["pr_draft_artifact_status", "rollback_step_count", "draft_not_executed_rollback_step_count", "rollback_command_execution_allowed_count", "merge_performed", "release_performed", "validation_error_count"],
+      "properties": {
+        "pr_draft_artifact_status": { "const": "complete" },
+        "rollback_step_count": { "type": "integer", "minimum": 3 },
+        "draft_not_executed_rollback_step_count": { "type": "integer", "minimum": 3 },
+        "rollback_command_execution_allowed_count": { "const": 0 },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "source_release_note_artifact": {
+      "type": "object",
+      "required": ["release_note_artifact_status", "change_record_count", "merged_change_basis_count", "merge_performed", "release_performed", "publication_performed", "validation_error_count"],
+      "properties": {
+        "release_note_artifact_status": { "const": "complete" },
+        "change_record_count": { "type": "integer", "minimum": 1 },
+        "merged_change_basis_count": { "type": "integer", "minimum": 1 },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "publication_performed": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    },
+    "rollback_output_artifacts": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "output_artifact_id", "artifact_type", "artifact_uri", "content_hash", "hash_status", "output_status", "delivery_state", "approval_status", "approval_request_ids", "delivery_action_ids", "blocking_gate_ids"],
+        "properties": {
+          "schema_version": { "const": "output-artifact.v2" },
+          "artifact_type": { "const": "rollback_plan" },
+          "content_hash": { "type": "string", "minLength": 32 },
+          "hash_status": { "const": "present" },
+          "output_status": { "const": "draft" },
+          "delivery_state": { "const": "blocked_pending_approval" },
+          "approval_status": { "const": "pending" },
+          "approval_request_ids": { "type": "array", "minItems": 1 },
+          "delivery_action_ids": { "type": "array", "minItems": 1 },
+          "blocking_gate_ids": { "type": "array", "contains": { "const": "human_approval_gate" } }
+        }
+      }
+    },
+    "rollback_commit_targets": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "rollback_commit_status", "rollback_strategy", "commit_revert_required", "commit_revert_performed", "git_command_allowed", "command_execution_allowed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "rollback-commit-target.v1" },
+          "rollback_commit_status": { "const": "pending_not_merged" },
+          "commit_revert_required": { "const": false },
+          "commit_revert_performed": { "const": false },
+          "git_command_allowed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "rollback_file_targets": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "file_path", "rollback_file_status", "restore_strategy", "file_restore_allowed", "file_restore_performed", "command_execution_allowed", "filesystem_mutation_allowed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "rollback-file-target.v1" },
+          "rollback_file_status": { "const": "restore_candidate_declared" },
+          "file_restore_allowed": { "const": false },
+          "file_restore_performed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "filesystem_mutation_allowed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "rollback_command_targets": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "rollback_command_key", "rollback_command_status", "command_preview", "command_execution_allowed", "command_executed", "protected_action_allowed", "protected_action_executed", "human_review_required"],
+        "properties": {
+          "schema_version": { "const": "rollback-command-target.v1" },
+          "rollback_command_status": { "const": "draft_not_executed" },
+          "command_preview": { "type": "string", "minLength": 1 },
+          "command_execution_allowed": { "const": false },
+          "command_executed": { "const": false },
+          "protected_action_allowed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "rollback_plan_bindings": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "rollback_plan_binding_status", "rollback_execution_allowed", "command_execution_allowed", "file_restore_allowed", "commit_revert_allowed", "merge_allowed", "release_allowed"],
+        "properties": {
+          "schema_version": { "const": "rollback-plan-binding.v1" },
+          "rollback_plan_binding_status": { "const": "bound_to_rollback_plan_draft" },
+          "rollback_execution_allowed": { "const": false },
+          "command_execution_allowed": { "const": false },
+          "file_restore_allowed": { "const": false },
+          "commit_revert_allowed": { "const": false },
+          "merge_allowed": { "const": false },
+          "release_allowed": { "const": false }
+        }
+      }
+    },
+    "rollback_plan_desktop_boundary": {
+      "type": "object",
+      "required": ["schema_version", "boundary_status", "surface_policy", "read_only", "mutation_allowed", "command_execution_allowed", "file_restore_allowed", "commit_revert_allowed", "rollback_execution_allowed", "source_of_truth"],
+      "properties": {
+        "schema_version": { "const": "rollback-plan-desktop-boundary.v1" },
+        "boundary_status": { "const": "enforced" },
+        "surface_policy": { "const": "read_only_rollback_plan_review_surface" },
+        "read_only": { "const": true },
+        "mutation_allowed": { "const": false },
+        "command_execution_allowed": { "const": false },
+        "file_restore_allowed": { "const": false },
+        "commit_revert_allowed": { "const": false },
+        "rollback_execution_allowed": { "const": false },
+        "source_of_truth": { "const": false }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "rollback_plan_artifact_status",
+        "rollback_plan_artifact_contract_id",
+        "pack_id",
+        "capability_id",
+        "rollback_output_artifact_count",
+        "rollback_commit_target_count",
+        "rollback_file_target_count",
+        "rollback_command_target_count",
+        "rollback_plan_binding_count",
+        "rollback_execution_performed",
+        "command_execution_performed",
+        "git_command_executed",
+        "filesystem_mutation_performed",
+        "desktop_read_only",
+        "validation_error_count"
+      ],
+      "properties": {
+        "rollback_plan_artifact_status": { "enum": ["complete", "blocked"] },
+        "rollback_plan_artifact_contract_id": { "const": "rollback-plan-artifact.v1" },
+        "pack_id": { "const": "personal-dev" },
+        "capability_id": { "const": "personal_dev.codex.worktree_patch" },
+        "rollback_output_artifact_count": { "const": 1 },
+        "output_artifact_v2_count": { "const": 1 },
+        "output_artifact_hash_present_count": { "const": 1 },
+        "output_artifact_draft_count": { "const": 1 },
+        "output_artifact_blocked_pending_approval_count": { "const": 1 },
+        "output_artifact_pending_approval_count": { "const": 1 },
+        "rollback_commit_target_count": { "type": "integer", "minimum": 2 },
+        "pending_not_merged_commit_target_count": { "type": "integer", "minimum": 2 },
+        "commit_revert_required_count": { "const": 0 },
+        "commit_revert_performed_count": { "const": 0 },
+        "rollback_file_target_count": { "type": "integer", "minimum": 1 },
+        "restore_candidate_file_target_count": { "type": "integer", "minimum": 1 },
+        "file_restore_allowed_count": { "const": 0 },
+        "file_restore_performed_count": { "const": 0 },
+        "rollback_command_target_count": { "type": "integer", "minimum": 3 },
+        "draft_not_executed_command_target_count": { "type": "integer", "minimum": 3 },
+        "command_execution_allowed_count": { "const": 0 },
+        "command_executed_count": { "const": 0 },
+        "rollback_plan_binding_count": { "const": 4 },
+        "bound_rollback_plan_binding_count": { "const": 4 },
+        "rollback_execution_allowed_count": { "const": 0 },
+        "merge_allowed_count": { "const": 0 },
+        "release_allowed_count": { "const": 0 },
+        "rollback_execution_performed": { "const": false },
+        "command_execution_performed": { "const": false },
+        "git_command_executed": { "const": false },
+        "filesystem_mutation_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "merge_performed": { "const": false },
+        "release_performed": { "const": false },
+        "github_api_called": { "const": false },
+        "branch_push_performed": { "const": false },
+        "raw_secret_material_exposed": { "const": false },
+        "provider_key_exposed": { "const": false },
+        "human_review_required": { "const": true },
+        "desktop_read_only": { "const": true },
+        "desktop_mutation_allowed": { "const": false },
+        "desktop_command_execution_allowed": { "const": false },
+        "desktop_file_restore_allowed": { "const": false },
+        "desktop_commit_revert_allowed": { "const": false },
+        "desktop_rollback_execution_allowed": { "const": false },
+        "desktop_source_of_truth": { "const": false },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

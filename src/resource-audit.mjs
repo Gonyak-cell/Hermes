@@ -1,5 +1,4 @@
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { spawn } from "node:child_process";
+import { mkdir, readdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createHash } from "node:crypto";
 import path from "node:path";
 
@@ -97,48 +96,34 @@ export async function hashReadableLocalFile(filePath, options = {}) {
   };
 }
 
-function statFiles(root) {
-  return new Promise((resolve, reject) => {
-    const statFormat = "%N\t%z\t%m\t%B\t%f";
-    const child = spawn("find", [root, "-type", "f", "-exec", "stat", "-f", statFormat, "{}", "+"], {
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    let stdout = "";
-    let stderr = "";
-    child.stdout.setEncoding("utf8");
-    child.stderr.setEncoding("utf8");
-    child.stdout.on("data", (chunk) => {
-      stdout += chunk;
-    });
-    child.stderr.on("data", (chunk) => {
-      stderr += chunk;
-    });
-    child.on("error", reject);
-    child.on("close", (code) => {
-      if (code !== 0) {
-        reject(new Error(stderr || `find/stat exited with code ${code}`));
-        return;
-      }
-      const files = stdout
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => parseStatLine(line, root))
-        .filter(Boolean);
-      resolve(files);
-    });
-  });
+async function statFiles(root) {
+  const files = [];
+  await walkFiles(root, root, files);
+  return files;
 }
 
-function parseStatLine(line, root) {
-  const [filePath, size, modifiedEpoch, createdEpoch, flags] = line.split("\t");
-  if (!filePath) return null;
-  const flagNumber = Number.parseInt(flags, 10);
+async function walkFiles(root, currentDir, files) {
+  const entries = await readdir(currentDir, { withFileTypes: true });
+  for (const entry of entries) {
+    const filePath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      await walkFiles(root, filePath, files);
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    const fileStat = await stat(filePath);
+    files.push(fileStatRecord(filePath, root, fileStat));
+  }
+}
+
+function fileStatRecord(filePath, root, fileStat) {
+  const flagNumber = 0;
   return {
     path: filePath,
     root,
-    size_bytes: Number.parseInt(size, 10),
-    modified_at: new Date(Number.parseInt(modifiedEpoch, 10) * 1000).toISOString(),
-    created_at: new Date(Number.parseInt(createdEpoch, 10) * 1000).toISOString(),
+    size_bytes: fileStat.size,
+    modified_at: fileStat.mtime.toISOString(),
+    created_at: fileStat.birthtime.toISOString(),
     flags_decimal: flagNumber,
     fileprovider: {
       dataless: Boolean(flagNumber & DATALESS_FLAG),
@@ -175,7 +160,7 @@ function getExtension(filePath) {
 }
 
 function classifyResourceType(filePath, extension) {
-  const normalized = filePath.toLowerCase();
+  const normalized = filePath.toLowerCase().split(path.sep).join("/");
   if (normalized.includes("/skills/") || normalized.endsWith("/skill.md")) return "skill";
   if (normalized.includes("/commands/") && extension === "md") return "command";
   if (normalized.includes("/scripts/") || ["py", "js", "mjs", "ps1", "sh", "bat"].includes(extension)) return "script";
@@ -189,7 +174,7 @@ function classifyResourceType(filePath, extension) {
 }
 
 function classifyDomain(filePath, topLevelFolder, resourceType) {
-  const text = `${filePath} ${topLevelFolder}`.toLocaleLowerCase("ko-KR").normalize("NFC");
+  const text = `${filePath.split(path.sep).join("/")} ${topLevelFolder}`.toLocaleLowerCase("ko-KR").normalize("NFC");
   if (text.includes("agent-skills") || text.includes("open-generative-ai") || text.includes("ui-tars")) {
     return "personal-dev";
   }

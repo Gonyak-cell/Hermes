@@ -1884,6 +1884,418 @@ try {
   assert.equal(personalDevPackValidations.collection, "personal_dev_pack_validations");
   assert.ok(personalDevPackValidations.count <= 5);
 
+  const lawFirmPackManifests = await fetchJson(`${url}/api/law-firm-pack-manifests?law_firm_pack_manifest_status=complete&limit=1`);
+  assert.equal(lawFirmPackManifests.collection, "law_firm_pack_manifests");
+  assert.ok(lawFirmPackManifests.count <= 1);
+
+  const lawFirmPackRegistration = await fetchJson(`${url}/api/law-firm-pack-registration?registration_status=registered&limit=1`);
+  assert.equal(lawFirmPackRegistration.collection, "law_firm_pack_registration");
+  assert.ok(lawFirmPackRegistration.count <= 1);
+
+  const lawFirmCapabilityRegistrations = await fetchJson(`${url}/api/law-firm-capability-registrations?law_firm_capability_registration_status=registered&limit=5`);
+  assert.equal(lawFirmCapabilityRegistrations.collection, "law_firm_capability_registrations");
+  assert.ok(lawFirmCapabilityRegistrations.count <= 5);
+
+  const lawFirmPackBoundary = await fetchJson(`${url}/api/law-firm-pack-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lawFirmPackBoundary.collection, "law_firm_pack_boundary");
+  assert.ok(lawFirmPackBoundary.count <= 1);
+
+  const lawFirmPackValidations = await fetchJson(`${url}/api/law-firm-pack-validations?status=passed&limit=5`);
+  assert.equal(lawFirmPackValidations.collection, "law_firm_pack_validations");
+  assert.ok(lawFirmPackValidations.count <= 5);
+
+  const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
+  assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
+  assert.ok(matterOsProfileArtifacts.count <= 1);
+
+  const matterOsProfiles = await fetchJson(`${url}/api/matter-os-profiles?profile_card_status=complete&limit=5`);
+  assert.equal(matterOsProfiles.collection, "matter_os_profiles");
+  assert.ok(matterOsProfiles.count <= 5);
+
+  const matterOsDisplayFields = await fetchJson(`${url}/api/matter-os-display-fields?display_field_status=complete&limit=5`);
+  assert.equal(matterOsDisplayFields.collection, "matter_os_display_fields");
+  assert.ok(matterOsDisplayFields.count <= 5);
+
+  const matterOsProfileBoundary = await fetchJson(`${url}/api/matter-os-profile-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterOsProfileBoundary.collection, "matter_os_profile_boundary");
+  assert.ok(matterOsProfileBoundary.count <= 1);
+
+  const matterOsProfileValidations = await fetchJson(`${url}/api/matter-os-profile-validations?status=passed&limit=5`);
+  assert.equal(matterOsProfileValidations.collection, "matter_os_profile_validations");
+  assert.ok(matterOsProfileValidations.count <= 5);
+
+  const matterTimelineArtifacts = await fetchJson(`${url}/api/matter-timeline-artifacts?matter_timeline_status=complete&limit=1`);
+  assert.equal(matterTimelineArtifacts.collection, "matter_timeline_artifacts");
+  assert.ok(matterTimelineArtifacts.count <= 1);
+
+  const matterTimelineEvents = await fetchJson(`${url}/api/matter-timeline-events?timeline_event_type=deadline&limit=5`);
+  assert.equal(matterTimelineEvents.collection, "matter_timeline_events");
+  assert.ok(matterTimelineEvents.count <= 5);
+
+  const matterTimelineMatters = await fetchJson(`${url}/api/matter-timeline-matters?timeline_matter_status=complete&limit=5`);
+  assert.equal(matterTimelineMatters.collection, "matter_timeline_matters");
+  assert.ok(matterTimelineMatters.count <= 5);
+
+  const matterTimelineBoundary = await fetchJson(`${url}/api/matter-timeline-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterTimelineBoundary.collection, "matter_timeline_boundary");
+  assert.ok(matterTimelineBoundary.count <= 1);
+
+  const matterTimelineValidations = await fetchJson(`${url}/api/matter-timeline-validations?status=passed&limit=5`);
+  assert.equal(matterTimelineValidations.collection, "matter_timeline_validations");
+  assert.ok(matterTimelineValidations.count <= 5);
+
+  const matterDocumentIndexArtifacts = await fetchJson(`${url}/api/matter-document-index-artifacts?matter_document_index_status=complete&limit=1`);
+  assert.equal(matterDocumentIndexArtifacts.collection, "matter_document_index_artifacts");
+  assert.ok(matterDocumentIndexArtifacts.count <= 1);
+
+  const matterDocumentRecords = await fetchJson(`${url}/api/matter-document-records?document_role=original&limit=5`);
+  assert.equal(matterDocumentRecords.collection, "matter_document_records");
+  assert.ok(matterDocumentRecords.count <= 5);
+
+  const matterDocumentFamilies = await fetchJson(`${url}/api/matter-document-families?document_family_status=indexed&limit=5`);
+  assert.equal(matterDocumentFamilies.collection, "matter_document_families");
+  assert.ok(matterDocumentFamilies.count <= 5);
+
+  const matterLatestDocuments = await fetchJson(`${url}/api/matter-latest-documents?latest_document=true&limit=5`);
+  assert.equal(matterLatestDocuments.collection, "matter_latest_documents");
+  assert.ok(matterLatestDocuments.count <= 5);
+
+  const matterDocumentIndexBoundary = await fetchJson(`${url}/api/matter-document-index-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterDocumentIndexBoundary.collection, "matter_document_index_boundary");
+  assert.ok(matterDocumentIndexBoundary.count <= 1);
+
+  const matterDocumentIndexValidations = await fetchJson(`${url}/api/matter-document-index-validations?status=passed&limit=5`);
+  assert.equal(matterDocumentIndexValidations.collection, "matter_document_index_validations");
+  assert.ok(matterDocumentIndexValidations.count <= 5);
+
+  const matterTaskBoardArtifacts = await fetchJson(`${url}/api/matter-task-board-artifacts?matter_task_board_status=complete&limit=1`);
+  assert.equal(matterTaskBoardArtifacts.collection, "matter_task_board_artifacts");
+  assert.ok(matterTaskBoardArtifacts.count <= 1);
+
+  const matterTaskRecords = await fetchJson(`${url}/api/matter-task-records?task_category=matter_task&limit=5`);
+  assert.equal(matterTaskRecords.collection, "matter_task_records");
+  assert.ok(matterTaskRecords.count <= 5);
+
+  const matterTaskColumns = await fetchJson(`${url}/api/matter-task-board-columns?task_column=open&limit=5`);
+  assert.equal(matterTaskColumns.collection, "matter_task_board_columns");
+  assert.ok(matterTaskColumns.count <= 5);
+
+  const matterTaskWorkflowBindings = await fetchJson(`${url}/api/matter-task-workflow-bindings?task_workflow_binding_status=bound&workflow_run_bound=true&limit=5`);
+  assert.equal(matterTaskWorkflowBindings.collection, "matter_task_workflow_bindings");
+  assert.ok(matterTaskWorkflowBindings.count <= 5);
+
+  const matterTaskBoardBoundary = await fetchJson(`${url}/api/matter-task-board-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterTaskBoardBoundary.collection, "matter_task_board_boundary");
+  assert.ok(matterTaskBoardBoundary.count <= 1);
+
+  const matterTaskBoardValidations = await fetchJson(`${url}/api/matter-task-board-validations?status=passed&limit=5`);
+  assert.equal(matterTaskBoardValidations.collection, "matter_task_board_validations");
+  assert.ok(matterTaskBoardValidations.count <= 5);
+
+  const matterKnowledgeGraphArtifacts = await fetchJson(`${url}/api/matter-knowledge-graph-artifacts?matter_knowledge_graph_status=complete&limit=1`);
+  assert.equal(matterKnowledgeGraphArtifacts.collection, "matter_knowledge_graph_artifacts");
+  assert.ok(matterKnowledgeGraphArtifacts.count <= 1);
+
+  const matterKnowledgeNodes = await fetchJson(`${url}/api/matter-knowledge-nodes?knowledge_node_type=fact&limit=5`);
+  assert.equal(matterKnowledgeNodes.collection, "matter_knowledge_nodes");
+  assert.ok(matterKnowledgeNodes.count <= 5);
+
+  const matterKnowledgeEdges = await fetchJson(`${url}/api/matter-knowledge-edges?knowledge_edge_type=fact_supported_by_evidence&limit=5`);
+  assert.equal(matterKnowledgeEdges.collection, "matter_knowledge_edges");
+  assert.ok(matterKnowledgeEdges.count <= 5);
+
+  const matterKnowledgeSummaries = await fetchJson(`${url}/api/matter-knowledge-summaries?matter_knowledge_status=complete&limit=5`);
+  assert.equal(matterKnowledgeSummaries.collection, "matter_knowledge_summaries");
+  assert.ok(matterKnowledgeSummaries.count <= 5);
+
+  const matterKnowledgeGraphBoundary = await fetchJson(`${url}/api/matter-knowledge-graph-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterKnowledgeGraphBoundary.collection, "matter_knowledge_graph_boundary");
+  assert.ok(matterKnowledgeGraphBoundary.count <= 1);
+
+  const matterKnowledgeGraphValidations = await fetchJson(`${url}/api/matter-knowledge-graph-validations?status=passed&limit=5`);
+  assert.equal(matterKnowledgeGraphValidations.collection, "matter_knowledge_graph_validations");
+  assert.ok(matterKnowledgeGraphValidations.count <= 5);
+
+  const matterPrivilegeClassifierArtifacts = await fetchJson(`${url}/api/matter-privilege-classifier-artifacts?matter_privilege_classifier_status=complete&limit=1`);
+  assert.equal(matterPrivilegeClassifierArtifacts.collection, "matter_privilege_classifier_artifacts");
+  assert.ok(matterPrivilegeClassifierArtifacts.count <= 1);
+
+  const privilegeClassificationRecords = await fetchJson(`${url}/api/privilege-classification-records?privilege_flag=privileged_review_required&limit=5`);
+  assert.equal(privilegeClassificationRecords.collection, "privilege_classification_records");
+  assert.ok(privilegeClassificationRecords.count <= 5);
+
+  const privilegeEvidenceFlags = await fetchJson(`${url}/api/privilege-evidence-flags?flag_type=work_product&limit=5`);
+  assert.equal(privilegeEvidenceFlags.collection, "privilege_evidence_flags");
+  assert.ok(privilegeEvidenceFlags.count <= 5);
+
+  const matterPrivilegeSummaries = await fetchJson(`${url}/api/matter-privilege-summaries?matter_privilege_status=complete&limit=5`);
+  assert.equal(matterPrivilegeSummaries.collection, "matter_privilege_summaries");
+  assert.ok(matterPrivilegeSummaries.count <= 5);
+
+  const matterPrivilegeClassifierBoundary = await fetchJson(`${url}/api/matter-privilege-classifier-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterPrivilegeClassifierBoundary.collection, "matter_privilege_classifier_boundary");
+  assert.ok(matterPrivilegeClassifierBoundary.count <= 1);
+
+  const matterPrivilegeClassifierValidations = await fetchJson(`${url}/api/matter-privilege-classifier-validations?status=passed&limit=5`);
+  assert.equal(matterPrivilegeClassifierValidations.collection, "matter_privilege_classifier_validations");
+  assert.ok(matterPrivilegeClassifierValidations.count <= 5);
+
+  const matterPersonalDataDetectorArtifacts = await fetchJson(`${url}/api/matter-personal-data-detector-artifacts?matter_personal_data_detector_status=complete&limit=1`);
+  assert.equal(matterPersonalDataDetectorArtifacts.collection, "matter_personal_data_detector_artifacts");
+  assert.ok(matterPersonalDataDetectorArtifacts.count <= 1);
+
+  const personalDataDetectionRecords = await fetchJson(`${url}/api/personal-data-detection-records?personal_data_flag=sensitive_personal_data_review_required&limit=5`);
+  assert.equal(personalDataDetectionRecords.collection, "personal_data_detection_records");
+  assert.ok(personalDataDetectionRecords.count <= 5);
+
+  const personalDataPolicyLinks = await fetchJson(`${url}/api/personal-data-policy-links?policy_binding_status=bound&limit=5`);
+  assert.equal(personalDataPolicyLinks.collection, "personal_data_policy_links");
+  assert.ok(personalDataPolicyLinks.count <= 5);
+
+  const personalDataQuarantineLinks = await fetchJson(`${url}/api/personal-data-quarantine-links?quarantine_binding_status=bound&quarantine_applied=false&limit=5`);
+  assert.equal(personalDataQuarantineLinks.collection, "personal_data_quarantine_links");
+  assert.ok(personalDataQuarantineLinks.count <= 5);
+
+  const matterPersonalDataSummaries = await fetchJson(`${url}/api/matter-personal-data-summaries?matter_personal_data_status=complete&limit=5`);
+  assert.equal(matterPersonalDataSummaries.collection, "matter_personal_data_summaries");
+  assert.ok(matterPersonalDataSummaries.count <= 5);
+
+  const matterPersonalDataDetectorBoundary = await fetchJson(`${url}/api/matter-personal-data-detector-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(matterPersonalDataDetectorBoundary.collection, "matter_personal_data_detector_boundary");
+  assert.ok(matterPersonalDataDetectorBoundary.count <= 1);
+
+  const matterPersonalDataDetectorValidations = await fetchJson(`${url}/api/matter-personal-data-detector-validations?status=passed&limit=5`);
+  assert.equal(matterPersonalDataDetectorValidations.collection, "matter_personal_data_detector_validations");
+  assert.ok(matterPersonalDataDetectorValidations.count <= 5);
+
+  const legalCitationVerifierArtifacts = await fetchJson(`${url}/api/legal-citation-verifier-artifacts?legal_citation_verifier_status=complete&limit=1`);
+  assert.equal(legalCitationVerifierArtifacts.collection, "legal_citation_verifier_artifacts");
+  assert.ok(legalCitationVerifierArtifacts.count <= 1);
+
+  const legalCitationVerificationRecords = await fetchJson(`${url}/api/legal-citation-verification-records?currentness_check_status=currentness_review_required&limit=5`);
+  assert.equal(legalCitationVerificationRecords.collection, "legal_citation_verification_records");
+  assert.ok(legalCitationVerificationRecords.count <= 5);
+
+  const legalCitationSourceChecks = await fetchJson(`${url}/api/legal-citation-source-checks?source_check_status=source_bound_pending_attorney_review&source_bound=true&limit=5`);
+  assert.equal(legalCitationSourceChecks.collection, "legal_citation_source_checks");
+  assert.ok(legalCitationSourceChecks.count <= 5);
+
+  const legalCitationCurrentnessChecks = await fetchJson(`${url}/api/legal-citation-currentness-checks?currentness_verified=false&attorney_currentness_review_required=true&limit=5`);
+  assert.equal(legalCitationCurrentnessChecks.collection, "legal_citation_currentness_checks");
+  assert.ok(legalCitationCurrentnessChecks.count <= 5);
+
+  const legalCitationMatterSummaries = await fetchJson(`${url}/api/legal-citation-matter-summaries?legal_citation_matter_status=complete&limit=5`);
+  assert.equal(legalCitationMatterSummaries.collection, "legal_citation_matter_summaries");
+  assert.ok(legalCitationMatterSummaries.count <= 5);
+
+  const legalCitationVerifierBoundary = await fetchJson(`${url}/api/legal-citation-verifier-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(legalCitationVerifierBoundary.collection, "legal_citation_verifier_boundary");
+  assert.ok(legalCitationVerifierBoundary.count <= 1);
+
+  const legalCitationVerifierValidations = await fetchJson(`${url}/api/legal-citation-verifier-validations?status=passed&limit=5`);
+  assert.equal(legalCitationVerifierValidations.collection, "legal_citation_verifier_validations");
+  assert.ok(legalCitationVerifierValidations.count <= 5);
+
+  const lddVdrInventoryArtifacts = await fetchJson(`${url}/api/ldd-vdr-inventory-artifacts?ldd_vdr_inventory_status=complete&limit=1`);
+  assert.equal(lddVdrInventoryArtifacts.collection, "ldd_vdr_inventory_artifacts");
+  assert.ok(lddVdrInventoryArtifacts.count <= 1);
+
+  const lddVdrBatches = await fetchJson(`${url}/api/ldd-vdr-batches?batch_status=inventory_attention_required&limit=5`);
+  assert.equal(lddVdrBatches.collection, "ldd_vdr_batches");
+  assert.ok(lddVdrBatches.count <= 5);
+
+  const lddVdrFolders = await fetchJson(`${url}/api/ldd-vdr-folders?folder_status=attention_required&limit=5`);
+  assert.equal(lddVdrFolders.collection, "ldd_vdr_folders");
+  assert.ok(lddVdrFolders.count <= 5);
+
+  const lddVdrFiles = await fetchJson(`${url}/api/ldd-vdr-files?inventory_file_status=ready_for_attorney_review&limit=5`);
+  assert.equal(lddVdrFiles.collection, "ldd_vdr_files");
+  assert.ok(lddVdrFiles.count <= 5);
+
+  const lddVdrVersions = await fetchJson(`${url}/api/ldd-vdr-versions?version_status=current&resource_version_ledger_bound=true&limit=5`);
+  assert.equal(lddVdrVersions.collection, "ldd_vdr_versions");
+  assert.ok(lddVdrVersions.count <= 5);
+
+  const lddVdrMissingData = await fetchJson(`${url}/api/ldd-vdr-missing-data?missing_data_status=follow_up_required&rfi_candidate=true&limit=5`);
+  assert.equal(lddVdrMissingData.collection, "ldd_vdr_missing_data");
+  assert.ok(lddVdrMissingData.count <= 5);
+
+  const lddVdrMatterSummaries = await fetchJson(`${url}/api/ldd-vdr-matter-summaries?ldd_vdr_matter_status=attention_required&limit=5`);
+  assert.equal(lddVdrMatterSummaries.collection, "ldd_vdr_matter_summaries");
+  assert.ok(lddVdrMatterSummaries.count <= 5);
+
+  const lddVdrInventoryBoundary = await fetchJson(`${url}/api/ldd-vdr-inventory-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddVdrInventoryBoundary.collection, "ldd_vdr_inventory_boundary");
+  assert.ok(lddVdrInventoryBoundary.count <= 1);
+
+  const lddVdrInventoryValidations = await fetchJson(`${url}/api/ldd-vdr-inventory-validations?status=passed&limit=5`);
+  assert.equal(lddVdrInventoryValidations.collection, "ldd_vdr_inventory_validations");
+  assert.ok(lddVdrInventoryValidations.count <= 5);
+
+  const lddDocumentClassificationArtifacts = await fetchJson(`${url}/api/ldd-document-classification-artifacts?ldd_document_classification_status=complete&limit=1`);
+  assert.equal(lddDocumentClassificationArtifacts.collection, "ldd_document_classification_artifacts");
+  assert.ok(lddDocumentClassificationArtifacts.count <= 1);
+
+  const lddDocumentClassificationRules = await fetchJson(`${url}/api/ldd-document-classification-rules?document_class=contract&limit=5`);
+  assert.equal(lddDocumentClassificationRules.collection, "ldd_document_classification_rules");
+  assert.ok(lddDocumentClassificationRules.count <= 5);
+
+  const lddDocumentClassificationRecords = await fetchJson(`${url}/api/ldd-document-classification-records?classification_status=classified_pending_attorney_review&source_row_kind=missing_data&limit=5`);
+  assert.equal(lddDocumentClassificationRecords.collection, "ldd_document_classification_records");
+  assert.ok(lddDocumentClassificationRecords.count <= 5);
+
+  const lddDocumentClassSummaries = await fetchJson(`${url}/api/ldd-document-class-summaries?document_class=tax&limit=5`);
+  assert.equal(lddDocumentClassSummaries.collection, "ldd_document_class_summaries");
+  assert.ok(lddDocumentClassSummaries.count <= 5);
+
+  const lddDocumentMatterClassSummaries = await fetchJson(`${url}/api/ldd-document-matter-class-summaries?ldd_document_matter_classification_status=classified_pending_attorney_review&limit=5`);
+  assert.equal(lddDocumentMatterClassSummaries.collection, "ldd_document_matter_class_summaries");
+  assert.ok(lddDocumentMatterClassSummaries.count <= 5);
+
+  const lddDocumentClassificationBoundary = await fetchJson(`${url}/api/ldd-document-classification-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddDocumentClassificationBoundary.collection, "ldd_document_classification_boundary");
+  assert.ok(lddDocumentClassificationBoundary.count <= 1);
+
+  const lddDocumentClassificationValidations = await fetchJson(`${url}/api/ldd-document-classification-validations?status=passed&limit=5`);
+  assert.equal(lddDocumentClassificationValidations.collection, "ldd_document_classification_validations");
+  assert.ok(lddDocumentClassificationValidations.count <= 5);
+
+  const lddExtractorSelectionArtifacts = await fetchJson(`${url}/api/ldd-extractor-selection-artifacts?ldd_extractor_selection_status=complete&limit=1`);
+  assert.equal(lddExtractorSelectionArtifacts.collection, "ldd_extractor_selection_artifacts");
+  assert.ok(lddExtractorSelectionArtifacts.count <= 1);
+
+  const lddExtractorRegistry = await fetchJson(`${url}/api/ldd-extractor-registry?document_class=contract&limit=5`);
+  assert.equal(lddExtractorRegistry.collection, "ldd_extractor_registry");
+  assert.ok(lddExtractorRegistry.count <= 5);
+
+  const lddExtractorSelectionRecords = await fetchJson(`${url}/api/ldd-extractor-selection-records?selection_status=selected_pending_attorney_review&extractor_execution_performed=false&limit=5`);
+  assert.equal(lddExtractorSelectionRecords.collection, "ldd_extractor_selection_records");
+  assert.ok(lddExtractorSelectionRecords.count <= 5);
+
+  const lddExtractorSelectionRationales = await fetchJson(`${url}/api/ldd-extractor-selection-rationales?rationale_status=document_class_rule_match&limit=5`);
+  assert.equal(lddExtractorSelectionRationales.collection, "ldd_extractor_selection_rationales");
+  assert.ok(lddExtractorSelectionRationales.count <= 5);
+
+  const lddExtractorMatterSummaries = await fetchJson(`${url}/api/ldd-extractor-matter-summaries?ldd_extractor_matter_status=selected_pending_attorney_review&limit=5`);
+  assert.equal(lddExtractorMatterSummaries.collection, "ldd_extractor_matter_summaries");
+  assert.ok(lddExtractorMatterSummaries.count <= 5);
+
+  const lddExtractorSelectionBoundary = await fetchJson(`${url}/api/ldd-extractor-selection-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddExtractorSelectionBoundary.collection, "ldd_extractor_selection_boundary");
+  assert.ok(lddExtractorSelectionBoundary.count <= 1);
+
+  const lddExtractorSelectionValidations = await fetchJson(`${url}/api/ldd-extractor-selection-validations?status=passed&limit=5`);
+  assert.equal(lddExtractorSelectionValidations.collection, "ldd_extractor_selection_validations");
+  assert.ok(lddExtractorSelectionValidations.count <= 5);
+
+  const lddFactExtractionArtifacts = await fetchJson(`${url}/api/ldd-fact-extraction-artifacts?ldd_fact_extraction_status=complete&limit=1`);
+  assert.equal(lddFactExtractionArtifacts.collection, "ldd_fact_extraction_artifacts");
+  assert.ok(lddFactExtractionArtifacts.count <= 1);
+
+  const lddFactExtractionRules = await fetchJson(`${url}/api/ldd-fact-extraction-rules?fact_type=party&limit=5`);
+  assert.equal(lddFactExtractionRules.collection, "ldd_fact_extraction_rules");
+  assert.ok(lddFactExtractionRules.count <= 5);
+
+  const lddFactRecords = await fetchJson(`${url}/api/ldd-fact-records?fact_type=obligation&fact_status=candidate_extracted_pending_attorney_review&limit=5`);
+  assert.equal(lddFactRecords.collection, "ldd_fact_records");
+  assert.ok(lddFactRecords.count <= 5);
+
+  const lddFactSourceGaps = await fetchJson(`${url}/api/ldd-fact-records?fact_type=termination&source_gap=true&limit=5`);
+  assert.equal(lddFactSourceGaps.collection, "ldd_fact_records");
+  assert.ok(lddFactSourceGaps.count <= 5);
+
+  const lddFactSourceBindings = await fetchJson(`${url}/api/ldd-fact-source-bindings?binding_status=bound_to_source_metadata&limit=5`);
+  assert.equal(lddFactSourceBindings.collection, "ldd_fact_source_bindings");
+  assert.ok(lddFactSourceBindings.count <= 5);
+
+  const lddFactTypeSummaries = await fetchJson(`${url}/api/ldd-fact-type-summaries?fact_type=party&limit=5`);
+  assert.equal(lddFactTypeSummaries.collection, "ldd_fact_type_summaries");
+  assert.ok(lddFactTypeSummaries.count <= 5);
+
+  const lddFactMatterSummaries = await fetchJson(`${url}/api/ldd-fact-matter-summaries?ldd_fact_matter_status=complete_pending_attorney_review&limit=5`);
+  assert.equal(lddFactMatterSummaries.collection, "ldd_fact_matter_summaries");
+  assert.ok(lddFactMatterSummaries.count <= 5);
+
+  const lddFactExtractionBoundary = await fetchJson(`${url}/api/ldd-fact-extraction-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddFactExtractionBoundary.collection, "ldd_fact_extraction_boundary");
+  assert.ok(lddFactExtractionBoundary.count <= 1);
+
+  const lddFactExtractionValidations = await fetchJson(`${url}/api/ldd-fact-extraction-validations?status=passed&limit=5`);
+  assert.equal(lddFactExtractionValidations.collection, "ldd_fact_extraction_validations");
+  assert.ok(lddFactExtractionValidations.count <= 5);
+
+  const lddIssueDetectionArtifacts = await fetchJson(`${url}/api/ldd-issue-detection-artifacts?ldd_issue_detection_status=complete&limit=1`);
+  assert.equal(lddIssueDetectionArtifacts.collection, "ldd_issue_detection_artifacts");
+  assert.ok(lddIssueDetectionArtifacts.count <= 1);
+
+  const lddIssueDetectionRules = await fetchJson(`${url}/api/ldd-issue-detection-rules?issue_type=tax_exposure&limit=5`);
+  assert.equal(lddIssueDetectionRules.collection, "ldd_issue_detection_rules");
+  assert.ok(lddIssueDetectionRules.count <= 5);
+
+  const lddIssueRecords = await fetchJson(`${url}/api/ldd-issue-records?issue_flag=red&issue_severity=high&limit=5`);
+  assert.equal(lddIssueRecords.collection, "ldd_issue_records");
+  assert.ok(lddIssueRecords.count <= 5);
+
+  const lddIssueSourceGaps = await fetchJson(`${url}/api/ldd-issue-records?issue_type=source_gap&source_gap=true&limit=5`);
+  assert.equal(lddIssueSourceGaps.collection, "ldd_issue_records");
+  assert.ok(lddIssueSourceGaps.count <= 5);
+
+  const lddIssueFollowUps = await fetchJson(`${url}/api/ldd-issue-follow-ups?follow_up_status=open_pending_attorney_review&limit=5`);
+  assert.equal(lddIssueFollowUps.collection, "ldd_issue_follow_ups");
+  assert.ok(lddIssueFollowUps.count <= 5);
+
+  const lddIssueSeveritySummaries = await fetchJson(`${url}/api/ldd-issue-severity-summaries?issue_severity=high&limit=5`);
+  assert.equal(lddIssueSeveritySummaries.collection, "ldd_issue_severity_summaries");
+  assert.ok(lddIssueSeveritySummaries.count <= 5);
+
+  const lddIssueMatterSummaries = await fetchJson(`${url}/api/ldd-issue-matter-summaries?ldd_issue_matter_status=issues_detected_pending_attorney_review&limit=5`);
+  assert.equal(lddIssueMatterSummaries.collection, "ldd_issue_matter_summaries");
+  assert.ok(lddIssueMatterSummaries.count <= 5);
+
+  const lddIssueDetectionBoundary = await fetchJson(`${url}/api/ldd-issue-detection-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddIssueDetectionBoundary.collection, "ldd_issue_detection_boundary");
+  assert.ok(lddIssueDetectionBoundary.count <= 1);
+
+  const lddIssueDetectionValidations = await fetchJson(`${url}/api/ldd-issue-detection-validations?status=passed&limit=5`);
+  assert.equal(lddIssueDetectionValidations.collection, "ldd_issue_detection_validations");
+  assert.ok(lddIssueDetectionValidations.count <= 5);
+
+  const lddRfiGeneratorArtifacts = await fetchJson(`${url}/api/ldd-rfi-generator-artifacts?ldd_rfi_generator_status=complete&limit=1`);
+  assert.equal(lddRfiGeneratorArtifacts.collection, "ldd_rfi_generator_artifacts");
+  assert.ok(lddRfiGeneratorArtifacts.count <= 1);
+
+  const lddRfiRules = await fetchJson(`${url}/api/ldd-rfi-rules?rfi_rule_type=missing_material_request&limit=5`);
+  assert.equal(lddRfiRules.collection, "ldd_rfi_rules");
+  assert.ok(lddRfiRules.count <= 5);
+
+  const lddRfiDrafts = await fetchJson(`${url}/api/ldd-rfi-drafts?rfi_draft_status=internal_attorney_review_required&limit=5`);
+  assert.equal(lddRfiDrafts.collection, "ldd_rfi_drafts");
+  assert.ok(lddRfiDrafts.count <= 5);
+
+  const lddRfiQuestions = await fetchJson(`${url}/api/ldd-rfi-questions?rfi_question_priority=high&rfi_question_status=draft_pending_attorney_review&limit=5`);
+  assert.equal(lddRfiQuestions.collection, "ldd_rfi_questions");
+  assert.ok(lddRfiQuestions.count <= 5);
+
+  const lddRfiMissingMaterialLinks = await fetchJson(`${url}/api/ldd-rfi-missing-material-links?rfi_missing_material_status=linked_pending_attorney_review&limit=5`);
+  assert.equal(lddRfiMissingMaterialLinks.collection, "ldd_rfi_missing_material_links");
+  assert.ok(lddRfiMissingMaterialLinks.count <= 5);
+
+  const lddRfiIssueLinks = await fetchJson(`${url}/api/ldd-rfi-issue-links?rfi_issue_link_status=linked_pending_attorney_review&limit=5`);
+  assert.equal(lddRfiIssueLinks.collection, "ldd_rfi_issue_links");
+  assert.ok(lddRfiIssueLinks.count <= 5);
+
+  const lddRfiMatterSummaries = await fetchJson(`${url}/api/ldd-rfi-matter-summaries?ldd_rfi_matter_status=draft_questions_pending_attorney_review&limit=5`);
+  assert.equal(lddRfiMatterSummaries.collection, "ldd_rfi_matter_summaries");
+  assert.ok(lddRfiMatterSummaries.count <= 5);
+
+  const lddRfiGeneratorBoundary = await fetchJson(`${url}/api/ldd-rfi-generator-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(lddRfiGeneratorBoundary.collection, "ldd_rfi_generator_boundary");
+  assert.ok(lddRfiGeneratorBoundary.count <= 1);
+
+  const lddRfiGeneratorValidations = await fetchJson(`${url}/api/ldd-rfi-generator-validations?status=passed&limit=5`);
+  assert.equal(lddRfiGeneratorValidations.collection, "ldd_rfi_generator_validations");
+  assert.ok(lddRfiGeneratorValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);
@@ -1971,6 +2383,418 @@ try {
   const issueIntakeValidations = await fetchJson(`${url}/api/issue-intake-validations?status=passed&limit=5`);
   assert.equal(issueIntakeValidations.collection, "issue_intake_validations");
   assert.ok(issueIntakeValidations.count <= 5);
+
+  const planRequestContracts = await fetchJson(`${url}/api/plan-request-contracts?plan_request_status=complete&limit=1`);
+  assert.equal(planRequestContracts.collection, "plan_request_contracts");
+  assert.ok(planRequestContracts.count <= 1);
+
+  const sharedPlanningContexts = await fetchJson(`${url}/api/shared-planning-contexts?limit=1`);
+  assert.equal(sharedPlanningContexts.collection, "shared_planning_contexts");
+  assert.ok(sharedPlanningContexts.count <= 1);
+
+  const planRequests = await fetchJson(`${url}/api/plan-requests?request_status=ready&agent=codex&limit=5`);
+  assert.equal(planRequests.collection, "plan_requests");
+  assert.ok(planRequests.count <= 5);
+
+  const planRequestBindings = await fetchJson(`${url}/api/plan-request-bindings?binding_status=bound&limit=5`);
+  assert.equal(planRequestBindings.collection, "plan_request_bindings");
+  assert.ok(planRequestBindings.count <= 5);
+
+  const planRequestDesktopBoundary = await fetchJson(`${url}/api/plan-request-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(planRequestDesktopBoundary.collection, "plan_request_desktop_boundary");
+  assert.ok(planRequestDesktopBoundary.count <= 1);
+
+  const planRequestValidations = await fetchJson(`${url}/api/plan-request-validations?status=passed&limit=5`);
+  assert.equal(planRequestValidations.collection, "plan_request_validations");
+  assert.ok(planRequestValidations.count <= 5);
+
+  const planReconciliations = await fetchJson(`${url}/api/plan-reconciliations?plan_reconciliation_status=complete&limit=1`);
+  assert.equal(planReconciliations.collection, "plan_reconciliations");
+  assert.ok(planReconciliations.count <= 1);
+
+  const planCandidates = await fetchJson(`${url}/api/plan-candidates?candidate_status=ready_for_reconciliation&agent=codex&limit=5`);
+  assert.equal(planCandidates.collection, "plan_candidates");
+  assert.ok(planCandidates.count <= 5);
+
+  const planCommonalities = await fetchJson(`${url}/api/plan-commonalities?commonality_status=accepted&limit=5`);
+  assert.equal(planCommonalities.collection, "plan_commonalities");
+  assert.ok(planCommonalities.count <= 5);
+
+  const planConflicts = await fetchJson(`${url}/api/plan-conflicts?conflict_status=resolved&limit=5`);
+  assert.equal(planConflicts.collection, "plan_conflicts");
+  assert.ok(planConflicts.count <= 5);
+
+  const selectedPlanScopes = await fetchJson(`${url}/api/selected-plan-scopes?selected_scope_status=selected_for_human_review&limit=1`);
+  assert.equal(selectedPlanScopes.collection, "selected_plan_scopes");
+  assert.ok(selectedPlanScopes.count <= 1);
+
+  const unresolvedPlanQuestions = await fetchJson(`${url}/api/unresolved-plan-questions?blocker_status=non_blocking_for_reconciliation&limit=5`);
+  assert.equal(unresolvedPlanQuestions.collection, "unresolved_plan_questions");
+  assert.ok(unresolvedPlanQuestions.count <= 5);
+
+  const planReconciliationDesktopBoundary = await fetchJson(`${url}/api/plan-reconciliation-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(planReconciliationDesktopBoundary.collection, "plan_reconciliation_desktop_boundary");
+  assert.ok(planReconciliationDesktopBoundary.count <= 1);
+
+  const planReconciliationValidations = await fetchJson(`${url}/api/plan-reconciliation-validations?status=passed&limit=5`);
+  assert.equal(planReconciliationValidations.collection, "plan_reconciliation_validations");
+  assert.ok(planReconciliationValidations.count <= 5);
+
+  const scopeFreezeGates = await fetchJson(`${url}/api/scope-freeze-gates?scope_freeze_gate_status=complete&limit=1`);
+  assert.equal(scopeFreezeGates.collection, "scope_freeze_gates");
+  assert.ok(scopeFreezeGates.count <= 1);
+
+  const frozenScopeItems = await fetchJson(`${url}/api/frozen-scope-items?frozen_scope_status=frozen&limit=5`);
+  assert.equal(frozenScopeItems.collection, "frozen_scope_items");
+  assert.ok(frozenScopeItems.count <= 5);
+
+  const scopeFileBoundaries = await fetchJson(`${url}/api/scope-file-boundaries?file_boundary_status=in_scope_unprotected&limit=5`);
+  assert.equal(scopeFileBoundaries.collection, "scope_file_boundaries");
+  assert.ok(scopeFileBoundaries.count <= 5);
+
+  const scopeProtectedFileRules = await fetchJson(`${url}/api/scope-protected-file-rules?rule_snapshot_status=frozen&limit=5`);
+  assert.equal(scopeProtectedFileRules.collection, "scope_protected_file_rules");
+  assert.ok(scopeProtectedFileRules.count <= 5);
+
+  const scopeFreezeDecisions = await fetchJson(`${url}/api/scope-freeze-decisions?decision_status=frozen&limit=1`);
+  assert.equal(scopeFreezeDecisions.collection, "scope_freeze_decisions");
+  assert.ok(scopeFreezeDecisions.count <= 1);
+
+  const scopeFreezeDesktopBoundary = await fetchJson(`${url}/api/scope-freeze-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(scopeFreezeDesktopBoundary.collection, "scope_freeze_desktop_boundary");
+  assert.ok(scopeFreezeDesktopBoundary.count <= 1);
+
+  const scopeFreezeValidations = await fetchJson(`${url}/api/scope-freeze-validations?status=passed&limit=5`);
+  assert.equal(scopeFreezeValidations.collection, "scope_freeze_validations");
+  assert.ok(scopeFreezeValidations.count <= 5);
+
+  const devLaneLedgers = await fetchJson(`${url}/api/dev-lane-ledgers?dev_lane_ledger_status=complete&limit=1`);
+  assert.equal(devLaneLedgers.collection, "dev_lane_ledgers");
+  assert.ok(devLaneLedgers.count <= 1);
+
+  const devLanes = await fetchJson(`${url}/api/dev-lanes?lane_status=provisioned&agent=codex&limit=5`);
+  assert.equal(devLanes.collection, "dev_lanes");
+  assert.ok(devLanes.count <= 5);
+
+  const devLaneBranchRecords = await fetchJson(`${url}/api/dev-lane-branch-records?branch_record_status=created&limit=5`);
+  assert.equal(devLaneBranchRecords.collection, "dev_lane_branch_records");
+  assert.ok(devLaneBranchRecords.count <= 5);
+
+  const devLaneWorktreeRecords = await fetchJson(`${url}/api/dev-lane-worktree-records?worktree_record_status=created&limit=5`);
+  assert.equal(devLaneWorktreeRecords.collection, "dev_lane_worktree_records");
+  assert.ok(devLaneWorktreeRecords.count <= 5);
+
+  const devLaneDesktopBoundary = await fetchJson(`${url}/api/dev-lane-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(devLaneDesktopBoundary.collection, "dev_lane_desktop_boundary");
+  assert.ok(devLaneDesktopBoundary.count <= 1);
+
+  const devLaneValidations = await fetchJson(`${url}/api/dev-lane-validations?status=passed&limit=5`);
+  assert.equal(devLaneValidations.collection, "dev_lane_validations");
+  assert.ok(devLaneValidations.count <= 5);
+
+  const implementationPatchCaptures = await fetchJson(`${url}/api/implementation-patch-captures?implementation_patch_capture_status=complete&limit=1`);
+  assert.equal(implementationPatchCaptures.collection, "implementation_patch_captures");
+  assert.ok(implementationPatchCaptures.count <= 1);
+
+  const implementationPatchRecords = await fetchJson(`${url}/api/implementation-patch-records?patch_record_status=captured&agent=codex&limit=5`);
+  assert.equal(implementationPatchRecords.collection, "implementation_patch_records");
+  assert.ok(implementationPatchRecords.count <= 5);
+
+  const implementationDiffCaptures = await fetchJson(`${url}/api/implementation-diff-captures?diff_capture_status=captured&limit=5`);
+  assert.equal(implementationDiffCaptures.collection, "implementation_diff_captures");
+  assert.ok(implementationDiffCaptures.count <= 5);
+
+  const implementationTouchedFiles = await fetchJson(`${url}/api/implementation-touched-files?touched_file_status=captured_in_scope&limit=5`);
+  assert.equal(implementationTouchedFiles.collection, "implementation_touched_files");
+  assert.ok(implementationTouchedFiles.count <= 5);
+
+  const implementationGeneratedArtifacts = await fetchJson(`${url}/api/implementation-generated-artifacts?generated_artifact_status=captured&limit=5`);
+  assert.equal(implementationGeneratedArtifacts.collection, "implementation_generated_artifacts");
+  assert.ok(implementationGeneratedArtifacts.count <= 5);
+
+  const implementationRunLedgerBindings = await fetchJson(`${url}/api/implementation-run-ledger-bindings?run_ledger_binding_status=bound&limit=5`);
+  assert.equal(implementationRunLedgerBindings.collection, "implementation_run_ledger_bindings");
+  assert.ok(implementationRunLedgerBindings.count <= 5);
+
+  const implementationPatchDesktopBoundary = await fetchJson(`${url}/api/implementation-patch-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(implementationPatchDesktopBoundary.collection, "implementation_patch_desktop_boundary");
+  assert.ok(implementationPatchDesktopBoundary.count <= 1);
+
+  const implementationPatchValidations = await fetchJson(`${url}/api/implementation-patch-validations?status=passed&limit=5`);
+  assert.equal(implementationPatchValidations.collection, "implementation_patch_validations");
+  assert.ok(implementationPatchValidations.count <= 5);
+
+  const diffReviewGates = await fetchJson(`${url}/api/diff-review-gates?diff_review_gate_status=complete&limit=1`);
+  assert.equal(diffReviewGates.collection, "diff_review_gates");
+  assert.ok(diffReviewGates.count <= 1);
+
+  const diffReviewResults = await fetchJson(`${url}/api/diff-review-results?diff_review_status=reviewed_with_human_gate&agent=codex&limit=5`);
+  assert.equal(diffReviewResults.collection, "diff_review_results");
+  assert.ok(diffReviewResults.count <= 5);
+
+  const diffReviewFileFindings = await fetchJson(`${url}/api/diff-review-file-findings?file_finding_status=reviewed_in_scope&limit=5`);
+  assert.equal(diffReviewFileFindings.collection, "diff_review_file_findings");
+  assert.ok(diffReviewFileFindings.count <= 5);
+
+  const diffReviewArtifactFindings = await fetchJson(`${url}/api/diff-review-artifact-findings?artifact_finding_status=reviewed_output_bound&limit=5`);
+  assert.equal(diffReviewArtifactFindings.collection, "diff_review_artifact_findings");
+  assert.ok(diffReviewArtifactFindings.count <= 5);
+
+  const diffReviewGateResults = await fetchJson(`${url}/api/diff-review-gate-results?gate_result_status=passed_with_human_gate&limit=5`);
+  assert.equal(diffReviewGateResults.collection, "diff_review_gate_results");
+  assert.ok(diffReviewGateResults.count <= 5);
+
+  const diffReviewDesktopBoundary = await fetchJson(`${url}/api/diff-review-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(diffReviewDesktopBoundary.collection, "diff_review_desktop_boundary");
+  assert.ok(diffReviewDesktopBoundary.count <= 1);
+
+  const diffReviewValidations = await fetchJson(`${url}/api/diff-review-validations?status=passed&limit=5`);
+  assert.equal(diffReviewValidations.collection, "diff_review_validations");
+  assert.ok(diffReviewValidations.count <= 5);
+
+  const canonicalTestMatrices = await fetchJson(`${url}/api/canonical-test-matrices?canonical_test_matrix_status=complete&limit=1`);
+  assert.equal(canonicalTestMatrices.collection, "canonical_test_matrices");
+  assert.ok(canonicalTestMatrices.count <= 1);
+
+  const canonicalTestMatrixRepos = await fetchJson(`${url}/api/canonical-test-matrix-repos?repo_matrix_status=ready&limit=5`);
+  assert.equal(canonicalTestMatrixRepos.collection, "canonical_test_matrix_repos");
+  assert.ok(canonicalTestMatrixRepos.count <= 5);
+
+  const canonicalTestMatrixCommands = await fetchJson(`${url}/api/canonical-test-matrix-commands?matrix_command_status=configured&test_dimension=unit&limit=5`);
+  assert.equal(canonicalTestMatrixCommands.collection, "canonical_test_matrix_commands");
+  assert.ok(canonicalTestMatrixCommands.count <= 5);
+
+  const canonicalTestMatrixExecutions = await fetchJson(`${url}/api/canonical-test-matrix-executions?execution_status=passed&test_dimension=unit&limit=5`);
+  assert.equal(canonicalTestMatrixExecutions.collection, "canonical_test_matrix_executions");
+  assert.ok(canonicalTestMatrixExecutions.count <= 5);
+
+  const canonicalTestMatrixResults = await fetchJson(`${url}/api/canonical-test-matrix-results?matrix_result_status=passed&limit=5`);
+  assert.equal(canonicalTestMatrixResults.collection, "canonical_test_matrix_results");
+  assert.ok(canonicalTestMatrixResults.count <= 5);
+
+  const canonicalTestMatrixBindings = await fetchJson(`${url}/api/canonical-test-matrix-bindings?binding_status=bound_to_passing_matrix&limit=5`);
+  assert.equal(canonicalTestMatrixBindings.collection, "canonical_test_matrix_bindings");
+  assert.ok(canonicalTestMatrixBindings.count <= 5);
+
+  const canonicalTestMatrixDesktopBoundary = await fetchJson(`${url}/api/canonical-test-matrix-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(canonicalTestMatrixDesktopBoundary.collection, "canonical_test_matrix_desktop_boundary");
+  assert.ok(canonicalTestMatrixDesktopBoundary.count <= 1);
+
+  const canonicalTestMatrixValidations = await fetchJson(`${url}/api/canonical-test-matrix-validations?status=passed&limit=5`);
+  assert.equal(canonicalTestMatrixValidations.collection, "canonical_test_matrix_validations");
+  assert.ok(canonicalTestMatrixValidations.count <= 5);
+
+  const devProtectedScans = await fetchJson(`${url}/api/dev-protected-scans?dev_protected_scan_status=complete&limit=1`);
+  assert.equal(devProtectedScans.collection, "dev_protected_scans");
+  assert.ok(devProtectedScans.count <= 1);
+
+  const devProtectedFileFindings = await fetchJson(`${url}/api/dev-protected-file-findings?finding_status=blocked_pending_explicit_approval&candidate_origin=protected_file_gate_approval_requirement&limit=5`);
+  assert.equal(devProtectedFileFindings.collection, "dev_protected_file_findings");
+  assert.ok(devProtectedFileFindings.count <= 5);
+
+  const devSecretFindings = await fetchJson(`${url}/api/dev-secret-findings?secret_finding_status=blocked_pending_explicit_approval&limit=5`);
+  assert.equal(devSecretFindings.collection, "dev_secret_findings");
+  assert.ok(devSecretFindings.count <= 5);
+
+  const devProdConfigFindings = await fetchJson(`${url}/api/dev-prod-config-findings?prod_config_finding_status=blocked_pending_explicit_approval&limit=5`);
+  assert.equal(devProdConfigFindings.collection, "dev_prod_config_findings");
+  assert.ok(devProdConfigFindings.count <= 5);
+
+  const devProtectedScanResults = await fetchJson(`${url}/api/dev-protected-scan-results?scan_result_status=passed_with_protected_blocks&limit=5`);
+  assert.equal(devProtectedScanResults.collection, "dev_protected_scan_results");
+  assert.ok(devProtectedScanResults.count <= 5);
+
+  const devProtectedScanBindings = await fetchJson(`${url}/api/dev-protected-scan-bindings?binding_status=bound_after_canonical_test_matrix&limit=5`);
+  assert.equal(devProtectedScanBindings.collection, "dev_protected_scan_bindings");
+  assert.ok(devProtectedScanBindings.count <= 5);
+
+  const devProtectedScanDesktopBoundary = await fetchJson(`${url}/api/dev-protected-scan-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(devProtectedScanDesktopBoundary.collection, "dev_protected_scan_desktop_boundary");
+  assert.ok(devProtectedScanDesktopBoundary.count <= 1);
+
+  const devProtectedScanValidations = await fetchJson(`${url}/api/dev-protected-scan-validations?status=passed&limit=5`);
+  assert.equal(devProtectedScanValidations.collection, "dev_protected_scan_validations");
+  assert.ok(devProtectedScanValidations.count <= 5);
+
+  const prDraftArtifacts = await fetchJson(`${url}/api/pr-draft-artifacts?pr_draft_artifact_status=complete&limit=1`);
+  assert.equal(prDraftArtifacts.collection, "pr_draft_artifacts");
+  assert.ok(prDraftArtifacts.count <= 1);
+
+  const prDraftOutputArtifacts = await fetchJson(`${url}/api/pr-draft-output-artifacts?artifact_type=pr_draft&output_status=draft&limit=5`);
+  assert.equal(prDraftOutputArtifacts.collection, "pr_draft_output_artifacts");
+  assert.ok(prDraftOutputArtifacts.count <= 5);
+
+  const prDraftSections = await fetchJson(`${url}/api/pr-draft-sections?section_status=ready_for_human_review&limit=5`);
+  assert.equal(prDraftSections.collection, "pr_draft_sections");
+  assert.ok(prDraftSections.count <= 5);
+
+  const prDraftTestEvidence = await fetchJson(`${url}/api/pr-draft-test-evidence?test_evidence_status=passed&limit=5`);
+  assert.equal(prDraftTestEvidence.collection, "pr_draft_test_evidence");
+  assert.ok(prDraftTestEvidence.count <= 5);
+
+  const prDraftRisks = await fetchJson(`${url}/api/pr-draft-risks?risk_status=documented_for_human_review&limit=5`);
+  assert.equal(prDraftRisks.collection, "pr_draft_risks");
+  assert.ok(prDraftRisks.count <= 5);
+
+  const prDraftRollbackPlan = await fetchJson(`${url}/api/pr-draft-rollback-plan?rollback_status=draft_not_executed&limit=5`);
+  assert.equal(prDraftRollbackPlan.collection, "pr_draft_rollback_plan");
+  assert.ok(prDraftRollbackPlan.count <= 5);
+
+  const prDraftBindings = await fetchJson(`${url}/api/pr-draft-bindings?pr_draft_binding_status=bound_after_protected_scan&limit=5`);
+  assert.equal(prDraftBindings.collection, "pr_draft_bindings");
+  assert.ok(prDraftBindings.count <= 5);
+
+  const prDraftDesktopBoundary = await fetchJson(`${url}/api/pr-draft-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(prDraftDesktopBoundary.collection, "pr_draft_desktop_boundary");
+  assert.ok(prDraftDesktopBoundary.count <= 1);
+
+  const prDraftValidations = await fetchJson(`${url}/api/pr-draft-validations?status=passed&limit=5`);
+  assert.equal(prDraftValidations.collection, "pr_draft_validations");
+  assert.ok(prDraftValidations.count <= 5);
+
+  const releaseNoteArtifacts = await fetchJson(`${url}/api/release-note-artifacts?release_note_artifact_status=complete&limit=1`);
+  assert.equal(releaseNoteArtifacts.collection, "release_note_artifacts");
+  assert.ok(releaseNoteArtifacts.count <= 1);
+
+  const releaseNoteOutputArtifacts = await fetchJson(`${url}/api/release-note-output-artifacts?artifact_type=release_note&output_status=draft&limit=5`);
+  assert.equal(releaseNoteOutputArtifacts.collection, "release_note_output_artifacts");
+  assert.ok(releaseNoteOutputArtifacts.count <= 5);
+
+  const releaseNoteChangeRecords = await fetchJson(`${url}/api/release-note-change-records?change_record_status=draft_from_human_gated_merge_candidate&limit=5`);
+  assert.equal(releaseNoteChangeRecords.collection, "release_note_change_records");
+  assert.ok(releaseNoteChangeRecords.count <= 5);
+
+  const releaseNoteSections = await fetchJson(`${url}/api/release-note-sections?section_status=draft_ready_for_human_review&limit=5`);
+  assert.equal(releaseNoteSections.collection, "release_note_sections");
+  assert.ok(releaseNoteSections.count <= 5);
+
+  const releaseNoteGateBindings = await fetchJson(`${url}/api/release-note-gate-bindings?release_note_binding_status=bound_to_release_note_draft&limit=5`);
+  assert.equal(releaseNoteGateBindings.collection, "release_note_gate_bindings");
+  assert.ok(releaseNoteGateBindings.count <= 5);
+
+  const releaseNoteDesktopBoundary = await fetchJson(`${url}/api/release-note-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(releaseNoteDesktopBoundary.collection, "release_note_desktop_boundary");
+  assert.ok(releaseNoteDesktopBoundary.count <= 1);
+
+  const releaseNoteValidations = await fetchJson(`${url}/api/release-note-validations?status=passed&limit=5`);
+  assert.equal(releaseNoteValidations.collection, "release_note_validations");
+  assert.ok(releaseNoteValidations.count <= 5);
+
+  const rollbackPlanArtifacts = await fetchJson(`${url}/api/rollback-plan-artifacts?rollback_plan_artifact_status=complete&limit=1`);
+  assert.equal(rollbackPlanArtifacts.collection, "rollback_plan_artifacts");
+  assert.ok(rollbackPlanArtifacts.count <= 1);
+
+  const rollbackPlanOutputArtifacts = await fetchJson(`${url}/api/rollback-plan-output-artifacts?artifact_type=rollback_plan&output_status=draft&limit=5`);
+  assert.equal(rollbackPlanOutputArtifacts.collection, "rollback_plan_output_artifacts");
+  assert.ok(rollbackPlanOutputArtifacts.count <= 5);
+
+  const rollbackCommitTargets = await fetchJson(`${url}/api/rollback-commit-targets?rollback_commit_status=pending_not_merged&limit=5`);
+  assert.equal(rollbackCommitTargets.collection, "rollback_commit_targets");
+  assert.ok(rollbackCommitTargets.count <= 5);
+
+  const rollbackFileTargets = await fetchJson(`${url}/api/rollback-file-targets?rollback_file_status=restore_candidate_declared&limit=5`);
+  assert.equal(rollbackFileTargets.collection, "rollback_file_targets");
+  assert.ok(rollbackFileTargets.count <= 5);
+
+  const rollbackCommandTargets = await fetchJson(`${url}/api/rollback-command-targets?rollback_command_status=draft_not_executed&limit=5`);
+  assert.equal(rollbackCommandTargets.collection, "rollback_command_targets");
+  assert.ok(rollbackCommandTargets.count <= 5);
+
+  const rollbackPlanBindings = await fetchJson(`${url}/api/rollback-plan-bindings?rollback_plan_binding_status=bound_to_rollback_plan_draft&limit=5`);
+  assert.equal(rollbackPlanBindings.collection, "rollback_plan_bindings");
+  assert.ok(rollbackPlanBindings.count <= 5);
+
+  const rollbackPlanDesktopBoundary = await fetchJson(`${url}/api/rollback-plan-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(rollbackPlanDesktopBoundary.collection, "rollback_plan_desktop_boundary");
+  assert.ok(rollbackPlanDesktopBoundary.count <= 1);
+
+  const rollbackPlanValidations = await fetchJson(`${url}/api/rollback-plan-validations?status=passed&limit=5`);
+  assert.equal(rollbackPlanValidations.collection, "rollback_plan_validations");
+  assert.ok(rollbackPlanValidations.count <= 5);
+
+  const technicalDebtLedgers = await fetchJson(`${url}/api/technical-debt-ledgers?technical_debt_ledger_status=complete&limit=1`);
+  assert.equal(technicalDebtLedgers.collection, "technical_debt_ledgers");
+  assert.ok(technicalDebtLedgers.count <= 1);
+
+  const technicalDebtOutputArtifacts = await fetchJson(`${url}/api/technical-debt-output-artifacts?artifact_type=task_update&output_status=draft&limit=5`);
+  assert.equal(technicalDebtOutputArtifacts.collection, "technical_debt_output_artifacts");
+  assert.ok(technicalDebtOutputArtifacts.count <= 5);
+
+  const debtSourceFindings = await fetchJson(`${url}/api/debt-source-findings?finding_status=open_for_triage&limit=5`);
+  assert.equal(debtSourceFindings.collection, "debt_source_findings");
+  assert.ok(debtSourceFindings.count <= 5);
+
+  const technicalDebtTasks = await fetchJson(`${url}/api/technical-debt-tasks?debt_task_status=backlog&debt_preservation_status=preserved_as_task&limit=5`);
+  assert.equal(technicalDebtTasks.collection, "technical_debt_tasks");
+  assert.ok(technicalDebtTasks.count <= 5);
+
+  const debtTaskBindings = await fetchJson(`${url}/api/debt-task-bindings?debt_task_binding_status=bound_to_technical_debt_ledger&limit=5`);
+  assert.equal(debtTaskBindings.collection, "debt_task_bindings");
+  assert.ok(debtTaskBindings.count <= 5);
+
+  const technicalDebtDesktopBoundary = await fetchJson(`${url}/api/technical-debt-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(technicalDebtDesktopBoundary.collection, "technical_debt_desktop_boundary");
+  assert.ok(technicalDebtDesktopBoundary.count <= 1);
+
+  const technicalDebtValidations = await fetchJson(`${url}/api/technical-debt-validations?status=passed&limit=5`);
+  assert.equal(technicalDebtValidations.collection, "technical_debt_validations");
+  assert.ok(technicalDebtValidations.count <= 5);
+
+  const personalDevDashboards = await fetchJson(`${url}/api/personal-dev-dashboard-apis?personal_dev_dashboard_status=complete&limit=1`);
+  assert.equal(personalDevDashboards.collection, "personal_dev_dashboard_apis");
+  assert.ok(personalDevDashboards.count <= 1);
+
+  const personalDevOutputArtifacts = await fetchJson(`${url}/api/personal-dev-output-artifacts?artifact_type=json&output_status=draft&limit=5`);
+  assert.equal(personalDevOutputArtifacts.collection, "personal_dev_output_artifacts");
+  assert.ok(personalDevOutputArtifacts.count <= 5);
+
+  const personalDevPanelRows = await fetchJson(`${url}/api/personal-dev-panel-rows?panel_section=repo&panel_status=ready&limit=5`);
+  assert.equal(personalDevPanelRows.collection, "personal_dev_panel_rows");
+  assert.ok(personalDevPanelRows.count <= 5);
+
+  const personalDevStatusRollups = await fetchJson(`${url}/api/personal-dev-status-rollups?rollup_key=test&rollup_status=ready&limit=5`);
+  assert.equal(personalDevStatusRollups.collection, "personal_dev_status_rollups");
+  assert.ok(personalDevStatusRollups.count <= 5);
+
+  const personalDevRouteBindings = await fetchJson(`${url}/api/personal-dev-api-route-bindings?route_group=pr&route_binding_status=active&limit=5`);
+  assert.equal(personalDevRouteBindings.collection, "personal_dev_api_route_bindings");
+  assert.ok(personalDevRouteBindings.count <= 5);
+
+  const personalDevDashboardBoundary = await fetchJson(`${url}/api/personal-dev-dashboard-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(personalDevDashboardBoundary.collection, "personal_dev_dashboard_desktop_boundary");
+  assert.ok(personalDevDashboardBoundary.count <= 1);
+
+  const personalDevDashboardValidations = await fetchJson(`${url}/api/personal-dev-dashboard-validations?status=passed&limit=5`);
+  assert.equal(personalDevDashboardValidations.collection, "personal_dev_dashboard_validations");
+  assert.ok(personalDevDashboardValidations.count <= 5);
+
+  const personalDevE2eFreezes = await fetchJson(`${url}/api/personal-dev-e2e-freezes?personal_dev_e2e_freeze_status=complete&limit=1`);
+  assert.equal(personalDevE2eFreezes.collection, "personal_dev_e2e_freezes");
+  assert.ok(personalDevE2eFreezes.count <= 1);
+
+  const personalDevE2eSources = await fetchJson(`${url}/api/personal-dev-e2e-freeze-sources?personal_dev_e2e_source_status=complete&limit=5`);
+  assert.equal(personalDevE2eSources.collection, "personal_dev_e2e_freeze_sources");
+  assert.ok(personalDevE2eSources.count <= 5);
+
+  const personalDevE2eCheckpoints = await fetchJson(`${url}/api/personal-dev-e2e-freeze-checkpoints?personal_dev_e2e_checkpoint_status=passed&limit=5`);
+  assert.equal(personalDevE2eCheckpoints.collection, "personal_dev_e2e_freeze_checkpoints");
+  assert.ok(personalDevE2eCheckpoints.count <= 5);
+
+  const personalDevE2eTraces = await fetchJson(`${url}/api/personal-dev-e2e-traces?e2e_trace_stage=dashboard_api&e2e_trace_status=passed&limit=5`);
+  assert.equal(personalDevE2eTraces.collection, "personal_dev_e2e_traces");
+  assert.ok(personalDevE2eTraces.count <= 5);
+
+  const personalDevE2eLoopBindings = await fetchJson(`${url}/api/personal-dev-e2e-loop-bindings?e2e_loop_binding_status=bound_self&limit=5`);
+  assert.equal(personalDevE2eLoopBindings.collection, "personal_dev_e2e_loop_bindings");
+  assert.ok(personalDevE2eLoopBindings.count <= 5);
+
+  const personalDevE2eBoundary = await fetchJson(`${url}/api/personal-dev-e2e-freeze-desktop-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(personalDevE2eBoundary.collection, "personal_dev_e2e_freeze_desktop_boundary");
+  assert.ok(personalDevE2eBoundary.count <= 1);
+
+  const personalDevE2eValidations = await fetchJson(`${url}/api/personal-dev-e2e-freeze-validations?status=passed&limit=5`);
+  assert.equal(personalDevE2eValidations.collection, "personal_dev_e2e_freeze_validations");
+  assert.ok(personalDevE2eValidations.count <= 5);
 
   const gateApprovalContractFreezes = await fetchJson(`${url}/api/gate-approval-contract-freezes?freeze_status=complete&limit=1`);
   assert.equal(gateApprovalContractFreezes.collection, "gate_approval_contract_freezes");

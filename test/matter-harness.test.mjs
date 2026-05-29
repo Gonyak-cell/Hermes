@@ -66,6 +66,7 @@ import { runDesignSystemProfile } from "../src/creative-document-design-system-p
 import { runWebNovelWorkflow } from "../src/creative-document-web-novel-workflow.mjs";
 import { runVideoPptWorkflow } from "../src/creative-document-video-ppt-workflow.mjs";
 import { runCreativeDocumentFreeze } from "../src/creative-document-freeze.mjs";
+import { runConnectorContractV2 } from "../src/connector-contract-v2.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1927,6 +1928,7 @@ describe("matter harness", () => {
         webNovelWorkflowPath: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
         videoPptWorkflowPath: path.join(outDir, "video-ppt-workflow", "video-ppt-workflow.json"),
         creativeDocumentFreezePath: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10735,6 +10737,50 @@ describe("matter harness", () => {
       assert.match(await readFile(path.join(outDir, "creative-document-freeze", "summary.md"), "utf8"), /Creative Document Freeze/);
       assert.match(await readFile(path.join(outDir, "creative-document-freeze", "freeze-note.md"), "utf8"), /not legal advice/);
 
+      const connectorContractV2 = await runConnectorContractV2({
+        resourceContractFreezePath: path.join(outDir, "resource-contract-freeze", "resource-contract-freeze.json"),
+        resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
+        policyMatrixCatalogPath: path.join(outDir, "policy-matrix", "policy-matrix-catalog.json"),
+        toolRuntimePolicyEnforcementPath: path.join(outDir, "tool-runtime-policy", "tool-runtime-policy-enforcement.json"),
+        creativeDocumentFreezePath: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/implementation-roadmap.md",
+        finalLedgerPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "connector-contract-v2"),
+        runAt: "2026-05-23T07:07:24.000Z",
+      });
+      const connectorContractV2Schema = JSON.parse(await readFile("schemas/connector-contract-v2.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(connectorContractV2, connectorContractV2Schema, {}, "connector_contract_v2"), [], JSON.stringify(connectorContractV2.validation.errors));
+      assert.equal(connectorContractV2.summary.connector_contract_status, "complete");
+      assert.equal(connectorContractV2.summary.connector_contract_id, "connector-contract-v2.v1");
+      assert.equal(connectorContractV2.summary.connector_count, 8);
+      assert.equal(connectorContractV2.summary.contracted_connector_count, 8);
+      assert.equal(connectorContractV2.summary.source_contract_count, 8);
+      assert.equal(connectorContractV2.summary.cursor_contract_count, 8);
+      assert.equal(connectorContractV2.summary.external_id_contract_count, 8);
+      assert.equal(connectorContractV2.summary.auth_boundary_count, 8);
+      assert.equal(connectorContractV2.summary.unique_source_id_count, 8);
+      assert.equal(connectorContractV2.summary.unique_external_id_namespace_count, 8);
+      assert.equal(connectorContractV2.summary.unique_auth_boundary_count, 8);
+      assert.equal(connectorContractV2.summary.resumable_cursor_count, 8);
+      assert.equal(connectorContractV2.summary.matter_boundary_required_count, 8);
+      assert.equal(connectorContractV2.summary.classification_required_count, 8);
+      assert.equal(connectorContractV2.summary.policy_snapshot_required_count, 8);
+      assert.equal(connectorContractV2.summary.raw_secret_material_allowed_count, 0);
+      assert.equal(connectorContractV2.summary.connector_execution_performed, false);
+      assert.equal(connectorContractV2.summary.credential_material_read, false);
+      assert.equal(connectorContractV2.summary.output_delivery_performed, false);
+      assert.equal(connectorContractV2.summary.protected_action_executed, false);
+      assert.equal(connectorContractV2.summary.legal_advice_generated, false);
+      assert.equal(connectorContractV2.summary.client_facing_output_generated, false);
+      assert.equal(connectorContractV2.summary.validation_error_count, 0);
+      assert.ok(connectorContractV2.connector_definitions.every((connector) => connector.connector_status === "contracted" && connector.source_id_required && connector.cursor_required && connector.external_id_required && connector.auth_boundary_required && connector.human_review_required));
+      assert.ok(connectorContractV2.connector_source_contracts.every((contract) => contract.source_contract_status === "contracted" && contract.source_id && contract.matter_id_required && contract.policy_snapshot_required));
+      assert.ok(connectorContractV2.connector_cursor_contracts.every((contract) => contract.cursor_contract_status === "contracted" && contract.resume_supported && contract.cursor_state_fields.includes("last_seen_external_id") && contract.raw_token_material_allowed === false));
+      assert.ok(connectorContractV2.connector_external_id_contracts.every((contract) => contract.external_id_contract_status === "contracted" && contract.resource_v2_field === "external_id" && contract.resource_version_v2_field === "external_version_id"));
+      assert.ok(connectorContractV2.connector_auth_boundaries.every((boundary) => boundary.auth_boundary_status === "enforced" && boundary.credential_reference_only && boundary.raw_secret_material_allowed === false && boundary.connector_execution_performed === false));
+      assert.match(await readFile(path.join(outDir, "connector-contract-v2", "summary.md"), "utf8"), /Connector Contract v2/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10925,6 +10971,7 @@ describe("matter harness", () => {
           web_novel_workflow: path.join(outDir, "web-novel-workflow", "web-novel-workflow.json"),
           video_ppt_workflow: path.join(outDir, "video-ppt-workflow", "video-ppt-workflow.json"),
           creative_document_freeze: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
+          connector_contract_v2: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10976,8 +11023,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 168);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 168);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 169);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 169);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11133,6 +11180,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "web_novel_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "video_ppt_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_freeze"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_contract_v2"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -11222,6 +11270,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:web-novel-workflow"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:video-ppt-workflow"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:freeze"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "connectors:contract-v2"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11968,6 +12017,10 @@ describe("matter harness", () => {
       assert.equal(creativeDocumentFreezeCheckpoint?.acceptance_profile, "creative_document_freeze_gate");
       assert.equal(creativeDocumentFreezeCheckpoint?.status, "passed");
       assert.equal(creativeDocumentFreezeCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const connectorContractV2Checkpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-connector-contract-v2");
+      assert.equal(connectorContractV2Checkpoint?.acceptance_profile, "connector_contract_v2_gate");
+      assert.equal(connectorContractV2Checkpoint?.status, "passed");
+      assert.equal(connectorContractV2Checkpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16243,6 +16296,31 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.creative_document_freeze_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.creative_document_freeze_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.creative_document_freeze_validation_error_count, 0);
+      assert.equal(dashboard.summary.connector_contract_v2_status, "complete");
+      assert.equal(dashboard.summary.connector_contract_v2_contract_id, connectorContractV2.summary.connector_contract_id);
+      assert.equal(dashboard.summary.connector_contract_v2_interface_schema_version, connectorContractV2.summary.interface_schema_version);
+      assert.equal(dashboard.summary.connector_contract_v2_connector_count, connectorContractV2.summary.connector_count);
+      assert.equal(dashboard.summary.connector_contract_v2_contracted_connector_count, connectorContractV2.summary.contracted_connector_count);
+      assert.equal(dashboard.summary.connector_contract_v2_source_contract_count, connectorContractV2.summary.source_contract_count);
+      assert.equal(dashboard.summary.connector_contract_v2_cursor_contract_count, connectorContractV2.summary.cursor_contract_count);
+      assert.equal(dashboard.summary.connector_contract_v2_external_id_contract_count, connectorContractV2.summary.external_id_contract_count);
+      assert.equal(dashboard.summary.connector_contract_v2_auth_boundary_count, connectorContractV2.summary.auth_boundary_count);
+      assert.equal(dashboard.summary.connector_contract_v2_unique_source_id_count, connectorContractV2.summary.unique_source_id_count);
+      assert.equal(dashboard.summary.connector_contract_v2_unique_external_id_namespace_count, connectorContractV2.summary.unique_external_id_namespace_count);
+      assert.equal(dashboard.summary.connector_contract_v2_unique_auth_boundary_count, connectorContractV2.summary.unique_auth_boundary_count);
+      assert.equal(dashboard.summary.connector_contract_v2_resumable_cursor_count, connectorContractV2.summary.resumable_cursor_count);
+      assert.equal(dashboard.summary.connector_contract_v2_matter_boundary_required_count, connectorContractV2.summary.matter_boundary_required_count);
+      assert.equal(dashboard.summary.connector_contract_v2_classification_required_count, connectorContractV2.summary.classification_required_count);
+      assert.equal(dashboard.summary.connector_contract_v2_policy_snapshot_required_count, connectorContractV2.summary.policy_snapshot_required_count);
+      assert.equal(dashboard.summary.connector_contract_v2_credential_reference_only_count, connectorContractV2.summary.credential_reference_only_count);
+      assert.equal(dashboard.summary.connector_contract_v2_raw_secret_material_allowed_count, 0);
+      assert.equal(dashboard.summary.connector_contract_v2_connector_execution_performed, false);
+      assert.equal(dashboard.summary.connector_contract_v2_credential_material_read, false);
+      assert.equal(dashboard.summary.connector_contract_v2_output_delivery_performed, false);
+      assert.equal(dashboard.summary.connector_contract_v2_protected_action_executed, false);
+      assert.equal(dashboard.summary.connector_contract_v2_legal_advice_generated, false);
+      assert.equal(dashboard.summary.connector_contract_v2_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.connector_contract_v2_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -18955,6 +19033,34 @@ describe("matter harness", () => {
       assert.equal(creativeDocumentFreezeStage?.metrics.client_facing_ready_count, 0);
       assert.equal(creativeDocumentFreezeStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(creativeDocumentFreezeStage?.metrics.validation_error_count, 0);
+      const connectorContractV2Stage = dashboard.stage_statuses.find((stage) => stage.stage_id === "connector_contract_v2");
+      assert.equal(connectorContractV2Stage?.status, "passed");
+      assert.equal(connectorContractV2Stage?.metrics.connector_contract_status, "complete");
+      assert.equal(connectorContractV2Stage?.metrics.connector_contract_id, connectorContractV2.summary.connector_contract_id);
+      assert.equal(connectorContractV2Stage?.metrics.interface_schema_version, connectorContractV2.summary.interface_schema_version);
+      assert.equal(connectorContractV2Stage?.metrics.connector_count, connectorContractV2.summary.connector_count);
+      assert.equal(connectorContractV2Stage?.metrics.contracted_connector_count, connectorContractV2.summary.contracted_connector_count);
+      assert.equal(connectorContractV2Stage?.metrics.source_contract_count, connectorContractV2.summary.source_contract_count);
+      assert.equal(connectorContractV2Stage?.metrics.cursor_contract_count, connectorContractV2.summary.cursor_contract_count);
+      assert.equal(connectorContractV2Stage?.metrics.external_id_contract_count, connectorContractV2.summary.external_id_contract_count);
+      assert.equal(connectorContractV2Stage?.metrics.auth_boundary_count, connectorContractV2.summary.auth_boundary_count);
+      assert.equal(connectorContractV2Stage?.metrics.unique_source_id_count, connectorContractV2.summary.unique_source_id_count);
+      assert.equal(connectorContractV2Stage?.metrics.unique_external_id_namespace_count, connectorContractV2.summary.unique_external_id_namespace_count);
+      assert.equal(connectorContractV2Stage?.metrics.unique_auth_boundary_count, connectorContractV2.summary.unique_auth_boundary_count);
+      assert.equal(connectorContractV2Stage?.metrics.resumable_cursor_count, connectorContractV2.summary.resumable_cursor_count);
+      assert.equal(connectorContractV2Stage?.metrics.matter_boundary_required_count, connectorContractV2.summary.matter_boundary_required_count);
+      assert.equal(connectorContractV2Stage?.metrics.classification_required_count, connectorContractV2.summary.classification_required_count);
+      assert.equal(connectorContractV2Stage?.metrics.policy_snapshot_required_count, connectorContractV2.summary.policy_snapshot_required_count);
+      assert.equal(connectorContractV2Stage?.metrics.raw_secret_material_allowed_count, 0);
+      assert.equal(connectorContractV2Stage?.metrics.mutation_allowed_count, 0);
+      assert.equal(connectorContractV2Stage?.metrics.connector_execution_performed, false);
+      assert.equal(connectorContractV2Stage?.metrics.credential_material_read, false);
+      assert.equal(connectorContractV2Stage?.metrics.output_delivery_performed, false);
+      assert.equal(connectorContractV2Stage?.metrics.protected_action_executed, false);
+      assert.equal(connectorContractV2Stage?.metrics.legal_advice_generated, false);
+      assert.equal(connectorContractV2Stage?.metrics.client_facing_output_generated, false);
+      assert.equal(connectorContractV2Stage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(connectorContractV2Stage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21135,6 +21241,34 @@ describe("matter harness", () => {
       const creativeDocumentFreezeValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/creative-document-freeze-validations?status=passed", apiOptions)).body);
       assert.equal(creativeDocumentFreezeValidationsResponse.collection, "creative_document_freeze_validations");
       assert.equal(creativeDocumentFreezeValidationsResponse.count, creativeDocumentFreeze.summary.validation_item_count);
+
+      const connectorContractsV2Response = JSON.parse((await buildReviewApiResponse("/api/connector-contracts-v2?connector_contract_v2_status=complete", apiOptions)).body);
+      assert.equal(connectorContractsV2Response.collection, "connector_contracts_v2");
+      assert.equal(connectorContractsV2Response.count, 1);
+
+      const connectorDefinitionsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-definitions?connector_status=contracted", apiOptions)).body);
+      assert.equal(connectorDefinitionsResponse.collection, "connector_definitions");
+      assert.equal(connectorDefinitionsResponse.count, connectorContractV2.summary.connector_count);
+
+      const connectorSourceContractsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-source-contracts?source_contract_status=contracted", apiOptions)).body);
+      assert.equal(connectorSourceContractsResponse.collection, "connector_source_contracts");
+      assert.equal(connectorSourceContractsResponse.count, connectorContractV2.summary.source_contract_count);
+
+      const connectorCursorContractsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-cursor-contracts?cursor_contract_status=contracted", apiOptions)).body);
+      assert.equal(connectorCursorContractsResponse.collection, "connector_cursor_contracts");
+      assert.equal(connectorCursorContractsResponse.count, connectorContractV2.summary.cursor_contract_count);
+
+      const connectorExternalIdContractsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-external-id-contracts?external_id_contract_status=contracted", apiOptions)).body);
+      assert.equal(connectorExternalIdContractsResponse.collection, "connector_external_id_contracts");
+      assert.equal(connectorExternalIdContractsResponse.count, connectorContractV2.summary.external_id_contract_count);
+
+      const connectorAuthBoundariesResponse = JSON.parse((await buildReviewApiResponse("/api/connector-auth-boundaries?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(connectorAuthBoundariesResponse.collection, "connector_auth_boundaries");
+      assert.equal(connectorAuthBoundariesResponse.count, connectorContractV2.summary.auth_boundary_count);
+
+      const connectorContractV2ValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-contract-v2-validations?status=passed", apiOptions)).body);
+      assert.equal(connectorContractV2ValidationsResponse.collection, "connector_contract_v2_validations");
+      assert.equal(connectorContractV2ValidationsResponse.count, connectorContractV2.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

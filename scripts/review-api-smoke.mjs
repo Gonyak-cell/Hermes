@@ -2264,6 +2264,34 @@ try {
   assert.equal(creativeDocumentFreezeValidations.collection, "creative_document_freeze_validations");
   assert.ok(creativeDocumentFreezeValidations.count <= 5);
 
+  const connectorContractsV2 = await fetchJson(`${url}/api/connector-contracts-v2?connector_contract_v2_status=complete&limit=1`);
+  assert.equal(connectorContractsV2.collection, "connector_contracts_v2");
+  assert.ok(connectorContractsV2.count <= 1);
+
+  const connectorDefinitions = await fetchJson(`${url}/api/connector-definitions?connector_status=contracted&connector_family=local_folder&limit=5`);
+  assert.equal(connectorDefinitions.collection, "connector_definitions");
+  assert.ok(connectorDefinitions.count <= 5);
+
+  const connectorSourceContracts = await fetchJson(`${url}/api/connector-source-contracts?source_contract_status=contracted&source_system=local_filesystem&limit=5`);
+  assert.equal(connectorSourceContracts.collection, "connector_source_contracts");
+  assert.ok(connectorSourceContracts.count <= 5);
+
+  const connectorCursorContracts = await fetchJson(`${url}/api/connector-cursor-contracts?cursor_contract_status=contracted&limit=5`);
+  assert.equal(connectorCursorContracts.collection, "connector_cursor_contracts");
+  assert.ok(connectorCursorContracts.count <= 5);
+
+  const connectorExternalIdContracts = await fetchJson(`${url}/api/connector-external-id-contracts?external_id_contract_status=contracted&limit=5`);
+  assert.equal(connectorExternalIdContracts.collection, "connector_external_id_contracts");
+  assert.ok(connectorExternalIdContracts.count <= 5);
+
+  const connectorAuthBoundaries = await fetchJson(`${url}/api/connector-auth-boundaries?auth_boundary_status=enforced&credential_reference_only=true&limit=5`);
+  assert.equal(connectorAuthBoundaries.collection, "connector_auth_boundaries");
+  assert.ok(connectorAuthBoundaries.count <= 5);
+
+  const connectorContractV2Validations = await fetchJson(`${url}/api/connector-contract-v2-validations?status=passed&limit=5`);
+  assert.equal(connectorContractV2Validations.collection, "connector_contract_v2_validations");
+  assert.ok(connectorContractV2Validations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

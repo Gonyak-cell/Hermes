@@ -102,6 +102,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   webNovelWorkflowPath: "artifacts/web-novel-workflow/latest/web-novel-workflow.json",
   videoPptWorkflowPath: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
   creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
+  connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -755,6 +756,11 @@ const SOURCE_DEFINITIONS = [
     option: "creativeDocumentFreezePath",
     source_id: "creative_document_freeze",
     label: "Creative Document Freeze",
+  },
+  {
+    option: "connectorContractV2Path",
+    source_id: "connector_contract_v2",
+    label: "Connector Contract v2",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1726,6 +1732,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "web_novel_workflow") return data.summary ?? {};
   if (sourceId === "video_ppt_workflow") return data.summary ?? {};
   if (sourceId === "creative_document_freeze") return data.summary ?? {};
+  if (sourceId === "connector_contract_v2") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2109,6 +2116,7 @@ function buildStageStatuses(artifacts, sources) {
     buildWebNovelWorkflowStage(artifacts.web_novel_workflow, sourceById.get("web_novel_workflow")),
     buildVideoPptWorkflowStage(artifacts.video_ppt_workflow, sourceById.get("video_ppt_workflow")),
     buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
+    buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11927,6 +11935,101 @@ function buildCreativeDocumentFreezeStage(artifact, source) {
   };
 }
 
+function buildConnectorContractV2Stage(artifact, source) {
+  if (!artifact) return missingStage("connector_contract_v2", "Connector Contract v2", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.connector_contract_status !== "complete"
+    || summary.connector_count !== 8
+    || summary.contracted_connector_count !== summary.connector_count
+    || summary.source_contract_count !== summary.connector_count
+    || summary.cursor_contract_count !== summary.connector_count
+    || summary.external_id_contract_count !== summary.connector_count
+    || summary.auth_boundary_count !== summary.connector_count
+    || summary.unique_source_id_count !== summary.connector_count
+    || summary.unique_external_id_namespace_count !== summary.connector_count
+    || summary.unique_auth_boundary_count !== summary.connector_count
+    || summary.resumable_cursor_count !== summary.connector_count
+    || summary.matter_boundary_required_count !== summary.connector_count
+    || summary.classification_required_count !== summary.connector_count
+    || summary.policy_snapshot_required_count !== summary.connector_count
+    || summary.raw_secret_material_allowed_count !== 0
+    || summary.mutation_allowed_count !== 0
+    || summary.connector_execution_performed === true
+    || summary.credential_material_read === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.failed_checkpoint_count > 0
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "connector_contract_v2",
+    label: "Connector Contract v2",
+    status,
+    message: `${summary.connector_count ?? 0} connector family contract(s), ${summary.source_contract_count ?? 0} source id contract(s), ${summary.cursor_contract_count ?? 0} cursor contract(s), ${summary.auth_boundary_count ?? 0} auth boundary contract(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      connector_contract_status: summary.connector_contract_status ?? "unknown",
+      connector_contract_id: summary.connector_contract_id ?? null,
+      interface_schema_version: summary.interface_schema_version ?? null,
+      connector_source_schema_version: summary.connector_source_schema_version ?? null,
+      connector_cursor_schema_version: summary.connector_cursor_schema_version ?? null,
+      connector_external_id_schema_version: summary.connector_external_id_schema_version ?? null,
+      connector_auth_boundary_schema_version: summary.connector_auth_boundary_schema_version ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      phase_range: summary.phase_range ?? null,
+      next_phase_slot: summary.next_phase_slot ?? null,
+      source_resource_contract_freeze_status: summary.source_resource_contract_freeze_status ?? "unknown",
+      source_resource_store_interface_status: summary.source_resource_store_interface_status ?? "unknown",
+      source_policy_matrix_status: summary.source_policy_matrix_status ?? "unknown",
+      source_tool_runtime_policy_status: summary.source_tool_runtime_policy_status ?? "unknown",
+      source_creative_document_freeze_status: summary.source_creative_document_freeze_status ?? "unknown",
+      connector_count: summary.connector_count ?? 0,
+      contracted_connector_count: summary.contracted_connector_count ?? 0,
+      source_contract_count: summary.source_contract_count ?? 0,
+      cursor_contract_count: summary.cursor_contract_count ?? 0,
+      external_id_contract_count: summary.external_id_contract_count ?? 0,
+      auth_boundary_count: summary.auth_boundary_count ?? 0,
+      unique_source_id_count: summary.unique_source_id_count ?? 0,
+      unique_external_id_namespace_count: summary.unique_external_id_namespace_count ?? 0,
+      unique_auth_boundary_count: summary.unique_auth_boundary_count ?? 0,
+      resumable_cursor_count: summary.resumable_cursor_count ?? 0,
+      last_seen_external_id_cursor_count: summary.last_seen_external_id_cursor_count ?? 0,
+      resource_projection_required_count: summary.resource_projection_required_count ?? 0,
+      resource_version_projection_required_count: summary.resource_version_projection_required_count ?? 0,
+      matter_boundary_required_count: summary.matter_boundary_required_count ?? 0,
+      classification_required_count: summary.classification_required_count ?? 0,
+      policy_snapshot_required_count: summary.policy_snapshot_required_count ?? 0,
+      credential_reference_only_count: summary.credential_reference_only_count ?? 0,
+      least_privilege_scope_count: summary.least_privilege_scope_count ?? 0,
+      credential_ref_required_count: summary.credential_ref_required_count ?? 0,
+      local_or_export_connector_count: summary.local_or_export_connector_count ?? 0,
+      cloud_runtime_boundary_count: summary.cloud_runtime_boundary_count ?? 0,
+      read_only_connector_count: summary.read_only_connector_count ?? 0,
+      draft_output_connector_count: summary.draft_output_connector_count ?? 0,
+      mutation_allowed_count: summary.mutation_allowed_count ?? 0,
+      raw_secret_material_allowed_count: summary.raw_secret_material_allowed_count ?? 0,
+      connector_execution_performed: summary.connector_execution_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      read_only: summary.read_only ?? false,
+      contract_report_only: summary.contract_report_only ?? false,
+      human_review_required: summary.human_review_required ?? false,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18215,6 +18318,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.connector_contract_v2?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "connector_contract_v2";
+    items.push({
+      action_item_id: `dashboard.action.connector_contract_v2.${slugify(subjectId)}`,
+      source_stage: "connector_contract_v2",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Connector Contract v2",
+      subject_ref: {
+        subject_type: "connector_contract_v2_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_connector_contract_v2", "rerun_connector_contract_v2", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -24256,6 +24377,35 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     creative_document_freeze_client_facing_ready_count: artifacts.creative_document_freeze?.summary?.client_facing_ready_count ?? 0,
     creative_document_freeze_failed_checkpoint_count: artifacts.creative_document_freeze?.summary?.failed_checkpoint_count ?? 0,
     creative_document_freeze_validation_error_count: artifacts.creative_document_freeze?.summary?.validation_error_count ?? artifacts.creative_document_freeze?.validation?.errors?.length ?? 0,
+    connector_contract_v2_status: artifacts.connector_contract_v2?.summary?.connector_contract_status ?? "unknown",
+    connector_contract_v2_contract_id: artifacts.connector_contract_v2?.summary?.connector_contract_id ?? null,
+    connector_contract_v2_interface_schema_version: artifacts.connector_contract_v2?.summary?.interface_schema_version ?? null,
+    connector_contract_v2_source_schema_version: artifacts.connector_contract_v2?.summary?.connector_source_schema_version ?? null,
+    connector_contract_v2_cursor_schema_version: artifacts.connector_contract_v2?.summary?.connector_cursor_schema_version ?? null,
+    connector_contract_v2_external_id_schema_version: artifacts.connector_contract_v2?.summary?.connector_external_id_schema_version ?? null,
+    connector_contract_v2_auth_boundary_schema_version: artifacts.connector_contract_v2?.summary?.connector_auth_boundary_schema_version ?? null,
+    connector_contract_v2_connector_count: artifacts.connector_contract_v2?.summary?.connector_count ?? 0,
+    connector_contract_v2_contracted_connector_count: artifacts.connector_contract_v2?.summary?.contracted_connector_count ?? 0,
+    connector_contract_v2_source_contract_count: artifacts.connector_contract_v2?.summary?.source_contract_count ?? 0,
+    connector_contract_v2_cursor_contract_count: artifacts.connector_contract_v2?.summary?.cursor_contract_count ?? 0,
+    connector_contract_v2_external_id_contract_count: artifacts.connector_contract_v2?.summary?.external_id_contract_count ?? 0,
+    connector_contract_v2_auth_boundary_count: artifacts.connector_contract_v2?.summary?.auth_boundary_count ?? 0,
+    connector_contract_v2_unique_source_id_count: artifacts.connector_contract_v2?.summary?.unique_source_id_count ?? 0,
+    connector_contract_v2_unique_external_id_namespace_count: artifacts.connector_contract_v2?.summary?.unique_external_id_namespace_count ?? 0,
+    connector_contract_v2_unique_auth_boundary_count: artifacts.connector_contract_v2?.summary?.unique_auth_boundary_count ?? 0,
+    connector_contract_v2_resumable_cursor_count: artifacts.connector_contract_v2?.summary?.resumable_cursor_count ?? 0,
+    connector_contract_v2_matter_boundary_required_count: artifacts.connector_contract_v2?.summary?.matter_boundary_required_count ?? 0,
+    connector_contract_v2_classification_required_count: artifacts.connector_contract_v2?.summary?.classification_required_count ?? 0,
+    connector_contract_v2_policy_snapshot_required_count: artifacts.connector_contract_v2?.summary?.policy_snapshot_required_count ?? 0,
+    connector_contract_v2_credential_reference_only_count: artifacts.connector_contract_v2?.summary?.credential_reference_only_count ?? 0,
+    connector_contract_v2_raw_secret_material_allowed_count: artifacts.connector_contract_v2?.summary?.raw_secret_material_allowed_count ?? 0,
+    connector_contract_v2_connector_execution_performed: artifacts.connector_contract_v2?.summary?.connector_execution_performed ?? false,
+    connector_contract_v2_credential_material_read: artifacts.connector_contract_v2?.summary?.credential_material_read ?? false,
+    connector_contract_v2_output_delivery_performed: artifacts.connector_contract_v2?.summary?.output_delivery_performed ?? false,
+    connector_contract_v2_protected_action_executed: artifacts.connector_contract_v2?.summary?.protected_action_executed ?? false,
+    connector_contract_v2_legal_advice_generated: artifacts.connector_contract_v2?.summary?.legal_advice_generated ?? false,
+    connector_contract_v2_client_facing_output_generated: artifacts.connector_contract_v2?.summary?.client_facing_output_generated ?? false,
+    connector_contract_v2_validation_error_count: artifacts.connector_contract_v2?.summary?.validation_error_count ?? artifacts.connector_contract_v2?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -26043,6 +26193,8 @@ function parseArgs(argv) {
     else if (arg === "--no-video-ppt-workflow") parsed.videoPptWorkflowPath = false;
     else if (arg === "--creative-document-freeze") parsed.creativeDocumentFreezePath = argv[++index];
     else if (arg === "--no-creative-document-freeze") parsed.creativeDocumentFreezePath = false;
+    else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
+    else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

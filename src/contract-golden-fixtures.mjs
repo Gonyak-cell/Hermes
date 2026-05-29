@@ -175,6 +175,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     web_novel_workflow: "artifacts/web-novel-workflow/latest/web-novel-workflow.json",
     video_ppt_workflow: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
     creative_document_freeze: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
+    connector_contract_v2: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
   },
 };
 
@@ -343,6 +344,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("web_novel_workflow", "Web Novel Workflow", "creative_document", "web-novel-workflow.schema.json"),
   fixtureDefinition("video_ppt_workflow", "Video/PPT Workflow", "creative_document", "video-ppt-workflow.schema.json"),
   fixtureDefinition("creative_document_freeze", "Creative Document Freeze", "creative_document", "creative-document-freeze.schema.json"),
+  fixtureDefinition("connector_contract_v2", "Connector Contract v2", "connectors", "connector-contract-v2.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

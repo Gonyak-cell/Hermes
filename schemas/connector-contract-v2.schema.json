@@ -1,0 +1,259 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "connector-contract-v2.schema.json",
+  "title": "Connector Contract v2",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "connector_contract_status",
+    "connector_interface_schema",
+    "connector_definitions",
+    "connector_source_contracts",
+    "connector_cursor_contracts",
+    "connector_external_id_contracts",
+    "connector_auth_boundaries",
+    "connector_contract_boundary",
+    "connector_contract_checkpoints",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "connector-contract-v2.v1" },
+    "connector_contract_status": { "const": "complete" },
+    "connector_interface_schema": {
+      "type": "object",
+      "required": ["schema_version", "interface_contract_status", "required_connector_fields"],
+      "properties": {
+        "schema_version": { "const": "connector-interface-schema.v2" },
+        "interface_contract_status": { "const": "complete" },
+        "required_connector_fields": {
+          "type": "array",
+          "contains": { "const": "source_id" }
+        }
+      }
+    },
+    "connector_definitions": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": [
+          "connector_id",
+          "connector_status",
+          "default_source_id",
+          "source_id_required",
+          "cursor_required",
+          "external_id_required",
+          "auth_boundary_required",
+          "matter_id_required",
+          "classification_required",
+          "policy_snapshot_required",
+          "read_only_by_default",
+          "mutation_allowed",
+          "delivery_execution_allowed",
+          "protected_action_allowed",
+          "raw_secret_material_allowed",
+          "legal_advice_generated",
+          "client_facing_output_generated",
+          "human_review_required"
+        ],
+        "properties": {
+          "connector_id": { "type": "string" },
+          "connector_status": { "const": "contracted" },
+          "default_source_id": { "type": "string" },
+          "source_id_required": { "const": true },
+          "cursor_required": { "const": true },
+          "external_id_required": { "const": true },
+          "auth_boundary_required": { "const": true },
+          "matter_id_required": { "const": true },
+          "classification_required": { "const": true },
+          "policy_snapshot_required": { "const": true },
+          "read_only_by_default": { "const": true },
+          "mutation_allowed": { "const": false },
+          "delivery_execution_allowed": { "const": false },
+          "protected_action_allowed": { "const": false },
+          "raw_secret_material_allowed": { "const": false },
+          "legal_advice_generated": { "const": false },
+          "client_facing_output_generated": { "const": false },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "connector_source_contracts": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "source_id", "source_contract_status", "tenant_id_required", "matter_id_required", "classification_required", "policy_snapshot_required"],
+        "properties": {
+          "schema_version": { "const": "connector-source.v2" },
+          "source_id": { "type": "string" },
+          "source_contract_status": { "const": "contracted" },
+          "tenant_id_required": { "const": true },
+          "matter_id_required": { "const": true },
+          "classification_required": { "const": true },
+          "policy_snapshot_required": { "const": true }
+        }
+      }
+    },
+    "connector_cursor_contracts": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "cursor_id", "cursor_contract_status", "cursor_state_fields", "resume_supported", "raw_token_material_allowed", "cross_matter_cursor_reuse_allowed"],
+        "properties": {
+          "schema_version": { "const": "connector-cursor.v2" },
+          "cursor_id": { "type": "string" },
+          "cursor_contract_status": { "const": "contracted" },
+          "cursor_state_fields": {
+            "type": "array",
+            "contains": { "const": "last_seen_external_id" }
+          },
+          "resume_supported": { "const": true },
+          "raw_token_material_allowed": { "const": false },
+          "cross_matter_cursor_reuse_allowed": { "const": false }
+        }
+      }
+    },
+    "connector_external_id_contracts": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "external_id_contract_status", "external_id_namespace", "external_id_fields", "resource_v2_field", "resource_version_v2_field", "stable_hash_required"],
+        "properties": {
+          "schema_version": { "const": "connector-external-id.v2" },
+          "external_id_contract_status": { "const": "contracted" },
+          "external_id_namespace": { "type": "string" },
+          "external_id_fields": { "type": "array", "minItems": 1 },
+          "resource_v2_field": { "const": "external_id" },
+          "resource_version_v2_field": { "const": "external_version_id" },
+          "stable_hash_required": { "const": true }
+        }
+      }
+    },
+    "connector_auth_boundaries": {
+      "type": "array",
+      "minItems": 8,
+      "items": {
+        "type": "object",
+        "required": ["schema_version", "auth_boundary_id", "auth_boundary_status", "credential_reference_only", "raw_secret_material_allowed", "least_privilege_scopes", "connector_execution_performed", "write_operations_allowed", "delivery_execution_allowed", "protected_action_allowed"],
+        "properties": {
+          "schema_version": { "const": "connector-auth-boundary.v2" },
+          "auth_boundary_id": { "type": "string" },
+          "auth_boundary_status": { "const": "enforced" },
+          "credential_reference_only": { "const": true },
+          "raw_secret_material_allowed": { "const": false },
+          "least_privilege_scopes": { "type": "array", "minItems": 1 },
+          "connector_execution_performed": { "const": false },
+          "write_operations_allowed": { "const": false },
+          "delivery_execution_allowed": { "const": false },
+          "protected_action_allowed": { "const": false }
+        }
+      }
+    },
+    "connector_contract_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "contract_report_only",
+        "connector_execution_performed",
+        "credential_material_read",
+        "output_delivery_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "contract_report_only": { "const": true },
+        "connector_execution_performed": { "const": false },
+        "credential_material_read": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "connector_contract_checkpoints": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["checkpoint_id", "status"],
+        "properties": {
+          "checkpoint_id": { "type": "string" },
+          "status": { "const": "passed" }
+        }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 13,
+      "items": {
+        "type": "object",
+        "required": ["status"],
+        "properties": {
+          "status": { "const": "passed" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "failed_count"],
+      "properties": {
+        "valid": { "const": true },
+        "failed_count": { "const": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "connector_contract_status",
+        "connector_count",
+        "source_contract_count",
+        "cursor_contract_count",
+        "external_id_contract_count",
+        "auth_boundary_count",
+        "unique_source_id_count",
+        "unique_external_id_namespace_count",
+        "unique_auth_boundary_count",
+        "resumable_cursor_count",
+        "matter_boundary_required_count",
+        "classification_required_count",
+        "policy_snapshot_required_count",
+        "raw_secret_material_allowed_count",
+        "connector_execution_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "validation_error_count"
+      ],
+      "properties": {
+        "connector_contract_status": { "const": "complete" },
+        "connector_count": { "const": 8 },
+        "source_contract_count": { "const": 8 },
+        "cursor_contract_count": { "const": 8 },
+        "external_id_contract_count": { "const": 8 },
+        "auth_boundary_count": { "const": 8 },
+        "unique_source_id_count": { "const": 8 },
+        "unique_external_id_namespace_count": { "const": 8 },
+        "unique_auth_boundary_count": { "const": 8 },
+        "resumable_cursor_count": { "const": 8 },
+        "matter_boundary_required_count": { "const": 8 },
+        "classification_required_count": { "const": 8 },
+        "policy_snapshot_required_count": { "const": 8 },
+        "raw_secret_material_allowed_count": { "const": 0 },
+        "connector_execution_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

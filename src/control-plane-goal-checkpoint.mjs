@@ -139,6 +139,7 @@ const GOAL_ITEMS = [
   sourceItem("web_novel_workflow", "Web novel workflow", "creative_document", "web_novel_workflow", "control-plane-web-novel-workflow", { acceptance_profile: "web_novel_workflow_gate" }),
   sourceItem("video_ppt_workflow", "Video/PPT workflow", "creative_document", "video_ppt_workflow", "control-plane-video-ppt-workflow", { acceptance_profile: "video_ppt_workflow_gate" }),
   sourceItem("creative_document_freeze", "Creative Document freeze", "creative_document", "creative_document_freeze", "control-plane-creative-document-freeze", { acceptance_profile: "creative_document_freeze_gate" }),
+  sourceItem("connector_contract_v2", "Connector Contract v2", "connectors", "connector_contract_v2", "control-plane-connector-contract-v2", { acceptance_profile: "connector_contract_v2_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -637,6 +638,7 @@ function evaluateStageAcceptance(item, stage) {
     "web_novel_workflow_gate",
     "video_ppt_workflow_gate",
     "creative_document_freeze_gate",
+    "connector_contract_v2_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4834,6 +4836,42 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Creative Document Freeze locks P253-P265 representative document, presentation, and content paths with render, layout, approval, human-review, no-legal-advice, and no-delivery gates preserved.");
+    }
+  }
+
+  if (item.acceptance_profile === "connector_contract_v2_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.connector_contract_status === "complete"
+      && metrics.connector_count === 8
+      && metrics.contracted_connector_count === metrics.connector_count
+      && metrics.source_contract_count === metrics.connector_count
+      && metrics.cursor_contract_count === metrics.connector_count
+      && metrics.external_id_contract_count === metrics.connector_count
+      && metrics.auth_boundary_count === metrics.connector_count
+      && metrics.unique_source_id_count === metrics.connector_count
+      && metrics.unique_external_id_namespace_count === metrics.connector_count
+      && metrics.unique_auth_boundary_count === metrics.connector_count
+      && metrics.resumable_cursor_count === metrics.connector_count
+      && metrics.last_seen_external_id_cursor_count === metrics.connector_count
+      && metrics.resource_projection_required_count === metrics.connector_count
+      && metrics.resource_version_projection_required_count === metrics.connector_count
+      && metrics.matter_boundary_required_count === metrics.connector_count
+      && metrics.classification_required_count === metrics.connector_count
+      && metrics.policy_snapshot_required_count === metrics.connector_count
+      && metrics.credential_reference_only_count === metrics.connector_count
+      && metrics.raw_secret_material_allowed_count === 0
+      && metrics.mutation_allowed_count === 0
+      && metrics.connector_execution_performed === false
+      && metrics.external_network_access_performed === false
+      && metrics.credential_material_read === false
+      && metrics.resource_mutation_performed === false
+      && metrics.output_delivery_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+    ) {
+      return passedWithOperationalGate(stage, "Connector Contract v2 standardizes source_id, cursor, external_id, and auth boundary contracts for the P268-P275 connector families without connector execution, credential reads, delivery, protected action, legal advice, or client-facing output.");
     }
   }
 

@@ -5016,6 +5016,55 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("creative_document_freeze_validations", freezeResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/connector-contracts-v2") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_contracts_v2", [connectorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-definitions") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_definitions", connectorResult.artifact.connector_definitions ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-source-contracts") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_source_contracts", connectorResult.artifact.connector_source_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-cursor-contracts") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_cursor_contracts", connectorResult.artifact.connector_cursor_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-external-id-contracts") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_external_id_contracts", connectorResult.artifact.connector_external_id_contracts ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-auth-boundaries") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_auth_boundaries", connectorResult.artifact.connector_auth_boundaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/connector-contract-v2-validations") {
+    const connectorResult = await readDashboardSourceArtifact(dashboard, "connector_contract_v2");
+    if (!connectorResult.available) {
+      return jsonResponse(503, buildError("connector_contract_v2_unavailable", connectorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("connector_contract_v2_validations", connectorResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11337,6 +11386,13 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/creative-document-freeze-gates", "Creative Document freeze gate rows"),
       route("GET", "/api/creative-document-freeze-boundary", "Creative Document freeze boundary"),
       route("GET", "/api/creative-document-freeze-validations", "Creative Document freeze validation rows"),
+      route("GET", "/api/connector-contracts-v2", "Connector Contract v2 artifact"),
+      route("GET", "/api/connector-definitions", "Connector v2 definition rows"),
+      route("GET", "/api/connector-source-contracts", "Connector source id contract rows"),
+      route("GET", "/api/connector-cursor-contracts", "Connector cursor contract rows"),
+      route("GET", "/api/connector-external-id-contracts", "Connector external id contract rows"),
+      route("GET", "/api/connector-auth-boundaries", "Connector auth boundary rows"),
+      route("GET", "/api/connector-contract-v2-validations", "Connector Contract v2 validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12385,6 +12441,15 @@ function filterItems(items, searchParams) {
     "creative_document_freeze_source_status",
     "creative_document_freeze_path_status",
     "creative_document_freeze_gate_status",
+    "connector_contract_v2_status",
+    "connector_status",
+    "source_contract_status",
+    "cursor_contract_status",
+    "external_id_contract_status",
+    "auth_boundary_status",
+    "connector_family",
+    "source_system",
+    "credential_reference_only",
     "boundary_status",
     "read_only",
     "matter_os_profile_status",
@@ -14163,6 +14228,15 @@ function readFilterValue(item, key) {
   if (key === "creative_document_freeze_source_status") return item.source_status;
   if (key === "creative_document_freeze_path_status") return item.path_status;
   if (key === "creative_document_freeze_gate_status") return item.gate_status;
+  if (key === "connector_contract_v2_status") return item.summary?.connector_contract_status ?? item.connector_contract_status;
+  if (key === "connector_status") return item.connector_status;
+  if (key === "source_contract_status") return item.source_contract_status;
+  if (key === "cursor_contract_status") return item.cursor_contract_status;
+  if (key === "external_id_contract_status") return item.external_id_contract_status;
+  if (key === "auth_boundary_status") return item.auth_boundary_status;
+  if (key === "connector_family") return item.connector_family;
+  if (key === "source_system") return item.source_system;
+  if (key === "credential_reference_only") return String(Boolean(item.credential_reference_only));
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

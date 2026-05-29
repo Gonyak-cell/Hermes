@@ -134,6 +134,7 @@
     "creative-document:pdf-html-renderer": "node scripts/creative-document-pdf-html-renderer.mjs",
     "creative-document:layout-validator": "node scripts/creative-document-layout-validator.mjs",
     "creative-document:citation-renderer": "node scripts/creative-document-citation-renderer.mjs",
+    "creative-document:version-comparator": "node scripts/creative-document-version-comparator.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

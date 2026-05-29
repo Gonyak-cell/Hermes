@@ -40,33 +40,18 @@ export async function buildSearchIndexContract(options = {}) {
   const generatedAt = new Date(options.runAt ?? new Date()).toISOString();
   const outputDir = path.resolve(options.outDir ?? DEFAULT_SEARCH_INDEX_CONTRACT_OUT_DIR);
   const inputs = normalizeInputs(options);
-  const [
-    resourceStoreInterface,
-    normalizedTextContract,
-    sourceSpanStore,
-    evidenceItemStore,
-    factClaimStore,
-    issueGraphStore,
-    citationObjectStore,
-    lineageGraph,
-    exhibitMap,
-    chainOfCustodyEvents,
-    packageText,
-    roadmapText,
-  ] = await Promise.all([
-    readJson(inputs.resource_store_interface_path),
-    readJson(inputs.normalized_text_contract_path),
-    readJson(inputs.source_span_store_path),
-    readJson(inputs.evidence_item_store_path),
-    readJson(inputs.fact_claim_store_path),
-    readJson(inputs.issue_graph_store_path),
-    readJson(inputs.citation_object_store_path),
-    readJson(inputs.lineage_graph_path),
-    readJson(inputs.exhibit_map_path),
-    readJson(inputs.chain_of_custody_events_path),
-    readText(inputs.package_path),
-    readText(inputs.roadmap_path),
-  ]);
+  const resourceStoreInterface = await readJson(inputs.resource_store_interface_path);
+  const normalizedTextContract = await readJson(inputs.normalized_text_contract_path);
+  const sourceSpanStore = await readJson(inputs.source_span_store_path);
+  const evidenceItemStore = await readJson(inputs.evidence_item_store_path);
+  const factClaimStore = await readJson(inputs.fact_claim_store_path);
+  const issueGraphStore = await readJson(inputs.issue_graph_store_path);
+  const citationObjectStore = await readJson(inputs.citation_object_store_path);
+  const lineageGraph = await readJson(inputs.lineage_graph_path);
+  const exhibitMap = await readJson(inputs.exhibit_map_path);
+  const chainOfCustodyEvents = await readJson(inputs.chain_of_custody_events_path);
+  const packageText = await readText(inputs.package_path);
+  const roadmapText = await readText(inputs.roadmap_path);
 
   const sourceStores = {
     resourceStoreInterface,
@@ -717,11 +702,29 @@ Options:
 }
 
 async function readJson(filePath) {
-  return JSON.parse(await readFile(filePath, "utf8"));
+  return JSON.parse(await readTextFileWithWindowsRetry(filePath));
 }
 
 async function readText(filePath) {
-  return readFile(filePath, "utf8");
+  return readTextFileWithWindowsRetry(filePath);
+}
+
+async function readTextFileWithWindowsRetry(filePath) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= 4; attempt += 1) {
+    try {
+      return await readFile(filePath, "utf8");
+    } catch (error) {
+      lastError = error;
+      if (process.platform !== "win32" || !/EISDIR|EBUSY|EPERM/i.test(error.message) || attempt === 4) break;
+      await delay(500 * attempt);
+    }
+  }
+  throw lastError;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 async function writeJson(filePath, value) {

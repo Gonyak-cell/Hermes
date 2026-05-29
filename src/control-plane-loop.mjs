@@ -1,5 +1,5 @@
 import { spawn } from "node:child_process";
-import { access, mkdir, writeFile } from "node:fs/promises";
+import { access, mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const DEFAULT_CONTROL_PLANE_LOOP_OUT_DIR = "artifacts/control-plane-loop/latest";
@@ -19,7 +19,7 @@ export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("token_usage_ledger", "Token Usage Ledger", "observability", ["npm", "run", "token:usage"], ["artifacts/token-usage/latest/token-usage-ledger.json"]),
   step("cost_attribution_ledger", "Cost Attribution Ledger", "observability", ["npm", "run", "cost:attribution"], ["artifacts/cost-attribution/latest/cost-attribution-ledger.json"]),
   step("budget_alert_ledger", "Budget Alert Ledger", "observability", ["npm", "run", "budget:alerts"], ["artifacts/budget-alerts/latest/budget-alert-ledger.json"]),
-  step("dashboard_pre_health", "Dashboard Pre-Health", "dashboard", ["node", "scripts/review-dashboard.mjs", "--no-contract-inventory", "--no-contract-dependency-map", "--no-schema-versioning-rules", "--no-schema-migration-manifest", "--no-contract-golden-fixtures", "--no-contract-validation-suite", "--no-resource-contract-freeze", "--no-matter-contract-freeze", "--no-client-counterparty-registry", "--no-matter-profile-team-ledger", "--no-wall-policy-contract", "--no-matter-access-policy", "--no-policy-contract-freeze", "--no-data-classification-rules", "--no-matter-tagging-ledger", "--no-access-audit-projection", "--no-store-policy-adapter", "--no-conflict-check-interface", "--no-personal-workspace-boundary", "--no-policy-golden-fixtures", "--no-policy-operations-surface", "--no-matter-boundary-slice", "--no-identity-policy-matter-freeze", "--no-resource-store-interface", "--no-immutable-object-store-layout", "--no-resource-version-ledger", "--no-resource-dedup-hash", "--no-resource-quarantine", "--no-normalized-text-contract", "--no-extractor-adapter-contract", "--no-source-span-store", "--no-evidence-item-store", "--no-evidence-golden-fixtures", "--no-fact-claim-store", "--no-issue-graph-store", "--no-citation-object-store", "--no-lineage-graph", "--no-evidence-viewer-data-api", "--no-evidence-export-bundle", "--no-evidence-regression-tests", "--no-resource-evidence-dashboard", "--no-evidence-plane-freeze", "--no-evidence-coverage", "--no-evidence-flags", "--no-exhibit-map", "--no-chain-of-custody", "--no-search-index", "--no-vector-policy", "--no-retrieval-filters", "--no-model-policy-enforcement", "--no-tool-runtime-policy", "--no-output-destination-policy", "--no-approval-authority-ledger", "--no-policy-snapshot-bindings", "--no-policy-snapshot-event-binding", "--no-cost-record-projection", "--no-token-usage-projection", "--no-observability-trace-projection", "--no-error-retry-ledger", "--no-event-replay", "--no-retention-archive-ledger", "--no-ledger-api-dashboard", "--no-ledger-golden-fixtures", "--no-observability-freeze", "--no-capability-manifest-v2", "--no-pack-manifest-compatibility", "--no-capability-registry-api", "--no-workflow-dsl-state-model", "--no-workflow-state-machine-runner", "--no-workflow-queue-retry-backoff", "--no-workflow-idempotency", "--no-workflow-resume-cancel", "--no-workflow-context-builder", "--no-workflow-retrieval-compiler", "--no-workflow-prompt-injection-boundary", "--no-workflow-pre-run-gates", "--no-workflow-in-run-gates", "--no-workflow-post-run-gates", "--no-gate-result-aggregator", "--no-workflow-run-dashboard", "--no-workflow-golden-cases", "--no-workflow-gate-freeze", "--no-evidence-contract-freeze", "--no-capability-workflow-contract-freeze", "--no-runtime-agentrun-contract-freeze", "--no-worktree-manager-v2", "--no-sandbox-policy-model", "--no-secrets-broker-contract", "--no-runtime-artifact-capture", "--no-runtime-log-normalization", "--no-runtime-timeout-heartbeat", "--no-runtime-control-commands", "--no-protected-file-gate", "--no-canonical-test-runner", "--no-runtime-api-dashboard", "--no-runtime-freeze", "--no-personal-dev-pack-manifest", "--no-repo-profile-detector", "--no-agent-instruction-registry", "--no-issue-intake-adapter", "--no-plan-request-contract", "--no-plan-reconciliation", "--no-scope-freeze-gate", "--no-dev-lane-ledger", "--no-implementation-patch-capture", "--no-diff-review-gate", "--no-canonical-test-matrix", "--no-dev-protected-scan", "--no-pr-draft-artifact", "--no-release-note-artifact", "--no-rollback-plan-artifact", "--no-technical-debt-ledger", "--no-personal-dev-dashboard-api", "--no-personal-dev-e2e-freeze", "--no-law-firm-pack-manifest", "--no-law-firm-e2e-freeze", "--no-creative-document-pack-manifest", "--no-template-registry", "--no-style-registry", "--no-asset-registry", "--no-docx-renderer", "--no-pptx-renderer", "--no-pdf-html-renderer", "--no-layout-validator", "--no-citation-renderer", "--no-gate-approval-contract-freeze", "--no-output-delivery-contract-freeze", "--no-event-audit-run-contract-freeze", "--no-event-envelope-ledger", "--no-event-type-registry", "--no-append-only-event-store", "--no-event-correlation-ledger", "--no-workflow-run-ledger", "--no-agent-run-ledger", "--no-tool-invocation-ledger", "--no-audit-event-ledger", "--no-error-cost-observability-contract-freeze", "--no-human-review-agenda", "--no-human-review-agenda-intake", "--no-human-review-receipt-workspace", "--no-human-review-receipt-workspace-merge", "--no-human-review-context-bundle", "--no-human-review-decision-register", "--no-human-review-decision-register-merge", "--no-human-review-validation-feedback", "--no-human-review-correction-workspace", "--no-human-review-correction-workspace-merge", "--no-human-review-correction-validation", "--no-human-review-correction-feedback", "--no-human-review-cycle-ledger", "--no-human-review-cycle-work-orders", "--no-human-review-cycle-target-audit", "--no-human-review-cycle-triage", "--no-human-review-cycle-console", "--no-human-review-cycle-field-audit", "--no-human-review-cycle-completion-pack", "--no-human-review-cycle-completion-verification", "--no-human-review-cycle-completion-workbench", "--no-human-review-cycle-completion-runbook", "--no-human-review-cycle-completion-readiness", "--no-human-review-cycle-completion-command-queue", "--no-human-review-cycle-completion-command-receipts", "--no-human-review-cycle-completion-command-receipt-validation", "--no-human-review-cycle-completion-command-receipt-feedback", "--no-human-review-cycle-completion-command-receipt-workspace", "--no-human-review-cycle-completion-command-receipt-workspace-merge", "--no-human-review-cycle-completion-command-receipt-workspace-validation", "--no-human-review-cycle-completion-command-receipt-application", "--no-human-review-cycle-completion-reconciliation", "--no-human-review-cycle-completion-baseline", "--no-human-review-cycle-completion-manual-command-receipt-pack", "--no-human-review-cycle-completion-held-command-resolution", "--no-human-review-cycle-completion-protected-approval-request-pack", "--no-human-review-cycle-completion-manual-revalidation", "--no-human-review-cycle-completion-command-queue-patch-projection", "--no-human-review-cycle-completion-closeout-ledger", "--no-human-review-v1-regression-freeze"], ["artifacts/dashboard/latest/review-dashboard.json"]),
+  step("dashboard_pre_health", "Dashboard Pre-Health", "dashboard", ["node", "scripts/review-dashboard.mjs", "--no-contract-inventory", "--no-contract-dependency-map", "--no-schema-versioning-rules", "--no-schema-migration-manifest", "--no-contract-golden-fixtures", "--no-contract-validation-suite", "--no-resource-contract-freeze", "--no-matter-contract-freeze", "--no-client-counterparty-registry", "--no-matter-profile-team-ledger", "--no-wall-policy-contract", "--no-matter-access-policy", "--no-policy-contract-freeze", "--no-data-classification-rules", "--no-matter-tagging-ledger", "--no-access-audit-projection", "--no-store-policy-adapter", "--no-conflict-check-interface", "--no-personal-workspace-boundary", "--no-policy-golden-fixtures", "--no-policy-operations-surface", "--no-matter-boundary-slice", "--no-identity-policy-matter-freeze", "--no-resource-store-interface", "--no-immutable-object-store-layout", "--no-resource-version-ledger", "--no-resource-dedup-hash", "--no-resource-quarantine", "--no-normalized-text-contract", "--no-extractor-adapter-contract", "--no-source-span-store", "--no-evidence-item-store", "--no-evidence-golden-fixtures", "--no-fact-claim-store", "--no-issue-graph-store", "--no-citation-object-store", "--no-lineage-graph", "--no-evidence-viewer-data-api", "--no-evidence-export-bundle", "--no-evidence-regression-tests", "--no-resource-evidence-dashboard", "--no-evidence-plane-freeze", "--no-evidence-coverage", "--no-evidence-flags", "--no-exhibit-map", "--no-chain-of-custody", "--no-search-index", "--no-vector-policy", "--no-retrieval-filters", "--no-model-policy-enforcement", "--no-tool-runtime-policy", "--no-output-destination-policy", "--no-approval-authority-ledger", "--no-policy-snapshot-bindings", "--no-policy-snapshot-event-binding", "--no-cost-record-projection", "--no-token-usage-projection", "--no-observability-trace-projection", "--no-error-retry-ledger", "--no-event-replay", "--no-retention-archive-ledger", "--no-ledger-api-dashboard", "--no-ledger-golden-fixtures", "--no-observability-freeze", "--no-capability-manifest-v2", "--no-pack-manifest-compatibility", "--no-capability-registry-api", "--no-workflow-dsl-state-model", "--no-workflow-state-machine-runner", "--no-workflow-queue-retry-backoff", "--no-workflow-idempotency", "--no-workflow-resume-cancel", "--no-workflow-context-builder", "--no-workflow-retrieval-compiler", "--no-workflow-prompt-injection-boundary", "--no-workflow-pre-run-gates", "--no-workflow-in-run-gates", "--no-workflow-post-run-gates", "--no-gate-result-aggregator", "--no-workflow-run-dashboard", "--no-workflow-golden-cases", "--no-workflow-gate-freeze", "--no-evidence-contract-freeze", "--no-capability-workflow-contract-freeze", "--no-runtime-agentrun-contract-freeze", "--no-worktree-manager-v2", "--no-sandbox-policy-model", "--no-secrets-broker-contract", "--no-runtime-artifact-capture", "--no-runtime-log-normalization", "--no-runtime-timeout-heartbeat", "--no-runtime-control-commands", "--no-protected-file-gate", "--no-canonical-test-runner", "--no-runtime-api-dashboard", "--no-runtime-freeze", "--no-personal-dev-pack-manifest", "--no-repo-profile-detector", "--no-agent-instruction-registry", "--no-issue-intake-adapter", "--no-plan-request-contract", "--no-plan-reconciliation", "--no-scope-freeze-gate", "--no-dev-lane-ledger", "--no-implementation-patch-capture", "--no-diff-review-gate", "--no-canonical-test-matrix", "--no-dev-protected-scan", "--no-pr-draft-artifact", "--no-release-note-artifact", "--no-rollback-plan-artifact", "--no-technical-debt-ledger", "--no-personal-dev-dashboard-api", "--no-personal-dev-e2e-freeze", "--no-law-firm-pack-manifest", "--no-law-firm-e2e-freeze", "--no-creative-document-pack-manifest", "--no-template-registry", "--no-style-registry", "--no-asset-registry", "--no-docx-renderer", "--no-pptx-renderer", "--no-pdf-html-renderer", "--no-layout-validator", "--no-citation-renderer", "--no-version-comparator", "--no-gate-approval-contract-freeze", "--no-output-delivery-contract-freeze", "--no-event-audit-run-contract-freeze", "--no-event-envelope-ledger", "--no-event-type-registry", "--no-append-only-event-store", "--no-event-correlation-ledger", "--no-workflow-run-ledger", "--no-agent-run-ledger", "--no-tool-invocation-ledger", "--no-audit-event-ledger", "--no-error-cost-observability-contract-freeze", "--no-human-review-agenda", "--no-human-review-agenda-intake", "--no-human-review-receipt-workspace", "--no-human-review-receipt-workspace-merge", "--no-human-review-context-bundle", "--no-human-review-decision-register", "--no-human-review-decision-register-merge", "--no-human-review-validation-feedback", "--no-human-review-correction-workspace", "--no-human-review-correction-workspace-merge", "--no-human-review-correction-validation", "--no-human-review-correction-feedback", "--no-human-review-cycle-ledger", "--no-human-review-cycle-work-orders", "--no-human-review-cycle-target-audit", "--no-human-review-cycle-triage", "--no-human-review-cycle-console", "--no-human-review-cycle-field-audit", "--no-human-review-cycle-completion-pack", "--no-human-review-cycle-completion-verification", "--no-human-review-cycle-completion-workbench", "--no-human-review-cycle-completion-runbook", "--no-human-review-cycle-completion-readiness", "--no-human-review-cycle-completion-command-queue", "--no-human-review-cycle-completion-command-receipts", "--no-human-review-cycle-completion-command-receipt-validation", "--no-human-review-cycle-completion-command-receipt-feedback", "--no-human-review-cycle-completion-command-receipt-workspace", "--no-human-review-cycle-completion-command-receipt-workspace-merge", "--no-human-review-cycle-completion-command-receipt-workspace-validation", "--no-human-review-cycle-completion-command-receipt-application", "--no-human-review-cycle-completion-reconciliation", "--no-human-review-cycle-completion-baseline", "--no-human-review-cycle-completion-manual-command-receipt-pack", "--no-human-review-cycle-completion-held-command-resolution", "--no-human-review-cycle-completion-protected-approval-request-pack", "--no-human-review-cycle-completion-manual-revalidation", "--no-human-review-cycle-completion-command-queue-patch-projection", "--no-human-review-cycle-completion-closeout-ledger", "--no-human-review-v1-regression-freeze"], ["artifacts/dashboard/latest/review-dashboard.json"]),
   step("control_plane_health", "Control Plane Health", "health", ["npm", "run", "control-plane:health"], ["artifacts/control-plane-health/latest/control-plane-health.json"]),
   step("control_plane_action_plan", "Control Plane Action Plan", "planning", ["npm", "run", "control-plane:plan"], ["artifacts/control-plane-action-plan/latest/control-plane-action-plan.json"]),
   step("control_plane_human_gates", "Control Plane Human Gates", "planning", ["npm", "run", "control-plane:human-gates"], ["artifacts/control-plane-human-gates/latest/control-plane-human-gates.json"]),
@@ -198,6 +198,7 @@ export const DEFAULT_CONTROL_PLANE_LOOP_STEPS = [
   step("pdf_html_renderer", "PDF/HTML Renderer", "creative_document", ["npm", "run", "creative-document:pdf-html-renderer"], ["artifacts/pdf-html-renderer/latest/pdf-html-renderer.json", "artifacts/pdf-html-renderer/latest/pdf-html-render-jobs.json", "artifacts/pdf-html-renderer/latest/html-preview-artifacts.json", "artifacts/pdf-html-renderer/latest/pdf-export-artifacts.json", "artifacts/pdf-html-renderer/latest/pdf-html-output-artifacts.json", "artifacts/pdf-html-renderer/latest/pdf-html-format-validation-results.json"]),
   step("layout_validator", "Layout Validator", "creative_document", ["npm", "run", "creative-document:layout-validator"], ["artifacts/layout-validator/latest/layout-validator.json", "artifacts/layout-validator/latest/layout-targets.json", "artifacts/layout-validator/latest/layout-validation-results.json", "artifacts/layout-validator/latest/layout-validation-checks.json"]),
   step("citation_renderer", "Citation Renderer", "creative_document", ["npm", "run", "creative-document:citation-renderer"], ["artifacts/citation-renderer/latest/citation-renderer.json", "artifacts/citation-renderer/latest/citation-render-units.json", "artifacts/citation-renderer/latest/footnote-renderings.json", "artifacts/citation-renderer/latest/exhibit-reference-renderings.json", "artifacts/citation-renderer/latest/source-span-link-renderings.json", "artifacts/citation-renderer/latest/citation-render-packets.json"]),
+  step("version_comparator", "Version Comparator", "creative_document", ["npm", "run", "creative-document:version-comparator"], ["artifacts/version-comparator/latest/version-comparator.json", "artifacts/version-comparator/latest/document-version-pairs.json", "artifacts/version-comparator/latest/document-change-records.json", "artifacts/version-comparator/latest/comparison-packets.json"]),
   step("tool_invocation_ledger", "Tool Invocation Ledger", "audit", ["npm", "run", "events:tool-invocations"], ["artifacts/tool-invocation-ledger/latest/tool-invocation-ledger.json", "artifacts/tool-invocation-ledger/latest/tool-invocation-records.json", "artifacts/tool-invocation-ledger/latest/tool-invocation-permission-decisions.json", "artifacts/tool-invocation-ledger/latest/tool-invocation-agent-bindings.json", "artifacts/tool-invocation-ledger/latest/tool-invocation-event-bindings.json"]),
   step("policy_snapshot_binding_ledger", "Policy Snapshot Binding Ledger", "policy", ["npm", "run", "contracts:policy-bindings"], ["artifacts/policy-snapshot-bindings/latest/policy-snapshot-binding-ledger.json", "artifacts/policy-snapshot-bindings/latest/workflow-policy-bindings.json", "artifacts/policy-snapshot-bindings/latest/event-policy-bindings.json"]),
   step("policy_snapshot_event_binding", "Policy Snapshot Event Binding", "policy", ["npm", "run", "events:policy-snapshots"], ["artifacts/policy-snapshot-event-bindings/latest/policy-snapshot-event-binding.json", "artifacts/policy-snapshot-event-bindings/latest/event-run-gate-policy-bindings.json", "artifacts/policy-snapshot-event-bindings/latest/event-policy-snapshot-bindings.json", "artifacts/policy-snapshot-event-bindings/latest/run-policy-snapshot-bindings.json", "artifacts/policy-snapshot-event-bindings/latest/gate-policy-snapshot-bindings.json"]),
@@ -403,7 +404,7 @@ function buildFinalizationArtifact({ generatedAt, outputDir, cwd, stepResults })
 async function runLoopStep(loopStep, context) {
   const startedAtMs = Date.now();
   const startedAt = new Date(startedAtMs).toISOString();
-  const execution = await runCommand(loopStep.command, {
+  const execution = await runCommandWithRetries(loopStep.command, {
     cwd: context.cwd,
     timeoutMs: loopStep.timeout_ms,
   });
@@ -428,6 +429,9 @@ async function runLoopStep(loopStep, context) {
     signal: execution.signal,
     stdout: execution.stdout,
     stderr: execution.stderr,
+    command_attempt_count: execution.attempts?.length ?? 1,
+    transient_retry_count: Math.max(0, (execution.attempts?.length ?? 1) - 1),
+    command_attempts: execution.attempts ?? [],
     expected_artifacts: artifactChecks,
     error: status === "passed"
       ? null
@@ -595,6 +599,69 @@ function runCommand(command, options) {
       });
     });
   });
+}
+
+async function runCommandWithRetries(command, options) {
+  const maxAttempts = process.platform === "win32" ? 3 : 1;
+  const attempts = [];
+  let execution = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    execution = await runCommand(command, options);
+    attempts.push({
+      attempt,
+      exit_code: execution.exit_code,
+      signal: execution.signal,
+      stdout: execution.stdout,
+      stderr: execution.stderr,
+      retryable_transient_error: isRetryableTransientWindowsReadError(execution),
+    });
+    if (execution.exit_code === 0 && !execution.signal) break;
+    if (!isRetryableTransientWindowsReadError(execution) || attempt === maxAttempts) break;
+    await delay(750 * attempt);
+  }
+  if (execution && isRetryableTransientWindowsReadError(execution)) {
+    const fallbackCommand = await resolveSimpleNpmNodeScriptFallback(command, options.cwd);
+    if (fallbackCommand) {
+      execution = await runCommand(fallbackCommand, options);
+      attempts.push({
+        attempt: attempts.length + 1,
+        fallback: "simple_npm_node_script",
+        command: fallbackCommand,
+        exit_code: execution.exit_code,
+        signal: execution.signal,
+        stdout: execution.stdout,
+        stderr: execution.stderr,
+        retryable_transient_error: isRetryableTransientWindowsReadError(execution),
+      });
+    }
+  }
+  return {
+    ...execution,
+    attempts,
+  };
+}
+
+function isRetryableTransientWindowsReadError(execution) {
+  if (process.platform !== "win32") return false;
+  const text = `${execution.stderr ?? ""}\n${execution.stdout ?? ""}`;
+  return /EISDIR: illegal operation on a directory, read|EBUSY: resource busy or locked|EPERM: operation not permitted/i.test(text);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function resolveSimpleNpmNodeScriptFallback(command, cwd) {
+  if (process.platform !== "win32") return null;
+  if (command[0] !== "npm" || command[1] !== "run" || command.length !== 3) return null;
+  try {
+    const packageJson = JSON.parse(await readFile(path.join(cwd, "package.json"), "utf8"));
+    const script = packageJson.scripts?.[command[2]];
+    if (!script || !/^node\s+[^&|<>]+$/i.test(script)) return null;
+    return splitCommand(script);
+  } catch {
+    return null;
+  }
 }
 
 function resolveCommandSpawn(command) {

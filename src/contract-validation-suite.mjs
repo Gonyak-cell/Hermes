@@ -143,6 +143,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:pdf-html-renderer",
   "creative-document:layout-validator",
   "creative-document:citation-renderer",
+  "creative-document:version-comparator",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

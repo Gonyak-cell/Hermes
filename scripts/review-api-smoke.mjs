@@ -2140,6 +2140,26 @@ try {
   assert.equal(citationRendererValidations.collection, "citation_renderer_validations");
   assert.ok(citationRendererValidations.count <= 5);
 
+  const versionComparators = await fetchJson(`${url}/api/version-comparators?version_comparator_status=complete&limit=1`);
+  assert.equal(versionComparators.collection, "version_comparators");
+  assert.ok(versionComparators.count <= 1);
+
+  const documentVersionPairs = await fetchJson(`${url}/api/document-version-pairs?document_version_pair_status=comparison_ready_needs_review&document_comparison_format=docx&limit=5`);
+  assert.equal(documentVersionPairs.collection, "document_version_pairs");
+  assert.ok(documentVersionPairs.count <= 5);
+
+  const documentChangeRecords = await fetchJson(`${url}/api/document-change-records?document_change_type=content_hash_delta&document_change_status=changed_needs_review&limit=5`);
+  assert.equal(documentChangeRecords.collection, "document_change_records");
+  assert.ok(documentChangeRecords.count <= 5);
+
+  const documentComparisonPackets = await fetchJson(`${url}/api/document-comparison-packets?document_comparison_packet_status=ready_for_attorney_review&document_comparison_format=docx&limit=5`);
+  assert.equal(documentComparisonPackets.collection, "document_comparison_packets");
+  assert.ok(documentComparisonPackets.count <= 5);
+
+  const versionComparatorValidations = await fetchJson(`${url}/api/version-comparator-validations?status=passed&limit=5`);
+  assert.equal(versionComparatorValidations.collection, "version_comparator_validations");
+  assert.ok(versionComparatorValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

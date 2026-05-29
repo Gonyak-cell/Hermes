@@ -170,6 +170,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     pdf_html_renderer: "artifacts/pdf-html-renderer/latest/pdf-html-renderer.json",
     layout_validator: "artifacts/layout-validator/latest/layout-validator.json",
     citation_renderer: "artifacts/citation-renderer/latest/citation-renderer.json",
+    version_comparator: "artifacts/version-comparator/latest/version-comparator.json",
   },
 };
 
@@ -333,6 +334,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("pdf_html_renderer", "PDF/HTML Renderer", "creative_document", "pdf-html-renderer.schema.json"),
   fixtureDefinition("layout_validator", "Layout Validator", "creative_document", "layout-validator.schema.json"),
   fixtureDefinition("citation_renderer", "Citation Renderer", "creative_document", "citation-renderer.schema.json"),
+  fixtureDefinition("version_comparator", "Version Comparator", "creative_document", "version-comparator.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

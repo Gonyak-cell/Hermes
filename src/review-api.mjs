@@ -4799,6 +4799,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("citation_renderer_validations", citationRendererResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/version-comparators") {
+    const versionComparatorResult = await readDashboardSourceArtifact(dashboard, "version_comparator");
+    if (!versionComparatorResult.available) {
+      return jsonResponse(503, buildError("version_comparator_unavailable", versionComparatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("version_comparators", [versionComparatorResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/document-version-pairs") {
+    const versionComparatorResult = await readDashboardSourceArtifact(dashboard, "version_comparator");
+    if (!versionComparatorResult.available) {
+      return jsonResponse(503, buildError("version_comparator_unavailable", versionComparatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("document_version_pairs", versionComparatorResult.artifact.document_version_pairs ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/document-change-records") {
+    const versionComparatorResult = await readDashboardSourceArtifact(dashboard, "version_comparator");
+    if (!versionComparatorResult.available) {
+      return jsonResponse(503, buildError("version_comparator_unavailable", versionComparatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("document_change_records", versionComparatorResult.artifact.document_change_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/document-comparison-packets") {
+    const versionComparatorResult = await readDashboardSourceArtifact(dashboard, "version_comparator");
+    if (!versionComparatorResult.available) {
+      return jsonResponse(503, buildError("version_comparator_unavailable", versionComparatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("document_comparison_packets", versionComparatorResult.artifact.comparison_packets ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/version-comparator-validations") {
+    const versionComparatorResult = await readDashboardSourceArtifact(dashboard, "version_comparator");
+    if (!versionComparatorResult.available) {
+      return jsonResponse(503, buildError("version_comparator_unavailable", versionComparatorResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("version_comparator_validations", versionComparatorResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11089,6 +11124,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/source-span-link-renderings", "Source span link rendering rows"),
       route("GET", "/api/citation-render-packets", "Citation render packet rows"),
       route("GET", "/api/citation-renderer-validations", "Citation renderer validation rows"),
+      route("GET", "/api/version-comparators", "Version comparator artifact"),
+      route("GET", "/api/document-version-pairs", "Document version pair rows"),
+      route("GET", "/api/document-change-records", "Document change record rows"),
+      route("GET", "/api/document-comparison-packets", "Document comparison packet rows"),
+      route("GET", "/api/version-comparator-validations", "Version comparator validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12106,6 +12146,12 @@ function filterItems(items, searchParams) {
     "exhibit_reference_status",
     "source_span_link_status",
     "citation_render_format",
+    "version_comparator_status",
+    "document_version_pair_status",
+    "document_change_status",
+    "document_change_type",
+    "document_comparison_packet_status",
+    "document_comparison_format",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13851,6 +13897,12 @@ function readFilterValue(item, key) {
   if (key === "exhibit_reference_status") return item.exhibit_reference_status;
   if (key === "source_span_link_status") return item.source_span_link_status;
   if (key === "citation_render_format") return item.output_format;
+  if (key === "version_comparator_status") return item.summary?.version_comparator_status ?? item.version_comparator_status;
+  if (key === "document_version_pair_status") return item.document_version_pair_status;
+  if (key === "document_change_status") return item.change_status;
+  if (key === "document_change_type") return item.change_type;
+  if (key === "document_comparison_packet_status") return item.comparison_packet_status;
+  if (key === "document_comparison_format") return item.output_format;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

@@ -97,6 +97,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   pdfHtmlRendererPath: "artifacts/pdf-html-renderer/latest/pdf-html-renderer.json",
   layoutValidatorPath: "artifacts/layout-validator/latest/layout-validator.json",
   citationRendererPath: "artifacts/citation-renderer/latest/citation-renderer.json",
+  versionComparatorPath: "artifacts/version-comparator/latest/version-comparator.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -725,6 +726,11 @@ const SOURCE_DEFINITIONS = [
     option: "citationRendererPath",
     source_id: "citation_renderer",
     label: "Citation Renderer",
+  },
+  {
+    option: "versionComparatorPath",
+    source_id: "version_comparator",
+    label: "Version Comparator",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1691,6 +1697,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "pdf_html_renderer") return data.summary ?? {};
   if (sourceId === "layout_validator") return data.summary ?? {};
   if (sourceId === "citation_renderer") return data.summary ?? {};
+  if (sourceId === "version_comparator") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2069,6 +2076,7 @@ function buildStageStatuses(artifacts, sources) {
     buildPdfHtmlRendererStage(artifacts.pdf_html_renderer, sourceById.get("pdf_html_renderer")),
     buildLayoutValidatorStage(artifacts.layout_validator, sourceById.get("layout_validator")),
     buildCitationRendererStage(artifacts.citation_renderer, sourceById.get("citation_renderer")),
+    buildVersionComparatorStage(artifacts.version_comparator, sourceById.get("version_comparator")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -11370,6 +11378,108 @@ function buildCitationRendererStage(artifact, source) {
   };
 }
 
+function buildVersionComparatorStage(artifact, source) {
+  if (!artifact) return missingStage("version_comparator", "Version Comparator", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.version_comparator_status !== "complete"
+    || summary.source_docx_renderer_status !== "complete"
+    || summary.source_pptx_renderer_status !== "complete"
+    || summary.source_pdf_html_renderer_status !== "complete"
+    || summary.source_layout_validator_status !== "complete"
+    || summary.source_citation_renderer_status !== "complete"
+    || summary.document_version_pair_count < 1
+    || summary.document_version_pair_count !== summary.layout_target_count
+    || summary.compared_draft_artifact_count !== summary.document_version_pair_count
+    || summary.document_change_record_count !== summary.document_version_pair_count * 4
+    || summary.content_hash_change_record_count !== summary.document_version_pair_count
+    || summary.content_hash_changed_count !== summary.document_version_pair_count
+    || summary.layout_validated_pair_count !== summary.document_version_pair_count
+    || summary.citation_bound_pair_count !== summary.document_version_pair_count
+    || summary.comparison_packet_count !== summary.document_version_pair_count
+    || summary.ready_for_review_packet_count !== summary.comparison_packet_count
+    || summary.human_review_required_comparison_count !== summary.comparison_packet_count
+    || summary.attorney_review_required_comparison_count !== summary.comparison_packet_count
+    || summary.citation_review_required_comparison_count !== summary.comparison_packet_count
+    || summary.currentness_review_required_comparison_count !== summary.comparison_packet_count
+    || summary.source_verification_required_comparison_count !== summary.comparison_packet_count
+    || summary.format_validation_required_comparison_count !== summary.comparison_packet_count
+    || summary.version_comparison_report_only !== true
+    || summary.draft_source_mutation_allowed === true
+    || summary.source_artifact_mutation_allowed === true
+    || summary.document_runtime_mutation_allowed === true
+    || summary.external_renderer_execution_allowed === true
+    || summary.network_access_allowed === true
+    || summary.artifact_write_allowed !== true
+    || summary.core_registry_mutation_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.delivery_execution_performed === true
+    || summary.protected_action_allowed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "version_comparator",
+    label: "Version Comparator",
+    status,
+    message: `${summary.document_version_pair_count ?? 0} version pair(s), ${summary.document_change_record_count ?? 0} change record(s), ${summary.comparison_packet_count ?? 0} comparison packet(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      version_comparator_status: summary.version_comparator_status ?? "unknown",
+      version_comparator_contract_id: summary.version_comparator_contract_id ?? null,
+      source_docx_renderer_status: summary.source_docx_renderer_status ?? "unknown",
+      source_pptx_renderer_status: summary.source_pptx_renderer_status ?? "unknown",
+      source_pdf_html_renderer_status: summary.source_pdf_html_renderer_status ?? "unknown",
+      source_layout_validator_status: summary.source_layout_validator_status ?? "unknown",
+      source_citation_renderer_status: summary.source_citation_renderer_status ?? "unknown",
+      docx_output_artifact_count: summary.docx_output_artifact_count ?? 0,
+      pptx_output_artifact_count: summary.pptx_output_artifact_count ?? 0,
+      pdf_html_output_artifact_count: summary.pdf_html_output_artifact_count ?? 0,
+      layout_target_count: summary.layout_target_count ?? 0,
+      citation_render_packet_count: summary.citation_render_packet_count ?? 0,
+      document_version_pair_count: summary.document_version_pair_count ?? 0,
+      compared_draft_artifact_count: summary.compared_draft_artifact_count ?? 0,
+      document_change_record_count: summary.document_change_record_count ?? 0,
+      content_hash_change_record_count: summary.content_hash_change_record_count ?? 0,
+      content_hash_changed_count: summary.content_hash_changed_count ?? 0,
+      layout_validated_pair_count: summary.layout_validated_pair_count ?? 0,
+      citation_bound_pair_count: summary.citation_bound_pair_count ?? 0,
+      comparison_packet_count: summary.comparison_packet_count ?? 0,
+      ready_for_review_packet_count: summary.ready_for_review_packet_count ?? 0,
+      human_review_required_comparison_count: summary.human_review_required_comparison_count ?? 0,
+      attorney_review_required_comparison_count: summary.attorney_review_required_comparison_count ?? 0,
+      citation_review_required_comparison_count: summary.citation_review_required_comparison_count ?? 0,
+      currentness_review_required_comparison_count: summary.currentness_review_required_comparison_count ?? 0,
+      source_verification_required_comparison_count: summary.source_verification_required_comparison_count ?? 0,
+      format_validation_required_comparison_count: summary.format_validation_required_comparison_count ?? 0,
+      version_comparison_report_only: summary.version_comparison_report_only ?? false,
+      draft_source_mutation_allowed: summary.draft_source_mutation_allowed ?? false,
+      source_artifact_mutation_allowed: summary.source_artifact_mutation_allowed ?? false,
+      document_runtime_mutation_allowed: summary.document_runtime_mutation_allowed ?? false,
+      external_renderer_execution_allowed: summary.external_renderer_execution_allowed ?? false,
+      network_access_allowed: summary.network_access_allowed ?? false,
+      artifact_write_allowed: summary.artifact_write_allowed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      delivery_execution_performed: summary.delivery_execution_performed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -17568,6 +17678,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.version_comparator?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "version_comparator";
+    items.push({
+      action_item_id: `dashboard.action.version_comparator.${slugify(subjectId)}`,
+      source_stage: "version_comparator",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix version comparator",
+      subject_ref: {
+        subject_type: "version_comparator_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_version_comparator", "rerun_version_comparator", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -23393,6 +23521,50 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     citation_renderer_metadata_hash_count: artifacts.citation_renderer?.summary?.metadata_hash_count ?? 0,
     citation_renderer_failed_checkpoint_count: artifacts.citation_renderer?.summary?.failed_checkpoint_count ?? 0,
     citation_renderer_validation_error_count: artifacts.citation_renderer?.summary?.validation_error_count ?? artifacts.citation_renderer?.validation?.errors?.length ?? 0,
+    version_comparator_status: artifacts.version_comparator?.summary?.version_comparator_status ?? "unknown",
+    version_comparator_contract_id: artifacts.version_comparator?.summary?.version_comparator_contract_id ?? null,
+    version_comparator_source_docx_renderer_status: artifacts.version_comparator?.summary?.source_docx_renderer_status ?? "unknown",
+    version_comparator_source_pptx_renderer_status: artifacts.version_comparator?.summary?.source_pptx_renderer_status ?? "unknown",
+    version_comparator_source_pdf_html_renderer_status: artifacts.version_comparator?.summary?.source_pdf_html_renderer_status ?? "unknown",
+    version_comparator_source_layout_validator_status: artifacts.version_comparator?.summary?.source_layout_validator_status ?? "unknown",
+    version_comparator_source_citation_renderer_status: artifacts.version_comparator?.summary?.source_citation_renderer_status ?? "unknown",
+    version_comparator_docx_output_artifact_count: artifacts.version_comparator?.summary?.docx_output_artifact_count ?? 0,
+    version_comparator_pptx_output_artifact_count: artifacts.version_comparator?.summary?.pptx_output_artifact_count ?? 0,
+    version_comparator_pdf_html_output_artifact_count: artifacts.version_comparator?.summary?.pdf_html_output_artifact_count ?? 0,
+    version_comparator_layout_target_count: artifacts.version_comparator?.summary?.layout_target_count ?? 0,
+    version_comparator_citation_render_packet_count: artifacts.version_comparator?.summary?.citation_render_packet_count ?? 0,
+    version_comparator_document_version_pair_count: artifacts.version_comparator?.summary?.document_version_pair_count ?? 0,
+    version_comparator_compared_draft_artifact_count: artifacts.version_comparator?.summary?.compared_draft_artifact_count ?? 0,
+    version_comparator_document_change_record_count: artifacts.version_comparator?.summary?.document_change_record_count ?? 0,
+    version_comparator_content_hash_change_record_count: artifacts.version_comparator?.summary?.content_hash_change_record_count ?? 0,
+    version_comparator_content_hash_changed_count: artifacts.version_comparator?.summary?.content_hash_changed_count ?? 0,
+    version_comparator_layout_validated_pair_count: artifacts.version_comparator?.summary?.layout_validated_pair_count ?? 0,
+    version_comparator_citation_bound_pair_count: artifacts.version_comparator?.summary?.citation_bound_pair_count ?? 0,
+    version_comparator_packet_count: artifacts.version_comparator?.summary?.comparison_packet_count ?? 0,
+    version_comparator_ready_for_review_packet_count: artifacts.version_comparator?.summary?.ready_for_review_packet_count ?? 0,
+    version_comparator_human_review_required_comparison_count: artifacts.version_comparator?.summary?.human_review_required_comparison_count ?? 0,
+    version_comparator_attorney_review_required_comparison_count: artifacts.version_comparator?.summary?.attorney_review_required_comparison_count ?? 0,
+    version_comparator_citation_review_required_comparison_count: artifacts.version_comparator?.summary?.citation_review_required_comparison_count ?? 0,
+    version_comparator_currentness_review_required_comparison_count: artifacts.version_comparator?.summary?.currentness_review_required_comparison_count ?? 0,
+    version_comparator_source_verification_required_comparison_count: artifacts.version_comparator?.summary?.source_verification_required_comparison_count ?? 0,
+    version_comparator_format_validation_required_comparison_count: artifacts.version_comparator?.summary?.format_validation_required_comparison_count ?? 0,
+    version_comparator_report_only: artifacts.version_comparator?.summary?.version_comparison_report_only ?? false,
+    version_comparator_draft_source_mutation_allowed: artifacts.version_comparator?.summary?.draft_source_mutation_allowed ?? false,
+    version_comparator_source_artifact_mutation_allowed: artifacts.version_comparator?.summary?.source_artifact_mutation_allowed ?? false,
+    version_comparator_document_runtime_mutation_allowed: artifacts.version_comparator?.summary?.document_runtime_mutation_allowed ?? false,
+    version_comparator_external_renderer_execution_allowed: artifacts.version_comparator?.summary?.external_renderer_execution_allowed ?? false,
+    version_comparator_network_access_allowed: artifacts.version_comparator?.summary?.network_access_allowed ?? false,
+    version_comparator_artifact_write_allowed: artifacts.version_comparator?.summary?.artifact_write_allowed ?? false,
+    version_comparator_delivery_execution_allowed: artifacts.version_comparator?.summary?.delivery_execution_allowed ?? false,
+    version_comparator_delivery_execution_performed: artifacts.version_comparator?.summary?.delivery_execution_performed ?? false,
+    version_comparator_protected_action_allowed: artifacts.version_comparator?.summary?.protected_action_allowed ?? false,
+    version_comparator_protected_action_executed: artifacts.version_comparator?.summary?.protected_action_executed ?? false,
+    version_comparator_legal_advice_generated: artifacts.version_comparator?.summary?.legal_advice_generated ?? false,
+    version_comparator_client_facing_output_generated: artifacts.version_comparator?.summary?.client_facing_output_generated ?? false,
+    version_comparator_client_facing_ready_count: artifacts.version_comparator?.summary?.client_facing_ready_count ?? 0,
+    version_comparator_metadata_hash_count: artifacts.version_comparator?.summary?.metadata_hash_count ?? 0,
+    version_comparator_failed_checkpoint_count: artifacts.version_comparator?.summary?.failed_checkpoint_count ?? 0,
+    version_comparator_validation_error_count: artifacts.version_comparator?.summary?.validation_error_count ?? artifacts.version_comparator?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -25170,6 +25342,8 @@ function parseArgs(argv) {
     else if (arg === "--no-layout-validator") parsed.layoutValidatorPath = false;
     else if (arg === "--citation-renderer") parsed.citationRendererPath = argv[++index];
     else if (arg === "--no-citation-renderer") parsed.citationRendererPath = false;
+    else if (arg === "--version-comparator") parsed.versionComparatorPath = argv[++index];
+    else if (arg === "--no-version-comparator") parsed.versionComparatorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

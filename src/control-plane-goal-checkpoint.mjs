@@ -134,6 +134,7 @@ const GOAL_ITEMS = [
   sourceItem("pdf_html_renderer", "PDF/HTML renderer", "creative_document", "pdf_html_renderer", "control-plane-pdf-html-renderer", { acceptance_profile: "pdf_html_renderer_gate" }),
   sourceItem("layout_validator", "Layout validator", "creative_document", "layout_validator", "control-plane-layout-validator", { acceptance_profile: "layout_validator_gate" }),
   sourceItem("citation_renderer", "Citation renderer", "creative_document", "citation_renderer", "control-plane-citation-renderer", { acceptance_profile: "citation_renderer_gate" }),
+  sourceItem("version_comparator", "Version comparator", "creative_document", "version_comparator", "control-plane-version-comparator", { acceptance_profile: "version_comparator_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -627,6 +628,7 @@ function evaluateStageAcceptance(item, stage) {
     "pdf_html_renderer_gate",
     "layout_validator_gate",
     "citation_renderer_gate",
+    "version_comparator_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4577,6 +4579,52 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Citation Renderer creates deterministic footnotes, exhibit references, and source-span links for every citation while preserving attorney review, currentness review, source verification, no legal advice, no document runtime mutation, and no delivery.");
+    }
+  }
+
+  if (item.acceptance_profile === "version_comparator_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.version_comparator_status === "complete"
+      && metrics.source_docx_renderer_status === "complete"
+      && metrics.source_pptx_renderer_status === "complete"
+      && metrics.source_pdf_html_renderer_status === "complete"
+      && metrics.source_layout_validator_status === "complete"
+      && metrics.source_citation_renderer_status === "complete"
+      && metrics.document_version_pair_count > 0
+      && metrics.document_version_pair_count === metrics.layout_target_count
+      && metrics.compared_draft_artifact_count === metrics.document_version_pair_count
+      && metrics.document_change_record_count === metrics.document_version_pair_count * 4
+      && metrics.content_hash_change_record_count === metrics.document_version_pair_count
+      && metrics.content_hash_changed_count === metrics.document_version_pair_count
+      && metrics.layout_validated_pair_count === metrics.document_version_pair_count
+      && metrics.citation_bound_pair_count === metrics.document_version_pair_count
+      && metrics.comparison_packet_count === metrics.document_version_pair_count
+      && metrics.ready_for_review_packet_count === metrics.comparison_packet_count
+      && metrics.human_review_required_comparison_count === metrics.comparison_packet_count
+      && metrics.attorney_review_required_comparison_count === metrics.comparison_packet_count
+      && metrics.citation_review_required_comparison_count === metrics.comparison_packet_count
+      && metrics.currentness_review_required_comparison_count === metrics.comparison_packet_count
+      && metrics.source_verification_required_comparison_count === metrics.comparison_packet_count
+      && metrics.format_validation_required_comparison_count === metrics.comparison_packet_count
+      && metrics.version_comparison_report_only === true
+      && metrics.draft_source_mutation_allowed === false
+      && metrics.source_artifact_mutation_allowed === false
+      && metrics.document_runtime_mutation_allowed === false
+      && metrics.external_renderer_execution_allowed === false
+      && metrics.network_access_allowed === false
+      && metrics.artifact_write_allowed === true
+      && metrics.core_registry_mutation_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.delivery_execution_performed === false
+      && metrics.protected_action_allowed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.client_facing_ready_count === 0
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Version Comparator creates reviewer-ready draft comparison packets for all rendered document outputs while preserving layout, citation, attorney review, no legal advice, no draft mutation, and no delivery gates.");
     }
   }
 

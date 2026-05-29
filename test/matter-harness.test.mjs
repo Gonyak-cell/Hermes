@@ -61,6 +61,7 @@ import { runPptxRenderer } from "../src/creative-document-pptx-renderer.mjs";
 import { runPdfHtmlRenderer } from "../src/creative-document-pdf-html-renderer.mjs";
 import { runLayoutValidator } from "../src/creative-document-layout-validator.mjs";
 import { runCitationRenderer } from "../src/creative-document-citation-renderer.mjs";
+import { runVersionComparator } from "../src/creative-document-version-comparator.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1917,6 +1918,7 @@ describe("matter harness", () => {
         pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
         layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
         citationRendererPath: path.join(outDir, "citation-renderer", "citation-renderer.json"),
+        versionComparatorPath: path.join(outDir, "version-comparator", "version-comparator.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10398,6 +10400,62 @@ describe("matter harness", () => {
       assert.ok(citationRenderer.citation_render_packets.every((packet) => packet.citation_render_packet_status === "rendered_needs_review" && packet.rendered_citation_unit_count === citationRenderer.summary.citation_count && packet.layout_validation_status === "passed" && packet.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "citation-renderer", "summary.md"), "utf8"), /Citation Renderer/);
 
+      const versionComparator = await runVersionComparator({
+        docxRendererPath: path.join(outDir, "docx-renderer", "docx-renderer.json"),
+        pptxRendererPath: path.join(outDir, "pptx-renderer", "pptx-renderer.json"),
+        pdfHtmlRendererPath: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
+        layoutValidatorPath: path.join(outDir, "layout-validator", "layout-validator.json"),
+        citationRendererPath: path.join(outDir, "citation-renderer", "citation-renderer.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "version-comparator"),
+        runAt: "2026-05-23T07:04:22.000Z",
+      });
+      const versionComparatorSchema = JSON.parse(await readFile("schemas/version-comparator.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(versionComparator, versionComparatorSchema, {}, "version_comparator"), []);
+      assert.equal(versionComparator.summary.version_comparator_status, "complete");
+      assert.equal(versionComparator.summary.version_comparator_contract_id, "version-comparator.v1");
+      assert.equal(versionComparator.summary.source_docx_renderer_status, "complete");
+      assert.equal(versionComparator.summary.source_pptx_renderer_status, "complete");
+      assert.equal(versionComparator.summary.source_pdf_html_renderer_status, "complete");
+      assert.equal(versionComparator.summary.source_layout_validator_status, "complete");
+      assert.equal(versionComparator.summary.source_citation_renderer_status, "complete");
+      assert.equal(versionComparator.summary.document_version_pair_count, layoutValidator.summary.layout_target_count);
+      assert.equal(versionComparator.summary.compared_draft_artifact_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparator.summary.document_change_record_count, versionComparator.summary.document_version_pair_count * 4);
+      assert.equal(versionComparator.summary.content_hash_change_record_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparator.summary.content_hash_changed_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparator.summary.layout_validated_pair_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparator.summary.citation_bound_pair_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparator.summary.comparison_packet_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparator.summary.ready_for_review_packet_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.human_review_required_comparison_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.attorney_review_required_comparison_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.citation_review_required_comparison_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.currentness_review_required_comparison_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.source_verification_required_comparison_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.format_validation_required_comparison_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparator.summary.version_comparison_report_only, true);
+      assert.equal(versionComparator.summary.draft_source_mutation_allowed, false);
+      assert.equal(versionComparator.summary.source_artifact_mutation_allowed, false);
+      assert.equal(versionComparator.summary.document_runtime_mutation_allowed, false);
+      assert.equal(versionComparator.summary.external_renderer_execution_allowed, false);
+      assert.equal(versionComparator.summary.network_access_allowed, false);
+      assert.equal(versionComparator.summary.artifact_write_allowed, true);
+      assert.equal(versionComparator.summary.delivery_execution_allowed, false);
+      assert.equal(versionComparator.summary.delivery_execution_performed, false);
+      assert.equal(versionComparator.summary.protected_action_allowed, false);
+      assert.equal(versionComparator.summary.protected_action_executed, false);
+      assert.equal(versionComparator.summary.legal_advice_generated, false);
+      assert.equal(versionComparator.summary.client_facing_output_generated, false);
+      assert.equal(versionComparator.summary.client_facing_ready_count, 0);
+      assert.equal(versionComparator.summary.failed_checkpoint_count, 0);
+      assert.equal(versionComparator.summary.validation_error_count, 0);
+      assert.ok(versionComparator.document_version_pairs.every((pair) => pair.document_version_pair_status === "comparison_ready_needs_review" && pair.metadata_hash.startsWith("sha256:") && pair.human_review_required && pair.attorney_review_required && pair.client_facing_ready === false));
+      assert.equal(versionComparator.document_change_records.filter((record) => record.change_type === "content_hash_delta" && record.change_status === "changed_needs_review").length, versionComparator.summary.document_version_pair_count);
+      assert.ok(versionComparator.comparison_packets.every((packet) => packet.comparison_packet_status === "ready_for_attorney_review" && packet.change_record_count === 4 && packet.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "version-comparator", "summary.md"), "utf8"), /Version Comparator/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10583,6 +10641,7 @@ describe("matter harness", () => {
           pdf_html_renderer: path.join(outDir, "pdf-html-renderer", "pdf-html-renderer.json"),
           layout_validator: path.join(outDir, "layout-validator", "layout-validator.json"),
           citation_renderer: path.join(outDir, "citation-renderer", "citation-renderer.json"),
+          version_comparator: path.join(outDir, "version-comparator", "version-comparator.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10634,8 +10693,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 163);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 163);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 164);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 164);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -10786,6 +10845,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "pdf_html_renderer"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "layout_validator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "citation_renderer"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "version_comparator"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10870,6 +10930,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:pdf-html-renderer"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:layout-validator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:citation-renderer"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "creative-document:version-comparator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter-os:profile"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:timeline"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "matter:document-index"));
@@ -11596,6 +11657,10 @@ describe("matter harness", () => {
       assert.equal(citationRendererCheckpoint?.acceptance_profile, "citation_renderer_gate");
       assert.equal(citationRendererCheckpoint?.status, "passed");
       assert.equal(citationRendererCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const versionComparatorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-version-comparator");
+      assert.equal(versionComparatorCheckpoint?.acceptance_profile, "version_comparator_gate");
+      assert.equal(versionComparatorCheckpoint?.status, "passed");
+      assert.equal(versionComparatorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -15669,6 +15734,49 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.citation_renderer_client_facing_ready_count, 0);
       assert.equal(dashboard.summary.citation_renderer_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.citation_renderer_validation_error_count, 0);
+      assert.equal(dashboard.summary.version_comparator_status, "complete");
+      assert.equal(dashboard.summary.version_comparator_contract_id, versionComparator.summary.version_comparator_contract_id);
+      assert.equal(dashboard.summary.version_comparator_source_docx_renderer_status, "complete");
+      assert.equal(dashboard.summary.version_comparator_source_pptx_renderer_status, "complete");
+      assert.equal(dashboard.summary.version_comparator_source_pdf_html_renderer_status, "complete");
+      assert.equal(dashboard.summary.version_comparator_source_layout_validator_status, "complete");
+      assert.equal(dashboard.summary.version_comparator_source_citation_renderer_status, "complete");
+      assert.equal(dashboard.summary.version_comparator_docx_output_artifact_count, versionComparator.summary.docx_output_artifact_count);
+      assert.equal(dashboard.summary.version_comparator_pptx_output_artifact_count, versionComparator.summary.pptx_output_artifact_count);
+      assert.equal(dashboard.summary.version_comparator_pdf_html_output_artifact_count, versionComparator.summary.pdf_html_output_artifact_count);
+      assert.equal(dashboard.summary.version_comparator_layout_target_count, versionComparator.summary.layout_target_count);
+      assert.equal(dashboard.summary.version_comparator_citation_render_packet_count, versionComparator.summary.citation_render_packet_count);
+      assert.equal(dashboard.summary.version_comparator_document_version_pair_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(dashboard.summary.version_comparator_compared_draft_artifact_count, versionComparator.summary.compared_draft_artifact_count);
+      assert.equal(dashboard.summary.version_comparator_document_change_record_count, versionComparator.summary.document_change_record_count);
+      assert.equal(dashboard.summary.version_comparator_content_hash_change_record_count, versionComparator.summary.content_hash_change_record_count);
+      assert.equal(dashboard.summary.version_comparator_content_hash_changed_count, versionComparator.summary.content_hash_changed_count);
+      assert.equal(dashboard.summary.version_comparator_layout_validated_pair_count, versionComparator.summary.layout_validated_pair_count);
+      assert.equal(dashboard.summary.version_comparator_citation_bound_pair_count, versionComparator.summary.citation_bound_pair_count);
+      assert.equal(dashboard.summary.version_comparator_packet_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(dashboard.summary.version_comparator_ready_for_review_packet_count, versionComparator.summary.ready_for_review_packet_count);
+      assert.equal(dashboard.summary.version_comparator_human_review_required_comparison_count, versionComparator.summary.human_review_required_comparison_count);
+      assert.equal(dashboard.summary.version_comparator_attorney_review_required_comparison_count, versionComparator.summary.attorney_review_required_comparison_count);
+      assert.equal(dashboard.summary.version_comparator_citation_review_required_comparison_count, versionComparator.summary.citation_review_required_comparison_count);
+      assert.equal(dashboard.summary.version_comparator_currentness_review_required_comparison_count, versionComparator.summary.currentness_review_required_comparison_count);
+      assert.equal(dashboard.summary.version_comparator_source_verification_required_comparison_count, versionComparator.summary.source_verification_required_comparison_count);
+      assert.equal(dashboard.summary.version_comparator_format_validation_required_comparison_count, versionComparator.summary.format_validation_required_comparison_count);
+      assert.equal(dashboard.summary.version_comparator_report_only, true);
+      assert.equal(dashboard.summary.version_comparator_draft_source_mutation_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_source_artifact_mutation_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_document_runtime_mutation_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_external_renderer_execution_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_network_access_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_artifact_write_allowed, true);
+      assert.equal(dashboard.summary.version_comparator_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_delivery_execution_performed, false);
+      assert.equal(dashboard.summary.version_comparator_protected_action_allowed, false);
+      assert.equal(dashboard.summary.version_comparator_protected_action_executed, false);
+      assert.equal(dashboard.summary.version_comparator_legal_advice_generated, false);
+      assert.equal(dashboard.summary.version_comparator_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.version_comparator_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.version_comparator_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.version_comparator_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -18171,6 +18279,48 @@ describe("matter harness", () => {
       assert.equal(citationRendererStage?.metrics.client_facing_ready_count, 0);
       assert.equal(citationRendererStage?.metrics.failed_checkpoint_count, 0);
       assert.equal(citationRendererStage?.metrics.validation_error_count, 0);
+      const versionComparatorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "version_comparator");
+      assert.equal(versionComparatorStage?.status, "passed");
+      assert.equal(versionComparatorStage?.metrics.version_comparator_status, "complete");
+      assert.equal(versionComparatorStage?.metrics.version_comparator_contract_id, versionComparator.summary.version_comparator_contract_id);
+      assert.equal(versionComparatorStage?.metrics.source_docx_renderer_status, "complete");
+      assert.equal(versionComparatorStage?.metrics.source_pptx_renderer_status, "complete");
+      assert.equal(versionComparatorStage?.metrics.source_pdf_html_renderer_status, "complete");
+      assert.equal(versionComparatorStage?.metrics.source_layout_validator_status, "complete");
+      assert.equal(versionComparatorStage?.metrics.source_citation_renderer_status, "complete");
+      assert.equal(versionComparatorStage?.metrics.layout_target_count, versionComparator.summary.layout_target_count);
+      assert.equal(versionComparatorStage?.metrics.citation_render_packet_count, versionComparator.summary.citation_render_packet_count);
+      assert.equal(versionComparatorStage?.metrics.document_version_pair_count, versionComparator.summary.document_version_pair_count);
+      assert.equal(versionComparatorStage?.metrics.compared_draft_artifact_count, versionComparator.summary.compared_draft_artifact_count);
+      assert.equal(versionComparatorStage?.metrics.document_change_record_count, versionComparator.summary.document_change_record_count);
+      assert.equal(versionComparatorStage?.metrics.content_hash_change_record_count, versionComparator.summary.content_hash_change_record_count);
+      assert.equal(versionComparatorStage?.metrics.content_hash_changed_count, versionComparator.summary.content_hash_changed_count);
+      assert.equal(versionComparatorStage?.metrics.layout_validated_pair_count, versionComparator.summary.layout_validated_pair_count);
+      assert.equal(versionComparatorStage?.metrics.citation_bound_pair_count, versionComparator.summary.citation_bound_pair_count);
+      assert.equal(versionComparatorStage?.metrics.comparison_packet_count, versionComparator.summary.comparison_packet_count);
+      assert.equal(versionComparatorStage?.metrics.ready_for_review_packet_count, versionComparator.summary.ready_for_review_packet_count);
+      assert.equal(versionComparatorStage?.metrics.human_review_required_comparison_count, versionComparator.summary.human_review_required_comparison_count);
+      assert.equal(versionComparatorStage?.metrics.attorney_review_required_comparison_count, versionComparator.summary.attorney_review_required_comparison_count);
+      assert.equal(versionComparatorStage?.metrics.citation_review_required_comparison_count, versionComparator.summary.citation_review_required_comparison_count);
+      assert.equal(versionComparatorStage?.metrics.currentness_review_required_comparison_count, versionComparator.summary.currentness_review_required_comparison_count);
+      assert.equal(versionComparatorStage?.metrics.source_verification_required_comparison_count, versionComparator.summary.source_verification_required_comparison_count);
+      assert.equal(versionComparatorStage?.metrics.format_validation_required_comparison_count, versionComparator.summary.format_validation_required_comparison_count);
+      assert.equal(versionComparatorStage?.metrics.version_comparison_report_only, true);
+      assert.equal(versionComparatorStage?.metrics.draft_source_mutation_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.source_artifact_mutation_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.document_runtime_mutation_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.external_renderer_execution_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.network_access_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.artifact_write_allowed, true);
+      assert.equal(versionComparatorStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.delivery_execution_performed, false);
+      assert.equal(versionComparatorStage?.metrics.protected_action_allowed, false);
+      assert.equal(versionComparatorStage?.metrics.protected_action_executed, false);
+      assert.equal(versionComparatorStage?.metrics.legal_advice_generated, false);
+      assert.equal(versionComparatorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(versionComparatorStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(versionComparatorStage?.metrics.failed_checkpoint_count, 0);
+      assert.equal(versionComparatorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -20227,6 +20377,26 @@ describe("matter harness", () => {
       const citationRendererValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/citation-renderer-validations?status=passed", apiOptions)).body);
       assert.equal(citationRendererValidationsResponse.collection, "citation_renderer_validations");
       assert.equal(citationRendererValidationsResponse.count, citationRenderer.summary.validation_item_count);
+
+      const versionComparatorsResponse = JSON.parse((await buildReviewApiResponse("/api/version-comparators?version_comparator_status=complete", apiOptions)).body);
+      assert.equal(versionComparatorsResponse.collection, "version_comparators");
+      assert.equal(versionComparatorsResponse.count, 1);
+
+      const documentVersionPairsResponse = JSON.parse((await buildReviewApiResponse("/api/document-version-pairs?document_version_pair_status=comparison_ready_needs_review", apiOptions)).body);
+      assert.equal(documentVersionPairsResponse.collection, "document_version_pairs");
+      assert.equal(documentVersionPairsResponse.count, versionComparator.summary.document_version_pair_count);
+
+      const documentChangeRecordsResponse = JSON.parse((await buildReviewApiResponse("/api/document-change-records?document_change_type=content_hash_delta&document_change_status=changed_needs_review", apiOptions)).body);
+      assert.equal(documentChangeRecordsResponse.collection, "document_change_records");
+      assert.equal(documentChangeRecordsResponse.count, versionComparator.summary.content_hash_change_record_count);
+
+      const documentComparisonPacketsResponse = JSON.parse((await buildReviewApiResponse("/api/document-comparison-packets?document_comparison_packet_status=ready_for_attorney_review&document_comparison_format=docx", apiOptions)).body);
+      assert.equal(documentComparisonPacketsResponse.collection, "document_comparison_packets");
+      assert.equal(documentComparisonPacketsResponse.count, 1);
+
+      const versionComparatorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/version-comparator-validations?status=passed", apiOptions)).body);
+      assert.equal(versionComparatorValidationsResponse.collection, "version_comparator_validations");
+      assert.equal(versionComparatorValidationsResponse.count, versionComparator.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

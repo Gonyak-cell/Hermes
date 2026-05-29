@@ -67,6 +67,7 @@ import { runWebNovelWorkflow } from "../src/creative-document-web-novel-workflow
 import { runVideoPptWorkflow } from "../src/creative-document-video-ppt-workflow.mjs";
 import { runCreativeDocumentFreeze } from "../src/creative-document-freeze.mjs";
 import { runConnectorContractV2 } from "../src/connector-contract-v2.mjs";
+import { runLocalFolderConnector } from "../src/local-folder-connector.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1929,6 +1930,7 @@ describe("matter harness", () => {
         videoPptWorkflowPath: path.join(outDir, "video-ppt-workflow", "video-ppt-workflow.json"),
         creativeDocumentFreezePath: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
         connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        localFolderConnectorPath: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -10781,6 +10783,67 @@ describe("matter harness", () => {
       assert.ok(connectorContractV2.connector_auth_boundaries.every((boundary) => boundary.auth_boundary_status === "enforced" && boundary.credential_reference_only && boundary.raw_secret_material_allowed === false && boundary.connector_execution_performed === false));
       assert.match(await readFile(path.join(outDir, "connector-contract-v2", "summary.md"), "utf8"), /Connector Contract v2/);
 
+      const localFolderConnectorFirst = await runLocalFolderConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        roots: ["examples/local-folder-connector"],
+        outDir: path.join(outDir, "local-folder-connector"),
+        batchSize: 1,
+        reset: true,
+        runAt: "2026-05-23T07:08:24.000Z",
+      });
+      assert.equal(localFolderConnectorFirst.summary.local_folder_connector_status, "running");
+      assert.equal(localFolderConnectorFirst.summary.processed_this_run, 1);
+      assert.equal(localFolderConnectorFirst.summary.remaining_count, 2);
+      assert.equal(localFolderConnectorFirst.cursor_state.cursor_status, "open");
+
+      const localFolderConnector = await runLocalFolderConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        roots: ["examples/local-folder-connector"],
+        outDir: path.join(outDir, "local-folder-connector"),
+        batchSize: 10,
+        runAt: "2026-05-23T07:09:24.000Z",
+      });
+      const localFolderConnectorSchema = JSON.parse(await readFile("schemas/local-folder-connector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(localFolderConnector, localFolderConnectorSchema, {}, "local_folder_connector"), [], JSON.stringify(localFolderConnector.validation.errors));
+      assert.equal(localFolderConnector.summary.local_folder_connector_status, "complete");
+      assert.equal(localFolderConnector.summary.connector_id, "connector.local_folder.v2");
+      assert.equal(localFolderConnector.summary.source_id, "source.local_folder.v2");
+      assert.equal(localFolderConnector.summary.discovered_file_count, 3);
+      assert.equal(localFolderConnector.summary.processed_this_run, 2);
+      assert.equal(localFolderConnector.summary.remaining_count, 0);
+      assert.equal(localFolderConnector.summary.terminal_count, 3);
+      assert.equal(localFolderConnector.summary.extracted_count, 2);
+      assert.equal(localFolderConnector.summary.ingest_record_count, 3);
+      assert.equal(localFolderConnector.summary.ingest_ready_count, 2);
+      assert.equal(localFolderConnector.summary.skipped_duplicate_count, 1);
+      assert.equal(localFolderConnector.summary.blocked_count, 0);
+      assert.equal(localFolderConnector.summary.cursor_status, "complete");
+      assert.equal(localFolderConnector.summary.cursor_resume_supported, true);
+      assert.equal(localFolderConnector.summary.cursor_loaded_previous_state, true);
+      assert.equal(localFolderConnector.summary.local_path_allowlist_enforced, true);
+      assert.equal(localFolderConnector.summary.credential_ref_required, false);
+      assert.equal(localFolderConnector.summary.raw_secret_material_allowed, false);
+      assert.equal(localFolderConnector.summary.read_operations_allowed, true);
+      assert.equal(localFolderConnector.summary.write_operations_allowed, false);
+      assert.equal(localFolderConnector.summary.connector_execution_performed, true);
+      assert.equal(localFolderConnector.summary.source_read_performed, true);
+      assert.equal(localFolderConnector.summary.source_mutation_performed, false);
+      assert.equal(localFolderConnector.summary.external_network_access_performed, false);
+      assert.equal(localFolderConnector.summary.credential_material_read, false);
+      assert.equal(localFolderConnector.summary.resource_mutation_performed, false);
+      assert.equal(localFolderConnector.summary.output_delivery_performed, false);
+      assert.equal(localFolderConnector.summary.protected_action_executed, false);
+      assert.equal(localFolderConnector.summary.legal_advice_generated, false);
+      assert.equal(localFolderConnector.summary.client_facing_output_generated, false);
+      assert.equal(localFolderConnector.summary.human_review_required_count, localFolderConnector.summary.ingest_ready_count);
+      assert.equal(localFolderConnector.summary.validation_error_count, 0);
+      assert.ok(localFolderConnector.local_folder_discovery_rows.every((row) => row.connector_id === "connector.local_folder.v2" && row.source_id === "source.local_folder.v2" && row.external_id && row.external_version_id && row.human_review_required));
+      assert.ok(localFolderConnector.local_folder_ingest_records.filter((record) => record.ingest_status === "resource_candidate_ready").every((record) => record.resource_projection_status === "ready" && record.review_status === "needs_review" && record.human_review_required));
+      assert.ok(localFolderConnector.local_folder_ingest_records.filter((record) => record.ingest_status === "skipped_duplicate").every((record) => record.duplicate_of));
+      assert.equal(localFolderConnector.cursor_state.raw_token_material_allowed, false);
+      assert.equal(localFolderConnector.auth_boundary.auth_mode, "local_path_allowlist");
+      assert.match(await readFile(path.join(outDir, "local-folder-connector", "summary.md"), "utf8"), /Local Folder Connector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -10972,6 +11035,7 @@ describe("matter harness", () => {
           video_ppt_workflow: path.join(outDir, "video-ppt-workflow", "video-ppt-workflow.json"),
           creative_document_freeze: path.join(outDir, "creative-document-freeze", "creative-document-freeze.json"),
           connector_contract_v2: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+          local_folder_connector: path.join(outDir, "local-folder-connector", "local-folder-connector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11023,8 +11087,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 169);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 169);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 170);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 170);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11181,6 +11245,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "video_ppt_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "creative_document_freeze"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "connector_contract_v2"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "local_folder_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12021,6 +12086,10 @@ describe("matter harness", () => {
       assert.equal(connectorContractV2Checkpoint?.acceptance_profile, "connector_contract_v2_gate");
       assert.equal(connectorContractV2Checkpoint?.status, "passed");
       assert.equal(connectorContractV2Checkpoint?.implementation_status, "passed_with_operational_gate");
+      const localFolderConnectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-local-folder-connector");
+      assert.equal(localFolderConnectorCheckpoint?.acceptance_profile, "local_folder_connector_gate");
+      assert.equal(localFolderConnectorCheckpoint?.status, "passed");
+      assert.equal(localFolderConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16321,6 +16390,38 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.connector_contract_v2_legal_advice_generated, false);
       assert.equal(dashboard.summary.connector_contract_v2_client_facing_output_generated, false);
       assert.equal(dashboard.summary.connector_contract_v2_validation_error_count, 0);
+      assert.equal(dashboard.summary.local_folder_connector_status, "complete");
+      assert.equal(dashboard.summary.local_folder_connector_connector_id, localFolderConnector.summary.connector_id);
+      assert.equal(dashboard.summary.local_folder_connector_source_id, localFolderConnector.summary.source_id);
+      assert.equal(dashboard.summary.local_folder_connector_discovered_file_count, localFolderConnector.summary.discovered_file_count);
+      assert.equal(dashboard.summary.local_folder_connector_processed_this_run, localFolderConnector.summary.processed_this_run);
+      assert.equal(dashboard.summary.local_folder_connector_remaining_count, 0);
+      assert.equal(dashboard.summary.local_folder_connector_terminal_count, localFolderConnector.summary.terminal_count);
+      assert.equal(dashboard.summary.local_folder_connector_extracted_count, localFolderConnector.summary.extracted_count);
+      assert.equal(dashboard.summary.local_folder_connector_ingest_record_count, localFolderConnector.summary.ingest_record_count);
+      assert.equal(dashboard.summary.local_folder_connector_ingest_ready_count, localFolderConnector.summary.ingest_ready_count);
+      assert.equal(dashboard.summary.local_folder_connector_skipped_duplicate_count, localFolderConnector.summary.skipped_duplicate_count);
+      assert.equal(dashboard.summary.local_folder_connector_blocked_count, 0);
+      assert.equal(dashboard.summary.local_folder_connector_cursor_status, "complete");
+      assert.equal(dashboard.summary.local_folder_connector_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.local_folder_connector_cursor_loaded_previous_state, true);
+      assert.equal(dashboard.summary.local_folder_connector_local_path_allowlist_enforced, true);
+      assert.equal(dashboard.summary.local_folder_connector_credential_ref_required, false);
+      assert.equal(dashboard.summary.local_folder_connector_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.local_folder_connector_read_operations_allowed, true);
+      assert.equal(dashboard.summary.local_folder_connector_write_operations_allowed, false);
+      assert.equal(dashboard.summary.local_folder_connector_connector_execution_performed, true);
+      assert.equal(dashboard.summary.local_folder_connector_source_read_performed, true);
+      assert.equal(dashboard.summary.local_folder_connector_source_mutation_performed, false);
+      assert.equal(dashboard.summary.local_folder_connector_external_network_access_performed, false);
+      assert.equal(dashboard.summary.local_folder_connector_credential_material_read, false);
+      assert.equal(dashboard.summary.local_folder_connector_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.local_folder_connector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.local_folder_connector_protected_action_executed, false);
+      assert.equal(dashboard.summary.local_folder_connector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.local_folder_connector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.local_folder_connector_human_review_required_count, localFolderConnector.summary.human_review_required_count);
+      assert.equal(dashboard.summary.local_folder_connector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19061,6 +19162,40 @@ describe("matter harness", () => {
       assert.equal(connectorContractV2Stage?.metrics.client_facing_output_generated, false);
       assert.equal(connectorContractV2Stage?.metrics.failed_checkpoint_count, 0);
       assert.equal(connectorContractV2Stage?.metrics.validation_error_count, 0);
+      const localFolderConnectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "local_folder_connector");
+      assert.equal(localFolderConnectorStage?.status, "passed");
+      assert.equal(localFolderConnectorStage?.metrics.local_folder_connector_status, "complete");
+      assert.equal(localFolderConnectorStage?.metrics.connector_id, localFolderConnector.summary.connector_id);
+      assert.equal(localFolderConnectorStage?.metrics.source_id, localFolderConnector.summary.source_id);
+      assert.equal(localFolderConnectorStage?.metrics.discovered_file_count, localFolderConnector.summary.discovered_file_count);
+      assert.equal(localFolderConnectorStage?.metrics.processed_this_run, localFolderConnector.summary.processed_this_run);
+      assert.equal(localFolderConnectorStage?.metrics.remaining_count, 0);
+      assert.equal(localFolderConnectorStage?.metrics.terminal_count, localFolderConnector.summary.terminal_count);
+      assert.equal(localFolderConnectorStage?.metrics.extracted_count, localFolderConnector.summary.extracted_count);
+      assert.equal(localFolderConnectorStage?.metrics.ingest_record_count, localFolderConnector.summary.ingest_record_count);
+      assert.equal(localFolderConnectorStage?.metrics.ingest_ready_count, localFolderConnector.summary.ingest_ready_count);
+      assert.equal(localFolderConnectorStage?.metrics.skipped_duplicate_count, localFolderConnector.summary.skipped_duplicate_count);
+      assert.equal(localFolderConnectorStage?.metrics.blocked_count, 0);
+      assert.equal(localFolderConnectorStage?.metrics.cursor_status, "complete");
+      assert.equal(localFolderConnectorStage?.metrics.cursor_resume_supported, true);
+      assert.equal(localFolderConnectorStage?.metrics.cursor_loaded_previous_state, true);
+      assert.equal(localFolderConnectorStage?.metrics.local_path_allowlist_enforced, true);
+      assert.equal(localFolderConnectorStage?.metrics.credential_ref_required, false);
+      assert.equal(localFolderConnectorStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(localFolderConnectorStage?.metrics.read_operations_allowed, true);
+      assert.equal(localFolderConnectorStage?.metrics.write_operations_allowed, false);
+      assert.equal(localFolderConnectorStage?.metrics.connector_execution_performed, true);
+      assert.equal(localFolderConnectorStage?.metrics.source_read_performed, true);
+      assert.equal(localFolderConnectorStage?.metrics.source_mutation_performed, false);
+      assert.equal(localFolderConnectorStage?.metrics.external_network_access_performed, false);
+      assert.equal(localFolderConnectorStage?.metrics.credential_material_read, false);
+      assert.equal(localFolderConnectorStage?.metrics.resource_mutation_performed, false);
+      assert.equal(localFolderConnectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(localFolderConnectorStage?.metrics.protected_action_executed, false);
+      assert.equal(localFolderConnectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(localFolderConnectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(localFolderConnectorStage?.metrics.human_review_required_count, localFolderConnector.summary.human_review_required_count);
+      assert.equal(localFolderConnectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -21269,6 +21404,26 @@ describe("matter harness", () => {
       const connectorContractV2ValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/connector-contract-v2-validations?status=passed", apiOptions)).body);
       assert.equal(connectorContractV2ValidationsResponse.collection, "connector_contract_v2_validations");
       assert.equal(connectorContractV2ValidationsResponse.count, connectorContractV2.summary.validation_item_count);
+
+      const localFolderConnectorResponse = JSON.parse((await buildReviewApiResponse("/api/local-folder-connector?local_folder_connector_status=complete", apiOptions)).body);
+      assert.equal(localFolderConnectorResponse.collection, "local_folder_connector");
+      assert.equal(localFolderConnectorResponse.count, 1);
+
+      const localFolderDiscoveryResponse = JSON.parse((await buildReviewApiResponse("/api/local-folder-discovery?discovery_status=discovered_ingest_ready", apiOptions)).body);
+      assert.equal(localFolderDiscoveryResponse.collection, "local_folder_discovery");
+      assert.equal(localFolderDiscoveryResponse.count, localFolderConnector.summary.ingest_ready_count);
+
+      const localFolderIngestResponse = JSON.parse((await buildReviewApiResponse("/api/local-folder-ingest-records?ingest_status=resource_candidate_ready&resource_projection_status=ready", apiOptions)).body);
+      assert.equal(localFolderIngestResponse.collection, "local_folder_ingest_records");
+      assert.equal(localFolderIngestResponse.count, localFolderConnector.summary.ingest_ready_count);
+
+      const localFolderCursorResponse = JSON.parse((await buildReviewApiResponse("/api/local-folder-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(localFolderCursorResponse.collection, "local_folder_cursor");
+      assert.equal(localFolderCursorResponse.count, 1);
+
+      const localFolderConnectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/local-folder-connector-validations?status=passed", apiOptions)).body);
+      assert.equal(localFolderConnectorValidationsResponse.collection, "local_folder_connector_validations");
+      assert.equal(localFolderConnectorValidationsResponse.count, localFolderConnector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

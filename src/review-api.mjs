@@ -5065,6 +5065,41 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("connector_contract_v2_validations", connectorResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/local-folder-connector") {
+    const localFolderResult = await readDashboardSourceArtifact(dashboard, "local_folder_connector");
+    if (!localFolderResult.available) {
+      return jsonResponse(503, buildError("local_folder_connector_unavailable", localFolderResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_folder_connector", [localFolderResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/local-folder-discovery") {
+    const localFolderResult = await readDashboardSourceArtifact(dashboard, "local_folder_connector");
+    if (!localFolderResult.available) {
+      return jsonResponse(503, buildError("local_folder_connector_unavailable", localFolderResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_folder_discovery", localFolderResult.artifact.local_folder_discovery_rows ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/local-folder-ingest-records") {
+    const localFolderResult = await readDashboardSourceArtifact(dashboard, "local_folder_connector");
+    if (!localFolderResult.available) {
+      return jsonResponse(503, buildError("local_folder_connector_unavailable", localFolderResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_folder_ingest_records", localFolderResult.artifact.local_folder_ingest_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/local-folder-cursor") {
+    const localFolderResult = await readDashboardSourceArtifact(dashboard, "local_folder_connector");
+    if (!localFolderResult.available) {
+      return jsonResponse(503, buildError("local_folder_connector_unavailable", localFolderResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_folder_cursor", [localFolderResult.artifact.cursor_state].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/local-folder-connector-validations") {
+    const localFolderResult = await readDashboardSourceArtifact(dashboard, "local_folder_connector");
+    if (!localFolderResult.available) {
+      return jsonResponse(503, buildError("local_folder_connector_unavailable", localFolderResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("local_folder_connector_validations", localFolderResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11393,6 +11428,11 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/connector-external-id-contracts", "Connector external id contract rows"),
       route("GET", "/api/connector-auth-boundaries", "Connector auth boundary rows"),
       route("GET", "/api/connector-contract-v2-validations", "Connector Contract v2 validation rows"),
+      route("GET", "/api/local-folder-connector", "Local Folder Connector artifact"),
+      route("GET", "/api/local-folder-discovery", "Local Folder Connector discovery rows"),
+      route("GET", "/api/local-folder-ingest-records", "Local Folder Connector ingest records"),
+      route("GET", "/api/local-folder-cursor", "Local Folder Connector cursor state"),
+      route("GET", "/api/local-folder-connector-validations", "Local Folder Connector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12450,6 +12490,12 @@ function filterItems(items, searchParams) {
     "connector_family",
     "source_system",
     "credential_reference_only",
+    "local_folder_connector_status",
+    "discovery_status",
+    "ingest_status",
+    "cursor_status",
+    "resource_projection_status",
+    "review_status",
     "boundary_status",
     "read_only",
     "matter_os_profile_status",
@@ -14237,6 +14283,12 @@ function readFilterValue(item, key) {
   if (key === "connector_family") return item.connector_family;
   if (key === "source_system") return item.source_system;
   if (key === "credential_reference_only") return String(Boolean(item.credential_reference_only));
+  if (key === "local_folder_connector_status") return item.summary?.local_folder_connector_status ?? item.connector_status ?? item.local_folder_connector_status;
+  if (key === "discovery_status") return item.discovery_status;
+  if (key === "ingest_status") return item.ingest_status;
+  if (key === "cursor_status") return item.cursor_status;
+  if (key === "resource_projection_status") return item.resource_projection_status;
+  if (key === "review_status") return item.review_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

@@ -140,6 +140,7 @@ const GOAL_ITEMS = [
   sourceItem("video_ppt_workflow", "Video/PPT workflow", "creative_document", "video_ppt_workflow", "control-plane-video-ppt-workflow", { acceptance_profile: "video_ppt_workflow_gate" }),
   sourceItem("creative_document_freeze", "Creative Document freeze", "creative_document", "creative_document_freeze", "control-plane-creative-document-freeze", { acceptance_profile: "creative_document_freeze_gate" }),
   sourceItem("connector_contract_v2", "Connector Contract v2", "connectors", "connector_contract_v2", "control-plane-connector-contract-v2", { acceptance_profile: "connector_contract_v2_gate" }),
+  sourceItem("local_folder_connector", "Local Folder Connector", "connectors", "local_folder_connector", "control-plane-local-folder-connector", { acceptance_profile: "local_folder_connector_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -639,6 +640,7 @@ function evaluateStageAcceptance(item, stage) {
     "video_ppt_workflow_gate",
     "creative_document_freeze_gate",
     "connector_contract_v2_gate",
+    "local_folder_connector_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -4872,6 +4874,34 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.client_facing_output_generated === false
     ) {
       return passedWithOperationalGate(stage, "Connector Contract v2 standardizes source_id, cursor, external_id, and auth boundary contracts for the P268-P275 connector families without connector execution, credential reads, delivery, protected action, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "local_folder_connector_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.local_folder_connector_status === "complete"
+      && metrics.discovered_file_count > 0
+      && metrics.ingest_ready_count > 0
+      && metrics.remaining_count === 0
+      && metrics.cursor_status === "complete"
+      && metrics.cursor_resume_supported === true
+      && metrics.local_path_allowlist_enforced === true
+      && metrics.credential_ref_required === false
+      && metrics.raw_secret_material_allowed === false
+      && metrics.write_operations_allowed === false
+      && metrics.source_read_performed === true
+      && metrics.source_mutation_performed === false
+      && metrics.external_network_access_performed === false
+      && metrics.credential_material_read === false
+      && metrics.resource_mutation_performed === false
+      && metrics.output_delivery_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required_count === metrics.ingest_ready_count
+    ) {
+      return passedWithOperationalGate(stage, "Local Folder Connector performs read-only path-allowlisted discovery and resumable ingest candidate creation with cursor state, duplicate handling, human review, and no source mutation, network, credential, delivery, legal advice, or client-facing output.");
     }
   }
 

@@ -2292,6 +2292,26 @@ try {
   assert.equal(connectorContractV2Validations.collection, "connector_contract_v2_validations");
   assert.ok(connectorContractV2Validations.count <= 5);
 
+  const localFolderConnector = await fetchJson(`${url}/api/local-folder-connector?local_folder_connector_status=complete&limit=1`);
+  assert.equal(localFolderConnector.collection, "local_folder_connector");
+  assert.ok(localFolderConnector.count <= 1);
+
+  const localFolderDiscovery = await fetchJson(`${url}/api/local-folder-discovery?discovery_status=discovered_ingest_ready&limit=5`);
+  assert.equal(localFolderDiscovery.collection, "local_folder_discovery");
+  assert.ok(localFolderDiscovery.count <= 5);
+
+  const localFolderIngestRecords = await fetchJson(`${url}/api/local-folder-ingest-records?ingest_status=resource_candidate_ready&resource_projection_status=ready&limit=5`);
+  assert.equal(localFolderIngestRecords.collection, "local_folder_ingest_records");
+  assert.ok(localFolderIngestRecords.count <= 5);
+
+  const localFolderCursor = await fetchJson(`${url}/api/local-folder-cursor?cursor_status=complete&limit=1`);
+  assert.equal(localFolderCursor.collection, "local_folder_cursor");
+  assert.ok(localFolderCursor.count <= 1);
+
+  const localFolderConnectorValidations = await fetchJson(`${url}/api/local-folder-connector-validations?status=passed&limit=5`);
+  assert.equal(localFolderConnectorValidations.collection, "local_folder_connector_validations");
+  assert.ok(localFolderConnectorValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

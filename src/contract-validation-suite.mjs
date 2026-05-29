@@ -149,6 +149,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "creative-document:video-ppt-workflow",
   "creative-document:freeze",
   "connectors:contract-v2",
+  "connectors:local-folder",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

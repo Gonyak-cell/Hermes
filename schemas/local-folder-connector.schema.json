@@ -1,0 +1,278 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "local-folder-connector.schema.json",
+  "title": "Local Folder Connector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "local_folder_connector_id",
+    "connector_id",
+    "connector_status",
+    "connector_contract_binding",
+    "source_binding",
+    "auth_boundary",
+    "cursor_state",
+    "local_folder_discovery_rows",
+    "local_folder_ingest_records",
+    "resource_expansion_summary",
+    "local_folder_connector_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "local-folder-connector.v1" },
+    "generated_at": { "type": "string" },
+    "local_folder_connector_id": { "type": "string" },
+    "connector_id": { "const": "connector.local_folder.v2" },
+    "connector_status": {
+      "enum": ["complete", "running", "needs_review", "attention"]
+    },
+    "connector_contract_binding": {
+      "type": "object",
+      "required": ["binding_status", "connector_id", "source_id", "source_system", "connector_family", "phase_slot"],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "connector_id": { "const": "connector.local_folder.v2" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "local_filesystem" },
+        "connector_family": { "const": "local_folder" },
+        "phase_slot": { "const": "P268" }
+      }
+    },
+    "source_binding": {
+      "type": "object",
+      "required": [
+        "source_binding_status",
+        "source_id",
+        "source_system",
+        "source_roots",
+        "tenant_id_required",
+        "matter_id_required",
+        "classification_required",
+        "policy_snapshot_required"
+      ],
+      "properties": {
+        "source_binding_status": { "const": "bound" },
+        "source_id": { "type": "string" },
+        "source_system": { "const": "local_filesystem" },
+        "source_roots": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "tenant_id_required": { "const": true },
+        "matter_id_required": { "const": true },
+        "classification_required": { "const": true },
+        "policy_snapshot_required": { "const": true }
+      }
+    },
+    "auth_boundary": {
+      "type": "object",
+      "required": [
+        "auth_boundary_status",
+        "auth_mode",
+        "allowlist_status",
+        "allowed_roots",
+        "credential_ref_required",
+        "credential_reference_only",
+        "raw_secret_material_allowed",
+        "external_network_access_performed",
+        "source_mutation_performed",
+        "write_operations_allowed"
+      ],
+      "properties": {
+        "auth_boundary_status": { "const": "enforced" },
+        "auth_mode": { "const": "local_path_allowlist" },
+        "allowlist_status": { "const": "enforced" },
+        "allowed_roots": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+        "credential_ref_required": { "const": false },
+        "credential_reference_only": { "const": true },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "write_operations_allowed": { "const": false }
+      }
+    },
+    "cursor_state": {
+      "type": "object",
+      "required": [
+        "cursor_id",
+        "cursor_status",
+        "cursor_kind",
+        "source_id",
+        "queued_count",
+        "last_seen_external_id",
+        "resume_supported",
+        "idempotency_strategy",
+        "state_path",
+        "resume_token_hash",
+        "raw_token_material_allowed",
+        "cross_matter_cursor_reuse_allowed"
+      ],
+      "properties": {
+        "cursor_id": { "type": "string" },
+        "cursor_status": { "enum": ["complete", "open"] },
+        "cursor_kind": { "const": "filesystem_walk_cursor" },
+        "source_id": { "type": "string" },
+        "queued_count": { "type": "integer", "minimum": 0 },
+        "last_seen_external_id": { "type": ["string", "null"] },
+        "resume_supported": { "const": true },
+        "idempotency_strategy": { "const": "path:size:modified_at" },
+        "state_path": { "type": "string" },
+        "resume_token_hash": { "type": "string" },
+        "raw_token_material_allowed": { "const": false },
+        "cross_matter_cursor_reuse_allowed": { "const": false }
+      }
+    },
+    "local_folder_discovery_rows": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "discovery_row_id",
+          "connector_id",
+          "source_id",
+          "matter_id",
+          "relative_path",
+          "external_id",
+          "external_version_id",
+          "discovery_status",
+          "resource_expansion_status",
+          "idempotency_key",
+          "human_review_required"
+        ],
+        "properties": {
+          "discovery_row_id": { "type": "string" },
+          "connector_id": { "const": "connector.local_folder.v2" },
+          "source_id": { "type": "string" },
+          "matter_id": { "type": "string" },
+          "relative_path": { "type": "string" },
+          "external_id": { "type": "string" },
+          "external_version_id": { "type": "string" },
+          "discovery_status": {
+            "enum": ["queued_for_resume", "discovered_ingest_ready", "discovered_duplicate_skipped", "blocked_pending_review", "unknown"]
+          },
+          "resource_expansion_status": {
+            "enum": ["queued", "extracted", "quarantined", "failed", "skipped_duplicate"]
+          },
+          "idempotency_key": { "type": "string" },
+          "human_review_required": { "const": true }
+        }
+      }
+    },
+    "local_folder_ingest_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "ingest_record_id",
+          "discovery_row_id",
+          "connector_id",
+          "source_id",
+          "external_id",
+          "external_version_id",
+          "resource_id",
+          "resource_version_id",
+          "ingest_status",
+          "resource_projection_status",
+          "review_status"
+        ],
+        "properties": {
+          "ingest_record_id": { "type": "string" },
+          "discovery_row_id": { "type": "string" },
+          "connector_id": { "const": "connector.local_folder.v2" },
+          "source_id": { "type": "string" },
+          "external_id": { "type": "string" },
+          "external_version_id": { "type": "string" },
+          "resource_id": { "type": "string" },
+          "resource_version_id": { "type": "string" },
+          "ingest_status": {
+            "enum": ["resource_candidate_ready", "skipped_duplicate", "queued_for_resume", "blocked_pending_review", "unknown"]
+          },
+          "resource_projection_status": { "enum": ["ready", "not_ready"] },
+          "review_status": { "enum": ["needs_review", "not_applicable"] }
+        }
+      }
+    },
+    "local_folder_connector_boundary": {
+      "type": "object",
+      "required": [
+        "read_only_source_access",
+        "local_path_allowlist_enforced",
+        "connector_execution_performed",
+        "source_read_performed",
+        "source_mutation_performed",
+        "external_network_access_performed",
+        "credential_material_read",
+        "resource_mutation_performed",
+        "output_delivery_performed",
+        "protected_action_executed",
+        "legal_advice_generated",
+        "client_facing_output_generated",
+        "human_review_required"
+      ],
+      "properties": {
+        "read_only_source_access": { "const": true },
+        "local_path_allowlist_enforced": { "const": true },
+        "connector_execution_performed": { "const": true },
+        "source_read_performed": { "const": true },
+        "source_mutation_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "credential_material_read": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "human_review_required": { "const": true }
+      }
+    },
+    "validation_items": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["checkpoint_id", "status", "message"],
+        "properties": {
+          "checkpoint_id": { "type": "string" },
+          "status": { "enum": ["passed", "failed"] },
+          "message": { "type": "string" }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors", "items"],
+      "properties": {
+        "valid": { "type": "boolean" },
+        "errors": { "type": "array" },
+        "items": { "type": "array" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "local_folder_connector_status",
+        "discovered_file_count",
+        "processed_this_run",
+        "remaining_count",
+        "ingest_ready_count",
+        "cursor_resume_supported",
+        "local_path_allowlist_enforced",
+        "validation_error_count"
+      ],
+      "properties": {
+        "local_folder_connector_status": {
+          "enum": ["complete", "running", "needs_review", "attention"]
+        },
+        "discovered_file_count": { "type": "integer", "minimum": 1 },
+        "processed_this_run": { "type": "integer", "minimum": 0 },
+        "remaining_count": { "type": "integer", "minimum": 0 },
+        "ingest_ready_count": { "type": "integer", "minimum": 0 },
+        "cursor_resume_supported": { "const": true },
+        "local_path_allowlist_enforced": { "const": true },
+        "validation_error_count": { "type": "integer", "minimum": 0 }
+      }
+    }
+  }
+}

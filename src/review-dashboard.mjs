@@ -103,6 +103,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   videoPptWorkflowPath: "artifacts/video-ppt-workflow/latest/video-ppt-workflow.json",
   creativeDocumentFreezePath: "artifacts/creative-document-freeze/latest/creative-document-freeze.json",
   connectorContractV2Path: "artifacts/connector-contract-v2/latest/connector-contract-v2.json",
+  localFolderConnectorPath: "artifacts/local-folder-connector/latest/local-folder-connector.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -761,6 +762,11 @@ const SOURCE_DEFINITIONS = [
     option: "connectorContractV2Path",
     source_id: "connector_contract_v2",
     label: "Connector Contract v2",
+  },
+  {
+    option: "localFolderConnectorPath",
+    source_id: "local_folder_connector",
+    label: "Local Folder Connector",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1733,6 +1739,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "video_ppt_workflow") return data.summary ?? {};
   if (sourceId === "creative_document_freeze") return data.summary ?? {};
   if (sourceId === "connector_contract_v2") return data.summary ?? {};
+  if (sourceId === "local_folder_connector") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2117,6 +2124,7 @@ function buildStageStatuses(artifacts, sources) {
     buildVideoPptWorkflowStage(artifacts.video_ppt_workflow, sourceById.get("video_ppt_workflow")),
     buildCreativeDocumentFreezeStage(artifacts.creative_document_freeze, sourceById.get("creative_document_freeze")),
     buildConnectorContractV2Stage(artifacts.connector_contract_v2, sourceById.get("connector_contract_v2")),
+    buildLocalFolderConnectorStage(artifacts.local_folder_connector, sourceById.get("local_folder_connector")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -12030,6 +12038,82 @@ function buildConnectorContractV2Stage(artifact, source) {
   };
 }
 
+function buildLocalFolderConnectorStage(artifact, source) {
+  if (!artifact) return missingStage("local_folder_connector", "Local Folder Connector", source);
+  const summary = artifact.summary ?? {};
+  const status = artifact.validation?.valid === false
+    || summary.local_folder_connector_status !== "complete"
+    || summary.discovered_file_count <= 0
+    || summary.ingest_ready_count <= 0
+    || summary.remaining_count !== 0
+    || summary.cursor_status !== "complete"
+    || summary.cursor_resume_supported !== true
+    || summary.local_path_allowlist_enforced !== true
+    || summary.credential_ref_required === true
+    || summary.raw_secret_material_allowed === true
+    || summary.write_operations_allowed === true
+    || summary.source_mutation_performed === true
+    || summary.external_network_access_performed === true
+    || summary.credential_material_read === true
+    || summary.resource_mutation_performed === true
+    || summary.output_delivery_performed === true
+    || summary.protected_action_executed === true
+    || summary.legal_advice_generated === true
+    || summary.client_facing_output_generated === true
+    || (summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0) > 0
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "local_folder_connector",
+    label: "Local Folder Connector",
+    status,
+    message: `${summary.discovered_file_count ?? 0} local file(s) discovered, ${summary.ingest_ready_count ?? 0} ingest-ready candidate(s), ${summary.remaining_count ?? 0} queued for resume.`,
+    source_path: source?.path ?? null,
+    metrics: {
+      local_folder_connector_status: summary.local_folder_connector_status ?? "unknown",
+      connector_id: summary.connector_id ?? artifact.connector_id ?? null,
+      source_id: summary.source_id ?? artifact.connector_contract_binding?.source_id ?? null,
+      phase_slot: summary.phase_slot ?? null,
+      discovered_file_count: summary.discovered_file_count ?? 0,
+      processed_this_run: summary.processed_this_run ?? 0,
+      remaining_count: summary.remaining_count ?? 0,
+      terminal_count: summary.terminal_count ?? 0,
+      extracted_count: summary.extracted_count ?? 0,
+      ingest_record_count: summary.ingest_record_count ?? 0,
+      ingest_ready_count: summary.ingest_ready_count ?? 0,
+      skipped_duplicate_count: summary.skipped_duplicate_count ?? 0,
+      blocked_count: summary.blocked_count ?? 0,
+      quarantine_count: summary.quarantine_count ?? 0,
+      failed_count: summary.failed_count ?? 0,
+      cursor_status: summary.cursor_status ?? artifact.cursor_state?.cursor_status ?? "unknown",
+      cursor_resume_supported: summary.cursor_resume_supported ?? artifact.cursor_state?.resume_supported ?? false,
+      cursor_loaded_previous_state: summary.cursor_loaded_previous_state ?? artifact.cursor_state?.loaded_previous_state ?? false,
+      cursor_queued_count: summary.cursor_queued_count ?? artifact.cursor_state?.queued_count ?? 0,
+      last_seen_external_id_present: summary.last_seen_external_id_present ?? Boolean(artifact.cursor_state?.last_seen_external_id),
+      source_root_count: summary.source_root_count ?? artifact.source_binding?.source_roots?.length ?? 0,
+      local_path_allowlist_enforced: summary.local_path_allowlist_enforced ?? artifact.auth_boundary?.allowlist_status === "enforced",
+      credential_ref_required: summary.credential_ref_required ?? artifact.auth_boundary?.credential_ref_required ?? false,
+      credential_reference_only: summary.credential_reference_only ?? artifact.auth_boundary?.credential_reference_only ?? false,
+      raw_secret_material_allowed: summary.raw_secret_material_allowed ?? artifact.auth_boundary?.raw_secret_material_allowed ?? false,
+      read_operations_allowed: summary.read_operations_allowed ?? artifact.auth_boundary?.read_operations_allowed ?? false,
+      write_operations_allowed: summary.write_operations_allowed ?? artifact.auth_boundary?.write_operations_allowed ?? false,
+      connector_execution_performed: summary.connector_execution_performed ?? artifact.local_folder_connector_boundary?.connector_execution_performed ?? false,
+      source_read_performed: summary.source_read_performed ?? artifact.local_folder_connector_boundary?.source_read_performed ?? false,
+      source_mutation_performed: summary.source_mutation_performed ?? artifact.local_folder_connector_boundary?.source_mutation_performed ?? false,
+      external_network_access_performed: summary.external_network_access_performed ?? artifact.local_folder_connector_boundary?.external_network_access_performed ?? false,
+      credential_material_read: summary.credential_material_read ?? artifact.local_folder_connector_boundary?.credential_material_read ?? false,
+      resource_mutation_performed: summary.resource_mutation_performed ?? artifact.local_folder_connector_boundary?.resource_mutation_performed ?? false,
+      output_delivery_performed: summary.output_delivery_performed ?? artifact.local_folder_connector_boundary?.output_delivery_performed ?? false,
+      protected_action_executed: summary.protected_action_executed ?? artifact.local_folder_connector_boundary?.protected_action_executed ?? false,
+      legal_advice_generated: summary.legal_advice_generated ?? artifact.local_folder_connector_boundary?.legal_advice_generated ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? artifact.local_folder_connector_boundary?.client_facing_output_generated ?? false,
+      human_review_required_count: summary.human_review_required_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -18336,6 +18420,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.local_folder_connector?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "local_folder_connector";
+    items.push({
+      action_item_id: `dashboard.action.local_folder_connector.${slugify(subjectId)}`,
+      source_stage: "local_folder_connector",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix Local Folder Connector",
+      subject_ref: {
+        subject_type: "local_folder_connector_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_local_folder_connector", "rerun_local_folder_connector", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -24406,6 +24508,44 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     connector_contract_v2_legal_advice_generated: artifacts.connector_contract_v2?.summary?.legal_advice_generated ?? false,
     connector_contract_v2_client_facing_output_generated: artifacts.connector_contract_v2?.summary?.client_facing_output_generated ?? false,
     connector_contract_v2_validation_error_count: artifacts.connector_contract_v2?.summary?.validation_error_count ?? artifacts.connector_contract_v2?.validation?.errors?.length ?? 0,
+    local_folder_connector_status: artifacts.local_folder_connector?.summary?.local_folder_connector_status ?? "unknown",
+    local_folder_connector_connector_id: artifacts.local_folder_connector?.summary?.connector_id ?? null,
+    local_folder_connector_source_id: artifacts.local_folder_connector?.summary?.source_id ?? null,
+    local_folder_connector_discovered_file_count: artifacts.local_folder_connector?.summary?.discovered_file_count ?? 0,
+    local_folder_connector_processed_this_run: artifacts.local_folder_connector?.summary?.processed_this_run ?? 0,
+    local_folder_connector_remaining_count: artifacts.local_folder_connector?.summary?.remaining_count ?? 0,
+    local_folder_connector_terminal_count: artifacts.local_folder_connector?.summary?.terminal_count ?? 0,
+    local_folder_connector_extracted_count: artifacts.local_folder_connector?.summary?.extracted_count ?? 0,
+    local_folder_connector_ingest_record_count: artifacts.local_folder_connector?.summary?.ingest_record_count ?? 0,
+    local_folder_connector_ingest_ready_count: artifacts.local_folder_connector?.summary?.ingest_ready_count ?? 0,
+    local_folder_connector_skipped_duplicate_count: artifacts.local_folder_connector?.summary?.skipped_duplicate_count ?? 0,
+    local_folder_connector_blocked_count: artifacts.local_folder_connector?.summary?.blocked_count ?? 0,
+    local_folder_connector_quarantine_count: artifacts.local_folder_connector?.summary?.quarantine_count ?? 0,
+    local_folder_connector_failed_count: artifacts.local_folder_connector?.summary?.failed_count ?? 0,
+    local_folder_connector_cursor_status: artifacts.local_folder_connector?.summary?.cursor_status ?? "unknown",
+    local_folder_connector_cursor_resume_supported: artifacts.local_folder_connector?.summary?.cursor_resume_supported ?? false,
+    local_folder_connector_cursor_loaded_previous_state: artifacts.local_folder_connector?.summary?.cursor_loaded_previous_state ?? false,
+    local_folder_connector_cursor_queued_count: artifacts.local_folder_connector?.summary?.cursor_queued_count ?? 0,
+    local_folder_connector_last_seen_external_id_present: artifacts.local_folder_connector?.summary?.last_seen_external_id_present ?? false,
+    local_folder_connector_source_root_count: artifacts.local_folder_connector?.summary?.source_root_count ?? 0,
+    local_folder_connector_local_path_allowlist_enforced: artifacts.local_folder_connector?.summary?.local_path_allowlist_enforced ?? false,
+    local_folder_connector_credential_ref_required: artifacts.local_folder_connector?.summary?.credential_ref_required ?? false,
+    local_folder_connector_credential_reference_only: artifacts.local_folder_connector?.summary?.credential_reference_only ?? false,
+    local_folder_connector_raw_secret_material_allowed: artifacts.local_folder_connector?.summary?.raw_secret_material_allowed ?? false,
+    local_folder_connector_read_operations_allowed: artifacts.local_folder_connector?.summary?.read_operations_allowed ?? false,
+    local_folder_connector_write_operations_allowed: artifacts.local_folder_connector?.summary?.write_operations_allowed ?? false,
+    local_folder_connector_connector_execution_performed: artifacts.local_folder_connector?.summary?.connector_execution_performed ?? false,
+    local_folder_connector_source_read_performed: artifacts.local_folder_connector?.summary?.source_read_performed ?? false,
+    local_folder_connector_source_mutation_performed: artifacts.local_folder_connector?.summary?.source_mutation_performed ?? false,
+    local_folder_connector_external_network_access_performed: artifacts.local_folder_connector?.summary?.external_network_access_performed ?? false,
+    local_folder_connector_credential_material_read: artifacts.local_folder_connector?.summary?.credential_material_read ?? false,
+    local_folder_connector_resource_mutation_performed: artifacts.local_folder_connector?.summary?.resource_mutation_performed ?? false,
+    local_folder_connector_output_delivery_performed: artifacts.local_folder_connector?.summary?.output_delivery_performed ?? false,
+    local_folder_connector_protected_action_executed: artifacts.local_folder_connector?.summary?.protected_action_executed ?? false,
+    local_folder_connector_legal_advice_generated: artifacts.local_folder_connector?.summary?.legal_advice_generated ?? false,
+    local_folder_connector_client_facing_output_generated: artifacts.local_folder_connector?.summary?.client_facing_output_generated ?? false,
+    local_folder_connector_human_review_required_count: artifacts.local_folder_connector?.summary?.human_review_required_count ?? 0,
+    local_folder_connector_validation_error_count: artifacts.local_folder_connector?.summary?.validation_error_count ?? artifacts.local_folder_connector?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -26195,6 +26335,8 @@ function parseArgs(argv) {
     else if (arg === "--no-creative-document-freeze") parsed.creativeDocumentFreezePath = false;
     else if (arg === "--connector-contract-v2") parsed.connectorContractV2Path = argv[++index];
     else if (arg === "--no-connector-contract-v2") parsed.connectorContractV2Path = false;
+    else if (arg === "--local-folder-connector") parsed.localFolderConnectorPath = argv[++index];
+    else if (arg === "--no-local-folder-connector") parsed.localFolderConnectorPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

@@ -1,0 +1,3 @@
+Local folder evidence note for Phase 268.
+
+This file is intentionally simple text so the local connector can discover and ingest it as a human-review-gated resource candidate without external services.

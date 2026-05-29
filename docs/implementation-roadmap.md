@@ -7239,6 +7239,23 @@ Completion criteria:
 - Golden fixture count increased to 169 and `connector_contract_v2` is included as a regression fixture.
 - `npm run connectors:contract-v2 -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 268 - Local Folder Connector
+
+Goal: P268 implements the first Connector and Ingestion Layer adapter by turning configured local folders into read-only, resumable discovery and ingest-candidate artifacts while preserving the Windows baseline stabilization posture and human-review/no-legal-advice gates.
+
+Implementation:
+- Added `src/local-folder-connector.mjs`, `scripts/local-folder-connector.mjs`, `schemas/local-folder-connector.schema.json`, `docs/local-folder-connector.md`, and deterministic fixture roots under `examples/local-folder-connector/`.
+- Added `connectors:local-folder` npm script.
+- The artifact reads Connector Contract v2, binds `connector.local_folder.v2` / `source.local_folder.v2`, scans only configured local path allowlist roots, writes resource-expansion cursor state, and emits local folder discovery rows, ingest records, cursor state, auth boundary, validation report, and summary.
+- Review Dashboard stage/summary, Review API routes/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- Local file discovery runs against configured local folder roots and creates deterministic external ids and external version ids for each discovered file.
+- Ingest rows are resumable and human-review gated; duplicate content is skipped with duplicate lineage and cursor state records `last_seen_external_id`, high-watermark, and resume token hash.
+- The connector remains path-allowlisted and read-only: no source mutation, external network access, credential material read, resource mutation, output delivery, protected action, legal advice, or client-facing output generation.
+- Golden fixture count increased to 170 and `local_folder_connector` is included as a regression fixture.
+- `npm run connectors:local-folder -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -7247,9 +7264,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 267.
+- Current actual completion baseline is Phase 268.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P268-P312, 45 total.
+- Remaining planned slots are P269-P312, 44 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.
@@ -7267,7 +7284,7 @@ Completion criteria:
 | P213-P230 | Personal Dev Domain Pack | repo profile, agent instruction registry, plan reconciliation, parallel worktree lane, diff review, canonical test, PR draft, debt ledger, release/rollback flow를 완성한다. |
 | P231-P252 | Law Firm Domain Pack | Matter OS, Evidence OS, LDD, litigation brief, meeting minutes, contract draft, VDR review, provided-material review, legal citation verifier, attorney approval workflow를 완성한다. |
 | P253-P266 | Creative and Document Domain Pack | template/style/asset registry, DOCX/PPTX/PDF/HTML renderer, layout validator, citation renderer, design system, web novel/video/PPTX production workflows, Creative Document freeze를 완성한다. |
-| P267-P276 | Connector and Ingestion Layer | Connector Contract v2를 기준으로 Outlook email, KakaoTalk import boundary, OneDrive/local folder, GitHub, VDR, Plaud, ERP, future Slack/Teams connector를 adapter 방식으로 확장한다. |
+| P267-P276 | Connector and Ingestion Layer | Connector Contract v2와 Local Folder Connector를 기준으로 Outlook email, KakaoTalk import boundary, OneDrive, GitHub, VDR, Plaud, ERP, future Slack/Teams connector를 adapter 방식으로 확장한다. |
 | P277-P286 | Resource Expansion and Extractor Library | 2,713개 이상 파일 backfill, resumable batch cursor, quarantine, duplicate detection, extractor registry, document-type coverage dashboard를 완성한다. |
 | P287-P296 | API, Dashboard, Evidence Viewer, Matter Cockpit | API server, review dashboard, Desktop-ready route group, approval queue, evidence viewer, source span inspector, run ledger viewer, matter cockpit, policy violation queue를 usable UI로 연결한다. |
 | P297-P304 | Security, Compliance, Performance Hardening | prompt injection boundary, secrets scanning, external model policy, Desktop companion risk, retention, access review, cost cap, performance budget, backup/restore 검증을 마친다. |

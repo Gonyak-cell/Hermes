@@ -1,0 +1,298 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/style-registry.schema.json",
+  "title": "Style Registry",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "generated_at",
+    "style_registry_id",
+    "style_registry_status",
+    "safe_handling",
+    "style_registry_contract",
+    "style_registry_boundary",
+    "style_profile_records",
+    "style_rule_records",
+    "template_style_bindings",
+    "style_format_coverage",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "style-registry.v1" },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "style_registry_id": { "type": "string", "minLength": 1 },
+    "style_registry_status": { "const": "complete" },
+    "safe_handling": {
+      "type": "object",
+      "required": [
+        "report_only",
+        "style_registry_generated",
+        "metadata_registry_only",
+        "human_review_required",
+        "format_validation_required",
+        "renderer_execution_performed",
+        "delivery_execution_performed",
+        "protected_mutation_performed",
+        "style_file_write_performed",
+        "core_registry_mutation_performed",
+        "client_facing_output_generated"
+      ],
+      "properties": {
+        "report_only": { "const": true },
+        "style_registry_generated": { "const": true },
+        "metadata_registry_only": { "const": true },
+        "human_review_required": { "const": true },
+        "format_validation_required": { "const": true },
+        "renderer_execution_performed": { "const": false },
+        "delivery_execution_performed": { "const": false },
+        "protected_mutation_performed": { "const": false },
+        "style_file_write_performed": { "const": false },
+        "core_registry_mutation_performed": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      }
+    },
+    "style_registry_contract": {
+      "type": "object",
+      "required": ["contract_id", "registry_scope", "source_of_truth", "required_formats", "required_style_rule_types"],
+      "properties": {
+        "contract_id": { "const": "style-registry.v1" },
+        "registry_scope": { "const": "creative_and_document_domain_pack" },
+        "source_of_truth": { "const": "template_registry_and_domain_pack_style_metadata" },
+        "required_formats": {
+          "type": "array",
+          "minItems": 4,
+          "contains": { "const": "docx" }
+        },
+        "required_style_rule_types": {
+          "type": "array",
+          "minItems": 5,
+          "contains": { "const": "voice" }
+        }
+      }
+    },
+    "style_registry_boundary": {
+      "type": "object",
+      "required": [
+        "boundary_status",
+        "read_only",
+        "metadata_registry_only",
+        "style_file_write_allowed",
+        "core_registry_mutation_allowed",
+        "renderer_execution_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_generated",
+        "client_facing_ready_count"
+      ],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "read_only": { "const": true },
+        "metadata_registry_only": { "const": true },
+        "style_file_write_allowed": { "const": false },
+        "core_registry_mutation_allowed": { "const": false },
+        "renderer_execution_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 }
+      }
+    },
+    "style_profile_records": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "style_profile_id",
+          "style_format",
+          "voice_profile",
+          "tone_profile",
+          "brand_profile",
+          "font_system",
+          "layout_system",
+          "style_profile_status",
+          "metadata_hash",
+          "human_review_required",
+          "format_validation_required",
+          "style_file_write_performed",
+          "renderer_execution_performed",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "style_format": { "enum": ["docx", "pptx", "html", "email"] },
+          "style_profile_status": { "const": "registered" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "style_file_write_performed": { "const": false },
+          "renderer_execution_performed": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "style_rule_records": {
+      "type": "array",
+      "minItems": 5,
+      "items": {
+        "type": "object",
+        "required": [
+          "style_rule_id",
+          "style_rule_type",
+          "style_rule_status",
+          "metadata_hash",
+          "human_review_required",
+          "format_validation_required",
+          "style_file_write_performed",
+          "renderer_execution_performed",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "style_rule_type": { "enum": ["voice", "tone", "brand", "font", "layout"] },
+          "style_rule_status": { "const": "registered" },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "style_file_write_performed": { "const": false },
+          "renderer_execution_performed": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "template_style_bindings": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": [
+          "template_style_binding_id",
+          "template_id",
+          "template_format",
+          "style_format",
+          "style_profile_id",
+          "style_rule_types",
+          "binding_status",
+          "metadata_hash",
+          "human_review_required",
+          "format_validation_required",
+          "style_file_write_performed",
+          "renderer_execution_performed",
+          "delivery_execution_performed",
+          "protected_action_executed",
+          "client_facing_ready",
+          "client_facing_output_generated"
+        ],
+        "properties": {
+          "template_format": { "enum": ["docx", "pptx", "html", "email"] },
+          "style_format": { "enum": ["docx", "pptx", "html", "email"] },
+          "binding_status": { "const": "linked" },
+          "style_rule_types": {
+            "type": "array",
+            "minItems": 5,
+            "contains": { "const": "layout" }
+          },
+          "metadata_hash": { "type": "string", "pattern": "^sha256:[a-f0-9]{64}$" },
+          "human_review_required": { "const": true },
+          "format_validation_required": { "const": true },
+          "style_file_write_performed": { "const": false },
+          "renderer_execution_performed": { "const": false },
+          "delivery_execution_performed": { "const": false },
+          "protected_action_executed": { "const": false },
+          "client_facing_ready": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        }
+      }
+    },
+    "style_format_coverage": {
+      "type": "array",
+      "minItems": 4,
+      "items": {
+        "type": "object",
+        "required": ["style_format", "style_format_coverage_status", "style_profile_count", "template_style_binding_count"],
+        "properties": {
+          "style_format": { "enum": ["docx", "pptx", "html", "email"] },
+          "style_format_coverage_status": { "const": "covered" },
+          "style_profile_count": { "type": "integer", "minimum": 1 },
+          "template_style_binding_count": { "type": "integer", "minimum": 1 }
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "errors"],
+      "properties": {
+        "valid": { "const": true },
+        "errors": { "type": "array", "maxItems": 0 }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "style_registry_status",
+        "style_registry_contract_id",
+        "source_template_registry_status",
+        "style_profile_count",
+        "registered_style_profile_count",
+        "style_rule_count",
+        "registered_style_rule_count",
+        "required_style_rule_type_count",
+        "covered_style_rule_type_count",
+        "template_style_binding_count",
+        "linked_template_style_binding_count",
+        "required_format_count",
+        "covered_format_count",
+        "metadata_hash_count",
+        "read_only",
+        "metadata_registry_only",
+        "style_file_write_allowed",
+        "renderer_execution_allowed",
+        "delivery_execution_allowed",
+        "protected_action_allowed",
+        "client_facing_output_generated",
+        "client_facing_ready_count",
+        "failed_checkpoint_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "style_registry_status": { "const": "complete" },
+        "style_registry_contract_id": { "const": "style-registry.v1" },
+        "source_template_registry_status": { "const": "complete" },
+        "style_profile_count": { "const": 4 },
+        "registered_style_profile_count": { "const": 4 },
+        "style_rule_count": { "const": 5 },
+        "registered_style_rule_count": { "const": 5 },
+        "required_style_rule_type_count": { "const": 5 },
+        "covered_style_rule_type_count": { "const": 5 },
+        "template_style_binding_count": { "type": "integer", "minimum": 4 },
+        "linked_template_style_binding_count": { "type": "integer", "minimum": 4 },
+        "required_format_count": { "const": 4 },
+        "covered_format_count": { "const": 4 },
+        "metadata_hash_count": { "type": "integer", "minimum": 9 },
+        "read_only": { "const": true },
+        "metadata_registry_only": { "const": true },
+        "style_file_write_allowed": { "const": false },
+        "renderer_execution_allowed": { "const": false },
+        "delivery_execution_allowed": { "const": false },
+        "protected_action_allowed": { "const": false },
+        "client_facing_output_generated": { "const": false },
+        "client_facing_ready_count": { "const": 0 },
+        "failed_checkpoint_count": { "const": 0 },
+        "validation_error_count": { "const": 0 }
+      }
+    }
+  }
+}

@@ -136,6 +136,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "law-firm:e2e-freeze",
   "creative-document:pack-manifest",
   "creative-document:template-registry",
+  "creative-document:style-registry",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

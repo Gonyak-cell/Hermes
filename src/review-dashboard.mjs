@@ -90,6 +90,7 @@ export const DEFAULT_REVIEW_DASHBOARD_INPUTS = {
   personalDevE2eFreezePath: "artifacts/personal-dev-e2e-freeze/latest/personal-dev-e2e-freeze.json",
   creativeDocumentPackManifestPath: "artifacts/creative-document-pack-manifest/latest/creative-document-pack-manifest.json",
   templateRegistryPath: "artifacts/template-registry/latest/template-registry.json",
+  styleRegistryPath: "artifacts/style-registry/latest/style-registry.json",
   lawFirmPackManifestPath: "artifacts/law-firm-pack-manifest/latest/law-firm-pack-manifest.json",
   matterOsProfilePath: "artifacts/matter-os-profile/latest/matter-os-profile.json",
   matterTimelinePath: "artifacts/matter-timeline/latest/matter-timeline.json",
@@ -683,6 +684,11 @@ const SOURCE_DEFINITIONS = [
     option: "templateRegistryPath",
     source_id: "template_registry",
     label: "Template Registry",
+  },
+  {
+    option: "styleRegistryPath",
+    source_id: "style_registry",
+    label: "Style Registry",
   },
   {
     option: "lawFirmPackManifestPath",
@@ -1642,6 +1648,7 @@ function summarizeSource(sourceId, data) {
   if (sourceId === "law_firm_e2e_freeze") return data.summary ?? {};
   if (sourceId === "creative_document_pack_manifest") return data.summary ?? {};
   if (sourceId === "template_registry") return data.summary ?? {};
+  if (sourceId === "style_registry") return data.summary ?? {};
   if (sourceId === "lineage_graph_builder") return data.summary ?? {};
   if (sourceId === "evidence_plane_freeze") return data.summary ?? {};
   if (sourceId === "evidence_coverage_score") return data.summary ?? {};
@@ -2013,6 +2020,7 @@ function buildStageStatuses(artifacts, sources) {
     buildLawFirmE2eFreezeStage(artifacts.law_firm_e2e_freeze, sourceById.get("law_firm_e2e_freeze")),
     buildCreativeDocumentPackManifestStage(artifacts.creative_document_pack_manifest, sourceById.get("creative_document_pack_manifest")),
     buildTemplateRegistryStage(artifacts.template_registry, sourceById.get("template_registry")),
+    buildStyleRegistryStage(artifacts.style_registry, sourceById.get("style_registry")),
     buildGateApprovalContractFreezeStage(artifacts.gate_approval_contract_freeze, sourceById.get("gate_approval_contract_freeze")),
     buildOutputDeliveryContractFreezeStage(artifacts.output_delivery_contract_freeze, sourceById.get("output_delivery_contract_freeze")),
     buildEventAuditRunContractFreezeStage(artifacts.event_audit_run_contract_freeze, sourceById.get("event_audit_run_contract_freeze")),
@@ -10556,6 +10564,106 @@ function buildTemplateRegistryStage(artifact, source) {
   };
 }
 
+function buildStyleRegistryStage(artifact, source) {
+  if (!artifact) return missingStage("style_registry", "Style Registry", source);
+  const summary = artifact.summary ?? {};
+  const status = summary.validation_error_count > 0
+    || summary.style_registry_status !== "complete"
+    || summary.source_template_registry_status !== "complete"
+    || summary.source_creative_document_pack_manifest_status !== "complete"
+    || summary.style_profile_count !== 4
+    || summary.registered_style_profile_count !== summary.style_profile_count
+    || summary.style_rule_count !== 5
+    || summary.registered_style_rule_count !== summary.style_rule_count
+    || summary.required_style_rule_type_count !== 5
+    || summary.covered_style_rule_type_count !== summary.required_style_rule_type_count
+    || summary.template_style_binding_count < 4
+    || summary.linked_template_style_binding_count !== summary.template_style_binding_count
+    || summary.required_format_count !== 4
+    || summary.covered_format_count !== summary.required_format_count
+    || summary.docx_style_profile_count !== 1
+    || summary.pptx_style_profile_count !== 1
+    || summary.html_style_profile_count !== 1
+    || summary.email_style_profile_count !== 1
+    || summary.docx_template_style_binding_count < 1
+    || summary.pptx_template_style_binding_count < 1
+    || summary.html_template_style_binding_count < 1
+    || summary.email_template_style_binding_count < 1
+    || summary.metadata_hash_count < summary.style_profile_count + summary.style_rule_count + summary.template_style_binding_count
+    || summary.human_review_required_rule_count !== summary.style_rule_count
+    || summary.format_validation_required_rule_count !== summary.style_rule_count
+    || summary.human_review_required_binding_count !== summary.template_style_binding_count
+    || summary.format_validation_required_binding_count !== summary.template_style_binding_count
+    || summary.runtime_freeze_status !== "complete"
+    || summary.document_renderer_adapter_status !== "complete"
+    || summary.output_delivery_contract_freeze_status !== "complete"
+    || summary.read_only !== true
+    || summary.metadata_registry_only !== true
+    || summary.style_file_write_allowed === true
+    || summary.core_registry_mutation_allowed === true
+    || summary.renderer_execution_allowed === true
+    || summary.delivery_execution_allowed === true
+    || summary.protected_action_allowed === true
+    || summary.client_facing_output_generated === true
+    || summary.client_facing_ready_count !== 0
+    || summary.failed_checkpoint_count !== 0
+    || artifact.validation?.valid === false
+    ? "attention"
+    : "passed";
+  return {
+    stage_id: "style_registry",
+    label: "Style Registry",
+    status,
+    message: `${summary.style_profile_count ?? 0} profile(s), ${summary.covered_style_rule_type_count ?? 0}/${summary.required_style_rule_type_count ?? 0} style rule type(s), ${summary.linked_template_style_binding_count ?? 0}/${summary.template_style_binding_count ?? 0} template binding(s).`,
+    source_path: source?.path ?? null,
+    metrics: {
+      style_registry_status: summary.style_registry_status ?? "unknown",
+      style_registry_contract_id: summary.style_registry_contract_id ?? null,
+      source_template_registry_status: summary.source_template_registry_status ?? "unknown",
+      source_creative_document_pack_manifest_status: summary.source_creative_document_pack_manifest_status ?? "unknown",
+      source_domain_pack_registry_status: summary.source_domain_pack_registry_status ?? "unknown",
+      style_profile_count: summary.style_profile_count ?? 0,
+      registered_style_profile_count: summary.registered_style_profile_count ?? 0,
+      style_rule_count: summary.style_rule_count ?? 0,
+      registered_style_rule_count: summary.registered_style_rule_count ?? 0,
+      required_style_rule_type_count: summary.required_style_rule_type_count ?? 0,
+      covered_style_rule_type_count: summary.covered_style_rule_type_count ?? 0,
+      template_style_binding_count: summary.template_style_binding_count ?? 0,
+      linked_template_style_binding_count: summary.linked_template_style_binding_count ?? 0,
+      required_format_count: summary.required_format_count ?? 0,
+      covered_format_count: summary.covered_format_count ?? 0,
+      docx_style_profile_count: summary.docx_style_profile_count ?? 0,
+      pptx_style_profile_count: summary.pptx_style_profile_count ?? 0,
+      html_style_profile_count: summary.html_style_profile_count ?? 0,
+      email_style_profile_count: summary.email_style_profile_count ?? 0,
+      docx_template_style_binding_count: summary.docx_template_style_binding_count ?? 0,
+      pptx_template_style_binding_count: summary.pptx_template_style_binding_count ?? 0,
+      html_template_style_binding_count: summary.html_template_style_binding_count ?? 0,
+      email_template_style_binding_count: summary.email_template_style_binding_count ?? 0,
+      metadata_hash_count: summary.metadata_hash_count ?? 0,
+      human_review_required_rule_count: summary.human_review_required_rule_count ?? 0,
+      format_validation_required_rule_count: summary.format_validation_required_rule_count ?? 0,
+      human_review_required_binding_count: summary.human_review_required_binding_count ?? 0,
+      format_validation_required_binding_count: summary.format_validation_required_binding_count ?? 0,
+      runtime_freeze_status: summary.runtime_freeze_status ?? "unknown",
+      document_renderer_adapter_status: summary.document_renderer_adapter_status ?? "unknown",
+      output_delivery_contract_freeze_status: summary.output_delivery_contract_freeze_status ?? "unknown",
+      read_only: summary.read_only ?? false,
+      metadata_registry_only: summary.metadata_registry_only ?? false,
+      style_file_write_allowed: summary.style_file_write_allowed ?? false,
+      core_registry_mutation_allowed: summary.core_registry_mutation_allowed ?? false,
+      renderer_execution_allowed: summary.renderer_execution_allowed ?? false,
+      delivery_execution_allowed: summary.delivery_execution_allowed ?? false,
+      protected_action_allowed: summary.protected_action_allowed ?? false,
+      client_facing_output_generated: summary.client_facing_output_generated ?? false,
+      client_facing_ready_count: summary.client_facing_ready_count ?? 0,
+      failed_checkpoint_count: summary.failed_checkpoint_count ?? 0,
+      validation_item_count: summary.validation_item_count ?? 0,
+      validation_error_count: summary.validation_error_count ?? artifact.validation?.errors?.length ?? 0,
+    },
+  };
+}
+
 function buildGateApprovalContractFreezeStage(freeze, source) {
   if (!freeze) return missingStage("gate_approval_contract_freeze", "Gate Approval Contract Freeze", source);
   const summary = freeze.summary ?? {};
@@ -16628,6 +16736,24 @@ function buildActionItems(artifacts) {
     });
   }
 
+  for (const error of artifacts.style_registry?.validation?.errors ?? []) {
+    const subjectId = error.path ?? "style_registry";
+    items.push({
+      action_item_id: `dashboard.action.style_registry.${slugify(subjectId)}`,
+      source_stage: "style_registry",
+      priority: "critical",
+      status: "needs_fix",
+      title: "Fix style registry",
+      subject_ref: {
+        subject_type: "style_registry_error",
+        subject_id: subjectId,
+      },
+      reason: error.message,
+      recommended_actions: ["fix_style_registry", "rerun_style_registry", "rebuild_dashboard"],
+      source_ref: subjectId,
+    });
+  }
+
   for (const error of artifacts.lineage_graph_builder?.validation?.errors ?? []) {
     const subjectId = error.path ?? "lineage_graph_builder";
     items.push({
@@ -22128,6 +22254,48 @@ function buildDashboardSummary(artifacts, stageStatuses, actionItems) {
     template_registry_client_facing_ready_count: artifacts.template_registry?.summary?.client_facing_ready_count ?? 0,
     template_registry_failed_checkpoint_count: artifacts.template_registry?.summary?.failed_checkpoint_count ?? 0,
     template_registry_validation_error_count: artifacts.template_registry?.summary?.validation_error_count ?? artifacts.template_registry?.validation?.errors?.length ?? 0,
+    style_registry_status: artifacts.style_registry?.summary?.style_registry_status ?? "unknown",
+    style_registry_contract_id: artifacts.style_registry?.summary?.style_registry_contract_id ?? null,
+    style_registry_source_template_registry_status: artifacts.style_registry?.summary?.source_template_registry_status ?? "unknown",
+    style_registry_source_creative_document_pack_manifest_status: artifacts.style_registry?.summary?.source_creative_document_pack_manifest_status ?? "unknown",
+    style_registry_source_domain_pack_registry_status: artifacts.style_registry?.summary?.source_domain_pack_registry_status ?? "unknown",
+    style_registry_style_profile_count: artifacts.style_registry?.summary?.style_profile_count ?? 0,
+    style_registry_registered_style_profile_count: artifacts.style_registry?.summary?.registered_style_profile_count ?? 0,
+    style_registry_style_rule_count: artifacts.style_registry?.summary?.style_rule_count ?? 0,
+    style_registry_registered_style_rule_count: artifacts.style_registry?.summary?.registered_style_rule_count ?? 0,
+    style_registry_required_style_rule_type_count: artifacts.style_registry?.summary?.required_style_rule_type_count ?? 0,
+    style_registry_covered_style_rule_type_count: artifacts.style_registry?.summary?.covered_style_rule_type_count ?? 0,
+    style_registry_template_style_binding_count: artifacts.style_registry?.summary?.template_style_binding_count ?? 0,
+    style_registry_linked_template_style_binding_count: artifacts.style_registry?.summary?.linked_template_style_binding_count ?? 0,
+    style_registry_required_format_count: artifacts.style_registry?.summary?.required_format_count ?? 0,
+    style_registry_covered_format_count: artifacts.style_registry?.summary?.covered_format_count ?? 0,
+    style_registry_docx_style_profile_count: artifacts.style_registry?.summary?.docx_style_profile_count ?? 0,
+    style_registry_pptx_style_profile_count: artifacts.style_registry?.summary?.pptx_style_profile_count ?? 0,
+    style_registry_html_style_profile_count: artifacts.style_registry?.summary?.html_style_profile_count ?? 0,
+    style_registry_email_style_profile_count: artifacts.style_registry?.summary?.email_style_profile_count ?? 0,
+    style_registry_docx_template_style_binding_count: artifacts.style_registry?.summary?.docx_template_style_binding_count ?? 0,
+    style_registry_pptx_template_style_binding_count: artifacts.style_registry?.summary?.pptx_template_style_binding_count ?? 0,
+    style_registry_html_template_style_binding_count: artifacts.style_registry?.summary?.html_template_style_binding_count ?? 0,
+    style_registry_email_template_style_binding_count: artifacts.style_registry?.summary?.email_template_style_binding_count ?? 0,
+    style_registry_metadata_hash_count: artifacts.style_registry?.summary?.metadata_hash_count ?? 0,
+    style_registry_human_review_required_rule_count: artifacts.style_registry?.summary?.human_review_required_rule_count ?? 0,
+    style_registry_format_validation_required_rule_count: artifacts.style_registry?.summary?.format_validation_required_rule_count ?? 0,
+    style_registry_human_review_required_binding_count: artifacts.style_registry?.summary?.human_review_required_binding_count ?? 0,
+    style_registry_format_validation_required_binding_count: artifacts.style_registry?.summary?.format_validation_required_binding_count ?? 0,
+    style_registry_runtime_freeze_status: artifacts.style_registry?.summary?.runtime_freeze_status ?? "unknown",
+    style_registry_document_renderer_adapter_status: artifacts.style_registry?.summary?.document_renderer_adapter_status ?? "unknown",
+    style_registry_output_delivery_contract_freeze_status: artifacts.style_registry?.summary?.output_delivery_contract_freeze_status ?? "unknown",
+    style_registry_read_only: artifacts.style_registry?.summary?.read_only ?? false,
+    style_registry_metadata_only: artifacts.style_registry?.summary?.metadata_registry_only ?? false,
+    style_registry_style_file_write_allowed: artifacts.style_registry?.summary?.style_file_write_allowed ?? false,
+    style_registry_core_registry_mutation_allowed: artifacts.style_registry?.summary?.core_registry_mutation_allowed ?? false,
+    style_registry_renderer_execution_allowed: artifacts.style_registry?.summary?.renderer_execution_allowed ?? false,
+    style_registry_delivery_execution_allowed: artifacts.style_registry?.summary?.delivery_execution_allowed ?? false,
+    style_registry_protected_action_allowed: artifacts.style_registry?.summary?.protected_action_allowed ?? false,
+    style_registry_client_facing_output_generated: artifacts.style_registry?.summary?.client_facing_output_generated ?? false,
+    style_registry_client_facing_ready_count: artifacts.style_registry?.summary?.client_facing_ready_count ?? 0,
+    style_registry_failed_checkpoint_count: artifacts.style_registry?.summary?.failed_checkpoint_count ?? 0,
+    style_registry_validation_error_count: artifacts.style_registry?.summary?.validation_error_count ?? artifacts.style_registry?.validation?.errors?.length ?? 0,
     gate_approval_contract_freeze_gate_result_count: artifacts.gate_approval_contract_freeze?.summary?.gate_result_count ?? 0,
     gate_approval_contract_freeze_approval_request_count: artifacts.gate_approval_contract_freeze?.summary?.approval_request_count ?? 0,
     gate_approval_contract_freeze_approval_decision_count: artifacts.gate_approval_contract_freeze?.summary?.approval_decision_count ?? 0,
@@ -23891,6 +24059,8 @@ function parseArgs(argv) {
     else if (arg === "--no-creative-document-pack-manifest") parsed.creativeDocumentPackManifestPath = false;
     else if (arg === "--template-registry") parsed.templateRegistryPath = argv[++index];
     else if (arg === "--no-template-registry") parsed.templateRegistryPath = false;
+    else if (arg === "--style-registry") parsed.styleRegistryPath = argv[++index];
+    else if (arg === "--no-style-registry") parsed.styleRegistryPath = false;
     else if (arg === "--law-firm-pack-manifest") parsed.lawFirmPackManifestPath = argv[++index];
     else if (arg === "--no-law-firm-pack-manifest") parsed.lawFirmPackManifestPath = false;
     else if (arg === "--matter-os-profile") parsed.matterOsProfilePath = argv[++index];

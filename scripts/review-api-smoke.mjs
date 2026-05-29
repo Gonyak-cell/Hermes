@@ -1948,6 +1948,30 @@ try {
   assert.equal(templateRegistryValidations.collection, "template_registry_validations");
   assert.ok(templateRegistryValidations.count <= 5);
 
+  const styleRegistries = await fetchJson(`${url}/api/style-registries?style_registry_status=complete&limit=1`);
+  assert.equal(styleRegistries.collection, "style_registries");
+  assert.ok(styleRegistries.count <= 1);
+
+  const styleProfileRecords = await fetchJson(`${url}/api/style-profile-records?style_profile_status=registered&style_format=pptx&limit=5`);
+  assert.equal(styleProfileRecords.collection, "style_profile_records");
+  assert.ok(styleProfileRecords.count <= 5);
+
+  const styleRuleRecords = await fetchJson(`${url}/api/style-rule-records?style_rule_status=registered&style_rule_type=layout&limit=5`);
+  assert.equal(styleRuleRecords.collection, "style_rule_records");
+  assert.ok(styleRuleRecords.count <= 5);
+
+  const templateStyleBindings = await fetchJson(`${url}/api/template-style-bindings?template_style_binding_status=linked&style_format=pptx&limit=5`);
+  assert.equal(templateStyleBindings.collection, "template_style_bindings");
+  assert.ok(templateStyleBindings.count <= 5);
+
+  const styleFormatCoverage = await fetchJson(`${url}/api/style-format-coverage?style_format_coverage_status=covered&limit=5`);
+  assert.equal(styleFormatCoverage.collection, "style_format_coverage");
+  assert.ok(styleFormatCoverage.count <= 5);
+
+  const styleRegistryValidations = await fetchJson(`${url}/api/style-registry-validations?status=passed&limit=5`);
+  assert.equal(styleRegistryValidations.collection, "style_registry_validations");
+  assert.ok(styleRegistryValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);

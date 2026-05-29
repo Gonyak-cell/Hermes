@@ -4463,6 +4463,48 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("template_registry_validations", templateRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/style-registries") {
+    const styleRegistryResult = await readDashboardSourceArtifact(dashboard, "style_registry");
+    if (!styleRegistryResult.available) {
+      return jsonResponse(503, buildError("style_registry_unavailable", styleRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("style_registries", [styleRegistryResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/style-profile-records") {
+    const styleRegistryResult = await readDashboardSourceArtifact(dashboard, "style_registry");
+    if (!styleRegistryResult.available) {
+      return jsonResponse(503, buildError("style_registry_unavailable", styleRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("style_profile_records", styleRegistryResult.artifact.style_profile_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/style-rule-records") {
+    const styleRegistryResult = await readDashboardSourceArtifact(dashboard, "style_registry");
+    if (!styleRegistryResult.available) {
+      return jsonResponse(503, buildError("style_registry_unavailable", styleRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("style_rule_records", styleRegistryResult.artifact.style_rule_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/template-style-bindings") {
+    const styleRegistryResult = await readDashboardSourceArtifact(dashboard, "style_registry");
+    if (!styleRegistryResult.available) {
+      return jsonResponse(503, buildError("style_registry_unavailable", styleRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("template_style_bindings", styleRegistryResult.artifact.template_style_bindings ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/style-format-coverage") {
+    const styleRegistryResult = await readDashboardSourceArtifact(dashboard, "style_registry");
+    if (!styleRegistryResult.available) {
+      return jsonResponse(503, buildError("style_registry_unavailable", styleRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("style_format_coverage", styleRegistryResult.artifact.style_format_coverage ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/style-registry-validations") {
+    const styleRegistryResult = await readDashboardSourceArtifact(dashboard, "style_registry");
+    if (!styleRegistryResult.available) {
+      return jsonResponse(503, buildError("style_registry_unavailable", styleRegistryResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("style_registry_validations", styleRegistryResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -10705,6 +10747,12 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/template-format-coverage", "Template format coverage rows"),
       route("GET", "/api/template-pack-bindings", "Template pack binding rows"),
       route("GET", "/api/template-registry-validations", "Template registry validation rows"),
+      route("GET", "/api/style-registries", "Style registry artifact"),
+      route("GET", "/api/style-profile-records", "Style profile metadata records"),
+      route("GET", "/api/style-rule-records", "Style rule metadata records"),
+      route("GET", "/api/template-style-bindings", "Template style binding rows"),
+      route("GET", "/api/style-format-coverage", "Style format coverage rows"),
+      route("GET", "/api/style-registry-validations", "Style registry validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -11676,6 +11724,13 @@ function filterItems(items, searchParams) {
     "version_status",
     "format_coverage_status",
     "binding_status",
+    "style_registry_status",
+    "style_profile_status",
+    "style_rule_status",
+    "style_rule_type",
+    "style_format",
+    "template_style_binding_status",
+    "style_format_coverage_status",
     "matter_os_profile_status",
     "profile_card_status",
     "display_field_status",
@@ -13375,6 +13430,13 @@ function readFilterValue(item, key) {
   if (key === "version_status") return item.version_status;
   if (key === "format_coverage_status") return item.format_coverage_status;
   if (key === "binding_status") return item.binding_status;
+  if (key === "style_registry_status") return item.summary?.style_registry_status ?? item.style_registry_status;
+  if (key === "style_profile_status") return item.style_profile_status;
+  if (key === "style_rule_status") return item.style_rule_status;
+  if (key === "style_rule_type") return item.style_rule_type;
+  if (key === "style_format") return item.style_format;
+  if (key === "template_style_binding_status") return item.binding_status;
+  if (key === "style_format_coverage_status") return item.style_format_coverage_status;
   if (key === "matter_os_profile_status") return item.summary?.matter_os_profile_status ?? item.matter_os_profile_status;
   if (key === "profile_card_status") return item.profile_card_status;
   if (key === "display_field_status") return item.display_field_status;

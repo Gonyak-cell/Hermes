@@ -163,6 +163,7 @@ export const DEFAULT_CONTRACT_GOLDEN_FIXTURES_INPUTS = {
     law_firm_e2e_freeze: "artifacts/law-firm-e2e-freeze/latest/law-firm-e2e-freeze.json",
     creative_document_pack_manifest: "artifacts/creative-document-pack-manifest/latest/creative-document-pack-manifest.json",
     template_registry: "artifacts/template-registry/latest/template-registry.json",
+    style_registry: "artifacts/style-registry/latest/style-registry.json",
   },
 };
 
@@ -319,6 +320,7 @@ const GOLDEN_FIXTURE_DEFINITIONS = [
   fixtureDefinition("law_firm_e2e_freeze", "Law Firm E2E Freeze", "law_firm", "law-firm-e2e-freeze.schema.json"),
   fixtureDefinition("creative_document_pack_manifest", "Creative Document Pack Manifest", "creative_document", "creative-document-pack-manifest.schema.json"),
   fixtureDefinition("template_registry", "Template Registry", "creative_document", "template-registry.schema.json"),
+  fixtureDefinition("style_registry", "Style Registry", "creative_document", "style-registry.schema.json"),
   fixtureDefinition("workflow_run_dashboard", "Workflow Run Dashboard", "api", "workflow-run-dashboard.schema.json"),
   fixtureDefinition("workflow_golden_cases", "Workflow Golden Cases", "workflow", "workflow-golden-cases.schema.json"),
   fixtureDefinition("workflow_gate_freeze", "Workflow/Gate Freeze", "workflow", "workflow-gate-freeze.schema.json"),

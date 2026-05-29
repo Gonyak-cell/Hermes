@@ -30,6 +30,12 @@ Contract Draft Workflow routes expose read-only, draft-only contract clause scaf
 
 Routes: `/api/contract-draft-workflow-artifacts`, `/api/contract-draft-rules`, `/api/contract-draft-packets`, `/api/contract-clause-drafts`, `/api/contract-client-positions`, `/api/contract-clause-consistency-checks`, `/api/contract-attorney-review-gates`, `/api/contract-draft-issue-links`, `/api/contract-draft-matter-summaries`, `/api/contract-draft-workflow-boundary`, `/api/contract-draft-workflow-validations`.
 
+## P250 Provided Material Review Routes
+
+Provided Material Review routes expose read-only material review rows, index-status bindings, missing/requested material gap links, attorney review gates, matter summaries, and validation/boundary rows. Supported filters include `provided_material_review_status`, `provided_material_matter_status`, `provided_material_review_rule_type`, `material_review_status`, `index_binding_status`, `index_status`, `gap_link_status`, `absence_not_factual_nonexistence`, `review_gate_status`, `final_review_decision_recorded`, `provided_material_review_item_id`, `provided_material_index_status_id`, `provided_material_gap_link_id`, `provided_material_review_gate_id`, `source_document_id`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.
+
+Routes: `/api/provided-material-review-artifacts`, `/api/provided-material-review-rules`, `/api/provided-material-review-items`, `/api/provided-material-index-statuses`, `/api/provided-material-gap-links`, `/api/provided-material-review-gates`, `/api/provided-material-matter-summaries`, `/api/provided-material-review-boundary`, `/api/provided-material-review-validations`.
+
 ## P244 LDD Issue Detection Routes
 
 LDD Issue Detection routes expose read-only deterministic issue candidate rows, red/yellow operational flags, follow-up rows, severity summaries, matter summaries, and validation/boundary rows. Supported filters include `ldd_issue_detection_status`, `ldd_issue_matter_status`, `issue_type`, `issue_status`, `issue_severity`, `issue_flag`, `source_gap`, `follow_up_status`, `follow_up_owner`, `deterministic_issue_detection_performed`, `matter_id`, `boundary_status`, `read_only`, `status`, and `limit`.

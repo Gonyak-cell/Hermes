@@ -49,6 +49,7 @@ import { runLddReportDraft } from "../src/ldd-report-draft.mjs";
 import { runLitigationBriefDraft } from "../src/litigation-brief-draft.mjs";
 import { runMeetingMinutesWorkflow } from "../src/meeting-minutes-workflow.mjs";
 import { runContractDraftWorkflow } from "../src/contract-draft-workflow.mjs";
+import { runProvidedMaterialReview } from "../src/provided-material-review-ledger.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1892,6 +1893,8 @@ describe("matter harness", () => {
         lddReportDraftPath: path.join(outDir, "ldd-report-draft", "ldd-report-draft.json"),
         litigationBriefDraftPath: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
         meetingMinutesWorkflowPath: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
+        contractDraftWorkflowPath: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
+        providedMaterialReviewPath: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9590,6 +9593,68 @@ describe("matter harness", () => {
       assert.ok(contractDraftWorkflow.contract_draft_issue_links.every((link) => link.source_ref_count > 0 && link.contract_issue_link_status === "linked_pending_attorney_review" && link.client_facing_ready === false));
       assert.match(await readFile(path.join(outDir, "contract-draft-workflow", "summary.md"), "utf8"), /Contract Draft Workflow/);
 
+      const providedMaterialReview = await runProvidedMaterialReview({
+        lddVdrInventoryPath: path.join(outDir, "ldd-vdr-inventory", "ldd-vdr-inventory.json"),
+        matterDocumentIndexPath: path.join(outDir, "matter-document-index", "matter-document-index.json"),
+        lddDocumentClassificationPath: path.join(outDir, "ldd-document-classification", "ldd-document-classification.json"),
+        contractDraftWorkflowPath: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
+        packagePath: "package.json",
+        roadmapPath: "docs/final-completion-phase-ledger.md",
+        outDir: path.join(outDir, "provided-material-review"),
+        runAt: "2026-05-23T07:00:09.000Z",
+      });
+      const providedMaterialReviewSchema = JSON.parse(await readFile("schemas/provided-material-review-ledger.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(providedMaterialReview, providedMaterialReviewSchema, {}, "provided_material_review"), []);
+      assert.equal(providedMaterialReview.summary.provided_material_review_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_ldd_vdr_inventory_phase_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_matter_document_index_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_matter_document_index_phase_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_ldd_document_classification_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_ldd_document_classification_phase_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_contract_draft_workflow_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_contract_draft_workflow_phase_status, "complete");
+      assert.equal(providedMaterialReview.summary.source_classification_record_count, 5);
+      assert.equal(providedMaterialReview.summary.source_ldd_vdr_file_record_count, 1);
+      assert.equal(providedMaterialReview.summary.source_ldd_vdr_missing_data_record_count, 4);
+      assert.equal(providedMaterialReview.summary.source_matter_document_record_count, matterDocumentIndex.summary.document_record_count);
+      assert.equal(providedMaterialReview.summary.provided_material_review_rule_count, 6);
+      assert.equal(providedMaterialReview.summary.material_review_item_count, providedMaterialReview.summary.source_classification_record_count);
+      assert.equal(providedMaterialReview.summary.available_material_count, 1);
+      assert.equal(providedMaterialReview.summary.missing_or_requested_material_count, 4);
+      assert.equal(providedMaterialReview.summary.index_status_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.indexed_material_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.material_with_index_status_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.classification_bound_material_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.gap_link_count, providedMaterialReview.summary.missing_or_requested_material_count);
+      assert.equal(providedMaterialReview.summary.missing_material_follow_up_count, providedMaterialReview.summary.gap_link_count);
+      assert.equal(providedMaterialReview.summary.review_gate_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.material_with_review_gate_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.attorney_review_required_material_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.human_review_required_material_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReview.summary.client_facing_ready_count, 0);
+      assert.equal(providedMaterialReview.summary.final_review_decision_count, 0);
+      assert.equal(providedMaterialReview.summary.legal_conclusion_asserted_count, 0);
+      assert.equal(providedMaterialReview.summary.legal_advice_provided, false);
+      assert.equal(providedMaterialReview.summary.client_facing_output_generated, false);
+      assert.equal(providedMaterialReview.summary.desktop_boundary_status, "enforced");
+      assert.equal(providedMaterialReview.summary.desktop_read_only, true);
+      assert.equal(providedMaterialReview.summary.desktop_mutation_allowed, false);
+      assert.equal(providedMaterialReview.summary.desktop_source_of_truth, false);
+      assert.equal(providedMaterialReview.summary.matter_data_write_allowed, false);
+      assert.equal(providedMaterialReview.summary.task_state_write_allowed, false);
+      assert.equal(providedMaterialReview.summary.workflow_transition_allowed, false);
+      assert.equal(providedMaterialReview.summary.runtime_execution_allowed, false);
+      assert.equal(providedMaterialReview.summary.delivery_execution_allowed, false);
+      assert.equal(providedMaterialReview.summary.protected_action_allowed, false);
+      assert.equal(providedMaterialReview.summary.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(providedMaterialReview.summary.validation_error_count, 0);
+      assert.ok(providedMaterialReview.provided_material_review_items.every((item) => item.source_ref_count > 0 && item.provided_material_index_status_id && item.provided_material_review_gate_id && item.classification_bound && item.client_facing_ready === false && item.final_review_decision_recorded === false));
+      assert.ok(providedMaterialReview.provided_material_index_statuses.every((status) => status.index_binding_status === "indexed_in_matter_document_index" && status.source_ref_count > 0 && status.client_facing_ready === false));
+      assert.ok(providedMaterialReview.provided_material_gap_links.every((link) => link.gap_link_status === "follow_up_required_pending_attorney_review" && link.absence_not_factual_nonexistence && link.source_ref_count > 0 && link.client_facing_ready === false));
+      assert.ok(providedMaterialReview.provided_material_review_gates.every((gate) => gate.review_gate_status === "pending_attorney_review" && gate.source_ref_count > 0 && gate.final_review_decision_recorded === false && gate.client_facing_ready === false));
+      assert.match(await readFile(path.join(outDir, "provided-material-review", "summary.md"), "utf8"), /Provided Material Review Ledger/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -9763,6 +9828,7 @@ describe("matter harness", () => {
           litigation_brief_draft: path.join(outDir, "litigation-brief-draft", "litigation-brief-draft.json"),
           meeting_minutes_workflow: path.join(outDir, "meeting-minutes-workflow", "meeting-minutes-workflow.json"),
           contract_draft_workflow: path.join(outDir, "contract-draft-workflow", "contract-draft-workflow.json"),
+          provided_material_review: path.join(outDir, "provided-material-review", "provided-material-review-ledger.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -9814,8 +9880,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 151);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 151);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 152);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 152);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -9954,6 +10020,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "litigation_brief_draft"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "meeting_minutes_workflow"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "contract_draft_workflow"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "provided_material_review"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -10090,6 +10157,7 @@ describe("matter harness", () => {
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:rfi-generator"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:report-draft"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:contract-draft"));
+      assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "law-firm:provided-materials-review"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "resource:lineage-graph"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:viewer-data"));
       assert.ok(contractValidationSuite.validation_command_manifest.required_package_scripts.some((script) => script.package_script_name === "evidence:export-bundle"));
@@ -10704,6 +10772,10 @@ describe("matter harness", () => {
       assert.equal(contractDraftWorkflowCheckpoint?.acceptance_profile, "contract_draft_workflow_gate");
       assert.equal(contractDraftWorkflowCheckpoint?.status, "passed");
       assert.equal(contractDraftWorkflowCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const providedMaterialReviewCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-provided-material-review");
+      assert.equal(providedMaterialReviewCheckpoint?.acceptance_profile, "provided_material_review_gate");
+      assert.equal(providedMaterialReviewCheckpoint?.status, "passed");
+      assert.equal(providedMaterialReviewCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -14262,6 +14334,49 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.contract_draft_workflow_protected_action_allowed, false);
       assert.equal(dashboard.summary.contract_draft_workflow_failed_checkpoint_count, 0);
       assert.equal(dashboard.summary.contract_draft_workflow_validation_error_count, 0);
+      assert.equal(dashboard.summary.provided_material_review_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_ldd_vdr_inventory_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_ldd_vdr_inventory_phase_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_matter_document_index_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_matter_document_index_phase_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_ldd_document_classification_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_ldd_document_classification_phase_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_contract_draft_workflow_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_contract_draft_workflow_phase_status, "complete");
+      assert.equal(dashboard.summary.provided_material_review_source_ldd_vdr_file_record_count, providedMaterialReview.summary.source_ldd_vdr_file_record_count);
+      assert.equal(dashboard.summary.provided_material_review_source_ldd_vdr_missing_data_record_count, providedMaterialReview.summary.source_ldd_vdr_missing_data_record_count);
+      assert.equal(dashboard.summary.provided_material_review_source_matter_document_record_count, providedMaterialReview.summary.source_matter_document_record_count);
+      assert.equal(dashboard.summary.provided_material_review_source_classification_record_count, providedMaterialReview.summary.source_classification_record_count);
+      assert.equal(dashboard.summary.provided_material_review_rule_count, providedMaterialReview.summary.provided_material_review_rule_count);
+      assert.equal(dashboard.summary.provided_material_review_item_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(dashboard.summary.provided_material_review_available_material_count, providedMaterialReview.summary.available_material_count);
+      assert.equal(dashboard.summary.provided_material_review_missing_or_requested_material_count, providedMaterialReview.summary.missing_or_requested_material_count);
+      assert.equal(dashboard.summary.provided_material_review_index_status_count, providedMaterialReview.summary.index_status_count);
+      assert.equal(dashboard.summary.provided_material_review_indexed_material_count, providedMaterialReview.summary.indexed_material_count);
+      assert.equal(dashboard.summary.provided_material_review_material_with_index_status_count, providedMaterialReview.summary.material_with_index_status_count);
+      assert.equal(dashboard.summary.provided_material_review_classification_bound_material_count, providedMaterialReview.summary.classification_bound_material_count);
+      assert.equal(dashboard.summary.provided_material_review_gap_link_count, providedMaterialReview.summary.gap_link_count);
+      assert.equal(dashboard.summary.provided_material_review_missing_material_follow_up_count, providedMaterialReview.summary.missing_material_follow_up_count);
+      assert.equal(dashboard.summary.provided_material_review_gate_count, providedMaterialReview.summary.review_gate_count);
+      assert.equal(dashboard.summary.provided_material_review_material_with_review_gate_count, providedMaterialReview.summary.material_with_review_gate_count);
+      assert.equal(dashboard.summary.provided_material_review_attorney_review_required_material_count, providedMaterialReview.summary.attorney_review_required_material_count);
+      assert.equal(dashboard.summary.provided_material_review_human_review_required_material_count, providedMaterialReview.summary.human_review_required_material_count);
+      assert.equal(dashboard.summary.provided_material_review_client_facing_ready_count, 0);
+      assert.equal(dashboard.summary.provided_material_review_final_review_decision_count, 0);
+      assert.equal(dashboard.summary.provided_material_review_legal_advice_provided, false);
+      assert.equal(dashboard.summary.provided_material_review_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.provided_material_review_legal_conclusion_asserted_count, 0);
+      assert.equal(dashboard.summary.provided_material_review_desktop_boundary_status, "enforced");
+      assert.equal(dashboard.summary.provided_material_review_desktop_read_only, true);
+      assert.equal(dashboard.summary.provided_material_review_desktop_mutation_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_runtime_execution_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_delivery_execution_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_protected_action_allowed, false);
+      assert.equal(dashboard.summary.provided_material_review_failed_checkpoint_count, 0);
+      assert.equal(dashboard.summary.provided_material_review_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -16266,6 +16381,52 @@ describe("matter harness", () => {
       assert.equal(contractDraftWorkflowStage?.metrics.protected_action_allowed, false);
       assert.equal(contractDraftWorkflowStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
       assert.equal(contractDraftWorkflowStage?.metrics.validation_error_count, 0);
+      const providedMaterialReviewStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "provided_material_review");
+      assert.equal(providedMaterialReviewStage?.status, "passed");
+      assert.equal(providedMaterialReviewStage?.metrics.provided_material_review_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_ldd_vdr_inventory_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_ldd_vdr_inventory_phase_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_matter_document_index_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_matter_document_index_phase_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_ldd_document_classification_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_ldd_document_classification_phase_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_contract_draft_workflow_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_contract_draft_workflow_phase_status, "complete");
+      assert.equal(providedMaterialReviewStage?.metrics.source_ldd_vdr_file_record_count, providedMaterialReview.summary.source_ldd_vdr_file_record_count);
+      assert.equal(providedMaterialReviewStage?.metrics.source_ldd_vdr_missing_data_record_count, providedMaterialReview.summary.source_ldd_vdr_missing_data_record_count);
+      assert.equal(providedMaterialReviewStage?.metrics.source_matter_document_record_count, providedMaterialReview.summary.source_matter_document_record_count);
+      assert.equal(providedMaterialReviewStage?.metrics.source_classification_record_count, providedMaterialReview.summary.source_classification_record_count);
+      assert.equal(providedMaterialReviewStage?.metrics.provided_material_review_rule_count, providedMaterialReview.summary.provided_material_review_rule_count);
+      assert.equal(providedMaterialReviewStage?.metrics.material_review_item_count, providedMaterialReview.summary.material_review_item_count);
+      assert.equal(providedMaterialReviewStage?.metrics.available_material_count, providedMaterialReview.summary.available_material_count);
+      assert.equal(providedMaterialReviewStage?.metrics.missing_or_requested_material_count, providedMaterialReview.summary.missing_or_requested_material_count);
+      assert.equal(providedMaterialReviewStage?.metrics.index_status_count, providedMaterialReview.summary.index_status_count);
+      assert.equal(providedMaterialReviewStage?.metrics.indexed_material_count, providedMaterialReview.summary.indexed_material_count);
+      assert.equal(providedMaterialReviewStage?.metrics.material_with_index_status_count, providedMaterialReview.summary.material_with_index_status_count);
+      assert.equal(providedMaterialReviewStage?.metrics.classification_bound_material_count, providedMaterialReview.summary.classification_bound_material_count);
+      assert.equal(providedMaterialReviewStage?.metrics.gap_link_count, providedMaterialReview.summary.gap_link_count);
+      assert.equal(providedMaterialReviewStage?.metrics.missing_material_follow_up_count, providedMaterialReview.summary.missing_material_follow_up_count);
+      assert.equal(providedMaterialReviewStage?.metrics.review_gate_count, providedMaterialReview.summary.review_gate_count);
+      assert.equal(providedMaterialReviewStage?.metrics.material_with_review_gate_count, providedMaterialReview.summary.material_with_review_gate_count);
+      assert.equal(providedMaterialReviewStage?.metrics.attorney_review_required_material_count, providedMaterialReview.summary.attorney_review_required_material_count);
+      assert.equal(providedMaterialReviewStage?.metrics.human_review_required_material_count, providedMaterialReview.summary.human_review_required_material_count);
+      assert.equal(providedMaterialReviewStage?.metrics.client_facing_ready_count, 0);
+      assert.equal(providedMaterialReviewStage?.metrics.final_review_decision_count, 0);
+      assert.equal(providedMaterialReviewStage?.metrics.legal_advice_provided, false);
+      assert.equal(providedMaterialReviewStage?.metrics.client_facing_output_generated, false);
+      assert.equal(providedMaterialReviewStage?.metrics.legal_conclusion_asserted_count, 0);
+      assert.equal(providedMaterialReviewStage?.metrics.desktop_boundary_status, "enforced");
+      assert.equal(providedMaterialReviewStage?.metrics.desktop_read_only, true);
+      assert.equal(providedMaterialReviewStage?.metrics.desktop_mutation_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.desktop_source_of_truth, false);
+      assert.equal(providedMaterialReviewStage?.metrics.matter_data_write_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.task_state_write_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.workflow_transition_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.runtime_execution_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.delivery_execution_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.protected_action_allowed, false);
+      assert.equal(providedMaterialReviewStage?.metrics.client_facing_output_allowed_without_attorney_review, false);
+      assert.equal(providedMaterialReviewStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -18622,6 +18783,42 @@ describe("matter harness", () => {
       const contractDraftWorkflowValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/contract-draft-workflow-validations?status=passed", apiOptions)).body);
       assert.equal(contractDraftWorkflowValidationsResponse.collection, "contract_draft_workflow_validations");
       assert.equal(contractDraftWorkflowValidationsResponse.count, contractDraftWorkflow.summary.validation_item_count);
+
+      const providedMaterialReviewArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-artifacts?provided_material_review_status=complete", apiOptions)).body);
+      assert.equal(providedMaterialReviewArtifactsResponse.collection, "provided_material_review_artifacts");
+      assert.equal(providedMaterialReviewArtifactsResponse.count, 1);
+
+      const providedMaterialReviewRulesResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-rules?provided_material_review_rule_type=index_status_binding", apiOptions)).body);
+      assert.equal(providedMaterialReviewRulesResponse.collection, "provided_material_review_rules");
+      assert.equal(providedMaterialReviewRulesResponse.count, 1);
+
+      const providedMaterialReviewItemsResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-items?material_review_status=gap_pending_follow_up_review&final_review_decision_recorded=false", apiOptions)).body);
+      assert.equal(providedMaterialReviewItemsResponse.collection, "provided_material_review_items");
+      assert.equal(providedMaterialReviewItemsResponse.count, providedMaterialReview.summary.missing_or_requested_material_count);
+
+      const providedMaterialIndexStatusesResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-index-statuses?index_binding_status=indexed_in_matter_document_index", apiOptions)).body);
+      assert.equal(providedMaterialIndexStatusesResponse.collection, "provided_material_index_statuses");
+      assert.equal(providedMaterialIndexStatusesResponse.count, providedMaterialReview.summary.index_status_count);
+
+      const providedMaterialGapLinksResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-gap-links?gap_link_status=follow_up_required_pending_attorney_review&absence_not_factual_nonexistence=true", apiOptions)).body);
+      assert.equal(providedMaterialGapLinksResponse.collection, "provided_material_gap_links");
+      assert.equal(providedMaterialGapLinksResponse.count, providedMaterialReview.summary.gap_link_count);
+
+      const providedMaterialReviewGatesResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-gates?review_gate_status=pending_attorney_review&final_review_decision_recorded=false", apiOptions)).body);
+      assert.equal(providedMaterialReviewGatesResponse.collection, "provided_material_review_gates");
+      assert.equal(providedMaterialReviewGatesResponse.count, providedMaterialReview.summary.review_gate_count);
+
+      const providedMaterialMatterSummariesResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-matter-summaries?provided_material_matter_status=pending_attorney_review&final_review_decision_recorded=false", apiOptions)).body);
+      assert.equal(providedMaterialMatterSummariesResponse.collection, "provided_material_matter_summaries");
+      assert.equal(providedMaterialMatterSummariesResponse.count, providedMaterialReview.summary.matter_count);
+
+      const providedMaterialReviewBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-boundary?boundary_status=enforced&read_only=true", apiOptions)).body);
+      assert.equal(providedMaterialReviewBoundaryResponse.collection, "provided_material_review_boundary");
+      assert.equal(providedMaterialReviewBoundaryResponse.count, 1);
+
+      const providedMaterialReviewValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/provided-material-review-validations?status=passed", apiOptions)).body);
+      assert.equal(providedMaterialReviewValidationsResponse.collection, "provided_material_review_validations");
+      assert.equal(providedMaterialReviewValidationsResponse.count, providedMaterialReview.summary.validation_item_count);
 
       const repoProfileDetectorsResponse = JSON.parse((await buildReviewApiResponse("/api/repo-profile-detectors?repo_profile_detector_status=complete", apiOptions)).body);
       assert.equal(repoProfileDetectorsResponse.collection, "repo_profile_detectors");

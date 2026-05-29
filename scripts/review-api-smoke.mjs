@@ -2460,6 +2460,42 @@ try {
   assert.equal(contractDraftWorkflowValidations.collection, "contract_draft_workflow_validations");
   assert.ok(contractDraftWorkflowValidations.count <= 5);
 
+  const providedMaterialReviewArtifacts = await fetchJson(`${url}/api/provided-material-review-artifacts?provided_material_review_status=complete&limit=1`);
+  assert.equal(providedMaterialReviewArtifacts.collection, "provided_material_review_artifacts");
+  assert.ok(providedMaterialReviewArtifacts.count <= 1);
+
+  const providedMaterialReviewRules = await fetchJson(`${url}/api/provided-material-review-rules?provided_material_review_rule_type=index_status_binding&limit=5`);
+  assert.equal(providedMaterialReviewRules.collection, "provided_material_review_rules");
+  assert.ok(providedMaterialReviewRules.count <= 5);
+
+  const providedMaterialReviewItems = await fetchJson(`${url}/api/provided-material-review-items?material_review_status=gap_pending_follow_up_review&final_review_decision_recorded=false&limit=5`);
+  assert.equal(providedMaterialReviewItems.collection, "provided_material_review_items");
+  assert.ok(providedMaterialReviewItems.count <= 5);
+
+  const providedMaterialIndexStatuses = await fetchJson(`${url}/api/provided-material-index-statuses?index_binding_status=indexed_in_matter_document_index&limit=5`);
+  assert.equal(providedMaterialIndexStatuses.collection, "provided_material_index_statuses");
+  assert.ok(providedMaterialIndexStatuses.count <= 5);
+
+  const providedMaterialGapLinks = await fetchJson(`${url}/api/provided-material-gap-links?gap_link_status=follow_up_required_pending_attorney_review&absence_not_factual_nonexistence=true&limit=5`);
+  assert.equal(providedMaterialGapLinks.collection, "provided_material_gap_links");
+  assert.ok(providedMaterialGapLinks.count <= 5);
+
+  const providedMaterialReviewGates = await fetchJson(`${url}/api/provided-material-review-gates?review_gate_status=pending_attorney_review&final_review_decision_recorded=false&limit=5`);
+  assert.equal(providedMaterialReviewGates.collection, "provided_material_review_gates");
+  assert.ok(providedMaterialReviewGates.count <= 5);
+
+  const providedMaterialMatterSummaries = await fetchJson(`${url}/api/provided-material-matter-summaries?provided_material_matter_status=pending_attorney_review&final_review_decision_recorded=false&limit=5`);
+  assert.equal(providedMaterialMatterSummaries.collection, "provided_material_matter_summaries");
+  assert.ok(providedMaterialMatterSummaries.count <= 5);
+
+  const providedMaterialReviewBoundary = await fetchJson(`${url}/api/provided-material-review-boundary?boundary_status=enforced&read_only=true&limit=1`);
+  assert.equal(providedMaterialReviewBoundary.collection, "provided_material_review_boundary");
+  assert.ok(providedMaterialReviewBoundary.count <= 1);
+
+  const providedMaterialReviewValidations = await fetchJson(`${url}/api/provided-material-review-validations?status=passed&limit=5`);
+  assert.equal(providedMaterialReviewValidations.collection, "provided_material_review_validations");
+  assert.ok(providedMaterialReviewValidations.count <= 5);
+
   const repoProfileDetectors = await fetchJson(`${url}/api/repo-profile-detectors?repo_profile_detector_status=complete&limit=1`);
   assert.equal(repoProfileDetectors.collection, "repo_profile_detectors");
   assert.ok(repoProfileDetectors.count <= 1);

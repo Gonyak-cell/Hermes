@@ -168,6 +168,7 @@
     "law-firm:litigation-brief-draft": "node scripts/litigation-brief-draft.mjs",
     "law-firm:meeting-minutes": "node scripts/meeting-minutes-workflow.mjs",
     "law-firm:contract-draft": "node scripts/contract-draft-workflow.mjs",
+    "law-firm:provided-materials-review": "node scripts/provided-material-review-ledger.mjs",
     "legal:citations": "node scripts/legal-citation-verifier.mjs",
     "litigation": "node scripts/litigation-matrix.mjs examples/project-beta-litigation-matter.json",
     "matter:cockpit": "node scripts/matter-cockpit.mjs",

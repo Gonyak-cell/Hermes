@@ -5345,6 +5345,69 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("contract_draft_workflow_validations", contractDraftResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/provided-material-review-artifacts") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_review_artifacts", [materialResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-review-rules") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_review_rules", materialResult.artifact.provided_material_review_rules ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-review-items") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_review_items", materialResult.artifact.provided_material_review_items ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-index-statuses") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_index_statuses", materialResult.artifact.provided_material_index_statuses ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-gap-links") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_gap_links", materialResult.artifact.provided_material_gap_links ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-review-gates") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_review_gates", materialResult.artifact.provided_material_review_gates ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-matter-summaries") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_matter_summaries", materialResult.artifact.provided_material_matter_summaries ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-review-boundary") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_review_boundary", [materialResult.artifact.provided_material_review_desktop_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/provided-material-review-validations") {
+    const materialResult = await readDashboardSourceArtifact(dashboard, "provided_material_review");
+    if (!materialResult.available) {
+      return jsonResponse(503, buildError("provided_material_review_unavailable", materialResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("provided_material_review_validations", materialResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/repo-profile-detectors") {
     const repoProfileDetectorResult = await readDashboardSourceArtifact(dashboard, "repo_profile_detector");
     if (!repoProfileDetectorResult.available) {
@@ -10586,6 +10649,15 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/contract-draft-matter-summaries", "Contract draft matter summary rows"),
       route("GET", "/api/contract-draft-workflow-boundary", "Contract draft workflow Desktop boundary"),
       route("GET", "/api/contract-draft-workflow-validations", "Contract draft workflow validation rows"),
+      route("GET", "/api/provided-material-review-artifacts", "Provided material review artifact"),
+      route("GET", "/api/provided-material-review-rules", "Provided material review rule rows"),
+      route("GET", "/api/provided-material-review-items", "Provided material review item rows"),
+      route("GET", "/api/provided-material-index-statuses", "Provided material index status rows"),
+      route("GET", "/api/provided-material-gap-links", "Provided material gap link rows"),
+      route("GET", "/api/provided-material-review-gates", "Provided material review gate rows"),
+      route("GET", "/api/provided-material-matter-summaries", "Provided material matter summary rows"),
+      route("GET", "/api/provided-material-review-boundary", "Provided material review Desktop boundary"),
+      route("GET", "/api/provided-material-review-validations", "Provided material review validation rows"),
       route("GET", "/api/repo-profile-detectors", "Repo profile detector artifact"),
       route("GET", "/api/repo-profiles", "Detected repository profile rows"),
       route("GET", "/api/repo-profile-languages", "Detected repository language profiles"),
@@ -11582,6 +11654,20 @@ function filterItems(items, searchParams) {
     "contract_attorney_review_gate_id",
     "contract_draft_issue_link_id",
     "negotiation_point_id",
+    "provided_material_review_status",
+    "provided_material_matter_status",
+    "provided_material_review_rule_type",
+    "material_review_status",
+    "index_binding_status",
+    "index_status",
+    "gap_link_status",
+    "absence_not_factual_nonexistence",
+    "final_review_decision_recorded",
+    "provided_material_review_item_id",
+    "provided_material_index_status_id",
+    "provided_material_gap_link_id",
+    "provided_material_review_gate_id",
+    "source_document_id",
     "repo_profile_detector_status",
     "repo_profile_status",
     "language_id",
@@ -13237,6 +13323,20 @@ function readFilterValue(item, key) {
   if (key === "contract_attorney_review_gate_id") return item.contract_attorney_review_gate_id;
   if (key === "contract_draft_issue_link_id") return item.contract_draft_issue_link_id;
   if (key === "negotiation_point_id") return item.negotiation_point_id;
+  if (key === "provided_material_review_status") return item.summary?.provided_material_review_status ?? item.provided_material_review_status;
+  if (key === "provided_material_matter_status") return item.provided_material_matter_status;
+  if (key === "provided_material_review_rule_type") return item.provided_material_review_rule_type;
+  if (key === "material_review_status") return item.material_review_status;
+  if (key === "index_binding_status") return item.index_binding_status;
+  if (key === "index_status") return item.index_status;
+  if (key === "gap_link_status") return item.gap_link_status;
+  if (key === "absence_not_factual_nonexistence") return String(Boolean(item.absence_not_factual_nonexistence));
+  if (key === "final_review_decision_recorded") return String(Boolean(item.final_review_decision_recorded));
+  if (key === "provided_material_review_item_id") return item.provided_material_review_item_id;
+  if (key === "provided_material_index_status_id") return item.provided_material_index_status_id;
+  if (key === "provided_material_gap_link_id") return item.provided_material_gap_link_id;
+  if (key === "provided_material_review_gate_id") return item.provided_material_review_gate_id;
+  if (key === "source_document_id") return item.source_document_id;
   if (key === "repo_profile_detector_status") return item.summary?.repo_profile_detector_status ?? item.repo_profile_detector_status;
   if (key === "repo_profile_status") return item.summary?.repo_profile_status ?? item.profile_status ?? item.repo_profile_status;
   if (key === "language_id") return item.language_id ?? item.primary_language_id;

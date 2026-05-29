@@ -6910,6 +6910,24 @@ Completion criteria:
 - Golden fixture count increased to 151 and `contract_draft_workflow` is included as a regression fixture.
 - `npm run law-firm:contract-draft -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
 
+## Phase 250 - Provided Material Review Ledger
+
+Goal: P250 Law Firm Domain Pack adds a deterministic provided-material review ledger that reconciles LDD VDR Inventory, Matter Document Index, LDD Document Classification, and Contract Draft Workflow context into reviewable material rows. The generated rows remain internal operational scaffolds only and do not record final review decisions, provide legal advice, assert legal conclusions, write matter/task/workflow state, or generate client-facing output.
+
+Implementation:
+- Added `src/provided-material-review-ledger.mjs`, `scripts/provided-material-review-ledger.mjs`, `schemas/provided-material-review-ledger.schema.json`, and `docs/provided-material-review-ledger.md`.
+- Added `law-firm:provided-materials-review` npm script.
+- The artifact emits `provided_material_review_rules`, `provided_material_review_items`, `provided_material_index_statuses`, `provided_material_gap_links`, `provided_material_review_gates`, `provided_material_matter_summaries`, and a Desktop read-only boundary.
+- Review Dashboard stage/summary, Review API route/filter/smoke, Control Plane Goal Checkpoint/Loop, Contract Golden Fixtures/Validation Suite, and matter harness tests were wired to the new artifact.
+
+Completion criteria:
+- 6 rules, 5 material review rows, 5 matter-document index status rows, 4 gap follow-up links, 5 attorney review gates, and 1 matter summary are generated from the Project Alpha LDD baseline plus P249 contract draft context.
+- Every material is classification-bound, index-status-bound, attorney/human-review gated, source-referenced, and `matter_id`-scoped.
+- Missing/requested materials remain follow-up cues only and do not assert factual non-existence.
+- Final review decisions, legal advice, legal conclusions, client-facing output, matter data write, task state write, workflow transition, runtime execution, delivery execution, protected action, Desktop mutation, and Desktop source-of-truth are all 0/false.
+- Golden fixture count increased to 152 and `provided_material_review` is included as a regression fixture.
+- `npm run law-firm:provided-materials-review -- --check`, schema validation, `npm test`, `npm run validate`, `npm run contracts:inventory`, `npm run contracts:dependencies -- --check`, `npm run contracts:golden-fixtures -- --check`, `npm run contracts:validate -- --check`, `npm run dashboard:build`, `npm run api:smoke`, `npm run control-plane:goal-checkpoint`, `npm run control-plane:loop`, and `git diff --check` passed on the current Windows baseline.
+
 ## Planned Final Completion Envelope: P089-P312
 
 이 섹션은 완료된 phase 기록이 아니라 Hermes Harness v1.0 최종 완성까지 끊기지 않고 이어갈 계획 슬롯이다. 실제 구현을 마친 항목만 위와 같은 `## Phase N` heading으로 승격한다. Goal checkpoint와 roadmap parser가 미래 계획을 완료된 phase로 오인하지 않도록, 계획 슬롯은 `P089` 형식을 사용한다.
@@ -6918,9 +6936,9 @@ Completion criteria:
 
 운영 원칙:
 
-- Current actual completion baseline is Phase 249.
+- Current actual completion baseline is Phase 250.
 - v1.0 최종 완성 목표는 P312까지로 고정한다.
-- Remaining planned slots are P250-P312, 63 total.
+- Remaining planned slots are P251-P312, 62 total.
 - 각 자동 진행 heartbeat는 가장 앞선 미완료 슬롯을 선택해 `검증 -> 보강 -> 구현 -> 검증 -> commit` 순서로 진행한다.
 - P217 이후 personal-dev 작업은 Mac Phase 216 결과를 Windows 작업공간에서 계속 이어가되, Phase 217 본작업보다 Windows 기준선 안정화 게이트를 선행 조건으로 둔 판단을 기준으로 운영한다.
 - 새 기능은 반드시 Core 계약, Policy, Event/Run/Audit, Gate, Output, Dashboard/API 노출 중 필요한 계층을 함께 통과해야 한다.

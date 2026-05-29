@@ -122,6 +122,7 @@ const GOAL_ITEMS = [
   sourceItem("litigation_brief_draft", "Litigation brief draft", "law_firm", "litigation_brief_draft", "control-plane-litigation-brief-draft", { acceptance_profile: "litigation_brief_draft_gate" }),
   sourceItem("meeting_minutes_workflow", "Meeting minutes workflow", "law_firm", "meeting_minutes_workflow", "control-plane-meeting-minutes-workflow", { acceptance_profile: "meeting_minutes_workflow_gate" }),
   sourceItem("contract_draft_workflow", "Contract draft workflow", "law_firm", "contract_draft_workflow", "control-plane-contract-draft-workflow", { acceptance_profile: "contract_draft_workflow_gate" }),
+  sourceItem("provided_material_review", "Provided material review ledger", "law_firm", "provided_material_review", "control-plane-provided-material-review", { acceptance_profile: "provided_material_review_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -603,6 +604,7 @@ function evaluateStageAcceptance(item, stage) {
     "litigation_brief_draft_gate",
     "meeting_minutes_workflow_gate",
     "contract_draft_workflow_gate",
+    "provided_material_review_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -3989,6 +3991,51 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.failed_checkpoint_count === 0
     ) {
       return passedWithOperationalGate(stage, "Contract Draft Workflow records draft-only clause, client-position, consistency, issue-link, and attorney-review rows without legal/client-facing output or state mutation.");
+    }
+  }
+
+  if (item.acceptance_profile === "provided_material_review_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.provided_material_review_status === "complete"
+      && metrics.source_ldd_vdr_inventory_status === "complete"
+      && metrics.source_ldd_vdr_inventory_phase_status === "complete"
+      && metrics.source_matter_document_index_status === "complete"
+      && metrics.source_matter_document_index_phase_status === "complete"
+      && metrics.source_ldd_document_classification_status === "complete"
+      && metrics.source_ldd_document_classification_phase_status === "complete"
+      && metrics.source_contract_draft_workflow_status === "complete"
+      && metrics.source_contract_draft_workflow_phase_status === "complete"
+      && (metrics.provided_material_review_rule_count ?? 0) >= 6
+      && metrics.material_review_item_count === metrics.source_classification_record_count
+      && metrics.index_status_count === metrics.material_review_item_count
+      && metrics.material_with_index_status_count === metrics.material_review_item_count
+      && metrics.classification_bound_material_count === metrics.material_review_item_count
+      && metrics.gap_link_count === metrics.missing_or_requested_material_count
+      && metrics.missing_material_follow_up_count === metrics.gap_link_count
+      && metrics.review_gate_count === metrics.material_review_item_count
+      && metrics.material_with_review_gate_count === metrics.material_review_item_count
+      && metrics.attorney_review_required_material_count === metrics.material_review_item_count
+      && metrics.human_review_required_material_count === metrics.material_review_item_count
+      && metrics.client_facing_ready_count === 0
+      && metrics.final_review_decision_count === 0
+      && metrics.legal_conclusion_asserted_count === 0
+      && metrics.legal_advice_provided === false
+      && metrics.client_facing_output_generated === false
+      && metrics.desktop_boundary_status === "enforced"
+      && metrics.desktop_read_only === true
+      && metrics.desktop_mutation_allowed === false
+      && metrics.desktop_source_of_truth === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.runtime_execution_allowed === false
+      && metrics.delivery_execution_allowed === false
+      && metrics.protected_action_allowed === false
+      && metrics.client_facing_output_allowed_without_attorney_review === false
+      && metrics.failed_checkpoint_count === 0
+    ) {
+      return passedWithOperationalGate(stage, "Provided Material Review records material, index-status, gap-link, and attorney-review rows without final review decisions, legal/client-facing output, or state mutation.");
     }
   }
 

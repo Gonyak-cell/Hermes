@@ -146,6 +146,7 @@
     "connectors:kakaotalk-import-boundary": "node scripts/kakaotalk-import-boundary.mjs",
     "connectors:github": "node scripts/github-connector.mjs",
     "connectors:vdr": "node scripts/vdr-connector.mjs",
+    "connectors:plaud-transcript": "node scripts/plaud-transcript-connector.mjs",
     "dashboard:build": "node scripts/review-dashboard.mjs",
     "delivery:closeout": "node scripts/delivery-closeout-queue.mjs",
     "delivery:closeout:apply": "node scripts/delivery-closeout-receipt-application.mjs",

@@ -73,6 +73,7 @@ import { runOutlookEmailConnector } from "../src/outlook-email-connector.mjs";
 import { runKakaoTalkImportBoundary } from "../src/kakaotalk-import-boundary.mjs";
 import { runGitHubConnector } from "../src/github-connector.mjs";
 import { runVdrConnector } from "../src/vdr-connector.mjs";
+import { runPlaudTranscriptConnector } from "../src/plaud-transcript-connector.mjs";
 import { runLineageGraphBuilder } from "../src/lineage-graph-builder.mjs";
 import { runEvidenceViewerDataApi } from "../src/evidence-viewer-data-api.mjs";
 import { runEvidenceCoverageScore } from "../src/evidence-coverage-score.mjs";
@@ -1941,6 +1942,7 @@ describe("matter harness", () => {
         kakaotalkImportBoundaryPath: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
         githubConnectorPath: path.join(outDir, "github-connector", "github-connector.json"),
         vdrConnectorPath: path.join(outDir, "vdr-connector", "vdr-connector.json"),
+        plaudTranscriptConnectorPath: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
         gateApprovalContractFreezePath: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
         outputDeliveryContractFreezePath: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
         eventAuditRunContractFreezePath: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11159,6 +11161,77 @@ describe("matter harness", () => {
       assert.equal(vdrConnector.vdr_connector_boundary.vdr_api_execution_performed, false);
       assert.match(await readFile(path.join(outDir, "vdr-connector", "summary.md"), "utf8"), /VDR Connector/);
 
+      const plaudTranscriptConnector = await runPlaudTranscriptConnector({
+        connectorContractV2Path: path.join(outDir, "connector-contract-v2", "connector-contract-v2.json"),
+        vdrConnectorPath: path.join(outDir, "vdr-connector", "vdr-connector.json"),
+        normalizedTextContractPath: path.join(outDir, "normalized-text-contract", "normalized-text-contract.json"),
+        plaudInputs: ["examples/plaud-transcript-connector"],
+        outDir: path.join(outDir, "plaud-transcript-connector"),
+        runAt: "2026-05-23T07:15:24.000Z",
+      });
+      const plaudTranscriptConnectorSchema = JSON.parse(await readFile("schemas/plaud-transcript-connector.schema.json", "utf8"));
+      assert.deepEqual(validateAgainstSchema(plaudTranscriptConnector, plaudTranscriptConnectorSchema, {}, "plaud_transcript_connector"), [], JSON.stringify(plaudTranscriptConnector.validation.errors));
+      assert.equal(plaudTranscriptConnector.summary.plaud_transcript_connector_status, "complete");
+      assert.equal(plaudTranscriptConnector.summary.connector_id, "connector.plaud_transcript.v2");
+      assert.equal(plaudTranscriptConnector.summary.source_id, "source.plaud_transcript.v2");
+      assert.equal(plaudTranscriptConnector.summary.source_vdr_connector_status, "complete");
+      assert.equal(plaudTranscriptConnector.summary.source_normalized_text_contract_status, "complete");
+      assert.equal(plaudTranscriptConnector.summary.recording_count, 1);
+      assert.equal(plaudTranscriptConnector.summary.speaker_count, 3);
+      assert.equal(plaudTranscriptConnector.summary.segment_count, 4);
+      assert.equal(plaudTranscriptConnector.summary.audio_metadata_count, 1);
+      assert.equal(plaudTranscriptConnector.summary.normalized_text_record_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.timestamp_span_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.transcript_resource_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.audio_resource_count, plaudTranscriptConnector.summary.audio_metadata_count);
+      assert.equal(plaudTranscriptConnector.summary.resource_candidate_count, plaudTranscriptConnector.summary.segment_count + plaudTranscriptConnector.summary.audio_metadata_count);
+      assert.equal(plaudTranscriptConnector.summary.speaker_link_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.timestamp_range_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.normalized_text_speaker_tag_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.normalized_text_timestamp_tag_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.metadata_complete_segment_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnector.summary.metadata_complete_audio_count, plaudTranscriptConnector.summary.audio_metadata_count);
+      assert.equal(plaudTranscriptConnector.summary.cursor_status, "complete");
+      assert.equal(plaudTranscriptConnector.summary.cursor_resume_supported, true);
+      assert.equal(plaudTranscriptConnector.summary.raw_transcript_timestamp_cursor_material_allowed, false);
+      assert.equal(plaudTranscriptConnector.summary.auth_boundary_status, "enforced");
+      assert.equal(plaudTranscriptConnector.summary.auth_mode, "oauth_or_operator_export_readonly");
+      assert.equal(plaudTranscriptConnector.summary.credential_ref_required, false);
+      assert.equal(plaudTranscriptConnector.summary.credential_reference_only, true);
+      assert.equal(plaudTranscriptConnector.summary.raw_secret_material_allowed, false);
+      assert.equal(plaudTranscriptConnector.summary.external_network_access_required_for_runtime, false);
+      assert.equal(plaudTranscriptConnector.summary.local_export_read_performed, true);
+      assert.equal(plaudTranscriptConnector.summary.plaud_api_execution_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.external_network_access_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.connector_execution_performed, true);
+      assert.equal(plaudTranscriptConnector.summary.source_read_performed, true);
+      assert.equal(plaudTranscriptConnector.summary.credential_material_read, false);
+      assert.equal(plaudTranscriptConnector.summary.audio_download_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.source_mutation_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.resource_mutation_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.normalized_text_mutation_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.matter_data_write_allowed, false);
+      assert.equal(plaudTranscriptConnector.summary.task_state_write_allowed, false);
+      assert.equal(plaudTranscriptConnector.summary.workflow_transition_allowed, false);
+      assert.equal(plaudTranscriptConnector.summary.output_delivery_performed, false);
+      assert.equal(plaudTranscriptConnector.summary.protected_action_executed, false);
+      assert.equal(plaudTranscriptConnector.summary.legal_advice_generated, false);
+      assert.equal(plaudTranscriptConnector.summary.client_facing_output_generated, false);
+      assert.equal(plaudTranscriptConnector.summary.human_review_required_count, plaudTranscriptConnector.summary.resource_candidate_count);
+      assert.equal(plaudTranscriptConnector.summary.normalized_text_human_review_required_count, plaudTranscriptConnector.summary.normalized_text_record_count);
+      assert.equal(plaudTranscriptConnector.summary.validation_error_count, 0);
+      assert.ok(plaudTranscriptConnector.plaud_recording_records.every((record) => record.connector_id === "connector.plaud_transcript.v2" && record.source_id === "source.plaud_transcript.v2" && record.recording_status === "metadata_export_ready" && record.audio_download_performed === false && record.human_review_required));
+      assert.ok(plaudTranscriptConnector.plaud_speaker_records.every((record) => record.speaker_status === "identified_from_export" && record.human_review_required));
+      assert.ok(plaudTranscriptConnector.plaud_transcript_segment_records.every((record) => record.resource_type === "meeting_transcript" && record.segment_status === "resource_candidate_ready" && record.plaud_resource_status === "ready" && record.normalized_text_status === "stored" && record.timestamp_span_status === "bound" && record.speaker_link_status === "bound" && record.metadata_complete && record.human_review_required));
+      assert.ok(plaudTranscriptConnector.plaud_normalized_text_records.every((record) => record.normalized_text_status === "stored" && record.speaker_label_present && record.timestamp_range_present && record.human_review_required));
+      assert.ok(plaudTranscriptConnector.plaud_timestamp_span_records.every((record) => record.timestamp_span_status === "bound" && record.location_type === "timestamp_range" && record.offset_unit === "milliseconds" && record.human_review_required));
+      assert.ok(plaudTranscriptConnector.plaud_audio_metadata_records.every((record) => record.resource_type === "audio_metadata" && record.audio_metadata_status === "resource_candidate_ready" && record.plaud_resource_status === "ready" && record.audio_download_performed === false && record.human_review_required));
+      assert.equal(plaudTranscriptConnector.cursor_state.cursor_kind, "transcript_timestamp_cursor");
+      assert.equal(plaudTranscriptConnector.cursor_state.raw_transcript_timestamp_cursor_material_allowed, false);
+      assert.equal(plaudTranscriptConnector.auth_boundary.auth_mode, "oauth_or_operator_export_readonly");
+      assert.equal(plaudTranscriptConnector.plaud_connector_boundary.plaud_api_execution_performed, false);
+      assert.match(await readFile(path.join(outDir, "plaud-transcript-connector", "summary.md"), "utf8"), /Plaud Transcript Connector/);
+
       const evidencePlaneFreeze = await runEvidencePlaneFreeze({
         resourceStoreInterfacePath: path.join(outDir, "resource-store-interface", "resource-store-interface.json"),
         immutableObjectStoreLayoutPath: path.join(outDir, "immutable-object-store-layout", "immutable-object-store-layout.json"),
@@ -11356,6 +11429,7 @@ describe("matter harness", () => {
           kakaotalk_import_boundary: path.join(outDir, "kakaotalk-import-boundary", "kakaotalk-import-boundary.json"),
           github_connector: path.join(outDir, "github-connector", "github-connector.json"),
           vdr_connector: path.join(outDir, "vdr-connector", "vdr-connector.json"),
+          plaud_transcript_connector: path.join(outDir, "plaud-transcript-connector", "plaud-transcript-connector.json"),
           gate_approval_contract_freeze: path.join(outDir, "gate-approval-contract-freeze", "gate-approval-contract-freeze.json"),
           output_delivery_contract_freeze: path.join(outDir, "output-delivery-contract-freeze", "output-delivery-contract-freeze.json"),
           event_audit_run_contract_freeze: path.join(outDir, "event-audit-run-contract-freeze", "event-audit-run-contract-freeze.json"),
@@ -11407,8 +11481,8 @@ describe("matter harness", () => {
         [],
       );
       assert.equal(contractGoldenFixtures.summary.golden_fixture_status, "complete");
-      assert.equal(contractGoldenFixtures.summary.fixture_count, 175);
-      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 175);
+      assert.equal(contractGoldenFixtures.summary.fixture_count, 176);
+      assert.equal(contractGoldenFixtures.summary.required_fixture_count, 176);
       assert.equal(contractGoldenFixtures.summary.locked_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_valid_fixture_count, contractGoldenFixtures.summary.fixture_count);
       assert.equal(contractGoldenFixtures.summary.schema_invalid_fixture_count, 0);
@@ -11571,6 +11645,7 @@ describe("matter harness", () => {
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "kakaotalk_import_boundary"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "github_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "vdr_connector"));
+      assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "plaud_transcript_connector"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_envelope_ledger"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "event_type_registry"));
       assert.ok(contractGoldenFixtures.golden_fixtures.some((fixture) => fixture.fixture_id === "append_only_event_store"));
@@ -12435,6 +12510,10 @@ describe("matter harness", () => {
       assert.equal(vdrConnectorCheckpoint?.acceptance_profile, "vdr_connector_gate");
       assert.equal(vdrConnectorCheckpoint?.status, "passed");
       assert.equal(vdrConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
+      const plaudTranscriptConnectorCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-plaud-transcript-connector");
+      assert.equal(plaudTranscriptConnectorCheckpoint?.acceptance_profile, "plaud_transcript_connector_gate");
+      assert.equal(plaudTranscriptConnectorCheckpoint?.status, "passed");
+      assert.equal(plaudTranscriptConnectorCheckpoint?.implementation_status, "passed_with_operational_gate");
       const gateApprovalContractFreezeCheckpoint = controlPlaneGoalCheckpoint.checkpoint_items.find((item) => item.checkpoint_item_id === "control-plane-gate-approval-contract-freeze");
       assert.equal(gateApprovalContractFreezeCheckpoint?.acceptance_profile, "gate_approval_contract_freeze_gate");
       assert.equal(gateApprovalContractFreezeCheckpoint?.status, "passed");
@@ -16981,6 +17060,57 @@ describe("matter harness", () => {
       assert.equal(dashboard.summary.vdr_connector_human_review_required_count, vdrConnector.summary.human_review_required_count);
       assert.equal(dashboard.summary.vdr_connector_resource_expansion_human_review_required_count, vdrConnector.summary.resource_expansion_human_review_required_count);
       assert.equal(dashboard.summary.vdr_connector_validation_error_count, 0);
+      assert.equal(dashboard.summary.plaud_transcript_connector_status, "complete");
+      assert.equal(dashboard.summary.plaud_transcript_connector_connector_id, plaudTranscriptConnector.summary.connector_id);
+      assert.equal(dashboard.summary.plaud_transcript_connector_source_id, plaudTranscriptConnector.summary.source_id);
+      assert.equal(dashboard.summary.plaud_transcript_connector_source_vdr_connector_status, "complete");
+      assert.equal(dashboard.summary.plaud_transcript_connector_source_normalized_text_contract_status, "complete");
+      assert.equal(dashboard.summary.plaud_transcript_connector_recording_count, plaudTranscriptConnector.summary.recording_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_speaker_count, plaudTranscriptConnector.summary.speaker_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_segment_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_audio_metadata_count, plaudTranscriptConnector.summary.audio_metadata_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_normalized_text_record_count, plaudTranscriptConnector.summary.normalized_text_record_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_timestamp_span_count, plaudTranscriptConnector.summary.timestamp_span_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_transcript_resource_count, plaudTranscriptConnector.summary.transcript_resource_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_audio_resource_count, plaudTranscriptConnector.summary.audio_resource_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_resource_candidate_count, plaudTranscriptConnector.summary.resource_candidate_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_speaker_link_count, plaudTranscriptConnector.summary.speaker_link_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_timestamp_range_count, plaudTranscriptConnector.summary.timestamp_range_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_normalized_text_speaker_tag_count, plaudTranscriptConnector.summary.normalized_text_speaker_tag_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_normalized_text_timestamp_tag_count, plaudTranscriptConnector.summary.normalized_text_timestamp_tag_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_metadata_complete_segment_count, plaudTranscriptConnector.summary.metadata_complete_segment_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_metadata_complete_audio_count, plaudTranscriptConnector.summary.metadata_complete_audio_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_cursor_status, "complete");
+      assert.equal(dashboard.summary.plaud_transcript_connector_cursor_resume_supported, true);
+      assert.equal(dashboard.summary.plaud_transcript_connector_raw_transcript_timestamp_cursor_material_allowed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_auth_boundary_status, "enforced");
+      assert.equal(dashboard.summary.plaud_transcript_connector_auth_mode, "oauth_or_operator_export_readonly");
+      assert.equal(dashboard.summary.plaud_transcript_connector_credential_ref_required, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_credential_reference_only, true);
+      assert.equal(dashboard.summary.plaud_transcript_connector_raw_secret_material_allowed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_read_operations_allowed, true);
+      assert.equal(dashboard.summary.plaud_transcript_connector_write_operations_allowed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_external_network_access_required_for_runtime, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_local_export_read_performed, true);
+      assert.equal(dashboard.summary.plaud_transcript_connector_plaud_api_execution_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_external_network_access_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_connector_execution_performed, true);
+      assert.equal(dashboard.summary.plaud_transcript_connector_source_read_performed, true);
+      assert.equal(dashboard.summary.plaud_transcript_connector_credential_material_read, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_audio_download_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_source_mutation_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_resource_mutation_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_normalized_text_mutation_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_matter_data_write_allowed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_task_state_write_allowed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_workflow_transition_allowed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_output_delivery_performed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_protected_action_executed, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_legal_advice_generated, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_client_facing_output_generated, false);
+      assert.equal(dashboard.summary.plaud_transcript_connector_human_review_required_count, plaudTranscriptConnector.summary.human_review_required_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_normalized_text_human_review_required_count, plaudTranscriptConnector.summary.normalized_text_human_review_required_count);
+      assert.equal(dashboard.summary.plaud_transcript_connector_validation_error_count, 0);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_gate_result_count, gateApprovalContractFreeze.summary.gate_result_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_request_count, gateApprovalContractFreeze.summary.approval_request_count);
       assert.equal(dashboard.summary.gate_approval_contract_freeze_approval_decision_count, gateApprovalContractFreeze.summary.approval_decision_count);
@@ -19963,6 +20093,55 @@ describe("matter harness", () => {
       assert.equal(vdrConnectorStage?.metrics.human_review_required_count, vdrConnector.summary.human_review_required_count);
       assert.equal(vdrConnectorStage?.metrics.resource_expansion_human_review_required_count, vdrConnector.summary.resource_expansion_human_review_required_count);
       assert.equal(vdrConnectorStage?.metrics.validation_error_count, 0);
+      const plaudTranscriptConnectorStage = dashboard.stage_statuses.find((stage) => stage.stage_id === "plaud_transcript_connector");
+      assert.equal(plaudTranscriptConnectorStage?.status, "passed");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.plaud_transcript_connector_status, "complete");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.connector_id, plaudTranscriptConnector.summary.connector_id);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.source_id, plaudTranscriptConnector.summary.source_id);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.source_vdr_connector_status, "complete");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.source_normalized_text_contract_status, "complete");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.recording_count, plaudTranscriptConnector.summary.recording_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.speaker_count, plaudTranscriptConnector.summary.speaker_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.segment_count, plaudTranscriptConnector.summary.segment_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.audio_metadata_count, plaudTranscriptConnector.summary.audio_metadata_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.normalized_text_record_count, plaudTranscriptConnector.summary.normalized_text_record_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.timestamp_span_count, plaudTranscriptConnector.summary.timestamp_span_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.transcript_resource_count, plaudTranscriptConnector.summary.transcript_resource_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.audio_resource_count, plaudTranscriptConnector.summary.audio_resource_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.resource_candidate_count, plaudTranscriptConnector.summary.resource_candidate_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.speaker_link_count, plaudTranscriptConnector.summary.speaker_link_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.timestamp_range_count, plaudTranscriptConnector.summary.timestamp_range_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.normalized_text_speaker_tag_count, plaudTranscriptConnector.summary.normalized_text_speaker_tag_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.normalized_text_timestamp_tag_count, plaudTranscriptConnector.summary.normalized_text_timestamp_tag_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.metadata_complete_segment_count, plaudTranscriptConnector.summary.metadata_complete_segment_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.metadata_complete_audio_count, plaudTranscriptConnector.summary.metadata_complete_audio_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.cursor_status, "complete");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.cursor_resume_supported, true);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.raw_transcript_timestamp_cursor_material_allowed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.auth_boundary_status, "enforced");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.auth_mode, "oauth_or_operator_export_readonly");
+      assert.equal(plaudTranscriptConnectorStage?.metrics.credential_ref_required, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.credential_reference_only, true);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.raw_secret_material_allowed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.write_operations_allowed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.external_network_access_required_for_runtime, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.local_export_read_performed, true);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.plaud_api_execution_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.external_network_access_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.connector_execution_performed, true);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.source_read_performed, true);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.credential_material_read, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.audio_download_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.source_mutation_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.resource_mutation_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.normalized_text_mutation_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.output_delivery_performed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.protected_action_executed, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.legal_advice_generated, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.client_facing_output_generated, false);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.human_review_required_count, plaudTranscriptConnector.summary.human_review_required_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.normalized_text_human_review_required_count, plaudTranscriptConnector.summary.normalized_text_human_review_required_count);
+      assert.equal(plaudTranscriptConnectorStage?.metrics.validation_error_count, 0);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_read_only, true);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_execution_allowed, false);
       assert.equal(runtimeApiDashboardStage?.metrics.desktop_runtime_control_allowed, false);
@@ -22355,6 +22534,46 @@ describe("matter harness", () => {
       const vdrConnectorValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/vdr-connector-validations?status=passed", apiOptions)).body);
       assert.equal(vdrConnectorValidationsResponse.collection, "vdr_connector_validations");
       assert.equal(vdrConnectorValidationsResponse.count, vdrConnector.summary.validation_item_count);
+
+      const plaudTranscriptConnectorResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-transcript-connector?plaud_transcript_connector_status=complete", apiOptions)).body);
+      assert.equal(plaudTranscriptConnectorResponse.collection, "plaud_transcript_connector");
+      assert.equal(plaudTranscriptConnectorResponse.count, 1);
+
+      const plaudRecordingsResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-recordings?plaud_recording_status=metadata_export_ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(plaudRecordingsResponse.collection, "plaud_recordings");
+      assert.equal(plaudRecordingsResponse.count, plaudTranscriptConnector.summary.recording_count);
+
+      const plaudSpeakersResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-speakers?plaud_speaker_status=identified_from_export&review_status=needs_review", apiOptions)).body);
+      assert.equal(plaudSpeakersResponse.collection, "plaud_speakers");
+      assert.equal(plaudSpeakersResponse.count, plaudTranscriptConnector.summary.speaker_count);
+
+      const plaudSegmentsResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-transcript-segments?plaud_segment_status=resource_candidate_ready&plaud_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(plaudSegmentsResponse.collection, "plaud_transcript_segments");
+      assert.equal(plaudSegmentsResponse.count, plaudTranscriptConnector.summary.segment_count);
+
+      const plaudNormalizedTextsResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-normalized-texts?plaud_normalized_text_status=stored&review_status=needs_review", apiOptions)).body);
+      assert.equal(plaudNormalizedTextsResponse.collection, "plaud_normalized_texts");
+      assert.equal(plaudNormalizedTextsResponse.count, plaudTranscriptConnector.summary.normalized_text_record_count);
+
+      const plaudTimestampSpansResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-timestamp-spans?plaud_timestamp_span_status=bound&review_status=needs_review", apiOptions)).body);
+      assert.equal(plaudTimestampSpansResponse.collection, "plaud_timestamp_spans");
+      assert.equal(plaudTimestampSpansResponse.count, plaudTranscriptConnector.summary.timestamp_span_count);
+
+      const plaudAudioMetadataResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-audio-metadata?plaud_audio_metadata_status=resource_candidate_ready&plaud_resource_status=ready&review_status=needs_review", apiOptions)).body);
+      assert.equal(plaudAudioMetadataResponse.collection, "plaud_audio_metadata");
+      assert.equal(plaudAudioMetadataResponse.count, plaudTranscriptConnector.summary.audio_metadata_count);
+
+      const plaudCursorResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-cursor?cursor_status=complete", apiOptions)).body);
+      assert.equal(plaudCursorResponse.collection, "plaud_cursor");
+      assert.equal(plaudCursorResponse.count, 1);
+
+      const plaudAuthBoundaryResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true", apiOptions)).body);
+      assert.equal(plaudAuthBoundaryResponse.collection, "plaud_auth_boundary");
+      assert.equal(plaudAuthBoundaryResponse.count, 1);
+
+      const plaudTranscriptValidationsResponse = JSON.parse((await buildReviewApiResponse("/api/plaud-transcript-validations?status=passed", apiOptions)).body);
+      assert.equal(plaudTranscriptValidationsResponse.collection, "plaud_transcript_validations");
+      assert.equal(plaudTranscriptValidationsResponse.count, plaudTranscriptConnector.summary.validation_item_count);
 
       const matterOsProfileArtifactsResponse = JSON.parse((await buildReviewApiResponse("/api/matter-os-profile-artifacts?matter_os_profile_status=complete", apiOptions)).body);
       assert.equal(matterOsProfileArtifactsResponse.collection, "matter_os_profile_artifacts");

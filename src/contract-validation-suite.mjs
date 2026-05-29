@@ -155,6 +155,7 @@ const REQUIRED_PACKAGE_SCRIPTS = [
   "connectors:kakaotalk-import-boundary",
   "connectors:github",
   "connectors:vdr",
+  "connectors:plaud-transcript",
   "personal-dev:instructions",
   "personal-dev:issue-intake",
   "personal-dev:plan-request",

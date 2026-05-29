@@ -1,0 +1,252 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hermes.local/schemas/plaud-transcript-connector.schema.json",
+  "title": "Plaud Transcript Connector",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "plaud_transcript_connector_id",
+    "connector_id",
+    "connector_status",
+    "connector_contract_binding",
+    "source_binding",
+    "auth_boundary",
+    "plaud_recording_records",
+    "plaud_speaker_records",
+    "plaud_transcript_segment_records",
+    "plaud_normalized_text_records",
+    "plaud_timestamp_span_records",
+    "plaud_audio_metadata_records",
+    "cursor_state",
+    "plaud_connector_boundary",
+    "validation_items",
+    "validation",
+    "summary"
+  ],
+  "properties": {
+    "schema_version": { "const": "plaud-transcript-connector.v1" },
+    "generated_at": { "type": "string" },
+    "plaud_transcript_connector_id": { "type": "string" },
+    "connector_id": { "const": "connector.plaud_transcript.v2" },
+    "connector_status": { "const": "complete" },
+    "output_dir": { "type": "string" },
+    "inputs": { "type": "object" },
+    "connector_contract_binding": {
+      "type": "object",
+      "required": ["binding_status", "connector_id", "source_id", "phase_slot"],
+      "properties": {
+        "binding_status": { "const": "bound" },
+        "connector_id": { "const": "connector.plaud_transcript.v2" },
+        "source_id": { "const": "source.plaud_transcript.v2" },
+        "phase_slot": { "const": "P274" }
+      },
+      "additionalProperties": true
+    },
+    "source_binding": {
+      "type": "object",
+      "required": ["source_binding_status", "source_system", "source_kind", "recording_count"],
+      "properties": {
+        "source_binding_status": { "const": "bound" },
+        "source_system": { "const": "plaud" },
+        "source_kind": { "const": "transcript_export" },
+        "recording_count": { "type": "integer", "minimum": 1 }
+      },
+      "additionalProperties": true
+    },
+    "auth_boundary": {
+      "type": "object",
+      "required": [
+        "auth_boundary_status",
+        "auth_mode",
+        "credential_ref_required",
+        "credential_reference_only",
+        "raw_secret_material_allowed",
+        "external_network_access_required_for_runtime",
+        "write_operations_allowed"
+      ],
+      "properties": {
+        "auth_boundary_status": { "const": "enforced" },
+        "auth_mode": { "const": "oauth_or_operator_export_readonly" },
+        "credential_ref_required": { "const": false },
+        "credential_reference_only": { "const": true },
+        "raw_secret_material_allowed": { "const": false },
+        "external_network_access_required_for_runtime": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "plaud_api_execution_performed": { "const": false },
+        "write_operations_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "plaud_recording_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["recording_id", "recording_status", "human_review_required"],
+        "properties": {
+          "recording_status": { "const": "metadata_export_ready" },
+          "human_review_required": { "const": true },
+          "audio_download_performed": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "plaud_speaker_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["speaker_id", "speaker_name", "speaker_status", "human_review_required"],
+        "properties": {
+          "speaker_status": { "const": "identified_from_export" },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "plaud_transcript_segment_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["resource_type", "segment_status", "plaud_resource_status", "normalized_text_status", "timestamp_span_status", "speaker_link_status", "metadata_complete", "human_review_required"],
+        "properties": {
+          "resource_type": { "const": "meeting_transcript" },
+          "segment_status": { "const": "resource_candidate_ready" },
+          "plaud_resource_status": { "const": "ready" },
+          "normalized_text_status": { "const": "stored" },
+          "timestamp_span_status": { "const": "bound" },
+          "speaker_link_status": { "const": "bound" },
+          "metadata_complete": { "const": true },
+          "human_review_required": { "const": true },
+          "legal_advice_generated": { "const": false },
+          "client_facing_output_generated": { "const": false }
+        },
+        "additionalProperties": true
+      }
+    },
+    "plaud_normalized_text_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["normalized_text_status", "speaker_label_present", "timestamp_range_present", "human_review_required"],
+        "properties": {
+          "normalized_text_status": { "const": "stored" },
+          "speaker_label_present": { "const": true },
+          "timestamp_range_present": { "const": true },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "plaud_timestamp_span_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["timestamp_span_status", "location_type", "offset_unit", "human_review_required"],
+        "properties": {
+          "timestamp_span_status": { "const": "bound" },
+          "location_type": { "const": "timestamp_range" },
+          "offset_unit": { "const": "milliseconds" },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "plaud_audio_metadata_records": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["resource_type", "audio_metadata_status", "plaud_resource_status", "metadata_complete", "audio_download_performed", "human_review_required"],
+        "properties": {
+          "resource_type": { "const": "audio_metadata" },
+          "audio_metadata_status": { "const": "resource_candidate_ready" },
+          "plaud_resource_status": { "const": "ready" },
+          "metadata_complete": { "const": true },
+          "audio_download_performed": { "const": false },
+          "human_review_required": { "const": true }
+        },
+        "additionalProperties": true
+      }
+    },
+    "cursor_state": {
+      "type": "object",
+      "required": ["cursor_status", "cursor_kind", "resume_supported", "raw_transcript_timestamp_cursor_material_allowed"],
+      "properties": {
+        "cursor_status": { "const": "complete" },
+        "cursor_kind": { "const": "transcript_timestamp_cursor" },
+        "resume_supported": { "const": true },
+        "raw_transcript_timestamp_cursor_material_allowed": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "plaud_connector_boundary": {
+      "type": "object",
+      "required": ["boundary_status", "local_export_read_performed", "plaud_api_execution_performed", "audio_download_performed", "source_mutation_performed", "resource_mutation_performed", "normalized_text_mutation_performed", "legal_advice_generated", "client_facing_output_generated"],
+      "properties": {
+        "boundary_status": { "const": "enforced" },
+        "local_export_read_performed": { "const": true },
+        "plaud_api_execution_performed": { "const": false },
+        "external_network_access_performed": { "const": false },
+        "credential_material_read": { "const": false },
+        "audio_download_performed": { "const": false },
+        "source_mutation_performed": { "const": false },
+        "resource_mutation_performed": { "const": false },
+        "normalized_text_mutation_performed": { "const": false },
+        "matter_data_write_allowed": { "const": false },
+        "task_state_write_allowed": { "const": false },
+        "workflow_transition_allowed": { "const": false },
+        "output_delivery_performed": { "const": false },
+        "protected_action_executed": { "const": false },
+        "legal_advice_generated": { "const": false },
+        "client_facing_output_generated": { "const": false }
+      },
+      "additionalProperties": true
+    },
+    "validation_items": { "type": "array", "minItems": 1 },
+    "validation": {
+      "type": "object",
+      "required": ["valid", "error_count"],
+      "properties": {
+        "valid": { "const": true },
+        "error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    },
+    "summary": {
+      "type": "object",
+      "required": [
+        "plaud_transcript_connector_status",
+        "source_vdr_connector_status",
+        "source_normalized_text_contract_status",
+        "recording_count",
+        "speaker_count",
+        "segment_count",
+        "normalized_text_record_count",
+        "timestamp_span_count",
+        "audio_metadata_count",
+        "resource_candidate_count",
+        "validation_error_count"
+      ],
+      "properties": {
+        "plaud_transcript_connector_status": { "const": "complete" },
+        "source_vdr_connector_status": { "const": "complete" },
+        "source_normalized_text_contract_status": { "const": "complete" },
+        "recording_count": { "type": "integer", "minimum": 1 },
+        "speaker_count": { "type": "integer", "minimum": 1 },
+        "segment_count": { "type": "integer", "minimum": 1 },
+        "normalized_text_record_count": { "type": "integer", "minimum": 1 },
+        "timestamp_span_count": { "type": "integer", "minimum": 1 },
+        "audio_metadata_count": { "type": "integer", "minimum": 1 },
+        "resource_candidate_count": { "type": "integer", "minimum": 1 },
+        "validation_error_count": { "const": 0 }
+      },
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": true
+}

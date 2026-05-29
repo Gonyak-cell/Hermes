@@ -146,6 +146,7 @@ const GOAL_ITEMS = [
   sourceItem("kakaotalk_import_boundary", "KakaoTalk Import Boundary", "connectors", "kakaotalk_import_boundary", "control-plane-kakaotalk-import-boundary", { acceptance_profile: "kakaotalk_import_boundary_gate" }),
   sourceItem("github_connector", "GitHub Connector", "connectors", "github_connector", "control-plane-github-connector", { acceptance_profile: "github_connector_gate" }),
   sourceItem("vdr_connector", "VDR Connector", "connectors", "vdr_connector", "control-plane-vdr-connector", { acceptance_profile: "vdr_connector_gate" }),
+  sourceItem("plaud_transcript_connector", "Plaud Transcript Connector", "connectors", "plaud_transcript_connector", "control-plane-plaud-transcript-connector", { acceptance_profile: "plaud_transcript_connector_gate" }),
   sourceItem("gate_approval_contract_freeze", "Gate result and human approval v2 contract freeze", "gate_approval", "gate_approval_contract_freeze", "control-plane-gate-approval-contract-freeze", { acceptance_profile: "gate_approval_contract_freeze_gate" }),
   sourceItem("output_delivery_contract_freeze", "Output artifact and protected delivery v2 contract freeze", "delivery", "output_delivery_contract_freeze", "control-plane-output-delivery-contract-freeze", { acceptance_profile: "output_delivery_contract_freeze_gate" }),
   sourceItem("event_audit_run_contract_freeze", "Event, audit, and run ledger v2 contract freeze", "audit", "event_audit_run_contract_freeze", "control-plane-event-audit-run-contract-freeze", { acceptance_profile: "event_audit_run_contract_freeze_gate" }),
@@ -651,6 +652,7 @@ function evaluateStageAcceptance(item, stage) {
     "kakaotalk_import_boundary_gate",
     "github_connector_gate",
     "vdr_connector_gate",
+    "plaud_transcript_connector_gate",
   ]);
   if (directStatus === "passed" && !evaluateProfileWhenPassed.has(item.acceptance_profile)) {
     return {
@@ -5146,6 +5148,60 @@ function evaluateStageAcceptance(item, stage) {
       && metrics.resource_expansion_human_review_required_count === metrics.resource_expansion_seed_count
     ) {
       return passedWithOperationalGate(stage, "VDR Connector projects operator-provided room index, document metadata, permission boundaries, and resource expansion seeds into review-gated candidates without live VDR API calls, network access, credential reads, document downloads, mutation, delivery, legal advice, or client-facing output.");
+    }
+  }
+
+  if (item.acceptance_profile === "plaud_transcript_connector_gate") {
+    if (
+      metrics.validation_error_count === 0
+      && metrics.plaud_transcript_connector_status === "complete"
+      && metrics.source_vdr_connector_status === "complete"
+      && metrics.source_normalized_text_contract_status === "complete"
+      && metrics.recording_count > 0
+      && metrics.speaker_count > 0
+      && metrics.segment_count > 0
+      && metrics.audio_metadata_count > 0
+      && metrics.normalized_text_record_count === metrics.segment_count
+      && metrics.timestamp_span_count === metrics.segment_count
+      && metrics.transcript_resource_count === metrics.segment_count
+      && metrics.audio_resource_count === metrics.audio_metadata_count
+      && metrics.resource_candidate_count === metrics.segment_count + metrics.audio_metadata_count
+      && metrics.speaker_link_count === metrics.segment_count
+      && metrics.timestamp_range_count === metrics.segment_count
+      && metrics.normalized_text_speaker_tag_count === metrics.segment_count
+      && metrics.normalized_text_timestamp_tag_count === metrics.segment_count
+      && metrics.metadata_complete_segment_count === metrics.segment_count
+      && metrics.metadata_complete_audio_count === metrics.audio_metadata_count
+      && metrics.cursor_status === "complete"
+      && metrics.cursor_resume_supported === true
+      && metrics.raw_transcript_timestamp_cursor_material_allowed === false
+      && metrics.auth_boundary_status === "enforced"
+      && metrics.credential_ref_required === false
+      && metrics.credential_reference_only === true
+      && metrics.raw_secret_material_allowed === false
+      && metrics.write_operations_allowed === false
+      && metrics.external_network_access_required_for_runtime === false
+      && metrics.local_export_read_performed === true
+      && metrics.plaud_api_execution_performed === false
+      && metrics.external_network_access_performed === false
+      && metrics.connector_execution_performed === true
+      && metrics.source_read_performed === true
+      && metrics.credential_material_read === false
+      && metrics.audio_download_performed === false
+      && metrics.source_mutation_performed === false
+      && metrics.resource_mutation_performed === false
+      && metrics.normalized_text_mutation_performed === false
+      && metrics.matter_data_write_allowed === false
+      && metrics.task_state_write_allowed === false
+      && metrics.workflow_transition_allowed === false
+      && metrics.output_delivery_performed === false
+      && metrics.protected_action_executed === false
+      && metrics.legal_advice_generated === false
+      && metrics.client_facing_output_generated === false
+      && metrics.human_review_required_count === metrics.resource_candidate_count
+      && metrics.normalized_text_human_review_required_count === metrics.normalized_text_record_count
+    ) {
+      return passedWithOperationalGate(stage, "Plaud Transcript Connector projects operator-provided recording, speaker, timestamp, transcript, normalized text, and audio metadata rows into review-gated candidates without live Plaud API calls, network access, credential reads, audio downloads, mutation, delivery, legal advice, or client-facing output.");
     }
   }
 

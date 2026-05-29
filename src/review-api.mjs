@@ -5387,6 +5387,76 @@ export async function buildReviewApiResponse(requestUrl = "/", options = {}) {
     }
     return jsonResponse(200, buildCollectionResponse("vdr_connector_validations", vdrResult.artifact.validation_items ?? [], url, generatedAt), method);
   }
+  if (pathname === "/api/plaud-transcript-connector") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_transcript_connector", [plaudResult.artifact], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-recordings") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_recordings", plaudResult.artifact.plaud_recording_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-speakers") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_speakers", plaudResult.artifact.plaud_speaker_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-transcript-segments") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_transcript_segments", plaudResult.artifact.plaud_transcript_segment_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-normalized-texts") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_normalized_texts", plaudResult.artifact.plaud_normalized_text_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-timestamp-spans") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_timestamp_spans", plaudResult.artifact.plaud_timestamp_span_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-audio-metadata") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_audio_metadata", plaudResult.artifact.plaud_audio_metadata_records ?? [], url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-cursor") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_cursor", [plaudResult.artifact.cursor_state].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-auth-boundary") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_auth_boundary", [plaudResult.artifact.auth_boundary].filter(Boolean), url, generatedAt), method);
+  }
+  if (pathname === "/api/plaud-transcript-validations") {
+    const plaudResult = await readDashboardSourceArtifact(dashboard, "plaud_transcript_connector");
+    if (!plaudResult.available) {
+      return jsonResponse(503, buildError("plaud_transcript_connector_unavailable", plaudResult.error), method);
+    }
+    return jsonResponse(200, buildCollectionResponse("plaud_transcript_validations", plaudResult.artifact.validation_items ?? [], url, generatedAt), method);
+  }
   if (pathname === "/api/matter-os-profile-artifacts") {
     const matterOsProfileResult = await readDashboardSourceArtifact(dashboard, "matter_os_profile");
     if (!matterOsProfileResult.available) {
@@ -11761,6 +11831,16 @@ function buildRouteIndex(options, generatedAt) {
       route("GET", "/api/vdr-cursor", "VDR connector cursor state"),
       route("GET", "/api/vdr-auth-boundary", "VDR connector auth boundary"),
       route("GET", "/api/vdr-connector-validations", "VDR Connector validation rows"),
+      route("GET", "/api/plaud-transcript-connector", "Plaud Transcript Connector artifact"),
+      route("GET", "/api/plaud-recordings", "Plaud recording metadata rows"),
+      route("GET", "/api/plaud-speakers", "Plaud speaker rows"),
+      route("GET", "/api/plaud-transcript-segments", "Plaud transcript segment rows"),
+      route("GET", "/api/plaud-normalized-texts", "Plaud normalized text rows"),
+      route("GET", "/api/plaud-timestamp-spans", "Plaud timestamp span rows"),
+      route("GET", "/api/plaud-audio-metadata", "Plaud audio metadata rows"),
+      route("GET", "/api/plaud-cursor", "Plaud transcript cursor state"),
+      route("GET", "/api/plaud-auth-boundary", "Plaud connector auth boundary"),
+      route("GET", "/api/plaud-transcript-validations", "Plaud Transcript Connector validation rows"),
       route("GET", "/api/matter-os-profile-artifacts", "Matter OS profile artifact"),
       route("GET", "/api/matter-os-profiles", "Matter OS profile card rows"),
       route("GET", "/api/matter-os-display-fields", "Matter OS profile display field rows"),
@@ -12855,6 +12935,14 @@ function filterItems(items, searchParams) {
     "vdr_resource_expansion_seed_status",
     "vdr_resource_status",
     "resource_expansion_seed_status",
+    "plaud_transcript_connector_status",
+    "plaud_recording_status",
+    "plaud_speaker_status",
+    "plaud_segment_status",
+    "plaud_normalized_text_status",
+    "plaud_timestamp_span_status",
+    "plaud_audio_metadata_status",
+    "plaud_resource_status",
     "thread_status",
     "email_resource_status",
     "chat_resource_status",
@@ -14682,6 +14770,14 @@ function readFilterValue(item, key) {
   if (key === "vdr_resource_expansion_seed_status") return item.resource_expansion_seed_status;
   if (key === "vdr_resource_status") return item.vdr_resource_status;
   if (key === "resource_expansion_seed_status") return item.resource_expansion_seed_status;
+  if (key === "plaud_transcript_connector_status") return item.summary?.plaud_transcript_connector_status ?? item.connector_status ?? item.plaud_transcript_connector_status;
+  if (key === "plaud_recording_status") return item.recording_status;
+  if (key === "plaud_speaker_status") return item.speaker_status;
+  if (key === "plaud_segment_status") return item.segment_status;
+  if (key === "plaud_normalized_text_status") return item.normalized_text_status;
+  if (key === "plaud_timestamp_span_status") return item.timestamp_span_status;
+  if (key === "plaud_audio_metadata_status") return item.audio_metadata_status;
+  if (key === "plaud_resource_status") return item.plaud_resource_status;
   if (key === "thread_status") return item.thread_status;
   if (key === "email_resource_status") return item.email_resource_status;
   if (key === "chat_resource_status") return item.chat_resource_status;

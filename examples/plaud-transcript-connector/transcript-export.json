@@ -1,0 +1,73 @@
+{
+  "schema_version": "plaud-transcript-export.v1",
+  "tenant_id": "tenant.hermes.plaud.demo",
+  "matter_id": "MNA-2026-ALPHA",
+  "policy_snapshot_id": "policy.plaud_transcript.default.v1",
+  "classification": "restricted",
+  "recording_id": "plaud-rec-alpha-001",
+  "recording_title": "Project Alpha disclosure schedule call",
+  "recorded_at": "2026-05-21T09:30:00.000Z",
+  "duration_seconds": 612,
+  "language": "en-US",
+  "audio": {
+    "file_name": "plaud-rec-alpha-001.m4a",
+    "format": "m4a",
+    "duration_seconds": 612,
+    "size_bytes": 18432000,
+    "checksum": "sha256:17c9a08e7249920c34b8a1fb1a7e6be75121d7e2c5a2e0657f2ef233e05e4b43"
+  },
+  "speakers": [
+    {
+      "speaker_id": "spk-buyer-counsel",
+      "speaker_name": "Buyer Counsel",
+      "speaker_role": "counsel",
+      "confidence": 0.98
+    },
+    {
+      "speaker_id": "spk-seller-cfo",
+      "speaker_name": "Seller CFO",
+      "speaker_role": "business_owner",
+      "confidence": 0.96
+    },
+    {
+      "speaker_id": "spk-diligence-lead",
+      "speaker_name": "Diligence Lead",
+      "speaker_role": "deal_team",
+      "confidence": 0.97
+    }
+  ],
+  "segments": [
+    {
+      "speaker_segment_id": "seg-001",
+      "speaker_id": "spk-buyer-counsel",
+      "start_ms": 4200,
+      "end_ms": 11900,
+      "text": "Please confirm whether the indemnity exceptions in the disclosure schedule are final.",
+      "confidence": 0.94
+    },
+    {
+      "speaker_segment_id": "seg-002",
+      "speaker_id": "spk-seller-cfo",
+      "start_ms": 12100,
+      "end_ms": 23200,
+      "text": "The tax item is final, but the employment matter still needs a revised attachment from HR.",
+      "confidence": 0.93
+    },
+    {
+      "speaker_segment_id": "seg-003",
+      "speaker_id": "spk-diligence-lead",
+      "start_ms": 24100,
+      "end_ms": 35400,
+      "text": "We will track that HR attachment as an open diligence item and keep it out of client-facing output until attorney review.",
+      "confidence": 0.95
+    },
+    {
+      "speaker_segment_id": "seg-004",
+      "speaker_id": "spk-buyer-counsel",
+      "start_ms": 36600,
+      "end_ms": 45200,
+      "text": "Mark the follow-up as privileged work product and route it through the review queue.",
+      "confidence": 0.92
+    }
+  ]
+}

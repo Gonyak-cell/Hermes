@@ -2476,6 +2476,46 @@ try {
   assert.equal(vdrConnectorValidations.collection, "vdr_connector_validations");
   assert.ok(vdrConnectorValidations.count <= 5);
 
+  const plaudConnector = await fetchJson(`${url}/api/plaud-transcript-connector?plaud_transcript_connector_status=complete&limit=1`);
+  assert.equal(plaudConnector.collection, "plaud_transcript_connector");
+  assert.ok(plaudConnector.count <= 1);
+
+  const plaudRecordings = await fetchJson(`${url}/api/plaud-recordings?plaud_recording_status=metadata_export_ready&review_status=needs_review&limit=5`);
+  assert.equal(plaudRecordings.collection, "plaud_recordings");
+  assert.ok(plaudRecordings.count <= 5);
+
+  const plaudSpeakers = await fetchJson(`${url}/api/plaud-speakers?plaud_speaker_status=identified_from_export&review_status=needs_review&limit=5`);
+  assert.equal(plaudSpeakers.collection, "plaud_speakers");
+  assert.ok(plaudSpeakers.count <= 5);
+
+  const plaudSegments = await fetchJson(`${url}/api/plaud-transcript-segments?plaud_segment_status=resource_candidate_ready&plaud_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(plaudSegments.collection, "plaud_transcript_segments");
+  assert.ok(plaudSegments.count <= 5);
+
+  const plaudNormalizedTexts = await fetchJson(`${url}/api/plaud-normalized-texts?plaud_normalized_text_status=stored&review_status=needs_review&limit=5`);
+  assert.equal(plaudNormalizedTexts.collection, "plaud_normalized_texts");
+  assert.ok(plaudNormalizedTexts.count <= 5);
+
+  const plaudTimestampSpans = await fetchJson(`${url}/api/plaud-timestamp-spans?plaud_timestamp_span_status=bound&review_status=needs_review&limit=5`);
+  assert.equal(plaudTimestampSpans.collection, "plaud_timestamp_spans");
+  assert.ok(plaudTimestampSpans.count <= 5);
+
+  const plaudAudioMetadata = await fetchJson(`${url}/api/plaud-audio-metadata?plaud_audio_metadata_status=resource_candidate_ready&plaud_resource_status=ready&review_status=needs_review&limit=5`);
+  assert.equal(plaudAudioMetadata.collection, "plaud_audio_metadata");
+  assert.ok(plaudAudioMetadata.count <= 5);
+
+  const plaudCursor = await fetchJson(`${url}/api/plaud-cursor?cursor_status=complete&limit=1`);
+  assert.equal(plaudCursor.collection, "plaud_cursor");
+  assert.ok(plaudCursor.count <= 1);
+
+  const plaudAuthBoundary = await fetchJson(`${url}/api/plaud-auth-boundary?auth_boundary_status=enforced&credential_reference_only=true&limit=1`);
+  assert.equal(plaudAuthBoundary.collection, "plaud_auth_boundary");
+  assert.ok(plaudAuthBoundary.count <= 1);
+
+  const plaudValidations = await fetchJson(`${url}/api/plaud-transcript-validations?status=passed&limit=5`);
+  assert.equal(plaudValidations.collection, "plaud_transcript_validations");
+  assert.ok(plaudValidations.count <= 5);
+
   const matterOsProfileArtifacts = await fetchJson(`${url}/api/matter-os-profile-artifacts?matter_os_profile_status=complete&limit=1`);
   assert.equal(matterOsProfileArtifacts.collection, "matter_os_profile_artifacts");
   assert.ok(matterOsProfileArtifacts.count <= 1);
